@@ -1,0 +1,382 @@
+
+
+/* RC663 — scalable library detail and plan sheet. */
+.book-detail-shell.book-detail-sheet[data-library-detail-shell="rc663"]{
+  position:fixed;
+  inset:0;
+  z-index:650;
+  display:grid;
+  align-items:center;
+  justify-items:center;
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:16px;
+  box-sizing:border-box;
+  overflow:hidden;
+  isolation:isolate;
+}
+.book-detail-sheet .book-sheet-backdrop{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:rgba(20,24,33,.42);
+  backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
+  cursor:default;
+}
+.book-detail-sheet .book-modal.book-detail-panel{
+  position:relative;
+  z-index:1;
+  width:min(990px,calc(100vw - 32px));
+  max-width:990px;
+  max-height:min(840px,calc(100dvh - 32px));
+  min-height:0;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  overflow:hidden;
+  border-radius:26px;
+  background:linear-gradient(120deg,color-mix(in srgb,var(--c,#1d4ed8) 7%,#faf7ef),#faf7ef 54%,#f8f4ea);
+  border:1px solid #ddd6c8;
+  box-shadow:0 28px 80px rgba(18,20,28,.34);
+  touch-action:none;
+}
+.book-detail-sheet .book-modal-head{
+  position:relative;
+  top:auto;
+  z-index:2;
+  background:rgba(250,247,239,.97);
+  border-bottom:1px solid #ddd6c8;
+}
+.book-detail-sheet .book-modal-body{
+  min-height:0;
+  max-height:none;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+}
+body.learnit-modal-scroll-lock .route-panel.is-active{
+  overflow:hidden!important;
+  overscroll-behavior:none;
+  touch-action:none;
+}
+body.learnit-modal-scroll-lock .book-detail-sheet .book-modal-body{
+  touch-action:pan-y;
+}
+@media (max-width:760px), (hover:none) and (pointer:coarse){
+  .book-detail-shell.book-detail-sheet[data-library-detail-shell="rc663"]{
+    align-items:end;
+    padding:6px 0 0;
+  }
+  .book-detail-sheet .book-modal.book-detail-panel{
+    width:100%;
+    max-width:none;
+    max-height:calc(100dvh - 6px);
+    border-radius:24px 24px 0 0;
+    border-bottom:0;
+  }
+  .book-detail-sheet .book-modal-body{
+    padding-bottom:calc(16px + var(--safe-bottom,0px));
+  }
+}
+
+.route-carousel-viewport[data-scroll-contract="rc487"] .route-panel[data-scroll-owner="route-panel"]{
+  overscroll-behavior-y:contain;
+}
+.route-carousel-viewport[data-scroll-contract="rc487"] .route-panel.is-active[data-scroll-owner="route-panel"]{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+}
+.route-carousel-viewport [data-route-swipe-exclusion="content"],
+.route-carousel-viewport [data-content-scroll-surface]{
+  touch-action:pan-y;
+  overscroll-behavior-y:auto;
+}
+.route-carousel-viewport [data-route-swipe-exclusion="content"] :where(button,a,[role="button"],summary,label){
+  touch-action:manipulation;
+}
+
+
+/* RC688 — desktop wheel/trackpad contract.
+   On fine-pointer devices the browser document is the only vertical scroll owner.
+   Route panels stay structural carousel items but never trap wheel events. */
+@media (hover:hover) and (pointer:fine){
+  .route-carousel-viewport[data-desktop-scroll-contract="rc688-window-owner"] .route-carousel-track{
+    align-items:flex-start;
+  }
+  .route-carousel-viewport[data-desktop-scroll-contract="rc688-window-owner"] .route-panel[data-desktop-scroll-owner="window"]{
+    align-self:flex-start;
+    overflow:visible!important;
+    overscroll-behavior-y:auto!important;
+    touch-action:auto;
+  }
+  .route-carousel-viewport[data-desktop-scroll-contract="rc688-window-owner"]:not(.route-carousel-gesture):not(.route-carousel-animating) .route-panel.is-inactive[data-desktop-scroll-owner="window"]{
+    height:0;
+    min-height:0;
+    overflow:visible!important;
+  }
+}
+
+.activity-delta-minimal .activity-qcm .choice{
+  display:grid;
+  grid-template-columns:20px minmax(0,1fr);
+  align-items:center;
+  gap:10px;
+}
+.activity-delta-minimal .activity-qcm .choice::before{
+  content:'';
+  width:16px;
+  height:16px;
+  border:2px solid #a7b0bf;
+  border-radius:999px;
+  background:#fff;
+  box-shadow:inset 0 0 0 4px #fff;
+}
+.activity-delta-minimal .activity-qcm .choice.selected::before{
+  border-color:var(--primary);
+  background:var(--primary);
+}
+.activity-delta-minimal .activity-qcm .choice.correct::before{
+  content:'✓';
+  display:grid;
+  place-items:center;
+  border-color:#16a34a;
+  background:#16a34a;
+  color:#fff;
+  box-shadow:none;
+  font-size:11px;
+  font-weight:950;
+  line-height:1;
+}
+.activity-delta-minimal .activity-qcm .choice.wrong::before{
+  content:'×';
+  display:grid;
+  place-items:center;
+  border-color:#dc2626;
+  background:#dc2626;
+  color:#fff;
+  box-shadow:none;
+  font-size:12px;
+  font-weight:950;
+  line-height:1;
+}
+@media (hover:none), (pointer:coarse){
+  .activity-delta-minimal .activity-qcm .choice:hover{
+  border-color:var(--activity-line);
+  background:#fffdf8;
+  transform:none;
+  box-shadow:none;
+  }
+  .activity-delta-minimal .activity-qcm .choice.selected:hover{
+  background:#f4f7ff;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(29,78,216,.10);
+  }
+  .activity-delta-minimal .activity-qcm .choice.correct:hover{
+  border-color:#86efac;
+  background:#ecfdf3;
+  }
+  .activity-delta-minimal .activity-qcm .choice.wrong:hover{
+  border-color:#fecaca;
+  background:#fff1f3;
+  }
+}
+
+.rc532-library.rc202 .collection-body .book-row{grid-template-columns:6px minmax(0,1fr) auto auto 24px!important;padding:3px 6px 3px 0!important;min-height:42px!important}
+@media(max-width:760px){.rc532-library.rc202 .collection-body .book-row{grid-template-columns:5px minmax(0,1fr) auto 22px!important}}
+@media(max-width:440px){.rc532-library.rc202 .collection-body .book-row{grid-template-columns:5px minmax(0,1fr) 22px!important}}
+
+/* RC613-RC623 — accessible focus, reflow and reduced-motion contracts. */
+.sr-only{
+  position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+  overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+}
+.skip-link{
+  position:fixed;z-index:10000;left:12px;top:12px;transform:translateY(-180%);
+  padding:10px 14px;border-radius:12px;background:#fff;color:#123b8f;border:2px solid currentColor;
+  font-weight:800;text-decoration:none;box-shadow:0 8px 24px rgba(15,23,42,.22);
+}
+.skip-link:focus{transform:translateY(0);}
+:where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{
+  outline:3px solid #174ea6;outline-offset:3px;box-shadow:0 0 0 2px rgba(255,255,255,.95);
+}
+.route-panel h1[tabindex="-1"]:focus{outline:none;}
+.route-panel[inert]{pointer-events:none;user-select:none;}
+.nav button,.activity-card button,.activity-qcm button,.fill-sentence .slot,.bank .token,
+.match-board button,.order-area button,.flashcard-area button,.tool-primary-grid button,.tool-primary-grid label{
+  min-height:44px;
+}
+.activity-qcm [role="radio"][tabindex="0"]{position:relative;}
+.order-card[aria-selected="true"]{outline:2px solid currentColor;outline-offset:2px;}
+.feedback[role="status"],.feedback[role="alert"]{scroll-margin-block:20px;}
+:where(.card,.view-page,.library-page,.bilan-hierarchy,.tool-primary-grid,.activity-card,.match-layout,.order-area){min-width:0;}
+:where(h1,h2,h3,p,strong,small,label,button,.book-title,.book-sub,.activity-question,.feedback){overflow-wrap:anywhere;}
+:where(img,svg,video,canvas,.media-figure){max-width:100%;height:auto;}
+
+@media (max-width:720px){
+  .bilan-two-pane,.match-layout,.tool-primary-grid,.rc239-grid,.rc240-grid,.rc242-grid,.rc244-grid,.rc245-grid,.rc247-grid,.rc248-grid{
+  grid-template-columns:minmax(0,1fr)!important;
+  }
+  .library-tool-row,.bilan-action-hero,.bilan-action-buttons,.flashcard-actions,.actions{min-width:0;flex-wrap:wrap;}
+  .library-tool-row>*{max-width:100%;}
+  .book-row{min-width:0;}
+}
+@media (max-width:420px){
+  .app{padding-inline:max(10px,env(safe-area-inset-left)) max(10px,env(safe-area-inset-right));}
+  .nav{gap:4px;}
+  .nav button{min-width:0;padding-inline:8px;font-size:.82rem;}
+  .card,.view-page,.library-page{border-radius:18px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .route-carousel-track,.route-panel,.nav [data-nav],.drag-ghost,.book-row,.chapter-static-panel{
+  transition:none!important;animation:none!important;scroll-behavior:auto!important;
+  }
+  .route-carousel-track{transform:translate3d(calc(var(--active-index,0) * -25%),0,0)!important;}
+}
+@media (forced-colors:active){
+  :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid Highlight;box-shadow:none;}
+  .order-card[aria-selected="true"],.activity-qcm [aria-checked="true"]{outline:3px solid Highlight;}
+}
+
+/* RC663-RC667 — sheet-owned detail, readable jacket and list-first plan. */
+.book-detail-sheet .book-modal-head{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:"title actions" "nav nav";
+  align-items:start;
+  gap:8px;
+  min-height:auto;
+  height:auto;
+  max-height:none;
+  overflow:visible;
+  padding:10px!important;
+  box-sizing:border-box;
+}
+.book-detail-sheet .book-head-title-wrap{grid-area:title;min-width:0;align-self:center}
+.book-detail-sheet .book-head-actions{grid-area:actions;align-self:start;justify-self:end}
+.book-detail-sheet .book-head-nav{grid-area:nav;width:100%;min-width:0;min-height:42px;overflow:visible;display:block}
+.book-detail-sheet .course-nav-strip[data-library-course-nav="rc468"]{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:7px;width:100%;max-width:100%;margin:0!important;overflow:visible;align-items:stretch
+}
+.book-detail-sheet .course-nav-card{min-width:0;min-height:42px;height:auto;box-sizing:border-box;overflow:hidden;touch-action:manipulation}
+.book-detail-sheet .course-nav-card .nav-copy{min-width:0;overflow:hidden}
+.book-detail-sheet .course-nav-card .nav-title,.book-detail-sheet .course-nav-card .nav-sub{
+  display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.12
+}
+.book-detail-sheet .book-modal.plan-mode .book-modal-head{
+  grid-template-areas:"title actions";
+  padding-bottom:9px!important;
+}
+.book-detail-sheet .book-modal.plan-mode .book-head-title{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  line-height:1.12;
+}
+.book-detail-sheet .book-modal.plan-mode .book-head-collection{
+  margin-top:3px;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  line-height:1.2;
+}
+.book-detail-sheet .chapter-static-shell{display:block;position:relative;width:100%;max-width:100%;overflow:visible;border-radius:22px;touch-action:pan-y}
+.book-detail-sheet .chapter-static-panel{display:block;width:100%;min-width:0;box-sizing:border-box;padding:0;touch-action:pan-y}
+.book-detail-sheet .chapter-list{max-width:900px;margin-inline:auto;gap:9px;touch-action:pan-y;overflow:visible}
+.book-detail-sheet .chapter{min-height:54px;padding-block:10px;border-radius:17px;touch-action:manipulation}
+.book-detail-sheet .chapter[aria-selected="true"]{
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--c,#1d4ed8) 62%,#fff),0 8px 22px rgba(34,48,77,.09);
+}
+.book-detail-sheet .plan-mode .chapter-action-sticky{
+  position:sticky;
+  bottom:calc(-1 * clamp(14px,2.5vw,26px));
+  z-index:4;
+  max-width:900px;
+  margin:10px auto 0;
+  padding:14px 0 max(2px,var(--safe-bottom,0px));
+  background:linear-gradient(180deg,rgba(250,247,239,0),rgba(250,247,239,.98) 28%,rgba(250,247,239,.99));
+}
+.book-detail-sheet .plan-mode .chapter-action-row{display:flex;justify-content:flex-start}
+.book-detail-sheet .book-cover{
+  background:linear-gradient(160deg,rgba(6,18,52,.98),color-mix(in srgb,var(--c,#1d4ed8) 72%,#071533) 62%,#07101f)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 16px 40px rgba(8,18,45,.28)
+}
+.book-detail-sheet .cover-title{color:#fff!important;text-shadow:0 2px 9px rgba(0,0,0,.75);overflow-wrap:normal;word-break:normal}
+.book-detail-sheet .cover-subtitle{color:rgba(255,255,255,.94)!important;text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.book-detail-sheet .cover-symbol{background:rgba(255,255,255,.96);box-shadow:0 8px 22px rgba(0,0,0,.28)}
+@media (max-width:760px), (hover:none) and (pointer:coarse){
+  .book-detail-sheet .book-modal-head{padding:8px 9px!important;gap:7px}
+  .book-detail-sheet .book-head-nav{min-height:38px}
+  .book-detail-sheet .course-nav-card{min-height:40px;padding:5px 6px;border-radius:15px}
+  .book-detail-sheet .course-nav-card .nav-sub{display:none!important}
+  .book-detail-sheet .course-nav-card .nav-title{font-size:.66rem}
+  .book-detail-sheet .book-modal.plan-mode .book-modal-body{padding-top:10px}
+  .book-detail-sheet .plan-mode .chapter-action-sticky{bottom:calc(-1 * 13px);padding-top:12px}
+  .book-detail-sheet .plan-mode .chapter-go{width:100%;min-height:48px;justify-content:center}
+}
+
+/* RC677 — native vertical scroll plus intentional horizontal route swipe.
+   touch-action:pan-y leaves vertical panning native while the single route
+   orchestrator observes and locks only clearly horizontal gestures. */
+@media (hover:none), (pointer:coarse){
+  .route-panel.route-view-library.is-active[data-scroll-owner="route-panel"]{
+    overflow-y:scroll!important;
+    overflow-x:hidden!important;
+    overscroll-behavior-y:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y pinch-zoom;
+    scrollbar-gutter:auto;
+    overflow-anchor:auto;
+    contain:layout style;
+    transform:none;
+    backface-visibility:visible;
+  }
+  .route-panel.route-view-library.is-active > .library-page{
+    transform:none!important;
+    touch-action:pan-y pinch-zoom;
+  }
+  .route-panel.route-view-library.is-active .library-sticky-tools,
+  .route-panel.route-view-library.is-active .library-list,
+  .route-panel.route-view-library.is-active .collection-list,
+  .route-panel.route-view-library.is-active .collection,
+  .route-panel.route-view-library.is-active .collection-body,
+  .route-panel.route-view-library.is-active .book-row{
+    touch-action:pan-y pinch-zoom;
+  }
+}
+.book-detail-shell.book-detail-sheet[data-library-detail-shell="rc663"]{
+  touch-action:pan-y pinch-zoom;
+}
+.book-detail-sheet .book-sheet-backdrop{
+  touch-action:none;
+}
+.book-detail-sheet .book-modal.book-detail-panel,
+.book-detail-sheet .book-modal-body,
+.book-detail-sheet .chapter-static-shell,
+.book-detail-sheet .chapter-static-panel,
+.book-detail-sheet .chapter-list{
+  touch-action:pan-y pinch-zoom;
+}
+.book-detail-sheet .book-modal-body{
+  overflow-y:scroll;
+  overscroll-behavior-y:auto;
+  overflow-anchor:auto;
+  scrollbar-gutter:auto;
+}
+.book-detail-sheet .book-modal-head,
+.book-detail-sheet .book-head-actions,
+.book-detail-sheet .book-head-nav{
+  touch-action:manipulation;
+}

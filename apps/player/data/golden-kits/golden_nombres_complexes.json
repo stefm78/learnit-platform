@@ -1,0 +1,337 @@
+{
+  "kind": "learnit-course-package",
+  "schema_version": "learnit.import.v1.1",
+  "packageId": "golden-nombres-complexes-rc654",
+  "source": "MI2 — Nombres Complexes, EPF Maths S2, 17 février 2026 (définitions et propriétés élémentaires)",
+  "assets": [
+    {
+      "id": "complex-plane",
+      "type": "image",
+      "format": "svg",
+      "source": "generated-from-course",
+      "alt": "Plan complexe avec axe réel horizontal, axe imaginaire vertical et point z de coordonnées a et b",
+      "caption": "Le point z = a + ib a pour coordonnées (a,b).",
+      "pedagogical_role": "concept_visual",
+      "data": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 220'><rect width='360' height='220' fill='#fff'/><path d='M35 175H330M85 205V20' stroke='#344054' stroke-width='3'/><path d='M85 175L235 70' stroke='#2563eb' stroke-width='4'/><path d='M235 70V175M235 70H85' stroke='#94a3b8' stroke-dasharray='7 6' stroke-width='2'/><circle cx='235' cy='70' r='7' fill='#2563eb'/><text x='242' y='64' font-size='20'>z</text><text x='225' y='198' font-size='18'>a</text><text x='58' y='78' font-size='18'>b</text><text x='316' y='198' font-size='16'>Re</text><text x='52' y='28' font-size='16'>Im</text></svg>"
+    }
+  ],
+  "generation_report": {
+    "fixture": "real-course-contract-probe",
+    "activity_count": 10,
+    "objectives": 2,
+    "all_activity_types": true,
+    "transfer_probe_contract": "rc700-explicit-near-far-v1",
+    "transfer_probe_count": 4,
+    "far_transfer_probe_count": 2
+  },
+  "courses": [
+    {
+      "schemaVersion": "learnit-content-v2",
+      "contentVersion": "golden-nombres-complexes-v1",
+      "title": "Golden — Nombres complexes",
+      "sequence": "Construction et propriétés élémentaires",
+      "objectives": [
+        "Identifier les composantes et les représentations d’un nombre complexe.",
+        "Calculer avec le conjugué, le module et les formes d’un nombre complexe."
+      ],
+      "activities": [
+        {
+          "id": "nc-fc-01",
+          "type": "flashcard",
+          "objective": "Identifier les composantes et les représentations d’un nombre complexe.",
+          "question": "Dans z = a + ib, que représente a ?",
+          "why": "La forme algébrique sépare la partie réelle et la partie imaginaire.",
+          "remediation": "Repérer le terme qui n’est pas multiplié par i.",
+          "difficulty": "easy",
+          "learning_phase": "activation",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Confondre a avec la partie imaginaire."
+          ],
+          "front": "Dans z = a + ib, que représente a ?",
+          "answer": "a est la partie réelle Re(z).",
+          "back": "a est la partie réelle Re(z)."
+        },
+        {
+          "id": "nc-qcm-02",
+          "type": "qcm",
+          "objective": "Identifier les composantes et les représentations d’un nombre complexe.",
+          "question": "Pour z = 3 − 2i, quelle est sa partie imaginaire ?",
+          "why": "La partie imaginaire est le coefficient réel de i.",
+          "remediation": "Écrire z sous la forme a + ib, ici b = −2.",
+          "difficulty": "easy",
+          "learning_phase": "comprehension",
+          "assessment_role": "diagnostic",
+          "common_errors": [
+            "Répondre −2i au lieu de −2."
+          ],
+          "choices": [
+            "3",
+            "−2",
+            "−2i",
+            "2"
+          ],
+          "answer": 1,
+          "media": [
+            {
+              "assetId": "complex-plane",
+              "placement": "question",
+              "display": "contained",
+              "zoomable": true
+            }
+          ]
+        },
+        {
+          "id": "nc-match-03",
+          "type": "matching",
+          "objective": "Identifier les composantes et les représentations d’un nombre complexe.",
+          "question": "Associer chaque écriture à sa description.",
+          "why": "Chaque famille se reconnaît par la valeur de sa partie réelle ou imaginaire.",
+          "remediation": "Tester successivement si la partie imaginaire ou la partie réelle est nulle.",
+          "difficulty": "medium",
+          "learning_phase": "application",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Confondre réel et imaginaire pur."
+          ],
+          "pairs": [
+            [
+              "5",
+              "réel"
+            ],
+            [
+              "−3i",
+              "imaginaire pur"
+            ],
+            [
+              "2+i",
+              "complexe non réel"
+            ]
+          ]
+        },
+        {
+          "id": "nc-order-04",
+          "type": "order",
+          "objective": "Identifier les composantes et les représentations d’un nombre complexe.",
+          "question": "Ordonner la lecture géométrique de z = a + ib.",
+          "why": "L’affixe associe d’abord le nombre à un point, puis ses coordonnées et sa distance à l’origine.",
+          "remediation": "Identifier le point M avant de calculer sa distance à O.",
+          "difficulty": "medium",
+          "learning_phase": "transfer",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Calculer le module avant d’identifier a et b."
+          ],
+          "tokens": [
+            "Repérer a et b",
+            "Placer M(a,b)",
+            "Lire le vecteur OM",
+            "Calculer la distance OM"
+          ],
+          "answer": [
+            "Repérer a et b",
+            "Placer M(a,b)",
+            "Lire le vecteur OM",
+            "Calculer la distance OM"
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "near",
+          "variant_of": "nc-match-03"
+        },
+        {
+          "id": "nc-qcm-05",
+          "type": "qcm",
+          "objective": "Identifier les composantes et les représentations d’un nombre complexe.",
+          "question": "Quel nombre est un imaginaire pur ?",
+          "why": "Un imaginaire pur a une partie réelle nulle.",
+          "remediation": "Éliminer toute écriture contenant un terme réel non nul.",
+          "difficulty": "medium",
+          "learning_phase": "remediation",
+          "assessment_role": "remediation",
+          "common_errors": [
+            "Choisir un nombre avec une partie imaginaire nulle."
+          ],
+          "choices": [
+            "4",
+            "4+i",
+            "−7i",
+            "2−7i"
+          ],
+          "answer": 2
+        },
+        {
+          "id": "nc-fill-06",
+          "type": "fill",
+          "objective": "Calculer avec le conjugué, le module et les formes d’un nombre complexe.",
+          "question": "Compléter le conjugué de z = 4 + 3i.",
+          "why": "Le conjugué conserve la partie réelle et change le signe de la partie imaginaire.",
+          "remediation": "Changer uniquement le signe devant i.",
+          "difficulty": "easy",
+          "learning_phase": "application",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Changer aussi le signe de la partie réelle."
+          ],
+          "parts": [
+            "conj(z) = 4 ",
+            0,
+            " 3i"
+          ],
+          "tokens": [
+            "+",
+            "−"
+          ],
+          "answer": [
+            "−"
+          ],
+          "sentence": "conj(z) = 4 − 3i"
+        },
+        {
+          "id": "nc-qcm-07",
+          "type": "qcm",
+          "objective": "Calculer avec le conjugué, le module et les formes d’un nombre complexe.",
+          "question": "Quel est le module de z = 3 + 4i ?",
+          "why": "Le module vaut √(3² + 4²) = 5.",
+          "remediation": "Appliquer Pythagore aux coordonnées (3,4).",
+          "difficulty": "medium",
+          "learning_phase": "comprehension",
+          "assessment_role": "diagnostic",
+          "common_errors": [
+            "Additionner 3 et 4 sans utiliser les carrés."
+          ],
+          "choices": [
+            "5",
+            "7",
+            "25",
+            "√7"
+          ],
+          "answer": 0
+        },
+        {
+          "id": "nc-match-08",
+          "type": "matching",
+          "objective": "Calculer avec le conjugué, le module et les formes d’un nombre complexe.",
+          "question": "Associer chaque opération à son effet géométrique ou algébrique.",
+          "why": "Conjugaison, module et produit répondent à des propriétés distinctes.",
+          "remediation": "Repartir des définitions z̄ = a − ib et |z| = √(a²+b²).",
+          "difficulty": "advanced",
+          "learning_phase": "transfer",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Confondre module et carré du module."
+          ],
+          "pairs": [
+            [
+              "z → z̄",
+              "symétrie par rapport à l’axe réel"
+            ],
+            [
+              "z z̄",
+              "|z|²"
+            ],
+            [
+              "|zz′|",
+              "|z|·|z′|"
+            ]
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "near",
+          "variant_of": "nc-fill-06"
+        },
+        {
+          "id": "nc-order-09",
+          "type": "order",
+          "objective": "Calculer avec le conjugué, le module et les formes d’un nombre complexe.",
+          "question": "Ordonner le calcul de l’inverse de z ≠ 0.",
+          "why": "Multiplier par le conjugué rend le dénominateur réel.",
+          "remediation": "Faire apparaître z·z̄ avant de simplifier.",
+          "difficulty": "advanced",
+          "learning_phase": "consolidation",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Conjuguer seulement le numérateur sans équilibrer la fraction."
+          ],
+          "tokens": [
+            "Écrire 1/z",
+            "Multiplier numérateur et dénominateur par z̄",
+            "Remplacer z z̄ par |z|²",
+            "Simplifier la forme algébrique"
+          ],
+          "answer": [
+            "Écrire 1/z",
+            "Multiplier numérateur et dénominateur par z̄",
+            "Remplacer z z̄ par |z|²",
+            "Simplifier la forme algébrique"
+          ]
+        },
+        {
+          "id": "nc-fc-10",
+          "type": "flashcard",
+          "objective": "Calculer avec le conjugué, le module et les formes d’un nombre complexe.",
+          "question": "Quelle relation relie z, son conjugué et son module ?",
+          "why": "Le produit d’un complexe par son conjugué est réel positif.",
+          "remediation": "Calculer (a+ib)(a−ib) et utiliser i² = −1.",
+          "difficulty": "medium",
+          "learning_phase": "remediation",
+          "assessment_role": "remediation",
+          "common_errors": [
+            "Écrire z z̄ = |z| au lieu de |z|²."
+          ],
+          "front": "Quelle relation relie z, z̄ et |z| ?",
+          "answer": "z z̄ = |z|² = a² + b².",
+          "back": "z z̄ = |z|² = a² + b²."
+        },
+        {
+          "id": "nc-qcm-11",
+          "type": "qcm",
+          "objective": "Identifier les composantes et les représentations d’un nombre complexe.",
+          "question": "Un drone va du point A(1, −2) au point B(−2, 4). Quelle affixe représente le vecteur AB ?",
+          "choices": [
+            "−3 + 6i",
+            "3 − 6i",
+            "−1 + 2i",
+            "−2 + 4i"
+          ],
+          "answer": 0,
+          "why": "Les coordonnées de AB sont B − A = (−2−1, 4−(−2)) = (−3, 6), donc son affixe est −3 + 6i.",
+          "remediation": "Calculer séparément xB−xA et yB−yA, puis former Δx + iΔy.",
+          "difficulty": "expert",
+          "learning_phase": "transfer",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Utiliser les coordonnées de B sans soustraire celles de A.",
+            "Inverser le sens du vecteur AB."
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "far",
+          "variant_of": "nc-qcm-02"
+        },
+        {
+          "id": "nc-qcm-12",
+          "type": "qcm",
+          "objective": "Calculer avec le conjugué, le module et les formes d’un nombre complexe.",
+          "question": "On transforme z = 3 + 4i en w = z/|z|. Quelle propriété décrit nécessairement w ?",
+          "choices": [
+            "|w| = 1",
+            "w est réel",
+            "w = 5",
+            "w est le conjugué de z"
+          ],
+          "answer": 0,
+          "why": "Diviser un complexe non nul par son module normalise sa longueur : |w| = |z|/|z| = 1.",
+          "remediation": "Utiliser |z/|z|| = |z|/|z| et distinguer module, partie réelle et conjugaison.",
+          "difficulty": "expert",
+          "learning_phase": "transfer",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Confondre le module avec le nombre complexe.",
+            "Croire que normaliser rend le nombre réel."
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "far",
+          "variant_of": "nc-qcm-07"
+        }
+      ]
+    }
+  ]
+}

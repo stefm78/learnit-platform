@@ -1,0 +1,528 @@
+{
+  "schema": "learnit.capabilities.v1",
+  "contract_version": "learnit.import.v1.1",
+  "application_baseline": "RC715",
+  "authoring_skill_version": "13.3.0",
+  "profile": "strict-authoring",
+  "status_values": [
+    "stable",
+    "experimental",
+    "accepted_but_unused",
+    "deprecated",
+    "unsupported"
+  ],
+  "root_formats": {
+    "package": {
+      "status": "stable",
+      "kind": "learnit-course-package",
+      "schema_field": "schema_version",
+      "schema_value": "learnit.import.v1.1",
+      "generated_by_default": true
+    },
+    "single_course": {
+      "status": "stable",
+      "schema_field": "schemaVersion",
+      "schema_value": "learnit-content-v2",
+      "generated_by_default": false
+    }
+  },
+  "activity_types": {
+    "qcm": {
+      "status": "stable",
+      "imported": true,
+      "persisted": true,
+      "rendered": true,
+      "interactive": true,
+      "diagnosed": true,
+      "tested": true,
+      "generated_by_default": true
+    },
+    "fill": {
+      "status": "stable",
+      "imported": true,
+      "persisted": true,
+      "rendered": true,
+      "interactive": true,
+      "diagnosed": true,
+      "tested": true,
+      "generated_by_default": true
+    },
+    "matching": {
+      "status": "stable",
+      "imported": true,
+      "persisted": true,
+      "rendered": true,
+      "interactive": true,
+      "diagnosed": true,
+      "tested": true,
+      "generated_by_default": true
+    },
+    "order": {
+      "status": "stable",
+      "imported": true,
+      "persisted": true,
+      "rendered": true,
+      "interactive": true,
+      "diagnosed": true,
+      "tested": true,
+      "generated_by_default": true
+    },
+    "flashcard": {
+      "status": "stable",
+      "imported": true,
+      "persisted": true,
+      "rendered": true,
+      "interactive": true,
+      "diagnosed": true,
+      "tested": true,
+      "generated_by_default": true
+    }
+  },
+  "pedagogical_fields": {
+    "objective": {
+      "status": "stable",
+      "used_by": [
+        "library",
+        "bilan",
+        "targeted_review",
+        "variety_grouping",
+        "session_mode_queues",
+        "diagnostic_sampling",
+        "explainable_evidence_aggregation",
+        "objective_state_tracking"
+      ],
+      "generated_by_default": true
+    },
+    "difficulty": {
+      "status": "stable",
+      "used_by": [
+        "quality_diagnostics",
+        "authoring_balance"
+      ],
+      "generated_by_default": true
+    },
+    "learning_phase": {
+      "status": "stable",
+      "used_by": [
+        "quality_diagnostics",
+        "authoring_orchestration",
+        "session_variety"
+      ],
+      "generated_by_default": true
+    },
+    "assessment_role": {
+      "status": "stable",
+      "used_by": [
+        "quality_diagnostics",
+        "session_mode_selection"
+      ],
+      "generated_by_default": true
+    },
+    "common_errors": {
+      "status": "stable",
+      "used_by": [
+        "quality_diagnostics",
+        "targeted_remediation",
+        "recurring_error_priority",
+        "remediation_variant_matching",
+        "variant_linking"
+      ],
+      "generated_by_default": true
+    },
+    "why": {
+      "status": "stable",
+      "used_by": [
+        "activity_feedback"
+      ],
+      "generated_by_default": true
+    },
+    "remediation": {
+      "status": "stable",
+      "used_by": [
+        "activity_feedback",
+        "targeted_review",
+        "remediation_variant_matching"
+      ],
+      "generated_by_default": true
+    },
+    "skills": {
+      "status": "accepted_but_unused",
+      "used_by": [],
+      "generated_by_default": false
+    },
+    "feedback": {
+      "status": "experimental",
+      "used_by": [
+        "contract_diagnostics_only"
+      ],
+      "generated_by_default": false
+    },
+    "transfer_probe": {
+      "status": "stable",
+      "used_by": [
+        "learning_coverage_matrix",
+        "transfer_probe_readiness",
+        "retention_protocol"
+      ],
+      "generated_by_default": true
+    },
+    "transfer_distance": {
+      "status": "stable",
+      "used_by": [
+        "learning_coverage_matrix",
+        "near_vs_far_transfer_audit"
+      ],
+      "generated_by_default": true,
+      "values": [
+        "near",
+        "far"
+      ]
+    },
+    "variant_of": {
+      "status": "stable",
+      "used_by": [
+        "transfer_variant_linking",
+        "non_isomorphic_probe_audit"
+      ],
+      "generated_by_default": true
+    }
+  },
+  "media": {
+    "assets": {
+      "status": "stable",
+      "formats": [
+        "svg",
+        "png",
+        "jpeg",
+        "webp",
+        "gif"
+      ],
+      "required_fields": [
+        "id",
+        "type",
+        "format",
+        "alt",
+        "pedagogical_role"
+      ],
+      "tested": true
+    },
+    "references": {
+      "status": "stable",
+      "field": "media",
+      "required_fields": [
+        "assetId"
+      ],
+      "tested": true
+    },
+    "svg_inline": {
+      "status": "stable",
+      "sanitized": true,
+      "generated_by_default": true
+    },
+    "security": {
+      "status": "stable",
+      "schema": "learnit.media_security.rc684.v1",
+      "svg_policy": "element-and-attribute-allowlist-fail-closed",
+      "svg_forbidden": [
+        "script",
+        "foreignObject",
+        "iframe",
+        "image",
+        "use",
+        "event_attributes",
+        "style",
+        "external_href",
+        "external_url()"
+      ],
+      "data_image_policy": "base64 raster only: png, jpeg, webp, gif",
+      "remote_image_policy": "HTTPS only, no embedded credentials, no referrer",
+      "data_url_max_chars": 5000000,
+      "tested": true
+    }
+  },
+  "compatibility": {
+    "unknown_fields": "accepted_with_warning_by_runtime; rejected by strict authoring validator",
+    "experimental_fields": "never generated by default",
+    "deprecated_fields": "accepted only during an explicit transition window",
+    "versioning": {
+      "compatible_addition": "minor",
+      "breaking_change": "major",
+      "documentation_only": "skill patch"
+    }
+  },
+  "limits": {
+    "question_max_chars": 420,
+    "objective_max_chars": 180,
+    "remediation_max_chars": 420,
+    "choice_max_chars": 220,
+    "minimum_activities_recommended": 3
+  },
+  "evidence": {
+    "schema": "contract/learnit-import.schema.json",
+    "taxonomy": "contract/pedagogical-taxonomy.json",
+    "validator": "tools/validate_kit.py",
+    "fixtures": "authoring/contract-fixtures.json",
+    "skill": "authoring/SKILL_CURRENT.md",
+    "release_gate": "SKILL_CONTRACT_SYNC",
+    "remediation_gate": "tests/contract_remediation.py",
+    "learning_evidence_gate": "tests/contract_remediation.py",
+    "variety_gate": "tests/contract_remediation.py",
+    "session_mode_gate": "tests/contract_remediation.py",
+    "import_diagnostics": "learnit.kit_diagnostics.v2",
+    "import_plan": "learnit.import_plan.v2",
+    "import_transaction": "learnit.import_transaction.v1",
+    "authoring_alignment": "dev/authoring_alignment.py",
+    "golden_complex_numbers": "data/golden-kits/golden_nombres_complexes.json",
+    "golden_electrical_signals": "data/golden-kits/golden_signaux_electriques.json",
+    "entry_decision_gate": "tests/contract_entry_decision.py",
+    "media_security_gate": "tests/browser_media_security.py",
+    "storage_resilience_gate": "tests/browser_storage_resilience.py",
+    "media_scale_gate": "tests/browser_media_scale.py",
+    "learning_coverage_gate": "tests/contract_learning_coverage.py",
+    "assessment_purity_gate": "tests/contract_assessment_purity.py",
+    "retention_protocol_gate": "tests/contract_retention_protocol.py",
+    "transfer_probe_gate": "tests/contract_transfer_probes.py",
+    "architecture_inventory_gate": "tests/contract_architecture_inventory.py",
+    "endurance_gate": "tests/browser_endurance_session.py",
+    "interruption_gate": "tests/browser_interruption_resilience.py",
+    "clean_room_gate": "tests/contract_clean_room.py"
+  },
+  "learning_capabilities": {
+    "targeted_remediation": {
+      "status": "stable",
+      "generated_by_default": true,
+      "inputs": [
+        "objective",
+        "common_errors",
+        "remediation"
+      ],
+      "runtime": [
+        "attempt_evidence",
+        "recurring_error_priority",
+        "alternative_activity_first",
+        "bounded_review_rounds"
+      ],
+      "tested": true
+    },
+    "remediation_variants": {
+      "status": "stable",
+      "generated_by_default": true,
+      "matching_rule": "shared objective or common_errors; prefer a different activity type",
+      "fallback": "retry source activity with reshuffled interaction state",
+      "tested": true
+    },
+    "spaced_review": {
+      "status": "stable",
+      "generated_by_default": true,
+      "authoring_fields": [],
+      "schedule_owner": "runtime",
+      "interval_hours": [
+        24,
+        72,
+        168,
+        336,
+        720
+      ],
+      "failure_retry_hours": 8,
+      "daily_limit": 8,
+      "runtime": [
+        "persisted_review_level",
+        "deterministic_due_queue",
+        "bounded_daily_load",
+        "course_scoped_state",
+        "legacy_progress_migration"
+      ],
+      "authoring_guidance": "No review date or interval is authored in kits; durable objectives and varied activities improve scheduled review quality.",
+      "tested": true
+    },
+    "pedagogical_variety": {
+      "status": "stable",
+      "generated_by_default": true,
+      "authoring_fields": [],
+      "runtime": [
+        "near_duplicate_audit",
+        "meaningful_variant_filter",
+        "deterministic_queue_diversification",
+        "minimal_authored_order_displacement",
+        "answer_mapping_preservation"
+      ],
+      "thresholds": {
+        "near_duplicate": 0.82,
+        "adjacent_repetition": 0.7
+      },
+      "authoring_guidance": "Write linked activities that change the situation, reasoning or interaction type; the runtime may separate avoidable adjacent repetitions but does not repair weak content design.",
+      "tested": true
+    },
+    "session_modes": {
+      "status": "stable",
+      "generated_by_default": true,
+      "authoring_fields": [],
+      "policy_owner": "runtime",
+      "schema": "learnit.session_modes.v1",
+      "modes": [
+        "discovery",
+        "training",
+        "review",
+        "validation",
+        "diagnostic"
+      ],
+      "runtime": [
+        "single_session_controller",
+        "policy_based_queue_selection",
+        "deferred_assessment_feedback",
+        "diagnostic_progress_isolation",
+        "mode_transition_state_reset",
+        "assessment_flashcard_exclusion",
+        "learner_intent_guidance",
+        "state_based_mode_recommendation",
+        "diagnostic_validation_boundary_copy"
+      ],
+      "authoring_guidance": "Kits describe durable objectives, assessment roles and varied activities. The runtime guides learners from intent to mode; kits never encode learner familiarity, a recommended mode or runtime state.",
+      "tested": true,
+      "learner_intents": [
+        "new-topic",
+        "prior-knowledge",
+        "continue-learning"
+      ],
+      "entry_guidance_owner": "runtime"
+    },
+    "explainable_learning_evidence": {
+      "status": "stable",
+      "generated_by_default": false,
+      "authoring_fields": [
+        "objective"
+      ],
+      "evidence_owner": "runtime",
+      "aggregation_keys": [
+        "objective",
+        "chapter",
+        "course"
+      ],
+      "evidence_dimensions": [
+        "exposure",
+        "attempts",
+        "successes",
+        "failures",
+        "fragility",
+        "review_due",
+        "repeated_success",
+        "spaced_success"
+      ],
+      "readable_statuses": [
+        "not-started",
+        "discovered",
+        "in-progress",
+        "fragile",
+        "consolidated"
+      ],
+      "recommendation_contract": "Every recommendation exposes a verifiable reasonCode and a human-readable reason.",
+      "forbidden_outputs": [
+        "arbitrary_mastery_percentage",
+        "index_based_objective_identity"
+      ],
+      "tested": true,
+      "ui_status": "candidate-visible-pending-human-validation"
+    },
+    "learning_coverage_matrix": {
+      "status": "stable",
+      "generated_by_default": false,
+      "authoring_fields": [
+        "objective",
+        "learning_phase",
+        "assessment_role",
+        "transfer_probe",
+        "transfer_distance",
+        "variant_of"
+      ],
+      "levels": [
+        "recall",
+        "comprehension",
+        "application",
+        "transfer"
+      ],
+      "outputs": [
+        "objective_status",
+        "coverage_gaps",
+        "higher_order_assessment",
+        "far_transfer_probe_readiness"
+      ],
+      "forbidden_outputs": [
+        "single_opaque_percentage"
+      ],
+      "tested": true
+    },
+    "assessment_role_purity": {
+      "status": "stable",
+      "generated_by_default": false,
+      "authoring_fields": [
+        "assessment_role"
+      ],
+      "runtime": [
+        "strict_role_selection_when_available",
+        "explicit_fallback_when_missing",
+        "flashcard_exclusion",
+        "objective_sampling"
+      ],
+      "tested": true
+    },
+    "retention_protocol": {
+      "status": "candidate",
+      "generated_by_default": false,
+      "authoring_fields": [
+        "transfer_probe",
+        "transfer_distance"
+      ],
+      "checkpoints_hours": [
+        0,
+        72,
+        168
+      ],
+      "runtime": [
+        "objective_level_probe_schedule",
+        "pending_due_completed_states",
+        "no_claim_without_observation"
+      ],
+      "human_gate": "RC702 learner transfer and retention",
+      "tested": true
+    }
+  },
+  "import_workflow": {
+    "status": "stable",
+    "diagnostic_severities": [
+      "blocker",
+      "warning",
+      "advice"
+    ],
+    "preview_owner": "runtime",
+    "preview_writes_state": false,
+    "transactional_apply": true,
+    "rollback_on_failure": true,
+    "interrupted_transaction_recovery": true,
+    "multi_file": true,
+    "collision_policies": [
+      "rename",
+      "replace",
+      "skip",
+      "reject"
+    ],
+    "built_in_replacement_allowed": false,
+    "volume_limits": "advisory-except-file-count-safety-cap",
+    "tested": true,
+    "quota_failure_rollback": true,
+    "storage_fault_observability": true,
+    "media_security_validation": true,
+    "durable_library_persistence": {
+      "status": "stable",
+      "backend": "IndexedDB with localStorage synchronous cache",
+      "restores_after_close_reopen": true,
+      "tested": true
+    },
+    "editable_course_title": {
+      "status": "stable",
+      "during_import": true,
+      "after_import": true,
+      "stable_identity_preserves_progress": true,
+      "tested": true
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "learnit.rc715.owner_map.v1",
+  "policy": "Canonical recommendation, gesture, learning coverage and retention owners; compatibility decorators are registered rather than hidden.",
+  "owners": {
+    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-observable-storage-adapter",
+    "src/scripts/core/runtime_parts/05_durable_library_store.js": "indexeddb-durable-library-snapshot-owner",
+    "src/scripts/core/runtime_parts/10_content_store_and_state.js": "content-state-import-validation-and-transactional-rollback",
+    "src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js": "session-answer-activity-and-secure-media-rendering",
+    "src/scripts/core/runtime_parts/30_navigation_library_plan_models.js": "navigation-library-projections-and-secure-jacket-rendering",
+    "src/scripts/core/runtime_parts/40_bilan_learning_models.js": "bilan-learning-projections",
+    "src/scripts/core/runtime_parts/50_diagnostics_import_quality.js": "surface-import-kit-and-media-security-diagnostics",
+    "src/scripts/core/runtime_parts/60_app_runtime_and_test_api.js": "application-shell-only",
+    "src/scripts/core/runtime_parts/64_route_nav_transition_runtime.js": "route-transition-commit",
+    "src/scripts/core/runtime_parts/65_mobile_swipe_runtime.js": "route-carousel-engine",
+    "src/scripts/core/runtime_parts/66_route_view_composer.js": "route-view-composition",
+    "src/scripts/core/runtime_parts/67_route_static_actions.js": "route-static-actions-and-file-input",
+    "src/scripts/core/runtime_parts/68_library_navigation_shell_composer.js": "library-detail-and-chapter-composition",
+    "src/scripts/core/runtime_parts/69_gesture_orchestrator.js": "single-route-gesture-orchestrator",
+    "src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js": "accessibility-focus-recovery-checkpoints",
+    "src/scripts/core/runtime_parts/72_performance_scalability_runtime.js": "performance-observation-projection-cache-storage-evidence",
+    "src/scripts/core/runtime_parts/70_automation_and_boot.js": "automation-harness-and-deferred-boot",
+    "src/scripts/core/runtime_parts/61_pointer_interaction_fallbacks.js": "pointer-fallback-boundary",
+    "src/scripts/core/runtime_parts/62_app_action_dispatcher.js": "application-action-dispatch",
+    "src/scripts/core/runtime_parts/63_route_view_fallbacks.js": "route-session-fallbacks-and-surface-compatibility",
+    "src/scripts/core/runtime_parts/73_runtime_test_api.js": "runtime-test-api-and-automation-fixture",
+    "src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js": "contract-and-pedagogy-diagnostics",
+    "src/scripts/core/runtime_parts/52_import_diagnostic_views.js": "diagnostic-panels-and-authoring-readiness",
+    "src/scripts/core/runtime_parts/74_learning_evidence_runtime.js": "learning-coverage-and-retention-runtime-bridge"
+  },
+  "frozen_boundaries": [
+    "native vertical route-panel scroll",
+    "document-owned desktop wheel and trackpad scrolling",
+    "one top-level route gesture orchestrator",
+    "explicit chapter buttons",
+    "order and matching pointer owners",
+    "transactional import rollback",
+    "centralized fail-closed media allowlist",
+    "observable storage failures and atomic import rollback",
+    "exact-bound release evidence",
+    "one canonical cross-surface next-action decision",
+    "one primary Bilan action with at most one alternative",
+    "objective-level deferred assessment debrief",
+    "durable device-local library snapshots"
+  ],
+  "style_owners": {
+    "src/styles/parts/00_tokens_shell.css": "design-tokens-shell-and-base-components",
+    "src/styles/parts/10_layout_surfaces.css": "global-layout-and-primary-surfaces",
+    "src/styles/parts/20_library_plan.css": "library-plan-bilan-and-tools-structure",
+    "src/styles/parts/30_activities_session.css": "activities-session-and-feedback-surfaces",
+    "src/styles/parts/40_library_compatibility.css": "library-compatibility-and-responsive-evolution",
+    "src/styles/parts/45_import_tools_release_surfaces.css": "import-tools-portability-and-release-evidence-surfaces",
+    "src/styles/parts/50_bilan_tools.css": "bilan-and-tools-specialized-surfaces",
+    "src/styles/parts/60_route_navigation.css": "route-carousel-and-navigation-states",
+    "src/styles/parts/64_library_chapter_comfort.css": "library-chapter-comfort-and-touch-safety"
+  },
+  "model_owners": {
+    "src/learning/media_security_model.js": "centralized-fail-closed-media-security-policy",
+    "src/learning/mastery_evidence_model.js": "truthful-spaced-evidence-and-status-owner",
+    "src/learning/next_action_model.js": "canonical-cross-surface-next-action-owner",
+    "src/learning/session_mode_model.js": "session-policy-and-adaptive-queue-owner",
+    "src/learning/bilan_decision_model.js": "bilan-course-summary-projection-owner",
+    "src/learning/action_intent_model.js": "legacy-summary-to-canonical-action-adapter",
+    "src/learning/bilan_information_architecture_model.js": "decision-first-bilan-density-owner",
+    "src/learning/learning_coverage_model.js": "explicit-objective-level-coverage-owner",
+    "src/learning/retention_protocol_model.js": "honest-retention-observation-protocol-owner"
+  },
+  "registered_decorators": {
+    "learnView": [
+      "src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
+      "src/scripts/core/runtime_parts/66_route_view_composer.js"
+    ],
+    "bilanView": [
+      "src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
+      "src/scripts/core/runtime_parts/66_route_view_composer.js"
+    ],
+    "toolsView": [
+      "src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
+      "src/scripts/core/runtime_parts/66_route_view_composer.js"
+    ],
+    "mobileSwipeReport": [
+      "src/scripts/core/runtime_parts/65_mobile_swipe_runtime.js",
+      "src/scripts/core/runtime_parts/69_gesture_orchestrator.js",
+      "src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js"
+    ],
+    "render": [
+      "src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js",
+      "src/scripts/core/runtime_parts/72_performance_scalability_runtime.js"
+    ],
+    "boot": [
+      "src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js",
+      "src/scripts/core/runtime_parts/72_performance_scalability_runtime.js"
+    ]
+  }
+}

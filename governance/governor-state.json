@@ -1,15 +1,24 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-13-001",
-  "effectiveFromCommit": "4b993be6d00b5e4a2e9461e270ae5ef3fa40b97c",
-  "reviewedBaselineCommit": "4b993be6d00b5e4a2e9461e270ae5ef3fa40b97c",
+  "stateId": "GOV-STATE-2026-07-13-004",
+  "effectiveFromCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
+  "reviewedBaselineCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "repository-foundation-standalone-stabilization",
+    "id": "standalone-stabilization-on-github",
     "status": "active",
-    "description": "Repository governance is bootstrapped while the standalone application continues bounded stabilization outside this repository."
+    "description": "RC715 is the active development baseline in GitHub. Standalone stabilization continues from this repository; stable human promotion remains pending."
+  },
+  "developmentBaseline": {
+    "status": "active",
+    "workPackage": "SRC-WP-001",
+    "candidate": "RC715 durable library and rename candidate",
+    "sourceCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
+    "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "humanPromotion": "pending"
   },
   "promotedBaseline": {
     "status": "not-selected",
@@ -18,11 +27,11 @@
     "artifactSha256": null
   },
   "authorizedWork": [
-    "standalone functional and UX stabilization outside the repository",
+    "standalone functional, UX, accessibility, persistence, performance, test, and release stabilization in this repository",
     "repository governance hardening",
     "architecture reference hardening",
-    "black-box test and evidence preparation",
-    "read-only source cartography when exact source becomes available",
+    "black-box test and evidence improvement",
+    "read-only source cartography",
     "work-package and provenance tooling"
   ],
   "heldWork": [
@@ -38,21 +47,17 @@
     "publisher marketplace"
   ],
   "prohibitedWork": [
+    "maintaining a separate canonical standalone source after GitHub cutover",
     "microservices before a demonstrated extraction need",
     "synchronization of opaque global snapshots as the sole merge model",
     "canonical identifiers derived from editable titles",
     "direct UI coupling to storage or remote APIs",
     "parallel AI implementation without exact baseline and machine-checkable scopes",
     "publishing an artifact different from the artifact tested",
+    "presenting the RC715 development baseline as a human-promoted stable release",
     "presenting target architecture as current implementation"
   ],
   "activeRisks": [
-    {
-      "id": "RISK-GOV-001",
-      "severity": "high",
-      "statement": "The active standalone source is not yet present in the repository, so build reproducibility and architecture boundaries are not yet proven.",
-      "closureGate": "ARC-WP-000 accepted"
-    },
     {
       "id": "RISK-GOV-002",
       "severity": "high",
@@ -64,26 +69,23 @@
       "severity": "moderate",
       "statement": "Changed-file scope enforcement for AI work packages is specified but not yet implemented.",
       "closureGate": "scope-check CI accepted"
-    }
-  ],
-  "activeExceptions": [
+    },
     {
-      "id": "EXC-GOV-BOOTSTRAP-001",
-      "rule": "High-risk governance work normally requires an independent reviewer separate from the operational governor.",
-      "reason": "The repository currently has a single accountable owner and no additional reviewer identity. The initial governor bootstrap is documentation and validation tooling only, contains no application source, and is fully reversible.",
-      "owner": "stefm78",
-      "expiryOrRemovalGate": "Remove before the first high or critical application, migration, security, synchronization, identity, entitlement, or release-provenance change is merged.",
-      "rollback": "Revert the standing-governor bootstrap pull request and retain the prior repository foundation."
+      "id": "RISK-SRC-001",
+      "severity": "moderate",
+      "statement": "RC715 is automation-ready but its final human persistence, rename, desktop, Android, keyboard, and assistive-technology promotion gate remains pending.",
+      "closureGate": "ARC-WP-000 accepted after human promotion"
     }
   ],
+  "activeExceptions": [],
   "nextMandatoryGate": {
     "id": "ARC-WP-000",
-    "condition": "A standalone candidate is promoted and its exact source, artifact hash, human gate, tests, and known issues are available."
+    "condition": "A precise GitHub commit passes the complete human standalone promotion gate and is selected as the stable forensic baseline."
   },
   "review": {
     "lastReviewedAt": "2026-07-13",
-    "lastReviewedBy": "Architecture & Repository Governor bootstrap",
+    "lastReviewedBy": "Architecture & Repository Governor — SRC-WP-001 final import review",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "standalone candidate promotion, architecture-sensitive PR, serious regression, or release provenance change"
+    "nextReviewTrigger": "standalone promotion candidate, architecture-sensitive PR, serious regression, or release provenance change"
   }
 }

@@ -1,0 +1,441 @@
+{
+  "schema": "learnit.rc715.source_manifest.v1",
+  "rc": "RC715",
+  "base": "RC712 automated candidate. RC713 adds IndexedDB-backed durable library persistence; RC714 adds editable import titles and post-import renaming with stable course identity; RC715 hardens both with automated evidence.",
+  "build": "v5.715.0 — durable library persistence and stable course naming candidate",
+  "template": "src/template.html",
+  "styles": [
+    {
+      "bundle": "app_styles",
+      "paths": [
+        "src/styles/parts/00_tokens_shell.css",
+        "src/styles/parts/10_layout_surfaces.css",
+        "src/styles/parts/20_library_plan.css",
+        "src/styles/parts/30_activities_session.css",
+        "src/styles/parts/40_library_compatibility.css",
+        "src/styles/parts/45_import_tools_release_surfaces.css",
+        "src/styles/parts/50_bilan_tools.css",
+        "src/styles/parts/60_route_navigation.css",
+        "src/styles/parts/64_library_chapter_comfort.css"
+      ],
+      "description": "RC715 balanced CSS owners with import-name and post-import rename surfaces.",
+      "files": [
+        {
+          "path": "src/styles/parts/00_tokens_shell.css",
+          "bytes": 35915,
+          "sha256": "7813a18247991178ae2a58ea57fd40d9d5b21582aa8e80b03d6ccdcd4b1dfda8"
+        },
+        {
+          "path": "src/styles/parts/10_layout_surfaces.css",
+          "bytes": 30082,
+          "sha256": "07eb446d46ce264ea451fefcd04fb05f267f4b33b051be8badc15d69a511ca41"
+        },
+        {
+          "path": "src/styles/parts/20_library_plan.css",
+          "bytes": 11459,
+          "sha256": "c791770b1aa6ff43c39b30229802dea4c9953ccf4a548bd48956125873033940"
+        },
+        {
+          "path": "src/styles/parts/30_activities_session.css",
+          "bytes": 23377,
+          "sha256": "e6a51478d2180ce809e56cf107a37c6ca25b5ef061c910faa888aaa3630b77f2"
+        },
+        {
+          "path": "src/styles/parts/40_library_compatibility.css",
+          "bytes": 23511,
+          "sha256": "a83711e78b255a7bad42576aa86bfc529971bbac42c1a901fa76e2ded2342c99"
+        },
+        {
+          "path": "src/styles/parts/45_import_tools_release_surfaces.css",
+          "bytes": 7107,
+          "sha256": "2cb7b7cd93adbf46fff3cf57d56ece6713cde9faad72bbf247600e2b0a16bd89"
+        },
+        {
+          "path": "src/styles/parts/50_bilan_tools.css",
+          "bytes": 16112,
+          "sha256": "ea5fce2db461a68cf71e478a027f9214f29e7bb15055d42f5a38d41bb3a37fa5"
+        },
+        {
+          "path": "src/styles/parts/60_route_navigation.css",
+          "bytes": 17535,
+          "sha256": "cebb6b0a87ebe24ff6ba566ece78ac09e524292547436a9f55f63eaf2e1f51f5"
+        },
+        {
+          "path": "src/styles/parts/64_library_chapter_comfort.css",
+          "bytes": 14799,
+          "sha256": "9c0f86f3f8a526798d37176edebf7b52abab7995848d31fe798afebbcccbcbe6"
+        }
+      ],
+      "bytes": 179897,
+      "sha256": "5b6288fd0c99a79c7d25fa5110ca3b464677a300c4211c43bf34459d75d8d91e"
+    }
+  ],
+  "scripts": [
+    {
+      "path": "src/activities/qcm.js",
+      "description": "RC223 extracted QCM activity boundary: selection, completion, correctness, expected text and DOM audit.",
+      "order": 0,
+      "bytes": 3274,
+      "sha256": "7a10fb5514859b93f7d6023c19191f3628984ea71d904ddffc2cd2df91598f5e"
+    },
+    {
+      "path": "src/activities/flashcard.js",
+      "description": "RC223 extracted flashcard activity boundary: initial state, reveal, grade/feedback and DOM audit.",
+      "order": 1,
+      "bytes": 3018,
+      "sha256": "204e4bc75f26ca1f143a1fb312201abf968a6dee6a83ddd1e2523b40cc332d90"
+    },
+    {
+      "path": "src/activities/fill.js",
+      "description": "RC222 extracted fill activity boundary: pure fill-state operations, tap-to-slot/focus helpers, completion/correctness checks, DOM tactile audit.",
+      "order": 2,
+      "bytes": 6758,
+      "sha256": "6f9cc5d4193270c85ce83f10fdc0b3383dcdd8980f13b9cbf355d1632829c56f"
+    },
+    {
+      "path": "src/activities/order.js",
+      "description": "RC220 extracted order activity boundary retained as reference pattern.",
+      "order": 3,
+      "bytes": 16384,
+      "sha256": "ee991867ecb7e6be759ecf4fe70c8ce0e06e7e3b6c20f46f5124be0d25e9c238"
+    },
+    {
+      "path": "src/activities/matching.js",
+      "description": "RC221 extracted matching activity boundary retained.",
+      "order": 4,
+      "bytes": 10292,
+      "sha256": "8d896469e9b02f59752065f84b198f93e99e4db7e8c24cfcb5825691963c178b"
+    },
+    {
+      "path": "src/learning/mastery_evidence_model.js",
+      "description": "RC588-RC592 pure explainable evidence model: exposure, attempts, success, fragility, review due and spaced stability; objective/chapter/course aggregation; reason-coded recommendations; readable statuses; no arbitrary mastery percentage.",
+      "order": 5,
+      "bytes": 13616,
+      "sha256": "398f41fdf4ffb9a65acf0149749bb478ec3bb8571b3e91deb2780d994814fd4e"
+    },
+    {
+      "order": 6,
+      "path": "src/learning/next_action_model.js",
+      "description": "RC690-RC693 canonical next-action decision engine shared by Apprendre, Bibliothèque and Bilan; assessment-aware, reason-coded and adaptive after diagnostic.",
+      "bytes": 13616,
+      "sha256": "d57f360b6945c38bfcb613f84eaa1fd48680ddc3c797cf996745a94980388e6d"
+    },
+    {
+      "order": 7,
+      "path": "src/learning/session_mode_model.js",
+      "description": "RC573-RC579 pure session-mode policy model: five public modes, queue strategy, deferred assessment feedback and diagnostic progress isolation.",
+      "bytes": 17465,
+      "sha256": "95e2c30692d19c4cf5e4dcfd77ad59c3377de534d477fc90ed8069d6983a878e"
+    },
+    {
+      "path": "src/learning/bilan_decision_model.js",
+      "description": "RC372 pure Bilan decision model: hierarchy, visible blocks and next-action taxonomy before UI refactor.",
+      "order": 8,
+      "bytes": 6510,
+      "sha256": "ce970cb55798e243b4398b349df8254cd63e708706bfe9c6844aa664c7672556"
+    },
+    {
+      "order": 9,
+      "path": "src/learning/action_intent_model.js",
+      "description": "RC397 pure action intent model for Bilan and user-facing action labels.",
+      "bytes": 3182,
+      "sha256": "e713f08694ad0b5383e622f497ca95d56c775b8d58e20411e23de3a7199c3726"
+    },
+    {
+      "path": "src/learning/bilan_information_architecture_model.js",
+      "description": "RC694-RC696 decision-first Bilan information architecture: one primary action, at most one alternative, assessment outcome first, secondary evidence collapsed.",
+      "order": 10,
+      "bytes": 2429,
+      "sha256": "2a55103053d0a189aa545edf02fb30195501693cc9d7936d2937d0e1b064222a"
+    },
+    {
+      "order": 11,
+      "path": "src/learning/gesture_navigation_model.js",
+      "description": "RC412 pure gesture navigation model: threshold, axis lock, boundary decisions.",
+      "bytes": 2871,
+      "sha256": "89ca4066fbde6c86cc2b960a50a7cca2f5eddd1442ee416b640e8fd1e6bdc356"
+    },
+    {
+      "order": 12,
+      "path": "src/learning/route_carousel_model.js",
+      "description": "RC450 pure route carousel model: route order, target index, drag frame, snap, tap menu target, boundary rubber-band.",
+      "bytes": 5519,
+      "sha256": "554f37323c0ef809189fd75e1bb742fc0cc72bd3e82a61c7ce25b9de3c73c0b0"
+    },
+    {
+      "order": 13,
+      "path": "src/learning/variety_model.js",
+      "description": "RC566-RC572 pure pedagogical-variety model: near-duplicate audit, meaningful-variant check and minimally disruptive deterministic queue sequencing.",
+      "bytes": 9413,
+      "sha256": "2c8c93f3d2bafb6c42e813ef86d10403079d776f8973caf56a3a92459df2b0f8"
+    },
+    {
+      "order": 14,
+      "path": "src/learning/remediation_model.js",
+      "description": "RC551-RC572 learning evidence model: bounded remediation, spaced review, and diversity-safe alternative selection.",
+      "bytes": 13964,
+      "sha256": "e73df90cc81676c942237fc6f137d4815d387c324bac436a0e24995c08d1113a"
+    },
+    {
+      "path": "src/learning/performance_budget_model.js",
+      "description": "RC624-RC656 pure performance budgets, summaries, storage byte accounting and release-size classification.",
+      "order": 15,
+      "bytes": 2806,
+      "sha256": "cd2510df1018254c0998c831c50d343bbc5a8a39b8ef5c4d87c84eafec627f23"
+    },
+    {
+      "order": 16,
+      "path": "src/learning/media_security_model.js",
+      "description": "RC684 centralized fail-closed media security model: SVG element/attribute allowlist, raster data URL restriction and HTTPS-only remote images.",
+      "bytes": 6844,
+      "sha256": "519280d1fed8a02c2ef9648b9c62bc3a36250f0aa17a9a545f87c103eba1b116"
+    },
+    {
+      "order": 17,
+      "path": "src/learning/learning_coverage_model.js",
+      "description": "RC698 explicit objective coverage across recall, comprehension, application and transfer.",
+      "bytes": 7875,
+      "sha256": "f7161b01631985d862a32d1b6447157eb62c78d1fef004b63848e9fb3261cc9f"
+    },
+    {
+      "order": 18,
+      "path": "src/learning/retention_protocol_model.js",
+      "description": "RC701 honest immediate, 72-hour and 7-day retention observation protocol.",
+      "bytes": 7511,
+      "sha256": "bf975104fc072fedeeb932729a512c602a7e4de2e305340153df724d01d68b42"
+    },
+    {
+      "order": 19,
+      "bundle": "runtime_core",
+      "paths": [
+        "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+        "src/scripts/core/runtime_parts/05_durable_library_store.js",
+        "src/scripts/core/runtime_parts/10_content_store_and_state.js",
+        "src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js",
+        "src/scripts/core/runtime_parts/30_navigation_library_plan_models.js",
+        "src/scripts/core/runtime_parts/40_bilan_learning_models.js",
+        "src/scripts/core/runtime_parts/50_diagnostics_import_quality.js",
+        "src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js",
+        "src/scripts/core/runtime_parts/52_import_diagnostic_views.js",
+        "src/scripts/core/runtime_parts/60_app_runtime_and_test_api.js",
+        "src/scripts/core/runtime_parts/61_pointer_interaction_fallbacks.js",
+        "src/scripts/core/runtime_parts/62_app_action_dispatcher.js",
+        "src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
+        "src/scripts/core/runtime_parts/73_runtime_test_api.js",
+        "src/scripts/core/runtime_parts/64_route_nav_transition_runtime.js",
+        "src/scripts/core/runtime_parts/65_mobile_swipe_runtime.js",
+        "src/scripts/core/runtime_parts/66_route_view_composer.js",
+        "src/scripts/core/runtime_parts/67_route_static_actions.js",
+        "src/scripts/core/runtime_parts/68_library_navigation_shell_composer.js",
+        "src/scripts/core/runtime_parts/69_gesture_orchestrator.js",
+        "src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js",
+        "src/scripts/core/runtime_parts/72_performance_scalability_runtime.js",
+        "src/scripts/core/runtime_parts/74_learning_evidence_runtime.js",
+        "src/scripts/core/runtime_parts/70_automation_and_boot.js",
+        "src/learning/course_collection_model.js"
+      ],
+      "description": "RC715 ordered runtime owners including durable library persistence, stable imported-course identity, editable naming, learning evidence, resilience and exact-bound automation.",
+      "files": [
+        {
+          "path": "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+          "bytes": 17247,
+          "sha256": "25b0d17565c1d9d65edd742389053c25729434554ce4364bcbf5978923e91d5f"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/05_durable_library_store.js",
+          "bytes": 3828,
+          "sha256": "da3e54504067beed28560742f7a57e3ccd9b9fd53e4a8b575f64cff24950edf2"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/10_content_store_and_state.js",
+          "bytes": 50924,
+          "sha256": "00e6e63716f5dd6b7202299561a8a16730580fcb4ed54f4ea77ec1473cb35dd4"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js",
+          "bytes": 42345,
+          "sha256": "ce8c4a80b59436a66df4c55ac1f9202201f7fc578263587ba6533b50db149fa4"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/30_navigation_library_plan_models.js",
+          "bytes": 31408,
+          "sha256": "2d6a3b8aa0793f3a9418c689af8e3c8b4d7dcb1c2c67a66f56a3a249d8a0c440"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/40_bilan_learning_models.js",
+          "bytes": 14074,
+          "sha256": "67010070b720097ba11db4f90d8ea7e2f23fb8513222d12114b7b150417545cd"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/50_diagnostics_import_quality.js",
+          "bytes": 17858,
+          "sha256": "3a05e3a165f078dd0857c1ad1c44b2e8f24438c4e309c53e9ca3e58cecb59e73"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js",
+          "bytes": 31012,
+          "sha256": "a608ceacd42b5c1ebdac2989235e1f0eb333b791fcf02a4cc1f0faf8aa5376c8"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/52_import_diagnostic_views.js",
+          "bytes": 9796,
+          "sha256": "fb2c0b1475a1bba4448caf312a8f9803f66ed9ffeb8c79ef9b64f30f853b1b13"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/60_app_runtime_and_test_api.js",
+          "bytes": 10631,
+          "sha256": "0e736c19bea294ad346f3f2d7e8a363c49f665ef293d413b1677c22ca7abbc57"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/61_pointer_interaction_fallbacks.js",
+          "bytes": 10829,
+          "sha256": "5b2d13eb3121af65eeed99ff882ecf894a47ee90574977a29b763ff3c5125eba"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/62_app_action_dispatcher.js",
+          "bytes": 18548,
+          "sha256": "38c02afbfc0b778fafb90859868e663339fa27de454f3080b6f283ecbb7ad525"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
+          "bytes": 41882,
+          "sha256": "0220fbe56777f78345db271a721c0f034f5cb8b14a4f6ac3b6ac02691d5b72fc"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/73_runtime_test_api.js",
+          "bytes": 16366,
+          "sha256": "e7942b4a8c0b08e099bd0935dfa9bd2fe20e60766f9cbabfaebed3d55dbb8614"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/64_route_nav_transition_runtime.js",
+          "bytes": 2805,
+          "sha256": "3cc978e02753370f980035f8bdb1cc338a00c7989f9fc4c24ec60f80859abc8f"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/65_mobile_swipe_runtime.js",
+          "bytes": 25995,
+          "sha256": "fc221f2c3e6a0bdc71028c6d79e5455208ebf4d2f1a47d854429d1bab2d9d8e5"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/66_route_view_composer.js",
+          "bytes": 40745,
+          "sha256": "9720c26f40b3126313354d1aa3cab1192a76ec07994bd04545bb43f651fbe3fc"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/67_route_static_actions.js",
+          "bytes": 14365,
+          "sha256": "e4ae87c74db14f7d97673f7489a5c55918fff81d20a51122a24be359e63e2a2a"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/68_library_navigation_shell_composer.js",
+          "bytes": 8812,
+          "sha256": "2942d4919b52bf9f0fd9dea6b5b142c78ab6f0252b6bdf7c2b18e28284176ff8"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/69_gesture_orchestrator.js",
+          "bytes": 10253,
+          "sha256": "b4768fe0f07517ce8aa62c458e03b1591253d4cb5c303235f199fba395117850"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js",
+          "bytes": 21287,
+          "sha256": "80e7d6e21d85dd545e40224d27b3f9cd3d3d5065f6d645490a1b093ee866516a"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/72_performance_scalability_runtime.js",
+          "bytes": 5629,
+          "sha256": "81c2c9460bb1aed3c43c854bf88ea31a9fc130f8846f10b6ce9da29c46bc71dc"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/74_learning_evidence_runtime.js",
+          "bytes": 2111,
+          "sha256": "7f31f880fcde129d7d132a34a2ff2095c0c50a8e91de0fb6d6ca29cebdf10a11"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/70_automation_and_boot.js",
+          "bytes": 16472,
+          "sha256": "eed542f6f226a39792e613348afa6099ed8a2e6a047c0a3a7a532c9fafb32c8f"
+        },
+        {
+          "path": "src/learning/course_collection_model.js",
+          "bytes": 2886,
+          "sha256": "d0484b88848c73b45f20a6c4b77bf98d1e4cbbdb8d913276ea3a91ba5515eea4"
+        }
+      ],
+      "bytes": 468108,
+      "sha256": "1380a3d25ae843de9693c153dcfdba093955440a34c437580b9afed7cf96162b"
+    },
+    {
+      "path": "src/scripts/enhancements/999_deferred_boot.js",
+      "description": "Final boot trigger after all runtime owners are loaded.",
+      "order": 20,
+      "bytes": 277,
+      "sha256": "b339c1e3b9826f24bc2147a2a94f9e464fdef161ec8dcadcab23a46fd4e6aabe"
+    }
+  ],
+  "dist": "dist/learnit.html",
+  "principle": "One recommendation engine, one route carousel, one gesture orchestrator, durable device-local library storage, stable imported-course identity, editable user-facing course names, exact-bound release evidence and human authority before promotion.",
+  "template_sha256": "8d918eee2a2ba754eddb7efe7282850573e00e1cecd4c927ece5f660a4ef1306",
+  "dev": {
+    "schema": "learnit.rc715.dev_manifest.v1",
+    "releaseConfig": "dev/release_config.json",
+    "engineeringContract": "docs/ENGINEERING.md",
+    "checksRegistry": "dev/checks_registry.json",
+    "runAllChecks": "dev/run_all_checks.py",
+    "updateManifest": "dev/update_manifest.py",
+    "releasePipeline": "dev/release_pipeline.py",
+    "packageRelease": "dev/package_release.py",
+    "verifyBundle": "dev/verify_release_bundle.py",
+    "handover": "README.md"
+  },
+  "build_timestamp": "2026-07-13T17:30:00Z",
+  "release_config_sha256": "46261d7e99181842a2ac0ccc834c4fbaa2289c973ea413d5a67e78ebf4708b7f",
+  "human_validation": {
+    "required": true,
+    "status": "pending-deferred-rc702-and-rc716-library-final-human-gates",
+    "baseline_rc": "RC696",
+    "baseline_artifact_rc": "RC696",
+    "baseline_artifact_sha256": "0eb91dec26d956ab37efff3c233235d37fcc8701afed6fe1386da4c5342abca7",
+    "evidence": "reports/aggregate_report.json",
+    "protocol": "docs/HUMAN_VALIDATION.md",
+    "previous_gate": "RC697 human PASS: recommendation comprehension, diagnostic adaptation and Bilan decision clarity confirmed on RC696. RC689 human PASS: PC and Android scroll.",
+    "next_human_gate": "RC702 transfer and retention is explicitly deferred. RC716 must verify close/reopen persistence and import/post-import renaming on the user browser before promotion."
+  },
+  "contracts": [
+    {
+      "path": "contract/learnit-capabilities.json",
+      "dom_id": "learnit-capabilities",
+      "description": "Canonical machine-readable application capability manifest.",
+      "bytes": 14655,
+      "sha256": "bcd369da6becde999a8cfb91b6070fbfc868b594e2cae2b62c340f8c2fcd3df5"
+    },
+    {
+      "path": "contract/learnit-import.schema.json",
+      "dom_id": "learnit-import-schema",
+      "description": "Strict authoring JSON Schema verified against the runtime.",
+      "bytes": 17526,
+      "sha256": "a5013dfe99d9873e3134b65e2eab61ee5758576b75c7de73510dfaa94b7612d7"
+    },
+    {
+      "path": "contract/pedagogical-taxonomy.json",
+      "dom_id": "learnit-pedagogical-taxonomy",
+      "description": "Canonical pedagogical enumerations shared by app, validator and skill.",
+      "bytes": 789,
+      "sha256": "678fa1ea30bfadab02a2c16ebdc5e26c086560e407a6e22561c112d91f0b0270"
+    }
+  ],
+  "authoring_pack": {
+    "name": "learnit-kit-authoring-pack",
+    "paths": [
+      "authoring/SKILL_CURRENT.md",
+      "authoring/contract-fixtures.json",
+      "contract/learnit-capabilities.json",
+      "contract/learnit-import.schema.json",
+      "contract/pedagogical-taxonomy.json",
+      "tools/validate_kit.py",
+      "dev/authoring_alignment.py",
+      "data/golden-kits/golden_nombres_complexes.json",
+      "data/golden-kits/golden_signaux_electriques.json"
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "SRC-WP-001",
+  "title": "Import RC715 as the active standalone development baseline",
+  "status": "accepted",
+  "changeClass": "test-or-evidence",
+  "riskClass": "high",
+  "purpose": "Import the exact RC715 continuation source into GitHub without refactoring, prove clean reconstruction of the delivered artifact, and make GitHub the canonical source for subsequent standalone stabilization while keeping stable promotion blocked behind ARC-WP-000.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "56713bbe08efa3783e9a6e84f971930f1621ce39",
+    "candidateName": "RC715 durable library and rename candidate",
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
+    "outerPackageSha256": "f5e1bd5b17a9e16a6e14962d6db18632abb954bf71a68935c9186e8b1c190033",
+    "selectionRule": "Development baseline only; human promotion remains pending under ARC-WP-000."
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/player/**",
+      "docs/evidence/rc715/**",
+      "governance/governor-state.json",
+      "work-packages/SRC-WP-001.json",
+      ".github/workflows/import-rc715-source.yml",
+      ".import/**"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "platform/**",
+      "SECURITY.md",
+      "GOVERNANCE.md"
+    ]
+  },
+  "invariants": [
+    "The imported source is byte-for-byte the content of the supplied RC715 minimal source archive after removal of its single archive root directory.",
+    "No application behavior, source file, test, contract, identifier, or storage implementation is intentionally changed during import.",
+    "The imported source reconstructs dist/learnit.html with SHA-256 6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0.",
+    "GitHub becomes the canonical source for every subsequent RC after cutover.",
+    "RC715 remains automation-ready but not human-promoted.",
+    "ARC-WP-000 remains open and is not satisfied by this import."
+  ],
+  "requiredEvidence": [
+    "source archive SHA-256 verification",
+    "safe archive path validation",
+    "complete source-file inventory",
+    "clean GitHub Actions reconstruction",
+    "rebuilt artifact SHA-256 verification",
+    "repository governance validation",
+    "current automated checks executed from imported source",
+    "explicit known limitations and human gate status",
+    "final pull-request changed-file inventory"
+  ],
+  "adversarialTests": [
+    "reject any source archive whose SHA-256 differs from c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
+    "reject archive traversal, absolute paths, duplicate paths, or symbolic links",
+    "reject pre-existing non-empty apps/player content",
+    "fail if the reconstructed artifact hash differs from the delivered RC715 hash",
+    "fail repository validation if temporary import payload remains in the proposed final tree",
+    "confirm no backend, synchronization, account, commerce, or platform module is introduced"
+  ],
+  "nonGoals": [
+    "promote RC715 as stable standalone-v1.0",
+    "refactor or reorganize the player source",
+    "migrate localStorage or IndexedDB behavior",
+    "change canonical identifiers",
+    "change the kit contract or authoring skill",
+    "add backend, accounts, synchronization, remote catalog, entitlements, commerce, institutions, or marketplace"
+  ],
+  "independentReview": [
+    "Architecture and Repository Governor",
+    "QA and provenance review",
+    "human standalone promotion remains separately required by ARC-WP-000"
+  ],
+  "rollback": "Revert the import pull request. The RC715 supplied package and its hashes remain the external evidence source; no application migration or user-data transformation is performed by this work package.",
+  "result": {
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "artifactIdentityVerified": true,
+    "mandatoryChecksPassed": true,
+    "humanPromotion": "pending",
+    "decision": "GO_WITH_CONDITIONS",
+    "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f"
+  }
+}

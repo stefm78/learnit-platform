@@ -1,0 +1,340 @@
+{
+  "kind": "learnit-course-package",
+  "schema_version": "learnit.import.v1.1",
+  "packageId": "golden-signaux-electriques-rc654",
+  "source": "Des signaux pour communiquer — EPF FGE1, 11 janvier 2026 (bases de l’électrocinétique)",
+  "assets": [
+    {
+      "id": "kirchhoff-node",
+      "type": "image",
+      "format": "svg",
+      "source": "generated-from-course",
+      "alt": "Nœud électrique avec deux courants entrants et deux courants sortants",
+      "caption": "À un nœud, la somme des courants entrants égale la somme des courants sortants.",
+      "pedagogical_role": "diagram_to_interpret",
+      "data": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 220'><rect width='380' height='220' fill='#fff'/><circle cx='190' cy='110' r='10' fill='#1d4ed8'/><path d='M30 45L182 105M30 175L182 115M350 55L198 105M350 165L198 115' stroke='#344054' stroke-width='4'/><path d='M80 64l24 1-14 19M80 155l24 0-14-19M300 73l-24 1 14 19M300 147l-24 0 14-19' fill='none' stroke='#2563eb' stroke-width='4'/><text x='40' y='42' font-size='18'>2 A</text><text x='40' y='195' font-size='18'>3 A</text><text x='308' y='52' font-size='18'>1 A</text><text x='310' y='188' font-size='18'>I</text></svg>"
+    }
+  ],
+  "generation_report": {
+    "fixture": "real-course-contract-probe",
+    "activity_count": 10,
+    "objectives": 2,
+    "all_activity_types": true,
+    "transfer_probe_contract": "rc700-explicit-near-far-v1",
+    "transfer_probe_count": 4,
+    "far_transfer_probe_count": 2
+  },
+  "courses": [
+    {
+      "schemaVersion": "learnit-content-v2",
+      "contentVersion": "golden-signaux-electriques-v1",
+      "title": "Golden — Signaux électriques",
+      "sequence": "Bases de l’électrocinétique",
+      "objectives": [
+        "Appliquer les lois des nœuds et des mailles dans un circuit électrique.",
+        "Relier tension, courant, résistance et puissance dans un dipôle."
+      ],
+      "activities": [
+        {
+          "id": "se-fc-01",
+          "type": "flashcard",
+          "objective": "Appliquer les lois des nœuds et des mailles dans un circuit électrique.",
+          "question": "Que conserve la loi des nœuds ?",
+          "why": "Elle traduit la conservation de la charge électrique.",
+          "remediation": "Comparer la somme des courants qui entrent et qui sortent du nœud.",
+          "difficulty": "easy",
+          "learning_phase": "activation",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Additionner seulement les courants sortants."
+          ],
+          "front": "Énoncer la loi des nœuds.",
+          "answer": "La somme des courants entrants est égale à la somme des courants sortants.",
+          "back": "ΣI entrants = ΣI sortants."
+        },
+        {
+          "id": "se-qcm-02",
+          "type": "qcm",
+          "objective": "Appliquer les lois des nœuds et des mailles dans un circuit électrique.",
+          "question": "Au nœud, 2 A et 3 A entrent. Un courant de 1 A sort. Quel est l’autre courant sortant ?",
+          "why": "La somme entrante vaut 5 A, donc les sorties doivent totaliser 5 A.",
+          "remediation": "Écrire 2 + 3 = 1 + I.",
+          "difficulty": "easy",
+          "learning_phase": "application",
+          "assessment_role": "diagnostic",
+          "common_errors": [
+            "Soustraire les deux courants entrants."
+          ],
+          "choices": [
+            "1 A",
+            "2 A",
+            "4 A",
+            "6 A"
+          ],
+          "answer": 2,
+          "media": [
+            {
+              "assetId": "kirchhoff-node",
+              "placement": "question",
+              "display": "contained",
+              "zoomable": true
+            }
+          ]
+        },
+        {
+          "id": "se-match-03",
+          "type": "matching",
+          "objective": "Appliquer les lois des nœuds et des mailles dans un circuit électrique.",
+          "question": "Associer la grandeur à la règle de circuit correspondante.",
+          "why": "Les nœuds concernent les courants et les mailles les tensions.",
+          "remediation": "Repérer si l’on raisonne sur un embranchement ou une boucle fermée.",
+          "difficulty": "medium",
+          "learning_phase": "comprehension",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Utiliser la loi des mailles pour les courants."
+          ],
+          "pairs": [
+            [
+              "Courants à un nœud",
+              "ΣI = 0"
+            ],
+            [
+              "Tensions dans une maille",
+              "ΣU = 0"
+            ],
+            [
+              "Différences de potentiel",
+              "UAC = UAB + UBC"
+            ]
+          ]
+        },
+        {
+          "id": "se-order-04",
+          "type": "order",
+          "objective": "Appliquer les lois des nœuds et des mailles dans un circuit électrique.",
+          "question": "Ordonner la résolution d’une maille simple.",
+          "why": "Le fléchage précède l’écriture algébrique, puis le calcul et le contrôle.",
+          "remediation": "Choisir un sens de parcours avant d’attribuer les signes.",
+          "difficulty": "medium",
+          "learning_phase": "transfer",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Changer de sens de parcours au milieu du calcul."
+          ],
+          "tokens": [
+            "Choisir un sens de parcours",
+            "Repérer le sens des flèches de tension",
+            "Écrire la somme algébrique des tensions",
+            "Résoudre puis vérifier l’unité"
+          ],
+          "answer": [
+            "Choisir un sens de parcours",
+            "Repérer le sens des flèches de tension",
+            "Écrire la somme algébrique des tensions",
+            "Résoudre puis vérifier l’unité"
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "near",
+          "variant_of": "se-match-03"
+        },
+        {
+          "id": "se-qcm-05",
+          "type": "qcm",
+          "objective": "Appliquer les lois des nœuds et des mailles dans un circuit électrique.",
+          "question": "Dans une maille, que vaut la somme algébrique des tensions ?",
+          "why": "La conservation de l’énergie impose une somme nulle sur une boucle fermée.",
+          "remediation": "Revenir à la définition d’une maille et au choix d’un sens de parcours.",
+          "difficulty": "medium",
+          "learning_phase": "remediation",
+          "assessment_role": "remediation",
+          "common_errors": [
+            "Répondre qu’elle vaut la tension du générateur dans tous les cas."
+          ],
+          "choices": [
+            "0 V",
+            "1 V",
+            "La plus grande tension",
+            "La somme des courants"
+          ],
+          "answer": 0
+        },
+        {
+          "id": "se-fill-06",
+          "type": "fill",
+          "objective": "Relier tension, courant, résistance et puissance dans un dipôle.",
+          "question": "Compléter la loi d’Ohm en convention récepteur.",
+          "why": "La tension est proportionnelle au courant, avec R comme coefficient.",
+          "remediation": "Vérifier que U est en volts, R en ohms et I en ampères.",
+          "difficulty": "easy",
+          "learning_phase": "application",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Écrire U = R/I."
+          ],
+          "parts": [
+            "U = ",
+            0,
+            " × ",
+            1
+          ],
+          "tokens": [
+            "R",
+            "I",
+            "P"
+          ],
+          "answer": [
+            "R",
+            "I"
+          ],
+          "sentence": "U = R × I"
+        },
+        {
+          "id": "se-qcm-07",
+          "type": "qcm",
+          "objective": "Relier tension, courant, résistance et puissance dans un dipôle.",
+          "question": "Une résistance de 10 Ω est parcourue par 0,2 A. Quelle tension apparaît à ses bornes ?",
+          "why": "U = RI = 10 × 0,2 = 2 V.",
+          "remediation": "Convertir d’abord toutes les grandeurs dans les unités SI.",
+          "difficulty": "medium",
+          "learning_phase": "comprehension",
+          "assessment_role": "diagnostic",
+          "common_errors": [
+            "Diviser 10 par 0,2."
+          ],
+          "choices": [
+            "0,02 V",
+            "2 V",
+            "10,2 V",
+            "50 V"
+          ],
+          "answer": 1
+        },
+        {
+          "id": "se-match-08",
+          "type": "matching",
+          "objective": "Relier tension, courant, résistance et puissance dans un dipôle.",
+          "question": "Associer chaque relation à la grandeur calculée.",
+          "why": "Les relations U = RI et P = UI se combinent pour donner les formes de la puissance Joule.",
+          "remediation": "Identifier la grandeur isolée à gauche de l’égalité.",
+          "difficulty": "advanced",
+          "learning_phase": "transfer",
+          "assessment_role": "practice",
+          "common_errors": [
+            "Confondre puissance et énergie."
+          ],
+          "pairs": [
+            [
+              "U = RI",
+              "tension"
+            ],
+            [
+              "P = UI",
+              "puissance"
+            ],
+            [
+              "P = RI²",
+              "puissance Joule"
+            ]
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "near",
+          "variant_of": "se-fill-06"
+        },
+        {
+          "id": "se-order-09",
+          "type": "order",
+          "objective": "Relier tension, courant, résistance et puissance dans un dipôle.",
+          "question": "Ordonner le bilan de puissance d’un dipôle.",
+          "why": "Le signe de P = UI détermine si le dipôle reçoit ou fournit de l’énergie.",
+          "remediation": "Respecter le fléchage avant d’interpréter le signe.",
+          "difficulty": "advanced",
+          "learning_phase": "consolidation",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Interpréter le signe sans vérifier la convention de fléchage."
+          ],
+          "tokens": [
+            "Vérifier le sens des flèches U et I",
+            "Calculer P = UI avec le signe",
+            "Comparer P à zéro",
+            "Conclure récepteur ou générateur"
+          ],
+          "answer": [
+            "Vérifier le sens des flèches U et I",
+            "Calculer P = UI avec le signe",
+            "Comparer P à zéro",
+            "Conclure récepteur ou générateur"
+          ]
+        },
+        {
+          "id": "se-fc-10",
+          "type": "flashcard",
+          "objective": "Relier tension, courant, résistance et puissance dans un dipôle.",
+          "question": "Quand un dipôle est-il récepteur ?",
+          "why": "Un récepteur reçoit une puissance positive selon la convention de calcul adoptée.",
+          "remediation": "Calculer P = UI et interpréter son signe.",
+          "difficulty": "medium",
+          "learning_phase": "remediation",
+          "assessment_role": "remediation",
+          "common_errors": [
+            "Associer automatiquement une tension positive à un récepteur."
+          ],
+          "front": "Critère énergétique d’un récepteur ?",
+          "answer": "Il est récepteur lorsque la puissance reçue P = UI est positive.",
+          "back": "P > 0 : puissance reçue ; P < 0 : puissance fournie."
+        },
+        {
+          "id": "se-qcm-11",
+          "type": "qcm",
+          "objective": "Appliquer les lois des nœuds et des mailles dans un circuit électrique.",
+          "question": "Dans une armoire, 0,80 A arrive à un nœud. Deux branches évacuent 0,25 A et 0,35 A. Le capteur de la troisième branche indique 0,10 A. Quel diagnostic est correct ?",
+          "choices": [
+            "Le capteur sous-estime le courant de 0,10 A",
+            "Le capteur est cohérent",
+            "Le capteur surestime le courant de 0,20 A",
+            "La loi des nœuds impose 0,80 A dans chaque branche"
+          ],
+          "answer": 0,
+          "why": "La troisième branche doit évacuer 0,80−0,25−0,35 = 0,20 A. Une lecture de 0,10 A sous-estime donc de 0,10 A.",
+          "remediation": "Écrire Ientrée = I1 + I2 + I3 avant de comparer la mesure au courant attendu.",
+          "difficulty": "expert",
+          "learning_phase": "transfer",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Comparer la mesure au courant total sans calculer le courant de branche.",
+            "Additionner les courants sortants au courant entrant."
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "far",
+          "variant_of": "se-qcm-02"
+        },
+        {
+          "id": "se-qcm-12",
+          "type": "qcm",
+          "objective": "Relier tension, courant, résistance et puissance dans un dipôle.",
+          "question": "Un chauffage de 24 Ω est alimenté sous 12 V et protégé par un fusible de 1 A. Quelle conclusion est correcte ?",
+          "choices": [
+            "I = 0,5 A, P = 6 W et le fusible tient",
+            "I = 2 A, P = 24 W et le fusible fond",
+            "I = 0,5 A, P = 24 W et le fusible tient",
+            "I = 12 A, P = 0,5 W et le fusible fond"
+          ],
+          "answer": 0,
+          "why": "I = U/R = 12/24 = 0,5 A, puis P = UI = 12×0,5 = 6 W. Le courant reste inférieur à 1 A.",
+          "remediation": "Calculer d’abord I = U/R, puis P = UI, et comparer seulement ensuite I au calibre du fusible.",
+          "difficulty": "expert",
+          "learning_phase": "transfer",
+          "assessment_role": "validation",
+          "common_errors": [
+            "Multiplier U par R au lieu de diviser.",
+            "Comparer la puissance au calibre en ampères."
+          ],
+          "transfer_probe": true,
+          "transfer_distance": "far",
+          "variant_of": "se-qcm-07"
+        }
+      ]
+    }
+  ]
+}

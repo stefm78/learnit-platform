@@ -1,0 +1,833 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learnit.local/contracts/learnit-import-v1.1.schema.json",
+  "title": "Learn-it strict authoring contract",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/package"
+    },
+    {
+      "$ref": "#/$defs/course"
+    }
+  ],
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "image"
+        },
+        "format": {
+          "enum": [
+            "svg",
+            "png",
+            "jpeg",
+            "webp",
+            "gif"
+          ]
+        },
+        "source": {
+          "type": "string"
+        },
+        "alt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "caption": {
+          "type": "string"
+        },
+        "pedagogical_role": {
+          "enum": [
+            "concept_visual",
+            "question_stimulus",
+            "worked_example",
+            "misconception_fix",
+            "diagram_to_interpret",
+            "memory_anchor"
+          ]
+        },
+        "data": {
+          "type": "string",
+          "minLength": 1
+        },
+        "src": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "format",
+        "alt",
+        "pedagogical_role"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "data"
+          ]
+        },
+        {
+          "required": [
+            "src"
+          ]
+        }
+      ]
+    },
+    "mediaRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "placement": {
+          "enum": [
+            "question",
+            "feedback"
+          ]
+        },
+        "display": {
+          "enum": [
+            "contained",
+            "full_width"
+          ]
+        },
+        "zoomable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "assetId"
+      ]
+    },
+    "qcm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 180
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "difficulty": {
+          "enum": [
+            "easy",
+            "medium",
+            "advanced",
+            "expert"
+          ]
+        },
+        "learning_phase": {
+          "enum": [
+            "activation",
+            "comprehension",
+            "application",
+            "transfer",
+            "remediation",
+            "consolidation",
+            "diagnostic",
+            "validation"
+          ]
+        },
+        "assessment_role": {
+          "enum": [
+            "practice",
+            "diagnostic",
+            "validation",
+            "remediation"
+          ]
+        },
+        "common_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mediaRef"
+          },
+          "maxItems": 2
+        },
+        "type": {
+          "const": "qcm"
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 220
+          }
+        },
+        "answer": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "transfer_probe": {
+          "type": "boolean"
+        },
+        "transfer_distance": {
+          "enum": [
+            "near",
+            "far"
+          ]
+        },
+        "variant_of": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "objective",
+        "question",
+        "why",
+        "remediation",
+        "choices",
+        "answer"
+      ]
+    },
+    "fill": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 180
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "difficulty": {
+          "enum": [
+            "easy",
+            "medium",
+            "advanced",
+            "expert"
+          ]
+        },
+        "learning_phase": {
+          "enum": [
+            "activation",
+            "comprehension",
+            "application",
+            "transfer",
+            "remediation",
+            "consolidation",
+            "diagnostic",
+            "validation"
+          ]
+        },
+        "assessment_role": {
+          "enum": [
+            "practice",
+            "diagnostic",
+            "validation",
+            "remediation"
+          ]
+        },
+        "common_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mediaRef"
+          },
+          "maxItems": 2
+        },
+        "type": {
+          "const": "fill"
+        },
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer",
+                "minimum": 0
+              }
+            ]
+          }
+        },
+        "tokens": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "answer": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sentence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transfer_probe": {
+          "type": "boolean"
+        },
+        "transfer_distance": {
+          "enum": [
+            "near",
+            "far"
+          ]
+        },
+        "variant_of": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "objective",
+        "question",
+        "why",
+        "remediation",
+        "parts",
+        "tokens",
+        "answer",
+        "sentence"
+      ]
+    },
+    "matching": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 180
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "difficulty": {
+          "enum": [
+            "easy",
+            "medium",
+            "advanced",
+            "expert"
+          ]
+        },
+        "learning_phase": {
+          "enum": [
+            "activation",
+            "comprehension",
+            "application",
+            "transfer",
+            "remediation",
+            "consolidation",
+            "diagnostic",
+            "validation"
+          ]
+        },
+        "assessment_role": {
+          "enum": [
+            "practice",
+            "diagnostic",
+            "validation",
+            "remediation"
+          ]
+        },
+        "common_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mediaRef"
+          },
+          "maxItems": 2
+        },
+        "type": {
+          "const": "matching"
+        },
+        "pairs": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "transfer_probe": {
+          "type": "boolean"
+        },
+        "transfer_distance": {
+          "enum": [
+            "near",
+            "far"
+          ]
+        },
+        "variant_of": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "objective",
+        "question",
+        "why",
+        "remediation",
+        "pairs"
+      ]
+    },
+    "order": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 180
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "difficulty": {
+          "enum": [
+            "easy",
+            "medium",
+            "advanced",
+            "expert"
+          ]
+        },
+        "learning_phase": {
+          "enum": [
+            "activation",
+            "comprehension",
+            "application",
+            "transfer",
+            "remediation",
+            "consolidation",
+            "diagnostic",
+            "validation"
+          ]
+        },
+        "assessment_role": {
+          "enum": [
+            "practice",
+            "diagnostic",
+            "validation",
+            "remediation"
+          ]
+        },
+        "common_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mediaRef"
+          },
+          "maxItems": 2
+        },
+        "type": {
+          "const": "order"
+        },
+        "tokens": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "answer": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "transfer_probe": {
+          "type": "boolean"
+        },
+        "transfer_distance": {
+          "enum": [
+            "near",
+            "far"
+          ]
+        },
+        "variant_of": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "objective",
+        "question",
+        "why",
+        "remediation",
+        "tokens",
+        "answer"
+      ]
+    },
+    "flashcard": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 180
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "remediation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "difficulty": {
+          "enum": [
+            "easy",
+            "medium",
+            "advanced",
+            "expert"
+          ]
+        },
+        "learning_phase": {
+          "enum": [
+            "activation",
+            "comprehension",
+            "application",
+            "transfer",
+            "remediation",
+            "consolidation",
+            "diagnostic",
+            "validation"
+          ]
+        },
+        "assessment_role": {
+          "enum": [
+            "practice",
+            "diagnostic",
+            "validation",
+            "remediation"
+          ]
+        },
+        "common_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mediaRef"
+          },
+          "maxItems": 2
+        },
+        "type": {
+          "const": "flashcard"
+        },
+        "front": {
+          "type": "string",
+          "minLength": 1
+        },
+        "answer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "back": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transfer_probe": {
+          "type": "boolean"
+        },
+        "transfer_distance": {
+          "enum": [
+            "near",
+            "far"
+          ]
+        },
+        "variant_of": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "objective",
+        "question",
+        "why",
+        "remediation",
+        "front",
+        "answer",
+        "back"
+      ]
+    },
+    "activity": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/qcm"
+        },
+        {
+          "$ref": "#/$defs/fill"
+        },
+        {
+          "$ref": "#/$defs/matching"
+        },
+        {
+          "$ref": "#/$defs/order"
+        },
+        {
+          "$ref": "#/$defs/flashcard"
+        }
+      ]
+    },
+    "course": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": "learnit-content-v2"
+        },
+        "contentVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objectives": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "activities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/activity"
+          }
+        },
+        "library_presentation": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "contentVersion",
+        "title",
+        "sequence",
+        "objectives",
+        "activities"
+      ]
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "learnit-course-package"
+        },
+        "schema_version": {
+          "const": "learnit.import.v1.1"
+        },
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "generation_report": {
+          "type": "object"
+        },
+        "courses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/course"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "schema_version",
+        "packageId",
+        "source",
+        "assets",
+        "generation_report",
+        "courses"
+      ]
+    }
+  }
+}
