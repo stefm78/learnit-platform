@@ -66,7 +66,16 @@
       "closureGate": "scope-check CI accepted"
     }
   ],
-  "activeExceptions": [],
+  "activeExceptions": [
+    {
+      "id": "EXC-GOV-BOOTSTRAP-001",
+      "rule": "High-risk governance work normally requires an independent reviewer separate from the operational governor.",
+      "reason": "The repository currently has a single accountable owner and no additional reviewer identity. The initial governor bootstrap is documentation and validation tooling only, contains no application source, and is fully reversible.",
+      "owner": "stefm78",
+      "expiryOrRemovalGate": "Remove before the first high or critical application, migration, security, synchronization, identity, entitlement, or release-provenance change is merged.",
+      "rollback": "Revert the standing-governor bootstrap pull request and retain the prior repository foundation."
+    }
+  ],
   "nextMandatoryGate": {
     "id": "ARC-WP-000",
     "condition": "A standalone candidate is promoted and its exact source, artifact hash, human gate, tests, and known issues are available."
