@@ -1,9 +1,12 @@
 # Bootstrap ownership. Replace or extend with real teams when collaborators are added.
 
 *                                      @stefm78
-/contracts/                             @stefm78
-/docs/architecture/                     @stefm78
-/work-packages/                         @stefm78
-/tools/validate_repository.py           @stefm78
-/.github/workflows/                     @stefm78
-/SECURITY.md                            @stefm78
+/GOVERNANCE.md                         @stefm78
+/governance/                           @stefm78
+/docs/governance/                      @stefm78
+/contracts/                            @stefm78
+/docs/architecture/                    @stefm78
+/work-packages/                        @stefm78
+/tools/validate_repository.py          @stefm78
+/.github/workflows/                    @stefm78
+/SECURITY.md                           @stefm78
