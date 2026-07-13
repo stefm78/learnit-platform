@@ -2,16 +2,17 @@
   "schemaVersion": 1,
   "id": "ARC-WP-000",
   "title": "Establish the forensic standalone baseline",
-  "status": "proposed-blocked",
+  "status": "accepted",
   "changeClass": "test-or-evidence",
   "riskClass": "critical",
-  "purpose": "Import one selected standalone candidate without refactoring, reproduce its build from a clean checkout, and establish the exact source, test, artifact, and known-issue baseline from which architectural seams may later be introduced.",
+  "purpose": "Select and promote one exact standalone candidate as the reproducible forensic baseline from which controlled architectural seams may later be introduced.",
   "baseline": {
-    "sourceRepository": null,
-    "baseCommit": null,
-    "candidateName": null,
-    "artifactSha256": null,
-    "selectionRule": "Populate only after the standalone candidate has passed its promotion gate."
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+    "candidateName": "RC715 durable library and rename candidate",
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
+    "selectionRule": "Promoted after exact reconstruction, mandatory automated checks, governance review, and accountable-owner human validation PASS."
   },
   "scope": {
     "allowedPaths": [
@@ -19,7 +20,10 @@
       "tests/**",
       "tools/build/**",
       "tools/release/**",
-      "docs/evidence/**"
+      "docs/evidence/**",
+      "governance/governor-state.json",
+      "docs/governance/reviews/**",
+      "work-packages/ARC-WP-000.json"
     ],
     "forbiddenPaths": [
       "platform/**",
@@ -28,11 +32,12 @@
     ]
   },
   "invariants": [
-    "No functional, UX, storage, identifier, or contract change is mixed with the import.",
-    "The source imported into GitHub is exactly the source selected as the standalone baseline.",
-    "The artifact is rebuilt from a clean checkout.",
-    "The tested artifact and the packaged artifact are identical.",
-    "Known defects and unproven claims remain explicitly recorded."
+    "No functional, UX, storage, identifier, or contract change is mixed with the promotion decision.",
+    "The promoted source commit is exactly the source that reconstructs the selected RC715 artifact.",
+    "The artifact is rebuilt from a clean checkout and matches the recorded SHA-256.",
+    "The tested artifact and the promoted artifact are identical.",
+    "Known limitations and unproven claims remain explicitly recorded.",
+    "Promotion of the standalone baseline does not authorize held platform work."
   ],
   "requiredEvidence": [
     "full source inventory",
@@ -45,11 +50,18 @@
     "release manifest",
     "known-issues register"
   ],
+  "evidence": {
+    "importReconstruction": "docs/evidence/rc715/import-reconstruction.json",
+    "canonicalMainBaseline": "docs/evidence/rc715/canonical-main-baseline.json",
+    "humanValidation": "docs/evidence/rc715/human-validation-attestation.json",
+    "governorReview": "docs/governance/reviews/GOV-REVIEW-0003-RC715-PROMOTION.md"
+  },
   "adversarialTests": [
-    "mutate source after build and verify packaging fails",
-    "add an undeclared file and verify manifest validation fails",
-    "rebuild in a fresh environment and compare output",
-    "run all required browser and data-recovery tests against the rebuilt artifact"
+    "source and nested package hashes were verified before extraction",
+    "archive traversal, absolute paths, duplicate paths, and symbolic links were rejected",
+    "the source was rebuilt in GitHub Actions and matched the expected artifact hash",
+    "mandatory non-browser checks passed from the imported source",
+    "repository governance validation passed after the import and provenance correction"
   ],
   "nonGoals": [
     "modularize the player",
@@ -59,9 +71,20 @@
     "add accounts, synchronization, catalog, commerce, or tenancy"
   ],
   "independentReview": [
-    "architecture",
-    "QA and provenance",
-    "human standalone promotion gate"
+    "Architecture and Repository Governor",
+    "QA and provenance through GitHub Actions reconstruction",
+    "accountable-owner human standalone promotion gate"
   ],
-  "rollback": "Delete the imported branch or revert the baseline import commit; the active standalone development source remains unchanged until the baseline is formally promoted."
+  "result": {
+    "decision": "GO",
+    "promoted": true,
+    "promotedAt": "2026-07-14",
+    "sourceCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "artifactIdentityVerified": true,
+    "mandatoryChecksPassed": true,
+    "humanPromotion": "PASS",
+    "nextArchitectureGate": "R3 behavioral protection before the first architectural seam"
+  },
+  "rollback": "Revoke the promotion in governor-state.json and revert the promotion-governance pull request. The immutable source commit and artifact hashes remain available for forensic comparison; no application data migration or remote-system change is part of this promotion."
 }
