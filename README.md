@@ -39,6 +39,7 @@ See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFO
 - [Canonical current governor state](governance/governor-state.json)
 - [RC715 promotion review](docs/governance/reviews/GOV-REVIEW-0003-RC715-PROMOTION.md)
 - [RC715 human validation attestation](docs/evidence/rc715/human-validation-attestation.json)
+- [Permanent player CI and behavioral protection gate](work-packages/QA-WP-010.json)
 - [Governor decision rights](docs/governance/DECISION_RIGHTS.md)
 - [Governor review template](docs/governance/GOVERNOR_REVIEW_TEMPLATE.md)
 - [Architecture status and authority](docs/architecture/README.md)
@@ -51,4 +52,4 @@ See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFO
 
 ## Immediate next step
 
-Pass `ARCH-GATE-R3-BEHAVIORAL-PROTECTION`: establish permanent player CI and representative black-box regression fixtures before implementing the first architectural seam.
+Pass [`QA-WP-010`](work-packages/QA-WP-010.json): establish permanent player CI and representative black-box regression fixtures before implementing the first architectural seam.
