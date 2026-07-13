@@ -1,0 +1,49 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+tmp/
+.cache/
+
+# JavaScript
+node_modules/
+coverage/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local application data and generated evidence
+*.sqlite
+*.sqlite3
+local-data/
+user-exports/
+generated-evidence/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Archive and release outputs
+*.zip
+*.tar
+*.tar.gz
+*.tgz

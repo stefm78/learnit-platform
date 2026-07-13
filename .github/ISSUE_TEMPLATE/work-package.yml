@@ -1,0 +1,102 @@
+name: Architecture or engineering work package
+description: Propose a bounded, reviewable unit of work.
+title: "[WP] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A work package must be bounded, testable, reversible, and tied to an exact baseline before implementation begins.
+
+  - type: input
+    id: work_package_id
+    attributes:
+      label: Work package ID
+      placeholder: ARC-WP-000
+    validations:
+      required: true
+
+  - type: input
+    id: base_commit
+    attributes:
+      label: Exact base commit
+      description: Use a full commit SHA. Write UNSELECTED only while the package remains proposed and blocked.
+      placeholder: 40-character SHA or UNSELECTED
+    validations:
+      required: true
+
+  - type: dropdown
+    id: change_class
+    attributes:
+      label: Principal change class
+      options:
+        - Functional fix
+        - UX or accessibility
+        - Refactoring without behavior change
+        - Data migration
+        - Contract change
+        - Test or evidence
+        - Governance or documentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: risk_class
+    attributes:
+      label: Risk class
+      options:
+        - Low
+        - Moderate
+        - High
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and evidence
+      description: Distinguish observed evidence, claims, assumptions, and missing proof.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Allowed and forbidden paths
+      placeholder: |
+        Allowed:
+        - apps/player/...
+        Forbidden:
+        - contracts/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: invariants
+    attributes:
+      label: Invariants and non-goals
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance and adversarial tests
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback strategy
+    validations:
+      required: true
+
+  - type: textarea
+    id: reviewers
+    attributes:
+      label: Independent review required
+      description: State the required architecture, QA, learning, security, UX, or human gate.
+    validations:
+      required: true

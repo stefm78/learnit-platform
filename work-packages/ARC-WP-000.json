@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-000",
+  "title": "Establish the forensic standalone baseline",
+  "status": "proposed-blocked",
+  "changeClass": "test-or-evidence",
+  "riskClass": "critical",
+  "purpose": "Import one selected standalone candidate without refactoring, reproduce its build from a clean checkout, and establish the exact source, test, artifact, and known-issue baseline from which architectural seams may later be introduced.",
+  "baseline": {
+    "sourceRepository": null,
+    "baseCommit": null,
+    "candidateName": null,
+    "artifactSha256": null,
+    "selectionRule": "Populate only after the standalone candidate has passed its promotion gate."
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/player/**",
+      "tests/**",
+      "tools/build/**",
+      "tools/release/**",
+      "docs/evidence/**"
+    ],
+    "forbiddenPaths": [
+      "platform/**",
+      "contracts/**",
+      "docs/architecture/reference-v1/**"
+    ]
+  },
+  "invariants": [
+    "No functional, UX, storage, identifier, or contract change is mixed with the import.",
+    "The source imported into GitHub is exactly the source selected as the standalone baseline.",
+    "The artifact is rebuilt from a clean checkout.",
+    "The tested artifact and the packaged artifact are identical.",
+    "Known defects and unproven claims remain explicitly recorded."
+  ],
+  "requiredEvidence": [
+    "full source inventory",
+    "dependency and runtime inventory",
+    "clean build command and output",
+    "automated test results",
+    "human promotion result",
+    "source commit SHA",
+    "artifact SHA-256",
+    "release manifest",
+    "known-issues register"
+  ],
+  "adversarialTests": [
+    "mutate source after build and verify packaging fails",
+    "add an undeclared file and verify manifest validation fails",
+    "rebuild in a fresh environment and compare output",
+    "run all required browser and data-recovery tests against the rebuilt artifact"
+  ],
+  "nonGoals": [
+    "modularize the player",
+    "migrate localStorage to IndexedDB",
+    "introduce canonical identifiers",
+    "create a backend",
+    "add accounts, synchronization, catalog, commerce, or tenancy"
+  ],
+  "independentReview": [
+    "architecture",
+    "QA and provenance",
+    "human standalone promotion gate"
+  ],
+  "rollback": "Delete the imported branch or revert the baseline import commit; the active standalone development source remains unchanged until the baseline is formally promoted."
+}
