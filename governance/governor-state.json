@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-13-005",
+  "stateId": "GOV-STATE-2026-07-14-006",
   "effectiveFromCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
   "reviewedBaselineCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "standalone-stabilization-on-github",
+    "id": "standalone-baseline-promoted",
     "status": "active",
-    "description": "RC715 is the active development baseline in GitHub. Standalone stabilization continues from this repository; stable human promotion remains pending."
+    "description": "RC715 is the promoted standalone forensic baseline. Ongoing standalone corrections remain permitted, while architectural evolution must now pass behavioral-protection and bounded-seam gates."
   },
   "developmentBaseline": {
     "status": "active",
@@ -19,26 +19,31 @@
     "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
     "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
     "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
-    "humanPromotion": "pending"
+    "humanPromotion": "PASS"
   },
   "promotedBaseline": {
-    "status": "not-selected",
+    "status": "promoted",
     "workPackage": "ARC-WP-000",
-    "sourceCommit": null,
-    "artifactSha256": null
+    "candidate": "RC715 durable library and rename candidate",
+    "sourceCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "promotedAt": "2026-07-14",
+    "humanValidation": "PASS",
+    "evidence": "docs/evidence/rc715/human-validation-attestation.json"
   },
   "authorizedWork": [
-    "standalone functional, UX, accessibility, persistence, performance, test, and release stabilization in this repository",
+    "standalone functional, UX, accessibility, persistence, performance, test, and release improvements through bounded pull requests",
+    "permanent player CI and black-box behavioral protection",
     "repository governance hardening",
     "architecture reference hardening",
-    "black-box test and evidence improvement",
     "read-only source cartography",
-    "work-package and provenance tooling"
+    "preparation of one bounded and reversible architectural seam",
+    "work-package, evidence, and provenance tooling"
   ],
   "heldWork": [
     "player-wide architectural refactoring",
     "global identifier migration",
-    "localStorage to IndexedDB migration unless required for standalone stability",
+    "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
     "backend implementation",
     "accounts and learner profiles",
     "cloud synchronization",
@@ -48,14 +53,14 @@
     "publisher marketplace"
   ],
   "prohibitedWork": [
-    "maintaining a separate canonical standalone source after GitHub cutover",
+    "maintaining a separate canonical standalone source outside GitHub",
+    "mixing a functional correction with a transversal architecture, storage, identifier, or contract migration",
     "microservices before a demonstrated extraction need",
     "synchronization of opaque global snapshots as the sole merge model",
     "canonical identifiers derived from editable titles",
     "direct UI coupling to storage or remote APIs",
     "parallel AI implementation without exact baseline and machine-checkable scopes",
     "publishing an artifact different from the artifact tested",
-    "presenting the RC715 development baseline as a human-promoted stable release",
     "presenting target architecture as current implementation"
   ],
   "activeRisks": [
@@ -72,21 +77,27 @@
       "closureGate": "scope-check CI accepted"
     },
     {
-      "id": "RISK-SRC-001",
+      "id": "RISK-QA-001",
       "severity": "moderate",
-      "statement": "RC715 is automation-ready but its final human persistence, rename, desktop, Android, keyboard, and assistive-technology promotion gate remains pending.",
-      "closureGate": "ARC-WP-000 accepted after human promotion"
+      "statement": "The imported baseline has strong reconstruction and test evidence, but the repository does not yet run the complete permanent player browser matrix on every sensitive pull request.",
+      "closureGate": "permanent player CI and browser gate accepted"
+    },
+    {
+      "id": "RISK-EVIDENCE-001",
+      "severity": "low",
+      "statement": "The human promotion is recorded as accountable-owner attestation without raw device recordings or per-case human test logs in the repository.",
+      "closureGate": "optional attachment of detailed human evidence or acceptance of owner attestation as the durable record"
     }
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "ARC-WP-000",
-    "condition": "A precise GitHub commit passes the complete human standalone promotion gate and is selected as the stable forensic baseline."
+    "id": "ARCH-GATE-R3-BEHAVIORAL-PROTECTION",
+    "condition": "Permanent player CI and representative black-box regression fixtures protect the promoted RC715 behavior before the first architectural seam is implemented."
   },
   "review": {
-    "lastReviewedAt": "2026-07-13",
-    "lastReviewedBy": "Architecture & Repository Governor — RC715 canonical main baseline review",
-    "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "standalone promotion candidate, architecture-sensitive PR, serious regression, or release provenance change"
+    "lastReviewedAt": "2026-07-14",
+    "lastReviewedBy": "Architecture & Repository Governor — ARC-WP-000 promotion review",
+    "decision": "GO",
+    "nextReviewTrigger": "first architectural seam proposal, architecture-sensitive pull request, serious regression, release provenance change, or phase-gate request"
   }
 }
