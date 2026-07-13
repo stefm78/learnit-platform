@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "repository": "stefm78/learnit-platform",
+  "stateId": "GOV-STATE-2026-07-13-001",
+  "effectiveFromCommit": "4b993be6d00b5e4a2e9461e270ae5ef3fa40b97c",
+  "accountableOwner": "stefm78",
+  "operatingModel": "human-accountable-ai-operational",
+  "currentPhase": {
+    "id": "repository-foundation-standalone-stabilization",
+    "status": "active",
+    "description": "Repository governance is bootstrapped while the standalone application continues bounded stabilization outside this repository."
+  },
+  "promotedBaseline": {
+    "status": "not-selected",
+    "workPackage": "ARC-WP-000",
+    "sourceCommit": null,
+    "artifactSha256": null
+  },
+  "authorizedWork": [
+    "standalone functional and UX stabilization outside the repository",
+    "repository governance hardening",
+    "architecture reference hardening",
+    "black-box test and evidence preparation",
+    "read-only source cartography when exact source becomes available",
+    "work-package and provenance tooling"
+  ],
+  "heldWork": [
+    "player-wide architectural refactoring",
+    "global identifier migration",
+    "localStorage to IndexedDB migration unless required for standalone stability",
+    "backend implementation",
+    "accounts and learner profiles",
+    "cloud synchronization",
+    "remote catalog distribution",
+    "commerce and entitlements",
+    "institutional tenancy",
+    "publisher marketplace"
+  ],
+  "prohibitedWork": [
+    "microservices before a demonstrated extraction need",
+    "synchronization of opaque global snapshots as the sole merge model",
+    "canonical identifiers derived from editable titles",
+    "direct UI coupling to storage or remote APIs",
+    "parallel AI implementation without exact baseline and machine-checkable scopes",
+    "publishing an artifact different from the artifact tested",
+    "presenting target architecture as current implementation"
+  ],
+  "activeRisks": [
+    {
+      "id": "RISK-GOV-001",
+      "severity": "high",
+      "statement": "The active standalone source is not yet present in the repository, so build reproducibility and architecture boundaries are not yet proven.",
+      "closureGate": "ARC-WP-000 accepted"
+    },
+    {
+      "id": "RISK-GOV-002",
+      "severity": "high",
+      "statement": "Branch protection and mandatory review rules are not yet independently verified through repository policy evidence.",
+      "closureGate": "repository policy audit completed"
+    },
+    {
+      "id": "RISK-GOV-003",
+      "severity": "moderate",
+      "statement": "Changed-file scope enforcement for AI work packages is specified but not yet implemented.",
+      "closureGate": "scope-check CI accepted"
+    }
+  ],
+  "activeExceptions": [],
+  "nextMandatoryGate": {
+    "id": "ARC-WP-000",
+    "condition": "A standalone candidate is promoted and its exact source, artifact hash, human gate, tests, and known issues are available."
+  },
+  "review": {
+    "lastReviewedAt": "2026-07-13",
+    "lastReviewedBy": "Architecture & Repository Governor bootstrap",
+    "decision": "GO_WITH_CONDITIONS",
+    "nextReviewTrigger": "standalone candidate promotion, architecture-sensitive PR, serious regression, or release provenance change"
+  }
+}
