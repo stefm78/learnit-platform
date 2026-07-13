@@ -4,7 +4,7 @@ Private engineering repository for the controlled evolution of Learn-it from a s
 
 ## Current status
 
-This repository is in **bootstrap mode**.
+The **repository foundation is installed**. The project remains in bootstrap mode for the application baseline.
 
 - The active standalone application is still being stabilized outside this repository.
 - No player source has been imported yet.
@@ -40,4 +40,4 @@ See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFO
 
 ## Immediate next step
 
-Complete the repository-foundation pull request, then execute `ARC-WP-000` only when a standalone candidate is ready to become the reference baseline.
+Keep `ARC-WP-000` blocked until the standalone development stream promotes a candidate. Then populate its exact source commit, artifact hash, evidence, and known-issues register before importing any player code.
