@@ -91,7 +91,7 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "ARCH-GATE-R3-BEHAVIORAL-PROTECTION",
+    "id": "QA-WP-010",
     "condition": "Permanent player CI and representative black-box regression fixtures protect the promoted RC715 behavior before the first architectural seam is implemented."
   },
   "review": {
