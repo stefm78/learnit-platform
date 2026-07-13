@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "workPackage": "SRC-WP-001",
+  "candidate": "RC715 durable library and rename candidate",
+  "classification": "active development baseline; human stable promotion pending",
+  "canonicalRepository": "stefm78/learnit-platform",
+  "canonicalBranch": "main",
+  "canonicalMainCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+  "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
+  "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
+  "outerPackageSha256": "f5e1bd5b17a9e16a6e14962d6db18632abb954bf71a68935c9186e8b1c190033",
+  "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+  "artifactIdentityVerified": true,
+  "mandatoryChecksPassed": true,
+  "repositoryGovernancePassed": true,
+  "humanPromotion": "pending",
+  "nextMandatoryGate": "ARC-WP-000"
+}
