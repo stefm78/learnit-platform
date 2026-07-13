@@ -1,15 +1,23 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-13-001",
-  "effectiveFromCommit": "4b993be6d00b5e4a2e9461e270ae5ef3fa40b97c",
-  "reviewedBaselineCommit": "4b993be6d00b5e4a2e9461e270ae5ef3fa40b97c",
+  "stateId": "GOV-STATE-2026-07-13-002",
+  "effectiveFromCommit": "56713bbe08efa3783e9a6e84f971930f1621ce39",
+  "reviewedBaselineCommit": "56713bbe08efa3783e9a6e84f971930f1621ce39",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "repository-foundation-standalone-stabilization",
+    "id": "rc715-development-baseline-import",
     "status": "active",
-    "description": "Repository governance is bootstrapped while the standalone application continues bounded stabilization outside this repository."
+    "description": "Import the exact RC715 continuation source as a non-promoted development baseline, then continue standalone stabilization from GitHub without architectural refactoring."
+  },
+  "developmentBaseline": {
+    "status": "import-in-progress",
+    "workPackage": "SRC-WP-001",
+    "candidate": "RC715 durable library and rename candidate",
+    "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
+    "expectedArtifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "humanPromotion": "pending"
   },
   "promotedBaseline": {
     "status": "not-selected",
@@ -18,11 +26,12 @@
     "artifactSha256": null
   },
   "authorizedWork": [
-    "standalone functional and UX stabilization outside the repository",
+    "exact RC715 development-source import under SRC-WP-001",
+    "standalone functional and UX stabilization after GitHub cutover",
     "repository governance hardening",
     "architecture reference hardening",
     "black-box test and evidence preparation",
-    "read-only source cartography when exact source becomes available",
+    "read-only source cartography",
     "work-package and provenance tooling"
   ],
   "heldWork": [
@@ -38,20 +47,23 @@
     "publisher marketplace"
   ],
   "prohibitedWork": [
+    "modifying RC715 application source during the import pull request",
+    "maintaining a separate canonical standalone source after GitHub cutover",
     "microservices before a demonstrated extraction need",
     "synchronization of opaque global snapshots as the sole merge model",
     "canonical identifiers derived from editable titles",
     "direct UI coupling to storage or remote APIs",
     "parallel AI implementation without exact baseline and machine-checkable scopes",
     "publishing an artifact different from the artifact tested",
+    "presenting the RC715 development baseline as a human-promoted stable release",
     "presenting target architecture as current implementation"
   ],
   "activeRisks": [
     {
       "id": "RISK-GOV-001",
       "severity": "high",
-      "statement": "The active standalone source is not yet present in the repository, so build reproducibility and architecture boundaries are not yet proven.",
-      "closureGate": "ARC-WP-000 accepted"
+      "statement": "RC715 source import is in progress; repository build reproducibility is not proven until the import workflow reconstructs the expected artifact from the committed source.",
+      "closureGate": "SRC-WP-001 accepted"
     },
     {
       "id": "RISK-GOV-002",
@@ -64,26 +76,32 @@
       "severity": "moderate",
       "statement": "Changed-file scope enforcement for AI work packages is specified but not yet implemented.",
       "closureGate": "scope-check CI accepted"
+    },
+    {
+      "id": "RISK-SRC-001",
+      "severity": "moderate",
+      "statement": "RC715 is automation-ready but its final human persistence, rename, desktop, Android, keyboard, and assistive-technology promotion gate remains pending.",
+      "closureGate": "ARC-WP-000 accepted after human promotion"
     }
   ],
   "activeExceptions": [
     {
-      "id": "EXC-GOV-BOOTSTRAP-001",
-      "rule": "High-risk governance work normally requires an independent reviewer separate from the operational governor.",
-      "reason": "The repository currently has a single accountable owner and no additional reviewer identity. The initial governor bootstrap is documentation and validation tooling only, contains no application source, and is fully reversible.",
+      "id": "EXC-SRC-IMPORT-001",
+      "rule": "High-risk application and provenance changes normally require an independent reviewer with a separate repository identity.",
+      "reason": "The repository currently has one GitHub owner. This exception is limited to importing an externally supplied, hash-identified RC715 source archive without modifying any source file. Mitigations are explicit owner authorization, independent clean reconstruction performed before import, exact source and artifact hashes, automated safe-extraction checks, GitHub Actions reconstruction, and a reversible squash commit.",
       "owner": "stefm78",
-      "expiryOrRemovalGate": "Remove before the first high or critical application, migration, security, synchronization, identity, entitlement, or release-provenance change is merged.",
-      "rollback": "Revert the standing-governor bootstrap pull request and retain the prior repository foundation."
+      "expiryOrRemovalGate": "Remove immediately when SRC-WP-001 is accepted; it cannot authorize any later source modification, migration, security, synchronization, identity, entitlement, or release-promotion change.",
+      "rollback": "Close the import pull request or revert its squash commit; retain RC715 external package hashes as evidence."
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-000",
-    "condition": "A standalone candidate is promoted and its exact source, artifact hash, human gate, tests, and known issues are available."
+    "id": "SRC-WP-001",
+    "condition": "Committed RC715 source safely reconstructs the expected artifact in CI, temporary transfer payloads are removed, repository validation passes, and the import pull request contains no intentional application-source modification."
   },
   "review": {
     "lastReviewedAt": "2026-07-13",
-    "lastReviewedBy": "Architecture & Repository Governor bootstrap",
+    "lastReviewedBy": "Architecture & Repository Governor — RC715 import review",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "standalone candidate promotion, architecture-sensitive PR, serious regression, or release provenance change"
+    "nextReviewTrigger": "SRC-WP-001 CI completion, import pull-request review, any source difference, or standalone candidate promotion"
   }
 }
