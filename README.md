@@ -10,6 +10,7 @@ The **repository foundation is installed**. The project remains in bootstrap mod
 - No player source has been imported yet.
 - No backend, account, synchronization, commerce, or marketplace implementation is authorized yet.
 - The first engineering gate is [`ARC-WP-000`](work-packages/ARC-WP-000.json): establish an exact, reproducible baseline of the standalone version selected for import.
+- The permanent Architecture & Repository Governor maintains the frame through [`GOVERNANCE.md`](GOVERNANCE.md) and the canonical [`governor-state.json`](governance/governor-state.json).
 
 ## Two-track strategy
 
@@ -31,12 +32,17 @@ See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFO
 
 ## Repository entry points
 
+- [Standing architecture and repository governance](GOVERNANCE.md)
+- [Canonical current governor state](governance/governor-state.json)
+- [Governor decision rights](docs/governance/DECISION_RIGHTS.md)
+- [Governor review template](docs/governance/GOVERNOR_REVIEW_TEMPLATE.md)
 - [Architecture status and authority](docs/architecture/README.md)
 - [Architecture reference — start here](docs/architecture/reference-v1/00_START_HERE.md)
 - [Architecture constitution](docs/architecture/reference-v1/01_ARCHITECTURE_CONSTITUTION.md)
 - [Contribution protocol](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 - [Canonical baseline work package](work-packages/ARC-WP-000.json)
+- [Standing governor work package](work-packages/GOV-WP-001.json)
 
 ## Immediate next step
 

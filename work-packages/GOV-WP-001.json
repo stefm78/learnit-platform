@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-001",
+  "title": "Operate the standing Architecture & Repository Governor",
+  "status": "approved",
+  "changeClass": "governance-or-documentation",
+  "riskClass": "high",
+  "purpose": "Maintain the architecture frame, repository integrity, evidence discipline, work-package boundaries, and phase gates across releases and AI-agent cycles.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "4b993be6d00b5e4a2e9461e270ae5ef3fa40b97c",
+    "candidateName": "standing-governor-bootstrap",
+    "artifactSha256": null,
+    "selectionRule": "The governor function becomes permanent once this work package and its executable state validation are merged."
+  },
+  "scope": {
+    "allowedPaths": [
+      "GOVERNANCE.md",
+      "governance/**",
+      "docs/governance/**",
+      "docs/architecture/**",
+      "work-packages/**",
+      ".github/**",
+      "tools/validate_repository.py",
+      "README.md",
+      "CONTRIBUTING.md"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "platform/**",
+      "contracts/**"
+    ]
+  },
+  "invariants": [
+    "The governor distinguishes evidence, claim, assumption, and missing proof.",
+    "The operational governor does not become the sole certifier of its own implementation.",
+    "The current governance frame has one canonical machine-readable state.",
+    "Architecture phase transitions remain evidence-gated.",
+    "Exceptions are explicit, bounded, owned, and expiring.",
+    "The accountable owner retains final product and business authority."
+  ],
+  "requiredEvidence": [
+    "governor charter",
+    "canonical governor state",
+    "repository validation of governor state",
+    "governor review template",
+    "decision-rights matrix",
+    "first governor decision record"
+  ],
+  "adversarialTests": [
+    "remove governor state and verify CI fails",
+    "set an invalid decision or phase status and verify CI fails",
+    "add a held capability to authorized work and verify governance review detects the contradiction",
+    "attempt to approve a high-risk package without independent review and verify the governor blocks it",
+    "create an exception without owner or expiry and verify it is rejected"
+  ],
+  "nonGoals": [
+    "govern the active standalone code before it is imported",
+    "replace the accountable owner",
+    "implement branch protection through documentation alone",
+    "authorize backend or cloud work",
+    "create a permanent architecture committee before additional collaborators exist"
+  ],
+  "independentReview": [
+    "repository owner",
+    "independent QA review of executable governance checks"
+  ],
+  "rollback": "Revert the governor bootstrap pull request. Existing architecture and repository documents remain, but no persistent governor authority should be claimed after rollback."
+}
