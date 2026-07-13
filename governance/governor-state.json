@@ -1,22 +1,23 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-13-003",
-  "effectiveFromCommit": "56713bbe08efa3783e9a6e84f971930f1621ce39",
+  "stateId": "GOV-STATE-2026-07-13-004",
+  "effectiveFromCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
   "reviewedBaselineCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "standalone-stabilization-on-github",
     "status": "active",
-    "description": "RC715 is imported as the active development baseline. Standalone stabilization continues from GitHub; stable human promotion remains pending."
+    "description": "RC715 is the active development baseline in GitHub. Standalone stabilization continues from this repository; stable human promotion remains pending."
   },
   "developmentBaseline": {
-    "status": "import-in-progress",
+    "status": "active",
     "workPackage": "SRC-WP-001",
     "candidate": "RC715 durable library and rename candidate",
+    "sourceCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
     "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
-    "expectedArtifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
     "humanPromotion": "pending"
   },
   "promotedBaseline": {
@@ -46,7 +47,6 @@
     "publisher marketplace"
   ],
   "prohibitedWork": [
-    "modifying RC715 application source during the import pull request",
     "maintaining a separate canonical standalone source after GitHub cutover",
     "microservices before a demonstrated extraction need",
     "synchronization of opaque global snapshots as the sole merge model",
@@ -58,12 +58,6 @@
     "presenting target architecture as current implementation"
   ],
   "activeRisks": [
-    {
-      "id": "RISK-GOV-001",
-      "severity": "high",
-      "statement": "RC715 source import is in progress; repository build reproducibility is not proven until the import workflow reconstructs the expected artifact from the committed source.",
-      "closureGate": "SRC-WP-001 accepted"
-    },
     {
       "id": "RISK-GOV-002",
       "severity": "high",
@@ -90,7 +84,7 @@
   },
   "review": {
     "lastReviewedAt": "2026-07-13",
-    "lastReviewedBy": "Architecture & Repository Governor — SRC-WP-001 import verification",
+    "lastReviewedBy": "Architecture & Repository Governor — SRC-WP-001 final import review",
     "decision": "GO_WITH_CONDITIONS",
     "nextReviewTrigger": "standalone promotion candidate, architecture-sensitive PR, serious regression, or release provenance change"
   }
