@@ -2,12 +2,8 @@ name: Import RC715 package
 
 on:
   pull_request:
-    branches:
-      - main
-    types:
-      - opened
-      - synchronize
-      - reopened
+    branches: [main]
+    types: [opened, synchronize, reopened]
     paths:
       - '.import/*.zip'
       - '.github/workflows/import-rc715-package.yml'
@@ -28,32 +24,19 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Check out the controlled import branch
+      - name: Check out controlled import branch
         uses: actions/checkout@v7
         with:
           ref: import/rc715-development-baseline
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Detect whether the package is present
-        id: package
-        shell: bash
-        run: |
-          if compgen -G '.import/*.zip' > /dev/null; then
-            echo 'present=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'present=false' >> "$GITHUB_OUTPUT"
-            echo 'RC715 package not uploaded yet; preparation check only.'
-          fi
-
       - name: Set up Python
-        if: steps.package.outputs.present == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
-      - name: Verify package and safely extract the exact source
-        if: steps.package.outputs.present == 'true'
+      - name: Verify package and safely extract exact source
         shell: bash
         run: |
           python - <<'PY'
@@ -76,102 +59,88 @@ jobs:
           expected_source_sha = 'c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4'
           expected_artifact_sha = '6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0'
           expected_source_root = 'learnit_rc715_source'
-          expected_regular_files = 144
+          expected_regular_files = 145
 
-          def sha256_bytes(data: bytes) -> str:
+          def sha256(data: bytes) -> str:
               return hashlib.sha256(data).hexdigest()
 
           candidates = sorted(import_dir.glob('*.zip'))
-          matching_outer = [path for path in candidates if sha256_bytes(path.read_bytes()) == expected_outer_sha]
-          if len(matching_outer) != 1:
-              found = {path.name: sha256_bytes(path.read_bytes()) for path in candidates}
-              raise SystemExit(
-                  'Expected exactly one RC715 outer package with SHA-256 '
-                  f'{expected_outer_sha}; found {found}'
-              )
+          matches = [p for p in candidates if sha256(p.read_bytes()) == expected_outer_sha]
+          if len(matches) != 1:
+              found = {p.name: sha256(p.read_bytes()) for p in candidates}
+              raise SystemExit(f'Expected one exact RC715 package; found {found}')
 
-          outer_path = matching_outer[0]
+          outer_path = matches[0]
           outer_raw = outer_path.read_bytes()
-          nested_raw: bytes | None = None
-          nested_name: str | None = None
+          nested_raw = None
+          nested_name = None
 
           with zipfile.ZipFile(io.BytesIO(outer_raw)) as outer:
-              seen_outer: set[str] = set()
+              seen = set()
               for info in outer.infolist():
                   name = info.filename.replace('\\', '/')
                   path = PurePosixPath(name)
                   if path.is_absolute() or '..' in path.parts:
-                      raise SystemExit(f'Unsafe outer archive path: {name}')
-                  if name in seen_outer:
-                      raise SystemExit(f'Duplicate outer archive path: {name}')
-                  seen_outer.add(name)
-                  unix_mode = info.external_attr >> 16
-                  if stat.S_ISLNK(unix_mode):
-                      raise SystemExit(f'Symbolic link rejected in outer archive: {name}')
+                      raise SystemExit(f'Unsafe outer path: {name}')
+                  if name in seen:
+                      raise SystemExit(f'Duplicate outer path: {name}')
+                  seen.add(name)
+                  if stat.S_ISLNK(info.external_attr >> 16):
+                      raise SystemExit(f'Symlink rejected: {name}')
                   if info.is_dir() or not name.lower().endswith('.zip'):
                       continue
                   raw = outer.read(info)
-                  if sha256_bytes(raw) == expected_source_sha:
+                  if sha256(raw) == expected_source_sha:
                       if nested_raw is not None:
-                          raise SystemExit('More than one nested source archive matches the expected SHA-256')
+                          raise SystemExit('Multiple nested source archives match')
                       nested_raw = raw
                       nested_name = name
 
-          if nested_raw is None or nested_name is None:
-              raise SystemExit(
-                  f'Nested RC715 source archive with SHA-256 {expected_source_sha} was not found'
-              )
+          if nested_raw is None:
+              raise SystemExit('Expected nested RC715 source archive not found')
 
           if destination.exists():
               shutil.rmtree(destination)
           destination.mkdir(parents=True, exist_ok=True)
 
-          seen_source: set[str] = set()
-          extracted_files: list[str] = []
-          excluded_generated: list[str] = []
-          excluded_prefixes = ('dist/', 'release/', 'reports/')
-
+          extracted = []
+          excluded = []
+          seen = set()
           with zipfile.ZipFile(io.BytesIO(nested_raw)) as source:
-              for info in source.infolist():
+              infos = source.infolist()
+              regular_count = sum(1 for info in infos if not info.is_dir())
+              if regular_count != expected_regular_files:
+                  raise SystemExit(
+                      f'Unexpected source file count: expected {expected_regular_files}, got {regular_count}'
+                  )
+
+              for info in infos:
                   name = info.filename.replace('\\', '/')
                   path = PurePosixPath(name)
                   if path.is_absolute() or '..' in path.parts:
-                      raise SystemExit(f'Unsafe source archive path: {name}')
+                      raise SystemExit(f'Unsafe source path: {name}')
                   if not path.parts or path.parts[0] != expected_source_root:
-                      raise SystemExit(f'Unexpected source archive root: {name}')
+                      raise SystemExit(f'Unexpected source root: {name}')
                   normalized = path.as_posix()
-                  if normalized in seen_source:
-                      raise SystemExit(f'Duplicate source archive path: {normalized}')
-                  seen_source.add(normalized)
-                  unix_mode = info.external_attr >> 16
-                  if stat.S_ISLNK(unix_mode):
-                      raise SystemExit(f'Symbolic link rejected in source archive: {name}')
-
-                  relative_parts = path.parts[1:]
-                  if not relative_parts:
-                      continue
-                  relative = PurePosixPath(*relative_parts).as_posix()
+                  if normalized in seen:
+                      raise SystemExit(f'Duplicate source path: {normalized}')
+                  seen.add(normalized)
+                  if stat.S_ISLNK(info.external_attr >> 16):
+                      raise SystemExit(f'Symlink rejected: {name}')
                   if info.is_dir():
                       continue
-                  if relative.startswith(excluded_prefixes) or '__pycache__/' in relative or relative.endswith('.pyc'):
-                      excluded_generated.append(relative)
+
+                  relative_parts = path.parts[1:]
+                  relative = PurePosixPath(*relative_parts).as_posix()
+                  if relative.startswith(('dist/', 'release/', 'reports/')) or '__pycache__/' in relative or relative.endswith('.pyc'):
+                      excluded.append(relative)
                       continue
 
                   target = destination.joinpath(*relative_parts)
                   target.parent.mkdir(parents=True, exist_ok=True)
-                  with source.open(info) as input_stream, target.open('wb') as output_stream:
-                      shutil.copyfileobj(input_stream, output_stream)
-                  extracted_files.append(target.relative_to(root).as_posix())
-
-          regular_count = sum(
-              1
-              for info in zipfile.ZipFile(io.BytesIO(nested_raw)).infolist()
-              if not info.is_dir()
-          )
-          if regular_count != expected_regular_files:
-              raise SystemExit(
-                  f'Unexpected source regular-file count: expected {expected_regular_files}, got {regular_count}'
-              )
+                  with source.open(info) as src, target.open('wb') as dst:
+                      shutil.copyfileobj(src, dst)
+                  extracted.append(target.relative_to(root).as_posix())
 
           evidence_dir.mkdir(parents=True, exist_ok=True)
           evidence = {
@@ -185,8 +154,8 @@ jobs:
               'sourceArchiveSha256': expected_source_sha,
               'sourceArchiveRoot': expected_source_root,
               'sourceArchiveRegularFileCount': regular_count,
-              'committedSourceFileCount': len(extracted_files),
-              'excludedGeneratedFiles': sorted(excluded_generated),
+              'committedSourceFileCount': len(extracted),
+              'excludedGeneratedFiles': sorted(excluded),
               'expectedArtifactSha256': expected_artifact_sha,
               'safeExtraction': True,
               'pathTraversalRejected': True,
@@ -195,7 +164,7 @@ jobs:
               'artifactIdentityVerified': False,
               'mandatoryChecksPassed': False,
               'humanPromotion': 'pending',
-              'extractedFiles': sorted(extracted_files),
+              'extractedFiles': sorted(extracted),
           }
           (evidence_dir / 'import-reconstruction.json').write_text(
               json.dumps(evidence, indent=2, ensure_ascii=False) + '\n',
@@ -205,21 +174,18 @@ jobs:
               'outerPackage': outer_path.name,
               'nestedSourceArchive': nested_name,
               'sourceRegularFiles': regular_count,
-              'committedSourceFiles': len(extracted_files),
+              'committedSourceFiles': len(extracted),
           }, indent=2))
           PY
 
       - name: Install test dependencies
-        if: steps.package.outputs.present == 'true'
         run: python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
 
       - name: Rebuild exact RC715 artifact
-        if: steps.package.outputs.present == 'true'
         working-directory: apps/player
         run: python build.py
 
       - name: Verify rebuilt artifact identity
-        if: steps.package.outputs.present == 'true'
         shell: bash
         run: |
           python - <<'PY'
@@ -233,24 +199,19 @@ jobs:
           if actual != expected:
               raise SystemExit(f'Artifact SHA mismatch: expected {expected}, got {actual}')
 
-          evidence_path = Path('docs/evidence/rc715/import-reconstruction.json')
-          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          path = Path('docs/evidence/rc715/import-reconstruction.json')
+          evidence = json.loads(path.read_text(encoding='utf-8'))
           evidence['rebuiltArtifactSha256'] = actual
           evidence['artifactIdentityVerified'] = True
-          evidence_path.write_text(
-              json.dumps(evidence, indent=2, ensure_ascii=False) + '\n',
-              encoding='utf-8',
-          )
+          path.write_text(json.dumps(evidence, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
           print(f'RC715 artifact identity verified: {actual}')
           PY
 
       - name: Run mandatory non-browser checks
-        if: steps.package.outputs.present == 'true'
         working-directory: apps/player
         run: python dev/run_all_checks.py --skip-build
 
       - name: Mark checks as passed
-        if: steps.package.outputs.present == 'true'
         run: |
           python - <<'PY'
           import json
@@ -262,7 +223,6 @@ jobs:
           PY
 
       - name: Remove generated and transfer-only material
-        if: steps.package.outputs.present == 'true'
         shell: bash
         run: |
           rm -rf apps/player/dist apps/player/release apps/player/reports
@@ -271,9 +231,9 @@ jobs:
           rm -rf .import
           rm -f .github/workflows/import-rc715-source.yml
           rm -f .github/workflows/import-rc715-package.yml
+          rm -f .github/workflows/repair-rc715-import.yml
 
-      - name: Update canonical work package and governor state
-        if: steps.package.outputs.present == 'true'
+      - name: Update work package and governor state
         shell: bash
         run: |
           python - <<'PY'
@@ -298,10 +258,7 @@ jobs:
           state['currentPhase'] = {
               'id': 'standalone-stabilization-on-github',
               'status': 'active',
-              'description': (
-                  'RC715 is imported as the active development baseline. '
-                  'Standalone stabilization continues from GitHub; stable human promotion remains pending.'
-              ),
+              'description': 'RC715 is imported as the active development baseline. Standalone stabilization continues from GitHub; stable human promotion remains pending.',
           }
           state['authorizedWork'] = [
               'standalone functional, UX, accessibility, persistence, performance, test, and release stabilization in this repository',
@@ -312,44 +269,31 @@ jobs:
               'work-package and provenance tooling',
           ]
           state['activeExceptions'] = [
-              exception
-              for exception in state.get('activeExceptions', [])
-              if exception.get('id') != 'EXC-SRC-IMPORT-001'
+              item for item in state.get('activeExceptions', [])
+              if item.get('id') != 'EXC-SRC-IMPORT-001'
           ]
           state['nextMandatoryGate'] = {
               'id': 'ARC-WP-000',
-              'condition': (
-                  'A precise GitHub commit passes the complete human standalone promotion gate '
-                  'and is selected as the stable forensic baseline.'
-              ),
+              'condition': 'A precise GitHub commit passes the complete human standalone promotion gate and is selected as the stable forensic baseline.',
           }
           state['review'] = {
               'lastReviewedAt': '2026-07-13',
               'lastReviewedBy': 'Architecture & Repository Governor — SRC-WP-001 import verification',
               'decision': 'GO_WITH_CONDITIONS',
-              'nextReviewTrigger': (
-                  'standalone promotion candidate, architecture-sensitive PR, '
-                  'serious regression, or release provenance change'
-              ),
+              'nextReviewTrigger': 'standalone promotion candidate, architecture-sensitive PR, serious regression, or release provenance change',
           }
           state_path.write_text(json.dumps(state, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
           PY
 
       - name: Validate repository governance
-        if: steps.package.outputs.present == 'true'
         run: python tools/validate_repository.py
 
       - name: Commit exact source and reconstruction evidence
-        if: steps.package.outputs.present == 'true'
         shell: bash
         run: |
           git config user.name 'learnit-import-bot'
           git config user.email 'learnit-import-bot@users.noreply.github.com'
           git add -A
-          if git diff --cached --quiet; then
-            echo 'No import changes to commit'
-            exit 1
-          fi
           git commit -m 'source: import exact RC715 development baseline'
           SOURCE_COMMIT="$(git rev-parse HEAD)"
 
