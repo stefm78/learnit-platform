@@ -79,6 +79,7 @@
     "mandatoryChecksPassed": true,
     "humanPromotion": "pending",
     "decision": "GO_WITH_CONDITIONS",
-    "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f"
+    "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
+    "canonicalMainBaselineCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2"
   }
 }
