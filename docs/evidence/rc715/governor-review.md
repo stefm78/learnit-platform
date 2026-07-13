@@ -3,7 +3,8 @@
 Date: 2026-07-13  
 Repository: `stefm78/learnit-platform`  
 Base commit: `56713bbe08efa3783e9a6e84f971930f1621ce39`  
-Imported source commit: `965113f758d7eac710b097a5e190b5ce3dcb638f`  
+Imported source commit on the import branch: `965113f758d7eac710b097a5e190b5ce3dcb638f`  
+Canonical main development-baseline commit: `6c826977e16985d50b45d1b5e53501b4d7b993a2`  
 Work package: `SRC-WP-001`
 
 ## Decision
@@ -22,8 +23,8 @@ RC715 is accepted as the active GitHub development baseline. It is not accepted 
 - rebuilt artifact SHA-256 verified: `6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0`;
 - mandatory non-browser checks passed from imported source;
 - repository governance validation passed;
-- transfer ZIPs, encoded transfer fragments, generated build outputs, and one-shot import workflows are absent from the final proposed tree;
-- final changed-file inventory contains the player source, tests, contracts, evidence, work package, and governor state only.
+- transfer ZIPs, encoded transfer fragments, generated build outputs, and one-shot import workflows are absent from the merged tree;
+- the canonical `main` baseline is the squash-merge commit `6c826977e16985d50b45d1b5e53501b4d7b993a2`.
 
 ## Claims and absence of evidence
 
@@ -42,4 +43,4 @@ RC715 is accepted as the active GitHub development baseline. It is not accepted 
 
 ## Rollback
 
-Revert the squash merge of the import pull request. No application data migration or remote system change is part of this work package.
+Revert the squash-merge commit `6c826977e16985d50b45d1b5e53501b4d7b993a2`. No application data migration or remote system change is part of this work package.
