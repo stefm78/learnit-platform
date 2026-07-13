@@ -7,12 +7,24 @@ on:
     paths:
       - '.import/rc715-source.payload'
       - '.github/workflows/import-rc715-source.yml'
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - '.import/rc715-source.payload'
+      - '.github/workflows/import-rc715-source.yml'
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   import-source:
+    if: github.head_ref == 'import/rc715-development-baseline' || github.ref_name == 'import/rc715-development-baseline'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
