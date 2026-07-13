@@ -58,8 +58,8 @@ The owner attestation is accepted as sufficient human gate evidence for this pro
 
 ## Conditions after promotion
 
-1. Establish permanent player CI and representative black-box regression fixtures.
-2. Do not begin the first architectural seam until `ARCH-GATE-R3-BEHAVIORAL-PROTECTION` passes.
+1. Establish permanent player CI and representative black-box regression fixtures under `QA-WP-010`.
+2. Do not begin the first architectural seam until `QA-WP-010` is accepted.
 3. Keep player-wide refactoring, identifier migration, IndexedDB migration, backend, accounts, synchronization, catalog, commerce, institutions, and marketplace work on HOLD.
 4. Continue standalone fixes only through bounded pull requests with tests and explicit provenance.
 5. Retain RC715 as the rollback and behavioral-comparison reference.
@@ -73,7 +73,7 @@ The owner attestation is accepted as sufficient human gate evidence for this pro
 
 ## Next mandatory gate
 
-`ARCH-GATE-R3-BEHAVIORAL-PROTECTION`
+`QA-WP-010`
 
 Permanent player CI and representative black-box regression fixtures must protect RC715 behavior before the first architectural seam is implemented.
 
