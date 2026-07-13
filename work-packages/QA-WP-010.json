@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-010",
+  "title": "Establish permanent player CI and behavioral protection",
+  "status": "proposed",
+  "changeClass": "test-or-evidence",
+  "riskClass": "high",
+  "purpose": "Protect the promoted RC715 standalone baseline with permanent clean-build, contract, browser, persistence, recovery, and representative black-box regression gates before any architectural seam is implemented.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+    "candidateName": "RC715 promoted standalone baseline",
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "selectionRule": "Begin from the promoted RC715 source and preserve its externally observable behavior unless an explicit functional change is separately approved."
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/**",
+      "apps/player/tests/**",
+      "apps/player/dev/**",
+      "apps/player/docs/**",
+      "docs/evidence/**",
+      "work-packages/QA-WP-010.json",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/src/**",
+      "apps/player/contract/**",
+      "platform/**",
+      "contracts/**",
+      "docs/architecture/reference-v1/**"
+    ]
+  },
+  "invariants": [
+    "No player runtime behavior is changed by this work package.",
+    "Every CI result is tied to an exact commit and clean checkout.",
+    "The reviewed source produces the tested artifact.",
+    "Representative black-box fixtures cover the promoted baseline's critical user and data journeys.",
+    "Browser tests are split into reliable bounded jobs rather than one fragile monolithic runner.",
+    "Failure evidence is retained long enough for diagnosis without committing generated artifacts to source control."
+  ],
+  "requiredEvidence": [
+    "clean player build in GitHub Actions",
+    "artifact SHA recording",
+    "mandatory contract and mutation checks",
+    "browser suite matrix with explicit suite inventory",
+    "persistence, restart, rename, import-export, and recovery coverage",
+    "desktop and mobile viewport coverage",
+    "workflow artifact or log retention policy",
+    "documented local reproduction commands",
+    "governor acceptance review"
+  ],
+  "adversarialTests": [
+    "mutate source after build and prove artifact identity gate fails",
+    "remove a required browser suite and prove suite-inventory validation fails",
+    "introduce an undeclared generated or archive file and prove repository validation fails",
+    "simulate interrupted persistence or import and verify recovery behavior",
+    "run browser jobs independently to prove one hung suite cannot hide the status of the others"
+  ],
+  "nonGoals": [
+    "refactor player source",
+    "change storage technology",
+    "change identifiers or kit contracts",
+    "implement backend or synchronization",
+    "redesign the user experience",
+    "promote a new functional release"
+  ],
+  "independentReview": [
+    "QA and provenance",
+    "Architecture and Repository Governor",
+    "human review only for any newly discovered interaction discrepancy"
+  ],
+  "rollback": "Revert the CI and test-only pull request. The promoted RC715 source and artifact remain unchanged."
+}
