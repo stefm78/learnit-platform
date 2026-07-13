@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "SRC-WP-001",
   "title": "Import RC715 as the active standalone development baseline",
-  "status": "under-qa",
+  "status": "accepted",
   "changeClass": "test-or-evidence",
   "riskClass": "high",
   "purpose": "Import the exact RC715 continuation source into GitHub without refactoring, prove clean reconstruction of the delivered artifact, and make GitHub the canonical source for subsequent standalone stabilization while keeping stable promotion blocked behind ARC-WP-000.",
@@ -78,6 +78,7 @@
     "artifactIdentityVerified": true,
     "mandatoryChecksPassed": true,
     "humanPromotion": "pending",
-    "decision": "GO_WITH_CONDITIONS"
+    "decision": "GO_WITH_CONDITIONS",
+    "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f"
   }
 }

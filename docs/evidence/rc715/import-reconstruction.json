@@ -166,5 +166,6 @@
     "apps/player/tests/support.py",
     "apps/player/tools/validate_kit.py"
   ],
-  "rebuiltArtifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0"
+  "rebuiltArtifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+  "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f"
 }
