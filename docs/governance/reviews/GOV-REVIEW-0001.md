@@ -25,7 +25,8 @@ The repository already contained the architecture foundation, work-package contr
 - branch protection and mandatory code-owner review are not yet independently evidenced;
 - active standalone source remains outside the repository;
 - changed-file scope enforcement is specified but not implemented;
-- no platform implementation is yet available for architecture-boundary testing.
+- no platform implementation is yet available for architecture-boundary testing;
+- no independent reviewer identity exists yet beyond the single accountable repository owner.
 
 ## Counterexamples considered
 
@@ -50,13 +51,23 @@ Create a permanent Architecture & Repository Governor with:
 - event-driven review cadence;
 - explicit exception policy.
 
+## Bootstrap exception
+
+`EXC-GOV-BOOTSTRAP-001` permits the initial governor charter and validation tooling to be merged without a second reviewer identity because:
+
+- the repository currently has one accountable owner;
+- the change contains no application or learner data code;
+- it is fully reversible;
+- the exception must be removed before the first high or critical application, migration, identity, synchronization, security, entitlement, or release-provenance change.
+
 ## Conditions
 
 1. Governor state must be validated by CI.
-2. The governor must not become the sole certifier of work it authored.
+2. The governor must not become the sole certifier of work it authored after the bootstrap exception expires.
 3. `ARC-WP-000` remains the next mandatory application gate.
 4. Backend, sync, commerce, and marketplace work remain held.
 5. Branch protection and scope-check enforcement remain open governance risks until proven.
+6. The bootstrap exception remains visible until an independent reviewer mechanism exists.
 
 ## Next gate
 
