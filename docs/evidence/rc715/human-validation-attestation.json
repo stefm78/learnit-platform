@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "workPackage": "ARC-WP-000",
+  "candidate": "RC715 durable library and rename candidate",
+  "sourceCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+  "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+  "attestedAt": "2026-07-14",
+  "attestedBy": "stefm78",
+  "role": "accountable project owner and human validation authority",
+  "result": "PASS",
+  "scope": "Complete human standalone promotion gate requested for RC715, including the user-validated persistence, rename, desktop, Android, keyboard, and assistive-technology checks applicable to the candidate.",
+  "evidenceClassification": "owner attestation",
+  "independentMachineReproduction": {
+    "artifactIdentityVerified": true,
+    "mandatoryNonBrowserChecksPassed": true,
+    "reference": "docs/evidence/rc715/import-reconstruction.json"
+  },
+  "limitations": [
+    "The repository records the accountable owner's PASS attestation; raw device recordings, screenshots, or individual human-test logs were not supplied with this attestation.",
+    "This promotion validates RC715 as the standalone baseline and does not authorize backend, synchronization, identity, commerce, tenancy, or marketplace implementation."
+  ],
+  "decisionEffect": "Satisfies the human promotion evidence required by ARC-WP-000 when combined with the existing reconstruction, hash, automated-test, and governor evidence."
+}
