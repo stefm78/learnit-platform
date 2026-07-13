@@ -84,7 +84,7 @@
     "artifactIdentityVerified": true,
     "mandatoryChecksPassed": true,
     "humanPromotion": "PASS",
-    "nextArchitectureGate": "R3 behavioral protection before the first architectural seam"
+    "nextArchitectureGate": "QA-WP-010"
   },
   "rollback": "Revoke the promotion in governor-state.json and revert the promotion-governance pull request. The immutable source commit and artifact hashes remain available for forensic comparison; no application data migration or remote-system change is part of this promotion."
 }
