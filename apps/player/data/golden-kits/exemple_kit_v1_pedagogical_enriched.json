@@ -1,0 +1,600 @@
+{
+  "kind": "learnit-course-package",
+  "packageId": "rc138-rendering-stress-test-v1",
+  "source": "kit local de test rendu RC138",
+  "courses": [
+    {
+      "schemaVersion": "learnit-content-v2",
+      "contentVersion": "content-test-rendering-rc138-v1.0",
+      "title": "Tests rendu RC138 — caractères, formules et interactions",
+      "sequence": "Stress test UI : QCM, fill, matching complet, order visuel",
+      "objectives": [
+        "tester les rendus longs sans surcharger le mobile",
+        "valider caractères spéciaux : ℂ, ℝ, ℤ, π, θ, Δ, √, ×, −, ≠",
+        "contrôler formules mathématiques et interactions matching/order"
+      ],
+      "activities": [
+        {
+          "id": "stress-qcm-01",
+          "type": "qcm",
+          "objective": "Lire une écriture avec caractères spéciaux.",
+          "question": "Dans ℂ, pour z = a + ib avec a,b ∈ ℝ, quelle affirmation est correcte ?",
+          "choices": [
+            "Re(z)=a et Im(z)=b",
+            "Re(z)=b et Im(z)=a",
+            "z appartient forcément à ℝ",
+            "i² vaut 1"
+          ],
+          "answer": 0,
+          "why": "Dans la forme algébrique z = a + ib, a est la partie réelle et b la partie imaginaire.",
+          "remediation": "Repère d’abord le terme sans i : c’est Re(z). Le coefficient de i donne Im(z).",
+          "difficulty": "easy",
+          "learning_phase": "activation",
+          "assessment_role": "diagnostic",
+          "skills": [
+            "tester les rendus longs sans surcharger le mobile"
+          ],
+          "common_errors": [
+            "confondre partie réelle et partie imaginaire"
+          ],
+          "pedagogy": {
+            "objective": "Lire une écriture avec caractères spéciaux.",
+            "difficulty": "easy",
+            "learning_phase": "activation",
+            "assessment_role": "diagnostic",
+            "common_errors": [
+              "confondre partie réelle et partie imaginaire"
+            ],
+            "feedback": {
+              "success": "Dans la forme algébrique z = a + ib, a est la partie réelle et b la partie imaginaire.",
+              "error": "Repère d’abord le terme sans i : c’est Re(z). Le coefficient de i donne Im(z).",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-qcm-02",
+          "type": "qcm",
+          "objective": "Tester une longue option mobile.",
+          "question": "Quelle phrase décrit correctement le conjugué de z = 3 − 2i ?",
+          "choices": [
+            "Le conjugué change seulement le signe de la partie imaginaire : z̄ = 3 + 2i",
+            "Le conjugué change seulement le signe de la partie réelle : z̄ = −3 − 2i",
+            "Le conjugué échange partie réelle et partie imaginaire : z̄ = −2 + 3i",
+            "Le conjugué supprime l’unité imaginaire : z̄ = 3 − 2"
+          ],
+          "answer": 0,
+          "why": "Le conjugué de a + ib est a − ib : seule la partie imaginaire change de signe.",
+          "remediation": "Garde la partie réelle identique, puis inverse le signe devant i.",
+          "difficulty": "easy",
+          "learning_phase": "comprehension",
+          "assessment_role": "practice",
+          "skills": [
+            "valider caractères spéciaux : ℂ, ℝ, ℤ, π, θ, Δ, √, ×, −, ≠"
+          ],
+          "common_errors": [
+            "oublier que i² = -1"
+          ],
+          "pedagogy": {
+            "objective": "Tester une longue option mobile.",
+            "difficulty": "easy",
+            "learning_phase": "comprehension",
+            "assessment_role": "practice",
+            "common_errors": [
+              "oublier que i² = -1"
+            ],
+            "feedback": {
+              "success": "Le conjugué de a + ib est a − ib : seule la partie imaginaire change de signe.",
+              "error": "Garde la partie réelle identique, puis inverse le signe devant i.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-fill-01",
+          "type": "fill",
+          "objective": "Compléter une formule de module.",
+          "question": "Complète la relation utile pour le module au carré.",
+          "parts": [
+            "Pour z = a + ib, on a |z|² = ",
+            0,
+            "² + ",
+            1,
+            "²."
+          ],
+          "tokens": [
+            "a",
+            "b",
+            "i",
+            "π",
+            "θ",
+            "√"
+          ],
+          "answer": [
+            "a",
+            "b"
+          ],
+          "sentence": "Pour z = a + ib, on a |z|² = a² + b².",
+          "why": "Le module au carré additionne les carrés des deux coordonnées réelles a et b.",
+          "remediation": "Dans le plan complexe, pense au théorème de Pythagore sur les coordonnées a et b.",
+          "difficulty": "medium",
+          "learning_phase": "application",
+          "assessment_role": "practice",
+          "skills": [
+            "contrôler formules mathématiques et interactions matching/order"
+          ],
+          "common_errors": [
+            "placer un symbole visuellement proche mais mathématiquement faux"
+          ],
+          "pedagogy": {
+            "objective": "Compléter une formule de module.",
+            "difficulty": "medium",
+            "learning_phase": "application",
+            "assessment_role": "practice",
+            "common_errors": [
+              "placer un symbole visuellement proche mais mathématiquement faux"
+            ],
+            "feedback": {
+              "success": "Le module au carré additionne les carrés des deux coordonnées réelles a et b.",
+              "error": "Dans le plan complexe, pense au théorème de Pythagore sur les coordonnées a et b.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-fill-02",
+          "type": "fill",
+          "objective": "Tester les jetons avec signes et accents.",
+          "question": "Complète une égalité de produit remarquable dans ℂ.",
+          "parts": [
+            "(a + ib)(a − ib) = ",
+            0,
+            "² + ",
+            1,
+            "²."
+          ],
+          "tokens": [
+            "a",
+            "b",
+            "−a",
+            "ib",
+            "z̄",
+            "∅"
+          ],
+          "answer": [
+            "a",
+            "b"
+          ],
+          "sentence": "(a + ib)(a − ib) = a² + b².",
+          "why": "Les termes en i se compensent et i² = −1 transforme −(ib)² en +b².",
+          "remediation": "Développe lentement, puis remplace i² par −1 à la fin.",
+          "difficulty": "medium",
+          "learning_phase": "application",
+          "assessment_role": "practice",
+          "skills": [
+            "tester les rendus longs sans surcharger le mobile"
+          ],
+          "common_errors": [
+            "confondre module et argument"
+          ],
+          "pedagogy": {
+            "objective": "Tester les jetons avec signes et accents.",
+            "difficulty": "medium",
+            "learning_phase": "application",
+            "assessment_role": "practice",
+            "common_errors": [
+              "confondre module et argument"
+            ],
+            "feedback": {
+              "success": "Les termes en i se compensent et i² = −1 transforme −(ib)² en +b².",
+              "error": "Développe lentement, puis remplace i² par −1 à la fin.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-matching-01",
+          "type": "matching",
+          "objective": "Relier les notations à leur sens.",
+          "question": "Associe chaque notation à sa signification. Toute la carte reste visible.",
+          "pairs": [
+            [
+              "ℂ",
+              "ensemble des nombres complexes"
+            ],
+            [
+              "ℝ",
+              "ensemble des nombres réels"
+            ],
+            [
+              "Re(z)",
+              "partie réelle de z"
+            ],
+            [
+              "Im(z)",
+              "partie imaginaire de z"
+            ],
+            [
+              "z̄",
+              "conjugué de z"
+            ],
+            [
+              "|z|",
+              "module de z"
+            ]
+          ],
+          "why": "Ces notations constituent le vocabulaire minimal pour lire un exercice sur les complexes.",
+          "remediation": "Commence par les ensembles ℂ et ℝ, puis associe Re, Im, z̄ et |z| aux propriétés de z.",
+          "difficulty": "medium",
+          "learning_phase": "comprehension",
+          "assessment_role": "practice",
+          "skills": [
+            "valider caractères spéciaux : ℂ, ℝ, ℤ, π, θ, Δ, √, ×, −, ≠"
+          ],
+          "common_errors": [
+            "associer un symbole à une définition voisine"
+          ],
+          "pedagogy": {
+            "objective": "Relier les notations à leur sens.",
+            "difficulty": "medium",
+            "learning_phase": "comprehension",
+            "assessment_role": "practice",
+            "common_errors": [
+              "associer un symbole à une définition voisine"
+            ],
+            "feedback": {
+              "success": "Ces notations constituent le vocabulaire minimal pour lire un exercice sur les complexes.",
+              "error": "Commence par les ensembles ℂ et ℝ, puis associe Re, Im, z̄ et |z| aux propriétés de z.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-matching-02",
+          "type": "matching",
+          "objective": "Tester les libellés longs dans matching.",
+          "question": "Associe chaque forme de z à l’information qu’elle rend la plus visible.",
+          "pairs": [
+            [
+              "z = a + ib",
+              "lecture directe de Re(z) et Im(z)"
+            ],
+            [
+              "z = r(cos θ + i sin θ)",
+              "module r et argument θ visibles"
+            ],
+            [
+              "z = re^{iθ}",
+              "forme compacte pour produits et puissances"
+            ],
+            [
+              "z × z̄",
+              "calcul rapide de |z|²"
+            ],
+            [
+              "z₁ / z₂",
+              "quotient à traiter avec le conjugué du dénominateur"
+            ]
+          ],
+          "why": "Chaque forme met en avant un usage différent : lecture, géométrie, produit ou quotient.",
+          "remediation": "Demande-toi quelle opération est prévue : lire, multiplier, élever à une puissance ou diviser.",
+          "difficulty": "advanced",
+          "learning_phase": "transfer",
+          "assessment_role": "practice",
+          "skills": [
+            "contrôler formules mathématiques et interactions matching/order"
+          ],
+          "common_errors": [
+            "négliger les caractères spéciaux dans la lecture"
+          ],
+          "pedagogy": {
+            "objective": "Tester les libellés longs dans matching.",
+            "difficulty": "advanced",
+            "learning_phase": "transfer",
+            "assessment_role": "practice",
+            "common_errors": [
+              "négliger les caractères spéciaux dans la lecture"
+            ],
+            "feedback": {
+              "success": "Chaque forme met en avant un usage différent : lecture, géométrie, produit ou quotient.",
+              "error": "Demande-toi quelle opération est prévue : lire, multiplier, élever à une puissance ou diviser.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-order-01",
+          "type": "order",
+          "objective": "Ordonner une démarche de calcul.",
+          "question": "Remets dans l’ordre la méthode pour diviser par 2 − i.",
+          "tokens": [
+            "Multiplier numérateur et dénominateur par 2 + i",
+            "Développer le numérateur",
+            "Calculer (2 − i)(2 + i)",
+            "Séparer partie réelle et partie imaginaire"
+          ],
+          "answer": [
+            "Multiplier numérateur et dénominateur par 2 + i",
+            "Calculer (2 − i)(2 + i)",
+            "Développer le numérateur",
+            "Séparer partie réelle et partie imaginaire"
+          ],
+          "why": "On rend le dénominateur réel avec le conjugué, puis on simplifie et on lit la forme algébrique.",
+          "remediation": "Le premier geste est toujours de traiter le dénominateur avec son conjugué.",
+          "difficulty": "medium",
+          "learning_phase": "application",
+          "assessment_role": "practice",
+          "skills": [
+            "tester les rendus longs sans surcharger le mobile"
+          ],
+          "common_errors": [
+            "inverser l’ordre de rationalisation"
+          ],
+          "pedagogy": {
+            "objective": "Ordonner une démarche de calcul.",
+            "difficulty": "medium",
+            "learning_phase": "application",
+            "assessment_role": "practice",
+            "common_errors": [
+              "inverser l’ordre de rationalisation"
+            ],
+            "feedback": {
+              "success": "On rend le dénominateur réel avec le conjugué, puis on simplifie et on lit la forme algébrique.",
+              "error": "Le premier geste est toujours de traiter le dénominateur avec son conjugué.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-order-02",
+          "type": "order",
+          "objective": "Tester des cartes plus longues dans order.",
+          "question": "Ordonne la démarche pour interpréter géométriquement z = −1 + i√3.",
+          "tokens": [
+            "Identifier les coordonnées du point M : x = −1 et y = √3",
+            "Calculer le module r = √(x² + y²)",
+            "Repérer le quadrant avec x négatif et y positif",
+            "Choisir l’argument θ compatible avec le quadrant",
+            "Écrire la forme trigonométrique r(cos θ + i sin θ)"
+          ],
+          "answer": [
+            "Identifier les coordonnées du point M : x = −1 et y = √3",
+            "Calculer le module r = √(x² + y²)",
+            "Repérer le quadrant avec x négatif et y positif",
+            "Choisir l’argument θ compatible avec le quadrant",
+            "Écrire la forme trigonométrique r(cos θ + i sin θ)"
+          ],
+          "why": "La géométrie commence par les coordonnées, puis module, quadrant, argument et écriture finale.",
+          "remediation": "Ne cherche pas l’argument avant d’avoir placé le point dans le bon quadrant.",
+          "difficulty": "advanced",
+          "learning_phase": "transfer",
+          "assessment_role": "practice",
+          "skills": [
+            "valider caractères spéciaux : ℂ, ℝ, ℤ, π, θ, Δ, √, ×, −, ≠"
+          ],
+          "common_errors": [
+            "mettre la simplification avant la transformation utile"
+          ],
+          "pedagogy": {
+            "objective": "Tester des cartes plus longues dans order.",
+            "difficulty": "advanced",
+            "learning_phase": "transfer",
+            "assessment_role": "practice",
+            "common_errors": [
+              "mettre la simplification avant la transformation utile"
+            ],
+            "feedback": {
+              "success": "La géométrie commence par les coordonnées, puis module, quadrant, argument et écriture finale.",
+              "error": "Ne cherche pas l’argument avant d’avoir placé le point dans le bon quadrant.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-qcm-03",
+          "type": "qcm",
+          "objective": "Vérifier les pièges de signe.",
+          "question": "Pour z = −2 + 5i, quel est le bon couple (Re(z), Im(z)) ?",
+          "choices": [
+            "(−2 ; 5)",
+            "(2 ; −5)",
+            "(5 ; −2)",
+            "(−2 ; 5i)"
+          ],
+          "answer": 0,
+          "why": "La partie imaginaire est le coefficient de i, donc 5 et non 5i.",
+          "remediation": "Im(z) est un nombre réel : on ne garde pas le symbole i dans la valeur.",
+          "difficulty": "advanced",
+          "learning_phase": "consolidation",
+          "assessment_role": "validation",
+          "skills": [
+            "contrôler formules mathématiques et interactions matching/order"
+          ],
+          "common_errors": [
+            "choisir une formule vraie mais hors contexte"
+          ],
+          "pedagogy": {
+            "objective": "Vérifier les pièges de signe.",
+            "difficulty": "advanced",
+            "learning_phase": "consolidation",
+            "assessment_role": "validation",
+            "common_errors": [
+              "choisir une formule vraie mais hors contexte"
+            ],
+            "feedback": {
+              "success": "La partie imaginaire est le coefficient de i, donc 5 et non 5i.",
+              "error": "Im(z) est un nombre réel : on ne garde pas le symbole i dans la valeur.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-fill-03",
+          "type": "fill",
+          "objective": "Compléter une phrase avec symboles Unicode.",
+          "question": "Complète la phrase sur les ensembles de nombres.",
+          "parts": [
+            "Tout réel appartient à ",
+            0,
+            " et tout complexe appartient à ",
+            1,
+            "."
+          ],
+          "tokens": [
+            "ℂ",
+            "ℝ",
+            "ℤ",
+            "ℚ",
+            "∅"
+          ],
+          "answer": [
+            "ℂ",
+            "ℂ"
+          ],
+          "sentence": "Tout réel appartient à ℂ et tout complexe appartient à ℂ.",
+          "why": "Les réels sont inclus dans les complexes ; un complexe est bien sûr dans ℂ.",
+          "remediation": "Visualise l’inclusion : ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ.",
+          "difficulty": "advanced",
+          "learning_phase": "remediation",
+          "assessment_role": "remediation",
+          "skills": [
+            "tester les rendus longs sans surcharger le mobile"
+          ],
+          "common_errors": [
+            "oublier une condition de validité"
+          ],
+          "pedagogy": {
+            "objective": "Compléter une phrase avec symboles Unicode.",
+            "difficulty": "advanced",
+            "learning_phase": "remediation",
+            "assessment_role": "remediation",
+            "common_errors": [
+              "oublier une condition de validité"
+            ],
+            "feedback": {
+              "success": "Les réels sont inclus dans les complexes ; un complexe est bien sûr dans ℂ.",
+              "error": "Visualise l’inclusion : ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-matching-03",
+          "type": "matching",
+          "objective": "Associer calcul et résultat attendu.",
+          "question": "Associe chaque calcul au résultat ou à l’idée qu’il produit.",
+          "pairs": [
+            [
+              "i²",
+              "−1"
+            ],
+            [
+              "(1 + i)²",
+              "2i"
+            ],
+            [
+              "|3 − 4i|",
+              "5"
+            ],
+            [
+              "arg(1 + i)",
+              "π/4"
+            ],
+            [
+              "e^{iπ} + 1",
+              "0"
+            ]
+          ],
+          "why": "Ces égalités testent les signes, le module et les repères trigonométriques classiques.",
+          "remediation": "Recalcule chaque ligne séparément : carré, module, argument, puis formule d’Euler.",
+          "difficulty": "expert",
+          "learning_phase": "transfer",
+          "assessment_role": "practice",
+          "skills": [
+            "valider caractères spéciaux : ℂ, ℝ, ℤ, π, θ, Δ, √, ×, −, ≠"
+          ],
+          "common_errors": [
+            "relier une notation à un usage trop général"
+          ],
+          "pedagogy": {
+            "objective": "Associer calcul et résultat attendu.",
+            "difficulty": "expert",
+            "learning_phase": "transfer",
+            "assessment_role": "practice",
+            "common_errors": [
+              "relier une notation à un usage trop général"
+            ],
+            "feedback": {
+              "success": "Ces égalités testent les signes, le module et les repères trigonométriques classiques.",
+              "error": "Recalcule chaque ligne séparément : carré, module, argument, puis formule d’Euler.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        },
+        {
+          "id": "stress-order-03",
+          "type": "order",
+          "objective": "Ordonner une vérification de résultat.",
+          "question": "Ordonne une vérification rapide après un calcul complexe.",
+          "tokens": [
+            "Contrôler que chaque terme est bien dans la forme a + ib",
+            "Vérifier les signes liés à i² = −1",
+            "Comparer l’ordre de grandeur du module",
+            "Relire la question pour confirmer la forme attendue"
+          ],
+          "answer": [
+            "Contrôler que chaque terme est bien dans la forme a + ib",
+            "Vérifier les signes liés à i² = −1",
+            "Comparer l’ordre de grandeur du module",
+            "Relire la question pour confirmer la forme attendue"
+          ],
+          "why": "La vérification commence par la forme, puis les signes, la cohérence numérique et la consigne.",
+          "remediation": "Ne termine pas seulement avec un calcul : vérifie la forme demandée par l’exercice.",
+          "difficulty": "expert",
+          "learning_phase": "validation",
+          "assessment_role": "validation",
+          "skills": [
+            "contrôler formules mathématiques et interactions matching/order"
+          ],
+          "common_errors": [
+            "terminer une démarche sans vérifier le résultat"
+          ],
+          "pedagogy": {
+            "objective": "Ordonner une vérification de résultat.",
+            "difficulty": "expert",
+            "learning_phase": "validation",
+            "assessment_role": "validation",
+            "common_errors": [
+              "terminer une démarche sans vérifier le résultat"
+            ],
+            "feedback": {
+              "success": "La vérification commence par la forme, puis les signes, la cohérence numérique et la consigne.",
+              "error": "Ne termine pas seulement avec un calcul : vérifie la forme demandée par l’exercice.",
+              "hint": "Cherche d’abord le rôle de chaque symbole dans l’expression."
+            }
+          }
+        }
+      ],
+      "pedagogy": {
+        "objective": "Vérifier que les interactions et rendus mathématiques restent lisibles et actionnables.",
+        "difficulty": "medium",
+        "learning_phase": "application",
+        "skills": [
+          "lecture d’écriture complexe",
+          "association notion-sens",
+          "ordonnancement de méthode"
+        ],
+        "assessment_role": "practice"
+      }
+    }
+  ],
+  "schema_version": "learnit.import.v1",
+  "generation_report": {
+    "source_coverage": "Kit de stress UI RC138, enrichi pour démontrer l’alignement skill ↔ contrat ↔ diagnostics.",
+    "activity_count": 12,
+    "validation_status": "pass",
+    "known_limits": [
+      "Exemple de test d’interactions et de caractères spéciaux, pas un cours complet."
+    ]
+  }
+}

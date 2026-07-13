@@ -1,0 +1,46 @@
+{
+  "schema": "learnit.pedagogical_taxonomy.v1",
+  "contract_version": "learnit.import.v1.1",
+  "difficulty": [
+    "easy",
+    "medium",
+    "advanced",
+    "expert"
+  ],
+  "learning_phase": [
+    "activation",
+    "comprehension",
+    "application",
+    "transfer",
+    "remediation",
+    "consolidation",
+    "diagnostic",
+    "validation"
+  ],
+  "assessment_role": [
+    "practice",
+    "diagnostic",
+    "validation",
+    "remediation"
+  ],
+  "pedagogical_role": [
+    "concept_visual",
+    "question_stimulus",
+    "worked_example",
+    "misconception_fix",
+    "diagram_to_interpret",
+    "memory_anchor"
+  ],
+  "media_placement": [
+    "question",
+    "feedback"
+  ],
+  "media_display": [
+    "contained",
+    "full_width"
+  ],
+  "transfer_distance": [
+    "near",
+    "far"
+  ]
+}

@@ -1,0 +1,1453 @@
+{
+  "schema": "learnit.contract_fixtures.rc612.v2",
+  "contract_version": "learnit.import.v1.1",
+  "cases": [
+    {
+      "id": "positive-minimal-all-types",
+      "expected": "pass",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "golden-minimal-all-types",
+        "source": "Learn-it contract fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "minimal",
+          "activity_count": 5
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-minimal-v1",
+            "title": "Golden — cinq activités",
+            "sequence": "Contrat RC550",
+            "objectives": [
+              "Vérifier les cinq renderers"
+            ],
+            "activities": [
+              {
+                "id": "gold-qcm",
+                "type": "qcm",
+                "objective": "Choisir une réponse.",
+                "question": "Combien font 2 + 2 ?",
+                "choices": [
+                  "4",
+                  "5",
+                  "6"
+                ],
+                "answer": 0,
+                "why": "Deux plus deux font quatre.",
+                "remediation": "Recompter deux groupes de deux.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "diagnostic",
+                "common_errors": [
+                  "Confondre addition et multiplication."
+                ]
+              },
+              {
+                "id": "gold-fill",
+                "type": "fill",
+                "objective": "Compléter une égalité.",
+                "question": "Compléter l’égalité.",
+                "parts": [
+                  "A = ",
+                  0
+                ],
+                "tokens": [
+                  "1",
+                  "2"
+                ],
+                "answer": [
+                  "1"
+                ],
+                "sentence": "A = 1",
+                "why": "Le jeton attendu est 1.",
+                "remediation": "Relire l’égalité avant de choisir.",
+                "difficulty": "medium",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Choisir le distracteur 2."
+                ]
+              },
+              {
+                "id": "gold-matching",
+                "type": "matching",
+                "objective": "Associer les éléments.",
+                "question": "Associer chaque lettre à son nombre.",
+                "pairs": [
+                  [
+                    "A",
+                    "1"
+                  ],
+                  [
+                    "B",
+                    "2"
+                  ]
+                ],
+                "why": "Chaque lettre possède une association unique.",
+                "remediation": "Commencer par la paire la plus certaine.",
+                "difficulty": "medium",
+                "learning_phase": "consolidation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Inverser les deux associations."
+                ]
+              },
+              {
+                "id": "gold-order",
+                "type": "order",
+                "objective": "Ordonner une procédure.",
+                "question": "Remettre les étapes dans l’ordre.",
+                "tokens": [
+                  "Observer",
+                  "Décider",
+                  "Vérifier"
+                ],
+                "answer": [
+                  "Observer",
+                  "Décider",
+                  "Vérifier"
+                ],
+                "why": "La vérification vient après la décision.",
+                "remediation": "Identifier d’abord le point de départ et le contrôle final.",
+                "difficulty": "advanced",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "Vérifier avant d’avoir décidé."
+                ]
+              },
+              {
+                "id": "gold-flashcard",
+                "type": "flashcard",
+                "objective": "Rappeler une définition.",
+                "question": "Que signifie une réponse correcte ?",
+                "front": "Que signifie une réponse correcte ?",
+                "answer": "Une réponse conforme au résultat attendu.",
+                "back": "Une réponse conforme au résultat attendu.",
+                "why": "La correction compare la réponse avec l’attendu.",
+                "remediation": "Reformuler la définition avec ses propres mots.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Confondre confiance et exactitude."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "positive-rich-media",
+      "expected": "pass",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "golden-rich-media",
+        "source": "Learn-it rich contract fixture",
+        "assets": [
+          {
+            "id": "gold-svg-flow",
+            "type": "image",
+            "format": "svg",
+            "source": "generated",
+            "alt": "Deux blocs reliés par une flèche",
+            "caption": "Un passage du premier bloc vers le second.",
+            "pedagogical_role": "concept_visual",
+            "data": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 90\" role=\"img\"><title>Deux blocs reliés</title><rect x=\"15\" y=\"25\" width=\"45\" height=\"40\" rx=\"6\" fill=\"#dbeafe\" stroke=\"#1d4ed8\"/><rect x=\"100\" y=\"25\" width=\"45\" height=\"40\" rx=\"6\" fill=\"#dcfce7\" stroke=\"#15803d\"/><path d=\"M60 45h40\" stroke=\"#111827\" stroke-width=\"4\"/><path d=\"m92 37 8 8-8 8\" fill=\"none\" stroke=\"#111827\" stroke-width=\"4\"/></svg>"
+          }
+        ],
+        "generation_report": {
+          "fixture": "rich",
+          "activity_count": 1
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-rich-v1",
+            "title": "Golden — média SVG",
+            "sequence": "Contrat RC550",
+            "objectives": [
+              "Interpréter un schéma simple"
+            ],
+            "activities": [
+              {
+                "id": "gold-media-qcm",
+                "type": "qcm",
+                "objective": "Interpréter la direction d’un flux.",
+                "question": "Dans quel sens va la flèche ?",
+                "choices": [
+                  "De gauche à droite",
+                  "De droite à gauche"
+                ],
+                "answer": 0,
+                "why": "La pointe est située à droite.",
+                "remediation": "Repérer la pointe de la flèche.",
+                "difficulty": "easy",
+                "learning_phase": "comprehension",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Regarder le départ plutôt que la pointe."
+                ],
+                "media": [
+                  {
+                    "assetId": "gold-svg-flow",
+                    "placement": "question",
+                    "display": "contained",
+                    "zoomable": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "positive-remediation-variant-pair",
+      "expected": "pass",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "golden-remediation-variant-pair",
+        "source": "Learn-it remediation contract fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "remediation-variant",
+          "activity_count": 2
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-remediation-v1",
+            "title": "Golden — variante de remédiation",
+            "sequence": "Erreur, variante, vérification",
+            "objectives": [
+              "Appliquer une relation avant de calculer"
+            ],
+            "activities": [
+              {
+                "id": "rem-qcm",
+                "type": "qcm",
+                "objective": "Appliquer la relation U = R × I.",
+                "question": "Avec R = 4 Ω et I = 2 A, quelle tension obtient-on ?",
+                "choices": [
+                  "8 V",
+                  "2 V",
+                  "6 V"
+                ],
+                "answer": 0,
+                "why": "U = 4 × 2 = 8 V.",
+                "remediation": "Écrire U = R × I avant de remplacer les valeurs.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "diagnostic",
+                "common_errors": [
+                  "calculer avant d’écrire la formule"
+                ]
+              },
+              {
+                "id": "rem-order",
+                "type": "order",
+                "objective": "Structurer le calcul avec U = R × I.",
+                "question": "Ordonner la méthode.",
+                "tokens": [
+                  "Écrire la relation",
+                  "Remplacer les valeurs",
+                  "Calculer",
+                  "Ajouter l’unité"
+                ],
+                "answer": [
+                  "Écrire la relation",
+                  "Remplacer les valeurs",
+                  "Calculer",
+                  "Ajouter l’unité"
+                ],
+                "why": "La formule précède le calcul.",
+                "remediation": "Commencer par nommer les grandeurs et écrire la relation.",
+                "difficulty": "medium",
+                "learning_phase": "remediation",
+                "assessment_role": "remediation",
+                "common_errors": [
+                  "calculer avant d’écrire la formule"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "negative-unsupported-type",
+      "expected": "fail",
+      "expected_codes": [
+        "schema"
+      ],
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "negative-unsupported-type",
+        "source": "Learn-it contract fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "minimal",
+          "activity_count": 5
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-minimal-v1",
+            "title": "Golden — cinq activités",
+            "sequence": "Contrat RC550",
+            "objectives": [
+              "Vérifier les cinq renderers"
+            ],
+            "activities": [
+              {
+                "id": "gold-qcm",
+                "type": "essay",
+                "objective": "Choisir une réponse.",
+                "question": "Combien font 2 + 2 ?",
+                "choices": [
+                  "4",
+                  "5",
+                  "6"
+                ],
+                "answer": 0,
+                "why": "Deux plus deux font quatre.",
+                "remediation": "Recompter deux groupes de deux.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "diagnostic",
+                "common_errors": [
+                  "Confondre addition et multiplication."
+                ]
+              },
+              {
+                "id": "gold-fill",
+                "type": "fill",
+                "objective": "Compléter une égalité.",
+                "question": "Compléter l’égalité.",
+                "parts": [
+                  "A = ",
+                  0
+                ],
+                "tokens": [
+                  "1",
+                  "2"
+                ],
+                "answer": [
+                  "1"
+                ],
+                "sentence": "A = 1",
+                "why": "Le jeton attendu est 1.",
+                "remediation": "Relire l’égalité avant de choisir.",
+                "difficulty": "medium",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Choisir le distracteur 2."
+                ]
+              },
+              {
+                "id": "gold-matching",
+                "type": "matching",
+                "objective": "Associer les éléments.",
+                "question": "Associer chaque lettre à son nombre.",
+                "pairs": [
+                  [
+                    "A",
+                    "1"
+                  ],
+                  [
+                    "B",
+                    "2"
+                  ]
+                ],
+                "why": "Chaque lettre possède une association unique.",
+                "remediation": "Commencer par la paire la plus certaine.",
+                "difficulty": "medium",
+                "learning_phase": "consolidation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Inverser les deux associations."
+                ]
+              },
+              {
+                "id": "gold-order",
+                "type": "order",
+                "objective": "Ordonner une procédure.",
+                "question": "Remettre les étapes dans l’ordre.",
+                "tokens": [
+                  "Observer",
+                  "Décider",
+                  "Vérifier"
+                ],
+                "answer": [
+                  "Observer",
+                  "Décider",
+                  "Vérifier"
+                ],
+                "why": "La vérification vient après la décision.",
+                "remediation": "Identifier d’abord le point de départ et le contrôle final.",
+                "difficulty": "advanced",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "Vérifier avant d’avoir décidé."
+                ]
+              },
+              {
+                "id": "gold-flashcard",
+                "type": "flashcard",
+                "objective": "Rappeler une définition.",
+                "question": "Que signifie une réponse correcte ?",
+                "front": "Que signifie une réponse correcte ?",
+                "answer": "Une réponse conforme au résultat attendu.",
+                "back": "Une réponse conforme au résultat attendu.",
+                "why": "La correction compare la réponse avec l’attendu.",
+                "remediation": "Reformuler la définition avec ses propres mots.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Confondre confiance et exactitude."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "negative-qcm-answer-out-of-range",
+      "expected": "fail",
+      "expected_codes": [
+        "qcm-answer-range"
+      ],
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "negative-qcm-answer",
+        "source": "Learn-it contract fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "minimal",
+          "activity_count": 5
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-minimal-v1",
+            "title": "Golden — cinq activités",
+            "sequence": "Contrat RC550",
+            "objectives": [
+              "Vérifier les cinq renderers"
+            ],
+            "activities": [
+              {
+                "id": "gold-qcm",
+                "type": "qcm",
+                "objective": "Choisir une réponse.",
+                "question": "Combien font 2 + 2 ?",
+                "choices": [
+                  "4",
+                  "5",
+                  "6"
+                ],
+                "answer": 99,
+                "why": "Deux plus deux font quatre.",
+                "remediation": "Recompter deux groupes de deux.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "diagnostic",
+                "common_errors": [
+                  "Confondre addition et multiplication."
+                ]
+              },
+              {
+                "id": "gold-fill",
+                "type": "fill",
+                "objective": "Compléter une égalité.",
+                "question": "Compléter l’égalité.",
+                "parts": [
+                  "A = ",
+                  0
+                ],
+                "tokens": [
+                  "1",
+                  "2"
+                ],
+                "answer": [
+                  "1"
+                ],
+                "sentence": "A = 1",
+                "why": "Le jeton attendu est 1.",
+                "remediation": "Relire l’égalité avant de choisir.",
+                "difficulty": "medium",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Choisir le distracteur 2."
+                ]
+              },
+              {
+                "id": "gold-matching",
+                "type": "matching",
+                "objective": "Associer les éléments.",
+                "question": "Associer chaque lettre à son nombre.",
+                "pairs": [
+                  [
+                    "A",
+                    "1"
+                  ],
+                  [
+                    "B",
+                    "2"
+                  ]
+                ],
+                "why": "Chaque lettre possède une association unique.",
+                "remediation": "Commencer par la paire la plus certaine.",
+                "difficulty": "medium",
+                "learning_phase": "consolidation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Inverser les deux associations."
+                ]
+              },
+              {
+                "id": "gold-order",
+                "type": "order",
+                "objective": "Ordonner une procédure.",
+                "question": "Remettre les étapes dans l’ordre.",
+                "tokens": [
+                  "Observer",
+                  "Décider",
+                  "Vérifier"
+                ],
+                "answer": [
+                  "Observer",
+                  "Décider",
+                  "Vérifier"
+                ],
+                "why": "La vérification vient après la décision.",
+                "remediation": "Identifier d’abord le point de départ et le contrôle final.",
+                "difficulty": "advanced",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "Vérifier avant d’avoir décidé."
+                ]
+              },
+              {
+                "id": "gold-flashcard",
+                "type": "flashcard",
+                "objective": "Rappeler une définition.",
+                "question": "Que signifie une réponse correcte ?",
+                "front": "Que signifie une réponse correcte ?",
+                "answer": "Une réponse conforme au résultat attendu.",
+                "back": "Une réponse conforme au résultat attendu.",
+                "why": "La correction compare la réponse avec l’attendu.",
+                "remediation": "Reformuler la définition avec ses propres mots.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Confondre confiance et exactitude."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "negative-media-missing-asset",
+      "expected": "fail",
+      "expected_codes": [
+        "media-asset-missing"
+      ],
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "negative-missing-asset",
+        "source": "Learn-it rich contract fixture",
+        "assets": [
+          {
+            "id": "gold-svg-flow",
+            "type": "image",
+            "format": "svg",
+            "source": "generated",
+            "alt": "Deux blocs reliés par une flèche",
+            "caption": "Un passage du premier bloc vers le second.",
+            "pedagogical_role": "concept_visual",
+            "data": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 90\" role=\"img\"><title>Deux blocs reliés</title><rect x=\"15\" y=\"25\" width=\"45\" height=\"40\" rx=\"6\" fill=\"#dbeafe\" stroke=\"#1d4ed8\"/><rect x=\"100\" y=\"25\" width=\"45\" height=\"40\" rx=\"6\" fill=\"#dcfce7\" stroke=\"#15803d\"/><path d=\"M60 45h40\" stroke=\"#111827\" stroke-width=\"4\"/><path d=\"m92 37 8 8-8 8\" fill=\"none\" stroke=\"#111827\" stroke-width=\"4\"/></svg>"
+          }
+        ],
+        "generation_report": {
+          "fixture": "rich",
+          "activity_count": 1
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-rich-v1",
+            "title": "Golden — média SVG",
+            "sequence": "Contrat RC550",
+            "objectives": [
+              "Interpréter un schéma simple"
+            ],
+            "activities": [
+              {
+                "id": "gold-media-qcm",
+                "type": "qcm",
+                "objective": "Interpréter la direction d’un flux.",
+                "question": "Dans quel sens va la flèche ?",
+                "choices": [
+                  "De gauche à droite",
+                  "De droite à gauche"
+                ],
+                "answer": 0,
+                "why": "La pointe est située à droite.",
+                "remediation": "Repérer la pointe de la flèche.",
+                "difficulty": "easy",
+                "learning_phase": "comprehension",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "Regarder le départ plutôt que la pointe."
+                ],
+                "media": [
+                  {
+                    "assetId": "missing-asset",
+                    "placement": "question",
+                    "display": "contained",
+                    "zoomable": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "positive-varied-remediation-family",
+      "expected": "pass",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "golden-varied-remediation-family",
+        "source": "Learn-it variety contract fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "variety",
+          "activity_count": 4
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-variety-v1",
+            "title": "Golden — variantes réellement différentes",
+            "sequence": "Rappel, application, remédiation, transfert",
+            "objectives": [
+              "Appliquer la loi d Ohm"
+            ],
+            "activities": [
+              {
+                "id": "var-qcm",
+                "type": "qcm",
+                "objective": "Appliquer la loi d Ohm.",
+                "question": "Une résistance de 4 ohms est traversée par 2 ampères. Quelle tension obtient-on ?",
+                "choices": [
+                  "8 V",
+                  "2 V",
+                  "6 V"
+                ],
+                "answer": 0,
+                "why": "U = R × I = 8 V.",
+                "remediation": "Écrire la relation avant de remplacer les valeurs.",
+                "difficulty": "easy",
+                "learning_phase": "diagnostic",
+                "assessment_role": "diagnostic",
+                "common_errors": [
+                  "confondre multiplication et division"
+                ]
+              },
+              {
+                "id": "var-order",
+                "type": "order",
+                "objective": "Appliquer la loi d Ohm.",
+                "question": "Ordonne les étapes pour déterminer une tension avec la loi d Ohm.",
+                "tokens": [
+                  "Identifier R et I",
+                  "Écrire U = R × I",
+                  "Remplacer les valeurs",
+                  "Ajouter l unité volt"
+                ],
+                "answer": [
+                  "Identifier R et I",
+                  "Écrire U = R × I",
+                  "Remplacer les valeurs",
+                  "Ajouter l unité volt"
+                ],
+                "why": "La méthode sépare relation, calcul et unité.",
+                "remediation": "Commencer par identifier les grandeurs connues.",
+                "difficulty": "medium",
+                "learning_phase": "remediation",
+                "assessment_role": "remediation",
+                "common_errors": [
+                  "confondre multiplication et division"
+                ]
+              },
+              {
+                "id": "var-fill",
+                "type": "fill",
+                "objective": "Appliquer la loi d Ohm.",
+                "question": "Complète la relation de la tension.",
+                "parts": [
+                  "U = ",
+                  0,
+                  " × ",
+                  1
+                ],
+                "tokens": [
+                  "R",
+                  "I",
+                  "P"
+                ],
+                "answer": [
+                  "R",
+                  "I"
+                ],
+                "sentence": "U = R × I",
+                "why": "La tension est le produit de la résistance par l intensité.",
+                "remediation": "Associer U à R multiplié par I.",
+                "difficulty": "easy",
+                "learning_phase": "consolidation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "confondre multiplication et division"
+                ]
+              },
+              {
+                "id": "var-flash",
+                "type": "flashcard",
+                "objective": "Identifier l unité de tension.",
+                "question": "Quelle est l unité SI de la tension ?",
+                "front": "Unité de la tension ?",
+                "answer": "Le volt, symbole V.",
+                "back": "Le volt, symbole V.",
+                "why": "La tension se mesure en volts.",
+                "remediation": "Relier tension, volt et symbole V.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "confondre volt et ampère"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "positive-mode-ready-course",
+      "expected": "pass",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "golden-mode-ready-course",
+        "source": "Learn-it session mode contract fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "session-modes",
+          "activity_count": 6
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "golden-mode-ready-v1",
+            "title": "Golden — parcours prêt pour les modes",
+            "sequence": "Découvrir, pratiquer, diagnostiquer, valider",
+            "objectives": [
+              "Comprendre la tension",
+              "Appliquer la loi d Ohm"
+            ],
+            "activities": [
+              {
+                "id": "mode-flash",
+                "type": "flashcard",
+                "objective": "Comprendre la tension.",
+                "question": "Quelle grandeur compare deux potentiels ?",
+                "front": "Grandeur entre deux potentiels ?",
+                "answer": "La tension électrique.",
+                "back": "La tension électrique.",
+                "why": "La tension est une différence de potentiel.",
+                "remediation": "Relier potentiel et tension.",
+                "difficulty": "easy",
+                "learning_phase": "activation",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "confondre tension et intensité"
+                ]
+              },
+              {
+                "id": "mode-practice-qcm",
+                "type": "qcm",
+                "objective": "Comprendre la tension.",
+                "question": "Quelle unité mesure la tension ?",
+                "choices": [
+                  "Volt",
+                  "Ampère",
+                  "Ohm"
+                ],
+                "answer": 0,
+                "why": "La tension se mesure en volts.",
+                "remediation": "Associer tension et volt.",
+                "difficulty": "easy",
+                "learning_phase": "comprehension",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "confondre volt et ampère"
+                ]
+              },
+              {
+                "id": "mode-diagnostic-qcm",
+                "type": "qcm",
+                "objective": "Appliquer la loi d Ohm.",
+                "question": "Avec R égale 3 ohms et I égale 2 ampères, quelle tension obtient-on ?",
+                "choices": [
+                  "6 V",
+                  "1,5 V",
+                  "5 V"
+                ],
+                "answer": 0,
+                "why": "U = R × I = 6 V.",
+                "remediation": "Écrire U = R × I avant le calcul.",
+                "difficulty": "medium",
+                "learning_phase": "diagnostic",
+                "assessment_role": "diagnostic",
+                "common_errors": [
+                  "confondre multiplication et division"
+                ]
+              },
+              {
+                "id": "mode-validation-fill",
+                "type": "fill",
+                "objective": "Appliquer la loi d Ohm.",
+                "question": "Complète la relation de la tension.",
+                "parts": [
+                  "U = ",
+                  0,
+                  " × ",
+                  1
+                ],
+                "tokens": [
+                  "R",
+                  "I",
+                  "P"
+                ],
+                "answer": [
+                  "R",
+                  "I"
+                ],
+                "sentence": "U = R × I",
+                "why": "La tension est le produit de la résistance par l intensité.",
+                "remediation": "Identifier les symboles R et I.",
+                "difficulty": "medium",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "confondre U R et I"
+                ]
+              },
+              {
+                "id": "mode-validation-match",
+                "type": "matching",
+                "objective": "Comprendre la tension.",
+                "question": "Associe chaque grandeur à son unité.",
+                "pairs": [
+                  [
+                    "Tension",
+                    "volt"
+                  ],
+                  [
+                    "Intensité",
+                    "ampère"
+                  ],
+                  [
+                    "Résistance",
+                    "ohm"
+                  ]
+                ],
+                "why": "Chaque grandeur possède une unité distincte.",
+                "remediation": "Commencer par tension et volt.",
+                "difficulty": "medium",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "confondre volt et ampère"
+                ]
+              },
+              {
+                "id": "mode-remediation-order",
+                "type": "order",
+                "objective": "Appliquer la loi d Ohm.",
+                "question": "Ordonne les étapes du calcul.",
+                "tokens": [
+                  "Écrire U = R × I",
+                  "Remplacer R et I",
+                  "Calculer",
+                  "Ajouter V"
+                ],
+                "answer": [
+                  "Écrire U = R × I",
+                  "Remplacer R et I",
+                  "Calculer",
+                  "Ajouter V"
+                ],
+                "why": "La méthode sépare formule, valeurs et unité.",
+                "remediation": "Commencer par la relation littérale.",
+                "difficulty": "medium",
+                "learning_phase": "remediation",
+                "assessment_role": "remediation",
+                "common_errors": [
+                  "calculer avant d écrire la formule"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "negative-unsafe-media",
+      "expected": "fail",
+      "expected_codes": [
+        "media-unsafe"
+      ],
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "negative-unsafe-media",
+        "source": "security contract fixture",
+        "assets": [
+          {
+            "id": "unsafe-svg",
+            "type": "image",
+            "format": "svg",
+            "source": "generated",
+            "alt": "SVG non sûr",
+            "pedagogical_role": "question_stimulus",
+            "data": "<svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"><foreignObject><iframe src=\"https://invalid.example\"></iframe></foreignObject><rect width=\"10\" height=\"10\" style=\"fill:red\"/></svg>"
+          }
+        ],
+        "generation_report": {
+          "fixture": "negative media security"
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "unsafe-media-v1",
+            "title": "Unsafe media fixture",
+            "sequence": "Security",
+            "objectives": [
+              "Détecter un média non sûr"
+            ],
+            "activities": [
+              {
+                "id": "unsafe-q1",
+                "type": "qcm",
+                "objective": "Détecter un média non sûr",
+                "question": "Le média doit-il être accepté ?",
+                "choices": [
+                  "Non",
+                  "Oui"
+                ],
+                "answer": 0,
+                "why": "Le média contient du comportement actif.",
+                "remediation": "Retirer tout comportement actif.",
+                "media": [
+                  {
+                    "assetId": "unsafe-svg",
+                    "placement": "question"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "diagnostic_cases": [
+    {
+      "id": "diagnostic-media-unused",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "diag-diagnostic-media-unused",
+        "source": "diagnostic fixture",
+        "assets": [
+          {
+            "id": "unused-svg",
+            "type": "image",
+            "format": "svg",
+            "alt": "Schéma inutilisé",
+            "pedagogical_role": "concept_visual",
+            "data": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>"
+          }
+        ],
+        "generation_report": {
+          "fixture": "Diagnostic media unused"
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "diag-v1",
+            "title": "Diagnostic media unused",
+            "sequence": "Diagnostic",
+            "objectives": [
+              "Diagnostiquer une notion."
+            ],
+            "activities": [
+              {
+                "id": "diag-q1",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 1 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q2",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 2 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "remediation",
+                "assessment_role": "remediation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expected_severity": "advice",
+      "expected_codes": [
+        "asset-unused"
+      ]
+    },
+    {
+      "id": "diagnostic-objective-no-validation",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "diag-diagnostic-no-validation",
+        "source": "diagnostic fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "Diagnostic no validation"
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "diag-v1",
+            "title": "Diagnostic no validation",
+            "sequence": "Diagnostic",
+            "objectives": [
+              "Diagnostiquer une notion."
+            ],
+            "activities": [
+              {
+                "id": "diag-q1",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 1 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q2",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 2 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "remediation",
+                "assessment_role": "remediation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expected_severity": "warning",
+      "expected_codes": [
+        "objective-no-validation"
+      ]
+    },
+    {
+      "id": "diagnostic-objective-no-remediation",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "diag-diagnostic-no-remediation",
+        "source": "diagnostic fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "Diagnostic no remediation"
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "diag-v1",
+            "title": "Diagnostic no remediation",
+            "sequence": "Diagnostic",
+            "objectives": [
+              "Diagnostiquer une notion."
+            ],
+            "activities": [
+              {
+                "id": "diag-q1",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 1 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q2",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 2 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expected_severity": "warning",
+      "expected_codes": [
+        "objective-no-remediation"
+      ]
+    },
+    {
+      "id": "diagnostic-format-imbalance",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "diag-diagnostic-format-imbalance",
+        "source": "diagnostic fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "Diagnostic format imbalance"
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "diag-v1",
+            "title": "Diagnostic format imbalance",
+            "sequence": "Diagnostic",
+            "objectives": [
+              "Diagnostiquer une notion."
+            ],
+            "activities": [
+              {
+                "id": "diag-q1",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 1 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q2",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 2 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q3",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 3 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q4",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 4 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q5",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 5 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q6",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 6 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "application",
+                "assessment_role": "practice",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q7",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 7 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q8",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Question diagnostic 8 ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "remediation",
+                "assessment_role": "remediation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expected_severity": "warning",
+      "expected_codes": [
+        "course-format-imbalance"
+      ]
+    },
+    {
+      "id": "diagnostic-question-duplicate",
+      "payload": {
+        "kind": "learnit-course-package",
+        "schema_version": "learnit.import.v1.1",
+        "packageId": "diag-diagnostic-duplicate-question",
+        "source": "diagnostic fixture",
+        "assets": [],
+        "generation_report": {
+          "fixture": "Diagnostic duplicate question"
+        },
+        "courses": [
+          {
+            "schemaVersion": "learnit-content-v2",
+            "contentVersion": "diag-v1",
+            "title": "Diagnostic duplicate question",
+            "sequence": "Diagnostic",
+            "objectives": [
+              "Diagnostiquer une notion."
+            ],
+            "activities": [
+              {
+                "id": "diag-q1",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Même question ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "validation",
+                "assessment_role": "validation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              },
+              {
+                "id": "diag-q2",
+                "type": "qcm",
+                "objective": "Diagnostiquer une notion.",
+                "question": "Même question ?",
+                "choices": [
+                  "Correct",
+                  "Incorrect"
+                ],
+                "answer": 0,
+                "why": "La première réponse est correcte.",
+                "remediation": "Reprendre la notion avec un exemple différent.",
+                "difficulty": "easy",
+                "learning_phase": "remediation",
+                "assessment_role": "remediation",
+                "common_errors": [
+                  "erreur fréquente"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expected_severity": "warning",
+      "expected_codes": [
+        "question-exact-duplicate"
+      ]
+    }
+  ]
+}

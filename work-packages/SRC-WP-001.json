@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "SRC-WP-001",
   "title": "Import RC715 as the active standalone development baseline",
-  "status": "in-progress",
+  "status": "under-qa",
   "changeClass": "test-or-evidence",
   "riskClass": "high",
   "purpose": "Import the exact RC715 continuation source into GitHub without refactoring, prove clean reconstruction of the delivered artifact, and make GitHub the canonical source for subsequent standalone stabilization while keeping stable promotion blocked behind ARC-WP-000.",
@@ -72,5 +72,12 @@
     "QA and provenance review",
     "human standalone promotion remains separately required by ARC-WP-000"
   ],
-  "rollback": "Revert the import pull request. The RC715 supplied package and its hashes remain the external evidence source; no application migration or user-data transformation is performed by this work package."
+  "rollback": "Revert the import pull request. The RC715 supplied package and its hashes remain the external evidence source; no application migration or user-data transformation is performed by this work package.",
+  "result": {
+    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
+    "artifactIdentityVerified": true,
+    "mandatoryChecksPassed": true,
+    "humanPromotion": "pending",
+    "decision": "GO_WITH_CONDITIONS"
+  }
 }

@@ -1,0 +1,269 @@
+    class ContentValidator{
+      validate(content){const errors=[];if(!content||content.schemaVersion!=='learnit-content-v2')errors.push('schemaVersion invalide');if(!Array.isArray(content.activities)||content.activities.length<1)errors.push('aucune activité');
+        const assetIds=new Set();
+        if(Array.isArray(content&&content.assets)){for(const asset of content.assets){if(!asset||typeof asset!=='object')errors.push('asset invalide');else {if(!asset.id)errors.push('asset sans id'); if(asset.id&&assetIds.has(asset.id))errors.push('asset dupliqué '+asset.id); if(asset.id)assetIds.add(asset.id); if(!asset.alt)errors.push('asset sans alt '+(asset.id||'?')); if(!asset.pedagogical_role&&!asset.pedagogicalRole)errors.push('asset sans rôle pédagogique '+(asset.id||'?')); const security=window.LearnItMediaSecurityModel;const securityAudit=security&&typeof security.auditAsset==='function'?security.auditAsset(asset):{ok:false,reason:'media-security-model-missing'};if(!securityAudit.ok)errors.push('asset média non sûr '+(asset.id||'?')+': '+securityAudit.reason);}}}
+        const ids=new Set();for(const a of content.activities||[]){
+          if(ids.has(a.id))errors.push('id dupliqué '+a.id);ids.add(a.id); if(!a.id||!a.type||!a.question)errors.push('activité incomplète '+(a.id||'?'));
+          if(!['qcm','fill','matching','order','flashcard'].includes(a.type))errors.push('type non supporté '+(a.id||'?'));
+          if(String(a.question||'').length>CONTENT_LIMITS.questionMax)errors.push('question trop longue mobile '+a.id);
+          if(String(a.objective||'').length>CONTENT_LIMITS.objectiveMax)errors.push('objectif trop long '+a.id);
+          if(String(a.remediation||'').length>CONTENT_LIMITS.remediationMax)errors.push('remédiation trop longue '+a.id);
+          const text=JSON.stringify(a);if(text.length>CONTENT_LIMITS.activityMobileBudget*5)errors.push('activité dense à auditer '+a.id);for(const phrase of weakPhrases){if(text.includes(phrase))errors.push('phrase faible: '+phrase)}
+          if(/\[BLANK/i.test(text))errors.push('placeholder visible dans '+a.id);
+          if(Array.isArray(a.media)){for(const m of a.media){if(!m||!m.assetId)errors.push('media sans assetId '+a.id); else if(assetIds.size&& !assetIds.has(m.assetId))errors.push('media asset introuvable '+a.id+': '+m.assetId);}}
+          if(a.type==='qcm'){if(!Array.isArray(a.choices)||a.choices.length<2)errors.push('QCM sans choix '+a.id);if((a.choices||[]).some(c=>String(c).length>CONTENT_LIMITS.choiceMax))errors.push('choix trop long mobile '+a.id);if(!Number.isInteger(a.answer)||a.answer<0||a.answer>=a.choices.length)errors.push('réponse QCM invalide '+a.id);}
+          if(a.type==='fill'){if(!Array.isArray(a.tokens)||!Array.isArray(a.answer)||!Array.isArray(a.parts))errors.push('fill incomplet '+a.id);else for(const ans of a.answer){if(!a.tokens.includes(ans))errors.push('réponse fill absente des tokens '+a.id);}}
+          if(a.type==='matching'){if(!Array.isArray(a.pairs)||a.pairs.length<2)errors.push('matching incomplet '+a.id);}
+          if(a.type==='order'){if(!Array.isArray(a.tokens)||!Array.isArray(a.answer)||a.tokens.length!==a.answer.length)errors.push('order incomplet '+a.id);}
+          if(a.type==='flashcard'){if(!String(a.answer||a.back||'').trim())errors.push('flashcard sans réponse '+a.id);}
+        }return {ok:errors.length===0,errors};}
+    }
+
+    class UxJournal{
+      constructor(){this.items=this.load();}
+      load(){try{return JSON.parse(storage.getItem(JOURNAL_KEY)||'[]').slice(-120000)}catch(e){return []}}
+      save(){try{storage.setItem(JOURNAL_KEY,JSON.stringify(this.items.slice(-MAX_JOURNAL)))}catch(e){}}
+      record(type,data={}){this.items.push({t:nowIso(),type,data}); if(this.items.length>MAX_JOURNAL)this.items=this.items.slice(-MAX_JOURNAL); this.save();}
+      reset(){this.items=[];this.save();}
+      export(extra={}){return {version:VERSION_LABEL,build:APP_BUILD,exportedAt:nowIso(),events:this.items, ...extra};}
+    }
+
+    class ContentStore{
+      constructor(journal){this.journal=journal;this.validation=null;this.patchDraft='';this.importDraft='';this.importMessage='';this.importPreviewConfirmed=false;this.importPreviewPlan=null;this.importCollisionPolicy='rename';this.importTitleOverrides=Object.create(null);this.localLibraryCacheError=null;this.libraryRevision=Math.max(0,Number(storage.getItem(LIBRARY_REVISION_KEY)||0)||0);this.lastDurablePromise=Promise.resolve({ok:true,operation:'idle'});this.durableHydrationPromise=null;this.durableStateTimer=0;this.recoverInterruptedImport();this.imported=this.loadImportedCourses();this.lastAppliedImport=this.loadLastAppliedImport();this.activeCourseId=this.loadActiveCourse();this.load();}
+      loadActiveCourse(){return storage.getItem(ACTIVE_COURSE_KEY)||courseIdFromContent(baseContent);}
+      builtInCourses(){return CONTENT_LIBRARY;}
+      allCourses(){return [...CONTENT_LIBRARY,...this.imported];}
+      courseById(courseId){return this.allCourses().find(c=>courseId===courseIdFromContent(c))||baseContent;}
+      setActiveCourse(courseId){const next=this.courseById(courseId);this.activeCourseId=courseIdFromContent(next);storage.setItem(ACTIVE_COURSE_KEY,this.activeCourseId);this.load();this.journal.record('course_selected',{courseId:this.activeCourseId,title:next.title});}
+      courseList(){return this.allCourses().map(c=>({courseId:courseIdFromContent(c),title:c.title,sequence:c.sequence,objectives:c.objectives,activityCount:c.activities.length,contentVersion:c.contentVersion,imported:!!c.importedAt,types:c.activities.reduce((acc,a)=>{acc[a.type]=(acc[a.type]||0)+1;return acc;},{})}));}
+      base(){return this.courseById(this.activeCourseId);}
+      loadImportedCourses(){try{const value=JSON.parse(storage.getItem(IMPORTED_COURSES_KEY)||'[]');const validator=new ContentValidator();const used=new Set(CONTENT_LIBRARY.map(courseIdFromContent));const rows=[];for(const raw of Array.isArray(value)?value:[]){if(!validator.validate(raw).ok)continue;const course=deepClone(raw);let id=String(course.localCourseId||'').trim()||courseSlugFromTitle(course);const base=id;let suffix=1;while(used.has(id)){suffix+=1;id=base+'--'+suffix;}course.localCourseId=id;used.add(id);rows.push(course);}return rows;}catch(e){return [];}}
+      saveImportedCourses(options={}){try{storage.setItem(IMPORTED_COURSES_KEY,JSON.stringify(this.imported));this.localLibraryCacheError=null;return true;}catch(error){this.localLibraryCacheError={name:error&&error.name||'Error',message:String(error&&error.message||error),at:nowIso()};if(options.allowFailure)return false;throw error;}}
+      loadLibraryPersistenceMeta(){try{return JSON.parse(storage.getItem(LIBRARY_PERSISTENCE_META_KEY)||'null')||null;}catch(e){return null;}}
+      saveLibraryPersistenceMeta(meta){try{storage.setItem(LIBRARY_REVISION_KEY,String(meta.revision||0));storage.setItem(LIBRARY_PERSISTENCE_META_KEY,JSON.stringify(meta));return true;}catch(e){return false;}}
+      durableSnapshot(reason='sync'){return {schema:'learnit.durable_library.rc715.v1',revision:this.libraryRevision,updatedAt:nowIso(),reason,imported:deepClone(this.imported),history:this.loadImportHistory(),lastAppliedImport:this.lastAppliedImport||null,activeCourseId:this.activeCourseId||courseIdFromContent(baseContent),learnerStatePayload:storage.getItem(STORAGE_KEY)||'',contentPatchesPayload:storage.getItem(PATCH_KEY)||'',fieldEvidencePayload:storage.getItem(FIELD_EVIDENCE_KEY)||'',libraryDigest:this.importDigest(this.imported)};}
+      scheduleDurableCommit(reason='sync',options={}){if(options.bump!==false)this.libraryRevision=Math.max(this.libraryRevision+1,1);const meta={schema:'learnit.library_persistence_meta.rc715.v1',revision:this.libraryRevision,updatedAt:nowIso(),reason,libraryDigest:this.importDigest(this.imported)};this.saveLibraryPersistenceMeta(meta);const snapshot=this.durableSnapshot(reason);this.lastDurablePromise=Promise.resolve(this.lastDurablePromise).catch(()=>null).then(()=>durableLibraryStore.write(snapshot)).then(result=>{this.durableLastResult=result;if(result&&result.ok)this.journal.record('library_durable_commit',{reason,revision:this.libraryRevision,count:this.imported.length});else this.journal.record('library_durable_commit_failed',{reason,revision:this.libraryRevision,error:result&&result.error||'unknown'});return result;});return this.lastDurablePromise;}
+      scheduleLearnerStateCommit(){if(this.durableStateTimer)clearTimeout(this.durableStateTimer);this.durableStateTimer=setTimeout(()=>{this.durableStateTimer=0;this.scheduleDurableCommit('learner-state',{bump:false});},320);return true;}
+      flushDurable(){if(this.durableStateTimer){clearTimeout(this.durableStateTimer);this.durableStateTimer=0;this.scheduleDurableCommit('learner-state-flush',{bump:false});}return Promise.resolve(this.lastDurablePromise||{ok:true,operation:'idle'});}
+      persistenceReport(){const local=storage.report();const durable=durableLibraryStore.report();return {schema:'learnit.library_persistence_report.rc715.v1',ok:local.mode==='localStorage'||durable.ok===true,local,durable,revision:this.libraryRevision,imported:this.imported.length,localCacheError:this.localLibraryCacheError};}
+      restoreDurableSnapshot(snapshot,source='snapshot'){if(!snapshot||!Array.isArray(snapshot.imported))return {ok:false,changed:false,error:'snapshot durable invalide'};const validator=new ContentValidator();const restored=[];const used=new Set(CONTENT_LIBRARY.map(courseIdFromContent));for(const raw of snapshot.imported){if(!validator.validate(raw).ok)continue;const course=deepClone(raw);let id=String(course.localCourseId||'').trim()||courseSlugFromTitle(course);const base=id;let suffix=1;while(used.has(id)){suffix+=1;id=base+'--'+suffix;}course.localCourseId=id;used.add(id);restored.push(course);}this.imported=restored;this.libraryRevision=Math.max(0,Number(snapshot.revision)||0);this.lastAppliedImport=snapshot.lastAppliedImport||null;this.activeCourseId=restored.some(c=>courseIdFromContent(c)===snapshot.activeCourseId)?snapshot.activeCourseId:this.loadActiveCourse();this.saveImportedCourses({allowFailure:true});try{this.saveImportHistory(Array.isArray(snapshot.history)?snapshot.history:[]);}catch(e){}try{if(this.lastAppliedImport)storage.setItem(IMPORT_LAST_APPLIED_KEY,JSON.stringify(this.lastAppliedImport));else storage.removeItem(IMPORT_LAST_APPLIED_KEY);}catch(e){}try{storage.setItem(ACTIVE_COURSE_KEY,this.activeCourseId);}catch(e){}try{if(typeof snapshot.learnerStatePayload==='string'&&snapshot.learnerStatePayload)storage.setItem(STORAGE_KEY,snapshot.learnerStatePayload);}catch(e){}try{if(typeof snapshot.contentPatchesPayload==='string'&&snapshot.contentPatchesPayload)storage.setItem(PATCH_KEY,snapshot.contentPatchesPayload);}catch(e){}try{if(typeof snapshot.fieldEvidencePayload==='string'&&snapshot.fieldEvidencePayload)storage.setItem(FIELD_EVIDENCE_KEY,snapshot.fieldEvidencePayload);}catch(e){}this.saveLibraryPersistenceMeta({schema:'learnit.library_persistence_meta.rc715.v1',revision:this.libraryRevision,updatedAt:snapshot.updatedAt||nowIso(),reason:'durable-restore',libraryDigest:this.importDigest(this.imported)});this.load();this.journal.record('library_durable_restored',{revision:this.libraryRevision,count:this.imported.length,source});return {ok:true,changed:true,source,count:this.imported.length};}
+      async hydrateDurableLibrary(){if(this.durableHydrationPromise)return this.durableHydrationPromise;this.durableHydrationPromise=(async()=>{const snapshot=await durableLibraryStore.read();const localRevision=Math.max(0,Number(storage.getItem(LIBRARY_REVISION_KEY)||this.libraryRevision)||0);if(!snapshot||!Array.isArray(snapshot.imported)){if(this.imported.length)await this.scheduleDurableCommit('bootstrap-local',{bump:false});return {ok:true,changed:false,source:this.imported.length?'local':'empty'};}const durableRevision=Math.max(0,Number(snapshot.revision)||0);const localDigest=this.importDigest(this.imported);const durableDigest=String(snapshot.libraryDigest||this.importDigest(snapshot.imported));if(durableRevision>localRevision||(!this.imported.length&&snapshot.imported.length)||(durableRevision===localRevision&&localDigest!==durableDigest))return this.restoreDurableSnapshot(snapshot,'indexedDB');if(localRevision>durableRevision||this.imported.length>snapshot.imported.length)await this.scheduleDurableCommit('refresh-durable',{bump:false});return {ok:true,changed:false,source:'local',count:this.imported.length};})().catch(error=>({ok:false,changed:false,error:String(error&&error.message||error)}));return this.durableHydrationPromise;}
+      async clearDurableLibrary(){this.libraryRevision=0;this.saveLibraryPersistenceMeta({schema:'learnit.library_persistence_meta.rc715.v1',revision:0,updatedAt:nowIso(),reason:'clear'});return durableLibraryStore.clear();}
+      async applyImportDraftDurably(text,options={}){const before={imported:deepClone(this.imported),snapshot:this.transactionSnapshot(),revision:this.libraryRevision};const plan=options.plan||this.previewImport(text,{collisionPolicy:options.collisionPolicy||this.importCollisionPolicy});const result=this.applyImportDraft(text,{...options,plan,allowCacheFailure:true,skipDurable:true});if(!result.ok)return result;const persisted=await this.scheduleDurableCommit('import');const cacheOk=!!(result.report&&result.report.localCachePersisted&&storage.report().mode==='localStorage');if(result.report)result.report.localCacheDurable=cacheOk;if((persisted&&persisted.ok)||cacheOk){if(result.report){result.report.durablePersisted=!!(persisted&&persisted.ok);result.report.persistenceBackend=persisted&&persisted.ok?(cacheOk?'IndexedDB+localStorage':'IndexedDB'):'localStorage';if(!result.report.durablePersisted)result.report.persistenceWarning='IndexedDB indisponible : conservation assurée par le stockage local du navigateur.';this.saveLastAppliedImport(result.report);}return result;}this.imported=before.imported;this.libraryRevision=before.revision;this.restoreTransactionSnapshot(before.snapshot);return {ok:false,error:'Persistance impossible : ni IndexedDB ni stockage local ne sont disponibles.',rolledBack:true,plan};}
+      async renameImportedCourse(courseId,newTitle){const id=String(courseId||'');const title=String(newTitle||'').trim().replace(/\s+/g,' ');if(!title)return {ok:false,error:'Le nom du parcours ne peut pas être vide.'};if(title.length>120)return {ok:false,error:'Le nom du parcours est limité à 120 caractères.'};const index=this.imported.findIndex(c=>courseIdFromContent(c)===id);if(index<0)return {ok:false,error:'Seuls les parcours importés peuvent être renommés.'};const conflict=this.allCourses().some(c=>String(c.title||'').trim().toLocaleLowerCase('fr')===title.toLocaleLowerCase('fr')&&courseIdFromContent(c)!==id);if(conflict)return {ok:false,error:'Un autre parcours porte déjà ce nom.'};const before=deepClone(this.imported[index]);const next=deepClone(before);next.localCourseId=id;next.title=title;next.renamedAt=nowIso();next.originalImportedTitle=next.originalImportedTitle||before.importOriginalTitle||before.title;this.imported[index]=next;const cacheWritten=this.saveImportedCourses({allowFailure:true});const cacheOk=cacheWritten&&storage.report().mode==='localStorage';this.load();const persisted=await this.scheduleDurableCommit('rename');const durable=!!(persisted&&persisted.ok);if(!durable&&!cacheOk){this.imported[index]=before;this.saveImportedCourses({allowFailure:true});this.load();return {ok:false,error:'Renommage non enregistré : aucun stockage persistant disponible.'};}this.journal.record('imported_course_renamed',{courseId:id,from:before.title,to:title,cacheOk,cacheWritten,durable});return {ok:true,courseId:id,title,cacheOk,cacheWritten,durable,warning:durable?'':'IndexedDB indisponible : renommage conservé par le stockage local du navigateur.'};}
+      loadImportHistory(){try{const value=JSON.parse(storage.getItem(IMPORT_HISTORY_KEY)||'[]');return Array.isArray(value)?value.slice(-10):[]}catch(e){return [];}}
+      saveImportHistory(history){storage.setItem(IMPORT_HISTORY_KEY,JSON.stringify(history.slice(-10)));}
+      loadLastAppliedImport(){try{const value=JSON.parse(storage.getItem(IMPORT_LAST_APPLIED_KEY)||'null');return value&&typeof value==='object'?value:null;}catch(e){return null;}}
+      saveLastAppliedImport(report){this.lastAppliedImport=report||null;if(report)storage.setItem(IMPORT_LAST_APPLIED_KEY,JSON.stringify(report));else storage.removeItem(IMPORT_LAST_APPLIED_KEY);}
+      lastAppliedImportReport(){return this.lastAppliedImport||null;}
+      exportAppliedImport(){return {version:VERSION_LABEL,exportedAt:nowIso(),lastAppliedImport:this.lastAppliedImport,imported:this.imported.map(c=>({courseId:courseIdFromContent(c),title:c.title,activityCount:Array.isArray(c.activities)?c.activities.length:0,importedAt:c.importedAt||'',importPackageId:c.importPackageId||'',importAutoRenamed:!!c.importAutoRenamed}))};}
+      normalizeImportPayload(payload){
+        if(payload&&payload.kind==='learnit-course-package'&&Array.isArray(payload.courses)){const rootAssets=Array.isArray(payload.assets)?payload.assets:[];const rootReport=payload.generation_report||payload.generationReport||null;const courses=payload.courses.map(course=>{const c=deepClone(course);if(rootAssets.length)c.assets=[...rootAssets,...(Array.isArray(c.assets)?c.assets:[])];if(rootReport&&!c.package_generation_report)c.package_generation_report=rootReport;return c;});return {kind:'package',courses,packageId:payload.packageId||payload.package_id||'package-'+Date.now(),assets:rootAssets,generation_report:rootReport};}
+        if(payload&&payload.schemaVersion==='learnit-content-v2'&&Array.isArray(payload.activities))return {kind:'single',courses:[deepClone(payload)],packageId:'single-'+(payload.contentVersion||Date.now()),assets:Array.isArray(payload.assets)?payload.assets:[]};
+        return {kind:'invalid',courses:[],error:'Format attendu : parcours learnit-content-v2 ou package learnit-course-package'};
+      }
+      importReservedIds(){return new Set([...CONTENT_LIBRARY.map(courseIdFromContent),...this.imported.map(courseIdFromContent)]);}
+      importDigest(value){const text=typeof value==='string'?value:JSON.stringify(value);let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return ('00000000'+(h>>>0).toString(16)).slice(-8);}
+      importTitleOverrideKey(sourceName,courseIndex,course){return String(sourceName||'source')+'::'+Number(courseIndex||0)+'::'+courseSlugFromTitle(course);}
+      setImportTitleOverride(key,value){const k=String(key||'');if(!k)return false;const title=String(value||'').trim().replace(/\s+/g,' ');if(title)this.importTitleOverrides[k]=title;else delete this.importTitleOverrides[k];this.importPreviewConfirmed=false;this.importPreviewPlan=null;return true;}
+      recoverInterruptedImport(){try{const raw=storage.getItem(IMPORT_TRANSACTION_KEY);if(!raw)return false;const tx=JSON.parse(raw);const snap=tx&&tx.snapshot||{};for(const key of [IMPORTED_COURSES_KEY,IMPORT_HISTORY_KEY,IMPORT_LAST_APPLIED_KEY,ACTIVE_COURSE_KEY]){const value=snap[key];if(value===null||value===undefined||value==='')storage.removeItem(key);else storage.setItem(key,value);}storage.removeItem(IMPORT_TRANSACTION_KEY);return true;}catch(e){try{storage.removeItem(IMPORT_TRANSACTION_KEY);}catch(ignore){}return false;}}
+      resolveImportCourse(raw,used,duplicateInBatch=false){const course=deepClone(raw);const originalTitle=String(course.title||'Parcours importé').trim()||'Parcours importé';const originalCourseId=courseIdFromContent(course);const builtInIds=new Set(CONTENT_LIBRARY.map(courseIdFromContent));const importedIds=new Set(this.imported.map(courseIdFromContent));let title=originalTitle;let courseId=originalCourseId;let suffix=0;while(used.has(courseId)){suffix+=1;title=originalTitle+' — copie'+(suffix>1?' '+suffix:'');course.title=title;courseId=courseIdFromContent(course);}used.add(courseId);return {course,courseId,title:course.title||title,originalTitle,originalCourseId,duplicateInBatch,builtInConflict:builtInIds.has(originalCourseId),importedConflict:importedIds.has(originalCourseId),autoRenamed:courseId!==originalCourseId,autoSuffix:courseId!==originalCourseId?title.replace(originalTitle,'').trim():''};}
+      combineImportTexts(entries){const assets=[],courses=[],sources=[],reports=[];for(const entry of entries||[]){const text=typeof entry==='string'?entry:String(entry&&entry.text||'');const payload=JSON.parse(text);const normalized=this.normalizeImportPayload(payload);if(normalized.error)throw new Error(normalized.error);courses.push(...normalized.courses);assets.push(...(normalized.assets||[]));sources.push(String(entry&&entry.name||normalized.packageId||'fichier'));if(normalized.generation_report)reports.push(normalized.generation_report);}return {kind:'learnit-course-package',schema_version:'learnit.import.v1.1',packageId:'multi-'+this.importDigest(sources.join('|')+'|'+courses.length),source:sources.join(' · '),assets,generation_report:{combined_files:sources.length,sources,reports},courses};}
+      planImportTexts(entries,options={}){const policy=['rename','replace','skip','reject'].includes(options.collisionPolicy)?options.collisionPolicy:(this.importCollisionPolicy||'rename');const list=(entries||[]).map((entry,index)=>typeof entry==='string'?{name:'source-'+(index+1),text:entry}:{name:String(entry&&entry.name||('source-'+(index+1))),text:String(entry&&entry.text||'')});const rows=[],blockers=[],warnings=[],operations=[];const validator=new ContentValidator();const builtInIds=new Set(CONTENT_LIBRARY.map(courseIdFromContent));const importedIds=new Set(this.imported.map(courseIdFromContent));const used=new Set([...builtInIds,...importedIds]);const batchOriginal=new Set();let totalBytes=0,totalActivities=0;const addBlock=(code,message,path='$')=>blockers.push({code,severity:'blocker',message,path,correction:'Corriger le blocage puis relancer la prévisualisation.'});if(!list.length)addBlock('import-no-file','Aucun fichier à analyser.');if(list.length>IMPORT_QUOTAS.hardFiles)addBlock('import-too-many-files',`Maximum de sécurité : ${IMPORT_QUOTAS.hardFiles} fichiers.`);for(let fi=0;fi<list.length;fi++){const entry=list[fi];totalBytes+=entry.text.length;let payload;try{payload=JSON.parse(entry.text);}catch(e){addBlock('json-invalid',`${entry.name} : ${e.message}`,`$files[${fi}]`);continue;}const normalized=this.normalizeImportPayload(payload);if(normalized.error){addBlock('root-format-invalid',`${entry.name} : ${normalized.error}`,`$files[${fi}]`);continue;}for(let ci=0;ci<normalized.courses.length;ci++){const sourceRaw=normalized.courses[ci];const titleOverrideKey=this.importTitleOverrideKey(entry.name,ci,sourceRaw);const raw=deepClone(sourceRaw);const requestedTitle=String(this.importTitleOverrides[titleOverrideKey]||raw.title||'').trim().replace(/\s+/g,' ');if(requestedTitle)raw.title=requestedTitle;const path=`$files[${fi}].courses[${ci}]`;const validation=validator.validate(raw);const forbiddenJs=/function\s*\(|=>|<script|javascript:|on[a-z]+\s*=|eval\s*\(|new Function/i.test(JSON.stringify(raw));const originalCourseId=courseIdFromContent(raw);const duplicateInBatch=batchOriginal.has(originalCourseId);const builtInConflict=builtInIds.has(originalCourseId);const importedConflict=importedIds.has(originalCourseId);batchOriginal.add(originalCourseId);let action='add',resolved={course:deepClone(raw),courseId:originalCourseId,title:raw.title||'Parcours importé',originalTitle:raw.title||'Parcours importé',originalCourseId,duplicateInBatch,builtInConflict,importedConflict,autoRenamed:false,autoSuffix:''},ok=validation.ok&&!forbiddenJs;if(!validation.ok)addBlock('course-invalid',`${raw.title||originalCourseId} : ${validation.errors.join(' · ')}`,path);if(forbiddenJs)addBlock('behavior-forbidden',`${raw.title||originalCourseId} contient du comportement interdit.`,path);const conflict=builtInConflict||importedConflict||duplicateInBatch||used.has(originalCourseId);if(ok&&conflict){if(policy==='reject'){action='reject';ok=false;addBlock('collision-rejected',`${raw.title||originalCourseId} entre en collision.`,path);}else if(policy==='skip'){action='skip';warnings.push({code:'collision-skipped',severity:'warning',message:`${raw.title||originalCourseId} sera ignoré.`,path,correction:'Choisir Renommer ou Remplacer pour l’importer.'});}else if(policy==='replace'){if(builtInConflict||duplicateInBatch){action='reject';ok=false;addBlock(builtInConflict?'builtin-replace-forbidden':'batch-replace-ambiguous',`${raw.title||originalCourseId} ne peut pas être remplacé dans ce contexte.`,path);}else{action='replace';used.add(originalCourseId);}}else{resolved=this.resolveImportCourse(raw,used,duplicateInBatch);action=resolved.autoRenamed?'rename':'add';}}else if(ok)used.add(originalCourseId);const activityCount=Array.isArray(raw&&raw.activities)?raw.activities.length:0;totalActivities+=activityCount;const row={sourceName:entry.name,fileIndex:fi,courseIndex:ci,path,titleOverrideKey,requestedTitle:raw.title||'',sourceTitle:sourceRaw.title||'',action,policy,ok,activityCount,validation,forbiddenJs,...resolved};delete row.course;rows.push(row);if(ok&&action!=='skip'&&action!=='reject')operations.push({action,course:deepClone(resolved.course),courseId:resolved.courseId,originalCourseId:resolved.originalCourseId,originalTitle:resolved.originalTitle,autoSuffix:resolved.autoSuffix||'',sourceName:entry.name});}}
+        if(totalBytes>IMPORT_QUOTAS.advisoryBytes)warnings.push({code:'volume-bytes-high',severity:'warning',message:`Volume élevé : ${totalBytes} caractères.`,path:'$',correction:'Découper si le navigateur manque de stockage.'});if(list.length>IMPORT_QUOTAS.advisoryFiles)warnings.push({code:'volume-files-high',severity:'warning',message:`${list.length} fichiers sélectionnés.`,path:'$',correction:'Importer par lots plus petits si nécessaire.'});if(rows.length>IMPORT_QUOTAS.advisoryCourses)warnings.push({code:'volume-courses-high',severity:'warning',message:`${rows.length} parcours analysés.`,path:'$',correction:'Importer par collections cohérentes si nécessaire.'});if(totalActivities>IMPORT_QUOTAS.advisoryActivities)warnings.push({code:'volume-activities-high',severity:'warning',message:`${totalActivities} activités : test de capacité recommandé.`,path:'$',correction:'Conserver des packages cohérents et vérifier le stockage local.'});const counts=rows.reduce((a,r)=>(a[r.action]=(a[r.action]||0)+1,a),{});const publicOps=operations.map(o=>({action:o.action,courseId:o.courseId,originalCourseId:o.originalCourseId,sourceName:o.sourceName,course:o.course}));const plan={schema:'learnit.import_plan.v2',ok:blockers.length===0,collisionPolicy:policy,files:list.map(x=>x.name),packageId:'plan-'+this.importDigest(publicOps),count:rows.length,rows,operations,blockers,warnings,counts,totalBytes,totalActivities,beforeImported:this.imported.length,afterImported:this.imported.length+(counts.add||0)+(counts.rename||0),digest:this.importDigest(publicOps)};plan.message=plan.ok?`${rows.length} parcours analysé(s) · ${operations.length} changement(s)`:'Import refusé';return plan;}
+      previewImport(text,options={}){return this.planImportTexts([{name:options.name||'JSON collé',text:String(text||'')}],options);}
+      previewImportFiles(entries,options={}){return this.planImportTexts(entries,options);}
+      confirmImportPreview(text,options={}){const plan=this.previewImport(text,options);this.importPreviewPlan=plan;this.importPreviewConfirmed=!!plan.ok;this.importCollisionPolicy=plan.collisionPolicy;return plan;}
+      transactionSnapshot(){const snapshot={};for(const key of [IMPORTED_COURSES_KEY,IMPORT_HISTORY_KEY,IMPORT_LAST_APPLIED_KEY,ACTIVE_COURSE_KEY]){const value=storage.getItem(key);snapshot[key]=value===undefined?null:value;}return snapshot;}
+      restoreTransactionSnapshot(snapshot){for(const key of [IMPORTED_COURSES_KEY,IMPORT_HISTORY_KEY,IMPORT_LAST_APPLIED_KEY,ACTIVE_COURSE_KEY]){const value=snapshot&&snapshot[key];if(value===null||value===undefined||value==='')storage.removeItem(key);else storage.setItem(key,value);}this.imported=this.loadImportedCourses();this.lastAppliedImport=this.loadLastAppliedImport();this.activeCourseId=this.loadActiveCourse();this.load();}
+      applyImportPlan(plan,options={}){if(!plan||!plan.ok)return {ok:false,error:'Plan d’import invalide',plan};const snapshot=this.transactionSnapshot();const tx={schema:'learnit.import_transaction.v1',state:'prepared',startedAt:nowIso(),planDigest:plan.digest,snapshot};let appliedRows=[];try{storage.setItem(IMPORT_TRANSACTION_KEY,JSON.stringify(tx));if(options.faultAt==='after-prepare')throw new Error('fault-after-prepare');const current=deepClone(this.imported);const byId=new Map(current.map(c=>[courseIdFromContent(c),c]));const appliedAt=nowIso();for(const op of plan.operations||[]){const course=deepClone(op.course);course.localCourseId=op.courseId;course.importedAt=appliedAt;course.importPackageId=plan.packageId;course.importOriginalTitle=op.originalTitle||course.title||'';course.importOriginalCourseId=op.originalCourseId;course.importAutoRenamed=op.action==='rename';course.importCollisionAction=op.action;if(op.action==='replace')byId.delete(op.originalCourseId);byId.set(op.courseId,course);appliedRows.push({courseId:op.courseId,title:course.title,originalTitle:course.importOriginalTitle,originalCourseId:op.originalCourseId,activityCount:Array.isArray(course.activities)?course.activities.length:0,autoRenamed:op.action==='rename',autoSuffix:op.action==='rename'?(op.autoSuffix||'— copie'):'',action:op.action,sourceName:op.sourceName,importedAt:appliedAt,importPackageId:plan.packageId});}this.imported=[...byId.values()];const localCachePersisted=this.saveImportedCourses({allowFailure:!!options.allowCacheFailure});if(options.faultAt==='after-imported-write')throw new Error('fault-after-imported-write');const history=this.loadImportHistory();history.push({at:appliedAt,before:JSON.parse(snapshot[IMPORTED_COURSES_KEY]||'[]'),packageId:plan.packageId,count:appliedRows.length,planDigest:plan.digest});this.saveImportHistory(history);if(options.faultAt==='after-history-write')throw new Error('fault-after-history-write');const report={version:VERSION_LABEL,build:APP_BUILD,appliedAt,packageId:plan.packageId,planDigest:plan.digest,collisionPolicy:plan.collisionPolicy,requestedCourses:plan.rows.length,appliedCourses:appliedRows.length,skippedCourses:plan.counts.skip||0,totalActivities:appliedRows.reduce((sum,r)=>sum+r.activityCount,0),autoRenamed:appliedRows.filter(r=>r.autoRenamed).length,replaced:appliedRows.filter(r=>r.action==='replace').length,importedTotal:this.imported.length,rows:appliedRows,persisted:true,localCachePersisted,transactional:true};this.saveLastAppliedImport(report);if(options.faultAt==='after-report-write')throw new Error('fault-after-report-write');const persisted=localCachePersisted?this.loadImportedCourses():this.imported;if(this.importDigest(persisted)!==this.importDigest(this.imported))throw new Error('verification-persistence-import');if(!options.skipDurable)this.scheduleDurableCommit('import');storage.removeItem(IMPORT_TRANSACTION_KEY);this.load();this.journal.record('content_import_transaction_committed',{planDigest:plan.digest,appliedCourses:appliedRows.length,collisionPolicy:plan.collisionPolicy});return {ok:true,message:`Import appliqué : ${appliedRows.length} parcours`,report,plan};}catch(e){try{this.restoreTransactionSnapshot(snapshot);}finally{try{storage.removeItem(IMPORT_TRANSACTION_KEY);}catch(ignore){}}this.journal.record('content_import_transaction_rolled_back',{planDigest:plan.digest,error:String(e&&e.message||e)});return {ok:false,error:String(e&&e.message||e),rolledBack:true,plan};}}
+      applyImportDraft(text,options={}){const plan=options.plan||this.previewImport(text,{collisionPolicy:options.collisionPolicy||this.importCollisionPolicy});if(options.requireConfirmed&&(!this.importPreviewConfirmed||!this.importPreviewPlan||this.importPreviewPlan.digest!==plan.digest))return {ok:false,error:'Prévisualisation à confirmer avant import',plan};const result=this.applyImportPlan(plan,options);this.importPreviewConfirmed=false;this.importPreviewPlan=null;return result;}
+      rollbackImport(){const history=this.loadImportHistory();if(!history.length)return {ok:false,error:'aucun import à annuler'};const last=history.pop();const snapshot=this.transactionSnapshot();try{this.imported=Array.isArray(last.before)?last.before:[];this.saveImportedCourses();this.saveImportHistory(history);this.load();if(!this.allCourses().some(c=>courseIdFromContent(c)===this.activeCourseId)){this.activeCourseId=courseIdFromContent(baseContent);storage.setItem(ACTIVE_COURSE_KEY,this.activeCourseId);this.load();}this.scheduleDurableCommit('rollback-import');this.journal.record('content_import_rollback',{packageId:last.packageId,importedTotal:this.imported.length});return {ok:true,message:'Annulation du dernier import effectuée'};}catch(e){this.restoreTransactionSnapshot(snapshot);return {ok:false,error:String(e&&e.message||e),rolledBack:true};}}
+      sampleImport(){return JSON.stringify({kind:'learnit-course-package',schema_version:'learnit.import.v1.1',packageId:'demo-import-electricite-mesures',source:'exemple local',assets:[],generation_report:{example:true},courses:[{schemaVersion:'learnit-content-v2',contentVersion:'content-import-demo-1',title:'Mesures électriques — import',sequence:'Lire, choisir, vérifier',objectives:['choisir un calibre','lire une valeur','contrôler une unité'],activities:[{id:'m1',type:'qcm',objective:'Choisir l’appareil adapté.',question:'Quel appareil mesure une tension ?',choices:['Voltmètre','Ampèremètre','Balance','Chronomètre'],answer:0,why:'La tension se mesure avec un voltmètre.',remediation:'Repère la grandeur : tension → voltmètre.',difficulty:'easy',learning_phase:'diagnostic',assessment_role:'diagnostic',common_errors:['confondre tension et intensité']},{id:'m2',type:'fill',objective:'Contrôler une unité.',question:'Complète la phrase.',parts:['Une tension se lit en ',0,'.'],tokens:['volt','ampère','ohm'],answer:['volt'],sentence:'Une tension se lit en volt.',why:'Le volt est l’unité de la tension.',remediation:'Associe tension et volt.',difficulty:'easy',learning_phase:'application',assessment_role:'practice',common_errors:['confondre volt et ampère']},{id:'m3',type:'order',objective:'Choisir un calibre.',question:'Ordonne les étapes de mesure.',tokens:['Choisir l’appareil','Brancher correctement','Lire la valeur','Ajouter l’unité'],answer:['Choisir l’appareil','Brancher correctement','Lire la valeur','Ajouter l’unité'],why:'La mesure se prépare avant la lecture.',remediation:'Commence par l’appareil, termine par l’unité.',difficulty:'medium',learning_phase:'validation',assessment_role:'validation',common_errors:['lire avant de choisir le calibre']}]}]},null,2);}
+      exportImported(){return {version:VERSION_LABEL,exportedAt:nowIso(),imported:this.imported,history:this.loadImportHistory().map(h=>({at:h.at,packageId:h.packageId,count:h.count})),lastAppliedImport:this.lastAppliedImport};}
+      loadHistory(){try{const value=JSON.parse(storage.getItem(PATCH_KEY)||'[]');return Array.isArray(value)?value.filter(p=>!p.courseId||p.courseId===this.activeCourseId):[]}catch(e){return [];}}
+      saveHistory(){storage.setItem(PATCH_KEY,JSON.stringify(this.history));}
+      load(){this.history=this.loadHistory();this.content=this.applyHistory(this.base(),this.history);this.validation=this.validateContent(this.content);}
+      applyHistory(base,history){let current=deepClone(base);for(const patch of history){const applied=this.applyPatchToContent(current,patch);if(applied.ok)current=applied.content;}current.contentVersion=current.contentVersion+'+'+history.length;return Object.freeze(current);}
+      applyPatchToContent(content,patch){const check=this.validatePatch(patch);if(!check.ok)return check;let next=deepClone(content);for(const op of patch.operations){
+        if(op.op==='replaceActivityFields'){const item=next.activities.find(a=>a.id===op.id);if(!item)return {ok:false,error:'activité introuvable: '+op.id};Object.assign(item,deepClone(op.fields));}
+        if(op.op==='setSequence'){next.sequence=String(op.value||next.sequence);}
+        if(op.op==='disableActivity'){next.activities=next.activities.filter(a=>a.id!==op.id);}
+        if(op.op==='reorderActivities'){const map=new Map(next.activities.map(a=>[a.id,a]));const ordered=op.order.map(id=>map.get(id)).filter(Boolean);const rest=next.activities.filter(a=>!op.order.includes(a.id));next.activities=[...ordered,...rest];}
+      }
+      next.contentVersion=patch.targetContentVersion||('content-patched-'+Date.now());const valid=this.validateContent(next);return valid.ok?{ok:true,content:next}:{ok:false,error:valid.errors.join('; ')};}
+      validatePatch(patch){
+        if(!patch||patch.kind!=='learnit-content-patch')return {ok:false,error:'kind attendu: learnit-content-patch'};
+        if(!patch.patchId||!patch.sourceContentVersion||!patch.targetContentVersion||!patch.reason||!Array.isArray(patch.operations)||!patch.operations.length)return {ok:false,error:'patchId, versions, raison et operations requis'};
+        for(const op of patch.operations){if(!['replaceActivityFields','setSequence','disableActivity','reorderActivities'].includes(op.op))return {ok:false,error:'op interdite: '+op.op}; if(String(op.op).toLowerCase().includes('script'))return {ok:false,error:'patch comportemental interdit'};}
+        return {ok:true};
+      }
+      validateContent(content){return (new ContentValidator()).validate(content);}
+      previewPatch(text){try{const patch=JSON.parse(text);const applied=this.applyPatchToContent(this.content,patch);return applied.ok?{ok:true,message:'Patch valide',patch}:applied;}catch(e){return {ok:false,error:'JSON invalide: '+e.message};}}
+      applyDraft(text){const prev=this.previewPatch(text);if(!prev.ok)return prev;this.history.push(prev.patch);this.saveHistory();this.load();this.journal.record('content_patch_applied',{patchId:prev.patch.patchId,count:this.history.length});return {ok:true,message:'Patch appliqué'};}
+      rollback(){if(!this.history.length)return {ok:false,error:'aucun patch à annuler'};const removed=this.history.pop();this.saveHistory();this.load();this.journal.record('content_patch_rollback',{patchId:removed.patchId,count:this.history.length});return {ok:true,message:'Rollback effectué'};}
+      samplePatch(){return JSON.stringify({kind:'learnit-content-patch',patchId:'patch-feedback-example',courseId:this.activeCourseId,sourceContentVersion:this.content.contentVersion,targetContentVersion:'content-example-feedback',reason:'Rendre la remédiation de la loi d’Ohm plus directe.',operations:[{op:'replaceActivityFields',id:this.content.activities.find(a=>a.type==='fill')?.id||this.content.activities[0].id,fields:{remediation:'Écris la relation avant de placer les grandeurs.'}}]},null,2);}
+    }
+
+    class AppState{
+      constructor(journal,contentStore){this.journal=journal;this.contentStore=contentStore;this.view='learn';this.state=this.load();this.ensureCourseState();this.alignWithContent();}
+      activeId(){return this.contentStore.activeCourseId||courseIdFromContent(this.contentStore.content||baseContent);}
+      initialSession(){const model=window.LearnItSessionModeModel;const policy=model&&typeof model.resolve==='function'?model.resolve('training'):{id:'training',label:'Entraînement',feedbackTiming:'immediate',allowRetry:true,showHints:true,recordProgress:true};return {status:'idle',mode:'training',modePolicy:policy,currentIndex:0,queue:this.contentStore.content.activities.map(a=>a.id),answers:{},contentVersion:this.contentStore.content.contentVersion};}
+      initial(){return {stateSchemaVersion:STATE_SCHEMA_VERSION,activeCourseId:this.activeId(),sessionByCourseId:{},lastBilanByCourseId:{},activityProgressByCourseId:{},retentionByCourseId:{},session:this.initialSession(),lastBilan:null};}
+      plainObject(value){return !!(value&&typeof value==='object'&&!Array.isArray(value));}
+      sanitizeSession(value){
+        const fresh=this.initialSession();
+        const source=this.plainObject(value)?value:{};
+        const status=['idle','active','completed'].includes(source.status)?source.status:'idle';
+        const queue=Array.isArray(source.queue)?source.queue.filter(id=>typeof id==='string'&&id):fresh.queue.slice();
+        const answers=this.plainObject(source.answers)?source.answers:{};
+        const currentIndex=Number.isFinite(Number(source.currentIndex))?Math.max(0,Math.floor(Number(source.currentIndex))):0;
+        return {...fresh,...source,status,mode:String(source.mode||fresh.mode),queue,answers,currentIndex,contentVersion:String(source.contentVersion||fresh.contentVersion)};
+      }
+      migrate(value){
+        const initial=this.initial();
+        const source=this.plainObject(value)?deepClone(value):{};
+        const fromVersion=Number(source.stateSchemaVersion||0);
+        const out={...initial,...source,stateSchemaVersion:STATE_SCHEMA_VERSION};
+        out.activeCourseId=typeof source.activeCourseId==='string'&&source.activeCourseId?source.activeCourseId:initial.activeCourseId;
+        out.sessionByCourseId=this.plainObject(source.sessionByCourseId)?source.sessionByCourseId:{};
+        out.lastBilanByCourseId=this.plainObject(source.lastBilanByCourseId)?source.lastBilanByCourseId:{};
+        out.activityProgressByCourseId=this.plainObject(source.activityProgressByCourseId)?source.activityProgressByCourseId:{};
+        out.retentionByCourseId=this.plainObject(source.retentionByCourseId)?source.retentionByCourseId:{};
+        for(const id of Object.keys(out.sessionByCourseId)){out.sessionByCourseId[id]=this.sanitizeSession(out.sessionByCourseId[id]);}
+        for(const id of Object.keys(out.lastBilanByCourseId)){if(!this.plainObject(out.lastBilanByCourseId[id]))delete out.lastBilanByCourseId[id];}
+        for(const id of Object.keys(out.retentionByCourseId)){if(!this.plainObject(out.retentionByCourseId[id])||!Array.isArray(out.retentionByCourseId[id].checkpoints))delete out.retentionByCourseId[id];}
+        for(const id of Object.keys(out.activityProgressByCourseId)){
+          if(!this.plainObject(out.activityProgressByCourseId[id])){delete out.activityProgressByCourseId[id];continue;}
+          for(const activityId of Object.keys(out.activityProgressByCourseId[id])){
+            const row=out.activityProgressByCourseId[id][activityId];
+            if(!this.plainObject(row)){delete out.activityProgressByCourseId[id][activityId];continue;}
+            row.attempts=Math.max(0,Number.isFinite(Number(row.attempts))?Math.floor(Number(row.attempts)):0);
+            row.seen=!!row.seen;row.correct=!!row.correct;row.review=!!row.review;
+          }
+        }
+        out.session=this.sanitizeSession(source.session||out.sessionByCourseId[out.activeCourseId]);
+        out.lastBilan=this.plainObject(source.lastBilan)?source.lastBilan:null;
+        if(fromVersion!==STATE_SCHEMA_VERSION){
+          const report={schema:'learnit.state_recovery.rc623.v1',at:nowIso(),kind:'migration',fromVersion,toVersion:STATE_SCHEMA_VERSION};
+          try{storage.setItem(RECOVERY_REPORT_KEY,JSON.stringify(report));}catch(e){}
+          try{this.journal.record('state_migrated',report);}catch(e){}
+        }
+        return out;
+      }
+      load(){
+        const raw=storage.getItem(STORAGE_KEY)||'';
+        if(!raw)return this.initial();
+        try{return this.migrate(JSON.parse(raw));}
+        catch(e){
+          const report={schema:'learnit.state_recovery.rc623.v1',at:nowIso(),kind:'corrupt-state-reset',message:String(e&&e.message||e),rawLength:String(raw).length};
+          try{storage.setItem(RECOVERY_REPORT_KEY,JSON.stringify(report));}catch(ignore){}
+          try{this.journal.record('state_recovered',report);}catch(ignore){}
+          return this.initial();
+        }
+      }
+      ensureCourseState(){
+        if(!this.state||typeof this.state!=='object')this.state=this.initial();
+        if(!this.state.sessionByCourseId)this.state.sessionByCourseId={};
+        if(!this.state.lastBilanByCourseId)this.state.lastBilanByCourseId={};
+        if(!this.state.activityProgressByCourseId)this.state.activityProgressByCourseId={};
+        if(!this.state.retentionByCourseId)this.state.retentionByCourseId={};
+        const id=this.state.activeCourseId||this.activeId();
+        if(this.state.session&&!this.state.sessionByCourseId[id])this.state.sessionByCourseId[id]=deepClone(this.state.session);
+        if(this.state.lastBilan&&!this.state.lastBilanByCourseId[id])this.state.lastBilanByCourseId[id]=deepClone(this.state.lastBilan);
+        if(!this.state.session)this.state.session=this.state.sessionByCourseId[this.activeId()]||this.initialSession();
+      }
+      save(){
+        this.ensureCourseState();
+        const id=this.activeId();
+        this.state.stateSchemaVersion=STATE_SCHEMA_VERSION;
+        this.state.activeCourseId=id;
+        this.state.sessionByCourseId[id]=deepClone(this.state.session||this.initialSession());
+        if(this.state.lastBilan)this.state.lastBilanByCourseId[id]=deepClone(this.state.lastBilan); else delete this.state.lastBilanByCourseId[id];
+        storage.setItem(STORAGE_KEY,JSON.stringify(this.state));
+        if(this.contentStore&&typeof this.contentStore.scheduleLearnerStateCommit==='function')this.contentStore.scheduleLearnerStateCommit();
+      }
+      courseProgress(courseId){
+        this.ensureCourseState();
+        const id=courseId||this.activeId();
+        const root=this.state.activityProgressByCourseId||(this.state.activityProgressByCourseId={});
+        if(!root[id])root[id]={};
+        return root[id];
+      }
+      courseRetention(courseId){
+        this.ensureCourseState();
+        const id=courseId||this.activeId();
+        return this.state.retentionByCourseId[id]||null;
+      }
+      setCourseRetention(protocol,courseId){
+        this.ensureCourseState();
+        const id=courseId||this.activeId();
+        if(protocol&&typeof protocol==='object')this.state.retentionByCourseId[id]=deepClone(protocol);else delete this.state.retentionByCourseId[id];
+        return this.state.retentionByCourseId[id]||null;
+      }
+      retentionStatus(courseId,at){
+        const model=window.LearnItRetentionProtocolModel;const protocol=this.courseRetention(courseId);
+        return model&&protocol&&typeof model.status==='function'?model.status(protocol,at):null;
+      }
+      recordActivityProgress(activityId,result={},activity=null,context={}){
+        const id=this.activeId();
+        const progress=this.courseProgress(id);
+        const prev=progress[activityId]||{};
+        const mode=(context&&context.mode)||((this.state.session&&this.state.session.mode)||'training');const modeModel=window.LearnItSessionModeModel;if(modeModel&&typeof modeModel.recordsProgress==='function'&&!modeModel.recordsProgress(mode))return prev;
+        const model=window.LearnItRemediationModel;
+        const effectiveActivity=activity||this.contentStore.content.activities.find(a=>a.id===activityId)||{id:activityId};
+        if(model&&typeof model.recordProgress==='function'){
+          progress[activityId]=model.recordProgress(prev,result,effectiveActivity,{
+            mode,
+            maxRounds:context.maxRounds||((this.state.session&&this.state.session.remediation&&this.state.session.remediation.maxRounds)||2),
+            at:context.at||nowIso(),
+            contentVersion:this.contentStore.content.contentVersion
+          });
+          return progress[activityId];
+        }
+        const attempts=(prev.attempts||0)+1;
+        progress[activityId]={seen:true,correct:!!result.correct,review:!result.correct,attempts,expected:result.expected||'',lastAt:nowIso(),contentVersion:this.contentStore.content.contentVersion};
+        return progress[activityId];
+      }
+      mergeSessionIntoProgress(courseId){
+        this.ensureCourseState();
+        const id=courseId||this.activeId();
+        const session=(id===this.activeId()?this.state.session:(this.state.sessionByCourseId||{})[id])||{};
+        const modeModel=window.LearnItSessionModeModel;
+        const policy=modeModel&&typeof modeModel.sessionPolicy==='function'?modeModel.sessionPolicy(session):(session.modePolicy||{});
+        if(policy&&policy.recordProgress===false)return;
+        const answers=session.answers||{};
+        const progress=this.courseProgress(id);
+        for(const [activityId,answer] of Object.entries(answers)){
+          if(!progress[activityId]){
+            progress[activityId]={seen:true,correct:!!answer.correct,review:!answer.correct,attempts:1,expected:answer.expected||'',lastAt:answer.at||nowIso(),contentVersion:session.contentVersion||''};
+          }
+        }
+      }
+      alignWithContent(){
+        this.ensureCourseState();
+        const activeId=this.activeId();
+        const previousId=this.state.activeCourseId;
+        if(previousId&&previousId!==activeId){
+          if(this.state.session)this.state.sessionByCourseId[previousId]=deepClone(this.state.session);
+          if(this.state.lastBilan)this.state.lastBilanByCourseId[previousId]=deepClone(this.state.lastBilan); else delete this.state.lastBilanByCourseId[previousId];
+          this.mergeSessionIntoProgress(previousId);
+        }
+        const validIds=new Set(this.contentStore.content.activities.map(a=>a.id));
+        const fresh=this.initialSession();
+        const saved=this.state.sessionByCourseId[activeId]?deepClone(this.state.sessionByCourseId[activeId]):fresh;
+        const queue=Array.isArray(saved.queue)&&saved.queue.length?saved.queue.filter(id=>validIds.has(id)):fresh.queue;
+        const answers={};for(const [id,val] of Object.entries(saved.answers||{}))if(validIds.has(id))answers[id]=val;
+        this.state.session={...saved,queue,answers,contentVersion:this.contentStore.content.contentVersion,currentIndex:Math.min(saved.currentIndex||0,Math.max(queue.length-1,0))};
+        if(!queue.length)this.state.session={...fresh,queue:fresh.queue};
+        const bilan=this.state.lastBilanByCourseId[activeId]?deepClone(this.state.lastBilanByCourseId[activeId]):null;
+        if(bilan&&Array.isArray(bilan.review))bilan.review=bilan.review.filter(id=>validIds.has(id));
+        this.state.lastBilan=bilan;
+        this.state.activeCourseId=activeId;
+        this.mergeSessionIntoProgress(activeId);
+        this.save();
+        if(previousId&&previousId!==activeId)this.journal.record('course_state_switched',{from:previousId,to:activeId,hasBilan:!!this.state.lastBilan,sessionStatus:this.state.session.status});
+      }
+      resetAll(){this.state=this.initial();this.save();this.journal.record('reset_all');}
+    }
+
