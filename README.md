@@ -4,18 +4,20 @@ Private engineering repository for the controlled evolution of Learn-it from a s
 
 ## Current status
 
-The **repository foundation is installed**. The project remains in bootstrap mode for the application baseline.
+RC715 is the **promoted standalone forensic baseline**.
 
-- The active standalone application is still being stabilized outside this repository.
-- No player source has been imported yet.
-- No backend, account, synchronization, commerce, or marketplace implementation is authorized yet.
-- The first engineering gate is [`ARC-WP-000`](work-packages/ARC-WP-000.json): establish an exact, reproducible baseline of the standalone version selected for import.
+- The complete player source is maintained under [`apps/player/`](apps/player/).
+- GitHub is the canonical source for all subsequent standalone development.
+- Promoted source commit: `6c826977e16985d50b45d1b5e53501b4d7b993a2`.
+- Promoted artifact SHA-256: `6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0`.
+- [`ARC-WP-000`](work-packages/ARC-WP-000.json) is accepted after reproducible reconstruction, automated checks, governor review, and accountable-owner human validation PASS.
+- Backend, accounts, synchronization, remote catalog, commerce, institutions, and marketplace implementation remain on HOLD.
 - The permanent Architecture & Repository Governor maintains the frame through [`GOVERNANCE.md`](GOVERNANCE.md) and the canonical [`governor-state.json`](governance/governor-state.json).
 
 ## Two-track strategy
 
-1. **Standalone stabilization** — continue functional, UX, accessibility, persistence, performance, test, and release hardening without a transversal architectural rewrite.
-2. **Platform readiness** — prepare executable architecture rules, contracts, repository governance, provenance, and migration seams without changing the player behavior.
+1. **Standalone product line** — continue bounded functional, UX, accessibility, persistence, performance, test, and release improvements from the promoted baseline.
+2. **Controlled platform evolution** — establish permanent behavioral protection, then introduce one reversible architecture seam at a time under explicit gates.
 
 See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFORM.md).
 
@@ -32,8 +34,11 @@ See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFO
 
 ## Repository entry points
 
+- [Player source and engineering instructions](apps/player/README.md)
 - [Standing architecture and repository governance](GOVERNANCE.md)
 - [Canonical current governor state](governance/governor-state.json)
+- [RC715 promotion review](docs/governance/reviews/GOV-REVIEW-0003-RC715-PROMOTION.md)
+- [RC715 human validation attestation](docs/evidence/rc715/human-validation-attestation.json)
 - [Governor decision rights](docs/governance/DECISION_RIGHTS.md)
 - [Governor review template](docs/governance/GOVERNOR_REVIEW_TEMPLATE.md)
 - [Architecture status and authority](docs/architecture/README.md)
@@ -41,9 +46,9 @@ See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFO
 - [Architecture constitution](docs/architecture/reference-v1/01_ARCHITECTURE_CONSTITUTION.md)
 - [Contribution protocol](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
-- [Canonical baseline work package](work-packages/ARC-WP-000.json)
+- [Promoted standalone baseline work package](work-packages/ARC-WP-000.json)
 - [Standing governor work package](work-packages/GOV-WP-001.json)
 
 ## Immediate next step
 
-Keep `ARC-WP-000` blocked until the standalone development stream promotes a candidate. Then populate its exact source commit, artifact hash, evidence, and known-issues register before importing any player code.
+Pass `ARCH-GATE-R3-BEHAVIORAL-PROTECTION`: establish permanent player CI and representative black-box regression fixtures before implementing the first architectural seam.
