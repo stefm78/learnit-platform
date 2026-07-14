@@ -32,8 +32,11 @@
     "apps/player/reports/**",
     "apps/player/release/**"
   ],
-  "testProfile": "player-fast",
-  "commitMessage": "Diagnose first seam fast profile",
+  "testProfile": "player-targeted",
+  "testTargets": [
+    "apps/player/tests/contract_storage_boundary.py"
+  ],
+  "commitMessage": "Diagnose focused first seam contract",
   "maxPatchBytes": 60000,
   "maxChangedFiles": 7,
   "maxChangedLines": 260
