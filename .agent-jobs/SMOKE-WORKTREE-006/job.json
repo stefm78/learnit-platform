@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "SMOKE-WORKTREE-006",
+  "baseCommit": "55bc0078386728cb6ce467f2ce00823be1780cc3",
+  "branch": "agent/smoke-player-targeted-v6",
+  "patchFile": ".agent-jobs/SMOKE-WORKTREE-006/change.patch",
+  "allowedPaths": [
+    "docs/evidence/**"
+  ],
+  "forbiddenPaths": [],
+  "testProfile": "player-targeted",
+  "testTargets": [
+    "apps/player/tests/browser_library_persistence_naming.py"
+  ],
+  "maxPatchBytes": 50000,
+  "maxChangedFiles": 2,
+  "maxChangedLines": 120,
+  "commitMessage": "Record targeted player worktree smoke evidence"
+}
