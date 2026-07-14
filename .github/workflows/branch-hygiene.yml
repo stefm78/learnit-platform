@@ -1,0 +1,57 @@
+name: Branch hygiene
+
+on:
+  pull_request:
+    types: [closed]
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/branch-hygiene.yml
+      - tools/cleanup_branches.py
+  workflow_dispatch:
+
+concurrency:
+  group: branch-hygiene-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    name: cleanup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out trusted default branch
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Verify branch deletion policy
+        run: python tools/cleanup_branches.py --self-test
+
+      - name: Delete only proven-stale branches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: >-
+          python tools/cleanup_branches.py
+          --execute
+          --output branch-hygiene-report.json
+
+      - name: Upload branch inventory and decisions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-hygiene-${{ github.run_id }}
+          path: branch-hygiene-report.json
+          if-no-files-found: warn
+          retention-days: 14
