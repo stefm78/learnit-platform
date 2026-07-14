@@ -1,0 +1,133 @@
+name: Remote agent worktree
+
+on:
+  push:
+    branches:
+      - 'agent/**'
+    paths:
+      - '.agent-jobs/**/READY'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: remote-agent-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-test:
+    if: ${{ !contains(github.event.head_commit.message, '[agent-applied]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Check out exact triggering commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate job envelope and patch scope
+        id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .agent-runtime
+          python tools/agent_worktree.py prepare --output .agent-runtime/plan.json
+          profile="$(python -c "import json; print(json.load(open('.agent-runtime/plan.json'))['testProfile'])")"
+          printf 'test_profile=%s\n' "$profile" >> "$GITHUB_OUTPUT"
+
+      - name: Install player test dependencies
+        if: ${{ startsWith(steps.plan.outputs.test_profile, 'player-') }}
+        run: python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
+
+      - name: Install Chromium for browser profiles
+        if: ${{ steps.plan.outputs.test_profile == 'player-targeted' || steps.plan.outputs.test_profile == 'player-full' }}
+        run: python -m playwright install --with-deps chromium
+
+      - name: Apply patch without repository credentials
+        run: python tools/agent_worktree.py apply --plan .agent-runtime/plan.json
+
+      - name: Validate repository governance
+        run: python tools/validate_repository.py
+
+      - name: Run fixed validation profile
+        run: python tools/agent_worktree.py test --plan .agent-runtime/plan.json
+
+      - name: Package the exact tested result
+        run: |
+          python tools/agent_worktree.py package \
+            --plan .agent-runtime/plan.json \
+            --output-patch .agent-runtime/result.patch \
+            --output-manifest .agent-runtime/result.json
+
+      - name: Upload tested result envelope
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-agent-result-${{ github.run_id }}
+          path: |
+            .agent-runtime/plan.json
+            .agent-runtime/applied.json
+            .agent-runtime/tests.json
+            .agent-runtime/result.patch
+            .agent-runtime/result.json
+            apps/player/dist/learnit.html
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
+
+  commit-tested-result:
+    needs: validate-and-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out unchanged triggering commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Download tested result envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: remote-agent-result-${{ github.run_id }}
+          path: .agent-result
+
+      - name: Revalidate and stage the tested result
+        run: |
+          python tools/agent_worktree.py commit-prepare \
+            --manifest .agent-result/.agent-runtime/result.json \
+            --result-patch .agent-result/.agent-runtime/result.patch
+
+      - name: Commit and push only to the agent branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="$GITHUB_REF_NAME"
+          case "$branch" in
+            agent/*) ;;
+            *) echo "Refusing non-agent branch: $branch" >&2; exit 2 ;;
+          esac
+          message="$(python -c "import json; print(json.load(open('.agent-result/.agent-runtime/result.json'))['commitMessage'])")"
+          git config user.name 'learnit-remote-agent'
+          git config user.email 'learnit-remote-agent@users.noreply.github.com'
+          git config core.hooksPath /dev/null
+          git commit -m "$message [agent-applied]"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${branch}"
