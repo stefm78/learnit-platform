@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-012",
+  "title": "Clean stale branches and enforce branch hygiene",
+  "status": "in-progress",
+  "changeClass": "repository-governance",
+  "riskClass": "high",
+  "purpose": "Remove branches that are proven safe to delete and automatically delete future same-repository pull-request head branches after closure, while preserving main, open pull-request branches, and unproven orphan branches.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "94186548f8c01bfc81f6b7637f8283d1691d704c",
+    "candidateName": "Branch hygiene gate v1",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/branch-hygiene.yml",
+      "tools/cleanup_branches.py",
+      "docs/governance/BRANCH_HYGIENE.md",
+      "work-packages/GOV-WP-012.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      "docs/architecture/**",
+      "governance/governor-state.json"
+    ]
+  },
+  "invariants": [
+    "The default branch is never deleted.",
+    "A branch backing an open pull request is never deleted.",
+    "An unmerged branch with no closed pull-request evidence is retained as an orphan for explicit review.",
+    "The cleanup code executed with write permission is always checked out from the default branch, never from a pull-request head.",
+    "The workflow has no merge authority and changes no repository content.",
+    "Every deletion and retention decision is recorded in a machine-readable workflow artifact."
+  ],
+  "requiredEvidence": [
+    "repository governance pass",
+    "PR scope gate pass",
+    "branch hygiene workflow executes from main after merge",
+    "machine-readable inventory of deleted, retained-open, retained-orphan, and failed branches",
+    "main remains present and unchanged",
+    "no open pull-request branch is deleted"
+  ],
+  "adversarialTests": [
+    "prove main is always excluded",
+    "prove open pull-request branches are retained",
+    "prove an unproven orphan branch is retained",
+    "prove a closed pull-request head branch is eligible for deletion",
+    "treat already deleted refs as idempotent success",
+    "reject execution outside the declared repository context"
+  ],
+  "nonGoals": [
+    "configure GitHub rulesets",
+    "change repository visibility or collaborators",
+    "delete tags",
+    "rewrite Git history",
+    "delete open pull-request branches",
+    "delete unproven orphan branches",
+    "change player runtime or architecture"
+  ],
+  "independentReview": [
+    "Repository governance workflow",
+    "PR scope gate",
+    "post-merge branch inventory review"
+  ],
+  "implementation": {
+    "workflow": ".github/workflows/branch-hygiene.yml",
+    "script": "tools/cleanup_branches.py",
+    "automaticEvents": [
+      "pull_request.closed",
+      "initial main push containing the workflow"
+    ],
+    "deletionPolicy": "closed-pull-request-head-or-fully-merged-only",
+    "reportRetentionDays": 14
+  },
+  "rollback": "Revert the workflow, script, documentation, and work package. Deleted branch names are not recreated automatically, but their commits remain recoverable through merged or closed pull-request history where applicable."
+}
