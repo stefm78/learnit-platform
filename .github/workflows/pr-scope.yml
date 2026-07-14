@@ -35,6 +35,9 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Test PR scope validator
+        run: python tools/test_validate_pr_scope.py
+
       - name: Capture pull request body without shell interpolation
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
