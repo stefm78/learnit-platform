@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "UX-WP-020",
   "title": "Make imported plan names editable",
-  "status": "human-gate",
+  "status": "accepted",
   "changeClass": "product-behavior",
   "riskClass": "moderate",
   "purpose": "Allow the user-facing name of an imported plan or collection to be chosen during import and renamed later from the Library without changing technical package identity or losing learner state.",
@@ -44,7 +44,8 @@
     "browser persistence and naming tests",
     "large import and collision regression tests",
     "storage resilience regression tests",
-    "library and product flow regression tests"
+    "library and product flow regression tests",
+    "RC719 focused accountable-owner human validation"
   ],
   "adversarialTests": [
     "rename an imported plan and restore it from durable storage",
@@ -69,9 +70,13 @@
   "result": {
     "automationReady": true,
     "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
-    "humanValidation": "pending-rc719",
+    "humanValidation": "PASS_WITH_RESERVATIONS",
+    "humanValidationGate": "RC719",
+    "humanEvidence": "docs/evidence/rc718/human-validation-attestation.json",
+    "reservations": "docs/product/RC719_RESERVATIONS.md",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
-    "targetedAutomatedSuites": "PASS"
+    "targetedAutomatedSuites": "PASS",
+    "promotionDecision": "GO_WITH_CONDITIONS"
   },
   "rollback": "Revert the RC718 pull request. Existing imported course identities and RC715 durable snapshots remain compatible because the new collection title is an additive presentation field."
 }
