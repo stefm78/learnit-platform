@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "UX-WP-020",
+  "title": "Make imported plan names editable",
+  "status": "in-progress",
+  "changeClass": "product-behavior",
+  "riskClass": "moderate",
+  "purpose": "Allow the user-facing name of an imported plan or collection to be chosen during import and renamed later from the Library without changing technical package identity or losing learner state.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "428779328eb2963946cc3aab9395a6ed64cb3c21",
+    "candidateName": "RC718 editable imported plan naming candidate",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/player/src/**",
+      "apps/player/tests/**",
+      "apps/player/contract/**",
+      "apps/player/authoring/**",
+      "apps/player/dev/**",
+      "apps/player/docs/**",
+      "apps/player/README.md",
+      "apps/player/source_manifest.json"
+    ],
+    "forbiddenPaths": [
+      "platform/**",
+      "contracts/**",
+      "docs/architecture/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "importPackageId remains the immutable technical identity of the imported plan",
+    "localCourseId remains unchanged when a plan is renamed",
+    "progress, bilan and resume state survive plan renaming and durable restoration",
+    "only imported plans can be renamed",
+    "empty, overlong and explicit duplicate plan names are rejected",
+    "default duplicate source titles are disambiguated without blocking unrelated course collision policies"
+  ],
+  "requiredEvidence": [
+    "clean player build",
+    "contract naming tests",
+    "browser persistence and naming tests",
+    "large import and collision regression tests",
+    "storage resilience regression tests",
+    "library and product flow regression tests"
+  ],
+  "adversarialTests": [
+    "rename an imported plan and restore it from durable storage",
+    "verify course identifiers and learner progress do not change",
+    "reject a duplicate name explicitly entered by the user",
+    "auto-disambiguate a duplicate source-derived plan title",
+    "exercise rename, replace, skip and reject course-collision policies after a large import"
+  ],
+  "nonGoals": [
+    "change package identifiers",
+    "migrate storage architecture",
+    "introduce accounts or synchronization",
+    "refactor the player architecture",
+    "rename native collections"
+  ],
+  "independentReview": [
+    "automated contract tests",
+    "automated browser tests",
+    "repository governance CI",
+    "focused human validation after the automated candidate"
+  ],
+  "rollback": "Revert the RC718 pull request. Existing imported course identities and RC715 durable snapshots remain compatible because the new collection title is an additive presentation field."
+}
