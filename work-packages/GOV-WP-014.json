@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-014",
+  "title": "Repair repository state validation before architecture restart",
+  "status": "accepted",
+  "changeClass": "repository-governance",
+  "riskClass": "high",
+  "purpose": "Restore machine-valid repository governance on the exact current main head before ARC-WP-010 is designed, without changing player code or claiming that Stage B, Stage C or Stage D has passed.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "06c6b25d11adcf24f06bb44d3eb092b0ba995cbe",
+    "candidateName": "restart governance schema repair",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-014.json",
+      "work-packages/GOV-WP-013.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/GOV-REVIEW-0007-REPOSITORY-STATE-REPAIR.md"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      ".github/**",
+      "tools/**",
+      "docs/architecture/**"
+    ]
+  },
+  "invariants": [
+    "No player source, generated artifact, storage behavior, identifier, contract, UI or UX is changed.",
+    "The RC718 promoted source commit and artifact SHA-256 remain unchanged.",
+    "Governor-state values use the already enforced repository validator vocabulary instead of introducing unvalidated enum variants.",
+    "The main-ruleset enforcement exception remains explicit and does not become an assertion of technical enforcement.",
+    "ARC-WP-010 remains the next mandatory gate and Stage C and Stage D remain blocked.",
+    "No missing RC719 reservation detail is inferred or fabricated."
+  ],
+  "requiredEvidence": [
+    "exact current main base commit",
+    "field-by-field comparison of governor-state and work-package values with tools/validate_repository.py",
+    "Repository governance workflow pass on the repair pull request",
+    "PR scope gate pass on the complete repair diff",
+    "changed-file proof that no player, architecture or workflow file is modified",
+    "governor review GOV-REVIEW-0007"
+  ],
+  "adversarialTests": [
+    "verify GOV-WP-013 no longer uses a status outside the validator vocabulary",
+    "verify currentPhase.status and promotedBaseline.status are accepted by the validator",
+    "verify every active exception contains id, rule, reason, owner, expiryOrRemovalGate and rollback",
+    "verify the promoted RC718 source and artifact identities are byte-for-byte unchanged in governance records",
+    "verify nextMandatoryGate remains ARC-WP-010",
+    "verify the pull request changes no apps/player, .github, tools, contracts, platform or architecture path"
+  ],
+  "nonGoals": [
+    "design ARC-WP-010",
+    "implement the first reversible seam",
+    "start the Stage D multi-AI pilot",
+    "itemize unknown RC719 reservations",
+    "alter repository administrative rulesets",
+    "change the standalone application or rebuild RC718"
+  ],
+  "independentReview": [
+    "Repository governance workflow",
+    "PR scope / gate",
+    "Architecture and Repository Governor review of the exact repair diff"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "condition": "Merge only after Repository governance and PR scope / gate pass on the exact pull-request head. The unenforced private-repository ruleset remains an explicit active exception.",
+    "nextMandatoryGate": "ARC-WP-010",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert the repair pull request. This restores the prior governance records only; it does not change application bytes, learner data or any remote system."
+}
