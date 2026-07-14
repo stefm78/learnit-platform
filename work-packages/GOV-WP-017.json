@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-017",
+  "title": "Finalize the canonical restart checkpoint after the Stage D pilot",
+  "status": "accepted",
+  "changeClass": "repository-governance-documentation",
+  "riskClass": "low",
+  "purpose": "Replace the obsolete pre-Stage-D restart checkpoint with a concise repository-first checkpoint bound to the accepted Stage B, Stage C and controlled Stage D pilot results. The checkpoint must identify exact commits, current risks, held domains and the next design-only gate so a future agent does not repeat completed work or start stable-identifier implementation prematurely.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "eb296c14825d1a624c96806ee3eba073e6225b69",
+    "candidateName": "post-stage-d-pilot-canonical-restart-checkpoint",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-017.json",
+      "docs/handover/STAGE_D_RESTART_CHECKPOINT.md",
+      "docs/governance/reviews/GOV-REVIEW-0021-STAGE-D-FINAL-CHECKPOINT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "governance/governor-state.json",
+      "work-packages/ARC-WP-019.json",
+      "tools/**",
+      "apps/**",
+      "contracts/**",
+      "platform/**",
+      "docs/architecture/**",
+      "docs/evidence/**",
+      "docs/product/**",
+      "docs/roadmap/**"
+    ]
+  },
+  "invariants": [
+    "The checkpoint reflects exact repository state at base commit eb296c14825d1a624c96806ee3eba073e6225b69.",
+    "Stage B, Stage C and the controlled Stage D pilot are recorded as accepted with their exact evidence roots.",
+    "The promoted product baseline remains RC718 with RC719 PASS_WITH_RESERVATIONS.",
+    "The Stage D pilot is not represented as a product RC and did not change the tested artifact.",
+    "The next gate is design-only stable identity and migration planning; implementation remains held.",
+    "The Player working-file count of 150 and the unenforced private-repository ruleset remain explicit risks.",
+    "Backend, accounts, synchronization, catalog, commerce, tenancy and marketplace remain held.",
+    "Old handovers are explicitly subordinate to current main, governor state, accepted work packages and exact evidence.",
+    "No runtime, workflow, architecture, roadmap, evidence or governor-state content changes."
+  ],
+  "requiredEvidence": [
+    "accepted ARC-WP-014 exact first-seam result and governor review",
+    "accepted ARC-WP-019 exact Stage D pilot result and governor review",
+    "current governor state GOV-STATE-2026-07-14-022",
+    "promoted RC718 baseline and RC719 human attestation",
+    "Repository governance and PR scope green on this documentation-only pull request"
+  ],
+  "adversarialTests": [
+    "fail if the checkpoint claims a new product RC",
+    "fail if exact tested, merge or acceptance commits are omitted or mismatched",
+    "fail if stable-identifier implementation is described as authorized",
+    "fail if any held platform domain is described as open",
+    "fail if the Player file-budget or ruleset exception is hidden",
+    "fail if an old handover is given precedence over repository state",
+    "fail if any file outside the three exact allowed paths changes"
+  ],
+  "nonGoals": [
+    "change product code or artifact",
+    "change governor state",
+    "change architecture or roadmap",
+    "authorize stable-identifier implementation",
+    "open a held platform domain",
+    "create another implementation pilot"
+  ],
+  "independentReview": [
+    "Repository governance validates the work package",
+    "PR scope validates the exact three-file documentation scope",
+    "The governor verifies all commit and evidence references against main"
+  ],
+  "result": {
+    "decision": "GO",
+    "authorizedAt": "2026-07-14",
+    "documentationUpdateAllowed": true,
+    "documentationAccepted": false,
+    "nextMandatoryGate": "ARC-WP-020"
+  },
+  "rollback": "Revert the documentation-only merge. No source, artifact, learner data, governance state or external system is affected."
+}
