@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-020",
+  "title": "Stable canonical identity and migration design",
+  "status": "accepted",
+  "changeClass": "design-only-cross-cutting-architecture",
+  "riskClass": "high",
+  "purpose": "Define, without implementation, the canonical identity model and reversible migration strategy required before Learn-it can introduce globally stable content lineage. The design inventories the current title-derived and locally scoped identifiers, separates canonical lineage from local installation identity and legacy compatibility keys, defines collision and mixed-version rules, preserves RC718 behavior and learner evidence, and constrains the first implementation seam to an additive read-only resolver.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
+    "candidateName": "stable-identity-and-migration-design",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-020.json",
+      "docs/architecture/decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md",
+      "docs/evidence/architecture/stable-identity/current-identity-inventory.json",
+      "docs/governance/reviews/GOV-REVIEW-0022-ARC-WP-020-STABLE-IDENTITY-DESIGN.md",
+      "docs/handover/STAGE_D_RESTART_CHECKPOINT.md",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "tools/**",
+      "contracts/**",
+      "platform/**",
+      "apps/**",
+      "docs/product/**",
+      "docs/roadmap/**",
+      "docs/evidence/rc718/**"
+    ]
+  },
+  "roleScopes": {
+    "developerWritePaths": [
+      "docs/architecture/decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md"
+    ],
+    "qaWritePaths": [
+      "docs/evidence/architecture/stable-identity/current-identity-inventory.json"
+    ],
+    "integratorWritePaths": [
+      "docs/handover/STAGE_D_RESTART_CHECKPOINT.md"
+    ],
+    "governorWritePaths": [
+      "work-packages/ARC-WP-020.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/GOV-REVIEW-0022-ARC-WP-020-STABLE-IDENTITY-DESIGN.md"
+    ]
+  },
+  "invariants": [
+    "This work package is design-only and changes no Player file, runtime, stored data, import payload, product identity, release artifact, workflow or held platform domain.",
+    "Canonical identifiers are opaque, immutable and independent of editable titles, labels, ordering and local collision suffixes.",
+    "Canonical lineage identity, local installation identity and legacy compatibility keys are distinct concepts and are never silently conflated.",
+    "Existing learnit.import.v1.1 fields retain their current meaning; no existing packageId, localCourseId, activity id, objective string or contentVersion field is silently reinterpreted.",
+    "Legacy content without canonical identity is not automatically declared globally identical across imports or devices.",
+    "The accepted first storage seam, RC718 product identity and the promoted artifact remain unchanged.",
+    "Learner state, progress, bilan, session, retention and import history remain readable through legacy keys until a separately accepted transactional migration proves equivalence and rollback.",
+    "A canonical identity envelope is all-or-none for a published package version; partial canonical lineage is rejected rather than guessed.",
+    "The same immutable revision identifier bound to different canonical payload digests is a hard collision and must be rejected.",
+    "The first implementation step after this design may only be an additive read-only identity resolver and shadow diagnostic; it may not rewrite learner state or change behavior.",
+    "No future Player file may be added while the working-file count is 150 unless another file is removed or consolidated or a dedicated source-budget change is accepted.",
+    "Backend, accounts, synchronization, remote catalog, commerce, institutional tenancy and marketplace remain held."
+  ],
+  "requiredEvidence": [
+    "exact baseline commit and absence of open pull requests before branch creation",
+    "current identifier and editable-label inventory bound to exact source paths",
+    "persistence and import-export dependency inventory",
+    "canonical entity and local-installation identity model",
+    "contract-version compatibility window that does not reinterpret v1.1 fields",
+    "collision, tamper, duplicate, fork and revision compatibility rules",
+    "transactional migration phases with mixed-version behavior and rollback",
+    "learner-evidence preservation and activity-revision applicability rules",
+    "adversarial test matrix and explicit absence-of-evidence register",
+    "future implementation role scopes and Player file-budget constraint",
+    "repository governance and PR scope success on this exact design result",
+    "separate governor review"
+  ],
+  "adversarialTests": [
+    "reject any canonical identifier derived from title, sequence, objective label, file name or collision suffix",
+    "reject reuse of a package-version, course-revision or activity-revision identifier for different canonical content",
+    "reject partial canonical identity envelopes that leave lineage ambiguous",
+    "do not merge two legacy imports merely because their labels or content digests match",
+    "preserve two explicit local installations of the same canonical course as distinct courseInstallId namespaces",
+    "treat identical canonical version and digest as idempotent rather than duplicate learner content",
+    "retain historical evidence but do not count it automatically against an incompatible activity revision",
+    "recover from interruption before, during and after identity-overlay commit without losing legacy state",
+    "prove mixed legacy-only and dual-identity content remains readable during the compatibility window",
+    "prove rollback disables the identity overlay without requiring learner-data migration",
+    "fail any implementation request that combines identity migration with IndexedDB migration, backend or synchronization",
+    "fail any Player file growth beyond 150 without an accepted budget action"
+  ],
+  "nonGoals": [
+    "implement identifiers or migration code",
+    "change learnit.import.v1.1 or publish a new contract version",
+    "rewrite localCourseId, activity id, objective text or contentVersion values",
+    "migrate localStorage or IndexedDB schemas",
+    "introduce immutable learning events or an outbox",
+    "add account, learner profile, organization, device or entitlement identity",
+    "add backend, synchronization, remote catalog, commerce, tenancy or marketplace",
+    "promote a new product release candidate",
+    "perform Player-wide refactoring"
+  ],
+  "independentReview": [
+    "Architecture design is isolated to one ADR-style canonical decision document.",
+    "Contradictory source cartography is isolated to one exact-baseline inventory.",
+    "Integrator changes only the restart checkpoint.",
+    "Governor changes only the work package, governor state and review.",
+    "Repository governance and PR scope remain independent automated controls."
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-15",
+    "designAccepted": true,
+    "implementationAllowed": false,
+    "migrationAllowed": false,
+    "canonicalIdentityScheme": "learnit-identity-v1",
+    "nextAllowedGate": "ARC-WP-021 additive read-only identity resolver authorization",
+    "stageDOperatingModelRequired": true
+  },
+  "rollback": "Revert the design pull request. Because this package changes only governance, architecture documentation, evidence inventory and the restart checkpoint, rollback changes no Player artifact, learner state, stored content, identifier or remote system."
+}
