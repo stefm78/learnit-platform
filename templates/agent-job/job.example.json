@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "AGENT-JOB-001",
+  "baseCommit": "0000000000000000000000000000000000000000",
+  "branch": "agent/example-change",
+  "patchFile": ".agent-jobs/AGENT-JOB-001/change.patch",
+  "allowedPaths": [
+    "apps/player/src/**",
+    "apps/player/tests/**"
+  ],
+  "forbiddenPaths": [
+    "apps/player/contract/**",
+    "apps/player/authoring/**"
+  ],
+  "testProfile": "player-targeted",
+  "testTargets": [
+    "apps/player/tests/browser_library_persistence_naming.py"
+  ],
+  "maxPatchBytes": 250000,
+  "maxChangedFiles": 20,
+  "maxChangedLines": 1500,
+  "commitMessage": "Implement bounded player change"
+}
