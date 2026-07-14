@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-018",
+  "title": "Add the mandatory first-seam contract to the evidence coverage map",
+  "status": "accepted",
+  "changeClass": "architecture-qa-governance",
+  "riskClass": "moderate",
+  "purpose": "Amend the accepted first-seam execution scope by assigning contradictory QA one additional exact metadata file, apps/player/dev/evidence_coverage.json. The fresh observable run proved that the new mandatory contract passes but the repository-wide evidence-coverage gate correctly rejects any registered test absent from that map. No product, architecture design, runtime behavior, test runner or existing evidence mapping changes are authorized.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "9f2a30f26d6a3e02f7d60d0f12dcc98ed26d5a8b",
+    "candidateName": "first seam with complete evidence coverage registration",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-018.json",
+      "work-packages/ARC-WP-014.json",
+      "docs/governance/reviews/GOV-REVIEW-0018-FIRST-SEAM-EVIDENCE-MAP-SCOPE.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "governance/governor-state.json",
+      "tools/**",
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      "docs/architecture/**",
+      "docs/evidence/**"
+    ]
+  },
+  "invariants": [
+    "The accepted storage seam design and implementation bytes remain unchanged.",
+    "The only new implementation-scope path is apps/player/dev/evidence_coverage.json.",
+    "Contradictory QA owns the focused contract, mandatory registry entry and evidence coverage mapping; developer and integrator scopes remain disjoint.",
+    "The evidence map change adds tests/contract_storage_boundary.py exactly once to the storage-resilience surface.",
+    "No existing evidence-map entry, surface, policy, schema or human-only statement changes.",
+    "The complete execution remains player-full and all existing gates remain mandatory.",
+    "The previous observable run remains closed and unmerged; its failure artifact is evidence for this scope correction only.",
+    "The next execution branch starts from exact current main immediately after this authorization is merged.",
+    "Stage C remains not accepted and Stage D remains blocked."
+  ],
+  "requiredEvidence": [
+    "failure artifact remote-agent-failure-29353545001 with digest sha256:8bc7f8c7efca7917fe7ddb635d1de3110d2bab45a285fa48117b0e0e510d873",
+    "aggregate evidence showing 34/35 mandatory, 24/24 browser and 58/58 evidence bindings",
+    "contract_evidence_coverage report identifying only tests/contract_storage_boundary.py as unmapped",
+    "governance-only authorization PR with Repository governance and PR scope green",
+    "fresh exact-base execution adding the focused test exactly once to storage-resilience",
+    "complete player-full success on one exact result commit",
+    "contradictory QA, integrator and separate governor acceptance"
+  ],
+  "adversarialTests": [
+    "fail if any evidence-map entry is removed or moved",
+    "fail if the focused contract is mapped more than once within the same surface",
+    "fail if any surface other than storage-resilience changes",
+    "fail if the evidence map policy or schema changes",
+    "fail if implementation scope expands beyond the one exact metadata file",
+    "fail if any previous branch or result is reused",
+    "fail if any gate is weakened or bypassed"
+  ],
+  "nonGoals": [
+    "change the focused contract semantics",
+    "change the storage seam design or runtime patch",
+    "change the test runner or evidence-coverage validator",
+    "change product behavior, identity, UI, UX or learner data",
+    "accept Stage C or start Stage D"
+  ],
+  "independentReview": [
+    "Repository governance validates the amendment",
+    "PR scope confirms governance-only changes",
+    "Contradictory QA verifies the exact evidence-map addition",
+    "Integrator verifies no fingerprint or artifact change beyond the accepted seam",
+    "The governor accepts Stage C separately only after complete success"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "authorizedAt": "2026-07-14",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "addedQaPath": "apps/player/dev/evidence_coverage.json",
+    "requiredSurface": "storage-resilience",
+    "requiredTest": "tests/contract_storage_boundary.py",
+    "stageC": "authorized-not-complete",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Close the next implementation pull request without merge or revert its merge. Removing the single evidence-map entry and the rest of the first-seam patch requires no learner-data migration or remote compensation."
+}
