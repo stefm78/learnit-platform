@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-019",
+  "title": "Controlled Stage D role-scope ownership pilot",
+  "status": "accepted",
+  "changeClass": "bounded-repository-quality-tooling",
+  "riskClass": "moderate",
+  "purpose": "Run the first controlled Stage D multi-agent pilot by adding a deterministic role-scope ownership report and its adversarial contract. The pilot proves that changed paths can be assigned to exactly one developer, contradictory-QA, integrator or governor scope before broader parallel work is considered. It changes no Player runtime, storage behavior, product identity, release artifact, platform domain or accepted first seam.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
+    "candidateName": "stage-d-role-scope-ownership-pilot",
+    "promotedProductBaseline": "RC718",
+    "promotedArtifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-019.json",
+      "apps/player/dev/role_scope_report.py",
+      "apps/player/tests/contract_role_scope.py",
+      "apps/player/dev/checks_registry.json",
+      "apps/player/dev/evidence_coverage.json",
+      "docs/evidence/architecture/stage-d-pilot/**",
+      "docs/governance/reviews/GOV-REVIEW-0019-STAGE-D-PILOT-AUTHORIZATION.md",
+      "docs/governance/reviews/GOV-REVIEW-0020-STAGE-D-PILOT-ACCEPTANCE.md",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "tools/**",
+      "contracts/**",
+      "platform/**",
+      "apps/player/contract/**",
+      "apps/player/authoring/**",
+      "apps/player/source_manifest.json",
+      "apps/player/dev/release_config.json",
+      "apps/player/dev/run_all_checks.py",
+      "apps/player/dev/update_manifest.py",
+      "apps/player/src/**",
+      "apps/player/dist/**",
+      "apps/player/reports/**",
+      "apps/player/release/**",
+      "docs/architecture/**",
+      "docs/product/**"
+    ]
+  },
+  "roleScopes": {
+    "developerWritePaths": [
+      "apps/player/dev/role_scope_report.py"
+    ],
+    "qaWritePaths": [
+      "apps/player/tests/contract_role_scope.py"
+    ],
+    "integratorWritePaths": [
+      "apps/player/dev/checks_registry.json",
+      "apps/player/dev/evidence_coverage.json",
+      "docs/evidence/architecture/stage-d-pilot/**"
+    ],
+    "governorWritePaths": [
+      "work-packages/ARC-WP-019.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/GOV-REVIEW-0019-STAGE-D-PILOT-AUTHORIZATION.md",
+      "docs/governance/reviews/GOV-REVIEW-0020-STAGE-D-PILOT-ACCEPTANCE.md"
+    ]
+  },
+  "invariants": [
+    "Developer, contradictory-QA, integrator and governor write scopes are explicit, machine-checkable and pairwise disjoint.",
+    "The implementation pull request changes exactly four Player paths: one developer tool, one QA contract, the mandatory registry and the evidence coverage map.",
+    "Only two new files are added under apps/player, keeping the Player working-file budget at or below 150.",
+    "No Player runtime source, source manifest, release configuration, artifact, storage owner, key, payload, UI, UX, pedagogy or product identity changes.",
+    "The accepted first reversible storage seam remains unchanged.",
+    "The new contract is registered exactly once as mandatory and mapped exactly once to the existing source-and-build evidence surface.",
+    "No existing mandatory registry entry or evidence-map entry is removed, moved or modified.",
+    "The report is deterministic: equivalent inputs produce byte-equivalent JSON after canonical serialization.",
+    "Every changed path is normalized and assigned to exactly one role; unowned or multiply-owned paths make the report fail.",
+    "Absolute paths, parent traversal and empty paths are rejected.",
+    "The tool performs no network access, command execution or repository mutation; it writes only an explicitly requested output file.",
+    "The Remote Agent execution uses player-fast; permanent Player CI remains the complete behavioral gate.",
+    "Stage D expansion remains blocked until this pilot receives separate governor acceptance."
+  ],
+  "requiredEvidence": [
+    "governance-only authorization pull request with Repository governance and PR scope green",
+    "post-merge exact current main SHA captured immediately before fresh agent-branch creation",
+    "Remote Agent envelope, patch application and player-fast result on one exact branch",
+    "mandatory contract report covering positive and adversarial role-scope cases",
+    "permanent Player CI, PR scope and repository governance green on the exact tested result",
+    "complete changed-path inventory and role-owner assignment",
+    "contradictory QA review independent of developer paths",
+    "integrator provenance, determinism, evidence-map and rollback review",
+    "separate governor acceptance before Stage D expands"
+  ],
+  "adversarialTests": [
+    "fail when one changed path matches two role scopes by exact pattern",
+    "fail when one changed path matches overlapping exact and glob patterns",
+    "fail when a changed path has no owner",
+    "fail when a role repeats a pattern",
+    "fail when a required role scope is missing, empty or not a list",
+    "fail on absolute, empty or parent-traversal paths",
+    "prove deterministic output when role and changed-path input ordering differs",
+    "prove a valid four-role fixture assigns every changed path exactly once",
+    "prove CLI returns non-zero on invalid input and zero on valid input",
+    "prove no output file is created unless explicitly requested",
+    "fail if any existing registry or evidence-map entry changes",
+    "fail if any runtime, release, workflow, architecture, platform or held-domain path changes"
+  ],
+  "nonGoals": [
+    "change the accepted first seam",
+    "refactor the Player",
+    "change release identity or build output",
+    "introduce canonical learner or content identifiers",
+    "migrate localStorage or IndexedDB",
+    "add backend, accounts, synchronization, catalog, commerce, tenancy or marketplace",
+    "authorize more than one controlled Stage D pilot",
+    "replace canonical PR scope or Remote Agent validation"
+  ],
+  "independentReview": [
+    "Developer owns only role_scope_report.py",
+    "Contradictory QA owns only contract_role_scope.py",
+    "Integrator owns only registry, evidence coverage and durable pilot evidence",
+    "Governor owns only the work package, governor state and decisions",
+    "Remote Agent Worktree, permanent Player CI, PR scope and repository governance remain independent automated controls"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "authorizedAt": "2026-07-14",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "requiredAgentBranch": "agent/arc-wp-019-role-scope-report-pilot",
+    "requiredTestProfile": "player-fast",
+    "stageD": "pilot-authorized-not-complete",
+    "stageDExpansionAllowed": false
+  },
+  "rollback": "Revert the pilot implementation merge: remove role_scope_report.py and contract_role_scope.py, restore checks_registry.json and evidence_coverage.json, and retain the governance history. No Player artifact, learner data, storage, identifier or remote-system migration is involved."
+}
