@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-013",
+  "title": "Reconcile path-sensitive release fingerprints for the first reversible seam",
+  "status": "accepted",
+  "changeClass": "architecture-gate-correction",
+  "riskClass": "high",
+  "purpose": "Record the failed first Stage C attempt as HOLD, obtain deterministic fingerprint evidence for the accepted source-only seam, and authorize only the release-metadata updates required by the existing path-sensitive source-tree guard without weakening that guard or changing product identity or behavior.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "c299d6ef1851f7b57b63997c5e6964c16c2c2934",
+    "candidateName": "first-seam fingerprint evidence reconciliation",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-013.json",
+      "work-packages/ARC-WP-011.json",
+      "governance/governor-state.json",
+      "docs/architecture/seams/ARC-WP-010_LOCAL_STORAGE_PORT.md",
+      "docs/governance/reviews/GOV-REVIEW-0011-FIRST-SEAM-FINGERPRINT-HOLD.md",
+      "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+      "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+      "apps/player/source_manifest.json",
+      "apps/player/docs/OWNER_MAP.json",
+      "apps/player/tests/contract_storage_boundary.py",
+      "apps/player/dev/checks_registry.json",
+      "apps/player/dev/release_config.json",
+      "apps/player/tests/runtime_fingerprint_diagnostic.py",
+      "docs/evidence/architecture/first-storage-seam/fingerprint-diagnostic.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "tools/**",
+      "contracts/**",
+      "platform/**",
+      "apps/player/contract/**",
+      "apps/player/authoring/**",
+      "apps/player/dev/run_all_checks.py",
+      "apps/player/dev/update_manifest.py",
+      "apps/player/src/scripts/core/runtime_parts/05_durable_library_store.js",
+      "apps/player/src/scripts/core/runtime_parts/10_content_store_and_state.js",
+      "apps/player/src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js",
+      "apps/player/src/scripts/core/runtime_parts/30_navigation_library_plan_models.js",
+      "apps/player/src/scripts/core/runtime_parts/40_bilan_learning_models.js",
+      "apps/player/src/scripts/core/runtime_parts/50_diagnostics_import_quality.js",
+      "apps/player/src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js",
+      "apps/player/src/scripts/core/runtime_parts/52_import_diagnostic_views.js",
+      "apps/player/src/scripts/core/runtime_parts/60_app_runtime_and_test_api.js",
+      "apps/player/src/scripts/core/runtime_parts/61_pointer_interaction_fallbacks.js",
+      "apps/player/src/scripts/core/runtime_parts/62_app_action_dispatcher.js",
+      "apps/player/src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
+      "apps/player/src/scripts/core/runtime_parts/64_route_nav_transition_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/65_mobile_swipe_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/66_route_view_composer.js",
+      "apps/player/src/scripts/core/runtime_parts/67_route_static_actions.js",
+      "apps/player/src/scripts/core/runtime_parts/68_library_navigation_shell_composer.js",
+      "apps/player/src/scripts/core/runtime_parts/69_gesture_orchestrator.js",
+      "apps/player/src/scripts/core/runtime_parts/70_automation_and_boot.js",
+      "apps/player/src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/72_performance_scalability_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/73_runtime_test_api.js",
+      "apps/player/src/scripts/core/runtime_parts/74_learning_evidence_runtime.js"
+    ]
+  },
+  "invariants": [
+    "Pull request 44 and Remote Agent run 29329093616 remain recorded as a failed, unmerged Stage C attempt with no tested-result commit.",
+    "The failure must not be bypassed by deleting, weakening or excluding contract_source_tree.py or by altering the test runner.",
+    "The accepted developer source scope remains the four files defined by ARC-WP-010.",
+    "A disposable diagnostic agent result may apply the accepted seam and write only runtime_fingerprint_diagnostic.py plus fingerprint-diagnostic.json; it must never be merged into main.",
+    "The final integrator-owned release_config.json diff is limited to adding runtime part 04 to baseline_equivalence.ignored_script_paths and replacing runtime_fingerprint with the value computed from the exact final seam bytes.",
+    "The existing runtime_js_normalized_sha256 must remain unchanged unless the diagnostic proves that the accepted relocation changes normalized semantics after both old and new owners are ignored; such a change would require another governor decision.",
+    "The release configuration schema, RC, version label, build, base, principle, build timestamp, bundle label, human-validation block, every existing ignored path, CSS fingerprint and all other fields remain byte-for-byte semantically unchanged.",
+    "Adding part 04 to ignored_script_paths does not authorize future behavior in that path; it recognizes that its unchanged bytes were mechanically relocated from already ignored part 00.",
+    "No storage key, data shape, identifier, technology, UI, behavior or release identity changes are authorized.",
+    "Developer, adversarial QA, integrator and governor write paths remain disjoint.",
+    "Stage C remains HOLD until a fresh exact result passes all required checks and separate acceptance; Stage D remains blocked."
+  ],
+  "requiredEvidence": [
+    "closed unmerged PR 44",
+    "Remote Agent run 29329093616 failure at the fixed validation profile and absence of result artifacts",
+    "executable contract_source_tree.py proof that runtime fingerprinting includes active path names and bytes",
+    "current release_config.json fingerprint and ignored-path inventory",
+    "disposable Remote Agent diagnostic output bound to an exact base and exact seam patch",
+    "diagnostic proof that normalized runtime fingerprint remains equal to the existing protected value after adding part 04 to the ignored path set",
+    "fresh full Player CI, Remote Agent tested-result and PR scope evidence on the final implementation result",
+    "adversarial QA and integrator reviews of the exact final diff",
+    "separate governor acceptance"
+  ],
+  "adversarialTests": [
+    "fail if the diagnostic branch is merged",
+    "fail if the diagnostic edits release_config.json or any production test registry",
+    "fail if the final release_config diff changes any field beyond one ignored-path addition and runtime_fingerprint",
+    "fail if the existing normalized runtime fingerprint changes",
+    "fail if any source-tree or release guard is weakened, removed or skipped",
+    "fail if metadata is computed from bytes different from the final proposed result",
+    "fail if implementation, QA, integrator or governor write paths overlap",
+    "fail if any product behavior or persistence contract changes",
+    "fail if Stage D is opened before a separately accepted Stage C result"
+  ],
+  "nonGoals": [
+    "accept the failed first implementation attempt",
+    "change the fingerprint algorithm",
+    "change the source-tree contract or test runner",
+    "update RC, version, build or human validation metadata",
+    "alter the baseline semantic fingerprints except the path-sensitive runtime_fingerprint",
+    "change the accepted storage seam",
+    "migrate storage, refactor callers or add a platform capability",
+    "start Stage D"
+  ],
+  "independentReview": [
+    "Architecture and Repository Governor",
+    "disposable Remote Agent diagnostic with player-targeted profile",
+    "Adversarial QA on focused contract and registry only",
+    "Integrator on release_config fingerprint metadata and evidence only",
+    "permanent Repository governance, PR scope and Player CI checks"
+  ],
+  "roleScopes": {
+    "developerWritePaths": [
+      "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+      "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+      "apps/player/source_manifest.json",
+      "apps/player/docs/OWNER_MAP.json"
+    ],
+    "qaWritePaths": [
+      "apps/player/tests/contract_storage_boundary.py",
+      "apps/player/dev/checks_registry.json"
+    ],
+    "integratorWritePaths": [
+      "apps/player/dev/release_config.json",
+      "docs/evidence/architecture/first-storage-seam/**"
+    ],
+    "governorWritePaths": [
+      "work-packages/ARC-WP-011.json",
+      "work-packages/ARC-WP-013.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/**"
+    ],
+    "diagnosticOnlyWritePaths": [
+      "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+      "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+      "apps/player/source_manifest.json",
+      "apps/player/tests/runtime_fingerprint_diagnostic.py",
+      "docs/evidence/architecture/first-storage-seam/fingerprint-diagnostic.json"
+    ]
+  },
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "failedAttempt": "PR-44 / Remote Agent run 29329093616 — HOLD",
+    "diagnosticAllowed": true,
+    "finalImplementationAllowedAfterDiagnostic": true,
+    "stageC": "hold-pending-fresh-result",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert this amendment. It changes no player bytes or artifact. Any disposable diagnostic branch remains unmerged and may be closed."
+}
