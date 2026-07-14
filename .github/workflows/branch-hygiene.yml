@@ -16,6 +16,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   cleanup:
@@ -46,6 +47,81 @@ jobs:
           python tools/cleanup_branches.py
           --execute
           --output branch-hygiene-report.json
+
+      - name: Publish initial or manual cleanup evidence
+        if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ISSUE_NUMBER: '27'
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          report_path = Path('branch-hygiene-report.json')
+          if report_path.exists():
+              report = json.loads(report_path.read_text(encoding='utf-8'))
+              summary = report.get('summary', {})
+              deleted = [item['branch'] for item in report.get('decisions', []) if item.get('action') in {'deleted', 'already-absent'}]
+              orphans = [item['branch'] for item in report.get('decisions', []) if item.get('reason') == 'unproven-orphan']
+              failures = [item for item in report.get('decisions', []) if item.get('action') == 'delete-failed']
+              body = '\n'.join([
+                  '## Branch hygiene execution',
+                  '',
+                  f"- run: {os.environ['RUN_URL']}",
+                  f"- observed branches: {summary.get('branchesObserved', 0)}",
+                  f"- deleted or already absent: {summary.get('deleted', 0) + summary.get('alreadyAbsent', 0)}",
+                  f"- retained open-PR branches: {summary.get('retainedOpen', 0)}",
+                  f"- retained unproven orphans: {summary.get('retainedOrphan', 0)}",
+                  f"- deletion failures: {summary.get('failures', 0)}",
+                  f"- default branch unchanged: {report.get('defaultBranchUnchanged')}",
+                  '',
+                  '**Deleted branches**',
+                  '',
+                  '\n'.join(f'- `{name}`' for name in deleted[:100]) or '- none',
+                  '',
+                  '**Retained unproven orphan branches**',
+                  '',
+                  '\n'.join(f'- `{name}`' for name in orphans[:100]) or '- none',
+                  '',
+                  '**Failures**',
+                  '',
+                  '\n'.join(f"- `{item.get('branch')}`: {item.get('error')}" for item in failures[:100]) or '- none',
+                  '',
+                  'This report does not close the separate GitHub ruleset administration condition.',
+              ])
+          else:
+              body = '\n'.join([
+                  '## Branch hygiene execution',
+                  '',
+                  f"- run: {os.environ['RUN_URL']}",
+                  '- result: no report was produced; inspect the workflow run.',
+                  '',
+                  'This report does not close the separate GitHub ruleset administration condition.',
+              ])
+
+          repository = os.environ['GITHUB_REPOSITORY']
+          issue = os.environ['ISSUE_NUMBER']
+          request = Request(
+              f'https://api.github.com/repos/{repository}/issues/{issue}/comments',
+              method='POST',
+              data=json.dumps({'body': body}).encode('utf-8'),
+              headers={
+                  'Accept': 'application/vnd.github+json',
+                  'Authorization': f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  'Content-Type': 'application/json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                  'User-Agent': 'learnit-branch-hygiene',
+              },
+          )
+          with urlopen(request, timeout=30) as response:
+              if response.status not in {200, 201}:
+                  raise RuntimeError(f'unexpected issue-comment status: {response.status}')
+          PY
 
       - name: Upload branch inventory and decisions
         if: always()
