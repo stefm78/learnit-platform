@@ -1,0 +1,21 @@
+{
+  "schema": "learnit.first_storage_seam_fingerprint_diagnostic.v1",
+  "baseCommit": "746cd0a7abac219da58543fe82831123c0ef9fd4",
+  "diagnosticPullRequest": 46,
+  "diagnosticPullRequestMerged": false,
+  "remoteAgentRun": 29330125964,
+  "testedResultCommit": "5c6440838fe400c331ebf26fce5d97f964effeae",
+  "diagnosticMode": "disposable-unmerged",
+  "portPath": "src/scripts/core/runtime_parts/04_local_storage_port.js",
+  "previousRuntimeFingerprint": "faf266c5bada32fcb7c9a5f247985eeb0cfd4c3f0a3d4aa05ceb55092122940c",
+  "measuredRuntimeFingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
+  "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
+  "measuredNormalizedRuntimeFingerprintWithRelocatedPortIgnored": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
+  "runtimeFingerprintChanged": true,
+  "normalizedFingerprintMatches": true,
+  "authorizedReleaseConfigChange": {
+    "addIgnoredScriptPath": "src/scripts/core/runtime_parts/04_local_storage_port.js",
+    "replaceRuntimeFingerprintWith": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
+    "preserveNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73"
+  }
+}
