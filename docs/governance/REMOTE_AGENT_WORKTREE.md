@@ -13,14 +13,15 @@ It is a transport and validation mechanism, not an autonomous merge authority.
    - `job.json` — baseline, branch, scope, limits, validation profile and commit message;
    - `change.patch` — one text-only Git patch;
    - `READY` — empty activation marker, always written last.
-3. GitHub Actions checks the exact baseline and verifies that the branch contains only the job envelope.
-4. The patch is rejected when it exceeds the declared scope, size or line budgets, touches a default forbidden area, contains a binary, symlink or submodule, or fails `git apply --check`.
-5. Build and tests run in a job with `contents: read` and no persisted repository credential.
-6. The exact tested result is packaged as a patch plus manifest.
-7. A separate short job with `contents: write` revalidates the result, commits it only to the same `agent/**` branch, removes the temporary job envelope and appends `[agent-applied]` to the commit message.
-8. A normal pull request, CI review and merge decision follow.
+3. Open a pull request from the internal `agent/**` branch to `main`.
+4. GitHub Actions checks the exact pull-request head and verifies that the branch contains only the job envelope.
+5. The patch is rejected when it exceeds the declared scope, size or line budgets, touches a default forbidden area, contains a binary, symlink or submodule, or fails `git apply --check`.
+6. Build and tests run in a job with `contents: read` and no persisted repository credential.
+7. The exact tested result is packaged as a patch plus manifest.
+8. A separate short job with `contents: write` revalidates the result, commits it only to the pull request's `agent/**` branch, removes the temporary job envelope and appends `[agent-applied]` to the commit message.
+9. The same pull request now exposes only the tested product change for normal CI review and merge decision.
 
-The workflow never pushes directly to `main`.
+The workflow rejects forks and never pushes directly to `main`.
 
 ## Fixed validation profiles
 
@@ -73,11 +74,11 @@ The build/test job has read-only repository permissions and `actions/checkout` d
 The write-token job does not execute the patched test suite. It only:
 
 - downloads the tested result envelope;
-- revalidates baseline, branch, digest, paths and limits using the protected runner script;
+- revalidates baseline, pull-request branch, digest, paths and limits using the protected runner script;
 - stages the previously tested result;
-- commits and pushes to the originating `agent/**` branch.
+- commits and pushes to the originating internal `agent/**` branch.
 
-This limits the blast radius without pretending that CI execution of repository code is risk-free.
+The branch is rejected when the pull request head repository is not the current repository. This limits the blast radius without pretending that CI execution of repository code is risk-free.
 
 ## Usage policy
 
@@ -96,6 +97,6 @@ Do not use it for:
 
 ## Failure and recovery
 
-A failed validation or test leaves the branch with only its job envelope. Correct or replace the patch, remove the previous `READY` marker if necessary, and write `READY` last to start a new attempt.
+A failed validation or test leaves the pull request branch with only its job envelope. Correct or replace the patch, then update `READY` last to start a new pull-request synchronization attempt.
 
-A successful run removes the job envelope from the branch tree. The resulting commit and Actions evidence remain reviewable before any merge.
+A successful run removes the job envelope from the branch tree. The pull request, result commit and Actions evidence remain reviewable before any merge.
