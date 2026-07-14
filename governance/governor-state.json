@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
   "stateId": "GOV-STATE-2026-07-14-010",
-  "effectiveFromCommit": "b4161c8ffb4a216fad8fa84f279890edd4d95687",
-  "reviewedBaselineCommit": "b4161c8ffb4a216fad8fa84f279890edd4d95687",
+  "effectiveFromCommit": "cb0da8d4a734ba04043248128f369395e250252d",
+  "reviewedBaselineCommit": "cb0da8d4a734ba04043248128f369395e250252d",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
