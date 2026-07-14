@@ -1,14 +1,7 @@
-name: Build standalone download
+name: Build promoted RC715 download
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - release/rc715-download-artifact
-  pull_request:
-    paths:
-      - 'apps/player/**'
-      - '.github/workflows/build-standalone-download.yml'
 
 permissions:
   contents: read
@@ -18,9 +11,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - name: Check out source
+      - name: Check out promoted RC715 source
         uses: actions/checkout@v7
         with:
+          ref: 6c826977e16985d50b45d1b5e53501b4d7b993a2
           persist-credentials: false
 
       - name: Set up Python
