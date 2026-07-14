@@ -40,7 +40,7 @@
     "After the tested-result commit, every non-transport changed path must remain inside both the exact job allowedPaths and canonical work-package scope.",
     "The PR-scope workflow changes only by adding the focused validator regression command before live scope validation.",
     "No Remote Agent runner, player source, contract, architecture or platform behavior changes under this work package.",
-    "ARC-WP-014 and Stage D remain blocked until this gate repair is merged and the first seam is rerun from the new exact main."
+    "The first reversible seam and Stage D remain blocked until this gate repair is merged and the seam is rerun from the new exact main."
   ],
   "requiredEvidence": [
     "focused regression test covering a valid envelope and tested result",
@@ -49,6 +49,14 @@
     "PR scope success on this ordinary governance pull request",
     "subsequent Remote Agent envelope and tested-result PR scope success before acceptance"
   ],
+  "adversarialTests": [
+    "reject an envelope missing READY, change.patch or job.json",
+    "reject more than one Remote Agent job directory or any extra transport file",
+    "reject a job baseCommit different from the pull-request base SHA",
+    "reject globbed, duplicate, generated or canonically forbidden job allowedPaths",
+    "reject a patch path or tested-result path outside either the exact job scope or canonical work-package scope",
+    "reject binary patches, archives, symbolic links and submodules"
+  ],
   "nonGoals": [
     "exempt agent branches from canonical scope",
     "allow arbitrary .agent-jobs contents",
@@ -56,11 +64,17 @@
     "change Remote Agent implementation semantics",
     "change player code or begin Stage D"
   ],
+  "independentReview": [
+    "Repository governance validates the complete work-package contract",
+    "PR scope validates this ordinary governance pull request against GOV-WP-015",
+    "focused tests execute inside the exact PR-scope workflow before live validation",
+    "the next clean Remote Agent envelope and tested-result commits must each pass PR scope independently"
+  ],
   "result": {
     "decision": "GO_WITH_CONDITIONS",
     "implementationAllowed": true,
     "implementationAccepted": false,
-    "acceptanceGate": "focused tests plus successful ARC-WP-014 envelope and tested-result scope evidence"
+    "acceptanceGate": "focused tests plus successful first-seam envelope and tested-result scope evidence"
   },
   "rollback": "Revert the validator, focused test and one workflow test step. Remote Agent PRs become blocked again by PR scope; no player or learner data rollback is required."
 }
