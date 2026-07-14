@@ -18,7 +18,7 @@
       ".github/workflows/player-ci.yml",
       "apps/player/tests/**",
       "apps/player/dev/**",
-      "apps/player/docs/**",
+      "docs/governance/PLAYER_CI.md",
       "docs/evidence/**",
       "work-packages/QA-WP-010.json",
       "governance/governor-state.json"
@@ -81,7 +81,7 @@
     "baseCommit": "86504a88ae14ada4e500fb6223e1dfa8143ce906",
     "workflow": ".github/workflows/player-ci.yml",
     "guard": "apps/player/dev/ci_guard.py",
-    "documentation": "apps/player/docs/PERMANENT_CI.md",
+    "documentation": "docs/governance/PLAYER_CI.md",
     "requiredCheck": "Player CI / gate",
     "artifactRetentionDays": 14,
     "browserExecutionModel": "one independent matrix job per declared browser suite"
