@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-011-FIRST-SEAM",
+  "baseCommit": "c299d6ef1851f7b57b63997c5e6964c16c2c2934",
+  "branch": "agent/arc-wp-011-first-storage-seam",
+  "patchFile": ".agent-jobs/ARC-WP-011-FIRST-SEAM/change.patch",
+  "allowedPaths": [
+    "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+    "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+    "apps/player/source_manifest.json",
+    "apps/player/docs/OWNER_MAP.json",
+    "apps/player/tests/contract_storage_boundary.py",
+    "apps/player/dev/checks_registry.json"
+  ],
+  "forbiddenPaths": [
+    ".github/**",
+    "governance/**",
+    "docs/architecture/**",
+    "docs/governance/**",
+    "work-packages/**",
+    "contracts/**",
+    "platform/**",
+    "apps/player/contract/**",
+    "apps/player/authoring/**",
+    "apps/player/dev/release_config.json",
+    "apps/player/src/scripts/core/runtime_parts/05_durable_library_store.js",
+    "apps/player/src/scripts/core/runtime_parts/10_content_store_and_state.js",
+    "apps/player/dist/**",
+    "apps/player/reports/**",
+    "apps/player/release/**"
+  ],
+  "testProfile": "player-full",
+  "commitMessage": "Extract unchanged local storage adapter behind first reversible seam",
+  "maxPatchBytes": 50000,
+  "maxChangedFiles": 6,
+  "maxChangedLines": 300
+}
