@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-015",
+  "title": "Rebind the first reversible seam execution after PR-scope repair",
+  "status": "accepted",
+  "changeClass": "architecture-governance-rebind",
+  "riskClass": "high",
+  "purpose": "Bind the already accepted first storage seam design and implementation constraints to the exact main commit that contains the strict Remote Agent PR-scope compatibility repair, without changing the seam, product, runtime, tests or measured fingerprints.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
+    "candidateName": "rebound fresh first reversible storage seam execution",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-015.json",
+      "work-packages/ARC-WP-014.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/GOV-REVIEW-0014-FIRST-SEAM-REBIND.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "tools/**",
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      "docs/architecture/**",
+      "docs/evidence/**"
+    ]
+  },
+  "invariants": [
+    "The accepted storage-port seam design, role scopes, seven implementation paths, test profile, fingerprints and rollback remain unchanged.",
+    "Only the exact execution base and governance records are rebound after the accepted PR-scope compatibility repair.",
+    "The promoted RC718 source commit and artifact SHA-256 remain unchanged.",
+    "The required agent branch remains agent/arc-wp-014-first-storage-seam-result.",
+    "The fresh result must pass the strict Remote Agent envelope scope, tested-result scope, player-full, permanent Player CI and repository governance on exact commits.",
+    "No prior failed, contaminated, incomplete or diagnostic branch becomes acceptable evidence.",
+    "Stage C remains authorized-not-complete and Stage D remains blocked."
+  ],
+  "requiredEvidence": [
+    "merged PR 53 commit dd6679b1b890efadb2c049113993d3e2c78f96b2",
+    "successful Repository governance and PR scope checks on the gate repair",
+    "unchanged accepted first-seam design and diagnostic fingerprints",
+    "updated exact base in the execution work package and governor state",
+    "separate fresh Remote Agent result after this rebind"
+  ],
+  "adversarialTests": [
+    "fail if any player, workflow, tool, contract, architecture or evidence file changes in this rebind",
+    "fail if the promoted artifact identity changes",
+    "fail if any role scope or implementation path changes",
+    "fail if the measured runtime or protected normalized fingerprint changes",
+    "fail if Stage C or Stage D is marked accepted",
+    "fail if a previous failed or diagnostic branch is treated as fresh evidence"
+  ],
+  "nonGoals": [
+    "change the storage seam design or implementation",
+    "change product identity, UI, behavior, persistence semantics or learner data",
+    "change CI, Remote Agent or PR-scope tooling",
+    "accept Stage C",
+    "start Stage D"
+  ],
+  "independentReview": [
+    "Repository governance validates the rebind work package and governor state",
+    "PR scope confirms governance-only changed files",
+    "the next Remote Agent run independently validates both envelope and tested-result scopes",
+    "contradictory QA, integrator and governor acceptance remain separate after the fresh result"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "authorizedAt": "2026-07-14",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "reboundExecutionWorkPackage": "ARC-WP-014",
+    "reboundBaseCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
+    "stageC": "authorized-not-complete",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert this governance-only pull request. The earlier execution authorization remains historically recorded but cannot be rerun against the repaired gate until a new exact-base rebind is accepted. No player or learner data rollback is required."
+}

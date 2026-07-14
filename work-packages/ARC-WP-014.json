@@ -5,10 +5,10 @@
   "status": "accepted",
   "changeClass": "bounded-player-architecture",
   "riskClass": "high",
-  "purpose": "Authorize one fresh Stage C execution from the exact post-diagnostic main base, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata proven by the disposable ARC-WP-013 diagnostic.",
+  "purpose": "Authorize one fresh Stage C execution from the exact main base containing the accepted fingerprint diagnostic and strict Remote Agent PR-scope compatibility repair, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "746cd0a7abac219da58543fe82831123c0ef9fd4",
+    "baseCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
     "candidateName": "fresh first reversible storage seam result",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
   },
@@ -75,18 +75,20 @@
     "baseline_equivalence.runtime_js_normalized_sha256 remains d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73.",
     "The disposable diagnostic PR 46 remains closed and unmerged.",
     "The fresh result must be produced through Remote Agent Worktree, pass player-full and permanent Player CI on the exact result, and must not be merged autonomously.",
+    "The Remote Agent envelope and tested-result commits must both pass the strict canonical PR-scope gate introduced by GOV-WP-015.",
     "Stage D remains blocked until a separate governor acceptance is merged."
   ],
   "requiredEvidence": [
     "closed unmerged diagnostic PR 46 and exact tested result 5c6440838fe400c331ebf26fce5d97f964effeae",
     "fingerprint diagnostic JSON with matching protected normalized fingerprint",
+    "merged PR-scope compatibility repair commit dd6679b1b890efadb2c049113993d3e2c78f96b2",
     "exact fresh Remote Agent base, trigger and result commits",
     "complete changed-file and role-owner inventory",
     "focused storage-boundary contract and mandatory registration",
     "full player-full result including browser checks",
     "Remote agent worktree / tested result success",
     "Player CI / gate success",
-    "PR scope / gate success",
+    "PR scope / gate success on envelope and tested result",
     "contradictory QA review",
     "integrator provenance, fingerprint and rollback review",
     "separate governor acceptance"
@@ -149,6 +151,7 @@
     "implementationAccepted": false,
     "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
     "requiredTestProfile": "player-full",
+    "reboundByWorkPackage": "ARC-WP-015",
     "stageC": "authorized-not-complete",
     "stageDEntryAllowed": false
   },
