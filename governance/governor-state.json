@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-021",
-  "effectiveFromCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
-  "reviewedBaselineCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
+  "stateId": "GOV-STATE-2026-07-14-022",
+  "effectiveFromCommit": "ae6b82d90b72f0287462c7d34708d0330d5ce35b",
+  "reviewedBaselineCommit": "ae6b82d90b72f0287462c7d34708d0330d5ce35b",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "stage-d-controlled-role-scope-pilot-authorized",
+    "id": "stage-d-controlled-pilot-accepted-identity-design-gate",
     "status": "active",
-    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B and Stage C are accepted. ARC-WP-019 authorizes the first bounded Stage D pilot: one developer, one contradictory QA, one integrator and the governor operate on explicit machine-checkable disjoint write scopes to add and validate a deterministic role-scope ownership report. The pilot is not accepted until one exact tested result passes every gate and receives separate governor acceptance. Stage D expansion remains blocked."
+    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B, Stage C and the first controlled Stage D pilot are accepted. The pilot validated exact-baseline multi-agent execution with explicit machine-checkable disjoint developer, contradictory-QA, integrator and governor scopes. The operating model may be reused for bounded work packages. Broad architecture implementation remains blocked; the next allowed architecture step is a design-only stable-identity and migration work package."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -136,19 +136,34 @@
       "review": "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md",
       "evidence": "docs/evidence/architecture/first-storage-seam/implementation-evidence.json"
     },
-    "stageDPilotAuthorization": {
+    "stageDPilotExecution": {
       "workPackage": "ARC-WP-019",
       "status": "accepted-with-conditions",
-      "pilotStatus": "authorized-not-complete",
-      "purpose": "deterministic role-scope ownership validation on disjoint developer, QA, integrator and governor paths",
-      "requiredAgentBranch": "agent/arc-wp-019-role-scope-report-pilot",
+      "pilotStatus": "accepted",
+      "purpose": "deterministic role-scope ownership validation on disjoint developer, contradictory-QA, integrator and governor paths",
+      "executionBaseCommit": "d65189b7ef59ccb74ba02c6c6ac96a212895a1e9",
+      "triggerCommit": "c0101bde910c8f3a47ce7f981a4e939a55176589",
+      "testedResultCommit": "5e379eea7ae3b495be2203355425e6549b8fcec5",
+      "mergeCommit": "ae6b82d90b72f0287462c7d34708d0330d5ce35b",
+      "pullRequest": 72,
+      "remoteAgentRun": 29356520176,
+      "permanentPlayerCiRun": 29356634330,
       "requiredTestProfile": "player-fast",
-      "review": "docs/governance/reviews/GOV-REVIEW-0019-STAGE-D-PILOT-AUTHORIZATION.md"
+      "mandatoryChecks": "36/36",
+      "roleScopeContract": "20/20",
+      "permanentBrowserSuites": "24/24",
+      "evidenceBindings": "35/35",
+      "resultEnvelopeDigest": "sha256:c4c6123c58caf8c070f47fe7c19970cabfa12b41bbd846caf517bd0b7361fb13",
+      "testedArtifactSha256": "9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861",
+      "playerWorkingFiles": 150,
+      "review": "docs/governance/reviews/GOV-REVIEW-0020-STAGE-D-PILOT-ACCEPTANCE.md",
+      "evidence": "docs/evidence/architecture/stage-d-pilot/implementation-evidence.json"
     }
   },
   "authorizedWork": [
     "standalone functional, UX, accessibility, persistence, performance, test, and release improvements through bounded pull requests",
     "bounded multi-file AI implementation through the accepted Remote Agent Worktree with exact baseline, machine-checkable scope and explicit test profile",
+    "reuse of the accepted Stage D operating model for bounded work packages with explicit disjoint developer, contradictory-QA, integrator and governor scopes",
     "permanent player CI and black-box behavioral protection",
     "pull-request changed-file scope enforcement through canonical work packages",
     "strict Remote Agent envelope and tested-result scope validation",
@@ -157,13 +172,12 @@
     "architecture reference hardening",
     "read-only source cartography",
     "the accepted first reversible storage seam and its focused boundary contract",
-    "the ARC-WP-019 controlled Stage D role-scope ownership pilot on its explicit disjoint paths",
+    "a design-only work package for stable global identifiers and migration strategy",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "expansion beyond the ARC-WP-019 controlled Stage D pilot until its exact result and governor review are accepted",
+    "implementation or migration of stable global identifiers until a dedicated design-only gate is accepted",
     "player-wide architectural refactoring",
-    "global identifier migration",
     "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
     "backend implementation",
     "accounts and learner profiles",
@@ -187,7 +201,8 @@
     "broadening work-package allowedPaths merely to silence PR scope failures",
     "weakening, deleting or excluding source-tree, evidence-coverage or release guards to obtain a green result",
     "changing release identity or protected normalized semantics under the accepted first seam",
-    "starting or expanding Stage D without accepted Stage C, exact baseline, disjoint scopes and a bounded pilot gate",
+    "starting architecture implementation without an accepted design and migration gate",
+    "adding another Player file while the working-file count is at 150 without removing or consolidating an existing file or accepting a dedicated budget change",
     "inventing missing RC719 reservation details"
   ],
   "activeRisks": [
@@ -196,6 +211,12 @@
       "severity": "high",
       "statement": "The main-protection ruleset is correctly configured but GitHub explicitly reports that it is not enforced on this private personal-account repository. Repository checks remain operational and auditable, but direct administrative bypass is not technically blocked by plan-level policy enforcement.",
       "closureGate": "move the repository to an eligible GitHub Team organization account or adopt another GitHub plan/topology that enforces private-repository rulesets"
+    },
+    {
+      "id": "RISK-ARCH-003",
+      "severity": "moderate",
+      "statement": "The Player working-file count is exactly 150, equal to the enforced budget. Further file growth would fail the source-tree contract and increase ownership fragmentation.",
+      "closureGate": "remove or consolidate an existing Player file before adding another, or accept a dedicated source-budget change supported by architecture evidence"
     },
     {
       "id": "RISK-EVIDENCE-002",
@@ -221,13 +242,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-019",
-    "condition": "After this authorization is merged, capture exact current main and immediately create the fresh Stage D pilot branch. The four role scopes must remain disjoint. The exact result must pass Remote Agent player-fast, permanent Player CI, PR scope and repository governance, then receive contradictory QA, integrator and separate governor acceptance. Stage D expansion remains blocked until that acceptance is merged."
+    "id": "ARC-WP-020",
+    "condition": "Create a design-only stable-identity and migration work package from exact current main. It must inventory current identifiers and editable labels, persistence and import/export payloads, collision and compatibility rules, migration ordering, rollback and adversarial cases. It must not change Player runtime, stored data, product identity or a held platform domain. Implementation remains blocked until that design receives separate governor acceptance."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0019 Stage D pilot authorization",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0020 Stage D pilot acceptance",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "post-merge exact-main capture, Stage D pilot envelope or tested result, role-scope overlap, working-file-budget failure, missing evidence registration, failed or missing CI, first-seam drift, product or artifact drift, contradictory QA finding, integrator finding, serious regression, or Stage D expansion request"
+    "nextReviewTrigger": "stable-identity design proposal, any implementation request, role-scope overlap, Player working-file growth, failed or missing CI, first-seam drift, product or artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
   }
 }
