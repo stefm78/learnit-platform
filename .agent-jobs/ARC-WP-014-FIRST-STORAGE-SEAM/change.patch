@@ -1,0 +1,180 @@
+diff --git a/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js b/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
+--- a/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
++++ b/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
+@@ -21,17 +21,5 @@
+     const IMPORT_QUOTAS = Object.freeze({advisoryBytes:5000000,advisoryFiles:24,advisoryCourses:250,advisoryActivities:3000,hardFiles:100});
+     const MAX_JOURNAL = 240;
+ 
+-    const storage = (()=>{
+-      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
+-      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
+-      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
+-      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
+-      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
+-      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
+-      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
+-      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
+-      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
+-      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
+-    })();
+     const deepClone = value => JSON.parse(JSON.stringify(value));
+     const nowIso = () => new Date().toISOString();
+diff --git a/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js b/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js
+new file mode 100644
+--- /dev/null
++++ b/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js
+@@ -0,0 +1,12 @@
++    const storage = (()=>{
++      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
++      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
++      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
++      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
++      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
++      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
++      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
++      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
++    })();
+diff --git a/apps/player/source_manifest.json b/apps/player/source_manifest.json
+--- a/apps/player/source_manifest.json
++++ b/apps/player/source_manifest.json
+@@ -211,3 +211,4 @@
+         "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
++        "src/scripts/core/runtime_parts/04_local_storage_port.js",
+         "src/scripts/core/runtime_parts/05_durable_library_store.js",
+         "src/scripts/core/runtime_parts/10_content_store_and_state.js",
+diff --git a/apps/player/docs/OWNER_MAP.json b/apps/player/docs/OWNER_MAP.json
+--- a/apps/player/docs/OWNER_MAP.json
++++ b/apps/player/docs/OWNER_MAP.json
+@@ -5,3 +5,4 @@
+-    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-observable-storage-adapter",
++    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-storage-key-declarations",
++    "src/scripts/core/runtime_parts/04_local_storage_port.js": "synchronous-local-storage-port-memory-fallback-telemetry-and-fault-injection",
+     "src/scripts/core/runtime_parts/05_durable_library_store.js": "indexeddb-durable-library-snapshot-owner",
+     "src/scripts/core/runtime_parts/10_content_store_and_state.js": "content-state-import-validation-and-transactional-rollback",
+diff --git a/apps/player/tests/contract_storage_boundary.py b/apps/player/tests/contract_storage_boundary.py
+new file mode 100644
+--- /dev/null
++++ b/apps/player/tests/contract_storage_boundary.py
+@@ -0,0 +1,102 @@
++#!/usr/bin/env python3
++from __future__ import annotations
++
++import json
++
++from support import ROOT, active_script_paths
++
++OUT = ROOT / "reports" / "contract_storage_boundary_report.json"
++RUNTIME = ROOT / "src" / "scripts" / "core" / "runtime_parts"
++BOOT = RUNTIME / "00_runtime_boot_and_content_library.js"
++PORT = RUNTIME / "04_local_storage_port.js"
++DURABLE = RUNTIME / "05_durable_library_store.js"
++OWNER_MAP = ROOT / "docs" / "OWNER_MAP.json"
++REGISTRY = ROOT / "dev" / "checks_registry.json"
++RELEASE = ROOT / "dev" / "release_config.json"
++
++EXPECTED_RUNTIME_FP = "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca"
++EXPECTED_NORMALIZED_FP = "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73"
++PORT_REL = "src/scripts/core/runtime_parts/04_local_storage_port.js"
++
++EXPECTED_ADAPTER = """    const storage = (()=>{
++      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
++      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
++      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
++      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
++      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
++      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
++      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
++      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
++    })();
++"""
++
++FROZEN_KEYS = (
++    "learnit_clean_state_v2", "learnit_clean_journal_v2", "learnit_content_patches_v2",
++    "learnit_active_course_v1", "learnit_field_evidence_v1", "learnit_imported_courses_v1",
++    "learnit_import_history_v1", "learnit_import_last_applied_v1", "learnit_import_transaction_v1",
++    "learnit_recovery_report_v1", "learnit_resilience_meta_v1", "learnit_library_revision_v1",
++    "learnit_library_persistence_meta_v1",
++)
++
++
++def main() -> int:
++    boot = BOOT.read_text(encoding="utf-8")
++    port = PORT.read_text(encoding="utf-8") if PORT.exists() else ""
++    durable = DURABLE.read_text(encoding="utf-8")
++    owner_map = json.loads(OWNER_MAP.read_text(encoding="utf-8"))["owners"]
++    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
++    release = json.loads(RELEASE.read_text(encoding="utf-8"))
++    checks = []
++
++    def add(code: str, ok: bool, detail="") -> None:
++        checks.append({"code": code, "ok": bool(ok), "detail": detail})
++
++    sources = {path.name: path.read_text(encoding="utf-8") for path in sorted(RUNTIME.glob("*.js"))}
++    local_owners = sorted(name for name, text in sources.items() if "window.localStorage" in text)
++    indexeddb_owners = sorted(name for name, text in sources.items() if "indexedDB" in text)
++    add("sole-localstorage-owner", local_owners == [PORT.name], local_owners)
++    add("sole-indexeddb-owner", indexeddb_owners == [DURABLE.name], indexeddb_owners)
++    add("boot-no-inline-adapter", "const storage = (()=>{" not in boot)
++    add("adapter-byte-equivalent", port.rstrip() == EXPECTED_ADAPTER.rstrip())
++    add("frozen-key-set-present", all(key in boot + durable for key in FROZEN_KEYS))
++    paths = active_script_paths()
++    boundary = [
++        "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js", PORT_REL,
++        "src/scripts/core/runtime_parts/05_durable_library_store.js",
++        "src/scripts/core/runtime_parts/10_content_store_and_state.js",
++    ]
++    start = paths.index(boundary[0]) if boundary[0] in paths else -1
++    add("manifest-boundary-order", start >= 0 and paths[start:start + 4] == boundary)
++    add("owner-map-port", owner_map.get(PORT_REL) == "synchronous-local-storage-port-memory-fallback-telemetry-and-fault-injection")
++    mandatory = registry.get("mandatory", [])
++    add("focused-test-registered-once", mandatory.count("tests/contract_storage_boundary.py") == 1)
++    ignored = release.get("baseline_equivalence", {}).get("ignored_script_paths", [])
++    add("port-ignored-once", ignored.count(PORT_REL) == 1)
++    add("runtime-fingerprint-bound", release.get("runtime_fingerprint") == EXPECTED_RUNTIME_FP)
++    add("normalized-fingerprint-frozen", release.get("baseline_equivalence", {}).get("runtime_js_normalized_sha256") == EXPECTED_NORMALIZED_FP)
++    add("no-new-storage-or-network", not any(token in port for token in ("indexedDB", "fetch(", "XMLHttpRequest", "WebSocket", "http://", "https://")))
++
++    ok = all(item["ok"] for item in checks)
++    OUT.parent.mkdir(parents=True, exist_ok=True)
++    OUT.write_text(json.dumps({"schema": "learnit.first_storage_seam_contract.v1", "ok": ok, "checks": checks}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
++    print(json.dumps({"ok": ok, "passed": sum(item["ok"] for item in checks), "total": len(checks), "report": str(OUT.relative_to(ROOT))}, ensure_ascii=False, indent=2))
++    return 0 if ok else 1
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
++diff --git a/apps/player/dev/checks_registry.json b/apps/player/dev/checks_registry.json
++--- a/apps/player/dev/checks_registry.json
+++++ b/apps/player/dev/checks_registry.json
++@@ -37,5 +37,6 @@
++     "tests/contract_runtime_namespace.py",
++     "tests/mutation_learning_contracts.py",
++     "tests/contract_clean_room.py",
++-    "tests/contract_library_persistence_naming.py"
+++    "tests/contract_library_persistence_naming.py",
+++    "tests/contract_storage_boundary.py"
++   ],
++diff --git a/apps/player/dev/release_config.json b/apps/player/dev/release_config.json
++--- a/apps/player/dev/release_config.json
+++++ b/apps/player/dev/release_config.json
++@@ -9,7 +9,7 @@
++   "principle": "Documentation, tests and release tooling are reproducible from modular_source; dist is rebuildable and is not a second source of truth.",
++   "build_timestamp": "2026-07-14T00:00:00Z",
++   "bundle_label": "learnit_rc718.html",
++-  "runtime_fingerprint": "faf266c5bada32fcb7c9a5f247985eeb0cfd4c3f0a3d4aa05ceb55092122940c",
+++  "runtime_fingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
++   "human_validation": {
++     "required": true,
++     "status": "PASS_WITH_RESERVATIONS",
++@@ -29,6 +29,7 @@
++     "ignored_script_paths": [
++       "src/learning/performance_budget_model.js",
++       "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+++      "src/scripts/core/runtime_parts/04_local_storage_port.js",
++       "src/scripts/core/runtime_parts/10_content_store_and_state.js",
++       "src/scripts/core/runtime_parts/50_diagnostics_import_quality.js",
++       "src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js",
