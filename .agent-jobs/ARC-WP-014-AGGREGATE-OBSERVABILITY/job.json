@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-014-AGGREGATE-OBSERVABILITY",
+  "baseCommit": "6e288149f0361d4df0df4767a9d476928fdaebd4",
+  "branch": "agent/arc-wp-014-aggregate-observability",
+  "patchFile": ".agent-jobs/ARC-WP-014-AGGREGATE-OBSERVABILITY/change.patch",
+  "allowedPaths": [
+    "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+    "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+    "apps/player/source_manifest.json",
+    "apps/player/docs/OWNER_MAP.json",
+    "apps/player/tests/contract_storage_boundary.py",
+    "apps/player/dev/checks_registry.json",
+    "apps/player/dev/release_config.json"
+  ],
+  "forbiddenPaths": [
+    ".github/**",
+    "governance/**",
+    "docs/architecture/**",
+    "docs/governance/**",
+    "docs/evidence/**",
+    "work-packages/**",
+    "contracts/**",
+    "platform/**",
+    "apps/player/contract/**",
+    "apps/player/authoring/**",
+    "apps/player/dev/run_all_checks.py",
+    "apps/player/dev/update_manifest.py",
+    "apps/player/src/scripts/core/runtime_parts/05_durable_library_store.js",
+    "apps/player/src/scripts/core/runtime_parts/10_content_store_and_state.js",
+    "apps/player/dist/**",
+    "apps/player/reports/**",
+    "apps/player/release/**"
+  ],
+  "testProfile": "player-targeted",
+  "testTargets": [
+    "apps/player/tests/contract_storage_boundary.py"
+  ],
+  "commitMessage": "Record aggregate runner diagnostics for first seam",
+  "maxPatchBytes": 70000,
+  "maxChangedFiles": 7,
+  "maxChangedLines": 300
+}
