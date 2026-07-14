@@ -182,7 +182,7 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-013-DIAGNOSTIC",
+    "id": "ARC-WP-013",
     "condition": "Run the disposable exact-byte fingerprint diagnostic and keep it unmerged. If the normalized runtime fingerprint equals the protected value, prepare a fresh ARC-WP-011 result with disjoint developer, QA and integrator paths; otherwise HOLD for a new governor decision. Stage D remains blocked until the fresh seam is separately accepted."
   },
   "review": {
