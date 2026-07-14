@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-011",
-  "effectiveFromCommit": "d6c5ad4f976e575a9a4f4b32295f421702900b16",
-  "reviewedBaselineCommit": "d6c5ad4f976e575a9a4f4b32295f421702900b16",
+  "stateId": "GOV-STATE-2026-07-14-012",
+  "effectiveFromCommit": "06c6b25d11adcf24f06bb44d3eb092b0ba995cbe",
+  "reviewedBaselineCommit": "06c6b25d11adcf24f06bb44d3eb092b0ba995cbe",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "standalone-rc718-promoted-first-seam-design-pending",
-    "status": "paused-before-architecture-stage-b",
-    "description": "RC718 is the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. Permanent Player CI, Remote Agent Worktree, pull-request scope enforcement and branch hygiene are operational. The architecture program is paused before ARC-WP-010 design. Stage D is a future target and remains blocked until Stage B design and Stage C first reversible seam are accepted."
+    "status": "blocked",
+    "description": "RC718 is the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. Permanent Player CI, Remote Agent Worktree, pull-request scope enforcement and branch hygiene are operational. Repository-state schema drift is repaired by GOV-WP-014. The architecture program remains blocked before ARC-WP-010 design. Stage D remains blocked until Stage B design and Stage C first reversible seam are accepted."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -22,7 +22,7 @@
     "evidence": "docs/evidence/rc718/human-validation-attestation.json"
   },
   "promotedBaseline": {
-    "status": "promoted-with-reservations",
+    "status": "promoted",
     "workPackage": "UX-WP-020",
     "candidate": "RC718 editable imported plan naming candidate",
     "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
@@ -134,10 +134,11 @@
   "activeExceptions": [
     {
       "id": "EXC-GOV-001",
-      "scope": "main branch policy enforcement",
-      "justification": "The repository remains on the current private personal-account setup. The configured ruleset is retained as the target policy, while all changes continue through documented PR, CI, scope and governor procedures.",
+      "rule": "main branch protection must technically require pull requests and mandatory checks",
+      "reason": "The repository remains on the current private personal-account setup, where GitHub reports the configured ruleset as not enforced. Documented pull-request, CI, scope and governor procedures remain mandatory operational controls but can be administratively bypassed.",
       "owner": "stefm78",
-      "reviewTrigger": "repository plan or ownership topology change, serious governance bypass, or first external collaborator"
+      "expiryOrRemovalGate": "repository plan or ownership topology change, serious governance bypass, or first external collaborator",
+      "rollback": "Remove this exception only after the repository reports the main-protection ruleset as enforced and an independent negative bypass test confirms the control."
     }
   ],
   "nextMandatoryGate": {
@@ -146,7 +147,7 @@
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0006 RC718 promotion",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0007 repository state repair",
     "decision": "GO_WITH_CONDITIONS",
     "nextReviewTrigger": "ARC-WP-010 proposal, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, first seam implementation, or Stage D entry request"
   }
