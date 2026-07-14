@@ -1,0 +1,113 @@
+diff --git a/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js b/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
+--- a/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
++++ b/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
+@@ -21,17 +21,5 @@
+     const IMPORT_QUOTAS = Object.freeze({advisoryBytes:5000000,advisoryFiles:24,advisoryCourses:250,advisoryActivities:3000,hardFiles:100});
+     const MAX_JOURNAL = 240;
+ 
+-    const storage = (()=>{
+-      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
+-      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
+-      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
+-      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
+-      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
+-      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
+-      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
+-      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
+-      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
+-      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
+-    })();
+     const deepClone = value => JSON.parse(JSON.stringify(value));
+     const nowIso = () => new Date().toISOString();
+diff --git a/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js b/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js
+new file mode 100644
+--- /dev/null
++++ b/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js
+@@ -0,0 +1,12 @@
++    const storage = (()=>{
++      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
++      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
++      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
++      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
++      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
++      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
++      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
++      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
++    })();
+diff --git a/apps/player/source_manifest.json b/apps/player/source_manifest.json
+--- a/apps/player/source_manifest.json
++++ b/apps/player/source_manifest.json
+@@ -211,3 +211,4 @@
+         "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
++        "src/scripts/core/runtime_parts/04_local_storage_port.js",
+         "src/scripts/core/runtime_parts/05_durable_library_store.js",
+         "src/scripts/core/runtime_parts/10_content_store_and_state.js",
+diff --git a/apps/player/docs/OWNER_MAP.json b/apps/player/docs/OWNER_MAP.json
+--- a/apps/player/docs/OWNER_MAP.json
++++ b/apps/player/docs/OWNER_MAP.json
+@@ -5,3 +5,4 @@
+-    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-observable-storage-adapter",
++    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-storage-key-declarations",
++    "src/scripts/core/runtime_parts/04_local_storage_port.js": "synchronous-local-storage-port-memory-fallback-telemetry-and-fault-injection",
+     "src/scripts/core/runtime_parts/05_durable_library_store.js": "indexeddb-durable-library-snapshot-owner",
+     "src/scripts/core/runtime_parts/10_content_store_and_state.js": "content-state-import-validation-and-transactional-rollback",
+diff --git a/apps/player/tests/runtime_fingerprint_diagnostic.py b/apps/player/tests/runtime_fingerprint_diagnostic.py
+new file mode 100644
+--- /dev/null
++++ b/apps/player/tests/runtime_fingerprint_diagnostic.py
+@@ -0,0 +1,55 @@
++#!/usr/bin/env python3
++from __future__ import annotations
++
++from copy import deepcopy
++import json
++
++from support import ROOT
++from contract_source_tree import runtime_fingerprint, normalized_runtime_js_fingerprint
++
++OUT = ROOT.parent.parent / 'docs' / 'evidence' / 'architecture' / 'first-storage-seam' / 'fingerprint-diagnostic.json'
++PORT = 'src/scripts/core/runtime_parts/04_local_storage_port.js'
++BASE_COMMIT = '746cd0a7abac219da58543fe82831123c0ef9fd4'
++
++
++def main() -> int:
++    config_path = ROOT / 'dev' / 'release_config.json'
++    config = json.loads(config_path.read_text(encoding='utf-8'))
++    simulated = deepcopy(config)
++    equivalence = simulated.setdefault('baseline_equivalence', {})
++    ignored = list(equivalence.get('ignored_script_paths', []))
++    if PORT not in ignored:
++        ignored.append(PORT)
++    equivalence['ignored_script_paths'] = ignored
++
++    measured_runtime = runtime_fingerprint()
++    measured_normalized = normalized_runtime_js_fingerprint(simulated)
++    protected_normalized = str(config.get('baseline_equivalence', {}).get('runtime_js_normalized_sha256', ''))
++    previous_runtime = str(config.get('runtime_fingerprint', ''))
++    payload = {
++        'schema': 'learnit.first_storage_seam_fingerprint_diagnostic.v1',
++        'baseCommit': BASE_COMMIT,
++        'diagnosticMode': 'disposable-unmerged',
++        'portPath': PORT,
++        'previousRuntimeFingerprint': previous_runtime,
++        'measuredRuntimeFingerprint': measured_runtime,
++        'protectedNormalizedRuntimeFingerprint': protected_normalized,
++        'measuredNormalizedRuntimeFingerprintWithRelocatedPortIgnored': measured_normalized,
++        'runtimeFingerprintChanged': measured_runtime != previous_runtime,
++        'normalizedFingerprintMatches': measured_normalized == protected_normalized,
++        'authorizedReleaseConfigChange': {
++            'addIgnoredScriptPath': PORT,
++            'replaceRuntimeFingerprintWith': measured_runtime,
++            'preserveNormalizedRuntimeFingerprint': protected_normalized,
++        },
++    }
++    OUT.parent.mkdir(parents=True, exist_ok=True)
++    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
++    print(json.dumps(payload, ensure_ascii=False, indent=2))
++    return 0 if payload['runtimeFingerprintChanged'] and payload['normalizedFingerprintMatches'] else 1
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
