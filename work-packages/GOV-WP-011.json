@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-011",
   "title": "Accept permanent QA and pull-request scope gates",
-  "status": "under-review",
+  "status": "accepted",
   "changeClass": "repository-governance",
   "riskClass": "high",
   "purpose": "Record the governor decision for QA-WP-010 and GOV-WP-010 after successful positive and adversarial evidence, while preserving the unresolved administrative GitHub ruleset gate.",
@@ -66,5 +66,16 @@
     "QA and provenance evidence review",
     "adversarial PR-scope evidence review"
   ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "acceptedImplementationBaseline": "da74995f80b8eba6ef75ab5603fc101fcc9fde72",
+    "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md",
+    "qaWorkPackage": "QA-WP-010",
+    "qaDecision": "GO",
+    "scopeWorkPackage": "GOV-WP-010",
+    "scopeDecision": "GO_WITH_CONDITIONS",
+    "remainingCondition": "GitHub main ruleset configuration and independent policy evidence tracked by issue 27"
+  },
   "rollback": "Revert this acceptance record only. The already installed source-level gates remain operational, while their work packages return to under-review status."
 }
