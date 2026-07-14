@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-009",
-  "effectiveFromCommit": "da74995f80b8eba6ef75ab5603fc101fcc9fde72",
-  "reviewedBaselineCommit": "da74995f80b8eba6ef75ab5603fc101fcc9fde72",
+  "stateId": "GOV-STATE-2026-07-14-010",
+  "effectiveFromCommit": "b4161c8ffb4a216fad8fa84f279890edd4d95687",
+  "reviewedBaselineCommit": "b4161c8ffb4a216fad8fa84f279890edd4d95687",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "standalone-protected-first-seam-preparation",
     "status": "active",
-    "description": "RC715 remains the promoted standalone forensic baseline. RC718 remains the active development candidate pending RC719 human validation. Permanent Player CI, Remote Agent Worktree and pull-request scope enforcement are operational and governor-accepted; preparation of the first reversible architecture seam is now authorized."
+    "description": "RC715 remains the promoted standalone forensic baseline. RC718 remains the active development candidate pending RC719 human validation. Permanent Player CI, Remote Agent Worktree, pull-request scope enforcement and branch hygiene are operational. A main-protection ruleset is configured but GitHub reports that it is not enforced on this private personal-account repository without moving to a GitHub Team organization account."
   },
   "developmentBaseline": {
     "status": "active",
@@ -47,6 +47,16 @@
       "status": "accepted-with-conditions",
       "requiredCheck": "PR scope / gate",
       "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md"
+    },
+    "branchHygiene": {
+      "workPackage": "GOV-WP-012",
+      "status": "accepted",
+      "policy": "main-only when no pull request is open"
+    },
+    "mainRuleset": {
+      "name": "main-protection",
+      "status": "configured-not-enforced",
+      "reason": "GitHub UI reports that rulesets are not enforced on this private repository until it is moved to a GitHub Team organization account."
     }
   },
   "authorizedWork": [
@@ -90,8 +100,8 @@
     {
       "id": "RISK-GOV-002",
       "severity": "high",
-      "statement": "Repository checks are operational, but branch protection and required-status rules are not yet independently verified through GitHub ruleset evidence. The checks are therefore not proven unbypassable by repository policy.",
-      "closureGate": "configure and evidence the main ruleset tracked by issue 27"
+      "statement": "The main-protection ruleset is correctly configured but GitHub explicitly reports that it is not enforced on this private personal-account repository. Repository checks remain operational and auditable, but direct administrative bypass is not technically blocked by plan-level policy enforcement.",
+      "closureGate": "move the repository to an eligible GitHub Team organization account or adopt another GitHub plan/topology that enforces private-repository rulesets"
     },
     {
       "id": "RISK-EVIDENCE-001",
@@ -106,15 +116,23 @@
       "closureGate": "RC719 focused human validation PASS"
     }
   ],
-  "activeExceptions": [],
+  "activeExceptions": [
+    {
+      "id": "EXC-GOV-001",
+      "scope": "main branch policy enforcement",
+      "justification": "The repository remains on the current private personal-account setup. The configured ruleset is retained as the target policy, while all changes continue through documented PR, CI, scope and governor procedures.",
+      "owner": "stefm78",
+      "reviewTrigger": "repository plan or ownership topology change, serious governance bypass, or first external collaborator"
+    }
+  ],
   "nextMandatoryGate": {
     "id": "ARC-WP-010",
-    "condition": "Define and governor-review the first narrow reversible storage-boundary seam without changing storage technology, data shape, identifiers, UI, or behavior. RC719 human validation remains separately required before RC718 can replace the promoted standalone baseline."
+    "condition": "Define and governor-review the first narrow reversible storage-boundary seam without changing storage technology, data shape, identifiers, UI, or behavior. RC719 human validation remains separately required before RC718 can replace the promoted standalone baseline. The unenforced ruleset remains a known accepted operational risk, not a blocker for bounded single-owner work."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0005 Permanent quality gates",
+    "lastReviewedBy": "Architecture & Repository Governor — ruleset enforcement verification",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "ARC-WP-010 proposal, RC719 human naming/persistence result, repository ruleset evidence, serious regression, release provenance change, or phase-gate request"
+    "nextReviewTrigger": "ARC-WP-010 proposal, RC719 human naming/persistence result, repository ownership or plan change, first external collaborator, serious regression, release provenance change, or phase-gate request"
   }
 }
