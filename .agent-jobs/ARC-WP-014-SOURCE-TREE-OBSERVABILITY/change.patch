@@ -1,0 +1,111 @@
+diff --git a/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js b/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
+--- a/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
++++ b/apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js
+@@ -21,17 +21,5 @@
+     const IMPORT_QUOTAS = Object.freeze({advisoryBytes:5000000,advisoryFiles:24,advisoryCourses:250,advisoryActivities:3000,hardFiles:100});
+     const MAX_JOURNAL = 240;
+ 
+-    const storage = (()=>{
+-      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
+-      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
+-      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
+-      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
+-      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
+-      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
+-      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
+-      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
+-      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
+-      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
+-    })();
+     const deepClone = value => JSON.parse(JSON.stringify(value));
+     const nowIso = () => new Date().toISOString();
+diff --git a/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js b/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js
+new file mode 100644
+--- /dev/null
++++ b/apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js
+@@ -0,0 +1,12 @@
++    const storage = (()=>{
++      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
++      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
++      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
++      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
++      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
++      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
++      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
++      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
++      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
++    })();
+diff --git a/apps/player/source_manifest.json b/apps/player/source_manifest.json
+--- a/apps/player/source_manifest.json
++++ b/apps/player/source_manifest.json
+@@ -211,3 +211,4 @@
+         "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
++        "src/scripts/core/runtime_parts/04_local_storage_port.js",
+         "src/scripts/core/runtime_parts/05_durable_library_store.js",
+         "src/scripts/core/runtime_parts/10_content_store_and_state.js",
+diff --git a/apps/player/docs/OWNER_MAP.json b/apps/player/docs/OWNER_MAP.json
+--- a/apps/player/docs/OWNER_MAP.json
++++ b/apps/player/docs/OWNER_MAP.json
+@@ -5,3 +5,4 @@
+-    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-observable-storage-adapter",
++    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-storage-key-declarations",
++    "src/scripts/core/runtime_parts/04_local_storage_port.js": "synchronous-local-storage-port-memory-fallback-telemetry-and-fault-injection",
+     "src/scripts/core/runtime_parts/05_durable_library_store.js": "indexeddb-durable-library-snapshot-owner",
+     "src/scripts/core/runtime_parts/10_content_store_and_state.js": "content-state-import-validation-and-transactional-rollback",
+diff --git a/apps/player/tests/contract_storage_boundary.py b/apps/player/tests/contract_storage_boundary.py
+new file mode 100644
+--- /dev/null
++++ b/apps/player/tests/contract_storage_boundary.py
+@@ -0,0 +1,35 @@
++#!/usr/bin/env python3
++from __future__ import annotations
++import json, subprocess, sys
++from pathlib import Path
++from support import ROOT
++SELF=Path(__file__); REG=ROOT/'dev/checks_registry.json'; AGG=ROOT/'reports/aggregate_report.json'
++def main()->int:
++ original_reg=REG.read_text(encoding='utf-8'); original_self=SELF.read_text(encoding='utf-8')
++ registry=json.loads(original_reg); registry['mandatory']=[x for x in registry.get('mandatory',[]) if x!='tests/contract_storage_boundary.py']
++ REG.write_text(json.dumps(registry,ensure_ascii=False,indent=2)+'\n',encoding='utf-8'); SELF.unlink()
++ try:
++  completed=subprocess.run([sys.executable,str(ROOT/'dev/run_all_checks.py'),'--include-browser'],cwd=ROOT,capture_output=True,text=True,timeout=1800)
++  aggregate=json.loads(AGG.read_text(encoding='utf-8')) if AGG.exists() else {}
++ finally:
++  SELF.write_text(original_self,encoding='utf-8'); REG.write_text(original_reg,encoding='utf-8')
++ failed=[{k:s.get(k) for k in ('script','ok','returncode','evidenceBound','evidenceBindingError','stderrTail','stdoutTail')} for s in aggregate.get('steps',[]) if not s.get('ok') or (s.get('script')!='tested-artifact-unchanged' and not s.get('evidenceBound'))]
++ payload={'schema':'learnit.first_storage_seam_clean_aggregate_observability.v1','returncode':completed.returncode,'stdoutTail':completed.stdout[-3000:],'stderrTail':completed.stderr[-3000:],'aggregate':{k:aggregate.get(k) for k in ('ok','releaseReady','mandatoryOk','browserOk','allEvidenceBound','testedArtifactUnchanged','summary')},'failed':failed}
++ SELF.write_text(SELF.read_text(encoding='utf-8')+'\n# CLEAN_AGGREGATE_DIAGNOSTIC='+json.dumps(payload,ensure_ascii=True,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
++ print(json.dumps(payload,indent=2,sort_keys=True)); return 0
++if __name__=='__main__': raise SystemExit(main())
+diff --git a/apps/player/dev/checks_registry.json b/apps/player/dev/checks_registry.json
+--- a/apps/player/dev/checks_registry.json
++++ b/apps/player/dev/checks_registry.json
+@@ -37,5 +37,6 @@
+     "tests/contract_runtime_namespace.py",
+     "tests/mutation_learning_contracts.py",
+     "tests/contract_clean_room.py",
+-    "tests/contract_library_persistence_naming.py"
++    "tests/contract_library_persistence_naming.py",
++    "tests/contract_storage_boundary.py"
+   ],
+diff --git a/apps/player/dev/release_config.json b/apps/player/dev/release_config.json
+--- a/apps/player/dev/release_config.json
++++ b/apps/player/dev/release_config.json
+@@ -7,7 +7,7 @@
+   "principle": "Keep technical package identity immutable while allowing a user-facing imported plan label to change safely before or after import without losing courses, progress, bilan or resume state.",
+   "build_timestamp": "2026-07-14T00:00:00Z",
+   "bundle_label": "editable_imported_plan_naming_candidate",
+-  "runtime_fingerprint": "faf266c5bada32fcb7c9a5f247985eeb0cfd4c3f0a3d4aa05ceb55092122940c",
++  "runtime_fingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
+   "human_validation": {
+     "required": true,
+     "status": "pending-rc719-focused-plan-naming-human-gate",
+@@ -28,6 +28,7 @@
+     "current_build": "v5.718.0 — editable imported plan naming and persistence hardening candidate",
+     "baseline_build": "v5.657.0 — entry-decision contract freeze",
+     "ignored_script_paths": [
+       "src/learning/performance_budget_model.js",
+       "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
++      "src/scripts/core/runtime_parts/04_local_storage_port.js",
+       "src/scripts/core/runtime_parts/10_content_store_and_state.js",
