@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "candidate": "RC718 editable imported plan naming candidate",
+  "validationGate": "RC719",
+  "validatedAt": "2026-07-14",
+  "accountableOwner": "stefm78",
+  "result": "PASS_WITH_RESERVATIONS",
+  "validatedArtifact": {
+    "sha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964"
+  },
+  "validatedScope": [
+    "rename an imported plan during import",
+    "rename an imported plan after import from the Library",
+    "close and reopen the application",
+    "retain the chosen plan name",
+    "retain imported content and learner state",
+    "focused Android and desktop validation"
+  ],
+  "reservationStatus": {
+    "blocking": false,
+    "summary": "The accountable owner reports that later modifications remain desirable, but no blocking defect was reported for the RC719 promotion gate.",
+    "details": "Not itemized in the validation message. Detailed observations must be recorded before a corrective work package is implemented."
+  },
+  "evidenceType": "accountable-owner-attestation",
+  "rawEvidenceProvided": false,
+  "decision": "PROMOTE_WITH_RECORDED_RESERVATIONS"
+}
