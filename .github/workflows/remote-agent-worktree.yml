@@ -1,9 +1,13 @@
 name: Remote agent worktree
 
 on:
-  push:
+  pull_request:
     branches:
-      - 'agent/**'
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
       - '.agent-jobs/**/READY'
 
@@ -11,21 +15,23 @@ permissions:
   contents: read
 
 concurrency:
-  group: remote-agent-${{ github.ref }}
+  group: remote-agent-${{ github.event.pull_request.head.ref }}
   cancel-in-progress: false
 
 jobs:
   validate-and-test:
-    if: ${{ !contains(github.event.head_commit.message, '[agent-applied]') }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
       contents: read
+    env:
+      AGENT_BRANCH: ${{ github.event.pull_request.head.ref }}
     steps:
-      - name: Check out exact triggering commit
+      - name: Check out exact pull request head
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -40,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .agent-runtime
-          python tools/agent_worktree.py prepare --output .agent-runtime/plan.json
+          GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py prepare --output .agent-runtime/plan.json
           profile="$(python -c "import json; print(json.load(open('.agent-runtime/plan.json'))['testProfile'])")"
           printf 'test_profile=%s\n' "$profile" >> "$GITHUB_OUTPUT"
 
@@ -53,17 +59,17 @@ jobs:
         run: python -m playwright install --with-deps chromium
 
       - name: Apply patch without repository credentials
-        run: python tools/agent_worktree.py apply --plan .agent-runtime/plan.json
+        run: GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py apply --plan .agent-runtime/plan.json
 
       - name: Validate repository governance
         run: python tools/validate_repository.py
 
       - name: Run fixed validation profile
-        run: python tools/agent_worktree.py test --plan .agent-runtime/plan.json
+        run: GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py test --plan .agent-runtime/plan.json
 
       - name: Package the exact tested result
         run: |
-          python tools/agent_worktree.py package \
+          GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py package \
             --plan .agent-runtime/plan.json \
             --output-patch .agent-runtime/result.patch \
             --output-manifest .agent-runtime/result.json
@@ -85,15 +91,18 @@ jobs:
 
   commit-tested-result:
     needs: validate-and-test
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write
+    env:
+      AGENT_BRANCH: ${{ github.event.pull_request.head.ref }}
     steps:
-      - name: Check out unchanged triggering commit
+      - name: Check out unchanged pull request head
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -110,17 +119,17 @@ jobs:
 
       - name: Revalidate and stage the tested result
         run: |
-          python tools/agent_worktree.py commit-prepare \
+          GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py commit-prepare \
             --manifest .agent-result/.agent-runtime/result.json \
             --result-patch .agent-result/.agent-runtime/result.patch
 
-      - name: Commit and push only to the agent branch
+      - name: Commit and push only to the pull request branch
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          branch="$GITHUB_REF_NAME"
+          branch="$AGENT_BRANCH"
           case "$branch" in
             agent/*) ;;
             *) echo "Refusing non-agent branch: $branch" >&2; exit 2 ;;
