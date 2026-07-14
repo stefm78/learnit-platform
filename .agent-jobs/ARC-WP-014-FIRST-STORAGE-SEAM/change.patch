@@ -16,3 +16,23 @@ diff --git a/apps/player/dev/checks_registry.json b/apps/player/dev/checks_regis
 +    "tests/contract_library_persistence_naming.py",
 +    "tests/contract_storage_boundary.py"
    ],
+diff --git a/apps/player/dev/release_config.json b/apps/player/dev/release_config.json
+--- a/apps/player/dev/release_config.json
++++ b/apps/player/dev/release_config.json
+@@ -9,7 +9,7 @@
+   "principle": "Documentation, tests and release tooling are reproducible from modular_source; dist is rebuildable and is not a second source of truth.",
+   "build_timestamp": "2026-07-14T00:00:00Z",
+   "bundle_label": "learnit_rc718.html",
+-  "runtime_fingerprint": "faf266c5bada32fcb7c9a5f247985eeb0cfd4c3f0a3d4aa05ceb55092122940c",
++  "runtime_fingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
+   "human_validation": {
+     "required": true,
+     "status": "PASS_WITH_RESERVATIONS",
+@@ -29,6 +29,7 @@
+     "ignored_script_paths": [
+       "src/learning/performance_budget_model.js",
+       "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
++      "src/scripts/core/runtime_parts/04_local_storage_port.js",
+       "src/scripts/core/runtime_parts/10_content_store_and_state.js",
+       "src/scripts/core/runtime_parts/50_diagnostics_import_quality.js",
+       "src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js",
