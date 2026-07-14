@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-015",
+  "title": "Make Remote Agent transport compatible with canonical PR scope enforcement",
+  "status": "accepted",
+  "changeClass": "repository-governance-tooling",
+  "riskClass": "high",
+  "purpose": "Remove the structural contradiction in which Remote Agent execution requires .agent-jobs/**/READY while PR scope rejects every .agent-jobs/** path. Permit only a fully validated three-file Remote Agent transport envelope and enforce the canonical work-package scope against the intended patch and tested result paths.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "8c4c91c2b84c9fd2dea02a9a07cd249568bcffbf",
+    "candidateName": "remote-agent-pr-scope-compatible-gate"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-015.json",
+      "tools/validate_pr_scope.py",
+      "tools/test_validate_pr_scope.py",
+      "docs/governance/PR_SCOPE_GATE.md"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      "governance/**",
+      "docs/architecture/**",
+      ".github/**",
+      "tools/agent_worktree.py",
+      "tools/validate_repository.py"
+    ]
+  },
+  "invariants": [
+    "Ordinary pull requests continue to reject all generated and transport paths.",
+    "A Remote Agent pull request is recognized only when one job directory contains exactly READY, change.patch and job.json.",
+    "The job baseCommit must equal the pull-request base SHA and the job branch must use agent/**.",
+    "Remote Agent allowedPaths must be unique exact file paths without globs and each must be permitted by the canonical work package named in the pull-request body.",
+    "The patch must be applicable text, contain unique paths, and every intended path must satisfy both the job and canonical work-package scopes.",
+    "After the tested-result commit, every non-transport changed path must remain inside both the exact job allowedPaths and canonical work-package scope.",
+    "No workflow, Remote Agent runner, player source, contract, architecture or platform behavior changes under this work package.",
+    "ARC-WP-014 and Stage D remain blocked until this gate repair is merged and the first seam is rerun from the new exact main."
+  ],
+  "requiredEvidence": [
+    "focused regression test covering a valid envelope and tested result",
+    "negative tests for missing transport files, globbed job paths and canonical-scope escape",
+    "Repository governance success",
+    "PR scope success on this ordinary governance pull request",
+    "subsequent Remote Agent envelope and tested-result PR scope success before acceptance"
+  ],
+  "nonGoals": [
+    "exempt agent branches from canonical scope",
+    "allow arbitrary .agent-jobs contents",
+    "weaken generated-file or archive prohibitions",
+    "change Remote Agent implementation semantics",
+    "change player code or begin Stage D"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "acceptanceGate": "focused tests plus successful ARC-WP-014 envelope and tested-result scope evidence"
+  },
+  "rollback": "Revert the validator and focused test. Remote Agent PRs become blocked again by PR scope; no player or learner data rollback is required."
+}
