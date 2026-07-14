@@ -1,0 +1,243 @@
+{
+  "schema": "learnit.current_identity_inventory.v1",
+  "workPackage": "ARC-WP-020",
+  "baselineCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
+  "generatedAt": "2026-07-15",
+  "scope": "Read-only source cartography of current RC718 content, import, persistence and learner-state identity semantics. This file records current behavior; it does not claim implementation of the target identity model.",
+  "productBaseline": {
+    "rc": "RC718",
+    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
+    "promotedArtifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+    "humanGate": "RC719 PASS_WITH_RESERVATIONS"
+  },
+  "evidence": [
+    {
+      "path": "apps/player/docs/ENGINEERING.md",
+      "symbols": ["localCourseId", "importPackageId", "importCollectionTitle"],
+      "observation": "Engineering guidance states that localCourseId is immutable after import, importPackageId is the immutable technical plan identity in current behavior, and importCollectionTitle is editable presentation."
+    },
+    {
+      "path": "apps/player/src/learning/course_collection_model.js",
+      "symbols": ["courseId", "collectionMeta"],
+      "observation": "The model derives a fallback course ID from the normalized title and groups imported courses under import:<importPackageId>."
+    },
+    {
+      "path": "apps/player/src/scripts/core/runtime_parts/10_content_store_and_state.js",
+      "symbols": ["loadImportedCourses", "normalizeImportPayload", "planImportTexts", "applyImportPlan", "renameImportedCourse", "renameImportedCollection", "AppState"],
+      "observation": "The import and state owner assigns localCourseId, synthesizes installed plan IDs, persists imported payloads and keys learner state by course and activity compatibility keys."
+    },
+    {
+      "path": "apps/player/src/learning/mastery_evidence_model.js",
+      "symbols": ["courseId", "normalizeObjective", "objectiveEvidence", "chapterDefinitions"],
+      "observation": "Course evidence prefers course.id then a title-derived fallback; objective identity is normalized text; chapter IDs can be generated from position."
+    },
+    {
+      "path": "apps/player/contract/learnit-import.schema.json",
+      "symbols": ["package", "course", "asset", "mediaRef", "activity id", "variant_of"],
+      "observation": "The current contract requires course-scoped activity IDs and asset references but does not define globally stable package-version, course, objective or activity-revision identity."
+    },
+    {
+      "path": "apps/player/data/golden-kits/golden_nombres_complexes.json",
+      "symbols": ["packageId", "contentVersion", "activities[].id", "assets[].id", "media[].assetId", "variant_of"],
+      "observation": "A representative package uses human-authored package/content version strings, course-scoped activity IDs, package-local asset IDs and variant_of references to activity compatibility keys."
+    },
+    {
+      "path": "apps/player/tests/contract_library_persistence_naming.py",
+      "symbols": ["stable-imported-course-identity", "progress-safe-id-contract"],
+      "observation": "Current regression evidence protects localCourseId stability through rename and title-safe progress behavior, not global cross-device lineage."
+    },
+    {
+      "path": "docs/architecture/reference-v1/01_ARCHITECTURE_CONSTITUTION.md",
+      "symbols": ["Identity and versioning"],
+      "observation": "The target constitution requires opaque stable IDs independent of titles and lineage across package, package version, course, objective, activity and activity revision."
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "sourcePackageId",
+      "currentField": "packageId or package_id",
+      "currentScope": "incoming import payload",
+      "generation": "author supplied; fallback package-<Date.now()> when absent",
+      "mutableLabelDerived": false,
+      "globallyStableProven": false,
+      "persistence": ["import preview metadata", "source collection metadata"],
+      "consumers": ["normalizeImportPayload", "multi-file source reporting"],
+      "collisionBehavior": "not the final installed plan key",
+      "risk": "The field is optional in runtime behavior and its uniqueness or immutability is not globally enforced.",
+      "targetDisposition": "retain legacy meaning in v1.1; add explicit canonical package lineage and package-version identity in a new envelope"
+    },
+    {
+      "name": "installedImportPackageId",
+      "currentField": "importPackageId",
+      "currentScope": "one local import transaction/collection",
+      "generation": "plan-<FNV-style digest of resolved import operations>",
+      "mutableLabelDerived": "indirectly, because resolved operations and legacy IDs can reflect title-based collision handling",
+      "globallyStableProven": false,
+      "persistence": ["each imported course", "import history", "last applied import", "library collection key"],
+      "consumers": ["renameImportedCollection", "course_collection_model.collectionMeta", "library projection"],
+      "collisionBehavior": "same local digest groups courses; title is separately editable",
+      "risk": "The name suggests package lineage but current semantics are local installed-plan identity.",
+      "targetDisposition": "map to collectionInstallId; keep source canonical package identity separate"
+    },
+    {
+      "name": "localCourseId",
+      "currentField": "localCourseId",
+      "currentScope": "one installed course on the local library",
+      "generation": "existing value or title-derived courseSlugFromTitle/courseIdFromContent with --<n> collision suffix",
+      "mutableLabelDerived": true,
+      "globallyStableProven": false,
+      "persistence": ["imported course payload", "activeCourseId", "sessionByCourseId", "lastBilanByCourseId", "activityProgressByCourseId", "retentionByCourseId", "durable snapshot"],
+      "consumers": ["ContentStore", "AppState", "library KPI", "learning models", "exportAppliedImport"],
+      "collisionBehavior": "suffix is assigned until locally unique; rename later preserves the assigned value",
+      "risk": "It is durable and progress-safe locally but initial allocation is derived from editable title/collision context and cannot prove global semantic identity.",
+      "targetDisposition": "preserve as legacyCourseKey; introduce courseInstallId and optional canonical course lineage/revision"
+    },
+    {
+      "name": "fallbackCourseId",
+      "currentField": "course.id or normalized title slug",
+      "currentScope": "course model and learning projections",
+      "generation": "course.id when present, otherwise normalized title",
+      "mutableLabelDerived": true,
+      "globallyStableProven": false,
+      "persistence": ["may become current state map key through runtime helpers"],
+      "consumers": ["course_collection_model", "mastery_evidence_model", "bilan and retention models"],
+      "collisionBehavior": "not centrally governed across all models",
+      "risk": "Different helpers can choose course.id, localCourseId or title fallback, creating ambiguous identity precedence.",
+      "targetDisposition": "one explicit resolver with legacy fallback and diagnostic classification before any write migration"
+    },
+    {
+      "name": "activityCompatibilityId",
+      "currentField": "activities[].id",
+      "currentScope": "unique only inside one course payload",
+      "generation": "author supplied",
+      "mutableLabelDerived": false,
+      "globallyStableProven": false,
+      "persistence": ["session.queue", "session.answers", "activityProgressByCourseId[courseKey]", "lastBilan.review", "patch operations", "variant_of"],
+      "consumers": ["ContentValidator", "AppState", "session", "bilan", "mastery", "patching"],
+      "collisionBehavior": "duplicates inside one course are rejected; reuse across courses is expected",
+      "risk": "There is no immutable activity revision identity; reusing an ID after a semantic change can silently reinterpret historical evidence.",
+      "targetDisposition": "retain as legacyActivityKey; add canonical activityId and activityRevisionId"
+    },
+    {
+      "name": "objectiveCompatibilityKey",
+      "currentField": "activity.objective string normalized by mastery model",
+      "currentScope": "one course projection",
+      "generation": "lowercase accent-stripped normalized display text",
+      "mutableLabelDerived": true,
+      "globallyStableProven": false,
+      "persistence": ["usually derived, not stored as an explicit ID"],
+      "consumers": ["objectiveEvidence", "recommendation objectiveKeys"],
+      "collisionBehavior": "different labels can split one objective; similar labels can merge distinct objectives",
+      "risk": "Editing wording can fragment evidence and normalization can conflate semantically different objectives.",
+      "targetDisposition": "add objectiveCatalog and explicit objectiveId references; keep labels mutable"
+    },
+    {
+      "name": "contentVersion",
+      "currentField": "contentVersion",
+      "currentScope": "course payload/session/progress metadata",
+      "generation": "author supplied human-readable string",
+      "mutableLabelDerived": false,
+      "globallyStableProven": false,
+      "persistence": ["session", "activity progress rows", "course metadata"],
+      "consumers": ["alignment", "remediation progress", "release and diagnostics"],
+      "collisionBehavior": "no global immutable digest binding",
+      "risk": "It is useful version metadata but cannot prove immutable course or activity revision identity.",
+      "targetDisposition": "retain as legacy version label; add package/course/activity revision IDs and canonical digests"
+    },
+    {
+      "name": "assetCompatibilityId",
+      "currentField": "assets[].id and media[].assetId",
+      "currentScope": "course/package payload",
+      "generation": "author supplied",
+      "mutableLabelDerived": false,
+      "globallyStableProven": false,
+      "persistence": ["imported course assets and media references"],
+      "consumers": ["ContentValidator", "media renderer", "jacket selection"],
+      "collisionBehavior": "duplicates in the validated asset list are rejected",
+      "risk": "The ID is a local reference without lineage or revision semantics.",
+      "targetDisposition": "retain local reference during compatibility; add canonical asset lineage identity"
+    },
+    {
+      "name": "chapterCompatibilityId",
+      "currentField": "chapter.id or generated chapter-<n>",
+      "currentScope": "course mastery projection",
+      "generation": "author supplied when explicit; otherwise generated from position/objective grouping",
+      "mutableLabelDerived": "sometimes positional or objective-derived",
+      "globallyStableProven": false,
+      "persistence": ["primarily derived projection"],
+      "consumers": ["mastery_evidence_model.chapterDefinitions"],
+      "collisionBehavior": "position changes can produce a different generated key",
+      "risk": "Not safe for durable evidence or cross-version lineage.",
+      "targetDisposition": "do not use generated chapter keys as canonical evidence identity; future explicit chapter identity requires its own need and gate"
+    },
+    {
+      "name": "patchTargetKeys",
+      "currentField": "patch.courseId and operations[].id",
+      "currentScope": "local content patch history",
+      "generation": "current course compatibility key plus activity compatibility ID",
+      "mutableLabelDerived": "course key can originate from title-derived allocation",
+      "globallyStableProven": false,
+      "persistence": ["learnit_content_patches_v2"],
+      "consumers": ["ContentStore patch preview/apply/rollback"],
+      "collisionBehavior": "targets current compatible content IDs",
+      "risk": "A future identity migration must preserve or explicitly translate patch targets before changing read keys.",
+      "targetDisposition": "include patch translation in a later transactional migration; no change in the first resolver seam"
+    }
+  ],
+  "persistedDependencySurfaces": [
+    {
+      "surface": "localStorage learner state",
+      "key": "learnit_clean_state_v2",
+      "identityDependencies": ["activeCourseId", "sessionByCourseId", "lastBilanByCourseId", "activityProgressByCourseId", "retentionByCourseId", "session.queue", "session.answers", "lastBilan.review"]
+    },
+    {
+      "surface": "localStorage imported library cache",
+      "key": "learnit_imported_courses_v1",
+      "identityDependencies": ["localCourseId", "importPackageId", "importCollectionTitle", "activities[].id", "assets[].id"]
+    },
+    {
+      "surface": "localStorage import transaction and history",
+      "key": "learnit_import_history_v1 / learnit_import_last_applied_v1 / learnit_import_transaction_v1",
+      "identityDependencies": ["plan packageId", "courseId", "originalCourseId", "snapshot keys"]
+    },
+    {
+      "surface": "active course cache",
+      "key": "learnit_active_course_v1",
+      "identityDependencies": ["current course compatibility key"]
+    },
+    {
+      "surface": "content patch history",
+      "key": "learnit_content_patches_v2",
+      "identityDependencies": ["course compatibility key", "activity compatibility ID"]
+    },
+    {
+      "surface": "durable IndexedDB library snapshot",
+      "key": "DURABLE_LIBRARY_RECORD_ID in durable library store",
+      "identityDependencies": ["imported courses", "activeCourseId", "learnerStatePayload", "contentPatchesPayload", "fieldEvidencePayload", "import history"]
+    }
+  ],
+  "claims": [
+    "RC718 already protects local progress through course and plan title rename.",
+    "Current identity is sufficient for the promoted standalone behavior but not for global lineage or safe semantic revision migration.",
+    "The safest first seam is read-only classification and diagnostics because current persisted maps are densely keyed by legacy course and activity identifiers.",
+    "A destructive in-place key rewrite would couple identity migration to persistence and learner-state recovery and is therefore not an acceptable first step."
+  ],
+  "assumptions": [
+    "Future authored canonical IDs can be allocated offline with collision-resistant opaque identifiers.",
+    "A future package contract can carry complete identity envelopes without changing current display labels.",
+    "Progress applicability across revisions will require explicit compatibility decisions rather than label matching."
+  ],
+  "absenceOfEvidence": [
+    "No executable proof currently establishes global uniqueness of packageId, course IDs, activity IDs or contentVersion across publishers or devices.",
+    "No current contract binds package, course or activity revision IDs to immutable canonical payload digests.",
+    "No current migration proves atomic translation of every learner-state and patch reference to a new identity namespace.",
+    "No current mixed-version test proves legacy-only and canonical packages can coexist because the canonical envelope is not implemented.",
+    "No current synchronization evidence exists, and synchronization remains held."
+  ],
+  "verdict": {
+    "inventoryCompleteForDesign": true,
+    "implementationEvidence": false,
+    "migrationEvidence": false,
+    "decision": "Proceed only to ARC-WP-021 additive read-only identity resolver authorization"
+  }
+}
