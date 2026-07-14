@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "SMOKE-WORKTREE-003",
+  "baseCommit": "219bd464bc2e8147506389ba4de8766273306eab",
+  "branch": "agent/smoke-remote-worktree-v3",
+  "patchFile": ".agent-jobs/SMOKE-WORKTREE-003/change.patch",
+  "allowedPaths": [
+    "docs/evidence/**"
+  ],
+  "forbiddenPaths": [],
+  "testProfile": "repository",
+  "maxPatchBytes": 50000,
+  "maxChangedFiles": 2,
+  "maxChangedLines": 100,
+  "commitMessage": "Record remote agent worktree smoke evidence"
+}
