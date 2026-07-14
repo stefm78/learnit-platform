@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-013",
   "title": "Promote RC718 after RC719 and freeze the architecture restart checkpoint",
-  "status": "accepted-with-conditions",
+  "status": "accepted",
   "changeClass": "repository-governance",
   "riskClass": "moderate",
   "purpose": "Record the RC719 accountable-owner PASS_WITH_RESERVATIONS, promote the exact RC718 artifact as the standalone baseline, preserve non-blocking reservations as explicit debt, and establish a canonical restart gate before the controlled multi-AI pilot.",
