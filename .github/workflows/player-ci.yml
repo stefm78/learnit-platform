@@ -1,0 +1,202 @@
+name: Player CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/player/**'
+      - '.github/workflows/player-ci.yml'
+      - 'work-packages/QA-WP-010.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/player/**'
+      - '.github/workflows/player-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: player-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: '1'
+  PLAYER_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  inventory:
+    name: Browser suite inventory
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      browser_matrix: ${{ steps.inventory.outputs.browser_matrix }}
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.PLAYER_REF }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate declared and discovered browser suites
+        id: inventory
+        run: python apps/player/dev/ci_guard.py inventory --github-output "$GITHUB_OUTPUT"
+
+  build-contracts:
+    name: Clean build and mandatory contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.PLAYER_REF }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: apps/player/requirements-test.txt
+
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
+
+      - name: Build and run mandatory checks
+        run: make -C apps/player test-fast
+
+      - name: Reject an uncommitted source manifest
+        run: git diff --exit-code -- apps/player/source_manifest.json
+
+      - name: Record exact artifact and source identity
+        run: |
+          python apps/player/dev/ci_guard.py record \
+            --artifact apps/player/dist/learnit.html \
+            --output apps/player/reports/ci_artifact.json
+
+      - name: Run adversarial CI guard self-tests
+        run: python apps/player/dev/ci_guard.py self-test
+
+      - name: Upload the exact tested build envelope
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-ci-build-${{ github.run_id }}
+          path: |
+            apps/player/dist/learnit.html
+            apps/player/reports/ci_artifact.json
+            apps/player/reports/aggregate_report.json
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
+
+      - name: Upload mandatory failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-ci-mandatory-failure-${{ github.run_id }}
+          path: |
+            apps/player/reports/**
+          if-no-files-found: warn
+          retention-days: 14
+
+  browser:
+    name: ${{ matrix.id }}
+    needs:
+      - inventory
+      - build-contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.inventory.outputs.browser_matrix) }}
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.PLAYER_REF }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: apps/player/requirements-test.txt
+
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Download the exact build envelope
+        uses: actions/download-artifact@v4
+        with:
+          name: player-ci-build-${{ github.run_id }}
+          path: apps/player
+
+      - name: Verify build identity before the suite
+        run: |
+          python apps/player/dev/ci_guard.py verify \
+            --artifact apps/player/dist/learnit.html \
+            --manifest apps/player/reports/ci_artifact.json
+
+      - name: Run one bounded browser suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          suite='${{ matrix.suite }}'
+          timeout --kill-after=5s 120s python "$suite"
+          stem="$(basename "$suite" .py)"
+          report="apps/player/reports/${stem}_report.json"
+          test -s "$report"
+          printf 'REPORT_PATH=%s\n' "$report" >> "$GITHUB_ENV"
+
+      - name: Verify artifact and source identity after the suite
+        run: |
+          python apps/player/dev/ci_guard.py verify \
+            --artifact apps/player/dist/learnit.html \
+            --manifest apps/player/reports/ci_artifact.json
+
+      - name: Upload bounded suite evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-ci-${{ matrix.id }}-${{ github.run_id }}
+          path: |
+            ${{ env.REPORT_PATH }}
+            apps/player/reports/ci_artifact.json
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 6
+
+  gate:
+    name: gate
+    if: always()
+    needs:
+      - inventory
+      - build-contracts
+      - browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Require every independent player check
+        shell: bash
+        run: |
+          set -euo pipefail
+          test '${{ needs.inventory.result }}' = 'success'
+          test '${{ needs.build-contracts.result }}' = 'success'
+          test '${{ needs.browser.result }}' = 'success'
+          echo 'Permanent player CI passed.'
