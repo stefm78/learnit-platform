@@ -21,18 +21,6 @@
     const IMPORT_QUOTAS = Object.freeze({advisoryBytes:5000000,advisoryFiles:24,advisoryCourses:250,advisoryActivities:3000,hardFiles:100});
     const MAX_JOURNAL = 240;
 
-    const storage = (()=>{
-      const mem={};let backend=null,mode='memory-fallback',fault=null;const telemetry={reads:0,writes:0,removes:0,failures:0,lastFailure:null};
-      try{const probe='learnit_storage_probe';window.localStorage.setItem(probe,'1');window.localStorage.removeItem(probe);backend=window.localStorage;mode='localStorage';}catch(e){backend=null;}
-      const fail=(operation,key)=>{if(!fault||fault.operation!==operation||(fault.key&&fault.key!==key))return;const current=fault;fault=null;telemetry.failures+=1;telemetry.lastFailure={operation,key,name:current.name||'QuotaExceededError',at:new Date().toISOString()};throw new DOMException(current.message||'Synthetic storage fault',current.name||'QuotaExceededError');};
-      const getItem=key=>{const k=String(key);telemetry.reads+=1;fail('getItem',k);try{return backend?(backend.getItem(k)||''):(Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:'');}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'getItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};return '';}};
-      const setItem=(key,value)=>{const k=String(key),v=String(value);telemetry.writes+=1;fail('setItem',k);try{if(backend)backend.setItem(k,v);else mem[k]=v;}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'setItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
-      const removeItem=key=>{const k=String(key);telemetry.removes+=1;fail('removeItem',k);try{if(backend)backend.removeItem(k);else delete mem[k];}catch(error){telemetry.failures+=1;telemetry.lastFailure={operation:'removeItem',key:k,name:error&&error.name||'Error',at:new Date().toISOString()};throw error;}};
-      const dump=()=>{if(!backend)return {...mem};const out={};for(let i=0;i<backend.length;i++){const key=backend.key(i);if(key&&key.startsWith('learnit_'))out[key]=backend.getItem(key)||'';}return out;};
-      const report=()=>Object.freeze({schema:'learnit.storage_adapter.rc685.v1',mode,...telemetry,lastFailure:telemetry.lastFailure?{...telemetry.lastFailure}:null});
-      const injectFaultOnce=spec=>{fault={operation:String(spec&&spec.operation||'setItem'),key:String(spec&&spec.key||''),name:String(spec&&spec.name||'QuotaExceededError'),message:String(spec&&spec.message||'Synthetic storage fault')};return true;};
-      return Object.freeze({getItem,setItem,removeItem,dump,report,injectFaultOnce});
-    })();
     const deepClone = value => JSON.parse(JSON.stringify(value));
     const nowIso = () => new Date().toISOString();
     const weakPhrases = [
