@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-014-COMPLETE-FIRST-STORAGE-SEAM",
+  "baseCommit": "f272c81f172b7d3c46a708bc5277b8401b15db1a",
+  "branch": "agent/arc-wp-014-complete-first-storage-seam-result",
+  "patchFile": ".agent-jobs/ARC-WP-014-COMPLETE-FIRST-STORAGE-SEAM/change.patch",
+  "allowedPaths": [
+    "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+    "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+    "apps/player/source_manifest.json",
+    "apps/player/docs/OWNER_MAP.json",
+    "apps/player/tests/contract_storage_boundary.py",
+    "apps/player/dev/checks_registry.json",
+    "apps/player/dev/evidence_coverage.json",
+    "apps/player/dev/release_config.json"
+  ],
+  "forbiddenPaths": [
+    ".github/**",
+    "governance/**",
+    "docs/architecture/**",
+    "docs/governance/**",
+    "docs/evidence/**",
+    "work-packages/**",
+    "contracts/**",
+    "platform/**",
+    "apps/player/contract/**",
+    "apps/player/authoring/**",
+    "apps/player/dev/run_all_checks.py",
+    "apps/player/dev/update_manifest.py",
+    "apps/player/src/scripts/core/runtime_parts/05_durable_library_store.js",
+    "apps/player/src/scripts/core/runtime_parts/10_content_store_and_state.js",
+    "apps/player/dist/**",
+    "apps/player/reports/**",
+    "apps/player/release/**"
+  ],
+  "testProfile": "player-full",
+  "commitMessage": "Apply complete first reversible storage seam",
+  "maxPatchBytes": 65000,
+  "maxChangedFiles": 8,
+  "maxChangedLines": 280
+}
