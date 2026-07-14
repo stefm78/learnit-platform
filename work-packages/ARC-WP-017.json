@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-017",
+  "title": "Rebind the first reversible seam after Remote Agent observability repair",
+  "status": "accepted",
+  "changeClass": "architecture-execution-governance",
+  "riskClass": "high",
+  "purpose": "Authorize one final fresh ARC-WP-014 execution after GOV-WP-016 made failed Remote Agent results observable. The reviewed storage seam, role scopes and product invariants remain unchanged. The executable branch must be created from exact current main immediately after this authorization is merged, and no prior branch or partial result may be reused.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "b038f644d3a7d524077bf9a4b3e04ea8911a6357",
+    "candidateName": "observable fresh first reversible storage seam",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-017.json",
+      "work-packages/ARC-WP-014.json",
+      "docs/governance/reviews/GOV-REVIEW-0017-ARC-WP-014-OBSERVABLE-REBIND.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "governance/governor-state.json",
+      "tools/**",
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      "docs/architecture/**",
+      "docs/evidence/**"
+    ]
+  },
+  "invariants": [
+    "ARC-WP-010 remains the accepted seam design and is not reopened.",
+    "The ARC-WP-014 seven-file implementation scope and disjoint developer, QA and integrator ownership remain unchanged.",
+    "The new executable base is the exact current main SHA captured immediately after this authorization is merged.",
+    "Any intervening main drift invalidates the execution branch.",
+    "No prior ARC-WP-014 branch, tested result or diagnostic result may be reused or merged.",
+    "The Remote Agent profile remains player-full and permanent Player CI remains mandatory on the exact tested result.",
+    "A failed run must produce the GOV-WP-016 failure-diagnostics artifact; that artifact is evidence of failure only, never acceptance evidence.",
+    "No storage technology, key, payload, identifier, caller, UI, behavior, product identity, test runner or fingerprint algorithm changes.",
+    "Stage D remains blocked until a separate governor acceptance of Stage C is merged."
+  ],
+  "requiredEvidence": [
+    "merged GOV-WP-016 authorization and workflow implementation",
+    "post-merge exact current main SHA captured immediately before agent branch creation",
+    "fresh Remote Agent envelope, applied patch and tested result tied to the same branch",
+    "failure-diagnostics artifact if any validation command fails",
+    "full player-full result including mandatory and browser checks",
+    "Remote agent worktree / tested result success on the result commit",
+    "Player CI / gate, PR scope / gate and repository governance success on the exact result",
+    "contradictory QA review, integrator review and rollback proof",
+    "separate governor acceptance before Stage D"
+  ],
+  "adversarialTests": [
+    "fail if the fresh agent base is not exact current main after this authorization merge",
+    "fail if any old branch or partial result is reused",
+    "fail if the implementation differs from ARC-WP-014 beyond correcting the previously identified direct IndexedDB ownership test false positive",
+    "fail if the failure artifact contains secrets or is presented as a tested result",
+    "fail if any existing gate is bypassed or weakened",
+    "fail if role write scopes overlap",
+    "fail if any unrelated file changes",
+    "fail if rollback requires data migration or remote compensation"
+  ],
+  "nonGoals": [
+    "redesign the storage seam",
+    "change the Remote Agent workflow again",
+    "change product behavior or RC718 identity",
+    "accept Stage C",
+    "start Stage D",
+    "introduce IndexedDB migration, backend, accounts, synchronization, catalog or commerce"
+  ],
+  "independentReview": [
+    "Repository governance validates the authorization records",
+    "PR scope confirms governance-only changes",
+    "Remote Agent Worktree produces the exact fresh result",
+    "Contradictory QA and integrator inspect disjoint scopes",
+    "The governor issues a separate Stage C decision"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "authorizedAt": "2026-07-14",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "supersedesExecutionBranches": [
+      "agent/arc-wp-014-first-storage-seam-result"
+    ],
+    "requiredFreshBranch": "agent/arc-wp-014-observable-first-storage-seam-result",
+    "requiredTestProfile": "player-full",
+    "stageC": "authorized-not-complete",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Close the fresh implementation pull request without merge and leave Stage C in HOLD. This authorization changes no product source, artifact or learner data."
+}
