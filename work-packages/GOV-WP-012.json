@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-012",
   "title": "Clean stale branches and enforce branch hygiene",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "repository-governance",
   "riskClass": "high",
   "purpose": "Remove branches that are proven safe to delete and automatically delete future same-repository pull-request head branches after closure, while preserving main, open pull-request branches, and unproven orphan branches.",
@@ -57,23 +57,60 @@
     "delete tags",
     "rewrite Git history",
     "delete open pull-request branches",
-    "delete unproven orphan branches",
+    "delete unproven orphan branches without an explicit closure record",
     "change player runtime or architecture"
   ],
   "independentReview": [
     "Repository governance workflow",
     "PR scope gate",
-    "post-merge branch inventory review"
+    "post-merge branch inventory review",
+    "explicit closure review of the two retained smoke branches"
   ],
   "implementation": {
     "workflow": ".github/workflows/branch-hygiene.yml",
     "script": "tools/cleanup_branches.py",
     "automaticEvents": [
       "pull_request.closed",
-      "initial main push containing the workflow"
+      "main push changing the workflow or cleanup engine",
+      "workflow_dispatch"
     ],
     "deletionPolicy": "closed-pull-request-head-or-fully-merged-only",
-    "reportRetentionDays": 14
+    "reportRetentionDays": 14,
+    "implementationMerge": "7583ed077a80090678944d48309147ef851b60ec",
+    "reportingMerge": "7212a8681d12cee693415588b6b9b0e1564ad3f5",
+    "permissionFixMerge": "15eb22b3495e75e224169d8c35f40946b7de6978",
+    "successfulInventoryRun": 29324362246
+  },
+  "acceptance": {
+    "decision": "GO",
+    "acceptedAt": "2026-07-14",
+    "initialInventory": {
+      "branchesObserved": 3,
+      "defaultBranch": "main",
+      "defaultBranchUnchanged": true,
+      "retainedOpenPullRequestBranches": 0,
+      "retainedUnprovenOrphans": [
+        "agent/smoke-remote-worktree",
+        "agent/smoke-remote-worktree-v2"
+      ],
+      "deletionFailures": 0
+    },
+    "orphanDisposition": [
+      {
+        "branch": "agent/smoke-remote-worktree",
+        "closurePullRequest": 37,
+        "decision": "closed-without-merge-as-obsolete-smoke-evidence",
+        "branchVerifiedAbsent": true
+      },
+      {
+        "branch": "agent/smoke-remote-worktree-v2",
+        "closurePullRequest": 38,
+        "decision": "closed-without-merge-as-obsolete-smoke-evidence",
+        "branchVerifiedAbsent": true
+      }
+    ],
+    "finalExpectedBranchState": "main-only when no pull request is open",
+    "residualCondition": "GitHub administrative ruleset configuration remains tracked separately by issue 27."
   },
   "rollback": "Revert the workflow, script, documentation, and work package. Deleted branch names are not recreated automatically, but their commits remain recoverable through merged or closed pull-request history where applicable."
 }
