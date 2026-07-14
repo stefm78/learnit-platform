@@ -13,6 +13,7 @@ Implementation, contract publication, identity-overlay writes and learner-state 
 - Product baseline: RC718
 - Human gate: RC719 `PASS_WITH_RESERVATIONS`
 - Player working-file count: 150
+- Pull-request scope is bound only to `ARC-WP-020`; later work-package references describe future gates and do not authorize concurrent implementation.
 
 ## Evidence reviewed
 
