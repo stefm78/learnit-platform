@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "UX-WP-020",
   "title": "Make imported plan names editable",
-  "status": "under-qa",
+  "status": "human-gate",
   "changeClass": "product-behavior",
   "riskClass": "moderate",
   "purpose": "Allow the user-facing name of an imported plan or collection to be chosen during import and renamed later from the Library without changing technical package identity or losing learner state.",
@@ -68,6 +68,7 @@
   ],
   "result": {
     "automationReady": true,
+    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
     "humanValidation": "pending-rc719",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
     "targetedAutomatedSuites": "PASS"
