@@ -107,6 +107,7 @@
     ],
     "storage-resilience": [
       "tests/contract_import_surface.py",
+      "tests/contract_storage_boundary.py",
       "tests/browser_storage_resilience.py",
       "tests/browser_scale_progress_import.py",
       "tests/browser_interruption_resilience.py"
