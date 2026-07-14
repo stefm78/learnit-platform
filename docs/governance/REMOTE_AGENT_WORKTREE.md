@@ -28,7 +28,7 @@ The workflow rejects forks and never pushes directly to `main`.
 
 - `repository`: repository governance validation only.
 - `player-fast`: player build and mandatory non-browser checks through `make -C apps/player test-fast`.
-- `player-targeted`: an explicit non-empty list of Python tests under `apps/player/tests/`; Chromium is installed.
+- `player-targeted`: rebuilds the player, then runs an explicit non-empty list of Python tests under `apps/player/tests/`; Chromium is installed.
 - `player-full`: full player test command through `make -C apps/player test`; Chromium is installed.
 
 A job cannot supply arbitrary shell commands.
