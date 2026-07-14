@@ -2,11 +2,11 @@
 
 ## Canonical status
 
-This file is the concise restart point after acceptance of the first controlled Stage D pilot.
+This file is the concise restart point after acceptance of the controlled Stage D pilot and the design-only stable-identity gate.
 
 Repository state always takes precedence over this checkpoint. On restart, verify current `main`, `governance/governor-state.json`, accepted work packages and exact evidence before acting. Historical handovers are not canonical when they conflict with the repository.
 
-Checkpoint base: `eb296c14825d1a624c96806ee3eba073e6225b69`.
+Identity-design baseline: `e9d3f1f36d34170111b6b583bc7d9219e68e03ab`.
 
 ## Product baseline
 
@@ -71,16 +71,49 @@ Exact evidence:
 
 The Stage D operating model is validated for future bounded work packages. This does not authorize broad parallel refactoring.
 
+### Stable identity and migration design
+
+`ARC-WP-020` is accepted with conditions as a **design-only** gate.
+
+The accepted scheme is `learnit-identity-v1`. It separates:
+
+1. canonical package, course, objective, activity, asset and revision lineage;
+2. local plan and course installation identities;
+3. current legacy compatibility keys such as `packageId`, `importPackageId`, `localCourseId`, activity `id`, normalized objective text and `contentVersion`.
+
+Core decisions:
+
+- canonical IDs are opaque, immutable and independent of titles, labels, ordering and local collision suffixes;
+- `learnit.import.v1.1` fields retain their current meaning and are not silently promoted to canonical identity;
+- canonical identity envelopes must be complete and digest-consistent or be rejected;
+- legacy-only content remains usable but is not globally deduplicated by title, slug, order, file name or digest inference;
+- two local installations of one canonical course remain separate progress namespaces;
+- historical learner evidence is retained across revisions but counted toward current mastery only under explicit compatibility rules;
+- migration is overlay-first, transactional and reversible, with legacy reads preserved through a compatibility window.
+
+Canonical design and evidence:
+
+- Work package: `work-packages/ARC-WP-020.json`.
+- Decision: `docs/architecture/decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md`.
+- Exact current-source inventory: `docs/evidence/architecture/stable-identity/current-identity-inventory.json`.
+- Governor review: `docs/governance/reviews/GOV-REVIEW-0022-ARC-WP-020-STABLE-IDENTITY-DESIGN.md`.
+
+No identifier, contract, runtime, stored data or product behavior has been changed. Identity implementation and learner-state migration remain blocked.
+
 ## Current constraints
 
-- The Player working-file count is exactly **150**, equal to the enforced budget. Do not add another Player file without removing or consolidating one, or accepting a dedicated budget change.
+- The Player working-file count is exactly **150**, equal to the enforced budget. The next implementation seam must modify existing files or remove/consolidate one before adding another.
 - The `main-protection` ruleset is configured but not technically enforced on this private personal-account repository. Pull requests, CI, scope validation and governor review remain mandatory operational controls.
+- Current RC718 identity is proven for local rename-safe progress, not for global lineage across devices or publishers.
 - RC719 reservations are not yet itemized.
 - The accepted first storage seam and RC718 product identity are frozen unless a dedicated work package says otherwise.
 
 ## Still held
 
-- Stable global identifier implementation or migration.
+- Writing canonical identity overlays.
+- Rewriting learner-state, progress, bilan, session, retention, import-history or patch keys.
+- Publishing or requiring a new import-contract version.
+- Removing or reinterpreting legacy identity fields.
 - Player-wide architecture refactoring.
 - localStorage-to-IndexedDB migration.
 - Backend, accounts and learner profiles.
@@ -89,25 +122,27 @@ The Stage D operating model is validated for future bounded work packages. This 
 
 ## Next mandatory gate
 
-`ARC-WP-020` must be **design-only**.
+`ARC-WP-021` may authorize only an **additive read-only identity resolver and shadow diagnostic**.
 
-It must define stable global identifiers and migration strategy before implementation, including:
+It must:
 
-- inventory of current technical IDs and editable labels;
-- persistence, progress and import/export payload dependencies;
-- collision and compatibility rules;
-- migration order and mixed-version handling;
-- rollback and failure recovery;
-- adversarial cases and evidence requirements;
-- exact future role scopes.
+- start from exact current `main`;
+- classify complete canonical, legacy-only and invalid-partial identity;
+- preserve every current legacy key and all existing behavior;
+- perform no identity-overlay write and no learner-state migration;
+- change no import decision, UI, product identity or storage ownership;
+- modify exact existing Player files so the working-file count remains 150;
+- use explicit disjoint developer, contradictory-QA, integrator and governor scopes;
+- pass permanent Player CI and separate governor acceptance;
+- provide one-revert rollback.
 
-It must not change Player runtime, stored data, product identity or a held platform domain.
+Contract publication, canonical identity writes and migration require later independent gates.
 
 ## Restart instruction
 
 Use this instruction in a future session:
 
-> Reprends le dépôt privé `stefm78/learnit-platform` depuis `docs/handover/STAGE_D_RESTART_CHECKPOINT.md`. Vérifie d’abord l’état réel de `main`, `governance/governor-state.json`, les work packages acceptés, les PR ouvertes et les checks. Considère Stage B, Stage C et le pilote Stage D comme acquis seulement si le dépôt et les preuves exactes le confirment. La prochaine étape autorisée est le design-only `ARC-WP-020` sur les identifiants stables et la migration; n’implémente aucun changement d’identifiant, de stockage, de backend ou de synchronisation. Préserve RC718, la première couture, le budget de 150 fichiers Player et les périmètres de rôles disjoints. Le dépôt prévaut sur tout ancien handover.
+> Reprends le dépôt privé `stefm78/learnit-platform` depuis `docs/handover/STAGE_D_RESTART_CHECKPOINT.md`. Vérifie d’abord l’état réel de `main`, `governance/governor-state.json`, les work packages acceptés, les PR ouvertes et les checks. Considère Stage B, Stage C, le pilote Stage D et le design-only `ARC-WP-020` comme acquis seulement si le dépôt et les preuves exactes le confirment. La prochaine étape autorisée est `ARC-WP-021`, limitée à un résolveur d’identité en lecture seule et un diagnostic fantôme dans des fichiers Player existants. N’écris aucun overlay d’identité, ne migre aucune donnée ou clé historique, ne publie aucun nouveau contrat et n’entre dans aucun domaine backend ou synchronisation. Préserve RC718, la première couture, le budget de 150 fichiers Player et les périmètres de rôles disjoints. Le dépôt prévaut sur tout ancien handover.
 
 ## Resume verification
 
@@ -117,7 +152,8 @@ Before any new action, confirm:
 2. governor state and next mandatory gate;
 3. promoted RC718 artifact hash;
 4. accepted Stage C and Stage D evidence roots;
-5. permanent Player CI, PR scope and repository governance status;
-6. Player working-file count;
-7. active risks and the unenforced-ruleset exception;
-8. that no held domain has been entered.
+5. accepted ARC-WP-020 ADR, inventory and governor review;
+6. permanent Player CI, PR scope and repository governance status;
+7. Player working-file count;
+8. active risks and the unenforced-ruleset exception;
+9. that no held identity, storage or platform domain has been entered.
