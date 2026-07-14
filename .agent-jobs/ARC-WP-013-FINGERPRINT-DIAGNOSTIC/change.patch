@@ -57,7 +57,7 @@ diff --git a/apps/player/tests/runtime_fingerprint_diagnostic.py b/apps/player/t
 new file mode 100644
 --- /dev/null
 +++ b/apps/player/tests/runtime_fingerprint_diagnostic.py
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,53 @@
 +#!/usr/bin/env python3
 +from __future__ import annotations
 +
