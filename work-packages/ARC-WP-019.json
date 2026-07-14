@@ -5,10 +5,11 @@
   "status": "accepted",
   "changeClass": "bounded-repository-quality-tooling",
   "riskClass": "moderate",
-  "purpose": "Run the first controlled Stage D multi-agent pilot by adding a deterministic role-scope ownership report and its adversarial contract. The pilot proves that changed paths can be assigned to exactly one developer, contradictory-QA, integrator or governor scope before broader parallel work is considered. It changes no Player runtime, storage behavior, product identity, release artifact, platform domain or accepted first seam.",
+  "purpose": "Validate the first controlled Stage D multi-agent operating model by adding a deterministic role-scope ownership report and its adversarial contract. The accepted pilot proves that changed paths can be assigned to exactly one developer, contradictory-QA, integrator or governor scope while preserving the Player runtime, storage boundary, product identity, release artifact and held platform domains.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
+    "authorizationBaseCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
+    "executionBaseCommit": "d65189b7ef59ccb74ba02c6c6ac96a212895a1e9",
     "candidateName": "stage-d-role-scope-ownership-pilot",
     "promotedProductBaseline": "RC718",
     "promotedArtifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
@@ -65,29 +66,29 @@
   },
   "invariants": [
     "Developer, contradictory-QA, integrator and governor write scopes are explicit, machine-checkable and pairwise disjoint.",
-    "The implementation pull request changes exactly four Player paths: one developer tool, one QA contract, the mandatory registry and the evidence coverage map.",
-    "Only two new files are added under apps/player, keeping the Player working-file budget at or below 150.",
-    "No Player runtime source, source manifest, release configuration, artifact, storage owner, key, payload, UI, UX, pedagogy or product identity changes.",
-    "The accepted first reversible storage seam remains unchanged.",
+    "The implementation pull request changed exactly four Player paths: one developer tool, one QA contract, the mandatory registry and the evidence coverage map.",
+    "Only two files were added under apps/player, keeping the Player working-file count at the authorized ceiling of 150.",
+    "No Player runtime source, source manifest, release configuration, artifact, storage owner, key, payload, UI, UX, pedagogy or product identity changed.",
+    "The accepted first reversible storage seam remained unchanged.",
     "The new contract is registered exactly once as mandatory and mapped exactly once to the existing source-and-build evidence surface.",
-    "No existing mandatory registry entry or evidence-map entry is removed, moved or modified.",
+    "No existing mandatory registry entry or evidence-map entry was removed, moved or modified.",
     "The report is deterministic: equivalent inputs produce byte-equivalent JSON after canonical serialization.",
     "Every changed path is normalized and assigned to exactly one role; unowned or multiply-owned paths make the report fail.",
     "Absolute paths, parent traversal and empty paths are rejected.",
-    "The tool performs no network access, command execution or repository mutation; it writes only an explicitly requested output file.",
-    "The Remote Agent execution uses player-fast; permanent Player CI remains the complete behavioral gate.",
-    "Stage D expansion remains blocked until this pilot receives separate governor acceptance."
+    "The tool performs no network access, command execution or implicit repository mutation; it writes only an explicitly requested output file.",
+    "The exact result was produced through Remote Agent player-fast and passed permanent Player CI.",
+    "Stage D operating-model reuse is allowed only through future bounded work packages; broad architecture implementation remains design-gated."
   ],
   "requiredEvidence": [
     "governance-only authorization pull request with Repository governance and PR scope green",
     "post-merge exact current main SHA captured immediately before fresh agent-branch creation",
     "Remote Agent envelope, patch application and player-fast result on one exact branch",
     "mandatory contract report covering positive and adversarial role-scope cases",
-    "permanent Player CI, PR scope and repository governance green on the exact tested result",
+    "permanent Player CI, PR scope, repository governance and branch hygiene green on the exact tested result",
     "complete changed-path inventory and role-owner assignment",
     "contradictory QA review independent of developer paths",
     "integrator provenance, determinism, evidence-map and rollback review",
-    "separate governor acceptance before Stage D expands"
+    "separate governor acceptance"
   ],
   "adversarialTests": [
     "fail when one changed path matches two role scopes by exact pattern",
@@ -110,25 +111,45 @@
     "introduce canonical learner or content identifiers",
     "migrate localStorage or IndexedDB",
     "add backend, accounts, synchronization, catalog, commerce, tenancy or marketplace",
-    "authorize more than one controlled Stage D pilot",
+    "authorize broad architecture implementation",
     "replace canonical PR scope or Remote Agent validation"
   ],
   "independentReview": [
-    "Developer owns only role_scope_report.py",
-    "Contradictory QA owns only contract_role_scope.py",
-    "Integrator owns only registry, evidence coverage and durable pilot evidence",
-    "Governor owns only the work package, governor state and decisions",
-    "Remote Agent Worktree, permanent Player CI, PR scope and repository governance remain independent automated controls"
+    "Developer owned only role_scope_report.py",
+    "Contradictory QA owned only contract_role_scope.py",
+    "Integrator owned only registry, evidence coverage and durable pilot evidence",
+    "Governor owned only the work package, governor state and decisions",
+    "Remote Agent Worktree, permanent Player CI, PR scope, branch hygiene and repository governance remained independent automated controls"
   ],
   "result": {
     "decision": "GO_WITH_CONDITIONS",
     "authorizedAt": "2026-07-14",
+    "acceptedAt": "2026-07-14",
     "implementationAllowed": true,
-    "implementationAccepted": false,
-    "requiredAgentBranch": "agent/arc-wp-019-role-scope-report-pilot",
-    "requiredTestProfile": "player-fast",
-    "stageD": "pilot-authorized-not-complete",
-    "stageDExpansionAllowed": false
+    "implementationAccepted": true,
+    "executionBaseCommit": "d65189b7ef59ccb74ba02c6c6ac96a212895a1e9",
+    "triggerCommit": "c0101bde910c8f3a47ce7f981a4e939a55176589",
+    "testedResultCommit": "5e379eea7ae3b495be2203355425e6549b8fcec5",
+    "mergeCommit": "ae6b82d90b72f0287462c7d34708d0330d5ce35b",
+    "pullRequest": 72,
+    "remoteAgentRun": 29356520176,
+    "permanentPlayerCiRun": 29356634330,
+    "prScopeRun": 29356634403,
+    "repositoryGovernanceRun": 29356634257,
+    "branchHygieneRun": 29356610995,
+    "resultEnvelopeDigest": "sha256:c4c6123c58caf8c070f47fe7c19970cabfa12b41bbd846caf517bd0b7361fb13",
+    "resultPatchSha256": "cf93ecf7ca553712e957a397fd3b94a392f34e7782a1e58554e7c3447ec15af5",
+    "testedArtifactSha256": "9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861",
+    "mandatoryChecks": "36/36",
+    "roleScopeContract": "20/20",
+    "permanentBrowserSuites": "24/24",
+    "evidenceBindings": "35/35",
+    "acceptanceReview": "docs/governance/reviews/GOV-REVIEW-0020-STAGE-D-PILOT-ACCEPTANCE.md",
+    "evidenceRoot": "docs/evidence/architecture/stage-d-pilot",
+    "stageD": "pilot-accepted",
+    "stageDOperatingModelValidated": true,
+    "stageDExpansionAllowed": false,
+    "nextAllowedGate": "design-only stable identity and migration work package"
   },
-  "rollback": "Revert the pilot implementation merge: remove role_scope_report.py and contract_role_scope.py, restore checks_registry.json and evidence_coverage.json, and retain the governance history. No Player artifact, learner data, storage, identifier or remote-system migration is involved."
+  "rollback": "Revert merge commit ae6b82d90b72f0287462c7d34708d0330d5ce35b through a reviewed pull request. This removes role_scope_report.py and contract_role_scope.py and restores checks_registry.json and evidence_coverage.json. No Player artifact, learner data, storage, identifier or remote-system migration is involved."
 }
