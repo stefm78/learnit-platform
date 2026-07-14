@@ -20,6 +20,7 @@
       "apps/player/source_manifest.json",
       "apps/player/docs/OWNER_MAP.json",
       "apps/player/tests/contract_storage_boundary.py",
+      "apps/player/dev/checks_registry.json",
       "docs/evidence/architecture/first-storage-seam/**",
       "docs/governance/reviews/GOV-REVIEW-0009-ARC-WP-011-AUTHORIZATION.md",
       "docs/governance/reviews/GOV-REVIEW-0010-FIRST-SEAM-ACCEPTANCE.md",
@@ -67,8 +68,9 @@
     "All existing ContentStore, AppState, performance and test-API callers remain unchanged.",
     "No learner-facing UI, copy, navigation, activity, import, persistence behavior, progression, bilan or recommendation changes are introduced.",
     "Developer and adversarial QA write scopes are disjoint.",
+    "QA may change the checks registry only by adding tests/contract_storage_boundary.py to the mandatory list; every existing registry entry and policy remains unchanged.",
     "The implementation is prepared through the Remote Agent Worktree from the exact base commit and is not merged autonomously.",
-    "The exact result commit passes the Remote Agent tested-result status, permanent Player CI, PR scope and full player test profile.",
+    "The exact result commit passes the Remote Agent tested-result status, permanent Player CI, PR scope and full player test profile including the focused contract.",
     "Rollback is a single revert and requires no learner-data migration or remote compensation.",
     "Stage D remains blocked until the implementation is merged and separately accepted by the governor."
   ],
@@ -76,6 +78,7 @@
     "exact Remote Agent base and result commit SHAs",
     "complete changed-file inventory",
     "focused storage-boundary contract test authored independently from implementation files",
+    "focused contract registered as one additional mandatory Player CI check",
     "full player test result on the exact result commit",
     "Remote agent worktree / tested result success on the exact result commit",
     "Player CI / gate success on the exact result commit",
@@ -89,7 +92,8 @@
   ],
   "adversarialTests": [
     "fail if any implementation file outside the four developer paths changes",
-    "fail if QA modifies an implementation path or developer modifies the QA test path",
+    "fail if QA modifies an implementation path or developer modifies either QA path",
+    "fail if the checks registry changes by anything other than adding tests/contract_storage_boundary.py to mandatory",
     "fail if window.localStorage remains in runtime part 00 or appears in any runtime source other than part 04",
     "fail if indexedDB ownership moves or part 05 changes",
     "fail if any frozen key or storage payload marker changes",
@@ -108,12 +112,13 @@
     "refactor ContentStore, AppState or any caller",
     "change player features, UX, accessibility, pedagogy or RC719 reservations",
     "change release identity or publish a new product release",
+    "change the test runner, registry schema, release policy or any existing check",
     "add backend, accounts, synchronization, catalog, commerce, institutions or marketplace",
     "start or complete Stage D"
   ],
   "independentReview": [
     "Developer through Remote Agent Worktree limited to the four implementation paths",
-    "Adversarial QA limited to apps/player/tests/contract_storage_boundary.py and read-only review elsewhere",
+    "Adversarial QA limited to apps/player/tests/contract_storage_boundary.py and the single mandatory registry addition, with read-only review elsewhere",
     "Integrator limited to evidence/provenance records and read-only source/test inspection",
     "Architecture and Repository Governor limited to work-package, state and review records",
     "permanent GitHub Actions Player CI and PR scope checks"
@@ -126,7 +131,8 @@
       "apps/player/docs/OWNER_MAP.json"
     ],
     "qaWritePaths": [
-      "apps/player/tests/contract_storage_boundary.py"
+      "apps/player/tests/contract_storage_boundary.py",
+      "apps/player/dev/checks_registry.json"
     ],
     "integratorWritePaths": [
       "docs/evidence/architecture/first-storage-seam/**"
@@ -148,5 +154,5 @@
     "stageC": "authorized-not-complete",
     "stageDEntryAllowed": false
   },
-  "rollback": "Revert the Stage C implementation pull request. The adapter returns to runtime part 00, runtime part 04 and the focused test are removed, the source manifest and owner map return to their prior state, and no learner-data or remote-system migration is required."
+  "rollback": "Revert the Stage C implementation pull request. The adapter returns to runtime part 00, runtime part 04 and the focused test are removed, the source manifest, owner map and mandatory test registry return to their prior state, and no learner-data or remote-system migration is required."
 }
