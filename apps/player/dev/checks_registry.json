@@ -38,7 +38,8 @@
     "tests/mutation_learning_contracts.py",
     "tests/contract_clean_room.py",
     "tests/contract_library_persistence_naming.py",
-    "tests/contract_storage_boundary.py"
+    "tests/contract_storage_boundary.py",
+    "tests/contract_role_scope.py"
   ],
   "browser": [
     "tests/browser_navigation.py",

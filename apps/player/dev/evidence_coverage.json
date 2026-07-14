@@ -11,7 +11,8 @@
       "tests/contract_architecture_inventory.py",
       "tests/contract_css_cleanup.py",
       "tests/contract_runtime_namespace.py",
-      "tests/contract_clean_room.py"
+      "tests/contract_clean_room.py",
+      "tests/contract_role_scope.py"
     ],
     "activities-static": [
       "tests/activity_order.py",
