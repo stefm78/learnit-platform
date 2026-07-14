@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-012",
+  "title": "Register the focused first-seam contract in full Player CI",
+  "status": "accepted",
+  "changeClass": "architecture-gate-correction",
+  "riskClass": "moderate",
+  "purpose": "Correct a pre-implementation evidence gap by authorizing adversarial QA to register its new focused storage-boundary contract in the existing full Player CI registry, without changing implementation scope or product behavior.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "fbf0929128b0e00fc89b11ab5bbe063badc30735",
+    "candidateName": "first-seam focused-test registration amendment",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-012.json",
+      "work-packages/ARC-WP-011.json",
+      "docs/architecture/seams/ARC-WP-010_LOCAL_STORAGE_PORT.md",
+      "docs/governance/reviews/GOV-REVIEW-0010-STORAGE-SEAM-TEST-REGISTRATION.md",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      ".github/**",
+      "tools/**",
+      "contracts/**",
+      "platform/**"
+    ]
+  },
+  "invariants": [
+    "This correction changes design and governance records only; no player source, test or registry file changes in this pull request.",
+    "The developer implementation paths accepted by ARC-WP-010 remain unchanged.",
+    "The only new future QA write path is apps/player/dev/checks_registry.json, solely to add tests/contract_storage_boundary.py to the mandatory list.",
+    "The registry RC, policy, build command, browser list, existing mandatory entries and report paths remain unchanged.",
+    "The focused contract remains authored in apps/player/tests/contract_storage_boundary.py and implementation files remain forbidden to QA.",
+    "The Remote Agent profile remains player-full so the new focused test and every existing mandatory and browser check execute through the ordinary release path.",
+    "No storage key, data shape, identifier, technology, UI or behavior change is authorized.",
+    "Stage D remains blocked."
+  ],
+  "requiredEvidence": [
+    "inspection of apps/player/dev/run_all_checks.py showing full checks are registry-driven",
+    "inspection of apps/player/dev/checks_registry.json showing the focused test is not currently registered",
+    "amended disjoint role scopes",
+    "Repository governance and PR scope passes on the exact amendment head",
+    "governor review GOV-REVIEW-0010"
+  ],
+  "adversarialTests": [
+    "verify only one new mandatory registry entry is authorized",
+    "verify no existing mandatory or browser test may be removed or reordered to hide a failure",
+    "verify QA registry ownership does not permit edits to build scripts, release configuration or workflows",
+    "verify developer implementation paths remain unchanged",
+    "verify Stage C remains unaccepted and Stage D remains blocked"
+  ],
+  "nonGoals": [
+    "implement the seam",
+    "write or register any test other than the focused storage-boundary contract",
+    "change the test runner, registry schema, release policy or browser suite",
+    "change player runtime, product behavior or storage",
+    "accept Stage C",
+    "start Stage D"
+  ],
+  "independentReview": [
+    "Architecture and Repository Governor",
+    "Repository governance workflow",
+    "PR scope / gate",
+    "future exact-result Player CI evidence"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "authorizedQaRegistryChange": "add tests/contract_storage_boundary.py to mandatory checks only",
+    "stageC": "authorized-not-complete",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert this design amendment. No player file, test registry, artifact or learner data is changed by the amendment itself."
+}

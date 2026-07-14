@@ -6,6 +6,8 @@
 
 This document defines one deliberately small seam. It does not authorize a storage migration, a data-model change, an identifier change, a UI change or a platform feature.
 
+**Evidence-gate amendment:** ARC-WP-012 adds one QA-owned path, `apps/player/dev/checks_registry.json`, solely to register `tests/contract_storage_boundary.py` in the existing mandatory full Player CI list. It does not broaden developer scope or product behavior.
+
 ## Exact design baseline
 
 - Repository: `stefm78/learnit-platform`
@@ -94,8 +96,9 @@ It becomes the sole owner of the existing synchronous `storage` adapter and the 
    - `00_runtime_boot_and_content_library.js` owns boot, built-in content and storage key declarations;
    - `04_local_storage_port.js` owns the synchronous local storage port, memory fallback, telemetry and fault injection;
    - `05_durable_library_store.js` remains the IndexedDB durable snapshot owner.
-5. Add a focused contract test owned by QA.
-6. Rebuild using the existing deterministic build; allow generated manifest fingerprints to change only as a consequence of the moved source boundary.
+5. Add the focused `apps/player/tests/contract_storage_boundary.py` contract test, owned by adversarial QA.
+6. Add only `tests/contract_storage_boundary.py` to the existing `mandatory` list in `apps/player/dev/checks_registry.json`; do not alter any existing entry, policy, runner or browser list.
+7. Rebuild using the existing deterministic build; allow generated manifest fingerprints to change only as a consequence of the moved source boundary.
 
 The runtime bundle remains one ordered lexical closure. The name `storage`, its API, all callers and all key constants remain unchanged. No dependency injection framework or new abstraction hierarchy is introduced.
 
@@ -112,7 +115,7 @@ Allowed implementation paths only:
 
 Forbidden to the developer:
 
-- all tests;
+- all tests and the check registry;
 - contracts and authoring assets;
 - workflows, governance, architecture and work packages;
 - every other runtime source;
@@ -120,11 +123,12 @@ Forbidden to the developer:
 
 ### Adversarial QA scope
 
-Allowed test path only:
+Allowed QA paths only:
 
 - `apps/player/tests/contract_storage_boundary.py`
+- `apps/player/dev/checks_registry.json`, limited to one added mandatory entry for that focused test
 
-QA must not edit implementation files. Existing tests may be executed but not altered.
+QA must not edit implementation files. Existing tests may be executed but not altered. The registry schema, RC, policy, build command, reports, existing mandatory checks and browser checks are frozen.
 
 ### Integrator scope
 
@@ -147,7 +151,8 @@ The new QA test must prove:
 5. `04_local_storage_port.js` defines exactly one `const storage` with all six frozen operations;
 6. the source manifest orders `00`, `04`, `05`, `10` consecutively;
 7. the owner map names the three owners consistently;
-8. no new storage technology, backend, HTTP API or migration marker appears.
+8. no new storage technology, backend, HTTP API or migration marker appears;
+9. the focused test is registered exactly once as an additional mandatory check while the rest of the registry remains unchanged.
 
 ### Existing behavioral protection
 
@@ -155,7 +160,7 @@ The exact seam commit must pass:
 
 - permanent `Player CI / gate`;
 - `Remote agent worktree / tested result`;
-- full player test profile;
+- full player test profile, including the newly registered focused contract;
 - existing library persistence and naming contract test;
 - existing browser library persistence and naming test;
 - import transaction rollback and storage fault tests already included in the full profile;
@@ -195,7 +200,7 @@ Any such need stops the work and requires a new work-package decision.
 
 ## Rollback
 
-Rollback is a single revert of the Stage C seam pull request. The revert restores the adapter block to `00_runtime_boot_and_content_library.js`, removes `04_local_storage_port.js`, restores manifest/owner-map fingerprints and removes the focused test. No user-data migration, key rewrite or remote-system compensation is required.
+Rollback is a single revert of the Stage C seam pull request. The revert restores the adapter block to `00_runtime_boot_and_content_library.js`, removes `04_local_storage_port.js`, restores manifest/owner-map fingerprints, removes the focused test and removes its single mandatory registry entry. No user-data migration, key rewrite or remote-system compensation is required.
 
 ## Stage B governor decision
 
