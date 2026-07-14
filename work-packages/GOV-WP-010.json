@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-010",
   "title": "Enforce pull-request work-package scope",
-  "status": "under-qa",
+  "status": "accepted",
   "changeClass": "repository-governance",
   "riskClass": "high",
   "purpose": "Require every pull request targeting main to name one canonical work package and prove that its changed files stay inside the declared allowed and forbidden boundaries.",
@@ -70,7 +70,22 @@
     "workflow": ".github/workflows/pr-scope.yml",
     "validator": "tools/validate_pr_scope.py",
     "requiredCheck": "PR scope / gate",
+    "implementationCommit": "26750bff307a6f756bd5b63d70da15b95397071e",
     "issue": 27
   },
-  "rollback": "Revert the workflow, validator, documentation and this work package. Existing player source and promotion state remain unchanged."
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "governorReview": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md",
+    "positiveImplementationPr": 30,
+    "positiveScopeRun": 29321668977,
+    "missingWorkPackageNegativePr": 31,
+    "missingWorkPackageRun": 29321879773,
+    "missingWorkPackageExpectedResult": "REJECTED",
+    "outsideScopeNegativePr": 32,
+    "outsideScopeRun": 29321914868,
+    "outsideScopeExpectedResult": "REJECTED",
+    "condition": "Configure and independently verify the GitHub main ruleset so PR scope and other required checks cannot be bypassed silently."
+  },
+  "rollback": "Revert the workflow, validator, documentation and work-package implementation commit. Existing player source and promotion state remain unchanged."
 }

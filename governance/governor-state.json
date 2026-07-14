@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-008",
-  "effectiveFromCommit": "bb31da5ed3bb87ad306714e9126fe8c3ee7f515e",
-  "reviewedBaselineCommit": "bb31da5ed3bb87ad306714e9126fe8c3ee7f515e",
+  "stateId": "GOV-STATE-2026-07-14-009",
+  "effectiveFromCommit": "da74995f80b8eba6ef75ab5603fc101fcc9fde72",
+  "reviewedBaselineCommit": "da74995f80b8eba6ef75ab5603fc101fcc9fde72",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "standalone-baseline-promoted",
+    "id": "standalone-protected-first-seam-preparation",
     "status": "active",
-    "description": "RC715 remains the promoted standalone forensic baseline. RC718 is the active automation-ready development candidate and awaits the focused RC719 human naming and persistence gate. The validated Remote Agent Worktree is accepted for bounded multi-file development under explicit scope and test profiles."
+    "description": "RC715 remains the promoted standalone forensic baseline. RC718 remains the active development candidate pending RC719 human validation. Permanent Player CI, Remote Agent Worktree and pull-request scope enforcement are operational and governor-accepted; preparation of the first reversible architecture seam is now authorized."
   },
   "developmentBaseline": {
     "status": "active",
@@ -29,10 +29,31 @@
     "humanValidation": "PASS",
     "evidence": "docs/evidence/rc715/human-validation-attestation.json"
   },
+  "acceptedControls": {
+    "remoteAgentWorktree": {
+      "workPackage": "DEV-WP-030",
+      "status": "accepted",
+      "requiredResultContext": "Remote agent worktree / tested result"
+    },
+    "permanentPlayerCi": {
+      "workPackage": "QA-WP-010",
+      "status": "accepted",
+      "requiredCheck": "Player CI / gate",
+      "browserSuites": 24,
+      "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md"
+    },
+    "pullRequestScope": {
+      "workPackage": "GOV-WP-010",
+      "status": "accepted-with-conditions",
+      "requiredCheck": "PR scope / gate",
+      "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md"
+    }
+  },
   "authorizedWork": [
     "standalone functional, UX, accessibility, persistence, performance, test, and release improvements through bounded pull requests",
     "bounded multi-file AI implementation through the accepted Remote Agent Worktree with exact baseline, machine-checkable scope and explicit test profile",
     "permanent player CI and black-box behavioral protection",
+    "pull-request changed-file scope enforcement through canonical work packages",
     "repository governance hardening",
     "architecture reference hardening",
     "read-only source cartography",
@@ -40,6 +61,7 @@
     "work-package, evidence, and provenance tooling"
   ],
   "heldWork": [
+    "implementation of the first architectural seam until ARC-WP-010 is reviewed and accepted",
     "player-wide architectural refactoring",
     "global identifier migration",
     "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
@@ -61,49 +83,38 @@
     "parallel AI implementation without exact baseline and machine-checkable scopes",
     "publishing an artifact different from the artifact tested",
     "presenting target architecture as current implementation",
-    "using the Remote Agent fast lane for workflows, governance, architecture, work packages, secrets or held platform domains"
+    "using the Remote Agent fast lane for workflows, governance, architecture, work packages, secrets or held platform domains",
+    "broadening work-package allowedPaths merely to silence PR scope failures"
   ],
   "activeRisks": [
     {
       "id": "RISK-GOV-002",
       "severity": "high",
-      "statement": "Branch protection and mandatory review rules are not yet independently verified through repository policy evidence, and the Remote agent worktree / tested result context is not yet proven mandatory through a ruleset.",
-      "closureGate": "repository policy audit and tested-result required-status rule completed"
-    },
-    {
-      "id": "RISK-GOV-003",
-      "severity": "moderate",
-      "statement": "Machine-checkable changed-file scope enforcement is active for the Remote Agent Worktree lane, but conventional pull requests and other AI workflows are not yet covered by a general scope-check CI.",
-      "closureGate": "general pull-request scope-check CI accepted or explicit agent-lane-only policy accepted"
-    },
-    {
-      "id": "RISK-QA-001",
-      "severity": "moderate",
-      "statement": "The imported baseline has strong reconstruction and test evidence, and the Remote Agent lane passed one real targeted browser suite, but the repository does not yet run the complete permanent player browser matrix on every sensitive pull request.",
-      "closureGate": "permanent player CI and browser gate accepted"
+      "statement": "Repository checks are operational, but branch protection and required-status rules are not yet independently verified through GitHub ruleset evidence. The checks are therefore not proven unbypassable by repository policy.",
+      "closureGate": "configure and evidence the main ruleset tracked by issue 27"
     },
     {
       "id": "RISK-EVIDENCE-001",
       "severity": "low",
-      "statement": "The human promotion is recorded as accountable-owner attestation without raw device recordings or per-case human test logs in the repository.",
+      "statement": "The RC715 human promotion is recorded as accountable-owner attestation without raw device recordings or per-case human test logs in the repository.",
       "closureGate": "optional attachment of detailed human evidence or acceptance of owner attestation as the durable record"
     },
     {
       "id": "RISK-UX-020",
       "severity": "low",
-      "statement": "RC718 plan-name editing passed bounded automated checks and an additional Remote Agent browser smoke but has not yet completed the focused Android and desktop close/reopen human gate.",
+      "statement": "RC718 plan-name editing passed the complete permanent CI matrix but has not yet completed the focused Android and desktop close/reopen human gate.",
       "closureGate": "RC719 focused human validation PASS"
     }
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "QA-WP-010",
-    "condition": "Permanent player CI and representative black-box regression fixtures protect the promoted RC715 behavior before the first architectural seam is implemented. RC719 human validation is additionally required before RC718 can replace the promoted standalone baseline."
+    "id": "ARC-WP-010",
+    "condition": "Define and governor-review the first narrow reversible storage-boundary seam without changing storage technology, data shape, identifiers, UI, or behavior. RC719 human validation remains separately required before RC718 can replace the promoted standalone baseline."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0004 Remote Agent Worktree acceptance",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0005 Permanent quality gates",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "first real product change through Remote Agent Worktree, RC719 human naming/persistence result, repository ruleset audit, first architectural seam proposal, serious regression, release provenance change, or phase-gate request"
+    "nextReviewTrigger": "ARC-WP-010 proposal, RC719 human naming/persistence result, repository ruleset evidence, serious regression, release provenance change, or phase-gate request"
   }
 }

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-011",
+  "title": "Accept permanent QA and pull-request scope gates",
+  "status": "accepted",
+  "changeClass": "repository-governance",
+  "riskClass": "high",
+  "purpose": "Record the governor decision for QA-WP-010 and GOV-WP-010 after successful positive and adversarial evidence, while preserving the unresolved administrative GitHub ruleset gate.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "da74995f80b8eba6ef75ab5603fc101fcc9fde72",
+    "candidateName": "Permanent quality gates acceptance",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-011.json",
+      "work-packages/GOV-WP-010.json",
+      "work-packages/QA-WP-010.json",
+      "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/**",
+      "apps/player/src/**",
+      "apps/player/contract/**",
+      "apps/player/dev/**",
+      "tools/**",
+      "platform/**",
+      "contracts/**",
+      "docs/architecture/**"
+    ]
+  },
+  "invariants": [
+    "No workflow, validator, player runtime or architecture implementation is changed by the acceptance decision.",
+    "QA-WP-010 is accepted only on successful clean build, mandatory checks, complete browser matrix and provenance evidence.",
+    "GOV-WP-010 is accepted only on successful positive self-validation and expected rejection of adversarial pull requests.",
+    "Administrative GitHub ruleset configuration remains an explicit unresolved condition and is not represented as completed.",
+    "RC718 remains a development candidate until its focused RC719 human gate passes."
+  ],
+  "requiredEvidence": [
+    "Player CI run 29322037422 success on exact reviewed head",
+    "Repository governance run 29322037469 success",
+    "PR scope run 29322037571 success",
+    "24 of 24 independent browser suites pass",
+    "build artifact SHA-256 equals the RC718 candidate",
+    "negative PR #31 rejected for missing work package",
+    "negative PR #32 rejected for path outside allowed scope",
+    "governor review records residual ruleset risk"
+  ],
+  "adversarialTests": [
+    "do not close the ruleset risk merely because source-level checks exist",
+    "do not promote RC718 without the human close/reopen gate",
+    "do not claim browser matrix coverage if a declared suite is missing",
+    "do not accept broad work-package scopes to silence the PR gate"
+  ],
+  "nonGoals": [
+    "configure GitHub rulesets",
+    "promote RC718",
+    "change player behavior",
+    "start the first architectural seam",
+    "activate backend or synchronization work"
+  ],
+  "independentReview": [
+    "Architecture and Repository Governor",
+    "QA and provenance evidence review",
+    "adversarial PR-scope evidence review"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "acceptedImplementationBaseline": "da74995f80b8eba6ef75ab5603fc101fcc9fde72",
+    "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md",
+    "qaWorkPackage": "QA-WP-010",
+    "qaDecision": "GO",
+    "scopeWorkPackage": "GOV-WP-010",
+    "scopeDecision": "GO_WITH_CONDITIONS",
+    "remainingCondition": "GitHub main ruleset configuration and independent policy evidence tracked by issue 27"
+  },
+  "rollback": "Revert this acceptance record only. The already installed source-level gates remain operational, while their work packages return to under-review status."
+}
