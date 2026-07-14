@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "workPackage": "ARC-WP-014",
+  "repository": "stefm78/learnit-platform",
+  "decisionCandidate": "accept-first-reversible-storage-seam",
+  "execution": {
+    "baseCommit": "f272c81f172b7d3c46a708bc5277b8401b15db1a",
+    "triggerCommit": "79c9124740bab0a104c21e4e3059cd84e6740c5e",
+    "testedResultCommit": "a4bf1fb1726c5c82e1af2ae085327e358fe4e3f4",
+    "mergeCommit": "1346e5772bd18432d96b2f88eb0d276fc7a04e94",
+    "pullRequest": 69,
+    "remoteAgentRun": 29354643840,
+    "permanentPlayerCiRun": 29355055312,
+    "prScopeRun": 29355055380,
+    "repositoryGovernanceRun": 29355055259
+  },
+  "resultEnvelope": {
+    "artifactName": "remote-agent-result-29354643840",
+    "digest": "sha256:5178a0b9146deff6b6fc9a1c6c7a5b350b285723084e12bf60744141cb074568",
+    "testProfile": "player-full",
+    "patchSha256": "e21c74b30ea6a40535685a0d785757b67080fc09ee3b40658b85f413b0c48295",
+    "resultPatchSha256": "bb157ed12d613af210eaaf8417805698da2ad331cae7de9724e84596c3420f6a"
+  },
+  "testedArtifact": {
+    "path": "apps/player/dist/learnit.html",
+    "bytes": 829075,
+    "sha256": "9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861",
+    "productIdentity": "RC718"
+  },
+  "validation": {
+    "remoteAgent": "PASS",
+    "mandatory": {
+      "passed": 35,
+      "total": 35
+    },
+    "browser": {
+      "passed": 24,
+      "total": 24
+    },
+    "evidenceBindings": {
+      "passed": 58,
+      "total": 58
+    },
+    "permanentPlayerCi": "PASS",
+    "prScope": "PASS",
+    "repositoryGovernance": "PASS",
+    "remoteAgentTestedResultStatus": "PASS"
+  },
+  "changedPaths": [
+    "apps/player/dev/checks_registry.json",
+    "apps/player/dev/evidence_coverage.json",
+    "apps/player/dev/release_config.json",
+    "apps/player/docs/OWNER_MAP.json",
+    "apps/player/source_manifest.json",
+    "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+    "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+    "apps/player/tests/contract_storage_boundary.py"
+  ],
+  "boundaryEvidence": {
+    "adapterSha256": "ac552c7daad97daab2a436170416324557bc5bd6a83944a1b144e5985a7567c3",
+    "runtimeFingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
+    "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
+    "manifestOrder": [
+      "00_runtime_boot_and_content_library.js",
+      "04_local_storage_port.js",
+      "05_durable_library_store.js",
+      "10_content_store_and_state.js"
+    ],
+    "directLocalStorageOwner": "04_local_storage_port.js",
+    "directIndexedDbOpenOwner": "05_durable_library_store.js",
+    "focusedContractRegisteredOnce": true,
+    "focusedContractMappedOnce": true,
+    "evidenceSurface": "storage-resilience"
+  },
+  "provenance": {
+    "developerScope": "four source-boundary paths",
+    "qaScope": "focused contract, registry entry and evidence coverage map",
+    "integratorScope": "release fingerprint metadata",
+    "governorScope": "separate acceptance records",
+    "scopesDisjoint": true
+  },
+  "outcome": {
+    "implementationAccepted": true,
+    "stageC": "accepted",
+    "stageDEntryAllowed": true,
+    "conditions": [
+      "Stage D begins with one bounded controlled pilot only.",
+      "Every Stage D role keeps machine-checkable disjoint write scopes.",
+      "Held platform domains remain prohibited until dedicated gates are accepted."
+    ]
+  }
+}

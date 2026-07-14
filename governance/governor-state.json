@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-019",
-  "effectiveFromCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
-  "reviewedBaselineCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
+  "stateId": "GOV-STATE-2026-07-14-020",
+  "effectiveFromCommit": "1346e5772bd18432d96b2f88eb0d276fc7a04e94",
+  "reviewedBaselineCommit": "1346e5772bd18432d96b2f88eb0d276fc7a04e94",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "first-reversible-storage-seam-post-merge-base-authorized",
+    "id": "stage-d-controlled-pilot-entry-authorized",
     "status": "active",
-    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. The first storage-seam design, fingerprint diagnostic and strict Remote Agent PR-scope compatibility are accepted. ARC-WP-016 corrects the self-referential base defect: after this governance correction is merged, the executable base is the exact current main SHA captured immediately before fresh agent-branch creation. Stage C is not accepted until that exact fresh result passes all checks and separate governor acceptance. Stage D remains blocked."
+    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B and the first reversible storage seam are accepted. The exact Stage C result passed Remote Agent player-full, permanent Player CI, PR scope, repository governance, contradictory QA and integration review. Stage D entry is authorized for one bounded controlled multi-agent pilot with exact baseline and machine-checkable disjoint role scopes. Expansion beyond that pilot remains blocked pending separate governor acceptance."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -47,6 +47,12 @@
       "status": "accepted",
       "requiredResultContext": "Remote agent worktree / tested result"
     },
+    "remoteAgentFailureEvidence": {
+      "workPackage": "GOV-WP-016",
+      "status": "accepted",
+      "policy": "failed Remote Agent runs retain distinct structured diagnostics without weakening validation or being treated as tested results",
+      "workflowMergeCommit": "b038f644d3a7d524077bf9a4b3e04ea8911a6357"
+    },
     "permanentPlayerCi": {
       "workPackage": "QA-WP-010",
       "status": "accepted",
@@ -64,7 +70,7 @@
       "workPackage": "GOV-WP-015",
       "status": "accepted",
       "mergeCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
-      "policy": "exact three-file transport envelope plus dual canonical scope validation for intended patch and tested result"
+      "policy": "exact transport envelope plus dual canonical scope validation for intended patch and tested result"
     },
     "branchHygiene": {
       "workPackage": "GOV-WP-012",
@@ -85,14 +91,14 @@
     "firstSeamImplementationAuthorization": {
       "workPackage": "ARC-WP-011",
       "status": "accepted",
-      "implementationStatus": "authorized-not-accepted",
+      "implementationStatus": "accepted-through-ARC-WP-014",
       "requiredTestProfile": "player-full",
       "review": "docs/governance/reviews/GOV-REVIEW-0009-ARC-WP-011-AUTHORIZATION.md"
     },
     "firstSeamTestRegistration": {
       "workPackage": "ARC-WP-012",
       "status": "accepted",
-      "authorizedChange": "add tests/contract_storage_boundary.py as one mandatory checks-registry entry",
+      "authorizedChange": "tests/contract_storage_boundary.py is one mandatory checks-registry entry",
       "review": "docs/governance/reviews/GOV-REVIEW-0010-STORAGE-SEAM-TEST-REGISTRATION.md"
     },
     "firstSeamFingerprintReconciliation": {
@@ -102,19 +108,33 @@
       "diagnosticResult": "PR-46 / result 5c6440838fe400c331ebf26fce5d97f964effeae — PASS, closed unmerged",
       "review": "docs/governance/reviews/GOV-REVIEW-0011-FIRST-SEAM-FINGERPRINT-HOLD.md"
     },
-    "freshFirstSeamExecution": {
-      "workPackage": "ARC-WP-014",
-      "reboundByWorkPackage": "ARC-WP-015",
-      "baseResolutionCorrectedByWorkPackage": "ARC-WP-016",
+    "firstSeamEvidenceCoverage": {
+      "workPackage": "ARC-WP-018",
       "status": "accepted",
-      "implementationStatus": "authorized-not-accepted",
-      "reviewedBaselineCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
-      "executionBaseResolution": "exact current main SHA captured after the ARC-WP-016 governance correction is merged and immediately before creating the fresh agent branch",
-      "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
+      "surface": "storage-resilience",
+      "test": "tests/contract_storage_boundary.py",
+      "failureEvidence": "remote-agent-failure-29353545001"
+    },
+    "firstSeamExecution": {
+      "workPackage": "ARC-WP-014",
+      "status": "accepted-with-conditions",
+      "implementationStatus": "accepted",
+      "executionBaseCommit": "f272c81f172b7d3c46a708bc5277b8401b15db1a",
+      "triggerCommit": "79c9124740bab0a104c21e4e3059cd84e6740c5e",
+      "testedResultCommit": "a4bf1fb1726c5c82e1af2ae085327e358fe4e3f4",
+      "mergeCommit": "1346e5772bd18432d96b2f88eb0d276fc7a04e94",
+      "pullRequest": 69,
+      "remoteAgentRun": 29354643840,
+      "permanentPlayerCiRun": 29355055312,
       "requiredTestProfile": "player-full",
+      "mandatoryChecks": "35/35",
+      "browserSuites": "24/24",
+      "evidenceBindings": "58/58",
+      "testedArtifactSha256": "9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861",
       "measuredRuntimeFingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
       "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
-      "review": "docs/governance/reviews/GOV-REVIEW-0015-POST-MERGE-BASE-RESOLUTION.md"
+      "review": "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md",
+      "evidence": "docs/evidence/architecture/first-storage-seam/implementation-evidence.json"
     }
   },
   "authorizedWork": [
@@ -123,20 +143,16 @@
     "permanent player CI and black-box behavioral protection",
     "pull-request changed-file scope enforcement through canonical work packages",
     "strict Remote Agent envelope and tested-result scope validation",
-    "post-merge current-main execution-base capture without self-referential commit metadata",
+    "structured failure evidence for failed Remote Agent runs",
     "repository governance hardening",
     "architecture reference hardening",
     "read-only source cartography",
-    "one fresh first-seam result through the Remote Agent Worktree from the exact current main captured immediately before branch creation",
-    "the QA-focused boundary contract and its single mandatory registry addition",
-    "integrator-only measured release fingerprint metadata and first-seam evidence",
-    "adversarial QA, integration evidence and governor review of the exact fresh first-seam result",
+    "the accepted first reversible storage seam and its focused boundary contract",
+    "one controlled Stage D multi-agent pilot with developer, contradictory QA, integrator and governor write scopes that are explicit, disjoint and machine-checkable",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "acceptance of the first architectural seam until the fresh exact implementation result passes full Player CI, adversarial QA, integration and governor review",
-    "merge of the closed disposable fingerprint diagnostic PR 46",
-    "Stage D controlled multi-AI pilot until the first reversible seam implementation and governor review are accepted",
+    "expansion beyond the first controlled Stage D pilot until its exact result and governor review are accepted",
     "player-wide architectural refactoring",
     "global identifier migration",
     "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
@@ -160,9 +176,9 @@
     "presenting target architecture as current implementation",
     "using the Remote Agent fast lane for workflows, governance, architecture, work packages, secrets or held platform domains",
     "broadening work-package allowedPaths merely to silence PR scope failures",
-    "weakening, deleting or excluding source-tree or release guards to obtain a green result",
-    "changing release identity or protected normalized semantics under ARC-WP-014",
-    "starting Stage D by assuming Stage B or Stage C were completed",
+    "weakening, deleting or excluding source-tree, evidence-coverage or release guards to obtain a green result",
+    "changing release identity or protected normalized semantics under the accepted first seam",
+    "starting or expanding Stage D without accepted Stage C, exact baseline, disjoint scopes and a bounded pilot gate",
     "inventing missing RC719 reservation details"
   ],
   "activeRisks": [
@@ -196,13 +212,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-014",
-    "condition": "After ARC-WP-016 is merged, capture exact current main and immediately create the fresh first-seam agent branch from that SHA with no intervening main drift. job.json.baseCommit and the pull-request base SHA must equal the capture. Both the envelope and exact tested result must pass canonical PR scope. The exact result must also pass Remote Agent tested-result, full Player CI including the focused contract and repository governance; then contradictory QA and the integrator must provide independent review before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
+    "id": "ARC-WP-019",
+    "condition": "Authorize and launch one controlled Stage D pilot from exact current main. The developer, contradictory QA, integrator and governor must have explicit machine-checkable disjoint write scopes. The pilot must preserve the accepted first seam, avoid every held platform domain, produce one exact tested result, and receive separate governor acceptance before Stage D expands."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0015 post-merge execution-base resolution",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0013 first-seam acceptance",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "post-merge current-main capture, fresh first-seam envelope commit, tested-result commit, any intervening main drift, failed or missing CI, release-config drift, contradictory QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
+    "nextReviewTrigger": "Stage D pilot authorization, any scope overlap, exact-baseline drift, failed or missing CI, changed first-seam ownership, artifact or fingerprint drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or Stage D expansion request"
   }
 }
