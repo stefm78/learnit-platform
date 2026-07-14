@@ -89,6 +89,20 @@ jobs:
           retention-days: 14
           compression-level: 6
 
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-agent-failure-${{ github.run_id }}
+          path: |
+            .agent-runtime/plan.json
+            .agent-runtime/applied.json
+            .agent-runtime/tests.json
+            apps/player/reports
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 6
+
   commit-tested-result:
     needs: validate-and-test
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
