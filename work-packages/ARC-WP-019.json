@@ -8,6 +8,7 @@
   "purpose": "Validate the first controlled Stage D multi-agent operating model by adding a deterministic role-scope ownership report and its adversarial contract. The accepted pilot proves that changed paths can be assigned to exactly one developer, contradictory-QA, integrator or governor scope while preserving the Player runtime, storage boundary, product identity, release artifact and held platform domains.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d65189b7ef59ccb74ba02c6c6ac96a212895a1e9",
     "authorizationBaseCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
     "executionBaseCommit": "d65189b7ef59ccb74ba02c6c6ac96a212895a1e9",
     "candidateName": "stage-d-role-scope-ownership-pilot",
