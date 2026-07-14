@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "UX-WP-020",
   "title": "Make imported plan names editable",
-  "status": "in-progress",
+  "status": "under-qa",
   "changeClass": "product-behavior",
   "riskClass": "moderate",
   "purpose": "Allow the user-facing name of an imported plan or collection to be chosen during import and renamed later from the Library without changing technical package identity or losing learner state.",
@@ -10,7 +10,7 @@
     "sourceRepository": "stefm78/learnit-platform",
     "baseCommit": "428779328eb2963946cc3aab9395a6ed64cb3c21",
     "candidateName": "RC718 editable imported plan naming candidate",
-    "artifactSha256": null
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
   },
   "scope": {
     "allowedPaths": [
@@ -66,5 +66,11 @@
     "repository governance CI",
     "focused human validation after the automated candidate"
   ],
+  "result": {
+    "automationReady": true,
+    "humanValidation": "pending-rc719",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+    "targetedAutomatedSuites": "PASS"
+  },
   "rollback": "Revert the RC718 pull request. Existing imported course identities and RC715 durable snapshots remain compatible because the new collection title is an additive presentation field."
 }
