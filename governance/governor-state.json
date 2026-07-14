@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-012",
-  "effectiveFromCommit": "06c6b25d11adcf24f06bb44d3eb092b0ba995cbe",
-  "reviewedBaselineCommit": "06c6b25d11adcf24f06bb44d3eb092b0ba995cbe",
+  "stateId": "GOV-STATE-2026-07-14-013",
+  "effectiveFromCommit": "2c7cf873a0bf1fd65f7337cff430df7604fd67f3",
+  "reviewedBaselineCommit": "2c7cf873a0bf1fd65f7337cff430df7604fd67f3",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "standalone-rc718-promoted-first-seam-design-pending",
+    "id": "first-reversible-storage-seam-design-accepted-implementation-pending",
     "status": "blocked",
-    "description": "RC718 is the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. Permanent Player CI, Remote Agent Worktree, pull-request scope enforcement and branch hygiene are operational. Repository-state schema drift is repaired by GOV-WP-014. The architecture program remains blocked before ARC-WP-010 design. Stage D remains blocked until Stage B design and Stage C first reversible seam are accepted."
+    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. ARC-WP-010 accepts one narrow mechanical extraction of the existing synchronous localStorage adapter. Player implementation remains blocked until a separate Stage C work package is accepted. Stage D remains blocked until the implemented seam, Player CI, adversarial QA, integration and governor acceptance are complete."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -69,6 +69,12 @@
       "name": "main-protection",
       "status": "configured-not-enforced",
       "reason": "GitHub UI reports that rulesets are not enforced on this private repository until it is moved to a GitHub Team organization account."
+    },
+    "firstSeamDesign": {
+      "workPackage": "ARC-WP-010",
+      "status": "accepted",
+      "boundary": "unchanged synchronous localStorage adapter extracted from runtime part 00 into runtime part 04",
+      "review": "docs/governance/reviews/GOV-REVIEW-0008-ARC-WP-010.md"
     }
   },
   "authorizedWork": [
@@ -79,11 +85,11 @@
     "repository governance hardening",
     "architecture reference hardening",
     "read-only source cartography",
-    "preparation and governor review of ARC-WP-010",
+    "preparation and governor review of the separate Stage C first-seam implementation work package",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "implementation of the first architectural seam until ARC-WP-010 is reviewed and accepted",
+    "implementation of the first architectural seam until the separate Stage C work package is reviewed and accepted",
     "Stage D controlled multi-AI pilot until the first reversible seam implementation and governor review are accepted",
     "player-wide architectural refactoring",
     "global identifier migration",
@@ -142,13 +148,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-010",
-    "condition": "Define and governor-review the first narrow reversible storage-boundary seam without changing storage technology, data shape, identifiers, UI or behavior. After ARC-WP-010 acceptance, implement and validate the first seam as Stage C. Stage D may begin only after both gates are accepted. Use docs/handover/STAGE_D_RESTART_CHECKPOINT.md as the canonical future entry point."
+    "id": "ARC-WP-011",
+    "condition": "Create and governor-review the separate Stage C implementation work package from the exact post-ARC-WP-010 main commit. It must authorize only the accepted mechanical adapter extraction, disjoint developer and QA paths, Remote Agent Worktree execution, full Player CI, integration evidence and simple-revert rollback. Stage D remains blocked until that seam is implemented and separately accepted."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0007 repository state repair",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0008 ARC-WP-010",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "ARC-WP-010 proposal, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, first seam implementation, or Stage D entry request"
+    "nextReviewTrigger": "Stage C work-package proposal, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, first seam implementation result, or Stage D entry request"
   }
 }

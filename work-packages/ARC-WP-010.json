@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-010",
+  "title": "Design the first reversible local-storage port seam",
+  "status": "accepted",
+  "changeClass": "architecture-reference",
+  "riskClass": "high",
+  "purpose": "Map every current player persistence access and accept one minimal reversible seam that extracts the existing synchronous localStorage adapter into a dedicated runtime source owner without changing storage technology, keys, data shapes, identifiers, UI or behavior.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "2c7cf873a0bf1fd65f7337cff430df7604fd67f3",
+    "candidateName": "first reversible storage port design",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-010.json",
+      "docs/architecture/seams/ARC-WP-010_LOCAL_STORAGE_PORT.md",
+      "docs/governance/reviews/GOV-REVIEW-0008-ARC-WP-010.md",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      ".github/**",
+      "tools/**",
+      "contracts/**",
+      "platform/**"
+    ]
+  },
+  "invariants": [
+    "This work package changes design and governance records only; no player source or artifact is modified.",
+    "The accepted seam retains localStorage as the synchronous backend and retains the existing memory fallback.",
+    "IndexedDB durable snapshot ownership remains unchanged and outside the first seam.",
+    "Every current storage key, database name, store name, record id, data shape and identifier remains unchanged.",
+    "The lexical storage API and all existing callers remain unchanged during Stage C.",
+    "No learner-facing UI, behavior, import, activity, progression, bilan or recommendation changes are authorized.",
+    "Stage D remains blocked until a separate Stage C implementation and governor acceptance are merged."
+  ],
+  "requiredEvidence": [
+    "runtime storage primitive cartography on the exact base commit",
+    "complete frozen key and durable database inventory",
+    "minimal port contract with existing failure semantics",
+    "machine-checkable disjoint developer, QA, integrator and governor scopes",
+    "static and black-box equivalence test plan",
+    "single-revert rollback plan",
+    "Repository governance and PR scope passes on the exact design head",
+    "governor review GOV-REVIEW-0008"
+  ],
+  "adversarialTests": [
+    "search all player runtime sources for direct window.localStorage and indexedDB access",
+    "verify the seam does not change a key, schema, identifier or browser storage primitive",
+    "verify developer and QA write scopes are disjoint",
+    "verify the design excludes every held platform domain",
+    "verify rollback requires no data migration or compensating action",
+    "verify the design does not treat target architecture as current implementation"
+  ],
+  "nonGoals": [
+    "implement the storage seam",
+    "migrate localStorage to IndexedDB",
+    "replace the existing durable snapshot store",
+    "introduce repositories, dependency injection or asynchronous storage semantics",
+    "change canonical identifiers or content contracts",
+    "change player UI or behavior",
+    "add backend, accounts, synchronization, catalog, commerce, institutions or marketplace",
+    "start the Stage D controlled multi-AI pilot"
+  ],
+  "independentReview": [
+    "Architecture and Repository Governor",
+    "Repository governance workflow",
+    "PR scope / gate",
+    "future adversarial QA and integrator review remain separately required for Stage C"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "stageB": "accepted-after-green-merge",
+    "acceptedSeam": "extract the unchanged synchronous storage adapter from runtime part 00 into new runtime part 04",
+    "implementationAllowed": false,
+    "implementationCondition": "Create and accept a separate Stage C work package from the exact post-merge main commit before any player file changes.",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert the design pull request. No application source, artifact, key, browser storage, learner data or remote system is changed by this design record."
+}
