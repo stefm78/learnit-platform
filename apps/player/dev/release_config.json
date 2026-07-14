@@ -1,29 +1,29 @@
 {
   "schema": "learnit.release_config.v1",
-  "rc": "RC715",
-  "version_label": "Learn-it RC715",
-  "build": "v5.715.0 — durable library persistence and stable course naming candidate",
-  "base": "RC712 automated candidate. RC713 adds IndexedDB-backed durable library persistence; RC714 adds editable import titles and post-import renaming with stable course identity; RC715 hardens both with automated evidence.",
-  "principle": "One recommendation engine, one route carousel, one gesture orchestrator, durable device-local library storage, stable imported-course identity, editable user-facing course names, exact-bound release evidence and human authority before promotion.",
-  "build_timestamp": "2026-07-13T17:30:00Z",
-  "bundle_label": "durable_library_and_rename_candidate",
-  "runtime_fingerprint": "d929f901533043ce5b3c9e1a9ed04c6c74c2bcbb27dea785c8d859c82d95a58a",
+  "rc": "RC718",
+  "version_label": "Learn-it RC718",
+  "build": "v5.718.0 — editable imported plan naming and persistence hardening candidate",
+  "base": "RC715 promoted standalone baseline. RC716 adds post-import plan renaming, RC717 adds import-time plan naming, and RC718 hardens persistence, rollback and automated regression evidence.",
+  "principle": "Keep technical package identity immutable while allowing a user-facing imported plan label to change safely before or after import without losing courses, progress, bilan or resume state.",
+  "build_timestamp": "2026-07-14T00:00:00Z",
+  "bundle_label": "editable_imported_plan_naming_candidate",
+  "runtime_fingerprint": "0bc73a839b5a82a42e7459a9403f0271aab6df31eca55551777a5d7a02f8b9c8",
   "human_validation": {
     "required": true,
-    "status": "pending-deferred-rc702-and-rc716-library-final-human-gates",
-    "baseline_rc": "RC696",
-    "baseline_artifact_rc": "RC696",
-    "baseline_artifact_sha256": "0eb91dec26d956ab37efff3c233235d37fcc8701afed6fe1386da4c5342abca7",
+    "status": "pending-rc719-focused-plan-naming-human-gate",
+    "baseline_rc": "RC715",
+    "baseline_artifact_rc": "RC715",
+    "baseline_artifact_sha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
     "evidence": "reports/aggregate_report.json",
     "protocol": "docs/HUMAN_VALIDATION.md",
-    "previous_gate": "RC697 human PASS: recommendation comprehension, diagnostic adaptation and Bilan decision clarity confirmed on RC696. RC689 human PASS: PC and Android scroll.",
-    "next_human_gate": "RC702 transfer and retention is explicitly deferred. RC716 must verify close/reopen persistence and import/post-import renaming on the user browser before promotion."
+    "previous_gate": "RC715 human PASS and forensic promotion on 2026-07-14.",
+    "next_human_gate": "RC719 should confirm import-time and post-import plan renaming on Android and desktop, including close/reopen persistence and no progress loss."
   },
   "baseline_equivalence": {
     "source_rc": "RC657",
-    "current_version_label": "Learn-it RC715",
+    "current_version_label": "Learn-it RC718",
     "baseline_version_label": "Learn-it RC657",
-    "current_build": "v5.715.0 — durable library persistence and stable course naming candidate",
+    "current_build": "v5.718.0 — editable imported plan naming and persistence hardening candidate",
     "baseline_build": "v5.657.0 — entry-decision contract freeze",
     "ignored_script_paths": [
       "src/learning/performance_budget_model.js",
@@ -71,6 +71,6 @@
       "src/styles/parts/45_import_tools_release_surfaces.css"
     ],
     "css_semantic_sha256": "a379d4516bbc7ad96f3964c3f59d5ba2921086026a8b4ed562990c94275235ca",
-    "runtime_js_normalized_sha256": "f1d8e5dc760b27cf53924d0399f93b054582710bcf0b71a2208fe23cac775fa8"
+    "runtime_js_normalized_sha256": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73"
   }
 }

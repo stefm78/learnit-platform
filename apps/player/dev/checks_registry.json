@@ -1,7 +1,7 @@
 {
-  "schema": "learnit.rc715.checks_registry.v1",
-  "rc": "RC715",
-  "policy": "RC715 durable library persistence and stable course naming candidate. Transfer and retention human testing is deferred; RC716 remains required for browser close/reopen and final promotion.",
+  "schema": "learnit.rc718.checks_registry.v1",
+  "rc": "RC718",
+  "policy": "RC718 protects the promoted RC715 baseline while adding editable imported-plan labels at import and after import. Technical package identity and learner progress remain stable; RC719 is the focused human promotion gate.",
   "build": "build.py",
   "release_requires_browser": true,
   "mandatory": [

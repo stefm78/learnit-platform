@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RC715 active source-size budget gate.
+"""RC718 active source-size budget gate.
 
 The goal is not arbitrary smallness. It prevents regressions back to huge monoliths
 or hidden corrective piles by enforcing explicit budgets on active files.

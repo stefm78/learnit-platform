@@ -1,8 +1,8 @@
 {
-  "schema": "learnit.rc715.source_manifest.v1",
-  "rc": "RC715",
-  "base": "RC712 automated candidate. RC713 adds IndexedDB-backed durable library persistence; RC714 adds editable import titles and post-import renaming with stable course identity; RC715 hardens both with automated evidence.",
-  "build": "v5.715.0 — durable library persistence and stable course naming candidate",
+  "schema": "learnit.rc718.source_manifest.v1",
+  "rc": "RC718",
+  "base": "RC715 promoted standalone baseline. RC716 adds post-import plan renaming, RC717 adds import-time plan naming, and RC718 hardens persistence, rollback and automated regression evidence.",
+  "build": "v5.718.0 — editable imported plan naming and persistence hardening candidate",
   "template": "src/template.html",
   "styles": [
     {
@@ -238,8 +238,8 @@
       "files": [
         {
           "path": "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
-          "bytes": 17247,
-          "sha256": "25b0d17565c1d9d65edd742389053c25729434554ce4364bcbf5978923e91d5f"
+          "bytes": 17250,
+          "sha256": "52f261706a33c36377dcc4aa2c27f3b4b6b7b5eb28a4489a696dc26c45da3480"
         },
         {
           "path": "src/scripts/core/runtime_parts/05_durable_library_store.js",
@@ -248,8 +248,8 @@
         },
         {
           "path": "src/scripts/core/runtime_parts/10_content_store_and_state.js",
-          "bytes": 50924,
-          "sha256": "00e6e63716f5dd6b7202299561a8a16730580fcb4ed54f4ea77ec1473cb35dd4"
+          "bytes": 56955,
+          "sha256": "771f5dd1f05438d11aefaa07a7c6d7117873753eb359249a47992ef3b5637f94"
         },
         {
           "path": "src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js",
@@ -278,13 +278,13 @@
         },
         {
           "path": "src/scripts/core/runtime_parts/52_import_diagnostic_views.js",
-          "bytes": 9796,
-          "sha256": "fb2c0b1475a1bba4448caf312a8f9803f66ed9ffeb8c79ef9b64f30f853b1b13"
+          "bytes": 10381,
+          "sha256": "31d0202af9d7d9f6a55ea5ee8b21487e01b0eb259f6e77cb4bf3219e7502925e"
         },
         {
           "path": "src/scripts/core/runtime_parts/60_app_runtime_and_test_api.js",
-          "bytes": 10631,
-          "sha256": "0e736c19bea294ad346f3f2d7e8a363c49f665ef293d413b1677c22ca7abbc57"
+          "bytes": 11144,
+          "sha256": "862fe6f34e9f61e42b12dd5298faf29b352a4cd8d112da2e27e81b2d017f5049"
         },
         {
           "path": "src/scripts/core/runtime_parts/61_pointer_interaction_fallbacks.js",
@@ -293,18 +293,18 @@
         },
         {
           "path": "src/scripts/core/runtime_parts/62_app_action_dispatcher.js",
-          "bytes": 18548,
-          "sha256": "38c02afbfc0b778fafb90859868e663339fa27de454f3080b6f283ecbb7ad525"
+          "bytes": 20204,
+          "sha256": "52c4efe42ed6b2c5d7ffaa3c088a9b4df49db8cdd84aec82a69b9a7adacea938"
         },
         {
           "path": "src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
-          "bytes": 41882,
-          "sha256": "0220fbe56777f78345db271a721c0f034f5cb8b14a4f6ac3b6ac02691d5b72fc"
+          "bytes": 43036,
+          "sha256": "e06ba23a35f9eb4f7e2faeaacb451bebd5c3cf267ff11b4852da835af37048c9"
         },
         {
           "path": "src/scripts/core/runtime_parts/73_runtime_test_api.js",
-          "bytes": 16366,
-          "sha256": "e7942b4a8c0b08e099bd0935dfa9bd2fe20e60766f9cbabfaebed3d55dbb8614"
+          "bytes": 16481,
+          "sha256": "a56b5a999706c025276b19dbe03c7688bb70920531bd61569896f6964706e011"
         },
         {
           "path": "src/scripts/core/runtime_parts/64_route_nav_transition_runtime.js",
@@ -318,8 +318,8 @@
         },
         {
           "path": "src/scripts/core/runtime_parts/66_route_view_composer.js",
-          "bytes": 40745,
-          "sha256": "9720c26f40b3126313354d1aa3cab1192a76ec07994bd04545bb43f651fbe3fc"
+          "bytes": 42038,
+          "sha256": "9ee1074b4d0be6092aa74142408eb31c9a78ee8f022f951ef36aa1414a749adb"
         },
         {
           "path": "src/scripts/core/runtime_parts/67_route_static_actions.js",
@@ -358,12 +358,12 @@
         },
         {
           "path": "src/learning/course_collection_model.js",
-          "bytes": 2886,
-          "sha256": "d0484b88848c73b45f20a6c4b77bf98d1e4cbbdb8d913276ea3a91ba5515eea4"
+          "bytes": 2965,
+          "sha256": "b36dfcd5b6a8b81cfba73734ba264eae23e22e8b174a8d0753ab148a4abf544c"
         }
       ],
-      "bytes": 468108,
-      "sha256": "1380a3d25ae843de9693c153dcfdba093955440a34c437580b9afed7cf96162b"
+      "bytes": 479537,
+      "sha256": "514e46875eb41f3ee3917b03865af389d612030ccfce9f1098bee8227c7fc46f"
     },
     {
       "path": "src/scripts/enhancements/999_deferred_boot.js",
@@ -374,10 +374,10 @@
     }
   ],
   "dist": "dist/learnit.html",
-  "principle": "One recommendation engine, one route carousel, one gesture orchestrator, durable device-local library storage, stable imported-course identity, editable user-facing course names, exact-bound release evidence and human authority before promotion.",
-  "template_sha256": "8d918eee2a2ba754eddb7efe7282850573e00e1cecd4c927ece5f660a4ef1306",
+  "principle": "Keep technical package identity immutable while allowing a user-facing imported plan label to change safely before or after import without losing courses, progress, bilan or resume state.",
+  "template_sha256": "949aa5c4e96cdb3a1c75a1689b6aee543779090349318d9853d1047392b7e93f",
   "dev": {
-    "schema": "learnit.rc715.dev_manifest.v1",
+    "schema": "learnit.rc718.dev_manifest.v1",
     "releaseConfig": "dev/release_config.json",
     "engineeringContract": "docs/ENGINEERING.md",
     "checksRegistry": "dev/checks_registry.json",
@@ -388,26 +388,26 @@
     "verifyBundle": "dev/verify_release_bundle.py",
     "handover": "README.md"
   },
-  "build_timestamp": "2026-07-13T17:30:00Z",
-  "release_config_sha256": "46261d7e99181842a2ac0ccc834c4fbaa2289c973ea413d5a67e78ebf4708b7f",
+  "build_timestamp": "2026-07-14T00:00:00Z",
+  "release_config_sha256": "4c5d3262e5c5d6b4b28b756897345e164df5e178e4329889f2f455152299269f",
   "human_validation": {
     "required": true,
-    "status": "pending-deferred-rc702-and-rc716-library-final-human-gates",
-    "baseline_rc": "RC696",
-    "baseline_artifact_rc": "RC696",
-    "baseline_artifact_sha256": "0eb91dec26d956ab37efff3c233235d37fcc8701afed6fe1386da4c5342abca7",
+    "status": "pending-rc719-focused-plan-naming-human-gate",
+    "baseline_rc": "RC715",
+    "baseline_artifact_rc": "RC715",
+    "baseline_artifact_sha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
     "evidence": "reports/aggregate_report.json",
     "protocol": "docs/HUMAN_VALIDATION.md",
-    "previous_gate": "RC697 human PASS: recommendation comprehension, diagnostic adaptation and Bilan decision clarity confirmed on RC696. RC689 human PASS: PC and Android scroll.",
-    "next_human_gate": "RC702 transfer and retention is explicitly deferred. RC716 must verify close/reopen persistence and import/post-import renaming on the user browser before promotion."
+    "previous_gate": "RC715 human PASS and forensic promotion on 2026-07-14.",
+    "next_human_gate": "RC719 should confirm import-time and post-import plan renaming on Android and desktop, including close/reopen persistence and no progress loss."
   },
   "contracts": [
     {
       "path": "contract/learnit-capabilities.json",
       "dom_id": "learnit-capabilities",
       "description": "Canonical machine-readable application capability manifest.",
-      "bytes": 14655,
-      "sha256": "bcd369da6becde999a8cfb91b6070fbfc868b594e2cae2b62c340f8c2fcd3df5"
+      "bytes": 14942,
+      "sha256": "a5f2f968baa5a4a8884e9d8e102dff4f6ef34a78df85e68e1bac9137419f1922"
     },
     {
       "path": "contract/learnit-import.schema.json",

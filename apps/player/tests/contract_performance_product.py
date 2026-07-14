@@ -13,7 +13,7 @@ model=perf_model.read_text(encoding='utf-8'); runtime=perf_runtime.read_text(enc
 js_bytes=sum((ROOT/p).stat().st_size for p in scripts)
 css_bytes=sum((ROOT/p).stat().st_size for p in styles)
 html=ROOT/'dist/learnit.html'; html_bytes=html.stat().st_size if html.exists() else 10**9
-add('current-release-metadata',manifest.get('rc')=='RC715' and 'RC715' in (ROOT/'src/template.html').read_text(encoding='utf-8'))
+add('current-release-metadata',manifest.get('rc')=='RC718' and 'RC718' in (ROOT/'src/template.html').read_text(encoding='utf-8'))
 add('performance-model-active','src/learning/performance_budget_model.js' in scripts)
 add('performance-runtime-active','src/scripts/core/runtime_parts/72_performance_scalability_runtime.js' in scripts)
 add('measure-before-optimize',all(token in runtime for token in ['performance.now','originalRender','originalBoot','projection','storageMetrics']))

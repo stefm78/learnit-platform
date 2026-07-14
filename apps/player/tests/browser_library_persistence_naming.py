@@ -83,6 +83,7 @@ def main() -> int:
               const text=JSON.stringify(payload);
               const key=store.importTitleOverrideKey('JSON collé',0,payload.courses[0]);
               store.setImportTitleOverride(key,'Nom choisi à l’import');
+              store.setImportPlanTitleOverride('Plan choisi à l’import');
               const plan=store.previewImport(text,{});
               store.importDraft=text;
               store.importPreviewPlan=plan;
@@ -90,8 +91,10 @@ def main() -> int:
               rt.go('tools');
               const importTitleInput=!!document.querySelector('.import-title-override');
               const importTitleValue=document.querySelector('.import-title-override')?.value||'';
+              const importPlanTitleInput=!!document.querySelector('.import-plan-title-override');
+              const importPlanTitleValue=document.querySelector('.import-plan-title-override')?.value||'';
               const applied=await store.applyImportDraftDurably(text,{plan});
-              if(!applied.ok)return {applied,importTitleInput,importTitleValue};
+              if(!applied.ok)return {applied,importTitleInput,importTitleValue,importPlanTitleInput,importPlanTitleValue};
 
               const id=applied.report.rows[0].courseId;
               store.setActiveCourse(id);
@@ -101,6 +104,8 @@ def main() -> int:
               const progressBefore=JSON.parse(JSON.stringify(rt.appState.courseProgress(id)));
 
               const renamed=await store.renameImportedCourse(id,'Nom modifié après import');
+              const collectionKey='import:'+applied.report.packageId;
+              const collectionRenamed=await store.renameImportedCollection(collectionKey,'Plan modifié après import');
               rt.appState.alignWithContent();
               const snapshot=store.durableSnapshot('browser-roundtrip');
 
@@ -119,12 +124,17 @@ def main() -> int:
               rt.go('library');
 
               return {
-                applied,renamed,restored,id,snapshot,importTitleInput,importTitleValue,
+                applied,renamed,collectionRenamed,collectionKey,restored,id,snapshot,importTitleInput,importTitleValue,importPlanTitleInput,importPlanTitleValue,
                 title:store.courseById(id).title,
                 ids:store.imported.map(c=>c.localCourseId),
                 progressBefore,
                 progressAfter:rt.appState.courseProgress(id),
                 renameButton:!!document.querySelector('[data-action="library-rename-course"]'),
+                collectionRenameButton:!!document.querySelector('[data-action="library-rename-collection"]'),
+                collectionLabels:[...document.querySelectorAll('details.collection')].map(el=>({
+                  key:el.dataset.collectionKey||'',
+                  label:(el.querySelector('.collection-title strong')||{}).textContent||''
+                })),
                 report:store.persistenceReport(),
                 uiText:document.body.innerText
               };
@@ -136,13 +146,18 @@ def main() -> int:
             add('import-transaction-succeeds', applied.get('ok') is True, result)
             add('import-title-editor-visible-before-apply', result.get('importTitleInput') is True and result.get('importTitleValue') == 'Nom choisi à l’import', {'visible': result.get('importTitleInput'), 'value': result.get('importTitleValue')})
             add('import-title-override-applied', bool(imported_rows) and imported_rows[0].get('title') == 'Nom choisi à l’import', imported_rows)
+            add('import-plan-title-editor-visible-before-apply', result.get('importPlanTitleInput') is True and result.get('importPlanTitleValue') == 'Plan choisi à l’import', {'visible': result.get('importPlanTitleInput'), 'value': result.get('importPlanTitleValue')})
+            add('import-plan-title-override-applied', bool(imported_rows) and imported_rows[0].get('collectionTitle') == 'Plan choisi à l’import' and report.get('collectionTitle') == 'Plan choisi à l’import', {'rows': imported_rows, 'reportTitle': report.get('collectionTitle')})
             add('post-import-rename-applied', result.get('renamed', {}).get('ok') is True and result.get('title') == 'Nom modifié après import', result.get('renamed'))
+            add('post-import-plan-rename-applied', result.get('collectionRenamed', {}).get('ok') is True and any(g.get('key') == result.get('collectionKey') and g.get('label') == 'Plan modifié après import' for g in result.get('collectionLabels', [])), {'rename': result.get('collectionRenamed'), 'groups': result.get('collectionLabels')})
             add('stable-course-id-after-rename', result.get('id') in result.get('ids', []) and result.get('renamed', {}).get('courseId') == result.get('id'), {'id': result.get('id'), 'ids': result.get('ids')})
-            add('durable-snapshot-carries-library', any(c.get('localCourseId') == result.get('id') and c.get('title') == 'Nom modifié après import' for c in result.get('snapshot', {}).get('imported', [])), result.get('snapshot', {}).get('reason'))
+            add('durable-snapshot-carries-library', any(c.get('localCourseId') == result.get('id') and c.get('title') == 'Nom modifié après import' and c.get('importCollectionTitle') == 'Plan modifié après import' for c in result.get('snapshot', {}).get('imported', [])), result.get('snapshot', {}).get('reason'))
             add('durable-snapshot-carries-learner-state', bool(result.get('snapshot', {}).get('learnerStatePayload')), 'learnerStatePayload present')
             add('snapshot-roundtrip-restores-library', result.get('restored', {}).get('ok') is True and result.get('id') in result.get('ids', []), result.get('restored'))
             add('progress-preserved-through-rename-and-roundtrip', result.get('progressBefore') == result.get('progressAfter') and result.get('progressAfter', {}).get('probe-q1', {}).get('correct') is True, {'before': result.get('progressBefore'), 'after': result.get('progressAfter')})
             add('rename-action-visible-in-library', result.get('renameButton') is True, 'rename button present')
+            add('plan-rename-action-visible-in-library', result.get('collectionRenameButton') is True, 'plan rename button present')
+            add('renamed-plan-visible-in-library', 'Plan modifié après import' in result.get('uiText', ''), result.get('uiText', '')[:400])
             add('renamed-title-visible-in-library', 'Nom modifié après import' in result.get('uiText', ''), result.get('uiText', '')[:400])
             add('persistence-report-exposed', result.get('report', {}).get('schema') == 'learnit.library_persistence_report.rc715.v1', result.get('report'))
             add('no-unexpected-browser-errors', not errors, ' | '.join(errors[-10:]))

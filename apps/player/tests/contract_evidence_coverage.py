@@ -12,7 +12,7 @@ checks = [
     {"code": "all-mapped-tests-exist", "ok": all((ROOT / item).exists() for item in mapped)},
     {"code": "all-active-tests-mapped", "ok": active <= mapped, "detail": sorted(active - mapped)},
     {"code": "no-stale-mapped-tests", "ok": mapped <= active, "detail": sorted(mapped - active)},
-    {"code": "human-authority-explicit", "ok": bool(MAP.get("human_only_or_partially_automated")) and "RC696" in MAP.get("policy", "")},
+    {"code": "human-authority-explicit", "ok": bool(MAP.get("human_only_or_partially_automated")) and "RC715" in MAP.get("policy", "") and "human" in MAP.get("policy", "").lower()},
 ]
 ok = all(check["ok"] for check in checks)
 out = ROOT / "reports/contract_evidence_coverage_report.json"

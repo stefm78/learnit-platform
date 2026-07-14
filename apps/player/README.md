@@ -1,15 +1,15 @@
-# Learn-it — source minimale RC715
+# Learn-it — source minimale RC718
 
-RC715 est une **candidate automatisée en HOLD humain** construite sur RC712.
+RC718 est une **candidate automatisée** construite sur la baseline standalone RC715 promue et validée humainement.
 
-RC713–RC715 ajoutent :
+RC716–RC718 ajoutent, sans modifier l’identité technique des packages :
 
-- une bibliothèque importée persistée dans IndexedDB, avec `localStorage` comme cache synchrone ;
-- une restauration automatique après fermeture/réouverture lorsque le cache local est indisponible ou éphémère ;
-- un nom de parcours modifiable pendant la prévisualisation d’import ;
-- un renommage post-import depuis la fiche Bibliothèque ;
-- un identifiant local stable, afin qu’un renommage ne perde ni progression, ni bilan, ni reprise ;
-- des tests navigateur dédiés à la persistance et au renommage.
+- le renommage du plan importé depuis la Bibliothèque ;
+- le choix du nom du plan pendant la prévisualisation d’import ;
+- une persistance durable du nom dans IndexedDB et le cache local ;
+- la conservation des identifiants de parcours, de la progression, du bilan et de la reprise ;
+- le rejet des noms vides, trop longs ou déjà utilisés ;
+- des contrôles contractuels et navigateur dédiés.
 
 ## Commandes reproductibles
 
@@ -22,7 +22,7 @@ python dev/release_pipeline.py --output-dir release
 
 ## Statut
 
-- `automationReady: true` seulement après tous les gates automatisés ;
-- `promotionReady: false` jusqu’au test humain RC716 ;
-- RC702 transfert/rétention est explicitement différée ;
-- RC716 : fermeture/réouverture, renommage à l’import et après import, plus matrice finale.
+- baseline promue : RC715 ;
+- candidate courante : RC718 ;
+- automatisation : en validation complète ;
+- prochain gate humain ciblé : RC719, renommage du plan sur Android et desktop avec fermeture/réouverture.

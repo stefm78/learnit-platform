@@ -2,7 +2,7 @@
 
 ## 0. Source de vérité
 
-Ce skill cible **Learn-it RC715** et le contrat `learnit.import.v1.1`.
+Ce skill cible **Learn-it RC718** et le contrat `learnit.import.v1.1`.
 
 Lire dans cet ordre :
 

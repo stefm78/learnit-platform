@@ -1,4 +1,4 @@
-# Contrats d’ingénierie RC715
+# Contrats d’ingénierie RC718
 
 ## Propriétaires canoniques
 
@@ -39,3 +39,11 @@ Les redéfinitions historiques restantes sont des décorateurs enregistrés dans
 ## Persistance Bibliothèque RC713+
 
 IndexedDB est le propriétaire durable des parcours importés. `localStorage` reste un cache synchrone de démarrage. L’identité d’un parcours importé est `localCourseId`, immuable après import ; le titre est une propriété de présentation modifiable.
+
+
+## Plan importé : identité et libellé
+
+- `importPackageId` reste l’identité technique immuable du plan.
+- `importCollectionTitle` est un libellé utilisateur modifiable.
+- Renommer un plan ne modifie ni `localCourseId`, ni progression, ni bilan, ni reprise.
+- Le libellé doit être persistant, non vide, limité à 120 caractères et unique parmi les plans importés.
