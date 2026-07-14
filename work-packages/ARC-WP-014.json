@@ -5,12 +5,13 @@
   "status": "accepted",
   "changeClass": "bounded-player-architecture",
   "riskClass": "high",
-  "purpose": "Authorize one fresh Stage C execution from the exact main base containing the accepted fingerprint diagnostic and strict Remote Agent PR-scope compatibility repair, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata.",
+  "purpose": "Authorize one fresh Stage C execution after the accepted fingerprint diagnostic and strict Remote Agent PR-scope compatibility repair, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata. The reviewed baseline is immutable; the executable base is resolved after governance merge as exact current main immediately before agent-branch creation.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
+    "baseCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
     "candidateName": "fresh first reversible storage seam result",
-    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+    "executionBaseResolution": "exact current main SHA captured after ARC-WP-016 is merged and immediately before creating the fresh agent branch"
   },
   "scope": {
     "allowedPaths": [
@@ -74,6 +75,7 @@
     "Only src/scripts/core/runtime_parts/04_local_storage_port.js is added to baseline_equivalence.ignored_script_paths; all existing entries and all other release metadata remain unchanged.",
     "baseline_equivalence.runtime_js_normalized_sha256 remains d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73.",
     "The disposable diagnostic PR 46 remains closed and unmerged.",
+    "The executable base is the exact current main SHA captured after governance merge and immediately before fresh branch creation; any intervening main drift invalidates the branch.",
     "The fresh result must be produced through Remote Agent Worktree, pass player-full and permanent Player CI on the exact result, and must not be merged autonomously.",
     "The Remote Agent envelope and tested-result commits must both pass the strict canonical PR-scope gate introduced by GOV-WP-015.",
     "Stage D remains blocked until a separate governor acceptance is merged."
@@ -82,6 +84,7 @@
     "closed unmerged diagnostic PR 46 and exact tested result 5c6440838fe400c331ebf26fce5d97f964effeae",
     "fingerprint diagnostic JSON with matching protected normalized fingerprint",
     "merged PR-scope compatibility repair commit dd6679b1b890efadb2c049113993d3e2c78f96b2",
+    "post-merge current main SHA captured immediately before fresh agent-branch creation",
     "exact fresh Remote Agent base, trigger and result commits",
     "complete changed-file and role-owner inventory",
     "focused storage-boundary contract and mandatory registration",
@@ -103,6 +106,7 @@
     "fail if release_config changes beyond the measured runtime fingerprint and one ignored-path addition",
     "fail if the normalized protected fingerprint changes",
     "fail if any unrelated runtime, UI, contract, tool, workflow or platform file changes",
+    "fail if the agent job base differs from the pull-request base or captured current main",
     "fail if evidence is attached to a different commit from the proposed result",
     "fail if rollback requires data migration or remote compensation"
   ],
@@ -152,6 +156,7 @@
     "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
     "requiredTestProfile": "player-full",
     "reboundByWorkPackage": "ARC-WP-015",
+    "baseResolutionCorrectedByWorkPackage": "ARC-WP-016",
     "stageC": "authorized-not-complete",
     "stageDEntryAllowed": false
   },
