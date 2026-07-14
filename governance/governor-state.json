@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-017",
-  "effectiveFromCommit": "746cd0a7abac219da58543fe82831123c0ef9fd4",
-  "reviewedBaselineCommit": "746cd0a7abac219da58543fe82831123c0ef9fd4",
+  "stateId": "GOV-STATE-2026-07-14-018",
+  "effectiveFromCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
+  "reviewedBaselineCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "first-reversible-storage-seam-fresh-execution-authorized",
+    "id": "first-reversible-storage-seam-rebound-execution-authorized",
     "status": "active",
-    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. ARC-WP-010 through ARC-WP-013 are accepted. The disposable diagnostic PR 46 passed and remains closed unmerged. ARC-WP-014 authorizes one fresh first-seam result with disjoint developer, contradictory QA, integrator and governor file scopes. Stage C is not accepted until the exact fresh result passes all checks and separate governor acceptance. Stage D remains blocked."
+    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. The first storage-seam design and diagnostic are accepted. GOV-WP-015 repaired the structural incompatibility between Remote Agent transport and canonical PR scope. ARC-WP-015 rebinds the fresh ARC-WP-014 execution to exact main commit dd6679b1b890efadb2c049113993d3e2c78f96b2. Stage C is not accepted until the exact fresh result passes all checks and separate governor acceptance. Stage D remains blocked."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -60,6 +60,12 @@
       "requiredCheck": "PR scope / gate",
       "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md"
     },
+    "remoteAgentPrScopeCompatibility": {
+      "workPackage": "GOV-WP-015",
+      "status": "accepted",
+      "mergeCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
+      "policy": "exact three-file transport envelope plus dual canonical scope validation for intended patch and tested result"
+    },
     "branchHygiene": {
       "workPackage": "GOV-WP-012",
       "status": "accepted",
@@ -98,13 +104,15 @@
     },
     "freshFirstSeamExecution": {
       "workPackage": "ARC-WP-014",
+      "reboundByWorkPackage": "ARC-WP-015",
       "status": "accepted",
       "implementationStatus": "authorized-not-accepted",
+      "reboundBaseCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
       "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
       "requiredTestProfile": "player-full",
       "measuredRuntimeFingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
       "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
-      "review": "docs/governance/reviews/GOV-REVIEW-0012-FIRST-SEAM-DIAGNOSTIC-PASS.md"
+      "review": "docs/governance/reviews/GOV-REVIEW-0014-FIRST-SEAM-REBIND.md"
     }
   },
   "authorizedWork": [
@@ -112,10 +120,11 @@
     "bounded multi-file AI implementation through the accepted Remote Agent Worktree with exact baseline, machine-checkable scope and explicit test profile",
     "permanent player CI and black-box behavioral protection",
     "pull-request changed-file scope enforcement through canonical work packages",
+    "strict Remote Agent envelope and tested-result scope validation",
     "repository governance hardening",
     "architecture reference hardening",
     "read-only source cartography",
-    "one fresh ARC-WP-014 first-seam result through the Remote Agent Worktree",
+    "one fresh ARC-WP-014 first-seam result through the Remote Agent Worktree from rebound base dd6679b1b890efadb2c049113993d3e2c78f96b2",
     "the QA-focused boundary contract and its single mandatory registry addition",
     "integrator-only measured release fingerprint metadata and first-seam evidence",
     "adversarial QA, integration evidence and governor review of the exact fresh first-seam result",
@@ -185,12 +194,12 @@
   ],
   "nextMandatoryGate": {
     "id": "ARC-WP-014",
-    "condition": "Produce the fresh first-seam result from the exact ARC-WP-014 base with disjoint developer, QA and integrator paths. The exact result must pass Remote Agent tested-result, full Player CI including the focused contract and PR scope; then contradictory QA and the integrator must provide independent review before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
+    "condition": "Produce the fresh first-seam result from exact rebound base dd6679b1b890efadb2c049113993d3e2c78f96b2 with disjoint developer, QA and integrator paths. Both the envelope and exact tested result must pass canonical PR scope. The exact result must also pass Remote Agent tested-result, full Player CI including the focused contract and repository governance; then contradictory QA and the integrator must provide independent review before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0012 first-seam diagnostic PASS",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0014 first-seam exact-base rebind",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "fresh first-seam result commit, failed or missing CI, release-config drift, contradictory QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
+    "nextReviewTrigger": "fresh first-seam envelope commit, tested-result commit, failed or missing CI, release-config drift, contradictory QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
   }
 }
