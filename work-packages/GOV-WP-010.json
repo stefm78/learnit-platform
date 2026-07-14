@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-010",
+  "title": "Enforce pull-request work-package scope",
+  "status": "under-qa",
+  "changeClass": "repository-governance",
+  "riskClass": "high",
+  "purpose": "Require every pull request targeting main to name one canonical work package and prove that its changed files stay inside the declared allowed and forbidden boundaries.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "3f1a67935ce782dcbf700e642f4ff8dfa41d3438",
+    "candidateName": "PR scope gate v1",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/pr-scope.yml",
+      "tools/validate_pr_scope.py",
+      "docs/governance/PR_SCOPE_GATE.md",
+      "work-packages/GOV-WP-010.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/src/**",
+      "apps/player/contract/**",
+      "platform/**",
+      "contracts/**",
+      "docs/architecture/**",
+      "governance/governor-state.json"
+    ]
+  },
+  "invariants": [
+    "The gate runs with read-only repository permissions and no persisted checkout credential.",
+    "Every pull request body names exactly one canonical work package.",
+    "Every changed path, including rename origins, is checked against allowedPaths and forbiddenPaths.",
+    "Global allowed patterns, binaries, archives, symbolic links, submodules, generated artifacts and transport envelopes are rejected.",
+    "Player runtime work cannot be mixed with workflow, governance, architecture, contract or platform domains.",
+    "The validator does not merge, modify, label or otherwise mutate a pull request."
+  ],
+  "requiredEvidence": [
+    "repository governance CI pass",
+    "PR scope workflow pass on its own implementation pull request",
+    "self-validation against GOV-WP-010",
+    "negative tests for missing or multiple work-package identifiers",
+    "negative tests for paths outside allowedPaths",
+    "negative tests for binary, archive, symlink and generated paths",
+    "documented ruleset configuration still required outside repository source"
+  ],
+  "adversarialTests": [
+    "remove the work-package id from a pull request body",
+    "name two work packages in one pull request body",
+    "change a path outside allowedPaths",
+    "rename a forbidden file into an allowed directory",
+    "introduce an archive or binary file",
+    "leave an .agent-jobs envelope in a final agent pull request",
+    "mix player runtime and workflow changes"
+  ],
+  "nonGoals": [
+    "configure GitHub repository rulesets through an unavailable administrative API",
+    "grant autonomous merge authority",
+    "replace independent review",
+    "change player runtime behavior",
+    "activate backend, synchronization, identity or commerce work"
+  ],
+  "independentReview": [
+    "Repository governance workflow",
+    "Architecture and Repository Governor",
+    "negative smoke pull requests before acceptance"
+  ],
+  "implementation": {
+    "workflow": ".github/workflows/pr-scope.yml",
+    "validator": "tools/validate_pr_scope.py",
+    "requiredCheck": "PR scope / gate",
+    "issue": 27
+  },
+  "rollback": "Revert the workflow, validator, documentation and this work package. Existing player source and promotion state remain unchanged."
+}

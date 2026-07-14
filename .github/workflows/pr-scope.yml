@@ -1,0 +1,64 @@
+name: PR scope
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-scope-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Check out exact pull request head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Capture pull request body without shell interpolation
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          Path('/tmp/pr-body.md').write_text(os.environ.get('PR_BODY', ''), encoding='utf-8')
+          PY
+
+      - name: Validate work-package scope
+        run: |
+          python tools/validate_pr_scope.py \
+            --base '${{ github.event.pull_request.base.sha }}' \
+            --head '${{ github.event.pull_request.head.sha }}' \
+            --body-file /tmp/pr-body.md \
+            --output /tmp/pr-scope-report.json
+
+      - name: Upload scope evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-scope-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: /tmp/pr-scope-report.json
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 6
