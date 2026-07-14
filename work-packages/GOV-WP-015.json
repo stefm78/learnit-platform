@@ -16,7 +16,8 @@
       "work-packages/GOV-WP-015.json",
       "tools/validate_pr_scope.py",
       "tools/test_validate_pr_scope.py",
-      "docs/governance/PR_SCOPE_GATE.md"
+      "docs/governance/PR_SCOPE_GATE.md",
+      ".github/workflows/pr-scope.yml"
     ],
     "forbiddenPaths": [
       "apps/player/**",
@@ -24,9 +25,10 @@
       "platform/**",
       "governance/**",
       "docs/architecture/**",
-      ".github/**",
       "tools/agent_worktree.py",
-      "tools/validate_repository.py"
+      "tools/validate_repository.py",
+      ".github/workflows/player-ci.yml",
+      ".github/workflows/remote-agent-worktree.yml"
     ]
   },
   "invariants": [
@@ -36,7 +38,8 @@
     "Remote Agent allowedPaths must be unique exact file paths without globs and each must be permitted by the canonical work package named in the pull-request body.",
     "The patch must be applicable text, contain unique paths, and every intended path must satisfy both the job and canonical work-package scopes.",
     "After the tested-result commit, every non-transport changed path must remain inside both the exact job allowedPaths and canonical work-package scope.",
-    "No workflow, Remote Agent runner, player source, contract, architecture or platform behavior changes under this work package.",
+    "The PR-scope workflow changes only by adding the focused validator regression command before live scope validation.",
+    "No Remote Agent runner, player source, contract, architecture or platform behavior changes under this work package.",
     "ARC-WP-014 and Stage D remain blocked until this gate repair is merged and the first seam is rerun from the new exact main."
   ],
   "requiredEvidence": [
@@ -59,5 +62,5 @@
     "implementationAccepted": false,
     "acceptanceGate": "focused tests plus successful ARC-WP-014 envelope and tested-result scope evidence"
   },
-  "rollback": "Revert the validator and focused test. Remote Agent PRs become blocked again by PR scope; no player or learner data rollback is required."
+  "rollback": "Revert the validator, focused test and one workflow test step. Remote Agent PRs become blocked again by PR scope; no player or learner data rollback is required."
 }
