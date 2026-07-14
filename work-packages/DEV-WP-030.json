@@ -5,7 +5,7 @@
   "status": "under-qa",
   "changeClass": "repository-governance",
   "riskClass": "high",
-  "purpose": "Provide a bounded GitHub Actions worktree in which an AI development agent can apply one scoped patch, build and test it without write credentials, then commit the exact tested result only to its originating agent branch.",
+  "purpose": "Provide a bounded GitHub Actions worktree in which an AI development agent can apply one scoped patch from an internal agent pull request, build and test it without write credentials, then commit the exact tested result only to the originating agent branch.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
     "baseCommit": "e8c1880cac7f2c7be113e5a20ce819f5b9fa202f",
@@ -31,6 +31,7 @@
     ]
   },
   "invariants": [
+    "The workflow only accepts same-repository pull requests whose head branch matches agent/**.",
     "The workflow never writes directly to main or to a non-agent branch.",
     "Patched repository code is built and tested in a job without persisted Git credentials and with contents read permission only.",
     "The write-token job does not execute the patched test suite and only stages the previously tested result envelope.",
@@ -41,13 +42,14 @@
   "requiredEvidence": [
     "repository governance CI pass",
     "local isolated smoke test of prepare, apply, package and commit-prepare phases",
-    "GitHub Actions end-to-end smoke run on an agent branch",
+    "GitHub Actions end-to-end smoke run through an internal agent pull request",
     "result commit restricted to the originating agent branch",
     "temporary job envelope removed from the successful branch tree",
     "documented trust boundary and recovery procedure"
   ],
   "adversarialTests": [
     "reject a branch outside agent/**",
+    "reject a pull request whose head repository is not the current repository",
     "reject non-job changes staged before READY",
     "reject an overbroad allowed path",
     "reject paths outside allowedPaths or inside permanent forbidden areas",
@@ -67,7 +69,7 @@
   "independentReview": [
     "repository governance workflow",
     "Architecture and Repository Governor",
-    "end-to-end smoke branch inspected before merge"
+    "end-to-end internal agent pull request inspected before acceptance"
   ],
-  "rollback": "Revert the infrastructure pull request. Existing application source, promoted RC715 baseline, active RC718 candidate and repository data are unaffected; agent branches containing unprocessed job envelopes can be deleted without migration."
+  "rollback": "Revert the infrastructure pull requests. Existing application source, promoted RC715 baseline, active RC718 candidate and repository data are unaffected; agent branches containing unprocessed job envelopes can be deleted without migration."
 }
