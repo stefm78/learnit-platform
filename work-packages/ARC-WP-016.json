@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-016",
+  "title": "Resolve the first-seam execution base without self-reference",
+  "status": "accepted",
+  "changeClass": "architecture-governance-correction",
+  "riskClass": "high",
+  "purpose": "Correct the self-referential exact-base model: an authorization pull request cannot embed its own future merge SHA. Preserve the reviewed baseline SHA while defining the executable Remote Agent base as the exact current main commit observed after this governance correction is merged and immediately before the fresh agent branch is created.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
+    "candidateName": "post-merge-resolved-first-seam-execution-base",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-016.json",
+      "work-packages/ARC-WP-015.json",
+      "work-packages/ARC-WP-014.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/GOV-REVIEW-0015-POST-MERGE-BASE-RESOLUTION.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "tools/**",
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      "docs/architecture/**",
+      "docs/evidence/**"
+    ]
+  },
+  "invariants": [
+    "A Git commit is never required to contain its own SHA.",
+    "The reviewed baseline remains a full immutable SHA and proves what governance records were assessed before merge.",
+    "The executable base is resolved after merge as the exact current main SHA immediately before creating the agent branch.",
+    "The Remote Agent job baseCommit must equal that exact SHA and the pull-request base SHA.",
+    "No intervening main commit is permitted between base capture and agent branch creation; any drift requires a new capture and branch recreation, not a governance scope expansion.",
+    "All seam design, role scopes, implementation paths, fingerprints, test profile, rollback and product identities remain unchanged.",
+    "Stage C remains authorized-not-complete and Stage D remains blocked."
+  ],
+  "requiredEvidence": [
+    "reviewed baseline commit 837ebd3e666aafc377e3f38c9f7655bdc842eb32",
+    "successful Repository governance and PR scope on this correction",
+    "post-merge main SHA captured before fresh agent branch creation",
+    "job.json baseCommit equal to the captured main SHA",
+    "pull-request base SHA equal to the captured main SHA",
+    "zero intervening main commits before agent branch creation"
+  ],
+  "adversarialTests": [
+    "fail if job baseCommit differs from pull-request base SHA",
+    "fail if the agent branch is not recreated after any main drift",
+    "fail if a governance file claims that a pre-merge SHA is the post-merge executable base",
+    "fail if any implementation, QA, integration or fingerprint boundary changes",
+    "fail if prior failed or diagnostic branches are reused",
+    "fail if Stage C or Stage D is marked accepted"
+  ],
+  "nonGoals": [
+    "change the first seam",
+    "change the Remote Agent or PR-scope implementation",
+    "change player code, release identity, artifacts or learner data",
+    "accept Stage C",
+    "start Stage D"
+  ],
+  "independentReview": [
+    "Repository governance validates the corrected base-resolution contract",
+    "PR scope confirms governance-only changed files",
+    "the Remote Agent validates exact base equality at execution",
+    "the governor separately verifies no main drift before accepting the result"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "authorizedAt": "2026-07-14",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "reviewedBaselineCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
+    "executionBaseResolution": "exact current main SHA captured after this pull request is merged and immediately before creating the fresh agent branch",
+    "stageC": "authorized-not-complete",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert this governance-only correction. No player source or learner data changes. A new non-self-referential execution-base policy would then be required before another fresh agent run."
+}
