@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "id": "DEV-WP-030",
+  "title": "Establish the validated remote agent worktree",
+  "status": "under-qa",
+  "changeClass": "repository-governance",
+  "riskClass": "high",
+  "purpose": "Provide a bounded GitHub Actions worktree in which an AI development agent can apply one scoped patch, build and test it without write credentials, then commit the exact tested result only to its originating agent branch.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "e8c1880cac7f2c7be113e5a20ce819f5b9fa202f",
+    "candidateName": "Remote Agent Worktree v1",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/remote-agent-worktree.yml",
+      ".gitignore",
+      "tools/agent_worktree.py",
+      "docs/governance/REMOTE_AGENT_WORKTREE.md",
+      "docs/evidence/remote-agent-worktree-smoke.md",
+      "templates/agent-job/**",
+      "work-packages/DEV-WP-030.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "governance/governor-state.json",
+      "docs/architecture/**",
+      "contracts/**",
+      "platform/**"
+    ]
+  },
+  "invariants": [
+    "The workflow never writes directly to main or to a non-agent branch.",
+    "Patched repository code is built and tested in a job without persisted Git credentials and with contents read permission only.",
+    "The write-token job does not execute the patched test suite and only stages the previously tested result envelope.",
+    "Every job is tied to an exact full base commit, one agent branch, machine-checkable allowed paths and fixed test profiles.",
+    "Workflow, governance, architecture, work-package, binary, symlink and submodule changes are rejected by the fast agent lane.",
+    "A successful run removes the temporary job envelope before committing the tested result."
+  ],
+  "requiredEvidence": [
+    "repository governance CI pass",
+    "local isolated smoke test of prepare, apply, package and commit-prepare phases",
+    "GitHub Actions end-to-end smoke run on an agent branch",
+    "result commit restricted to the originating agent branch",
+    "temporary job envelope removed from the successful branch tree",
+    "documented trust boundary and recovery procedure"
+  ],
+  "adversarialTests": [
+    "reject a branch outside agent/**",
+    "reject non-job changes staged before READY",
+    "reject an overbroad allowed path",
+    "reject paths outside allowedPaths or inside permanent forbidden areas",
+    "reject binary patches, symlinks and submodules",
+    "reject a moved branch between validation and commit",
+    "reject a result patch whose digest or final scope differs from the tested result",
+    "prevent a successful result push from recursively applying a second time"
+  ],
+  "nonGoals": [
+    "grant autonomous merge authority",
+    "modify repository rulesets or branch protection",
+    "replace normal pull-request review",
+    "support arbitrary shell commands supplied by an agent job",
+    "publish releases",
+    "activate held architecture, backend, synchronization, identity or commerce work"
+  ],
+  "independentReview": [
+    "repository governance workflow",
+    "Architecture and Repository Governor",
+    "end-to-end smoke branch inspected before merge"
+  ],
+  "rollback": "Revert the infrastructure pull request. Existing application source, promoted RC715 baseline, active RC718 candidate and repository data are unaffected; agent branches containing unprocessed job envelopes can be deleted without migration."
+}
