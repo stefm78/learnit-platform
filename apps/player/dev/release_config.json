@@ -7,7 +7,7 @@
   "principle": "Keep technical package identity immutable while allowing a user-facing imported plan label to change safely before or after import without losing courses, progress, bilan or resume state.",
   "build_timestamp": "2026-07-14T00:00:00Z",
   "bundle_label": "editable_imported_plan_naming_candidate",
-  "runtime_fingerprint": "faf266c5bada32fcb7c9a5f247985eeb0cfd4c3f0a3d4aa05ceb55092122940c",
+  "runtime_fingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
   "human_validation": {
     "required": true,
     "status": "pending-rc719-focused-plan-naming-human-gate",
@@ -28,6 +28,7 @@
     "ignored_script_paths": [
       "src/learning/performance_budget_model.js",
       "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+      "src/scripts/core/runtime_parts/04_local_storage_port.js",
       "src/scripts/core/runtime_parts/10_content_store_and_state.js",
       "src/scripts/core/runtime_parts/50_diagnostics_import_quality.js",
       "src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js",
