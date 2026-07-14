@@ -101,7 +101,7 @@ def discover_job() -> tuple[Path, dict[str, Any]]:
 
 
 def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
-    branch = os.environ.get("GITHUB_REF_NAME", git("branch", "--show-current"))
+    branch = os.environ.get("AGENT_BRANCH") or os.environ.get("GITHUB_REF_NAME", git("branch", "--show-current"))
     if not BRANCH_RE.fullmatch(branch):
         raise AgentError(f"remote worktree only accepts agent/** branches: {branch}")
     required = {
@@ -312,7 +312,7 @@ def cmd_package(plan_path: Path, output_patch: Path, output_manifest: Path) -> N
     job_dir = ROOT / plan["jobDir"]
     if job_dir.exists():
         shutil.rmtree(job_dir)
-    run(["git", "add", "-A", "--", ".", ":(exclude).agent-runtime/**", ":(exclude).agent-result/**"])
+    run(["git", "add", "-A"])
     summary = validate_changed_paths(plan, plan["baseCommit"])
     if not summary["paths"]:
         raise AgentError("no final changes remain")
@@ -360,7 +360,7 @@ def cmd_commit_prepare(manifest_path: Path, result_patch: Path) -> None:
     run(["git", "apply", "--index", "--whitespace=error-all", str(result_patch)])
     if job_dir.exists():
         shutil.rmtree(job_dir)
-    run(["git", "add", "-A", "--", ".", ":(exclude).agent-runtime/**", ":(exclude).agent-result/**"])
+    run(["git", "add", "-A"])
     summary = validate_changed_paths(plan, plan["baseCommit"])
     if summary != manifest.get("changed"):
         raise AgentError("final changes differ from tested result")
