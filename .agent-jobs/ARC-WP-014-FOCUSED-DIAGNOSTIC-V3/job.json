@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-014-FOCUSED-DIAGNOSTIC-V3",
+  "baseCommit": "4104a0c78b4c952e12f79d3c837b55290efb8fa6",
+  "branch": "agent/arc-wp-014-focused-contract-diagnostic-v3",
+  "patchFile": ".agent-jobs/ARC-WP-014-FOCUSED-DIAGNOSTIC-V3/change.patch",
+  "allowedPaths": [
+    "apps/player/tests/contract_storage_boundary.py",
+    "apps/player/dev/checks_registry.json",
+    "apps/player/dev/release_config.json"
+  ],
+  "forbiddenPaths": [
+    ".github/**",
+    "governance/**",
+    "docs/architecture/**",
+    "docs/governance/**",
+    "docs/evidence/**",
+    "work-packages/**",
+    "contracts/**",
+    "platform/**",
+    "apps/player/contract/**",
+    "apps/player/authoring/**",
+    "apps/player/dev/run_all_checks.py",
+    "apps/player/dev/update_manifest.py",
+    "apps/player/src/**",
+    "apps/player/dist/**",
+    "apps/player/reports/**",
+    "apps/player/release/**"
+  ],
+  "testProfile": "player-targeted",
+  "testTargets": [
+    "apps/player/tests/contract_storage_boundary.py"
+  ],
+  "commitMessage": "Diagnose focused first storage seam contract v3",
+  "maxPatchBytes": 10000,
+  "maxChangedFiles": 3,
+  "maxChangedLines": 40
+}
