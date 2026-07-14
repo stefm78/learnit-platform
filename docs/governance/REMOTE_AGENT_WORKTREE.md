@@ -19,7 +19,8 @@ It is a transport and validation mechanism, not an autonomous merge authority.
 6. Build and tests run in a job with `contents: read` and no persisted repository credential.
 7. The exact tested result is packaged as a patch plus manifest.
 8. A separate short job with `contents: write` revalidates the result, commits it only to the pull request's `agent/**` branch, removes the temporary job envelope and appends `[agent-applied]` to the commit message.
-9. The same pull request now exposes only the tested product change for normal CI review and merge decision.
+9. A final job that does not check out or execute repository code writes a success status on the exact result commit SHA.
+10. The same pull request now exposes only the tested product change for normal review and merge decision.
 
 The workflow rejects forks and never pushes directly to `main`.
 
@@ -78,6 +79,8 @@ The write-token job does not execute the patched test suite. It only:
 - stages the previously tested result;
 - commits and pushes to the originating internal `agent/**` branch.
 
+The final status job receives only `statuses: write`. It does not check out the repository or execute patched code. It posts the `Remote agent worktree / tested result` status to the exact SHA emitted by the result-commit job.
+
 The branch is rejected when the pull request head repository is not the current repository. This limits the blast radius without pretending that CI execution of repository code is risk-free.
 
 ## Usage policy
@@ -99,4 +102,4 @@ Do not use it for:
 
 A failed validation or test leaves the pull request branch with only its job envelope. Correct or replace the patch, then update `READY` last to start a new pull-request synchronization attempt.
 
-A successful run removes the job envelope from the branch tree. The pull request, result commit and Actions evidence remain reviewable before any merge.
+A successful run removes the job envelope from the branch tree. The pull request, exact-result commit status and Actions evidence remain reviewable before any merge.
