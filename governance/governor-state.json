@@ -1,27 +1,39 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-010",
-  "effectiveFromCommit": "cb0da8d4a734ba04043248128f369395e250252d",
-  "reviewedBaselineCommit": "cb0da8d4a734ba04043248128f369395e250252d",
+  "stateId": "GOV-STATE-2026-07-14-011",
+  "effectiveFromCommit": "d6c5ad4f976e575a9a4f4b32295f421702900b16",
+  "reviewedBaselineCommit": "d6c5ad4f976e575a9a4f4b32295f421702900b16",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "standalone-protected-first-seam-preparation",
-    "status": "active",
-    "description": "RC715 remains the promoted standalone forensic baseline. RC718 remains the active development candidate pending RC719 human validation. Permanent Player CI, Remote Agent Worktree, pull-request scope enforcement and branch hygiene are operational. A main-protection ruleset is configured but GitHub reports that it is not enforced on this private personal-account repository without moving to a GitHub Team organization account."
+    "id": "standalone-rc718-promoted-first-seam-design-pending",
+    "status": "paused-before-architecture-stage-b",
+    "description": "RC718 is the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. Permanent Player CI, Remote Agent Worktree, pull-request scope enforcement and branch hygiene are operational. The architecture program is paused before ARC-WP-010 design. Stage D is a future target and remains blocked until Stage B design and Stage C first reversible seam are accepted."
   },
   "developmentBaseline": {
-    "status": "active",
+    "status": "promoted",
     "workPackage": "UX-WP-020",
     "candidate": "RC718 editable imported plan naming candidate",
     "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
-    "humanPromotion": "PENDING_RC719"
+    "humanPromotion": "PASS_WITH_RESERVATIONS",
+    "humanGate": "RC719",
+    "evidence": "docs/evidence/rc718/human-validation-attestation.json"
   },
   "promotedBaseline": {
-    "status": "promoted",
-    "workPackage": "ARC-WP-000",
+    "status": "promoted-with-reservations",
+    "workPackage": "UX-WP-020",
+    "candidate": "RC718 editable imported plan naming candidate",
+    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+    "promotedAt": "2026-07-14",
+    "humanValidation": "PASS_WITH_RESERVATIONS",
+    "humanGate": "RC719",
+    "evidence": "docs/evidence/rc718/human-validation-attestation.json",
+    "reservationRegister": "docs/product/RC719_RESERVATIONS.md"
+  },
+  "previousPromotedBaseline": {
     "candidate": "RC715 durable library and rename candidate",
     "sourceCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
     "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
@@ -67,11 +79,12 @@
     "repository governance hardening",
     "architecture reference hardening",
     "read-only source cartography",
-    "preparation of one bounded and reversible architectural seam",
-    "work-package, evidence, and provenance tooling"
+    "preparation and governor review of ARC-WP-010",
+    "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
     "implementation of the first architectural seam until ARC-WP-010 is reviewed and accepted",
+    "Stage D controlled multi-AI pilot until the first reversible seam implementation and governor review are accepted",
     "player-wide architectural refactoring",
     "global identifier migration",
     "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
@@ -94,7 +107,9 @@
     "publishing an artifact different from the artifact tested",
     "presenting target architecture as current implementation",
     "using the Remote Agent fast lane for workflows, governance, architecture, work packages, secrets or held platform domains",
-    "broadening work-package allowedPaths merely to silence PR scope failures"
+    "broadening work-package allowedPaths merely to silence PR scope failures",
+    "starting Stage D by assuming Stage B or Stage C were completed",
+    "inventing missing RC719 reservation details"
   ],
   "activeRisks": [
     {
@@ -104,16 +119,16 @@
       "closureGate": "move the repository to an eligible GitHub Team organization account or adopt another GitHub plan/topology that enforces private-repository rulesets"
     },
     {
-      "id": "RISK-EVIDENCE-001",
+      "id": "RISK-EVIDENCE-002",
       "severity": "low",
-      "statement": "The RC715 human promotion is recorded as accountable-owner attestation without raw device recordings or per-case human test logs in the repository.",
-      "closureGate": "optional attachment of detailed human evidence or acceptance of owner attestation as the durable record"
+      "statement": "The RC719 promotion is recorded as accountable-owner PASS_WITH_RESERVATIONS without raw device recordings or per-case test logs.",
+      "closureGate": "optional attachment of detailed human evidence or continued acceptance of owner attestation as the durable record"
     },
     {
-      "id": "RISK-UX-020",
+      "id": "RISK-UX-021",
       "severity": "low",
-      "statement": "RC718 plan-name editing passed the complete permanent CI matrix but has not yet completed the focused Android and desktop close/reopen human gate.",
-      "closureGate": "RC719 focused human validation PASS"
+      "statement": "RC719 reservations are declared non-blocking but have not yet been itemized. Their scope and eventual corrective cost are therefore unknown.",
+      "closureGate": "record each reservation in docs/product/RC719_RESERVATIONS.md before opening a corrective work package"
     }
   ],
   "activeExceptions": [
@@ -127,12 +142,12 @@
   ],
   "nextMandatoryGate": {
     "id": "ARC-WP-010",
-    "condition": "Define and governor-review the first narrow reversible storage-boundary seam without changing storage technology, data shape, identifiers, UI, or behavior. RC719 human validation remains separately required before RC718 can replace the promoted standalone baseline. The unenforced ruleset remains a known accepted operational risk, not a blocker for bounded single-owner work."
+    "condition": "Define and governor-review the first narrow reversible storage-boundary seam without changing storage technology, data shape, identifiers, UI or behavior. After ARC-WP-010 acceptance, implement and validate the first seam as Stage C. Stage D may begin only after both gates are accepted. Use docs/handover/STAGE_D_RESTART_CHECKPOINT.md as the canonical future entry point."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — ruleset enforcement verification",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0006 RC718 promotion",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "ARC-WP-010 proposal, RC719 human naming/persistence result, repository ownership or plan change, first external collaborator, serious regression, release provenance change, or phase-gate request"
+    "nextReviewTrigger": "ARC-WP-010 proposal, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, first seam implementation, or Stage D entry request"
   }
 }
