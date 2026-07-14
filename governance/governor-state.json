@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-020",
-  "effectiveFromCommit": "1346e5772bd18432d96b2f88eb0d276fc7a04e94",
-  "reviewedBaselineCommit": "1346e5772bd18432d96b2f88eb0d276fc7a04e94",
+  "stateId": "GOV-STATE-2026-07-14-021",
+  "effectiveFromCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
+  "reviewedBaselineCommit": "d08cd1e1e63a135c819175fc7538d52487abeb92",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "stage-d-controlled-pilot-entry-authorized",
+    "id": "stage-d-controlled-role-scope-pilot-authorized",
     "status": "active",
-    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B and the first reversible storage seam are accepted. The exact Stage C result passed Remote Agent player-full, permanent Player CI, PR scope, repository governance, contradictory QA and integration review. Stage D entry is authorized for one bounded controlled multi-agent pilot with exact baseline and machine-checkable disjoint role scopes. Expansion beyond that pilot remains blocked pending separate governor acceptance."
+    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B and Stage C are accepted. ARC-WP-019 authorizes the first bounded Stage D pilot: one developer, one contradictory QA, one integrator and the governor operate on explicit machine-checkable disjoint write scopes to add and validate a deterministic role-scope ownership report. The pilot is not accepted until one exact tested result passes every gate and receives separate governor acceptance. Stage D expansion remains blocked."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -135,6 +135,15 @@
       "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
       "review": "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md",
       "evidence": "docs/evidence/architecture/first-storage-seam/implementation-evidence.json"
+    },
+    "stageDPilotAuthorization": {
+      "workPackage": "ARC-WP-019",
+      "status": "accepted-with-conditions",
+      "pilotStatus": "authorized-not-complete",
+      "purpose": "deterministic role-scope ownership validation on disjoint developer, QA, integrator and governor paths",
+      "requiredAgentBranch": "agent/arc-wp-019-role-scope-report-pilot",
+      "requiredTestProfile": "player-fast",
+      "review": "docs/governance/reviews/GOV-REVIEW-0019-STAGE-D-PILOT-AUTHORIZATION.md"
     }
   },
   "authorizedWork": [
@@ -148,11 +157,11 @@
     "architecture reference hardening",
     "read-only source cartography",
     "the accepted first reversible storage seam and its focused boundary contract",
-    "one controlled Stage D multi-agent pilot with developer, contradictory QA, integrator and governor write scopes that are explicit, disjoint and machine-checkable",
+    "the ARC-WP-019 controlled Stage D role-scope ownership pilot on its explicit disjoint paths",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "expansion beyond the first controlled Stage D pilot until its exact result and governor review are accepted",
+    "expansion beyond the ARC-WP-019 controlled Stage D pilot until its exact result and governor review are accepted",
     "player-wide architectural refactoring",
     "global identifier migration",
     "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
@@ -213,12 +222,12 @@
   ],
   "nextMandatoryGate": {
     "id": "ARC-WP-019",
-    "condition": "Authorize and launch one controlled Stage D pilot from exact current main. The developer, contradictory QA, integrator and governor must have explicit machine-checkable disjoint write scopes. The pilot must preserve the accepted first seam, avoid every held platform domain, produce one exact tested result, and receive separate governor acceptance before Stage D expands."
+    "condition": "After this authorization is merged, capture exact current main and immediately create the fresh Stage D pilot branch. The four role scopes must remain disjoint. The exact result must pass Remote Agent player-fast, permanent Player CI, PR scope and repository governance, then receive contradictory QA, integrator and separate governor acceptance. Stage D expansion remains blocked until that acceptance is merged."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0013 first-seam acceptance",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0019 Stage D pilot authorization",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "Stage D pilot authorization, any scope overlap, exact-baseline drift, failed or missing CI, changed first-seam ownership, artifact or fingerprint drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or Stage D expansion request"
+    "nextReviewTrigger": "post-merge exact-main capture, Stage D pilot envelope or tested result, role-scope overlap, working-file-budget failure, missing evidence registration, failed or missing CI, first-seam drift, product or artifact drift, contradictory QA finding, integrator finding, serious regression, or Stage D expansion request"
   }
 }
