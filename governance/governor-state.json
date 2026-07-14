@@ -1,25 +1,23 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-006",
-  "effectiveFromCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+  "stateId": "GOV-STATE-2026-07-14-007",
+  "effectiveFromCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
   "reviewedBaselineCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "standalone-baseline-promoted",
     "status": "active",
-    "description": "RC715 is the promoted standalone forensic baseline. Ongoing standalone corrections remain permitted, while architectural evolution must now pass behavioral-protection and bounded-seam gates."
+    "description": "RC715 remains the promoted standalone forensic baseline. RC718 is the active automation-ready development candidate and awaits the focused RC719 human naming and persistence gate."
   },
   "developmentBaseline": {
     "status": "active",
-    "workPackage": "SRC-WP-001",
-    "candidate": "RC715 durable library and rename candidate",
-    "sourceCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
-    "sourceImportCommit": "965113f758d7eac710b097a5e190b5ce3dcb638f",
-    "sourceArchiveSha256": "c6854bee987cfea2c2e7673fa0611d58e2f1db15fdb0c19e202806afee140eb4",
-    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
-    "humanPromotion": "PASS"
+    "workPackage": "UX-WP-020",
+    "candidate": "RC718 editable imported plan naming candidate",
+    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+    "humanPromotion": "PENDING_RC719"
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -87,17 +85,23 @@
       "severity": "low",
       "statement": "The human promotion is recorded as accountable-owner attestation without raw device recordings or per-case human test logs in the repository.",
       "closureGate": "optional attachment of detailed human evidence or acceptance of owner attestation as the durable record"
+    },
+    {
+      "id": "RISK-UX-020",
+      "severity": "low",
+      "statement": "RC718 plan-name editing passed bounded automated checks but has not yet completed the focused Android and desktop close/reopen human gate.",
+      "closureGate": "RC719 focused human validation PASS"
     }
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
     "id": "QA-WP-010",
-    "condition": "Permanent player CI and representative black-box regression fixtures protect the promoted RC715 behavior before the first architectural seam is implemented."
+    "condition": "Permanent player CI and representative black-box regression fixtures protect the promoted RC715 behavior before the first architectural seam is implemented. RC719 human validation is additionally required before RC718 can replace the promoted standalone baseline."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — ARC-WP-000 promotion review",
-    "decision": "GO",
-    "nextReviewTrigger": "first architectural seam proposal, architecture-sensitive pull request, serious regression, release provenance change, or phase-gate request"
+    "lastReviewedBy": "Architecture & Repository Governor — RC718 development candidate review",
+    "decision": "GO_WITH_CONDITIONS",
+    "nextReviewTrigger": "RC719 human naming/persistence result, first architectural seam proposal, serious regression, release provenance change, or phase-gate request"
   }
 }
