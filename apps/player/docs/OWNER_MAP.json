@@ -2,7 +2,8 @@
   "schema": "learnit.rc715.owner_map.v1",
   "policy": "Canonical recommendation, gesture, learning coverage and retention owners; compatibility decorators are registered rather than hidden.",
   "owners": {
-    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-observable-storage-adapter",
+    "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js": "boot-built-in-content-and-storage-key-declarations",
+    "src/scripts/core/runtime_parts/04_local_storage_port.js": "synchronous-local-storage-port-memory-fallback-telemetry-and-fault-injection",
     "src/scripts/core/runtime_parts/05_durable_library_store.js": "indexeddb-durable-library-snapshot-owner",
     "src/scripts/core/runtime_parts/10_content_store_and_state.js": "content-state-import-validation-and-transactional-rollback",
     "src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js": "session-answer-activity-and-secure-media-rendering",
