@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-022",
-  "effectiveFromCommit": "ae6b82d90b72f0287462c7d34708d0330d5ce35b",
-  "reviewedBaselineCommit": "ae6b82d90b72f0287462c7d34708d0330d5ce35b",
+  "stateId": "GOV-STATE-2026-07-15-023",
+  "effectiveFromCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
+  "reviewedBaselineCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "stage-d-controlled-pilot-accepted-identity-design-gate",
+    "id": "stable-identity-design-accepted-additive-resolver-gate",
     "status": "active",
-    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B, Stage C and the first controlled Stage D pilot are accepted. The pilot validated exact-baseline multi-agent execution with explicit machine-checkable disjoint developer, contradictory-QA, integrator and governor scopes. The operating model may be reused for bounded work packages. Broad architecture implementation remains blocked; the next allowed architecture step is a design-only stable-identity and migration work package."
+    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B, Stage C and the controlled Stage D pilot remain accepted. ARC-WP-020 accepts the design-only learnit-identity-v1 model, separating canonical lineage identity, local installation identity and legacy compatibility keys, with an overlay-first reversible migration strategy. No identifier implementation or learner-state migration is authorized. The next allowed architecture step is a bounded additive read-only identity resolver and shadow diagnostic."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -158,6 +158,23 @@
       "playerWorkingFiles": 150,
       "review": "docs/governance/reviews/GOV-REVIEW-0020-STAGE-D-PILOT-ACCEPTANCE.md",
       "evidence": "docs/evidence/architecture/stage-d-pilot/implementation-evidence.json"
+    },
+    "stableIdentityMigrationDesign": {
+      "workPackage": "ARC-WP-020",
+      "status": "accepted-with-conditions",
+      "designStatus": "accepted",
+      "baselineCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
+      "scheme": "learnit-identity-v1",
+      "identityLayers": [
+        "canonical-lineage-and-revision",
+        "local-installation",
+        "legacy-compatibility"
+      ],
+      "implementationAllowed": false,
+      "migrationAllowed": false,
+      "decision": "docs/architecture/decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md",
+      "inventory": "docs/evidence/architecture/stable-identity/current-identity-inventory.json",
+      "review": "docs/governance/reviews/GOV-REVIEW-0022-ARC-WP-020-STABLE-IDENTITY-DESIGN.md"
     }
   },
   "authorizedWork": [
@@ -172,11 +189,14 @@
     "architecture reference hardening",
     "read-only source cartography",
     "the accepted first reversible storage seam and its focused boundary contract",
-    "a design-only work package for stable global identifiers and migration strategy",
+    "the accepted learnit-identity-v1 design and reversible migration strategy",
+    "a bounded authorization package for an additive read-only identity resolver and shadow diagnostic",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "implementation or migration of stable global identifiers until a dedicated design-only gate is accepted",
+    "writing canonical identity overlays or migrating learner state until a separately accepted implementation and migration gate",
+    "publishing or requiring a new import contract version until a dedicated contract gate is accepted",
+    "removing or reinterpreting legacy package, course, activity, objective, asset, chapter, patch or content-version compatibility keys",
     "player-wide architectural refactoring",
     "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
     "backend implementation",
@@ -193,6 +213,8 @@
     "microservices before a demonstrated extraction need",
     "synchronization of opaque global snapshots as the sole merge model",
     "canonical identifiers derived from editable titles",
+    "silently reinterpreting legacy packageId, importPackageId, localCourseId, activity id, objective text, asset id, chapter id or contentVersion values as canonical identity",
+    "inferring global identity for legacy content from titles, slugs, ordering, file names, local collision suffixes or content digests",
     "direct UI coupling to storage or remote APIs",
     "parallel AI implementation without exact baseline and machine-checkable scopes",
     "publishing an artifact different from the artifact tested",
@@ -201,7 +223,7 @@
     "broadening work-package allowedPaths merely to silence PR scope failures",
     "weakening, deleting or excluding source-tree, evidence-coverage or release guards to obtain a green result",
     "changing release identity or protected normalized semantics under the accepted first seam",
-    "starting architecture implementation without an accepted design and migration gate",
+    "starting identity writes, schema migration or learner-state key migration before separate accepted gates",
     "adding another Player file while the working-file count is at 150 without removing or consolidating an existing file or accepting a dedicated budget change",
     "inventing missing RC719 reservation details"
   ],
@@ -217,6 +239,12 @@
       "severity": "moderate",
       "statement": "The Player working-file count is exactly 150, equal to the enforced budget. Further file growth would fail the source-tree contract and increase ownership fragmentation.",
       "closureGate": "remove or consolidate an existing Player file before adding another, or accept a dedicated source-budget change supported by architecture evidence"
+    },
+    {
+      "id": "RISK-IDENTITY-004",
+      "severity": "moderate",
+      "statement": "Current RC718 identifiers are proven for local standalone compatibility and rename-safe progress, but global package, course, objective and activity lineage is not proven. Legacy-only content therefore cannot be safely deduplicated or merged across installations, devices or publishers by title, slug, position or digest inference.",
+      "closureGate": "accept and validate complete canonical identity envelopes, an additive resolver, mixed-version compatibility evidence and a separate transactional migration before any global lineage or state-key cutover claim"
     },
     {
       "id": "RISK-EVIDENCE-002",
@@ -242,13 +270,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-020",
-    "condition": "Create a design-only stable-identity and migration work package from exact current main. It must inventory current identifiers and editable labels, persistence and import/export payloads, collision and compatibility rules, migration ordering, rollback and adversarial cases. It must not change Player runtime, stored data, product identity or a held platform domain. Implementation remains blocked until that design receives separate governor acceptance."
+    "id": "ARC-WP-021",
+    "condition": "Authorize one additive read-only identity resolver and shadow diagnostic from exact current main. It must classify complete canonical, legacy-only and invalid-partial identity without writing overlays, rewriting learner state, changing import decisions, UI, behavior, product identity or the accepted storage seam. It must modify only exact existing Player files so the working-file count remains 150, use disjoint developer, contradictory-QA, integrator and governor scopes, pass permanent Player CI and receive separate governor acceptance. Contract publication, identity writes and migration remain blocked."
   },
   "review": {
-    "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0020 Stage D pilot acceptance",
+    "lastReviewedAt": "2026-07-15",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0022 ARC-WP-020 stable identity design",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "stable-identity design proposal, any implementation request, role-scope overlap, Player working-file growth, failed or missing CI, first-seam drift, product or artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
+    "nextReviewTrigger": "ARC-WP-021 resolver authorization, any identity write or migration request, contract version proposal, legacy-key reinterpretation, role-scope overlap, Player working-file growth, failed or missing CI, first-seam drift, product or artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
   }
 }
