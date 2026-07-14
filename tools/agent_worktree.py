@@ -291,7 +291,10 @@ def cmd_test(plan_path: Path) -> None:
     plan = load_plan(plan_path)
     commands = [*PROFILE_COMMANDS.get(plan["testProfile"], [])]
     if plan["testProfile"] == "player-targeted":
-        commands = [["python", target] for target in plan["testTargets"]]
+        commands = [
+            ["make", "-C", "apps/player", "build"],
+            *[["python", target] for target in plan["testTargets"]],
+        ]
     results = []
     for command in commands:
         completed = run(command, check=False)
