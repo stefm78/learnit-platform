@@ -209,6 +209,7 @@
       "bundle": "runtime_core",
       "paths": [
         "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+        "src/scripts/core/runtime_parts/04_local_storage_port.js",
         "src/scripts/core/runtime_parts/05_durable_library_store.js",
         "src/scripts/core/runtime_parts/10_content_store_and_state.js",
         "src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js",
@@ -238,8 +239,13 @@
       "files": [
         {
           "path": "src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
-          "bytes": 17250,
-          "sha256": "52f261706a33c36377dcc4aa2c27f3b4b6b7b5eb28a4489a696dc26c45da3480"
+          "bytes": 14812,
+          "sha256": "2d9bddfc88dbea2698d45e3be3c27f776f0b62e124f27495aa52c3d95601c3aa"
+        },
+        {
+          "path": "src/scripts/core/runtime_parts/04_local_storage_port.js",
+          "bytes": 2438,
+          "sha256": "ac552c7daad97daab2a436170416324557bc5bd6a83944a1b144e5985a7567c3"
         },
         {
           "path": "src/scripts/core/runtime_parts/05_durable_library_store.js",
@@ -363,7 +369,7 @@
         }
       ],
       "bytes": 479537,
-      "sha256": "514e46875eb41f3ee3917b03865af389d612030ccfce9f1098bee8227c7fc46f"
+      "sha256": "62b359907238eeb6d4b87bc5837751870e05271aaf00c8d274b496b2bbbce6b3"
     },
     {
       "path": "src/scripts/enhancements/999_deferred_boot.js",
@@ -389,7 +395,7 @@
     "handover": "README.md"
   },
   "build_timestamp": "2026-07-14T00:00:00Z",
-  "release_config_sha256": "3231f537ea3d559f768624e72d5c68ebecf7cc6d767a1637fd9e40a7d83d531c",
+  "release_config_sha256": "35ae931c8e789fd6b3c25e94f6df9b5a62af06d972d509ae283d27c1e54c3e91",
   "human_validation": {
     "required": true,
     "status": "pending-rc719-focused-plan-naming-human-gate",

@@ -37,7 +37,8 @@
     "tests/contract_runtime_namespace.py",
     "tests/mutation_learning_contracts.py",
     "tests/contract_clean_room.py",
-    "tests/contract_library_persistence_naming.py"
+    "tests/contract_library_persistence_naming.py",
+    "tests/contract_storage_boundary.py"
   ],
   "browser": [
     "tests/browser_navigation.py",
