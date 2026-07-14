@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-016",
-  "effectiveFromCommit": "c299d6ef1851f7b57b63997c5e6964c16c2c2934",
-  "reviewedBaselineCommit": "c299d6ef1851f7b57b63997c5e6964c16c2c2934",
+  "stateId": "GOV-STATE-2026-07-14-017",
+  "effectiveFromCommit": "746cd0a7abac219da58543fe82831123c0ef9fd4",
+  "reviewedBaselineCommit": "746cd0a7abac219da58543fe82831123c0ef9fd4",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "first-reversible-storage-seam-fingerprint-evidence-hold",
-    "status": "blocked",
-    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. ARC-WP-010, ARC-WP-011 and ARC-WP-012 are accepted, but the first implementation attempt in PR 44 failed the fixed player-full profile and produced no tested result. ARC-WP-013 authorizes a disposable fingerprint diagnostic and a narrowly integrator-owned path-sensitive release-metadata correction. Stage C remains HOLD until a fresh exact result passes all gates. Stage D remains blocked."
+    "id": "first-reversible-storage-seam-fresh-execution-authorized",
+    "status": "active",
+    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. ARC-WP-010 through ARC-WP-013 are accepted. The disposable diagnostic PR 46 passed and remains closed unmerged. ARC-WP-014 authorizes one fresh first-seam result with disjoint developer, contradictory QA, integrator and governor file scopes. Stage C is not accepted until the exact fresh result passes all checks and separate governor acceptance. Stage D remains blocked."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -80,7 +80,6 @@
       "workPackage": "ARC-WP-011",
       "status": "accepted",
       "implementationStatus": "authorized-not-accepted",
-      "requiredAgentBranch": "agent/arc-wp-011-first-storage-seam-v2",
       "requiredTestProfile": "player-full",
       "review": "docs/governance/reviews/GOV-REVIEW-0009-ARC-WP-011-AUTHORIZATION.md"
     },
@@ -94,8 +93,18 @@
       "workPackage": "ARC-WP-013",
       "status": "accepted",
       "failedAttempt": "PR-44 / Remote Agent run 29329093616 — HOLD with no tested result",
-      "authorizedCorrection": "disposable exact-byte diagnostic followed by integrator-only runtime_fingerprint replacement and one ignored-path addition",
+      "diagnosticResult": "PR-46 / result 5c6440838fe400c331ebf26fce5d97f964effeae — PASS, closed unmerged",
       "review": "docs/governance/reviews/GOV-REVIEW-0011-FIRST-SEAM-FINGERPRINT-HOLD.md"
+    },
+    "freshFirstSeamExecution": {
+      "workPackage": "ARC-WP-014",
+      "status": "accepted",
+      "implementationStatus": "authorized-not-accepted",
+      "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
+      "requiredTestProfile": "player-full",
+      "measuredRuntimeFingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
+      "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
+      "review": "docs/governance/reviews/GOV-REVIEW-0012-FIRST-SEAM-DIAGNOSTIC-PASS.md"
     }
   },
   "authorizedWork": [
@@ -106,16 +115,15 @@
     "repository governance hardening",
     "architecture reference hardening",
     "read-only source cartography",
-    "a disposable unmerged ARC-WP-013 fingerprint diagnostic on the exact accepted seam bytes",
-    "the fresh ARC-WP-011 mechanical first-seam implementation through the Remote Agent Worktree after the diagnostic",
+    "one fresh ARC-WP-014 first-seam result through the Remote Agent Worktree",
     "the QA-focused boundary contract and its single mandatory registry addition",
-    "integrator-only path-sensitive release fingerprint metadata and first-seam evidence",
+    "integrator-only measured release fingerprint metadata and first-seam evidence",
     "adversarial QA, integration evidence and governor review of the exact fresh first-seam result",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "acceptance of the first architectural seam until a fresh exact implementation result passes full Player CI, adversarial QA, integration and governor review",
-    "merge of any disposable fingerprint diagnostic branch",
+    "acceptance of the first architectural seam until the fresh exact implementation result passes full Player CI, adversarial QA, integration and governor review",
+    "merge of the closed disposable fingerprint diagnostic PR 46",
     "Stage D controlled multi-AI pilot until the first reversible seam implementation and governor review are accepted",
     "player-wide architectural refactoring",
     "global identifier migration",
@@ -141,7 +149,7 @@
     "using the Remote Agent fast lane for workflows, governance, architecture, work packages, secrets or held platform domains",
     "broadening work-package allowedPaths merely to silence PR scope failures",
     "weakening, deleting or excluding source-tree or release guards to obtain a green result",
-    "changing release identity or protected normalized semantics under ARC-WP-013",
+    "changing release identity or protected normalized semantics under ARC-WP-014",
     "starting Stage D by assuming Stage B or Stage C were completed",
     "inventing missing RC719 reservation details"
   ],
@@ -163,12 +171,6 @@
       "severity": "low",
       "statement": "RC719 reservations are declared non-blocking but have not yet been itemized. Their scope and eventual corrective cost are therefore unknown.",
       "closureGate": "record each reservation in docs/product/RC719_RESERVATIONS.md before opening a corrective work package"
-    },
-    {
-      "id": "RISK-ARC-001",
-      "severity": "moderate",
-      "statement": "The exact failing assertion from Remote Agent run 29329093616 was not available in the truncated connector log. Repository code strongly indicates stale path-sensitive release fingerprints, but this remains an inference until the disposable diagnostic confirms both computed values.",
-      "closureGate": "successful disposable diagnostic bound to the exact seam bytes, with normalized fingerprint equal to the protected existing value"
     }
   ],
   "activeExceptions": [
@@ -182,13 +184,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-013",
-    "condition": "Run the disposable exact-byte fingerprint diagnostic and keep it unmerged. If the normalized runtime fingerprint equals the protected value, prepare a fresh ARC-WP-011 result with disjoint developer, QA and integrator paths; otherwise HOLD for a new governor decision. Stage D remains blocked until the fresh seam is separately accepted."
+    "id": "ARC-WP-014",
+    "condition": "Produce the fresh first-seam result from the exact ARC-WP-014 base with disjoint developer, QA and integrator paths. The exact result must pass Remote Agent tested-result, full Player CI including the focused contract and PR scope; then contradictory QA and the integrator must provide independent review before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0011 first-seam fingerprint HOLD",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0012 first-seam diagnostic PASS",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "fingerprint diagnostic result, normalized fingerprint mismatch, fresh first-seam result commit, failed or missing CI, adversarial QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
+    "nextReviewTrigger": "fresh first-seam result commit, failed or missing CI, release-config drift, contradictory QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
   }
 }

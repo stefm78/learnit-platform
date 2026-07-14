@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-014",
+  "title": "Execute the fresh first reversible seam result after fingerprint diagnostic",
+  "status": "accepted",
+  "changeClass": "bounded-player-architecture",
+  "riskClass": "high",
+  "purpose": "Authorize one fresh Stage C execution from the exact post-diagnostic main base, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata proven by the disposable ARC-WP-013 diagnostic.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "746cd0a7abac219da58543fe82831123c0ef9fd4",
+    "candidateName": "fresh first reversible storage seam result",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-014.json",
+      "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+      "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+      "apps/player/source_manifest.json",
+      "apps/player/docs/OWNER_MAP.json",
+      "apps/player/tests/contract_storage_boundary.py",
+      "apps/player/dev/checks_registry.json",
+      "apps/player/dev/release_config.json",
+      "docs/evidence/architecture/first-storage-seam/**",
+      "docs/governance/reviews/GOV-REVIEW-0012-FIRST-SEAM-DIAGNOSTIC-PASS.md",
+      "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "tools/**",
+      "contracts/**",
+      "platform/**",
+      "apps/player/contract/**",
+      "apps/player/authoring/**",
+      "apps/player/dev/run_all_checks.py",
+      "apps/player/dev/update_manifest.py",
+      "apps/player/src/scripts/core/runtime_parts/05_durable_library_store.js",
+      "apps/player/src/scripts/core/runtime_parts/10_content_store_and_state.js",
+      "apps/player/src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js",
+      "apps/player/src/scripts/core/runtime_parts/30_navigation_library_plan_models.js",
+      "apps/player/src/scripts/core/runtime_parts/40_bilan_learning_models.js",
+      "apps/player/src/scripts/core/runtime_parts/50_diagnostics_import_quality.js",
+      "apps/player/src/scripts/core/runtime_parts/51_contract_pedagogy_diagnostics.js",
+      "apps/player/src/scripts/core/runtime_parts/52_import_diagnostic_views.js",
+      "apps/player/src/scripts/core/runtime_parts/60_app_runtime_and_test_api.js",
+      "apps/player/src/scripts/core/runtime_parts/61_pointer_interaction_fallbacks.js",
+      "apps/player/src/scripts/core/runtime_parts/62_app_action_dispatcher.js",
+      "apps/player/src/scripts/core/runtime_parts/63_route_view_fallbacks.js",
+      "apps/player/src/scripts/core/runtime_parts/64_route_nav_transition_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/65_mobile_swipe_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/66_route_view_composer.js",
+      "apps/player/src/scripts/core/runtime_parts/67_route_static_actions.js",
+      "apps/player/src/scripts/core/runtime_parts/68_library_navigation_shell_composer.js",
+      "apps/player/src/scripts/core/runtime_parts/69_gesture_orchestrator.js",
+      "apps/player/src/scripts/core/runtime_parts/70_automation_and_boot.js",
+      "apps/player/src/scripts/core/runtime_parts/71_accessibility_resilience_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/72_performance_scalability_runtime.js",
+      "apps/player/src/scripts/core/runtime_parts/73_runtime_test_api.js",
+      "apps/player/src/scripts/core/runtime_parts/74_learning_evidence_runtime.js",
+      "docs/architecture/**"
+    ]
+  },
+  "invariants": [
+    "The developer changes only the four source-boundary files defined by ARC-WP-010.",
+    "Contradictory QA changes only the focused contract and one mandatory registry entry.",
+    "The integrator changes only release_config.json and first-seam evidence.",
+    "The governor changes only canonical work-package, state and review records.",
+    "The four role write scopes are disjoint.",
+    "The storage adapter is mechanically relocated without changing its bytes or semantics.",
+    "All storage keys, durable database identifiers, payloads, callers, UI and behavior remain unchanged.",
+    "release_config.runtime_fingerprint becomes a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca.",
+    "Only src/scripts/core/runtime_parts/04_local_storage_port.js is added to baseline_equivalence.ignored_script_paths; all existing entries and all other release metadata remain unchanged.",
+    "baseline_equivalence.runtime_js_normalized_sha256 remains d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73.",
+    "The disposable diagnostic PR 46 remains closed and unmerged.",
+    "The fresh result must be produced through Remote Agent Worktree, pass player-full and permanent Player CI on the exact result, and must not be merged autonomously.",
+    "Stage D remains blocked until a separate governor acceptance is merged."
+  ],
+  "requiredEvidence": [
+    "closed unmerged diagnostic PR 46 and exact tested result 5c6440838fe400c331ebf26fce5d97f964effeae",
+    "fingerprint diagnostic JSON with matching protected normalized fingerprint",
+    "exact fresh Remote Agent base, trigger and result commits",
+    "complete changed-file and role-owner inventory",
+    "focused storage-boundary contract and mandatory registration",
+    "full player-full result including browser checks",
+    "Remote agent worktree / tested result success",
+    "Player CI / gate success",
+    "PR scope / gate success",
+    "contradictory QA review",
+    "integrator provenance, fingerprint and rollback review",
+    "separate governor acceptance"
+  ],
+  "adversarialTests": [
+    "fail on any role-scope overlap",
+    "fail if adapter bytes differ from the original block",
+    "fail if direct localStorage or IndexedDB ownership is duplicated or moved beyond the accepted owners",
+    "fail if any frozen key or payload marker changes",
+    "fail if manifest order is not 00, 04, 05, 10",
+    "fail if any existing test registry entry changes",
+    "fail if release_config changes beyond the measured runtime fingerprint and one ignored-path addition",
+    "fail if the normalized protected fingerprint changes",
+    "fail if any unrelated runtime, UI, contract, tool, workflow or platform file changes",
+    "fail if evidence is attached to a different commit from the proposed result",
+    "fail if rollback requires data migration or remote compensation"
+  ],
+  "nonGoals": [
+    "change the seam design",
+    "change storage technology, keys, payloads or identifiers",
+    "refactor callers or introduce repositories or dependency injection",
+    "change product identity, RC label, UI, UX, pedagogy or RC719 reservations",
+    "change test runner, registry schema or fingerprint algorithm",
+    "add backend, accounts, synchronization, catalog, commerce, institutions or marketplace",
+    "start Stage D"
+  ],
+  "independentReview": [
+    "Developer limited to four implementation paths",
+    "Contradictory QA limited to focused test and registry entry",
+    "Integrator limited to release metadata and evidence",
+    "Architecture and Repository Governor limited to governance records",
+    "Remote Agent Worktree, Player CI, PR scope and repository governance"
+  ],
+  "roleScopes": {
+    "developerWritePaths": [
+      "apps/player/src/scripts/core/runtime_parts/00_runtime_boot_and_content_library.js",
+      "apps/player/src/scripts/core/runtime_parts/04_local_storage_port.js",
+      "apps/player/source_manifest.json",
+      "apps/player/docs/OWNER_MAP.json"
+    ],
+    "qaWritePaths": [
+      "apps/player/tests/contract_storage_boundary.py",
+      "apps/player/dev/checks_registry.json"
+    ],
+    "integratorWritePaths": [
+      "apps/player/dev/release_config.json",
+      "docs/evidence/architecture/first-storage-seam/**"
+    ],
+    "governorWritePaths": [
+      "work-packages/ARC-WP-014.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/GOV-REVIEW-0012-FIRST-SEAM-DIAGNOSTIC-PASS.md",
+      "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md"
+    ]
+  },
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "authorizedAt": "2026-07-14",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
+    "requiredTestProfile": "player-full",
+    "stageC": "authorized-not-complete",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert the fresh implementation pull request. This restores runtime part 00, removes part 04 and the focused test, restores the source manifest, owner map, check registry and release fingerprint metadata, and requires no learner-data migration or remote compensation."
+}
