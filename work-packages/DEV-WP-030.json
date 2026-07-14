@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "DEV-WP-030",
   "title": "Establish the validated remote agent worktree",
-  "status": "under-qa",
+  "status": "accepted",
   "changeClass": "repository-governance",
   "riskClass": "high",
   "purpose": "Provide a bounded GitHub Actions worktree in which an AI development agent can apply one scoped patch from an internal agent pull request, build and test it without write credentials, then commit the exact tested result only to the originating agent branch.",
@@ -18,13 +18,17 @@
       ".gitignore",
       "tools/agent_worktree.py",
       "docs/governance/REMOTE_AGENT_WORKTREE.md",
+      "docs/governance/reviews/GOV-REVIEW-0004-REMOTE-AGENT-WORKTREE.md",
       "docs/evidence/remote-agent-worktree-smoke.md",
+      "docs/evidence/remote-agent-worktree-status-smoke.md",
+      "docs/evidence/remote-agent-player-targeted-smoke.md",
       "templates/agent-job/**",
-      "work-packages/DEV-WP-030.json"
+      "work-packages/DEV-WP-030.json",
+      "README.md",
+      "governance/governor-state.json"
     ],
     "forbiddenPaths": [
       "apps/player/**",
-      "governance/governor-state.json",
       "docs/architecture/**",
       "contracts/**",
       "platform/**"
@@ -35,16 +39,20 @@
     "The workflow never writes directly to main or to a non-agent branch.",
     "Patched repository code is built and tested in a job without persisted Git credentials and with contents read permission only.",
     "The write-token job does not execute the patched test suite and only stages the previously tested result envelope.",
+    "The status-writing job does not check out or execute patched repository code.",
     "Every job is tied to an exact full base commit, one agent branch, machine-checkable allowed paths and fixed test profiles.",
     "Workflow, governance, architecture, work-package, binary, symlink and submodule changes are rejected by the fast agent lane.",
-    "A successful run removes the temporary job envelope before committing the tested result."
+    "A successful run removes the temporary job envelope before committing the tested result.",
+    "The exact result commit receives the Remote agent worktree / tested result success status."
   ],
   "requiredEvidence": [
     "repository governance CI pass",
     "local isolated smoke test of prepare, apply, package and commit-prepare phases",
-    "GitHub Actions end-to-end smoke run through an internal agent pull request",
+    "GitHub Actions end-to-end repository-profile smoke run through an internal agent pull request",
+    "GitHub Actions end-to-end player-targeted build and browser smoke run",
     "result commit restricted to the originating agent branch",
     "temporary job envelope removed from the successful branch tree",
+    "successful status attached to the exact tested result SHA",
     "documented trust boundary and recovery procedure"
   ],
   "adversarialTests": [
@@ -56,7 +64,9 @@
     "reject binary patches, symlinks and submodules",
     "reject a moved branch between validation and commit",
     "reject a result patch whose digest or final scope differs from the tested result",
-    "prevent a successful result push from recursively applying a second time"
+    "prevent a successful result push from recursively applying a second time",
+    "build the player before every player-targeted test list",
+    "attach a status only to the SHA emitted by the validated result-commit job"
   ],
   "nonGoals": [
     "grant autonomous merge authority",
@@ -69,7 +79,48 @@
   "independentReview": [
     "repository governance workflow",
     "Architecture and Repository Governor",
-    "end-to-end internal agent pull request inspected before acceptance"
+    "end-to-end internal agent pull requests inspected before acceptance",
+    "targeted RC718 browser persistence and naming regression suite"
   ],
-  "rollback": "Revert the infrastructure pull requests. Existing application source, promoted RC715 baseline, active RC718 candidate and repository data are unaffected; agent branches containing unprocessed job envelopes can be deleted without migration."
+  "evidence": {
+    "governorReview": "docs/governance/reviews/GOV-REVIEW-0004-REMOTE-AGENT-WORKTREE.md",
+    "repositorySmoke": "docs/evidence/remote-agent-worktree-smoke.md",
+    "statusSmoke": "docs/evidence/remote-agent-worktree-status-smoke.md",
+    "playerTargetedSmoke": "docs/evidence/remote-agent-player-targeted-smoke.md"
+  },
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "acceptedMainCommit": "bb31da5ed3bb87ad306714e9126fe8c3ee7f515e",
+    "repositoryProfile": {
+      "workflowRun": 29317700613,
+      "triggerCommit": "36e4cbaededd317232ab82c85e022fc14fd86d3f",
+      "resultCommit": "3109425d8620521ba3c14170acc82a44a8fe8d0e",
+      "status": "PASS"
+    },
+    "exactResultStatus": {
+      "workflowRun": 29318087482,
+      "triggerCommit": "8d8af4509a213c8f1ace7b979489dace73969651",
+      "resultCommit": "670128b9a2d81bdec67c15fb2e1ca4bfd0a76b33",
+      "statusContext": "Remote agent worktree / tested result",
+      "status": "PASS"
+    },
+    "playerTargeted": {
+      "workflowRun": 29318562880,
+      "triggerCommit": "65da97ca4291faccbe9873e78bd4009cda019be4",
+      "resultCommit": "512191048927b21ba0fd82a14735968b96c4fa52",
+      "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+      "artifactBytes": 829005,
+      "browserChecksPassed": 18,
+      "browserChecksTotal": 18,
+      "status": "PASS"
+    },
+    "conditions": [
+      "Do not grant autonomous merge authority; every result remains subject to pull-request review and explicit merge.",
+      "Configure repository rulesets to require the exact tested-result status before relying on automated merge.",
+      "Until QA-WP-010 accepts the permanent browser matrix, choose explicit targeted or full profiles for every sensitive player change.",
+      "Use the governed connector path, not the fast lane, for workflows, governance, architecture, work packages, secrets and held platform work."
+    ]
+  },
+  "rollback": "Revert the Remote Agent Worktree infrastructure commits. Existing application source, promoted RC715 baseline, active RC718 candidate and repository data are unaffected; agent branches containing unprocessed job envelopes can be deleted without migration."
 }

@@ -11,6 +11,7 @@ RC715 is the **promoted standalone forensic baseline**.
 - Promoted source commit: `6c826977e16985d50b45d1b5e53501b4d7b993a2`.
 - Promoted artifact SHA-256: `6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0`.
 - [`ARC-WP-000`](work-packages/ARC-WP-000.json) is accepted after reproducible reconstruction, automated checks, governor review, and accountable-owner human validation PASS.
+- The validated [`Remote Agent Worktree`](docs/governance/REMOTE_AGENT_WORKTREE.md) is accepted for bounded multi-file development with exact baseline, machine-checkable scope, read-only test execution, explicit test profiles, and pull-request review.
 - Backend, accounts, synchronization, remote catalog, commerce, institutions, and marketplace implementation remain on HOLD.
 - The permanent Architecture & Repository Governor maintains the frame through [`GOVERNANCE.md`](GOVERNANCE.md) and the canonical [`governor-state.json`](governance/governor-state.json).
 
@@ -35,9 +36,12 @@ See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFO
 ## Repository entry points
 
 - [Player source and engineering instructions](apps/player/README.md)
+- [Remote Agent Worktree operating contract](docs/governance/REMOTE_AGENT_WORKTREE.md)
+- [Remote Agent Worktree accepted work package](work-packages/DEV-WP-030.json)
 - [Standing architecture and repository governance](GOVERNANCE.md)
 - [Canonical current governor state](governance/governor-state.json)
 - [RC715 promotion review](docs/governance/reviews/GOV-REVIEW-0003-RC715-PROMOTION.md)
+- [Remote Agent Worktree acceptance review](docs/governance/reviews/GOV-REVIEW-0004-REMOTE-AGENT-WORKTREE.md)
 - [RC715 human validation attestation](docs/evidence/rc715/human-validation-attestation.json)
 - [Permanent player CI and behavioral protection gate](work-packages/QA-WP-010.json)
 - [Governor decision rights](docs/governance/DECISION_RIGHTS.md)

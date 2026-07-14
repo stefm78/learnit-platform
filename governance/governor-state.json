@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-007",
-  "effectiveFromCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
-  "reviewedBaselineCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
+  "stateId": "GOV-STATE-2026-07-14-008",
+  "effectiveFromCommit": "bb31da5ed3bb87ad306714e9126fe8c3ee7f515e",
+  "reviewedBaselineCommit": "bb31da5ed3bb87ad306714e9126fe8c3ee7f515e",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "standalone-baseline-promoted",
     "status": "active",
-    "description": "RC715 remains the promoted standalone forensic baseline. RC718 is the active automation-ready development candidate and awaits the focused RC719 human naming and persistence gate."
+    "description": "RC715 remains the promoted standalone forensic baseline. RC718 is the active automation-ready development candidate and awaits the focused RC719 human naming and persistence gate. The validated Remote Agent Worktree is accepted for bounded multi-file development under explicit scope and test profiles."
   },
   "developmentBaseline": {
     "status": "active",
@@ -31,6 +31,7 @@
   },
   "authorizedWork": [
     "standalone functional, UX, accessibility, persistence, performance, test, and release improvements through bounded pull requests",
+    "bounded multi-file AI implementation through the accepted Remote Agent Worktree with exact baseline, machine-checkable scope and explicit test profile",
     "permanent player CI and black-box behavioral protection",
     "repository governance hardening",
     "architecture reference hardening",
@@ -59,25 +60,26 @@
     "direct UI coupling to storage or remote APIs",
     "parallel AI implementation without exact baseline and machine-checkable scopes",
     "publishing an artifact different from the artifact tested",
-    "presenting target architecture as current implementation"
+    "presenting target architecture as current implementation",
+    "using the Remote Agent fast lane for workflows, governance, architecture, work packages, secrets or held platform domains"
   ],
   "activeRisks": [
     {
       "id": "RISK-GOV-002",
       "severity": "high",
-      "statement": "Branch protection and mandatory review rules are not yet independently verified through repository policy evidence.",
-      "closureGate": "repository policy audit completed"
+      "statement": "Branch protection and mandatory review rules are not yet independently verified through repository policy evidence, and the Remote agent worktree / tested result context is not yet proven mandatory through a ruleset.",
+      "closureGate": "repository policy audit and tested-result required-status rule completed"
     },
     {
       "id": "RISK-GOV-003",
       "severity": "moderate",
-      "statement": "Changed-file scope enforcement for AI work packages is specified but not yet implemented.",
-      "closureGate": "scope-check CI accepted"
+      "statement": "Machine-checkable changed-file scope enforcement is active for the Remote Agent Worktree lane, but conventional pull requests and other AI workflows are not yet covered by a general scope-check CI.",
+      "closureGate": "general pull-request scope-check CI accepted or explicit agent-lane-only policy accepted"
     },
     {
       "id": "RISK-QA-001",
       "severity": "moderate",
-      "statement": "The imported baseline has strong reconstruction and test evidence, but the repository does not yet run the complete permanent player browser matrix on every sensitive pull request.",
+      "statement": "The imported baseline has strong reconstruction and test evidence, and the Remote Agent lane passed one real targeted browser suite, but the repository does not yet run the complete permanent player browser matrix on every sensitive pull request.",
       "closureGate": "permanent player CI and browser gate accepted"
     },
     {
@@ -89,7 +91,7 @@
     {
       "id": "RISK-UX-020",
       "severity": "low",
-      "statement": "RC718 plan-name editing passed bounded automated checks but has not yet completed the focused Android and desktop close/reopen human gate.",
+      "statement": "RC718 plan-name editing passed bounded automated checks and an additional Remote Agent browser smoke but has not yet completed the focused Android and desktop close/reopen human gate.",
       "closureGate": "RC719 focused human validation PASS"
     }
   ],
@@ -100,8 +102,8 @@
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — RC718 development candidate review",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0004 Remote Agent Worktree acceptance",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "RC719 human naming/persistence result, first architectural seam proposal, serious regression, release provenance change, or phase-gate request"
+    "nextReviewTrigger": "first real product change through Remote Agent Worktree, RC719 human naming/persistence result, repository ruleset audit, first architectural seam proposal, serious regression, release provenance change, or phase-gate request"
   }
 }
