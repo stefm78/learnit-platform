@@ -96,6 +96,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+    outputs:
+      result_sha: ${{ steps.push.outputs.result_sha }}
     env:
       AGENT_BRANCH: ${{ github.event.pull_request.head.ref }}
     steps:
@@ -124,6 +126,7 @@ jobs:
             --result-patch .agent-result/.agent-runtime/result.patch
 
       - name: Commit and push only to the pull request branch
+        id: push
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -139,4 +142,38 @@ jobs:
           git config user.email 'learnit-remote-agent@users.noreply.github.com'
           git config core.hooksPath /dev/null
           git commit -m "$message [agent-applied]"
+          result_sha="$(git rev-parse HEAD)"
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${branch}"
+          printf 'result_sha=%s\n' "$result_sha" >> "$GITHUB_OUTPUT"
+
+  attest-tested-result:
+    needs: commit-tested-result
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      statuses: write
+    steps:
+      - name: Mark the exact tested result commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT_SHA: ${{ needs.commit-tested-result.outputs.result_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$RESULT_SHA" in
+            [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
+            *) echo "Invalid tested result SHA: $RESULT_SHA" >&2; exit 2 ;;
+          esac
+          payload="$(jq -n \
+            --arg state success \
+            --arg context 'Remote agent worktree / tested result' \
+            --arg description 'Exact branch commit produced from the validated and tested result envelope' \
+            --arg target_url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${RESULT_SHA}" \
+            --data "$payload"
