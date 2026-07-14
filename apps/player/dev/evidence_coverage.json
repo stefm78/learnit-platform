@@ -1,6 +1,6 @@
 {
-  "schema": "learnit.rc715.evidence_coverage_map.v1",
-  "policy": "RC715 preserves the RC696 human-validated product baseline, extends RC712 automated evidence, and adds exact-bound persistence and stable naming coverage. RC702 is deferred; RC716 remains the close/reopen and final human gate.",
+  "schema": "learnit.rc718.evidence_coverage_map.v1",
+  "policy": "RC718 preserves the human-promoted RC715 baseline and adds exact-bound automated evidence for imported-plan naming, persistence, rollback, stable identity and progress preservation. RC719 remains the focused human gate.",
   "surfaces": {
     "source-and-build": [
       "tests/contract_source_tree.py",

@@ -1,8 +1,8 @@
 
   (()=>{
     'use strict';
-    const VERSION_LABEL = 'Learn-it RC715';
-    const APP_BUILD = 'v5.715.0 — durable library persistence and stable course naming candidate';
+    const VERSION_LABEL = 'Learn-it RC718';
+    const APP_BUILD = 'v5.718.0 — editable imported plan naming and persistence hardening candidate';
     document.title = VERSION_LABEL;
     const STORAGE_KEY = 'learnit_clean_state_v2';
     const JOURNAL_KEY = 'learnit_clean_journal_v2';

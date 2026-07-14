@@ -1,7 +1,7 @@
 {
   "schema": "learnit.capabilities.v1",
   "contract_version": "learnit.import.v1.1",
-  "application_baseline": "RC715",
+  "application_baseline": "RC718",
   "authoring_skill_version": "13.3.0",
   "profile": "strict-authoring",
   "status_values": [
@@ -522,6 +522,15 @@
       "during_import": true,
       "after_import": true,
       "stable_identity_preserves_progress": true,
+      "tested": true
+    },
+    "editable_plan_title": {
+      "status": "candidate",
+      "during_import": true,
+      "after_import": true,
+      "technical_package_identity_preserved": true,
+      "stable_course_identity_preserves_progress": true,
+      "durable_persistence": true,
       "tested": true
     }
   }

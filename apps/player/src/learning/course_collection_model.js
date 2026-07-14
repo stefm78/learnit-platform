@@ -12,7 +12,7 @@
   function collectionMeta(course,index,lastAppliedRows){
     const id=courseId(course); const imported=!!(course&&(course.importedAt||course.importPackageId)); const packageId=course&&course.importPackageId||'';
     const recent=Array.isArray(lastAppliedRows)&&lastAppliedRows.some(r=>r&&r.courseId===id);
-    if(imported)return {id:'import:'+packageId,key:'import:'+packageId,label:humanizePackageLabel(packageId),kind:'imported',recent,order:recent?0:2,colorIndex:index};
+    if(imported){const custom=String(course&&course.importCollectionTitle||'').trim();return {id:'import:'+packageId,key:'import:'+packageId,label:custom||humanizePackageLabel(packageId),kind:'imported',recent,order:recent?0:2,colorIndex:index};}
     if(/test|stress|rc\d+/i.test(String(course&&course.title||'')+' '+String(course&&course.contentVersion||'')))return {id:'tests',key:'tests',label:'Tests et contrôles',kind:'native',recent:false,order:4,colorIndex:index};
     return {id:'native',key:'native',label:'Parcours natifs',kind:'native',recent:false,order:1,colorIndex:index};
   }
