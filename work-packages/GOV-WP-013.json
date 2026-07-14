@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-013",
+  "title": "Promote RC718 after RC719 and freeze the architecture restart checkpoint",
+  "status": "proposed",
+  "changeClass": "repository-governance",
+  "riskClass": "moderate",
+  "purpose": "Record the RC719 accountable-owner PASS_WITH_RESERVATIONS, promote the exact RC718 artifact as the standalone baseline, preserve non-blocking reservations as explicit debt, and establish a canonical restart gate before the controlled multi-AI pilot.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "b7b713f6c60f4e7dca49d5bf39ecd75d90e97159",
+    "candidateName": "RC718 promotion with reservations",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-013.json",
+      "work-packages/UX-WP-020.json",
+      "governance/governor-state.json",
+      "docs/governance/reviews/GOV-REVIEW-0006-RC718-PROMOTION.md"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      ".github/**"
+    ]
+  },
+  "invariants": [
+    "The promoted artifact is exactly the RC718 artifact already tested by permanent Player CI.",
+    "The source commit and artifact SHA are not changed by this governance-only promotion.",
+    "PASS_WITH_RESERVATIONS does not erase or invent reservation details.",
+    "Stage D remains blocked until ARC-WP-010 design and the first reversible seam implementation are accepted.",
+    "No player runtime, storage, identifier, contract or UI behavior changes are introduced."
+  ],
+  "requiredEvidence": [
+    "RC719 accountable-owner attestation",
+    "existing complete permanent Player CI pass for RC718",
+    "repository governance pass",
+    "PR scope gate pass",
+    "canonical Stage D restart checkpoint"
+  ],
+  "adversarialTests": [
+    "verify the promoted artifact SHA matches the RC718 tested artifact",
+    "verify no player file is changed",
+    "verify the restart checkpoint does not authorize skipping ARC-WP-010 or the reversible seam",
+    "verify reservation details are recorded as not yet itemized rather than fabricated"
+  ],
+  "nonGoals": [
+    "implement reservation fixes",
+    "design or implement ARC-WP-010",
+    "start the multi-AI pilot",
+    "change the application artifact",
+    "create a backend or migrate storage"
+  ],
+  "independentReview": [
+    "Repository governance workflow",
+    "PR scope gate",
+    "governor review of promotion and restart sequencing"
+  ],
+  "rollback": "Revert the governance promotion records. RC715 remains a known historical promoted baseline and RC718 source/artifact identities remain unchanged."
+}
