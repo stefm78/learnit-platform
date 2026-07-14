@@ -5,11 +5,11 @@
   "status": "accepted",
   "changeClass": "bounded-player-architecture",
   "riskClass": "high",
-  "purpose": "Implement only the mechanical source-boundary extraction accepted by ARC-WP-010, prove behavioral and stored-data equivalence on the exact result commit, and preserve single-revert rollback before any controlled multi-AI pilot may begin.",
+  "purpose": "Implement only the mechanical source-boundary extraction accepted by ARC-WP-010, prove behavioral and stored-data equivalence on the exact result commit, reconcile path-sensitive release fingerprints through ARC-WP-013, and preserve single-revert rollback before any controlled multi-AI pilot may begin.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "06c5aee917b67bb996f703097e9a7300c0e43fff",
-    "candidateName": "first reversible local-storage port seam",
+    "baseCommit": "c299d6ef1851f7b57b63997c5e6964c16c2c2934",
+    "candidateName": "first reversible local-storage port seam after fingerprint evidence amendment",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
   },
   "scope": {
@@ -21,9 +21,10 @@
       "apps/player/docs/OWNER_MAP.json",
       "apps/player/tests/contract_storage_boundary.py",
       "apps/player/dev/checks_registry.json",
+      "apps/player/dev/release_config.json",
       "docs/evidence/architecture/first-storage-seam/**",
       "docs/governance/reviews/GOV-REVIEW-0009-ARC-WP-011-AUTHORIZATION.md",
-      "docs/governance/reviews/GOV-REVIEW-0010-FIRST-SEAM-ACCEPTANCE.md",
+      "docs/governance/reviews/GOV-REVIEW-0012-FIRST-SEAM-ACCEPTANCE.md",
       "governance/governor-state.json"
     ],
     "forbiddenPaths": [
@@ -33,7 +34,8 @@
       "platform/**",
       "apps/player/contract/**",
       "apps/player/authoring/**",
-      "apps/player/dev/release_config.json",
+      "apps/player/dev/run_all_checks.py",
+      "apps/player/dev/update_manifest.py",
       "apps/player/src/scripts/core/runtime_parts/05_durable_library_store.js",
       "apps/player/src/scripts/core/runtime_parts/10_content_store_and_state.js",
       "apps/player/src/scripts/core/runtime_parts/20_session_answer_activity_rendering.js",
@@ -67,16 +69,21 @@
     "Direct window.localStorage access is owned only by the new runtime part 04; direct IndexedDB ownership remains only in runtime part 05, which is not modified.",
     "All existing ContentStore, AppState, performance and test-API callers remain unchanged.",
     "No learner-facing UI, copy, navigation, activity, import, persistence behavior, progression, bilan or recommendation changes are introduced.",
-    "Developer and adversarial QA write scopes are disjoint.",
+    "Developer, adversarial QA, integrator and governor write scopes are disjoint.",
     "QA may change the checks registry only by adding tests/contract_storage_boundary.py to the mandatory list; every existing registry entry and policy remains unchanged.",
-    "The implementation is prepared through the Remote Agent Worktree from the exact base commit and is not merged autonomously.",
+    "The integrator may change release_config.json only by adding runtime part 04 to baseline_equivalence.ignored_script_paths and replacing runtime_fingerprint with the deterministic value measured on the exact final seam bytes.",
+    "Every other release_config.json field, including runtime_js_normalized_sha256, remains unchanged; a diagnostic mismatch is a HOLD requiring another governor decision.",
+    "The implementation is prepared through the Remote Agent Worktree from the exact post-ARC-WP-013 base commit and is not merged autonomously.",
     "The exact result commit passes the Remote Agent tested-result status, permanent Player CI, PR scope and full player test profile including the focused contract.",
     "Rollback is a single revert and requires no learner-data migration or remote compensation.",
     "Stage D remains blocked until the implementation is merged and separately accepted by the governor."
   ],
   "requiredEvidence": [
-    "exact Remote Agent base and result commit SHAs",
+    "closed failed PR 44 and Remote Agent run 29329093616 HOLD record",
+    "exact fresh Remote Agent base and result commit SHAs",
     "complete changed-file inventory",
+    "disposable unmerged diagnostic output with deterministic runtime fingerprint",
+    "diagnostic proof that the normalized runtime fingerprint remains unchanged when both part 00 and relocated part 04 are ignored",
     "focused storage-boundary contract test authored independently from implementation files",
     "focused contract registered as one additional mandatory Player CI check",
     "full player test result on the exact result commit",
@@ -87,24 +94,27 @@
     "manifest ordering and owner-map proof",
     "existing browser persistence and naming test pass",
     "adversarial QA review distinguishing evidence, claim, assumption and absence of evidence",
-    "integrator provenance and rollback review",
+    "integrator provenance, release-metadata and rollback review",
     "separate governor acceptance after merge"
   ],
   "adversarialTests": [
     "fail if any implementation file outside the four developer paths changes",
-    "fail if QA modifies an implementation path or developer modifies either QA path",
+    "fail if QA modifies an implementation or integrator path, developer modifies a QA or integrator path, or integrator modifies implementation or QA paths",
     "fail if the checks registry changes by anything other than adding tests/contract_storage_boundary.py to mandatory",
+    "fail if release_config changes beyond one ignored-path addition and runtime_fingerprint replacement",
+    "fail if the protected normalized runtime fingerprint changes",
     "fail if window.localStorage remains in runtime part 00 or appears in any runtime source other than part 04",
     "fail if indexedDB ownership moves or part 05 changes",
     "fail if any frozen key or storage payload marker changes",
     "fail if source manifest order is not 00, 04, 05, 10",
     "fail if the storage adapter operation set or fallback/error behavior changes",
-    "fail if release config, RC label, contract, UI or unrelated runtime source changes",
+    "fail if RC label, contract, UI or unrelated runtime source changes",
     "fail if generated dist, reports or release files enter the pull request",
     "fail if rollback requires a data migration",
     "fail if a green test is used to claim behavior outside its exercised environment"
   ],
   "nonGoals": [
+    "accept the failed PR 44 attempt",
     "migrate localStorage to IndexedDB",
     "merge synchronous and durable persistence ports",
     "change a storage key, payload, schema version or identifier",
@@ -113,13 +123,14 @@
     "change player features, UX, accessibility, pedagogy or RC719 reservations",
     "change release identity or publish a new product release",
     "change the test runner, registry schema, release policy or any existing check",
+    "change the fingerprint algorithm or protected normalized semantics",
     "add backend, accounts, synchronization, catalog, commerce, institutions or marketplace",
     "start or complete Stage D"
   ],
   "independentReview": [
     "Developer through Remote Agent Worktree limited to the four implementation paths",
     "Adversarial QA limited to apps/player/tests/contract_storage_boundary.py and the single mandatory registry addition, with read-only review elsewhere",
-    "Integrator limited to evidence/provenance records and read-only source/test inspection",
+    "Integrator limited to release_config fingerprint metadata and evidence/provenance records, with read-only source/test inspection",
     "Architecture and Repository Governor limited to work-package, state and review records",
     "permanent GitHub Actions Player CI and PR scope checks"
   ],
@@ -135,24 +146,26 @@
       "apps/player/dev/checks_registry.json"
     ],
     "integratorWritePaths": [
+      "apps/player/dev/release_config.json",
       "docs/evidence/architecture/first-storage-seam/**"
     ],
     "governorWritePaths": [
       "work-packages/ARC-WP-011.json",
+      "work-packages/ARC-WP-013.json",
       "governance/governor-state.json",
-      "docs/governance/reviews/GOV-REVIEW-0009-ARC-WP-011-AUTHORIZATION.md",
-      "docs/governance/reviews/GOV-REVIEW-0010-FIRST-SEAM-ACCEPTANCE.md"
+      "docs/governance/reviews/GOV-REVIEW-0012-FIRST-SEAM-ACCEPTANCE.md"
     ]
   },
   "result": {
     "decision": "GO_WITH_CONDITIONS",
     "authorizedAt": "2026-07-14",
+    "failedAttempt": "PR-44 / Remote Agent run 29329093616 — HOLD",
     "implementationAllowed": true,
     "implementationAccepted": false,
-    "requiredAgentBranch": "agent/arc-wp-011-first-storage-seam",
+    "requiredAgentBranch": "agent/arc-wp-011-first-storage-seam-v2",
     "requiredTestProfile": "player-full",
     "stageC": "authorized-not-complete",
     "stageDEntryAllowed": false
   },
-  "rollback": "Revert the Stage C implementation pull request. The adapter returns to runtime part 00, runtime part 04 and the focused test are removed, the source manifest, owner map and mandatory test registry return to their prior state, and no learner-data or remote-system migration is required."
+  "rollback": "Revert the successful Stage C implementation pull request. The adapter returns to runtime part 00, runtime part 04 and the focused test are removed, the source manifest, owner map, mandatory test registry and path-sensitive release fingerprint metadata return to their prior state, and no learner-data or remote-system migration is required."
 }
