@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-014",
-  "effectiveFromCommit": "06c5aee917b67bb996f703097e9a7300c0e43fff",
-  "reviewedBaselineCommit": "06c5aee917b67bb996f703097e9a7300c0e43fff",
+  "stateId": "GOV-STATE-2026-07-14-015",
+  "effectiveFromCommit": "fbf0929128b0e00fc89b11ab5bbe063badc30735",
+  "reviewedBaselineCommit": "fbf0929128b0e00fc89b11ab5bbe063badc30735",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "first-reversible-storage-seam-implementation-authorized-pending-result",
     "status": "active",
-    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. The first narrow storage-boundary design is accepted and its exact mechanical implementation is authorized through ARC-WP-011 and the Remote Agent Worktree. Stage C is not accepted until the exact result passes full Player CI, adversarial QA, integration and a separate governor decision. Stage D remains blocked."
+    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. The first narrow storage-boundary design and its focused-test registration amendment are accepted. Its exact mechanical implementation is authorized through ARC-WP-011 and the Remote Agent Worktree. Stage C is not accepted until the exact result passes full Player CI including the focused contract, adversarial QA, integration and a separate governor decision. Stage D remains blocked."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -83,6 +83,12 @@
       "requiredAgentBranch": "agent/arc-wp-011-first-storage-seam",
       "requiredTestProfile": "player-full",
       "review": "docs/governance/reviews/GOV-REVIEW-0009-ARC-WP-011-AUTHORIZATION.md"
+    },
+    "firstSeamTestRegistration": {
+      "workPackage": "ARC-WP-012",
+      "status": "accepted",
+      "authorizedChange": "add tests/contract_storage_boundary.py as one mandatory checks-registry entry",
+      "review": "docs/governance/reviews/GOV-REVIEW-0010-STORAGE-SEAM-TEST-REGISTRATION.md"
     }
   },
   "authorizedWork": [
@@ -94,6 +100,7 @@
     "architecture reference hardening",
     "read-only source cartography",
     "the exact ARC-WP-011 mechanical first-seam implementation through the Remote Agent Worktree",
+    "the ARC-WP-012 focused QA test and its single mandatory registry addition",
     "adversarial QA, integration evidence and governor review of the exact first-seam result",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
@@ -158,12 +165,12 @@
   ],
   "nextMandatoryGate": {
     "id": "ARC-WP-011",
-    "condition": "Implement the exact authorized adapter extraction on the required Remote Agent branch. The exact result must pass Remote Agent tested-result, full Player CI and PR scope; then adversarial QA and the integrator must produce independent evidence before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
+    "condition": "Implement the exact authorized adapter extraction and QA-owned mandatory test registration on the required Remote Agent branch. The exact result must pass Remote Agent tested-result, full Player CI including the focused contract, and PR scope; then adversarial QA and the integrator must produce independent evidence before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0009 ARC-WP-011 authorization",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0010 test registration amendment",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "first-seam result commit, failed or missing CI, adversarial QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
+    "nextReviewTrigger": "first-seam result commit, focused test or registry drift, failed or missing CI, adversarial QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
   }
 }
