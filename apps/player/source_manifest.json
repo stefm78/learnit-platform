@@ -389,7 +389,7 @@
     "handover": "README.md"
   },
   "build_timestamp": "2026-07-14T00:00:00Z",
-  "release_config_sha256": "4c5d3262e5c5d6b4b28b756897345e164df5e178e4329889f2f455152299269f",
+  "release_config_sha256": "3231f537ea3d559f768624e72d5c68ebecf7cc6d767a1637fd9e40a7d83d531c",
   "human_validation": {
     "required": true,
     "status": "pending-rc719-focused-plan-naming-human-gate",
