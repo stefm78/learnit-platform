@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-14-018",
-  "effectiveFromCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
-  "reviewedBaselineCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
+  "stateId": "GOV-STATE-2026-07-14-019",
+  "effectiveFromCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
+  "reviewedBaselineCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "first-reversible-storage-seam-rebound-execution-authorized",
+    "id": "first-reversible-storage-seam-post-merge-base-authorized",
     "status": "active",
-    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. The first storage-seam design and diagnostic are accepted. GOV-WP-015 repaired the structural incompatibility between Remote Agent transport and canonical PR scope. ARC-WP-015 rebinds the fresh ARC-WP-014 execution to exact main commit dd6679b1b890efadb2c049113993d3e2c78f96b2. Stage C is not accepted until the exact fresh result passes all checks and separate governor acceptance. Stage D remains blocked."
+    "description": "RC718 remains the promoted standalone baseline after RC719 PASS_WITH_RESERVATIONS. The first storage-seam design, fingerprint diagnostic and strict Remote Agent PR-scope compatibility are accepted. ARC-WP-016 corrects the self-referential base defect: after this governance correction is merged, the executable base is the exact current main SHA captured immediately before fresh agent-branch creation. Stage C is not accepted until that exact fresh result passes all checks and separate governor acceptance. Stage D remains blocked."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -105,14 +105,16 @@
     "freshFirstSeamExecution": {
       "workPackage": "ARC-WP-014",
       "reboundByWorkPackage": "ARC-WP-015",
+      "baseResolutionCorrectedByWorkPackage": "ARC-WP-016",
       "status": "accepted",
       "implementationStatus": "authorized-not-accepted",
-      "reboundBaseCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
+      "reviewedBaselineCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
+      "executionBaseResolution": "exact current main SHA captured after the ARC-WP-016 governance correction is merged and immediately before creating the fresh agent branch",
       "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
       "requiredTestProfile": "player-full",
       "measuredRuntimeFingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
       "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
-      "review": "docs/governance/reviews/GOV-REVIEW-0014-FIRST-SEAM-REBIND.md"
+      "review": "docs/governance/reviews/GOV-REVIEW-0015-POST-MERGE-BASE-RESOLUTION.md"
     }
   },
   "authorizedWork": [
@@ -121,10 +123,11 @@
     "permanent player CI and black-box behavioral protection",
     "pull-request changed-file scope enforcement through canonical work packages",
     "strict Remote Agent envelope and tested-result scope validation",
+    "post-merge current-main execution-base capture without self-referential commit metadata",
     "repository governance hardening",
     "architecture reference hardening",
     "read-only source cartography",
-    "one fresh ARC-WP-014 first-seam result through the Remote Agent Worktree from rebound base dd6679b1b890efadb2c049113993d3e2c78f96b2",
+    "one fresh first-seam result through the Remote Agent Worktree from the exact current main captured immediately before branch creation",
     "the QA-focused boundary contract and its single mandatory registry addition",
     "integrator-only measured release fingerprint metadata and first-seam evidence",
     "adversarial QA, integration evidence and governor review of the exact fresh first-seam result",
@@ -194,12 +197,12 @@
   ],
   "nextMandatoryGate": {
     "id": "ARC-WP-014",
-    "condition": "Produce the fresh first-seam result from exact rebound base dd6679b1b890efadb2c049113993d3e2c78f96b2 with disjoint developer, QA and integrator paths. Both the envelope and exact tested result must pass canonical PR scope. The exact result must also pass Remote Agent tested-result, full Player CI including the focused contract and repository governance; then contradictory QA and the integrator must provide independent review before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
+    "condition": "After ARC-WP-016 is merged, capture exact current main and immediately create the fresh first-seam agent branch from that SHA with no intervening main drift. job.json.baseCommit and the pull-request base SHA must equal the capture. Both the envelope and exact tested result must pass canonical PR scope. The exact result must also pass Remote Agent tested-result, full Player CI including the focused contract and repository governance; then contradictory QA and the integrator must provide independent review before a separate governor acceptance. Stage D remains blocked until that acceptance is merged."
   },
   "review": {
     "lastReviewedAt": "2026-07-14",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0014 first-seam exact-base rebind",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0015 post-merge execution-base resolution",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "fresh first-seam envelope commit, tested-result commit, failed or missing CI, release-config drift, contradictory QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
+    "nextReviewTrigger": "post-merge current-main capture, fresh first-seam envelope commit, tested-result commit, any intervening main drift, failed or missing CI, release-config drift, contradictory QA finding, integrator evidence, scope expansion request, explicit RC719 reservation details, repository ownership or plan change, first external collaborator, serious regression, or Stage D entry request"
   }
 }
