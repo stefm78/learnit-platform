@@ -57,7 +57,7 @@ diff --git a/apps/player/tests/contract_storage_boundary.py b/apps/player/tests/
 new file mode 100644
 --- /dev/null
 +++ b/apps/player/tests/contract_storage_boundary.py
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,72 @@
 +#!/usr/bin/env python3
 +from __future__ import annotations
 +
