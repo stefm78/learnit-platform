@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "id": "ARC-WP-014",
-  "title": "Execute the fresh first reversible seam result after fingerprint diagnostic",
+  "title": "Execute the observable fresh first reversible seam result",
   "status": "accepted",
   "changeClass": "bounded-player-architecture",
   "riskClass": "high",
-  "purpose": "Authorize one fresh Stage C execution after the accepted fingerprint diagnostic and strict Remote Agent PR-scope compatibility repair, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata. The reviewed baseline is immutable; the executable base is resolved after governance merge as exact current main immediately before agent-branch creation.",
+  "purpose": "Authorize one final fresh Stage C execution after the accepted fingerprint diagnostic, strict Remote Agent PR-scope compatibility repair and GOV-WP-016 failure-evidence repair, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata. The reviewed baseline is immutable; the executable base is exact current main captured immediately after ARC-WP-017 is merged and before the fresh agent branch is created.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "837ebd3e666aafc377e3f38c9f7655bdc842eb32",
-    "candidateName": "fresh first reversible storage seam result",
+    "baseCommit": "b038f644d3a7d524077bf9a4b3e04ea8911a6357",
+    "candidateName": "observable fresh first reversible storage seam result",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
-    "executionBaseResolution": "exact current main SHA captured after ARC-WP-016 is merged and immediately before creating the fresh agent branch"
+    "executionBaseResolution": "exact current main SHA captured after ARC-WP-017 is merged and immediately before creating the fresh agent branch"
   },
   "scope": {
     "allowedPaths": [
@@ -74,21 +74,26 @@
     "release_config.runtime_fingerprint becomes a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca.",
     "Only src/scripts/core/runtime_parts/04_local_storage_port.js is added to baseline_equivalence.ignored_script_paths; all existing entries and all other release metadata remain unchanged.",
     "baseline_equivalence.runtime_js_normalized_sha256 remains d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73.",
-    "The disposable diagnostic PR 46 remains closed and unmerged.",
-    "The executable base is the exact current main SHA captured after governance merge and immediately before fresh branch creation; any intervening main drift invalidates the branch.",
+    "The disposable diagnostics remain closed and unmerged and are never acceptance evidence.",
+    "The executable base is exact current main captured after ARC-WP-017 is merged and immediately before fresh branch creation; any intervening main drift invalidates the branch.",
     "The fresh result must be produced through Remote Agent Worktree, pass player-full and permanent Player CI on the exact result, and must not be merged autonomously.",
     "The Remote Agent envelope and tested-result commits must both pass the strict canonical PR-scope gate introduced by GOV-WP-015.",
+    "If any step fails, the GOV-WP-016 failure-diagnostics artifact must be inspected; it is failure evidence only and never a tested result.",
+    "No prior ARC-WP-014 branch or partial result may be reused.",
     "Stage D remains blocked until a separate governor acceptance is merged."
   ],
   "requiredEvidence": [
-    "closed unmerged diagnostic PR 46 and exact tested result 5c6440838fe400c331ebf26fce5d97f964effeae",
+    "closed unmerged fingerprint diagnostic PR 46 and exact tested result 5c6440838fe400c331ebf26fce5d97f964effeae",
     "fingerprint diagnostic JSON with matching protected normalized fingerprint",
     "merged PR-scope compatibility repair commit dd6679b1b890efadb2c049113993d3e2c78f96b2",
+    "merged GOV-WP-016 authorization and Remote Agent failure-evidence workflow implementation",
+    "merged ARC-WP-017 observable rebind authorization",
     "post-merge current main SHA captured immediately before fresh agent-branch creation",
     "exact fresh Remote Agent base, trigger and result commits",
     "complete changed-file and role-owner inventory",
     "focused storage-boundary contract and mandatory registration",
     "full player-full result including browser checks",
+    "failure-diagnostics artifact identifying the failed command if any run fails",
     "Remote agent worktree / tested result success",
     "Player CI / gate success",
     "PR scope / gate success on envelope and tested result",
@@ -99,7 +104,8 @@
   "adversarialTests": [
     "fail on any role-scope overlap",
     "fail if adapter bytes differ from the original block",
-    "fail if direct localStorage or IndexedDB ownership is duplicated or moved beyond the accepted owners",
+    "fail if direct localStorage or direct IndexedDB API ownership is duplicated or moved beyond the accepted owners",
+    "fail if semantic mentions of IndexedDB outside the owner are incorrectly treated as direct API ownership",
     "fail if any frozen key or payload marker changes",
     "fail if manifest order is not 00, 04, 05, 10",
     "fail if any existing test registry entry changes",
@@ -107,6 +113,7 @@
     "fail if the normalized protected fingerprint changes",
     "fail if any unrelated runtime, UI, contract, tool, workflow or platform file changes",
     "fail if the agent job base differs from the pull-request base or captured current main",
+    "fail if any old branch or partial result is reused",
     "fail if evidence is attached to a different commit from the proposed result",
     "fail if rollback requires data migration or remote compensation"
   ],
@@ -115,7 +122,7 @@
     "change storage technology, keys, payloads or identifiers",
     "refactor callers or introduce repositories or dependency injection",
     "change product identity, RC label, UI, UX, pedagogy or RC719 reservations",
-    "change test runner, registry schema or fingerprint algorithm",
+    "change test runner, registry schema, workflow or fingerprint algorithm",
     "add backend, accounts, synchronization, catalog, commerce, institutions or marketplace",
     "start Stage D"
   ],
@@ -148,15 +155,24 @@
       "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md"
     ]
   },
+  "supersededAttempts": [
+    {
+      "pullRequest": 56,
+      "branch": "agent/arc-wp-014-first-storage-seam-result",
+      "outcome": "closed-unmerged-player-full-failure-no-tested-result"
+    }
+  ],
   "result": {
     "decision": "GO_WITH_CONDITIONS",
     "authorizedAt": "2026-07-14",
     "implementationAllowed": true,
     "implementationAccepted": false,
-    "requiredAgentBranch": "agent/arc-wp-014-first-storage-seam-result",
+    "requiredAgentBranch": "agent/arc-wp-014-observable-first-storage-seam-result",
     "requiredTestProfile": "player-full",
     "reboundByWorkPackage": "ARC-WP-015",
     "baseResolutionCorrectedByWorkPackage": "ARC-WP-016",
+    "observableRebindByWorkPackage": "ARC-WP-017",
+    "failureEvidenceEnabledByWorkPackage": "GOV-WP-016",
     "stageC": "authorized-not-complete",
     "stageDEntryAllowed": false
   },
