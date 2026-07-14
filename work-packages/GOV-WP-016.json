@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-016",
+  "title": "Retain Remote Agent diagnostics when validation fails",
+  "status": "accepted",
+  "changeClass": "repository-governance-observability",
+  "riskClass": "moderate",
+  "purpose": "Authorize one bounded workflow-only correction so a failed Remote Agent validation retains the exact plan, applied-state metadata, test command results and generated Player reports needed for contradictory QA. The correction must not weaken any gate, change the agent runner, grant broader permissions, expose secrets or alter product source.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "6e288149f0361d4df0df4767a9d476928fdaebd4",
+    "candidateName": "remote-agent-failure-evidence-retention",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-016.json",
+      "docs/governance/reviews/GOV-REVIEW-0016-REMOTE-AGENT-FAILURE-EVIDENCE.md",
+      ".github/workflows/remote-agent-worktree.yml"
+    ],
+    "forbiddenPaths": [
+      "governance/governor-state.json",
+      "tools/**",
+      "apps/player/**",
+      "contracts/**",
+      "platform/**",
+      "docs/architecture/**",
+      "docs/evidence/**",
+      "work-packages/ARC-WP-014.json"
+    ]
+  },
+  "invariants": [
+    "The workflow's existing validation, patch application, governance, test, packaging and exact-result attestation steps remain unchanged.",
+    "Failure evidence is uploaded only after an earlier step fails and is never treated as a tested result or release artifact.",
+    "The failure artifact contains only repository-generated diagnostic files already present in the runner worktree: .agent-runtime metadata and apps/player reports.",
+    "No token, environment secret, credential file, browser profile, learner data or arbitrary workspace content is uploaded.",
+    "Workflow permissions remain contents:read for validation and no new permission is introduced.",
+    "The successful result path and its fourteen-day retention remain unchanged.",
+    "Stage C remains not accepted and the first seam must be recreated from exact current main after this workflow correction is merged."
+  ],
+  "requiredEvidence": [
+    "Repository governance and PR scope pass on the authorization pull request",
+    "a separate implementation pull request changing only .github/workflows/remote-agent-worktree.yml",
+    "workflow diff proving an if: failure() diagnostic upload with if-no-files-found: warn",
+    "successful Repository governance and PR scope on the workflow implementation",
+    "a deliberately failed disposable Remote Agent run that produces a downloadable failure-diagnostics artifact",
+    "inspection proving the artifact contains no secrets and identifies the failed validation command"
+  ],
+  "adversarialTests": [
+    "fail if any existing gate is removed, skipped, made continue-on-error or conditionally bypassed",
+    "fail if the workflow uploads the whole workspace or paths outside .agent-runtime and apps/player/reports",
+    "fail if permissions are broadened",
+    "fail if failure diagnostics can be mistaken for remote-agent-result or receive the tested-result status",
+    "fail if the success path is modified beyond adding an independent failure-only step",
+    "fail if product, tool, governance state, architecture or platform files change"
+  ],
+  "nonGoals": [
+    "change the first storage seam or its test contract",
+    "change tools/agent_worktree.py",
+    "make a failing run pass",
+    "accept Stage C or begin Stage D",
+    "retain browser profiles, screenshots, secrets or learner content",
+    "change release identity, product behavior or test selection"
+  ],
+  "independentReview": [
+    "Repository governance validates this authorization",
+    "PR scope verifies exact workflow-only implementation scope",
+    "Contradictory QA inspects a real failure artifact",
+    "The governor decides separately whether the observability correction is accepted before recreating ARC-WP-014"
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "authorizedAt": "2026-07-14",
+    "implementationAllowed": true,
+    "implementationAccepted": false,
+    "requiredImplementationPath": ".github/workflows/remote-agent-worktree.yml",
+    "stageC": "blocked-pending-observable-fresh-run",
+    "stageDEntryAllowed": false
+  },
+  "rollback": "Revert the workflow-only implementation commit. No player source, artifact, learner data or work-package history requires migration. Remote Agent failures would again be diagnosable only through transient logs."
+}
