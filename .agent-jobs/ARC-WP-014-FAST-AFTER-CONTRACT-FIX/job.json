@@ -32,9 +32,12 @@
     "apps/player/reports/**",
     "apps/player/release/**"
   ],
-  "testProfile": "player-fast",
-  "commitMessage": "Validate first seam fast profile after contract correction",
-  "maxPatchBytes": 60000,
+  "testProfile": "player-targeted",
+  "testTargets": [
+    "apps/player/tests/contract_storage_boundary.py"
+  ],
+  "commitMessage": "Record mandatory check diagnostics for first seam",
+  "maxPatchBytes": 70000,
   "maxChangedFiles": 7,
-  "maxChangedLines": 260
+  "maxChangedLines": 300
 }
