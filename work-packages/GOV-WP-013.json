@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-013",
   "title": "Promote RC718 after RC719 and freeze the architecture restart checkpoint",
-  "status": "proposed",
+  "status": "accepted-with-conditions",
   "changeClass": "repository-governance",
   "riskClass": "moderate",
   "purpose": "Record the RC719 accountable-owner PASS_WITH_RESERVATIONS, promote the exact RC718 artifact as the standalone baseline, preserve non-blocking reservations as explicit debt, and establish a canonical restart gate before the controlled multi-AI pilot.",
@@ -17,6 +17,10 @@
       "work-packages/GOV-WP-013.json",
       "work-packages/UX-WP-020.json",
       "governance/governor-state.json",
+      "docs/evidence/rc718/**",
+      "docs/product/RC719_RESERVATIONS.md",
+      "docs/product/RC719_RESERVATIONS_TEMPLATE.md",
+      "docs/handover/**",
       "docs/governance/reviews/GOV-REVIEW-0006-RC718-PROMOTION.md"
     ],
     "forbiddenPaths": [
@@ -36,9 +40,9 @@
   "requiredEvidence": [
     "RC719 accountable-owner attestation",
     "existing complete permanent Player CI pass for RC718",
-    "repository governance pass",
-    "PR scope gate pass",
-    "canonical Stage D restart checkpoint"
+    "canonical reservation register",
+    "canonical Stage D restart checkpoint",
+    "governor review of promotion and restart sequencing"
   ],
   "adversarialTests": [
     "verify the promoted artifact SHA matches the RC718 tested artifact",
@@ -54,9 +58,21 @@
     "create a backend or migrate storage"
   ],
   "independentReview": [
-    "Repository governance workflow",
-    "PR scope gate",
-    "governor review of promotion and restart sequencing"
+    "governor review GOV-REVIEW-0006",
+    "machine-readable pause state",
+    "future repository-state verification before resume"
   ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "acceptedAt": "2026-07-14",
+    "promotedCandidate": "RC718",
+    "humanGate": "RC719",
+    "humanResult": "PASS_WITH_RESERVATIONS",
+    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+    "restartDocument": "docs/handover/STAGE_D_RESTART_CHECKPOINT.md",
+    "stageDEntryAllowed": false,
+    "nextMandatoryGate": "ARC-WP-010"
+  },
   "rollback": "Revert the governance promotion records. RC715 remains a known historical promoted baseline and RC718 source/artifact identities remain unchanged."
 }
