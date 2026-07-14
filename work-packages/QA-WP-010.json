@@ -77,8 +77,8 @@
     "human review only for any newly discovered interaction discrepancy"
   ],
   "implementation": {
-    "branch": "qa/permanent-player-ci",
-    "baseCommit": "86504a88ae14ada4e500fb6223e1dfa8143ce906",
+    "branch": "qa/permanent-player-ci-v2",
+    "baseCommit": "3f1a67935ce782dcbf700e642f4ff8dfa41d3438",
     "workflow": ".github/workflows/player-ci.yml",
     "guard": "apps/player/dev/ci_guard.py",
     "documentation": "docs/governance/PLAYER_CI.md",
