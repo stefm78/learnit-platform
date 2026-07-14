@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "pausedAt": "2026-07-14",
+  "promotedCandidate": "RC718",
+  "humanGate": "RC719",
+  "humanResult": "PASS_WITH_RESERVATIONS",
+  "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
+  "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
+  "nextMandatoryGate": "ARC-WP-010",
+  "requestedFutureTarget": "Stage D controlled multi-AI pilot",
+  "stageDEntryAllowed": false,
+  "missingPrerequisites": [
+    "Stage B ARC-WP-010 design accepted",
+    "Stage C first reversible seam implemented and governor-accepted"
+  ],
+  "canonicalRestartDocument": "docs/handover/STAGE_D_RESTART_CHECKPOINT.md"
+}
