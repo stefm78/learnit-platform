@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "id": "ARC-WP-014",
-  "title": "Execute the observable fresh first reversible seam result",
+  "title": "Execute the complete fresh first reversible seam result",
   "status": "accepted",
   "changeClass": "bounded-player-architecture",
   "riskClass": "high",
-  "purpose": "Authorize one final fresh Stage C execution after the accepted fingerprint diagnostic, strict Remote Agent PR-scope compatibility repair and GOV-WP-016 failure-evidence repair, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata. The reviewed baseline is immutable; the executable base is exact current main captured immediately after ARC-WP-017 is merged and before the fresh agent branch is created.",
+  "purpose": "Authorize one final fresh Stage C execution after the accepted fingerprint diagnostic, strict Remote Agent PR-scope compatibility repair, failure-evidence repair and evidence-coverage scope completion, using the accepted storage-port extraction, independently owned QA contract and integrator fingerprint metadata. The reviewed baseline is immutable; the executable base is exact current main captured immediately after ARC-WP-018 is merged and before the fresh agent branch is created.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "b038f644d3a7d524077bf9a4b3e04ea8911a6357",
-    "candidateName": "observable fresh first reversible storage seam result",
+    "baseCommit": "9f2a30f26d6a3e02f7d60d0f12dcc98ed26d5a8b",
+    "candidateName": "complete fresh first reversible storage seam result",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
-    "executionBaseResolution": "exact current main SHA captured after ARC-WP-017 is merged and immediately before creating the fresh agent branch"
+    "executionBaseResolution": "exact current main SHA captured after ARC-WP-018 is merged and immediately before creating the fresh agent branch"
   },
   "scope": {
     "allowedPaths": [
@@ -22,6 +22,7 @@
       "apps/player/docs/OWNER_MAP.json",
       "apps/player/tests/contract_storage_boundary.py",
       "apps/player/dev/checks_registry.json",
+      "apps/player/dev/evidence_coverage.json",
       "apps/player/dev/release_config.json",
       "docs/evidence/architecture/first-storage-seam/**",
       "docs/governance/reviews/GOV-REVIEW-0012-FIRST-SEAM-DIAGNOSTIC-PASS.md",
@@ -65,7 +66,8 @@
   },
   "invariants": [
     "The developer changes only the four source-boundary files defined by ARC-WP-010.",
-    "Contradictory QA changes only the focused contract and one mandatory registry entry.",
+    "Contradictory QA changes only the focused contract, one mandatory registry entry and the exact evidence coverage map.",
+    "The evidence coverage map adds tests/contract_storage_boundary.py exactly once to the storage-resilience surface and changes no other entry, surface, policy, schema or human-only statement.",
     "The integrator changes only release_config.json and first-seam evidence.",
     "The governor changes only canonical work-package, state and review records.",
     "The four role write scopes are disjoint.",
@@ -74,8 +76,8 @@
     "release_config.runtime_fingerprint becomes a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca.",
     "Only src/scripts/core/runtime_parts/04_local_storage_port.js is added to baseline_equivalence.ignored_script_paths; all existing entries and all other release metadata remain unchanged.",
     "baseline_equivalence.runtime_js_normalized_sha256 remains d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73.",
-    "The disposable diagnostics remain closed and unmerged and are never acceptance evidence.",
-    "The executable base is exact current main captured after ARC-WP-017 is merged and immediately before fresh branch creation; any intervening main drift invalidates the branch.",
+    "The disposable diagnostics and failed execution attempts remain closed and unmerged and are never acceptance evidence.",
+    "The executable base is exact current main captured after ARC-WP-018 is merged and immediately before fresh branch creation; any intervening main drift invalidates the branch.",
     "The fresh result must be produced through Remote Agent Worktree, pass player-full and permanent Player CI on the exact result, and must not be merged autonomously.",
     "The Remote Agent envelope and tested-result commits must both pass the strict canonical PR-scope gate introduced by GOV-WP-015.",
     "If any step fails, the GOV-WP-016 failure-diagnostics artifact must be inspected; it is failure evidence only and never a tested result.",
@@ -88,10 +90,12 @@
     "merged PR-scope compatibility repair commit dd6679b1b890efadb2c049113993d3e2c78f96b2",
     "merged GOV-WP-016 authorization and Remote Agent failure-evidence workflow implementation",
     "merged ARC-WP-017 observable rebind authorization",
+    "failure artifact remote-agent-failure-29353545001 proving the single missing evidence-map registration",
+    "merged ARC-WP-018 evidence-map scope completion",
     "post-merge current main SHA captured immediately before fresh agent-branch creation",
     "exact fresh Remote Agent base, trigger and result commits",
     "complete changed-file and role-owner inventory",
-    "focused storage-boundary contract and mandatory registration",
+    "focused storage-boundary contract, mandatory registration and evidence coverage registration",
     "full player-full result including browser checks",
     "failure-diagnostics artifact identifying the failed command if any run fails",
     "Remote agent worktree / tested result success",
@@ -109,6 +113,8 @@
     "fail if any frozen key or payload marker changes",
     "fail if manifest order is not 00, 04, 05, 10",
     "fail if any existing test registry entry changes",
+    "fail if the focused contract is absent from or duplicated within the storage-resilience evidence surface",
+    "fail if any existing evidence-map entry is removed, moved or modified or if any other surface changes",
     "fail if release_config changes beyond the measured runtime fingerprint and one ignored-path addition",
     "fail if the normalized protected fingerprint changes",
     "fail if any unrelated runtime, UI, contract, tool, workflow or platform file changes",
@@ -122,13 +128,13 @@
     "change storage technology, keys, payloads or identifiers",
     "refactor callers or introduce repositories or dependency injection",
     "change product identity, RC label, UI, UX, pedagogy or RC719 reservations",
-    "change test runner, registry schema, workflow or fingerprint algorithm",
+    "change test runner, registry schema, evidence-map schema or policy, workflow or fingerprint algorithm",
     "add backend, accounts, synchronization, catalog, commerce, institutions or marketplace",
     "start Stage D"
   ],
   "independentReview": [
     "Developer limited to four implementation paths",
-    "Contradictory QA limited to focused test and registry entry",
+    "Contradictory QA limited to focused test, registry entry and evidence coverage map",
     "Integrator limited to release metadata and evidence",
     "Architecture and Repository Governor limited to governance records",
     "Remote Agent Worktree, Player CI, PR scope and repository governance"
@@ -142,7 +148,8 @@
     ],
     "qaWritePaths": [
       "apps/player/tests/contract_storage_boundary.py",
-      "apps/player/dev/checks_registry.json"
+      "apps/player/dev/checks_registry.json",
+      "apps/player/dev/evidence_coverage.json"
     ],
     "integratorWritePaths": [
       "apps/player/dev/release_config.json",
@@ -160,6 +167,12 @@
       "pullRequest": 56,
       "branch": "agent/arc-wp-014-first-storage-seam-result",
       "outcome": "closed-unmerged-player-full-failure-no-tested-result"
+    },
+    {
+      "pullRequest": 67,
+      "branch": "agent/arc-wp-014-observable-first-storage-seam-result",
+      "outcome": "closed-unmerged-evidence-coverage-map-omission",
+      "failureArtifactDigest": "sha256:8bc7f8c7efca7917fe7ddb635d1de3110d2bab45a285fa48117b0e0e510d873"
     }
   ],
   "result": {
@@ -167,14 +180,15 @@
     "authorizedAt": "2026-07-14",
     "implementationAllowed": true,
     "implementationAccepted": false,
-    "requiredAgentBranch": "agent/arc-wp-014-observable-first-storage-seam-result",
+    "requiredAgentBranch": "agent/arc-wp-014-complete-first-storage-seam-result",
     "requiredTestProfile": "player-full",
     "reboundByWorkPackage": "ARC-WP-015",
     "baseResolutionCorrectedByWorkPackage": "ARC-WP-016",
     "observableRebindByWorkPackage": "ARC-WP-017",
     "failureEvidenceEnabledByWorkPackage": "GOV-WP-016",
+    "evidenceMapScopeAddedByWorkPackage": "ARC-WP-018",
     "stageC": "authorized-not-complete",
     "stageDEntryAllowed": false
   },
-  "rollback": "Revert the fresh implementation pull request. This restores runtime part 00, removes part 04 and the focused test, restores the source manifest, owner map, check registry and release fingerprint metadata, and requires no learner-data migration or remote compensation."
+  "rollback": "Revert the fresh implementation pull request. This restores runtime part 00, removes part 04 and the focused test, restores the source manifest, owner map, check registry, evidence coverage map and release fingerprint metadata, and requires no learner-data migration or remote compensation."
 }
