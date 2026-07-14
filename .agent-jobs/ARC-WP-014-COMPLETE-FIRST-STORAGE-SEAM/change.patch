@@ -104,7 +104,7 @@ diff --git a/apps/player/dev/release_config.json b/apps/player/dev/release_confi
 diff --git a/apps/player/dev/evidence_coverage.json b/apps/player/dev/evidence_coverage.json
 --- a/apps/player/dev/evidence_coverage.json
 +++ b/apps/player/dev/evidence_coverage.json
-@@ -110,6 +110,7 @@
+@@ -110,5 +110,6 @@
      "storage-resilience": [
        "tests/contract_import_surface.py",
 +      "tests/contract_storage_boundary.py",
