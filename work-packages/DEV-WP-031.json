@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "id": "DEV-WP-031",
+  "title": "Implement the clean-generation runtime vertical slice",
+  "status": "approved",
+  "changeClass": "successor-runtime-implementation",
+  "riskClass": "high",
+  "purpose": "Implement the bounded browser runtime and accessible UI for strict learnit.kit.v2 validation, atomic import planning, isolated IndexedDB persistence, library projection, QCM/fill sessions and progress recovery. The work must fit the exact runtime paths and may not create build, workflow, fixture, test, authoring or contract files.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "candidateName": "learnit-next-runtime-foundation",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/README.md",
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/core/canonical_json.js",
+      "apps/learnit-next/src/core/identity.js",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/core/library.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/src/ui/render.js"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/player/**",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/dev/**",
+      "apps/learnit-next/tests/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/**",
+      "docs/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "The frozen learnit.kit.v2 schema is consumed but not changed.",
+    "Only localStorage keys beginning learnit.next.v1. and IndexedDB database learnit_next_v1 may be used.",
+    "RC718 storage keys and learnit_durable_library_v1 are never opened for mutation, read as product input, cleared or upgraded.",
+    "Legacy packages fail before any transient or durable library mutation.",
+    "Package import commits packages, courses and initial metadata atomically.",
+    "QCM answers use choiceId and fill answers use explicit slotId/tokenId with maxUses enforcement.",
+    "The visible UI and window.__LEARNIT_NEXT_TEST__ use the same runtime and storage paths.",
+    "No capability outside the ARC-WP-022 foundation slice is introduced.",
+    "No file outside the 14 exact allowed paths is created or changed."
+  ],
+  "requiredEvidence": [
+    "Exact changed-path report equals a subset of the 14 allowed paths.",
+    "Runtime self-checks demonstrate canonicalization, identity validation, semantic references and atomic import planning.",
+    "Storage report identifies only learnit.next.v1. and learnit_next_v1 namespaces.",
+    "Manual static review finds no RC718 storage key or database literal in successor runtime files.",
+    "The role-local validation commands and raw outputs are recorded and independently reproduced before integration.",
+    "The result is independently reviewed before integration."
+  ],
+  "adversarialTests": [
+    "Malformed JSON, legacy contract and semantic reference errors produce no import write.",
+    "Duplicate IDs and revision digest conflicts are rejected.",
+    "QCM choice reordering does not change correctness semantics.",
+    "Fill token reuse cannot exceed maxUses.",
+    "IndexedDB write failure aborts the import transaction.",
+    "Reset removes only successor data.",
+    "The test API cannot bypass visible product validation or storage rules."
+  ],
+  "nonGoals": [
+    "Changing the contract schema.",
+    "Creating golden kits or authoring tools.",
+    "Creating tests, build scripts, manifests, workflows or release tools.",
+    "Supporting RC718 packages or data.",
+    "Adding media, matching, ordering, classification, flashcards, bilan, mastery, retention, patches or adaptation.",
+    "Implementing any backend or remote capability."
+  ],
+  "independentReview": [
+    "Architecture review of module boundaries and dependency direction.",
+    "Security review of HTML rendering, input handling and storage namespace use.",
+    "Contradictory QA execution through QA-WP-011 fixtures and tests.",
+    "Integrator verifies that no role-owned file requires silent repair."
+  ],
+  "execution": {
+    "parallelGroup": "clean-generation-foundation-implementers",
+    "executionLane": "independent-clean-worktree",
+    "remoteAgentTransportAllowed": true,
+    "remoteAgentResultSufficient": false,
+    "validationPolicy": "The existing fixed Remote Agent profiles do not certify learnit-next behavior. Any Remote Agent status is transport evidence only; role-local commands and outputs must be recorded and independently reproduced before integration.",
+    "maximumChangedFiles": 14,
+    "maximumChangedLines": 3500,
+    "requiresIndependentReviewBeforeIntegration": true
+  },
+  "rollback": "Discard or revert the runtime-only result. No RC718 file, data, workflow or artifact is affected, and no successor build is promoted by this package."
+}

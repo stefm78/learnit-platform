@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-15-025",
-  "effectiveFromCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
-  "reviewedBaselineCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
+  "stateId": "GOV-STATE-2026-07-15-026",
+  "effectiveFromCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+  "reviewedBaselineCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "clean-generation-foundation-accepted-execution-authorization-gate",
+    "id": "clean-generation-parallel-implementation-authorized-integration-held",
     "status": "active",
-    "description": "RC718 remains the frozen promoted legacy standalone product after RC719 PASS_WITH_RESERVATIONS. ARC-WP-021 clean break remains canonical. ARC-WP-022 accepts the learnit.kit.v2 foundation contract, isolated successor storage namespaces, a 32-file successor budget, a minimal QCM/fill vertical slice and a three-stream disjoint multi-AI model with later independent integration. Successor implementation remains blocked until ARC-WP-023 binds subordinate work packages to the exact ARC-WP-022 merge commit."
+    "description": "RC718 remains the frozen promoted legacy standalone product. ARC-WP-021 clean break and ARC-WP-022 foundation remain canonical. ARC-WP-023 approves DEV-WP-031 runtime, KIT-WP-001 authoring and QA-WP-011 contradictory QA to execute concurrently from exact common base d0186d7c0d65d44287c59534855ea90ffa3f8d06 on disjoint paths. INT-WP-001 remains held until all three outputs have independent reviews."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -208,6 +208,25 @@
       "filePlan": "docs/architecture/clean-generation/FILE_PLAN_V1.json",
       "multiAiProtocol": "docs/architecture/clean-generation/MULTI_AI_EXECUTION_V1.md",
       "review": "docs/governance/reviews/GOV-REVIEW-0025-ARC-WP-022-FOUNDATION.md"
+    },
+    "parallelExecutionAuthorization": {
+      "workPackage": "ARC-WP-023",
+      "status": "accepted-with-conditions",
+      "commonBaseCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+      "parallelWorkPackages": [
+        "DEV-WP-031",
+        "KIT-WP-001",
+        "QA-WP-011"
+      ],
+      "sequentialIntegrationWorkPackage": "INT-WP-001",
+      "parallelWritableOverlap": 0,
+      "implementationPaths": 31,
+      "frozenSharedPaths": [
+        "contracts/learnit-kit-v2.schema.json"
+      ],
+      "implementationAllowed": true,
+      "integrationAllowed": false,
+      "review": "docs/governance/reviews/GOV-REVIEW-0026-ARC-WP-023-PARALLEL-AUTHORIZATION.md"
     }
   },
   "authorizedWork": [
@@ -219,12 +238,15 @@
     "the accepted learnit-identity-v1 taxonomy",
     "the accepted clean-break generation direction",
     "the accepted learnit.kit.v2 clean-generation foundation contract and 32-file plan",
-    "creation of exact subordinate implementation work packages from the ARC-WP-022 merge commit",
-    "regeneration of the two priority foundation kits only through an accepted subordinate authoring work package",
+    "DEV-WP-031 runtime implementation from exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "KIT-WP-001 authoring and foundation golden kits from exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "QA-WP-011 independent fixtures and contradictory tests from exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "parallel execution of DEV-WP-031, KIT-WP-001 and QA-WP-011 on independent branches or worktrees",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "successor implementation until ARC-WP-023 binds exact subordinate work packages to the ARC-WP-022 merge commit",
+    "INT-WP-001 integration until independently reviewed result commits exist for DEV-WP-031, KIT-WP-001 and QA-WP-011",
+    "human successor testing until a full integrated automated gate and separate governor acceptance pass",
     "any successor file outside the accepted 32-file plan",
     "RC718 compatibility resolver, identity overlay, dual read, dual write or learner-state migration",
     "automatic import or interpretation of RC718 packages by the successor",
@@ -249,11 +271,12 @@
     "clearing or mutating RC718 localStorage or IndexedDB data from the successor",
     "presenting the successor as a transparent RC718 upgrade",
     "copying all RC718 implementation without current product justification",
-    "parallel AI implementation without one exact common baseline and machine-checkable disjoint scopes",
+    "parallel AI implementation without exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06 and the approved disjoint scopes",
     "allowing an integrator to silently repair role-owned files",
+    "starting INT-WP-001 before all three role outputs have independent reviews",
     "publishing an artifact different from the artifact tested",
-    "starting implementation without ARC-WP-023 exact subordinate authorization",
     "adding, renaming or splitting a successor working file outside FILE_PLAN_V1.json without a new governor decision",
+    "changing contracts/learnit-kit-v2.schema.json from an implementing role branch",
     "inventing missing RC719 reservation details"
   ],
   "activeRisks": [
@@ -280,6 +303,12 @@
       "severity": "moderate",
       "statement": "RC718 and the successor can share a browser origin, so storage isolation depends on strict namespace ownership and negative tests rather than browser process isolation.",
       "closureGate": "integrated browser tests prove RC718 localStorage and IndexedDB records remain byte-for-byte unchanged after successor boot, import, use and reset"
+    },
+    {
+      "id": "RISK-PARALLEL-002",
+      "severity": "moderate",
+      "statement": "The three implementing branches start from an earlier immutable commit than the authorization merge. Scope discipline and controlled PR merge bases must prevent accidental inclusion or omission of later governance changes.",
+      "closureGate": "each role PR proves exact base, only role-owned changes and clean integration against current main"
     },
     {
       "id": "RISK-BREAK-005",
@@ -311,13 +340,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-023",
-    "condition": "From the exact ARC-WP-022 merge commit, create and validate subordinate runtime, authoring, contradictory-QA/fixture and integration work packages whose writable paths exactly reproduce FILE_PLAN_V1.json. The first three roles may then start in parallel on independent branches or worktrees. The contract remains frozen, the integrator starts only from reviewed role outputs, and no RC718 compatibility, unplanned file or held platform domain may be introduced."
+    "id": "INT-WP-001",
+    "condition": "Wait for exact independently reviewed result commits from DEV-WP-031, KIT-WP-001 and QA-WP-011. Then integrate only those reviewed outputs, without editing role-owned files, through the five INT-WP-001 paths. Prove the exact 32-file set, cross-language digest agreement, both golden kits, RC718 storage immutability, browser vertical slice, deterministic clean build and tested-artifact identity before a separate governor acceptance."
   },
   "review": {
     "lastReviewedAt": "2026-07-15",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0025 ARC-WP-022 clean-generation foundation",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0026 ARC-WP-023 parallel authorization",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "ARC-WP-023 subordinate authorization, any contract mutation, any file-budget change, overlapping AI scope, any RC718 storage access, failed or missing CI, source-to-artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
+    "nextReviewTrigger": "any role result, role-path overlap, contract mutation, unplanned file, base-commit drift, RC718 storage access, failed or missing validation, high contradictory-QA finding, attempted integration, source-to-artifact drift, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
   }
 }
