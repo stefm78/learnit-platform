@@ -21,7 +21,7 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #eef1f7; }
 button, input, select { font: inherit; }
 button, input[type="file"], select { min-height: 44px; }
 button { cursor: pointer; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #8ba3ff; outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex="-1"]:focus { outline: 3px solid #8ba3ff; outline-offset: 2px; }
 
 #app { max-width: 980px; margin: 0 auto; padding: 24px; }
 .app-header, .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
