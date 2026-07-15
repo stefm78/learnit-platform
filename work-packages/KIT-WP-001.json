@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "KIT-WP-001",
+  "title": "Implement v2 authoring tools and foundation golden kits",
+  "status": "approved",
+  "changeClass": "authoring-and-learning-content",
+  "riskClass": "moderate",
+  "purpose": "Implement minimal Python authoring support for persistent UUID allocation, semantic validation and canonical revision digests, then produce representative Nombres complexes and Signaux électriques foundation kits conforming to the frozen learnit.kit.v2 contract.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "candidateName": "learnit-v2-authoring-foundation",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "authoring/v2/README.md",
+      "authoring/v2/generate_ids.py",
+      "authoring/v2/validate_kit.py",
+      "authoring/v2/golden/nombres_complexes.json",
+      "authoring/v2/golden/signaux_electriques.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/**",
+      "docs/**",
+      "tools/**",
+      "authoring/v2/**/dist/**"
+    ]
+  },
+  "invariants": [
+    "The frozen learnit.kit.v2 schema is consumed but not changed.",
+    "Canonical UUIDs are generated once, written into authored JSON and never regenerated from titles, positions, filenames or digests.",
+    "Python canonical JSON and digest rules match FOUNDATION_V1.md exactly.",
+    "Revision IDs change when their immutable semantic payload changes.",
+    "Each golden kit has at least one course, two objectives, six activities, three QCM, two fill, one application or transfer activity and one validation activity.",
+    "The kits are representative foundation fixtures and do not claim complete release curricula.",
+    "No RC718 package is copied and relabeled as v2 without explicit identity and digest regeneration.",
+    "No file outside the five exact allowed paths is created or changed."
+  ],
+  "requiredEvidence": [
+    "Both golden kits parse as JSON and validate against the frozen schema.",
+    "Semantic validation reports unique IDs, valid references, valid QCM choices, valid fill slots/tokens/maxUses and matching digests.",
+    "Canonical bytes and digest values are emitted for QA cross-language comparison.",
+    "Learning review confirms objective/activity alignment and scientifically correct content in the bounded fixture scope.",
+    "The result is independently reviewed before integration."
+  ],
+  "adversarialTests": [
+    "Changing a display title does not require a lineage-ID change.",
+    "Changing semantic answer content requires new revision IDs and digests.",
+    "Duplicate IDs, missing objective references, missing choice references, duplicate fill answers and maxUses violations are rejected.",
+    "The same revision ID with altered payload is rejected.",
+    "Repeated validation produces identical canonical bytes and digests.",
+    "The two kits contain no RC718 contract discriminator or legacy compatibility key."
+  ],
+  "nonGoals": [
+    "Changing the frozen v2 schema.",
+    "Implementing a general-purpose authoring application or complete production skill.",
+    "Converting learner state or RC718 libraries.",
+    "Supporting media or activity families beyond QCM and fill.",
+    "Creating Player, test, build, workflow or release files.",
+    "Claiming measured retention or mastery from foundation fixtures."
+  ],
+  "independentReview": [
+    "Learning-science review of objective coverage, feedback and activity roles.",
+    "Mathematics review of Nombres complexes content.",
+    "Physics/electrical-signals review of Signaux électriques content.",
+    "Contract review against the frozen schema and QA fixtures.",
+    "Integrator verifies exact hashes and no out-of-scope path."
+  ],
+  "execution": {
+    "parallelGroup": "clean-generation-foundation-implementers",
+    "remoteAgentProfile": "repository",
+    "maximumChangedFiles": 5,
+    "maximumChangedLines": 3000,
+    "requiresIndependentReviewBeforeIntegration": true
+  },
+  "rollback": "Discard or revert the five authoring files. The frozen contract, RC718 product and any integrated successor candidate remain unaffected until INT-WP-001."
+}
