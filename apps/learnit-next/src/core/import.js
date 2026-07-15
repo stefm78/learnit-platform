@@ -37,6 +37,17 @@ function makeSummary(payload) {
   };
 }
 
+export function collectRevisionDigests(payload) {
+  const revisions = [{ revisionId: payload.packageRevisionId, digest: payload.packageRevisionDigest }];
+  for (const course of payload.courses) {
+    revisions.push({ revisionId: course.courseRevisionId, digest: course.courseRevisionDigest });
+    for (const activity of course.activities) {
+      revisions.push({ revisionId: activity.activityRevisionId, digest: activity.activityRevisionDigest });
+    }
+  }
+  return revisions;
+}
+
 export function buildInstallationPlan(payload, now = new Date()) {
   const packageInstallId = createInstallationId();
   const installedAt = now.toISOString();
@@ -70,6 +81,7 @@ export function buildInstallationPlan(payload, now = new Date()) {
       installedAt,
     },
     courses,
+    revisions: collectRevisionDigests(payload),
     meta: [
       { key: 'schemaVersion', value: 1 },
       { key: 'lastImport', value: { packageInstallId, installedAt } },
