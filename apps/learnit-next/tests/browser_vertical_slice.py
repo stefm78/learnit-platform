@@ -79,11 +79,11 @@ NEXT_SNAPSHOT = r"""async name => {
   return result;
 }"""
 
-START_FEEDBACK_PROBE = r"""pattern => {
+START_FEEDBACK_PROBE = r"""config => {
   if (window.__qaFeedbackProbe?.observer) {
     window.__qaFeedbackProbe.observer.disconnect();
   }
-  const regex = new RegExp(pattern, 'i');
+  const regex = new RegExp(config.pattern, 'i');
   const text = element => String(
     element.innerText || element.textContent || ''
   ).trim();
@@ -109,7 +109,9 @@ START_FEEDBACK_PROBE = r"""pattern => {
     const add = element => {
       if (!(element instanceof Element)) return;
       if (semantic(element) && exposed(element)) found.push(element);
-      if (element.children.length === 0 && visible(element)) found.push(element);
+      if (!config.semanticOnly && element.children.length === 0 && visible(element)) {
+        found.push(element);
+      }
     };
     add(root);
     for (const element of root.querySelectorAll(
@@ -127,6 +129,7 @@ START_FEEDBACK_PROBE = r"""pattern => {
           if (value && regex.test(value)) {
             state.matched = {
               text:value,
+              semantic:semantic(element),
               announced:semantic(element),
               visible:visible(element)
             };
@@ -373,14 +376,20 @@ class BrowserVerticalSliceTests(unittest.TestCase):
                 return control
         self.fail(f"no accessible visible control named /{pattern.pattern}/")
 
-    def start_feedback_probe(self, pattern: str) -> None:
-        self.page.evaluate(START_FEEDBACK_PROBE, pattern)
+    def start_feedback_probe(
+        self, pattern: str, *, semantic_only: bool = False
+    ) -> None:
+        self.page.evaluate(
+            START_FEEDBACK_PROBE,
+            {"pattern": pattern, "semanticOnly": semantic_only},
+        )
 
-    def wait_feedback(self) -> str:
+    def wait_feedback(self, *, require_semantic: bool = False) -> str:
         self.page.wait_for_function(
-            """() => {
+            """requireSemantic => {
               const result = window.__qaFeedbackProbe?.matched;
               if (!result || (!result.visible && !result.announced)) return false;
+              if (requireSemantic && !result.semantic) return false;
               const exposed = element => {
                 if (element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
                 const style = getComputedStyle(element);
@@ -388,7 +397,8 @@ class BrowserVerticalSliceTests(unittest.TestCase):
               };
               return !Array.from(document.querySelectorAll('[aria-busy="true"]'))
                 .some(exposed);
-            }"""
+            }""",
+            require_semantic,
         )
         matched = self.page.evaluate(
             """() => {
@@ -398,6 +408,8 @@ class BrowserVerticalSliceTests(unittest.TestCase):
               return result;
             }"""
         )
+        if require_semantic:
+            self.assertTrue(matched["semantic"], matched)
         self.assertTrue(matched["visible"] or matched["announced"], matched)
         return matched["text"]
 
@@ -409,10 +421,10 @@ class BrowserVerticalSliceTests(unittest.TestCase):
 
     def wait_import_idle(self) -> None:
         trigger = self.import_trigger()
-        handle = trigger.element_handle()
         self.page.wait_for_function(
-            "element => !element.disabled && element.getAttribute('aria-disabled') !== 'true'",
-            handle,
+            "element => !element.disabled && "
+            "element.getAttribute('aria-disabled') !== 'true'",
+            trigger.element_handle(),
         )
 
     def import_through_keyboard(self, payload: Any) -> None:
@@ -482,9 +494,10 @@ class BrowserVerticalSliceTests(unittest.TestCase):
             )
             if title_control is not None:
                 break
-        self.activate(title_control) if title_control is not None else self.activate_named(
-            START_NAMES
-        )
+        if title_control is not None:
+            self.activate(title_control)
+        else:
+            self.activate_named(START_NAMES)
         self.page.get_by_text(first_prompt, exact=False).first.wait_for(state="visible")
 
     def assert_no_qcm_preselection(self, activity: dict[str, Any]) -> None:
@@ -521,9 +534,6 @@ class BrowserVerticalSliceTests(unittest.TestCase):
     def choose_option_with_keyboard(
         self, control: Locator, token_id: str, token_label: str
     ) -> None:
-        self.assertTrue(control.get_attribute("aria-label") or control.get_attribute(
-            "aria-labelledby"
-        ), "fill slot needs an accessible name")
         tag_name = control.evaluate("element => element.tagName.toLowerCase()")
         if tag_name == "select":
             options = control.evaluate(
@@ -546,7 +556,7 @@ class BrowserVerticalSliceTests(unittest.TestCase):
                 self.page.keyboard.press("ArrowDown")
             self.page.keyboard.press("Enter")
             selected = control.evaluate(
-                "element => ({value:element.value," 
+                "element => ({value:element.value,"
                 "label:element.options[element.selectedIndex].textContent.trim()})"
             )
             self.assertTrue(
@@ -571,8 +581,10 @@ class BrowserVerticalSliceTests(unittest.TestCase):
             for segment in activity["segments"]
             if "slotId" in segment
         ]
-        controls = self.visible_controls(self.page.get_by_role("combobox"))
-        self.assertEqual(len(slots), len(controls), "one accessible combobox per slot")
+        controls = self.visible_controls(
+            self.page.get_by_role("combobox", name=re.compile(r".+"))
+        )
+        self.assertEqual(len(slots), len(controls), "one named combobox per slot")
         token = activity["tokens"][0]
         for control in controls:
             self.choose_option_with_keyboard(
@@ -602,9 +614,9 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         self, payload: Any, pattern: str
     ) -> str:
         before = self.snapshot_next()
-        self.start_feedback_probe(pattern)
+        self.start_feedback_probe(pattern, semantic_only=True)
         self.import_through_keyboard(payload)
-        feedback = self.wait_feedback()
+        feedback = self.wait_feedback(require_semantic=True)
         self.wait_import_idle()
         self.wait_courses(0)
         self.assertEqual(
