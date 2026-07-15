@@ -100,6 +100,15 @@ def identities(v):
     elif isinstance(v,list):
         for x in v:yield from identities(x)
 def uid(n):return f'{n:08x}-9abc-4def-8abc-{n:012x}'
+def replace_identity(value,old,new):
+    if isinstance(value,dict):
+        for key,item in value.items():
+            if item==old:value[key]=new
+            else:replace_identity(item,old,new)
+    elif isinstance(value,list):
+        for index,item in enumerate(value):
+            if item==old:value[index]=new
+            else:replace_identity(item,old,new)
 def append_course(p,key):
     s=p['courses'][0]; c=copy.deepcopy(s); i=100
     c['courseLineageId']=s['courseLineageId'] if key=='courseLineageId' else uid(i);i+=1
@@ -132,7 +141,7 @@ def attacks(valid):
     cases=[
 ('unknown root',lambda p:p.__setitem__('unknown',1)),('unknown course',lambda p:p['courses'][0].__setitem__('unknown',1)),('unknown objective',lambda p:p['courses'][0]['objectives'][0].__setitem__('unknown',1)),
 ('unknown qcm',lambda p:qcm(p).__setitem__('unknown',1)),('unknown fill',lambda p:fill(p).__setitem__('unknown',1)),('unknown choice',lambda p:qcm(p)['choices'][0].__setitem__('unknown',1)),('unknown token',lambda p:fill(p)['tokens'][0].__setitem__('unknown',1)),('unknown text segment',lambda p:fill(p)['segments'][0].__setitem__('unknown',1)),('unknown slot segment',lambda p:next(x for x in fill(p)['segments'] if 'slotId'in x).__setitem__('unknown',1)),('unknown answer',lambda p:fill(p)['answers'][0].__setitem__('unknown',1)),
-('invalid package UUID',lambda p:p.__setitem__('packageLineageId','BAD')),('invalid course UUID',lambda p:p['courses'][0].__setitem__('courseRevisionId','BAD')),('invalid objective UUID',lambda p:p['courses'][0]['objectives'][0].__setitem__('objectiveId','BAD')),('invalid activity UUID',lambda p:qcm(p).__setitem__('activityRevisionId','BAD')),('invalid choice UUID',lambda p:qcm(p)['choices'][0].__setitem__('choiceId','BAD')),('invalid slot UUID',lambda p:next(x for x in fill(p)['segments'] if 'slotId'in x).__setitem__('slotId','BAD')),('invalid token UUID',lambda p:fill(p)['tokens'][0].__setitem__('tokenId','BAD')),('invalid answer slot UUID',lambda p:fill(p)['answers'][0].__setitem__('slotId','BAD')),('invalid answer token UUID',lambda p:fill(p)['answers'][0].__setitem__('tokenId','BAD')),
+('invalid package UUID',lambda p:p.__setitem__('packageLineageId','BAD')),('invalid course UUID',lambda p:p['courses'][0].__setitem__('courseRevisionId','BAD')),('invalid objective UUID',lambda p:replace_identity(p,p['courses'][0]['objectives'][0]['objectiveId'],'BAD')),('invalid activity UUID',lambda p:qcm(p).__setitem__('activityRevisionId','BAD')),('invalid choice UUID',lambda p:replace_identity(p,qcm(p)['correctChoiceId'],'BAD')),('invalid slot UUID',lambda p:replace_identity(p,fill(p)['answers'][0]['slotId'],'BAD')),('invalid token UUID',lambda p:replace_identity(p,fill(p)['answers'][0]['tokenId'],'BAD')),('invalid answer slot UUID',lambda p:replace_identity(p,fill(p)['answers'][1]['slotId'],'BAD')),('invalid answer token UUID',lambda p:replace_identity(p,fill(p)['answers'][0]['tokenId'],'BAD')),
 ('duplicate courseLineageId',lambda p:append_course(p,'courseLineageId')),('duplicate courseRevisionId',lambda p:append_course(p,'courseRevisionId')),('duplicate activityLineageId',lambda p:append_activity(p,'activityLineageId')),('duplicate activityRevisionId',lambda p:append_activity(p,'activityRevisionId')),('duplicate objectiveId',lambda p:p['courses'][0]['objectives'].append(copy.deepcopy(p['courses'][0]['objectives'][0]))),('duplicate choiceId',lambda p:qcm(p)['choices'][1].__setitem__('choiceId',qcm(p)['choices'][0]['choiceId'])),('duplicate slotId',lambda p:fill(p)['segments'].append(copy.deepcopy(next(x for x in fill(p)['segments'] if 'slotId'in x)))),('duplicate tokenId',lambda p:fill(p)['tokens'].append(copy.deepcopy(fill(p)['tokens'][0]))),('duplicate answer slotId',lambda p:fill(p)['answers'].append(copy.deepcopy(fill(p)['answers'][0]))),('slot without answer',lambda p:fill(p)['answers'].pop()),('answer absent slot',lambda p:fill(p)['answers'][0].__setitem__('slotId',uid(900))),('missing objective',lambda p:qcm(p).__setitem__('objectiveIds',[uid(901)])),('missing choice',lambda p:qcm(p).__setitem__('correctChoiceId',uid(902))),('missing token',lambda p:fill(p)['answers'][0].__setitem__('tokenId',uid(903))),('maxUses',lambda p:fill(p)['tokens'][0].__setitem__('maxUses',1))]
     out=[]
     for n,m in cases:
@@ -156,7 +165,11 @@ class FixtureOracleTests(unittest.TestCase):
     def test_valid_semantics_and_sha256(self):self.assertEqual([],semantic_errors(self.v));self.assertEqual([],digest_errors(self.v))
     def test_unknown_properties_and_nested_uuid_are_rejected(self):
         for n,p in attacks(self.v):
-            if n.startswith('unknown') or n.startswith('invalid'):self.assertTrue(list(self.val.iter_errors(p)),n)
+            if n.startswith('unknown') or n.startswith('invalid'):
+                self.assertTrue(list(self.val.iter_errors(p)),n)
+                if n.startswith('invalid'):
+                    self.assertEqual([],semantic_errors(p),f'{n} also broke references')
+                    self.assertEqual([],digest_errors(p),f'{n} was not redigested')
     def test_semantic_attack_matrix(self):
         for n,p in attacks(self.v):
             if n.startswith(('duplicate','slot ','answer ','missing','maxUses')):self.assertTrue(semantic_errors(p),n)
@@ -196,5 +209,5 @@ class RuntimeContractTests(unittest.TestCase):
         for n,p in [('legacy',self.l),('digest',self.m)]:self.atomic('importPackage',p,n)
         self.assertFalse(negative(self.call('importPackage',self.v)));b=self.snap();p=copy.deepcopy(self.v);p['courses'][0]['activities'][0]['prompt']+=' changed';p=redigest(p);self.reject('importPackage',p);self.assertEqual(b,self.snap())
     def test_qcm_choice_reordering_does_not_change_correction(self):
-        p=copy.deepcopy(self.v);q=p['courses'][0]['activities'][0];q['choices'].reverse();q['activityRevisionId']=uid(950);p['courses'][0]['courseRevisionId']=uid(951);p['packageRevisionId']=uid(952);p=redigest(p);self.assertFalse(negative(self.call('importPackage',p)));c=self.call('listCourses')[0];self.call('startCourse',c['courseInstallId']);r=self.call('answer',q['activityRevisionId'],q['correctChoiceId']);self.assertIs(r.get('correct'),True);self.assertIs(r.get('completed'),True);self.assertEqual(q['correctChoiceId'],r.get('selectedChoiceId'))
+        p=copy.deepcopy(self.v);q=p['courses'][0]['activities'][0];q['choices'].reverse();q['activityRevisionId']=uid(950);p['courses'][0]['courseRevisionId']=uid(951);p['packageRevisionId']=uid(952);p=redigest(p);self.assertFalse(negative(self.call('importPackage',p)));c=self.call('listCourses')[0];self.call('startCourse',c['courseInstallId']);r=self.call('answer',q['activityRevisionId'],q['correctChoiceId']);self.assertEqual(q['activityRevisionId'],r.get('activityRevisionId'),r);self.assertIs(r.get('correct'),True);self.assertIs(r.get('completed'),True);self.assertEqual(q['correctChoiceId'],r.get('selectedChoiceId'))
 if __name__=='__main__':unittest.main(verbosity=2)
