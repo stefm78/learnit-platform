@@ -20,6 +20,7 @@ export function createLearnitRuntime(storageAdapter = createIndexedDbStorage()) 
     previewImport: (payload) => imports.previewImport(payload),
     importPackage: (payload) => imports.importPackage(payload),
     listCourses: () => library.listCourses(),
+    setCourseDisplayLabel: (courseInstallId, label) => library.setDisplayLabel(courseInstallId, label),
     startCourse: (courseInstallId) => sessions.startCourse(courseInstallId),
     answer: (activityRevisionId, answer) => sessions.answer(activityRevisionId, answer),
     async getProgress(courseInstallId) {
@@ -38,10 +39,9 @@ export function createLearnitRuntime(storageAdapter = createIndexedDbStorage()) 
     },
     storageReport: () => storage.storageReport(),
 
-    // Visible UI helpers use the same domain services as the frozen diagnostic surface.
+    // Visible UI helpers use the same domain services as the bounded diagnostic surface.
     resumeActiveCourse: () => sessions.resumeActiveCourse(),
     getSession: () => sessions.getSession(),
-    setCourseDisplayLabel: (courseInstallId, label) => library.setDisplayLabel(courseInstallId, label),
   };
 
   return Object.freeze(runtime);
@@ -57,6 +57,7 @@ async function boot() {
     previewImport: runtime.previewImport,
     importPackage: runtime.importPackage,
     listCourses: runtime.listCourses,
+    setCourseDisplayLabel: runtime.setCourseDisplayLabel,
     startCourse: runtime.startCourse,
     answer: runtime.answer,
     getProgress: runtime.getProgress,
