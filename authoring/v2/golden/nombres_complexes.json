@@ -1,0 +1,212 @@
+{
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "bb5c887f-d778-485a-8456-208b41236034",
+  "packageRevisionId": "e1807670-39f9-4bcd-a696-b50035d42fa5",
+  "packageRevisionDigest": "sha256:adaa82363317d19a6faab9d0374cc40e6197020f30750fb3e4db579479175f60",
+  "title": "Nombres complexes — kit représentatif v2",
+  "description": "Kit de fondation représentatif : calculs algébriques, forme cartésienne, module, argument et interprétation géométrique. Il ne constitue pas un cursus complet.",
+  "versionLabel": "foundation-v1",
+  "language": "fr-FR",
+  "courses": [
+    {
+      "courseLineageId": "41cb0581-c133-4ec5-8d06-d01209a3bb40",
+      "courseRevisionId": "745c054e-e082-4a41-875c-36d4c1c1e785",
+      "courseRevisionDigest": "sha256:786307f33a9988a3d3f597530e92bb299c1d0a8dd1c603601ea499b44d8f9dcd",
+      "title": "Nombres complexes — fondations",
+      "subtitle": "Forme cartésienne, calculs, module, argument et lecture géométrique.",
+      "estimatedMinutes": 35,
+      "objectives": [
+        {
+          "objectiveId": "ac8b4049-b21d-4afc-acc6-0a8d67ec2b09",
+          "label": "Calculer avec des nombres complexes écrits sous forme cartésienne."
+        },
+        {
+          "objectiveId": "fde9739f-375e-4d35-9dde-cebe57d34ac6",
+          "label": "Relier une affixe à sa représentation géométrique, son module et un argument."
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "d03fd5c7-6953-46cb-9786-4a16be6b5578",
+          "activityRevisionId": "91e88aa1-b8f4-4117-8ded-98f70b42d1bb",
+          "activityRevisionDigest": "sha256:94650ec3d2dd12c2e7baca7134bfa0a055e51dad2c5ced10294189c3791489e2",
+          "objectiveIds": [
+            "ac8b4049-b21d-4afc-acc6-0a8d67ec2b09"
+          ],
+          "type": "qcm",
+          "prompt": "Pour z = 3 − 2i, quelles sont sa partie réelle et sa partie imaginaire ?",
+          "explanation": "Dans la forme cartésienne z = a + ib, la partie réelle est a et la partie imaginaire est b. Ici, Re(z)=3 et Im(z)=−2 : le symbole i ne fait pas partie de la valeur de Im(z).",
+          "difficulty": "easy",
+          "learningPhase": "activation",
+          "assessmentRole": "practice",
+          "choices": [
+            {
+              "choiceId": "a72359da-2606-4dd4-adea-748ea52de640",
+              "label": "Re(z)=3 et Im(z)=−2"
+            },
+            {
+              "choiceId": "9e8d56dd-5718-4e88-9a3f-382e3f6b2eaf",
+              "label": "Re(z)=3 et Im(z)=2"
+            },
+            {
+              "choiceId": "585927a8-fd4b-4658-99b1-3527804bdff5",
+              "label": "Re(z)=−2 et Im(z)=3"
+            },
+            {
+              "choiceId": "02231241-0387-478c-956b-bf4994413111",
+              "label": "Re(z)=3−2i et Im(z)=−2i"
+            }
+          ],
+          "correctChoiceId": "a72359da-2606-4dd4-adea-748ea52de640"
+        },
+        {
+          "activityLineageId": "4066192b-1066-484c-b08d-4af3183f3c97",
+          "activityRevisionId": "51d3e1c7-d125-488d-8151-a21a0dd209ac",
+          "activityRevisionDigest": "sha256:91e7ca3ebaf3b34d516164c841bfdcfcb3a06e140d26c75d6df316b88b34edf7",
+          "objectiveIds": [
+            "ac8b4049-b21d-4afc-acc6-0a8d67ec2b09"
+          ],
+          "type": "qcm",
+          "prompt": "Calculer le produit (2 + i)(3 − 2i).",
+          "explanation": "En développant puis en utilisant i²=−1 : 6−4i+3i−2i² = 6−i+2 = 8−i. Les distracteurs correspondent notamment à l’oubli du terme −2i² ou à une erreur de signe.",
+          "difficulty": "medium",
+          "learningPhase": "comprehension",
+          "assessmentRole": "practice",
+          "choices": [
+            {
+              "choiceId": "61b9c373-ff53-487a-81c7-0fbcb387264f",
+              "label": "4 − i"
+            },
+            {
+              "choiceId": "176c731c-63d9-48e4-bf5d-31ea80fb3c25",
+              "label": "8 − i"
+            },
+            {
+              "choiceId": "67e48674-3fa2-46ed-8dc1-a699a87d6b71",
+              "label": "8 + i"
+            },
+            {
+              "choiceId": "b804ef6e-f5a9-48b1-b33a-60dac5ec4542",
+              "label": "6 − i"
+            }
+          ],
+          "correctChoiceId": "176c731c-63d9-48e4-bf5d-31ea80fb3c25"
+        },
+        {
+          "activityLineageId": "1bfb1b52-d41e-4e95-86ea-ab5503a36d0b",
+          "activityRevisionId": "ccb4d32a-f30a-41a0-8073-3992602ef88b",
+          "activityRevisionDigest": "sha256:2e302c0bd676ccf16f4963ccde6f5c8bbdce3bf6460fe70793f2db4fb3eac4f5",
+          "objectiveIds": [
+            "fde9739f-375e-4d35-9dde-cebe57d34ac6"
+          ],
+          "type": "fill",
+          "prompt": "Compléter le module et les coordonnées géométriques de z = 3 + 4i.",
+          "explanation": "Le point image de z=a+ib a pour coordonnées (a,b), donc M(3,4). Son module est la distance à l’origine : |z|=√(3²+4²)=5.",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "segments": [
+            {"text": "Le module vaut "},
+            {"slotId": "6daf6cfe-a13d-48f8-b8f3-008bd6cd6417"},
+            {"text": " et le point image est M("},
+            {"slotId": "6c3a9ae8-67e1-4319-aa42-f9c2f7594c2d"},
+            {"text": ", "},
+            {"slotId": "e96f7d1c-8a1a-44ac-bc12-31fadcefd33f"},
+            {"text": ")."}
+          ],
+          "tokens": [
+            {"tokenId": "4b426605-40f9-49b7-908b-e9931319eee6", "label": "5", "maxUses": 1},
+            {"tokenId": "cf125a67-b41c-471b-b70f-e9b3849e67ea", "label": "3", "maxUses": 1},
+            {"tokenId": "a77c209b-8179-427f-a83a-cd74fc386b1c", "label": "4", "maxUses": 1},
+            {"tokenId": "004afcbc-2b8c-47d4-a8ff-1e50d7279050", "label": "7", "maxUses": 1},
+            {"tokenId": "5ba793a6-27c0-4349-929a-72d7ed6355cc", "label": "−3", "maxUses": 1}
+          ],
+          "answers": [
+            {"slotId": "6daf6cfe-a13d-48f8-b8f3-008bd6cd6417", "tokenId": "4b426605-40f9-49b7-908b-e9931319eee6"},
+            {"slotId": "6c3a9ae8-67e1-4319-aa42-f9c2f7594c2d", "tokenId": "cf125a67-b41c-471b-b70f-e9b3849e67ea"},
+            {"slotId": "e96f7d1c-8a1a-44ac-bc12-31fadcefd33f", "tokenId": "a77c209b-8179-427f-a83a-cd74fc386b1c"}
+          ]
+        },
+        {
+          "activityLineageId": "547f2028-6830-47a6-9daf-d2a905fbc424",
+          "activityRevisionId": "8bafb11c-1460-455f-aed1-dd1f12e802e7",
+          "activityRevisionDigest": "sha256:0858920866b931a4f79c6c80353066f98c27aa2971be3099c9a26308fad17351",
+          "objectiveIds": ["fde9739f-375e-4d35-9dde-cebe57d34ac6"],
+          "type": "fill",
+          "prompt": "Écrire les caractéristiques polaires de z = −1 + i√3 en choisissant l’argument principal dans ]−π,π].",
+          "explanation": "Le module vaut √(1+3)=2. Le point est dans le deuxième quadrant, avec cos θ=−1/2 et sin θ=√3/2, donc l’argument principal est 2π/3.",
+          "difficulty": "advanced",
+          "learningPhase": "transfer",
+          "assessmentRole": "practice",
+          "segments": [
+            {"text": "Le module est "},
+            {"slotId": "2e4f3ee1-1656-4816-82d4-f03ffab4c723"},
+            {"text": " et un argument principal est "},
+            {"slotId": "b5da2e07-726f-4f20-8cde-a8993ca8b13c"},
+            {"text": "."}
+          ],
+          "tokens": [
+            {"tokenId": "253b2929-57c0-4e63-bcf5-5fa675c46202", "label": "2", "maxUses": 1},
+            {"tokenId": "ece2d2d8-93f4-47c1-93ab-6e35ae865176", "label": "2π/3", "maxUses": 1},
+            {"tokenId": "fca3cd6e-e175-454c-9008-796d0bdf8241", "label": "π/3", "maxUses": 1},
+            {"tokenId": "0d74701e-8ca1-4267-8fa9-eb2abb73eccb", "label": "−2π/3", "maxUses": 1},
+            {"tokenId": "eaf54b38-fcf3-486f-8738-8ccf092ee84e", "label": "√3", "maxUses": 1}
+          ],
+          "answers": [
+            {"slotId": "2e4f3ee1-1656-4816-82d4-f03ffab4c723", "tokenId": "253b2929-57c0-4e63-bcf5-5fa675c46202"},
+            {"slotId": "b5da2e07-726f-4f20-8cde-a8993ca8b13c", "tokenId": "ece2d2d8-93f4-47c1-93ab-6e35ae865176"}
+          ]
+        },
+        {
+          "activityLineageId": "43dc0ab5-e007-4754-b3d9-fd33141b747b",
+          "activityRevisionId": "3b285b82-b84d-4b6c-944d-090baf48d1a6",
+          "activityRevisionDigest": "sha256:ae348ab7b221547dceed6d5be712a9dd7bb2709c8a432a1b4f8783032beb01b6",
+          "objectiveIds": ["ac8b4049-b21d-4afc-acc6-0a8d67ec2b09"],
+          "type": "qcm",
+          "prompt": "Mettre sous forme cartésienne le quotient (3 + i)/(2 + i).",
+          "explanation": "On multiplie numérateur et dénominateur par le conjugué 2−i : (3+i)(2−i)/(2²+1²)=(7−i)/5=7/5−(1/5)i.",
+          "difficulty": "advanced",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "choices": [
+            {"choiceId": "07912f05-6825-4618-9260-b4ab7da4b300", "label": "1 + i"},
+            {"choiceId": "831898b5-9017-493c-a5df-1d77882caa8d", "label": "7/5 − (1/5)i"},
+            {"choiceId": "1ae26a72-5049-44d2-9103-537f130cac08", "label": "7/5 + (1/5)i"},
+            {"choiceId": "e6a9e4fa-be85-4c61-972d-832e7ee5a8d8", "label": "(3/2) + i"}
+          ],
+          "correctChoiceId": "831898b5-9017-493c-a5df-1d77882caa8d"
+        },
+        {
+          "activityLineageId": "4ecbbeb8-4c36-4d13-bd24-31b392d12b4a",
+          "activityRevisionId": "2261b207-3f7b-4b4d-8bfb-b5439f482176",
+          "activityRevisionDigest": "sha256:b8a266c2b49cb2a002ef13b1afee1e690eb54674e09d2ddf95073f7233c46150",
+          "objectiveIds": ["ac8b4049-b21d-4afc-acc6-0a8d67ec2b09", "fde9739f-375e-4d35-9dde-cebe57d34ac6"],
+          "type": "fill",
+          "prompt": "Validation : déterminer l’affixe et le module du point M(−3,4).",
+          "explanation": "L’affixe reprend les coordonnées : z=−3+4i. Le module est OM=√((−3)²+4²)=5. Le signe de la partie réelle n’affecte pas le carré dans le module.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "segments": [
+            {"text": "L’affixe est "},
+            {"slotId": "e8cb611e-4945-414d-97fd-a7cc43ff1046"},
+            {"text": " et son module vaut "},
+            {"slotId": "e5bf99b8-afb7-4ecc-ad6b-676da018e6e1"},
+            {"text": "."}
+          ],
+          "tokens": [
+            {"tokenId": "38835810-26ba-4d8d-9ed7-d03273395ec4", "label": "−3 + 4i", "maxUses": 1},
+            {"tokenId": "1def2fb4-2b94-4940-a4f3-ff58085e26e1", "label": "3 + 4i", "maxUses": 1},
+            {"tokenId": "40e3d889-7705-44a3-8626-d1af08b9b7a0", "label": "−3 − 4i", "maxUses": 1},
+            {"tokenId": "81c0f7bb-7c52-40b0-bf43-cbab685ddd9b", "label": "5", "maxUses": 1},
+            {"tokenId": "7016bd08-09e8-4617-850f-2322c761caeb", "label": "7", "maxUses": 1}
+          ],
+          "answers": [
+            {"slotId": "e8cb611e-4945-414d-97fd-a7cc43ff1046", "tokenId": "38835810-26ba-4d8d-9ed7-d03273395ec4"},
+            {"slotId": "e5bf99b8-afb7-4ecc-ad6b-676da018e6e1", "tokenId": "81c0f7bb-7c52-40b0-bf43-cbab685ddd9b"}
+          ]
+        }
+      ]
+    }
+  ]
+}
