@@ -1,0 +1,48 @@
+{
+  "kind": "learnit-course-package",
+  "schema_version": "learnit.import.v1.1",
+  "packageId": "rc718-plausible-adversarial-package",
+  "source": "Fixture QA legacy plausible, à rejeter avant toute écriture.",
+  "assets": [],
+  "generation_report": {
+    "status": "complete",
+    "activities": 2
+  },
+  "courses": [
+    {
+      "schemaVersion": "learnit-content-v2",
+      "id": "legacy-course-minimal",
+      "title": "Ancien parcours plausible",
+      "contentVersion": "RC718-compatible-shape",
+      "activities": [
+        {
+          "id": "legacy-qcm-001",
+          "type": "qcm",
+          "question": "Quel discriminant ce package utilise-t-il ?",
+          "choices": [
+            "learnit.kit.v2",
+            "learnit.import.v1.1"
+          ],
+          "answer": 1,
+          "why": "Cette structure ressemble à un ancien package valide."
+        },
+        {
+          "id": "legacy-fill-001",
+          "type": "fill",
+          "sentence": "Ce package doit être [BLANK].",
+          "parts": [
+            "Ce package doit être ",
+            "."
+          ],
+          "tokens": [
+            "rejeté",
+            "installé"
+          ],
+          "answer": [
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}
