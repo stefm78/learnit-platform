@@ -1,0 +1,386 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learnit.local/contracts/learnit-kit-v2.schema.json",
+  "title": "Learn-it clean-generation foundation kit contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "packageLineageId",
+    "packageRevisionId",
+    "packageRevisionDigest",
+    "title",
+    "versionLabel",
+    "language",
+    "courses"
+  ],
+  "properties": {
+    "contract": {
+      "const": "learnit.kit.v2"
+    },
+    "packageLineageId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "packageRevisionId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "packageRevisionDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "title": {
+      "$ref": "#/$defs/title"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "versionLabel": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "language": {
+      "type": "string",
+      "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$"
+    },
+    "courses": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/course"
+      }
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 180
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectiveId",
+        "label"
+      ],
+      "properties": {
+        "objectiveId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "label": {
+          "$ref": "#/$defs/title"
+        }
+      }
+    },
+    "course": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "courseLineageId",
+        "courseRevisionId",
+        "courseRevisionDigest",
+        "title",
+        "estimatedMinutes",
+        "objectives",
+        "activities"
+      ],
+      "properties": {
+        "courseLineageId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "courseRevisionId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "courseRevisionDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "estimatedMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 600
+        },
+        "objectives": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {
+            "$ref": "#/$defs/objective"
+          }
+        },
+        "activities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/qcm"
+              },
+              {
+                "$ref": "#/$defs/fill"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "activityCommon": {
+      "type": "object",
+      "required": [
+        "activityLineageId",
+        "activityRevisionId",
+        "activityRevisionDigest",
+        "objectiveIds",
+        "type",
+        "prompt",
+        "explanation",
+        "difficulty",
+        "learningPhase",
+        "assessmentRole"
+      ],
+      "properties": {
+        "activityLineageId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "activityRevisionId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "activityRevisionDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "objectiveIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/uuid"
+          }
+        },
+        "type": {
+          "enum": [
+            "qcm",
+            "fill"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "difficulty": {
+          "enum": [
+            "easy",
+            "medium",
+            "advanced",
+            "expert"
+          ]
+        },
+        "learningPhase": {
+          "enum": [
+            "activation",
+            "comprehension",
+            "application",
+            "transfer",
+            "consolidation",
+            "diagnostic",
+            "validation"
+          ]
+        },
+        "assessmentRole": {
+          "enum": [
+            "practice",
+            "diagnostic",
+            "validation"
+          ]
+        }
+      }
+    },
+    "qcmChoice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choiceId",
+        "label"
+      ],
+      "properties": {
+        "choiceId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "qcm": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/activityCommon"
+        },
+        {
+          "type": "object",
+          "required": [
+            "choices",
+            "correctChoiceId"
+          ],
+          "properties": {
+            "type": {
+              "const": "qcm"
+            },
+            "choices": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 12,
+              "items": {
+                "$ref": "#/$defs/qcmChoice"
+              }
+            },
+            "correctChoiceId": {
+              "$ref": "#/$defs/uuid"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fillSegment": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slotId"
+          ],
+          "properties": {
+            "slotId": {
+              "$ref": "#/$defs/uuid"
+            }
+          }
+        }
+      ]
+    },
+    "fillToken": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tokenId",
+        "label",
+        "maxUses"
+      ],
+      "properties": {
+        "tokenId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "maxUses": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        }
+      }
+    },
+    "fillAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slotId",
+        "tokenId"
+      ],
+      "properties": {
+        "slotId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "tokenId": {
+          "$ref": "#/$defs/uuid"
+        }
+      }
+    },
+    "fill": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/activityCommon"
+        },
+        {
+          "type": "object",
+          "required": [
+            "segments",
+            "tokens",
+            "answers"
+          ],
+          "properties": {
+            "type": {
+              "const": "fill"
+            },
+            "segments": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 60,
+              "items": {
+                "$ref": "#/$defs/fillSegment"
+              }
+            },
+            "tokens": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 40,
+              "items": {
+                "$ref": "#/$defs/fillToken"
+              }
+            },
+            "answers": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 30,
+              "items": {
+                "$ref": "#/$defs/fillAnswer"
+              }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}
