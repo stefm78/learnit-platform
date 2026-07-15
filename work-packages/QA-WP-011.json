@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-011",
+  "title": "Implement independent v2 fixtures and contradictory foundation tests",
+  "status": "approved",
+  "changeClass": "independent-qa-and-fixtures",
+  "riskClass": "high",
+  "purpose": "Create independent valid and adversarial v2 fixtures plus contract, storage-isolation, browser vertical-slice and build-determinism tests. The QA role specifies and attacks public behavior without modifying runtime, authoring, build, workflow or contract files.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "candidateName": "learnit-next-contradictory-qa-foundation",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "contracts/fixtures/v2-valid-minimal.json",
+      "contracts/fixtures/v2-invalid-legacy.json",
+      "contracts/fixtures/v2-invalid-digest-mismatch.json",
+      "apps/learnit-next/tests/contract_v2.py",
+      "apps/learnit-next/tests/storage_isolation.py",
+      "apps/learnit-next/tests/browser_vertical_slice.py",
+      "apps/learnit-next/tests/build_determinism.py"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/player/**",
+      "apps/learnit-next/README.md",
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/dev/**",
+      "authoring/**",
+      "contracts/learnit-kit-v2.schema.json",
+      "governance/**",
+      "work-packages/**",
+      "docs/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "QA does not modify implementation to make tests pass.",
+    "The valid fixture conforms to the frozen schema and has correct semantic references and canonical digests.",
+    "The legacy fixture uses the RC718 contract discriminator and must fail before any write.",
+    "The digest-mismatch fixture preserves a revision ID while changing immutable semantic payload.",
+    "Storage isolation covers all protected RC718 localStorage keys and learnit_durable_library_v1.",
+    "Browser tests exercise the visible UI and the bounded test API through the same runtime paths.",
+    "Build determinism compares two clean artifacts and exact source-manifest identity.",
+    "No file outside the seven exact allowed paths is created or changed."
+  ],
+  "requiredEvidence": [
+    "Contract tests cover schema shape, UUID rules, duplicate IDs, broken references, QCM choice IDs, fill slot/token/maxUses semantics and digest agreement.",
+    "Storage tests snapshot RC718 localStorage values and IndexedDB records before and after successor boot, import, session and reset.",
+    "Browser tests cover empty state, valid import, legacy rejection, QCM, reusable fill token, progress, refresh and restart.",
+    "Build test fails on nondeterministic bytes, manifest drift or tested-artifact mismatch.",
+    "All failures identify evidence separately from assumptions and implementation claims.",
+    "The result is independently reviewed before integration."
+  ],
+  "adversarialTests": [
+    "Legacy package rejection leaves library and storage unchanged.",
+    "Malformed JSON, unknown properties, duplicate identifiers and broken references fail closed.",
+    "Same revision ID with different payload or digest is rejected.",
+    "QCM correctness remains stable after choice reordering.",
+    "Fill activities reject absent slot positions, duplicate slot answers and maxUses overflow.",
+    "Storage write failure produces no partial package installation.",
+    "Successor reset leaves every protected RC718 value and database record unchanged.",
+    "A second clean build produces the same artifact SHA-256."
+  ],
+  "nonGoals": [
+    "Implementing or repairing runtime code.",
+    "Producing the two final golden kits.",
+    "Changing the schema or file plan.",
+    "Creating build, workflow, release or manifest files.",
+    "Testing RC718 feature parity.",
+    "Entering backend, account, sync, catalog, commerce, tenancy or marketplace scope."
+  ],
+  "independentReview": [
+    "Adversarial QA review confirms tests do not encode implementation shortcuts.",
+    "Storage review confirms the protected RC718 namespace list is complete for the accepted inventory.",
+    "Contract review confirms fixtures match the frozen v2 semantics.",
+    "Integrator confirms tests consume, but do not own, build and runtime outputs."
+  ],
+  "execution": {
+    "parallelGroup": "clean-generation-foundation-implementers",
+    "remoteAgentProfile": "repository",
+    "maximumChangedFiles": 7,
+    "maximumChangedLines": 3000,
+    "requiresIndependentReviewBeforeIntegration": true
+  },
+  "rollback": "Discard or revert the QA-only files. No implementation, RC718 data, contract or artifact is modified. Integration remains blocked without an accepted QA output."
+}
