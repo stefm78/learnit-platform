@@ -143,7 +143,6 @@
     },
     "activityCommon": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
         "activityLineageId",
         "activityRevisionId",
