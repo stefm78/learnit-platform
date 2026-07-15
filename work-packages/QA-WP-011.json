@@ -54,6 +54,7 @@
     "Storage tests snapshot RC718 localStorage values and IndexedDB records before and after successor boot, import, session and reset.",
     "Browser tests cover empty state, valid import, legacy rejection, QCM, reusable fill token, progress, refresh and restart.",
     "Build test fails on nondeterministic bytes, manifest drift or tested-artifact mismatch.",
+    "The role-local test commands and raw outputs are recorded and independently reproduced before integration.",
     "All failures identify evidence separately from assumptions and implementation claims.",
     "The result is independently reviewed before integration."
   ],
@@ -83,7 +84,10 @@
   ],
   "execution": {
     "parallelGroup": "clean-generation-foundation-implementers",
-    "remoteAgentProfile": "repository",
+    "executionLane": "independent-clean-worktree",
+    "remoteAgentTransportAllowed": true,
+    "remoteAgentResultSufficient": false,
+    "validationPolicy": "The existing fixed Remote Agent profiles do not execute the new successor tests. Any Remote Agent status is transport evidence only; role-local tests and raw outputs must be recorded and independently reproduced before integration.",
     "maximumChangedFiles": 7,
     "maximumChangedLines": 3000,
     "requiresIndependentReviewBeforeIntegration": true
