@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "auditId": "REPO-CLEANLINESS-2026-07-15-001",
+  "repository": "stefm78/learnit-platform",
+  "baselineCommit": "617bfaea591deb022e6019e100654fda85fe4472",
+  "decisionContext": {
+    "legacyProduct": "RC718",
+    "legacyHumanGate": "RC719-PASS_WITH_RESERVATIONS",
+    "cleanBreakWorkPackage": "ARC-WP-021",
+    "nextMandatoryGate": "ARC-WP-022"
+  },
+  "checks": {
+    "openPullRequests": {
+      "result": "pass",
+      "evidence": "GitHub open pull-request query returned no open pull requests at audit start."
+    },
+    "generatedAndCredentialFiles": {
+      "result": "pass-by-enforced-policy",
+      "evidence": "tools/validate_repository.py rejects repository ZIP, P12, PFX, PEM and KEY files; the last repository-governance gate was green before this audit."
+    },
+    "ignorePolicy": {
+      "result": "pass",
+      "evidence": ".gitignore excludes logs, temporary files, agent runtime outputs, dependency trees, coverage, dist, build, Python caches, local databases, local data, user exports, generated evidence, secrets and archive outputs."
+    },
+    "playerFileBudget": {
+      "result": "unchanged",
+      "evidence": "No Player source, test, dev, manifest, artifact or build file is in the cleanup scope. Legacy Player working-file count remains 150."
+    },
+    "remoteBranchInventory": {
+      "result": "not-asserted",
+      "evidence": "The available branch-search response did not provide a reliable complete inventory. Cleanup therefore makes no unsupported claim that every historical remote branch is absent. Short-lived branch policy remains mandatory."
+    }
+  },
+  "findings": [
+    {
+      "id": "CLEAN-001",
+      "severity": "high",
+      "path": "README.md",
+      "evidence": "The root README identifies RC715 as current, links RC715 promotion evidence and names QA-WP-010 as the immediate next step.",
+      "resolution": "Replace with RC718 frozen legacy status, clean-break trajectory, current canonical entry points and ARC-WP-022 next gate."
+    },
+    {
+      "id": "CLEAN-002",
+      "severity": "high",
+      "path": "docs/architecture/README.md",
+      "evidence": "The architecture index states that active source remains outside the repository and that ARC-WP-000 is blocked.",
+      "resolution": "Make current decisions explicit and classify reference-v1 as historical challenged target material."
+    },
+    {
+      "id": "CLEAN-003",
+      "severity": "high",
+      "path": "docs/architecture/reference-v1/00_START_HERE.md",
+      "evidence": "The reference entry point says no Player source exists and ARC-WP-000 is blocked.",
+      "resolution": "Add an explicit historical-status boundary and direct current-state readers to governor state, accepted ADRs and restart checkpoint."
+    },
+    {
+      "id": "CLEAN-004",
+      "severity": "high",
+      "path": "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "evidence": "The roadmap presents the pre-clean-break continuity sequence, including in-place canonical identity, event model and storage migration, as current future gates.",
+      "resolution": "Replace it with the clean-generation roadmap while keeping backend and platform domains held."
+    },
+    {
+      "id": "CLEAN-005",
+      "severity": "moderate",
+      "path": "GOVERNANCE.md",
+      "evidence": "The current-rule section remains conditional on ARC-WP-000 and says active standalone work occurs outside the repository.",
+      "resolution": "Replace only the current-rule section with the accepted clean-break frame and ARC-WP-022 gate."
+    },
+    {
+      "id": "CLEAN-006",
+      "severity": "moderate",
+      "path": "CONTRIBUTING.md",
+      "evidence": "The repository-phase section describes pre-baseline preparation and limits work until source import.",
+      "resolution": "Describe RC718 as frozen legacy and require all new-generation work to follow the clean-break gate."
+    },
+    {
+      "id": "CLEAN-007",
+      "severity": "moderate",
+      "path": "apps/player/README.md",
+      "evidence": "The Player README calls RC718 an automated candidate, RC715 the promoted baseline and RC719 the future human gate.",
+      "resolution": "Classify apps/player as frozen RC718 legacy source promoted through RC719, with maintenance-only boundaries."
+    }
+  ],
+  "preservedHistory": [
+    "Historical work packages remain immutable evidence.",
+    "Historical governor reviews remain available.",
+    "Architecture reference-v1 remains available as a non-canonical challenged target reference.",
+    "RC715 evidence remains historical predecessor evidence.",
+    "RC718 source, tests and promoted artifact are not modified."
+  ],
+  "conclusion": {
+    "decision": "cleanup-required-and-bounded",
+    "implementationChange": false,
+    "productChange": false,
+    "nextGate": "ARC-WP-022"
+  }
+}
