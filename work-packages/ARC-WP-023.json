@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-023",
+  "title": "Authorize exact subordinate clean-generation execution scopes",
+  "status": "accepted",
+  "changeClass": "architecture-execution-authorization",
+  "riskClass": "high",
+  "purpose": "Create and approve four subordinate work packages on the exact ARC-WP-022 merge baseline. Runtime, authoring and contradictory-QA/fixture agents may work concurrently on disjoint paths. The integrator remains sequential and may start only after all three role outputs receive independent review.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "candidateName": "clean-generation-parallel-execution-authorization",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-023.json",
+      "work-packages/DEV-WP-031.json",
+      "work-packages/KIT-WP-001.json",
+      "work-packages/QA-WP-011.json",
+      "work-packages/INT-WP-001.json",
+      "docs/governance/reviews/GOV-REVIEW-0026-ARC-WP-023-PARALLEL-AUTHORIZATION.md",
+      "governance/governor-state.json",
+      "docs/handover/STAGE_D_RESTART_CHECKPOINT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "tools/**",
+      "docs/architecture/**",
+      "docs/evidence/**",
+      "docs/product/**",
+      "docs/roadmap/**"
+    ]
+  },
+  "invariants": [
+    "All subordinate work packages use exact base commit d0186d7c0d65d44287c59534855ea90ffa3f8d06.",
+    "The learnit.kit.v2 schema and ARC-WP-022 file plan remain frozen.",
+    "DEV-WP-031, KIT-WP-001 and QA-WP-011 have mutually disjoint writable paths and may run in parallel.",
+    "INT-WP-001 owns all shared build, manifest, workflow and release surfaces and does not run in parallel with unreviewed implementer outputs.",
+    "No subordinate work package writes governance, architecture or work-package files through the Remote Agent lane.",
+    "No subordinate work package accesses or changes RC718 source, artifact or protected storage semantics.",
+    "No subordinate work package adds a file outside FILE_PLAN_V1.json.",
+    "The contract cannot change during implementation.",
+    "Backend, accounts, synchronization, catalog, commerce, tenancy and marketplace remain held."
+  ],
+  "requiredEvidence": [
+    "Each subordinate work package passes repository governance validation.",
+    "The union of subordinate allowed paths equals the 31 implementation paths remaining after the frozen schema and contains no duplicate path.",
+    "Every subordinate forbidden-path set blocks the other roles' writable surfaces.",
+    "The three parallel roles declare exact tests, evidence and rollback.",
+    "The integration role declares reviewed-output prerequisites and may not modify implementer-owned files.",
+    "Repository governance and PR scope pass on the exact authorization commit."
+  ],
+  "adversarialTests": [
+    "Fail authorization if any two subordinate allowed-path sets overlap.",
+    "Fail authorization if the union differs from FILE_PLAN_V1.json after excluding the frozen schema.",
+    "Fail authorization if any role can change the contract schema.",
+    "Fail authorization if any implementation role can change build, manifest, workflow or release files.",
+    "Fail authorization if the integrator can change runtime, authoring, fixture or test files.",
+    "Fail authorization if any work package omits the exact common base or rollback.",
+    "Fail authorization if any RC718 path, compatibility layer or held platform domain is permitted."
+  ],
+  "nonGoals": [
+    "Implementing any successor file in this authorization package.",
+    "Running or merging an agent result before its independent review.",
+    "Changing the v2 contract or 32-file budget.",
+    "Creating a release candidate or human test artifact.",
+    "Entering any RC718 migration or held platform domain."
+  ],
+  "independentReview": [
+    "Governor verifies exact set equality and disjointness against FILE_PLAN_V1.json.",
+    "Architecture reviewer confirms runtime dependency direction and contract freeze.",
+    "Learning reviewer confirms authoring scope is limited to representative foundation kits.",
+    "Contradictory QA reviewer confirms independence from runtime implementation.",
+    "Integrator reviewer confirms no shared writable file exists among parallel roles."
+  ],
+  "subordinateWorkPackages": [
+    "DEV-WP-031",
+    "KIT-WP-001",
+    "QA-WP-011",
+    "INT-WP-001"
+  ],
+  "parallelRoles": [
+    "DEV-WP-031",
+    "KIT-WP-001",
+    "QA-WP-011"
+  ],
+  "sequentialRole": "INT-WP-001",
+  "rollback": "Revert this governance-only authorization and stop or close all subordinate branches. The frozen ARC-WP-022 contract and RC718 product remain unchanged.",
+  "nextGate": {
+    "id": "INT-WP-001",
+    "purpose": "After independently reviewed outputs from DEV-WP-031, KIT-WP-001 and QA-WP-011 exist, integrate them without editing role-owned files and prove the exact clean-generation candidate."
+  }
+}
