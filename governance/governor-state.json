@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-15-023",
-  "effectiveFromCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
-  "reviewedBaselineCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
+  "stateId": "GOV-STATE-2026-07-15-024",
+  "effectiveFromCommit": "0575385c5891e56506de6aaa0244297d766ea458",
+  "reviewedBaselineCommit": "0575385c5891e56506de6aaa0244297d766ea458",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "stable-identity-design-accepted-additive-resolver-gate",
+    "id": "clean-break-generation-accepted-foundation-design-gate",
     "status": "active",
-    "description": "RC718 remains the promoted standalone product baseline after RC719 PASS_WITH_RESERVATIONS. Stage B, Stage C and the controlled Stage D pilot remain accepted. ARC-WP-020 accepts the design-only learnit-identity-v1 model, separating canonical lineage identity, local installation identity and legacy compatibility keys, with an overlay-first reversible migration strategy. No identifier implementation or learner-state migration is authorized. The next allowed architecture step is a bounded additive read-only identity resolver and shadow diagnostic."
+    "description": "RC718 remains the frozen promoted legacy standalone product after RC719 PASS_WITH_RESERVATIONS. Stage B, Stage C and the controlled Stage D pilot remain accepted. ARC-WP-020 identity taxonomy remains accepted, but ARC-WP-021 supersedes its continuity path: no RC718 compatibility resolver, identity overlay, dual-read window or learner-state migration is planned. The next generation will use a new major contract, canonical identity from creation, isolated storage and an empty active state. Implementation remains blocked until the bounded clean-generation foundation gate is accepted."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -131,8 +131,6 @@
       "browserSuites": "24/24",
       "evidenceBindings": "58/58",
       "testedArtifactSha256": "9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861",
-      "measuredRuntimeFingerprint": "a2baa53db1c4d232073b79bf4f08c7245b756182dc3a98b830187fdddee32fca",
-      "protectedNormalizedRuntimeFingerprint": "d9d078c482250ccdc63042823a7dcab9662d117135d504c686fbb9eefdec2d73",
       "review": "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md",
       "evidence": "docs/evidence/architecture/first-storage-seam/implementation-evidence.json"
     },
@@ -140,7 +138,6 @@
       "workPackage": "ARC-WP-019",
       "status": "accepted-with-conditions",
       "pilotStatus": "accepted",
-      "purpose": "deterministic role-scope ownership validation on disjoint developer, contradictory-QA, integrator and governor paths",
       "executionBaseCommit": "d65189b7ef59ccb74ba02c6c6ac96a212895a1e9",
       "triggerCommit": "c0101bde910c8f3a47ce7f981a4e939a55176589",
       "testedResultCommit": "5e379eea7ae3b495be2203355425e6549b8fcec5",
@@ -170,35 +167,45 @@
         "local-installation",
         "legacy-compatibility"
       ],
-      "implementationAllowed": false,
-      "migrationAllowed": false,
+      "identityTaxonomyRetained": true,
+      "continuityStrategyStatus": "superseded-by-ARC-WP-021",
       "decision": "docs/architecture/decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md",
       "inventory": "docs/evidence/architecture/stable-identity/current-identity-inventory.json",
       "review": "docs/governance/reviews/GOV-REVIEW-0022-ARC-WP-020-STABLE-IDENTITY-DESIGN.md"
+    },
+    "cleanBreakGenerationDecision": {
+      "workPackage": "ARC-WP-021",
+      "status": "accepted-with-conditions",
+      "trajectory": "C-clean-break",
+      "baselineCommit": "0575385c5891e56506de6aaa0244297d766ea458",
+      "legacyProduct": "RC718",
+      "legacyDataMigration": "not-planned",
+      "legacyRuntimeCompatibility": "not-planned",
+      "legacyKitCompatibility": "not-planned",
+      "newGenerationInitialState": "empty",
+      "newGenerationStorage": "isolated-namespace-required",
+      "implementationAllowed": false,
+      "decision": "docs/architecture/decisions/ADR-0002-CLEAN-BREAK-GENERATION.md",
+      "review": "docs/governance/reviews/GOV-REVIEW-0023-ARC-WP-021-CLEAN-BREAK.md"
     }
   },
   "authorizedWork": [
-    "standalone functional, UX, accessibility, persistence, performance, test, and release improvements through bounded pull requests",
+    "standalone functional, UX, accessibility, persistence, performance, test, and release improvements to frozen RC718 only through explicitly bounded maintenance decisions",
     "bounded multi-file AI implementation through the accepted Remote Agent Worktree with exact baseline, machine-checkable scope and explicit test profile",
-    "reuse of the accepted Stage D operating model for bounded work packages with explicit disjoint developer, contradictory-QA, integrator and governor scopes",
-    "permanent player CI and black-box behavioral protection",
-    "pull-request changed-file scope enforcement through canonical work packages",
-    "strict Remote Agent envelope and tested-result scope validation",
-    "structured failure evidence for failed Remote Agent runs",
+    "reuse of the accepted Stage D operating model for bounded work packages with disjoint developer, contradictory-QA, integrator and governor scopes",
+    "permanent Player CI and black-box behavioral protection",
     "repository governance hardening",
-    "architecture reference hardening",
-    "read-only source cartography",
-    "the accepted first reversible storage seam and its focused boundary contract",
-    "the accepted learnit-identity-v1 design and reversible migration strategy",
-    "a bounded authorization package for an additive read-only identity resolver and shadow diagnostic",
+    "the accepted learnit-identity-v1 taxonomy",
+    "the accepted clean-break generation direction",
+    "a design-and-authorization package for the minimum viable clean-generation foundation",
+    "regeneration or explicit offline conversion of priority kits under a future accepted new-generation contract",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "writing canonical identity overlays or migrating learner state until a separately accepted implementation and migration gate",
-    "publishing or requiring a new import contract version until a dedicated contract gate is accepted",
-    "removing or reinterpreting legacy package, course, activity, objective, asset, chapter, patch or content-version compatibility keys",
-    "player-wide architectural refactoring",
-    "localStorage to IndexedDB migration until a dedicated migration gate is accepted",
+    "new-generation Player implementation until ARC-WP-022 is accepted",
+    "RC718 compatibility resolver, identity overlay, dual read, dual write or learner-state migration",
+    "automatic import or interpretation of RC718 packages by the new generation",
+    "automatic migration of RC718 library, custom labels, sessions, progress, bilan, retention, import history, field evidence or patches",
     "backend implementation",
     "accounts and learner profiles",
     "cloud synchronization",
@@ -209,74 +216,69 @@
   ],
   "prohibitedWork": [
     "maintaining a separate canonical standalone source outside GitHub",
-    "mixing a functional correction with a transversal architecture, storage, identifier, or contract migration",
-    "microservices before a demonstrated extraction need",
-    "synchronization of opaque global snapshots as the sole merge model",
-    "canonical identifiers derived from editable titles",
-    "silently reinterpreting legacy packageId, importPackageId, localCourseId, activity id, objective text, asset id, chapter id or contentVersion values as canonical identity",
-    "inferring global identity for legacy content from titles, slugs, ordering, file names, local collision suffixes or content digests",
-    "direct UI coupling to storage or remote APIs",
+    "silently reusing RC718 storage keys or database records for new-generation semantics",
+    "adding a temporary compatibility layer without an explicit accountable-owner reversal of ARC-WP-021",
+    "canonical identifiers derived from editable titles, slugs, ordering, filenames or local collision suffixes",
+    "partially interpreting a legacy package as new-generation content",
+    "clearing or mutating RC718 localStorage or IndexedDB data from the new generation",
+    "presenting the new generation as a transparent RC718 upgrade",
+    "copying all RC718 implementation without current product justification",
     "parallel AI implementation without exact baseline and machine-checkable scopes",
     "publishing an artifact different from the artifact tested",
-    "presenting target architecture as current implementation",
-    "using the Remote Agent fast lane for workflows, governance, architecture, work packages, secrets or held platform domains",
-    "broadening work-package allowedPaths merely to silence PR scope failures",
-    "weakening, deleting or excluding source-tree, evidence-coverage or release guards to obtain a green result",
-    "changing release identity or protected normalized semantics under the accepted first seam",
-    "starting identity writes, schema migration or learner-state key migration before separate accepted gates",
-    "adding another Player file while the working-file count is at 150 without removing or consolidating an existing file or accepting a dedicated budget change",
+    "starting implementation without an accepted clean-generation foundation gate",
+    "adding another Player file while the working-file count is at 150 without an explicit file-budget decision",
     "inventing missing RC719 reservation details"
   ],
   "activeRisks": [
     {
       "id": "RISK-GOV-002",
       "severity": "high",
-      "statement": "The main-protection ruleset is correctly configured but GitHub explicitly reports that it is not enforced on this private personal-account repository. Repository checks remain operational and auditable, but direct administrative bypass is not technically blocked by plan-level policy enforcement.",
-      "closureGate": "move the repository to an eligible GitHub Team organization account or adopt another GitHub plan/topology that enforces private-repository rulesets"
+      "statement": "The main-protection ruleset is configured but not enforced on this private personal-account repository.",
+      "closureGate": "move the repository to an eligible GitHub Team organization account or another topology that enforces private-repository rulesets"
     },
     {
       "id": "RISK-ARCH-003",
       "severity": "moderate",
-      "statement": "The Player working-file count is exactly 150, equal to the enforced budget. Further file growth would fail the source-tree contract and increase ownership fragmentation.",
-      "closureGate": "remove or consolidate an existing Player file before adding another, or accept a dedicated source-budget change supported by architecture evidence"
+      "statement": "The legacy Player working-file count is exactly 150. The clean-generation foundation must explicitly retain, reduce or replace this budget rather than growing around it.",
+      "closureGate": "accept an exact new-generation file plan and source-budget decision"
     },
     {
-      "id": "RISK-IDENTITY-004",
+      "id": "RISK-BREAK-005",
       "severity": "moderate",
-      "statement": "Current RC718 identifiers are proven for local standalone compatibility and rename-safe progress, but global package, course, objective and activity lineage is not proven. Legacy-only content therefore cannot be safely deduplicated or merged across installations, devices or publishers by title, slug, position or digest inference.",
-      "closureGate": "accept and validate complete canonical identity envelopes, an additive resolver, mixed-version compatibility evidence and a separate transactional migration before any global lineage or state-key cutover claim"
+      "statement": "The clean-break decision intentionally does not migrate RC718 library or learner data. User confusion or perceived data loss is possible if the new generation is distributed without explicit communication and preserved RC718 access.",
+      "closureGate": "preserve retrievable RC718 access, publish an explicit rupture notice and pass a human release gate"
     },
     {
       "id": "RISK-EVIDENCE-002",
       "severity": "low",
       "statement": "The RC719 promotion is recorded as accountable-owner PASS_WITH_RESERVATIONS without raw device recordings or per-case test logs.",
-      "closureGate": "optional attachment of detailed human evidence or continued acceptance of owner attestation as the durable record"
+      "closureGate": "optional attachment of detailed human evidence or continued acceptance of owner attestation"
     },
     {
       "id": "RISK-UX-021",
       "severity": "low",
-      "statement": "RC719 reservations are declared non-blocking but have not yet been itemized. Their scope and eventual corrective cost are therefore unknown.",
-      "closureGate": "record each reservation in docs/product/RC719_RESERVATIONS.md before opening a corrective work package"
+      "statement": "RC719 reservations remain unitemized, but they do not block a distinct clean generation and must not be silently copied into its scope.",
+      "closureGate": "itemize only if RC718 maintenance or direct capability carry-forward is proposed"
     }
   ],
   "activeExceptions": [
     {
       "id": "EXC-GOV-001",
       "rule": "main branch protection must technically require pull requests and mandatory checks",
-      "reason": "The repository remains on the current private personal-account setup, where GitHub reports the configured ruleset as not enforced. Documented pull-request, CI, scope and governor procedures remain mandatory operational controls but can be administratively bypassed.",
+      "reason": "The repository remains on the current private personal-account setup, where GitHub reports the configured ruleset as not enforced.",
       "owner": "stefm78",
       "expiryOrRemovalGate": "repository plan or ownership topology change, serious governance bypass, or first external collaborator",
-      "rollback": "Remove this exception only after the repository reports the main-protection ruleset as enforced and an independent negative bypass test confirms the control."
+      "rollback": "Remove this exception only after the repository reports the main-protection ruleset as enforced and a negative bypass test confirms the control."
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-021",
-    "condition": "Authorize one additive read-only identity resolver and shadow diagnostic from exact current main. It must classify complete canonical, legacy-only and invalid-partial identity without writing overlays, rewriting learner state, changing import decisions, UI, behavior, product identity or the accepted storage seam. It must modify only exact existing Player files so the working-file count remains 150, use disjoint developer, contradictory-QA, integrator and governor scopes, pass permanent Player CI and receive separate governor acceptance. Contract publication, identity writes and migration remain blocked."
+    "id": "ARC-WP-022",
+    "condition": "Design and authorize the minimum viable clean-generation foundation from exact current main. Define the new major content contract, isolated localStorage and IndexedDB namespace, canonical identity rules, empty initial state, regenerated Nombres complexes and Signaux électriques golden kits, exact Player file plan and source-budget decision, disjoint Stage D role scopes, negative proof that RC718 storage is untouched, deterministic build and release identity. No RC718 compatibility or migration layer and no held platform domain may be introduced."
   },
   "review": {
     "lastReviewedAt": "2026-07-15",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0022 ARC-WP-020 stable identity design",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0023 ARC-WP-021 clean-break decision",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "ARC-WP-021 resolver authorization, any identity write or migration request, contract version proposal, legacy-key reinterpretation, role-scope overlap, Player working-file growth, failed or missing CI, first-seam drift, product or artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
+    "nextReviewTrigger": "ARC-WP-022 foundation proposal, any compatibility or migration request, any RC718 storage access from new-generation code, contract proposal, file-budget change, failed or missing CI, product or artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
   }
 }
