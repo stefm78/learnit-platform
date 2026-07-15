@@ -34,9 +34,11 @@ Reset deletes only this database and localStorage keys owned by the prefix above
 
 ## Contract behavior
 
-The runtime validates the complete bounded schema shape without external dependencies, then applies semantic checks and inside-out canonical SHA-256 verification. Import is fail-closed: parsing, contract discrimination, structural validation, semantic validation and digest verification complete before an installation plan is committed in one IndexedDB transaction.
+The runtime validates the complete bounded schema shape without external dependencies, then applies semantic checks and inside-out canonical SHA-256 verification. Import is fail-closed: parsing, exact contract discrimination, structural validation, semantic validation and digest verification complete before an installation plan is committed in one IndexedDB transaction. Legacy or unknown formats receive one explicit `unsupported_contract` diagnostic before schema validation or storage access.
 
 QCM correctness compares `choiceId`. Fill correctness compares explicit `slotId` to `tokenId` assignments and rejects usage beyond each token's `maxUses`.
+
+Course display labels are local metadata. They can be edited in the library or through the diagnostic surface without changing canonical titles, lineage IDs, revision IDs or digests.
 
 ## Running the unbuilt template
 
@@ -50,13 +52,14 @@ Opening the template directly from `file://` is not supported because browser mo
 
 ## Diagnostic surface
 
-The visible interface and `window.__LEARNIT_NEXT_TEST__` call the same runtime services. The frozen diagnostic methods are:
+The visible interface and `window.__LEARNIT_NEXT_TEST__` call the same runtime services. The bounded diagnostic methods are:
 
 - `contractVersion`
 - `validatePackage(payload)`
 - `previewImport(payload)`
 - `importPackage(payload)`
 - `listCourses()`
+- `setCourseDisplayLabel(courseInstallId, label)`
 - `startCourse(courseInstallId)`
 - `answer(activityRevisionId, answer)`
 - `getProgress(courseInstallId)`
