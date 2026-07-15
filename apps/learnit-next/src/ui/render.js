@@ -30,6 +30,7 @@ function renderNotice(messages, type = 'error') {
     className: `notice notice-${type}`,
     role: type === 'error' ? 'alert' : 'status',
     'aria-live': 'polite',
+    'aria-atomic': 'true',
   }, [node('ul', {}, items)]);
 }
 
@@ -127,20 +128,52 @@ export function renderApp(root, runtime) {
   let notice = null;
   let busy = false;
 
+  const header = node('header', { className: 'app-header' }, [
+    node('div', {}, [
+      node('p', { className: 'eyebrow', text: 'Nouvelle génération isolée' }),
+      node('h1', { text: 'Learn-it Next' }),
+    ]),
+    node('p', { className: 'contract-badge', text: runtime.contractVersion }),
+  ]);
+  const main = node('main', { className: 'app-main' });
+  const liveRegion = node('div', {
+    className: 'sr-only',
+    role: 'status',
+    'aria-live': 'polite',
+    'aria-atomic': 'true',
+  });
+  root.replaceChildren(header, main, liveRegion);
+
   function setBusy(value) {
     busy = value;
     root.setAttribute('aria-busy', String(value));
   }
 
-  function shell(content) {
-    const header = node('header', { className: 'app-header' }, [
-      node('div', {}, [
-        node('p', { className: 'eyebrow', text: 'Nouvelle génération isolée' }),
-        node('h1', { text: 'Learn-it Next' }),
-      ]),
-      node('p', { className: 'contract-badge', text: runtime.contractVersion }),
-    ]);
-    root.replaceChildren(header, node('main', { className: 'app-main' }, [notice, content].filter(Boolean)));
+  function announce(message) {
+    if (!message) return;
+    liveRegion.textContent = '';
+    queueMicrotask(() => {
+      if (liveRegion.isConnected) liveRegion.textContent = message;
+    });
+  }
+
+  function focusAfterRender(element) {
+    if (!element) return;
+    if (!element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
+    queueMicrotask(() => {
+      if (!element.isConnected) return;
+      try {
+        element.focus({ preventScroll: false });
+      } catch {
+        element.focus();
+      }
+    });
+  }
+
+  function shell(content, { focusTarget = null, announcement = null } = {}) {
+    main.replaceChildren(...[notice, content].filter(Boolean));
+    announce(announcement);
+    focusAfterRender(focusTarget);
   }
 
   async function run(action, onSuccess) {
@@ -151,18 +184,20 @@ export function renderApp(root, runtime) {
       const result = await action();
       if (onSuccess) await onSuccess(result);
     } catch (error) {
-      notice = renderNotice(errorMessages(error));
-      await renderLibrary();
+      const messages = errorMessages(error);
+      notice = renderNotice(messages);
+      await renderLibrary({ announcement: messages.join(' ') });
     } finally {
       setBusy(false);
     }
   }
 
-  async function renderLibrary() {
+  async function renderLibrary({ focus = true, announcement = null } = {}) {
     const courses = await runtime.listCourses();
+    const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
     section.append(node('div', { className: 'section-heading' }, [
-      node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque locale' }), node('h2', { id: 'library-title', text: 'Vos cours' })]),
+      node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque locale' }), libraryTitle]),
       node('button', {
         type: 'button',
         className: 'danger-quiet',
@@ -170,8 +205,9 @@ export function renderApp(root, runtime) {
         onclick: () => {
           if (globalThis.confirm('Supprimer uniquement les données de Learn-it Next ?')) {
             run(() => runtime.resetNextData(), () => {
-              notice = renderNotice(['Les données de Learn-it Next ont été supprimées.'], 'success');
-              return renderLibrary();
+              const message = 'Les données de Learn-it Next ont été supprimées.';
+              notice = renderNotice([message], 'success');
+              return renderLibrary({ announcement: message });
             });
           }
         },
@@ -193,8 +229,9 @@ export function renderApp(root, runtime) {
       const file = fileInput.files?.[0];
       if (!file) return;
       run(async () => runtime.importPackage(await file.text()), async (result) => {
-        notice = renderNotice([`${result.courseCount} cours importé(s) depuis « ${result.title} ».`], 'success');
-        await renderLibrary();
+        const message = `${result.courseCount} cours importé(s) depuis « ${result.title} ».`;
+        notice = renderNotice([message], 'success');
+        await renderLibrary({ announcement: message });
       });
     });
     section.append(importForm);
@@ -225,35 +262,46 @@ export function renderApp(root, runtime) {
       }
       section.append(list);
     }
-    shell(section);
+    shell(section, { focusTarget: focus ? libraryTitle : null, announcement });
   }
 
   async function submitAnswer(activityRevisionId, answer) {
     await run(() => runtime.answer(activityRevisionId, answer), renderFeedback);
   }
 
-  function renderSessionSnapshot(session) {
+  function renderSessionSnapshot(session, { focus = true } = {}) {
     if (!session || !session.currentActivity) {
-      notice = renderNotice(['Cours terminé. La progression a été enregistrée.'], 'success');
-      return renderLibrary();
+      const message = 'Cours terminé. La progression a été enregistrée.';
+      notice = renderNotice([message], 'success');
+      return renderLibrary({ announcement: message });
     }
     const activity = session.currentActivity;
+    const activityTitle = node('h2', { id: 'activity-title', tabindex: '-1', text: activity.prompt });
     const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel' }, [
-      node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: renderLibrary }),
+      node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: () => renderLibrary() }),
       node('p', { className: 'eyebrow', text: session.title }),
-      node('h2', { id: 'activity-title', text: activity.prompt }),
+      activityTitle,
       renderProgress(session.progress),
       activity.type === 'qcm'
         ? renderQcmForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
         : renderFillForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer)),
     ]);
-    shell(section);
+    shell(section, { focusTarget: focus ? activityTitle : null });
   }
 
   function renderFeedback(result) {
     const complete = result.progress.isComplete;
+    const outcomeText = result.correct ? 'Réponse correcte' : 'Pas tout à fait';
+    const outcome = node('p', {
+      className: result.correct ? 'feedback-correct' : 'feedback-incorrect',
+      role: 'status',
+      'aria-live': 'polite',
+      'aria-atomic': 'true',
+      tabindex: '-1',
+      text: outcomeText,
+    });
     const section = node('section', { 'aria-labelledby': 'feedback-title', className: 'feedback-panel' }, [
-      node('p', { className: result.correct ? 'feedback-correct' : 'feedback-incorrect', text: result.correct ? 'Réponse correcte' : 'Pas tout à fait' }),
+      outcome,
       node('h2', { id: 'feedback-title', text: 'Explication' }),
       node('p', { text: result.explanation }),
       renderProgress(result.progress),
@@ -261,21 +309,22 @@ export function renderApp(root, runtime) {
         type: 'button',
         className: 'primary',
         text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
-        onclick: complete ? renderLibrary : () => run(() => runtime.getSession(), renderSessionSnapshot),
+        onclick: complete ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
       }),
     ]);
-    shell(section);
+    shell(section, { focusTarget: outcome, announcement: outcomeText });
   }
 
   async function initialize() {
     setBusy(true);
     try {
       const resumed = await runtime.resumeActiveCourse();
-      if (resumed?.currentActivity) renderSessionSnapshot(resumed);
-      else await renderLibrary();
+      if (resumed?.currentActivity) renderSessionSnapshot(resumed, { focus: false });
+      else await renderLibrary({ focus: false });
     } catch (error) {
-      notice = renderNotice(errorMessages(error));
-      await renderLibrary();
+      const messages = errorMessages(error);
+      notice = renderNotice(messages);
+      await renderLibrary({ focus: false, announcement: messages.join(' ') });
     } finally {
       setBusy(false);
     }
