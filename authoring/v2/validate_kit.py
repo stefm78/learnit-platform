@@ -165,10 +165,8 @@ def semantic_checks(document: dict[str, Any], report: Report, foundation: bool) 
             define(defs, activity.get("activityLineageId"), ap + ".activityLineageId", report.errors)
             define(defs, activity.get("activityRevisionId"), ap + ".activityRevisionId", report.errors)
             phase, role = activity.get("learningPhase"), activity.get("assessmentRole")
-            if isinstance(phase, str):
-                phases.append(phase)
-            if isinstance(role, str):
-                roles.append(role)
+            if isinstance(phase, str): phases.append(phase)
+            if isinstance(role, str): roles.append(role)
             if (phase == "validation") != (role == "validation"):
                 report.errors.append(f"{ap}: validation learningPhase and assessmentRole must match")
             explanation = activity.get("explanation")
@@ -179,8 +177,7 @@ def semantic_checks(document: dict[str, Any], report: Report, foundation: bool) 
             if isinstance(refs, list):
                 for ri, oid in enumerate(refs):
                     report.objective_refs += 1
-                    if isinstance(oid, str):
-                        uses[oid] += 1
+                    if isinstance(oid, str): uses[oid] += 1
                     if oid not in objective_ids:
                         report.errors.append(f"{ap}.objectiveIds[{ri}]: missing objective reference {oid!r}")
 
@@ -194,8 +191,7 @@ def semantic_checks(document: dict[str, Any], report: Report, foundation: bool) 
                     loc = f"{ap}.choices[{xi}].choiceId"
                     define(defs, cid, loc, report.errors)
                     if isinstance(cid, str):
-                        if cid in choice_ids:
-                            report.errors.append(f"{loc}: duplicate choiceId")
+                        if cid in choice_ids: report.errors.append(f"{loc}: duplicate choiceId")
                         choice_ids.add(cid)
                 correct = activity.get("correctChoiceId")
                 if correct not in choice_ids:
@@ -210,13 +206,10 @@ def semantic_checks(document: dict[str, Any], report: Report, foundation: bool) 
                     if is_slot:
                         sid = segment.get("slotId")
                         define(defs, sid, f"{ap}.segments[{si}].slotId", report.errors)
-                        if isinstance(sid, str):
-                            slots.append(sid)
-                        if previous_slot:
-                            report.warnings.append(f"{ap}: adjacent fill slots may be ambiguous")
+                        if isinstance(sid, str): slots.append(sid)
+                        if previous_slot: report.warnings.append(f"{ap}: adjacent fill slots may be ambiguous")
                     previous_slot = is_slot
-                if len(slots) != len(set(slots)):
-                    report.errors.append(f"{ap}: duplicate slotId in segments")
+                if len(slots) != len(set(slots)): report.errors.append(f"{ap}: duplicate slotId in segments")
 
                 token_ids: set[str] = set()
                 maxima: dict[str, int] = {}
@@ -227,11 +220,9 @@ def semantic_checks(document: dict[str, Any], report: Report, foundation: bool) 
                     loc = f"{ap}.tokens[{ti}].tokenId"
                     define(defs, tid, loc, report.errors)
                     if isinstance(tid, str):
-                        if tid in token_ids:
-                            report.errors.append(f"{loc}: duplicate tokenId")
+                        if tid in token_ids: report.errors.append(f"{loc}: duplicate tokenId")
                         token_ids.add(tid)
-                        if isinstance(token.get("maxUses"), int):
-                            maxima[tid] = token["maxUses"]
+                        if isinstance(token.get("maxUses"), int): maxima[tid] = token["maxUses"]
 
                 answered: set[str] = set()
                 token_uses: Counter[str] = Counter()
@@ -240,37 +231,26 @@ def semantic_checks(document: dict[str, Any], report: Report, foundation: bool) 
                         continue
                     sid, tid = answer.get("slotId"), answer.get("tokenId")
                     loc = f"{ap}.answers[{ni}]"
-                    if sid not in slots:
-                        report.errors.append(f"{loc}.slotId: {sid!r} does not reference a declared slot")
-                    if sid in answered:
-                        report.errors.append(f"{loc}.slotId: duplicate answer for slot {sid!r}")
-                    if isinstance(sid, str):
-                        answered.add(sid)
-                    if tid not in token_ids:
-                        report.errors.append(f"{loc}.tokenId: {tid!r} does not reference a declared token")
-                    if isinstance(tid, str):
-                        token_uses[tid] += 1
+                    if sid not in slots: report.errors.append(f"{loc}.slotId: {sid!r} does not reference a declared slot")
+                    if sid in answered: report.errors.append(f"{loc}.slotId: duplicate answer for slot {sid!r}")
+                    if isinstance(sid, str): answered.add(sid)
+                    if tid not in token_ids: report.errors.append(f"{loc}.tokenId: {tid!r} does not reference a declared token")
+                    if isinstance(tid, str): token_uses[tid] += 1
                 missing = set(slots) - answered
-                if missing:
-                    report.errors.append(f"{ap}: slots without answers: {', '.join(sorted(missing))}")
+                if missing: report.errors.append(f"{ap}: slots without answers: {', '.join(sorted(missing))}")
                 for tid, count in token_uses.items():
                     if tid in maxima and count > maxima[tid]:
                         report.errors.append(f"{ap}: token {tid} used {count} times, exceeding maxUses={maxima[tid]}")
 
         for oid in objective_ids:
-            if uses[oid] == 0:
-                report.errors.append(f"{cp}: objective {oid} is not referenced")
+            if uses[oid] == 0: report.errors.append(f"{cp}: objective {oid} is not referenced")
         if foundation:
             qcms = sum(isinstance(a, dict) and a.get("type") == "qcm" for a in activities)
             fills = sum(isinstance(a, dict) and a.get("type") == "fill" for a in activities)
-            if len(objectives) < 2:
-                report.errors.append(f"{cp}: foundation profile requires 2 objectives")
-            if len(activities) < 6:
-                report.errors.append(f"{cp}: foundation profile requires 6 activities")
-            if qcms < 3:
-                report.errors.append(f"{cp}: foundation profile requires 3 QCM")
-            if fills < 2:
-                report.errors.append(f"{cp}: foundation profile requires 2 fill")
+            if len(objectives) < 2: report.errors.append(f"{cp}: foundation profile requires 2 objectives")
+            if len(activities) < 6: report.errors.append(f"{cp}: foundation profile requires 6 activities")
+            if qcms < 3: report.errors.append(f"{cp}: foundation profile requires 3 QCM")
+            if fills < 2: report.errors.append(f"{cp}: foundation profile requires 2 fill")
             if not any(p in {"application", "transfer"} for p in phases):
                 report.errors.append(f"{cp}: foundation profile requires application or transfer")
             if "validation" not in phases or "validation" not in roles:
@@ -280,43 +260,23 @@ def semantic_checks(document: dict[str, Any], report: Report, foundation: bool) 
 
 def add_digest_records(document: dict[str, Any], report: Report) -> None:
     for ci, course in enumerate(document.get("courses", [])):
-        if not isinstance(course, dict):
-            continue
+        if not isinstance(course, dict): continue
         for ai, activity in enumerate(course.get("activities", [])):
-            if not isinstance(activity, dict):
-                continue
+            if not isinstance(activity, dict): continue
             path = f"$.courses[{ci}].activities[{ai}]"
             calculated, text = digest(activity, "activityRevisionDigest")
             declared = activity.get("activityRevisionDigest")
-            report.revisions.append({
-                "level": "activity", "path": path,
-                "revisionId": activity.get("activityRevisionId"),
-                "declared": declared, "calculated": calculated,
-                "bytes": len(text.encode()), "canonical": text,
-            })
-            if declared != calculated:
-                report.errors.append(f"{path}.activityRevisionDigest: declared {declared!r}, calculated {calculated}")
+            report.revisions.append({"level":"activity","path":path,"revisionId":activity.get("activityRevisionId"),"declared":declared,"calculated":calculated,"bytes":len(text.encode()),"canonical":text})
+            if declared != calculated: report.errors.append(f"{path}.activityRevisionDigest: declared {declared!r}, calculated {calculated}")
         path = f"$.courses[{ci}]"
         calculated, text = digest(course, "courseRevisionDigest")
         declared = course.get("courseRevisionDigest")
-        report.revisions.append({
-            "level": "course", "path": path,
-            "revisionId": course.get("courseRevisionId"),
-            "declared": declared, "calculated": calculated,
-            "bytes": len(text.encode()), "canonical": text,
-        })
-        if declared != calculated:
-            report.errors.append(f"{path}.courseRevisionDigest: declared {declared!r}, calculated {calculated}")
+        report.revisions.append({"level":"course","path":path,"revisionId":course.get("courseRevisionId"),"declared":declared,"calculated":calculated,"bytes":len(text.encode()),"canonical":text})
+        if declared != calculated: report.errors.append(f"{path}.courseRevisionDigest: declared {declared!r}, calculated {calculated}")
     calculated, text = digest(document, "packageRevisionDigest")
     declared = document.get("packageRevisionDigest")
-    report.revisions.append({
-        "level": "package", "path": "$",
-        "revisionId": document.get("packageRevisionId"),
-        "declared": declared, "calculated": calculated,
-        "bytes": len(text.encode()), "canonical": text,
-    })
-    if declared != calculated:
-        report.errors.append(f"$.packageRevisionDigest: declared {declared!r}, calculated {calculated}")
+    report.revisions.append({"level":"package","path":"$","revisionId":document.get("packageRevisionId"),"declared":declared,"calculated":calculated,"bytes":len(text.encode()),"canonical":text})
+    if declared != calculated: report.errors.append(f"$.packageRevisionDigest: declared {declared!r}, calculated {calculated}")
 
 
 def validate(path: Path, document: dict[str, Any], schema: dict[str, Any], foundation: bool) -> Report:
@@ -330,29 +290,21 @@ def validate(path: Path, document: dict[str, Any], schema: dict[str, Any], found
 def fill_new_digests(document: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     for ci, course in enumerate(document.get("courses", [])):
-        if not isinstance(course, dict):
-            continue
+        if not isinstance(course, dict): continue
         for ai, activity in enumerate(course.get("activities", [])):
-            if not isinstance(activity, dict):
-                continue
+            if not isinstance(activity, dict): continue
             calculated, _ = digest(activity, "activityRevisionDigest")
             current = activity.get("activityRevisionDigest")
-            if current in (None, "", ZERO_DIGEST):
-                activity["activityRevisionDigest"] = calculated
-            elif current != calculated:
-                errors.append(f"$.courses[{ci}].activities[{ai}]: non-zero digest mismatch; allocate a new activityRevisionId and reset its digest")
+            if current in (None, "", ZERO_DIGEST): activity["activityRevisionDigest"] = calculated
+            elif current != calculated: errors.append(f"$.courses[{ci}].activities[{ai}]: non-zero digest mismatch; allocate a new activityRevisionId and reset its digest")
         calculated, _ = digest(course, "courseRevisionDigest")
         current = course.get("courseRevisionDigest")
-        if current in (None, "", ZERO_DIGEST):
-            course["courseRevisionDigest"] = calculated
-        elif current != calculated:
-            errors.append(f"$.courses[{ci}]: non-zero digest mismatch; allocate a new courseRevisionId and reset its digest")
+        if current in (None, "", ZERO_DIGEST): course["courseRevisionDigest"] = calculated
+        elif current != calculated: errors.append(f"$.courses[{ci}]: non-zero digest mismatch; allocate a new courseRevisionId and reset its digest")
     calculated, _ = digest(document, "packageRevisionDigest")
     current = document.get("packageRevisionDigest")
-    if current in (None, "", ZERO_DIGEST):
-        document["packageRevisionDigest"] = calculated
-    elif current != calculated:
-        errors.append("$: non-zero digest mismatch; allocate a new packageRevisionId and reset its digest")
+    if current in (None, "", ZERO_DIGEST): document["packageRevisionDigest"] = calculated
+    elif current != calculated: errors.append("$: non-zero digest mismatch; allocate a new packageRevisionId and reset its digest")
     return errors
 
 
@@ -362,8 +314,7 @@ def cross_file_errors(reports: list[Report]) -> list[str]:
     for report in reports:
         for record in report.revisions:
             rid = record.get("revisionId")
-            if not isinstance(rid, str):
-                continue
+            if not isinstance(rid, str): continue
             signature = (record["calculated"], str(record["declared"]), record["canonical"])
             location = f"{report.path}:{record['path']}"
             if rid in seen and seen[rid][:3] != signature:
@@ -376,17 +327,10 @@ def cross_file_errors(reports: list[Report]) -> list[str]:
 def render_human(reports: list[Report], cross: list[str], show: bool) -> str:
     lines: list[str] = []
     for report in reports:
-        lines += [
-            f"FILE {report.path}",
-            f"  status: {'PASS' if report.ok else 'FAIL'}",
-            f"  semantic IDs defined: {report.ids}",
-            f"  objective references checked: {report.objective_refs}",
-            f"  activities: qcm={report.qcm}, fill={report.fill}",
-        ]
+        lines += [f"FILE {report.path}", f"  status: {'PASS' if report.ok else 'FAIL'}", f"  semantic IDs defined: {report.ids}", f"  objective references checked: {report.objective_refs}", f"  activities: qcm={report.qcm}, fill={report.fill}"]
         for record in report.revisions:
             lines.append(f"  {record['level']} {record['path']} revision={record['revisionId']} bytes={record['bytes']} digest={record['calculated']}")
-            if show:
-                lines.append(f"    canonical={record['canonical']}")
+            if show: lines.append(f"    canonical={record['canonical']}")
         lines += [f"  WARNING: {warning}" for warning in report.warnings]
         lines += [f"  ERROR: {error}" for error in report.errors]
     lines += [f"CROSS-FILE ERROR: {error}" for error in cross]
@@ -399,21 +343,11 @@ def render_json(reports: list[Report], cross: list[str], show: bool) -> str:
     for report in reports:
         revisions = []
         for record in report.revisions:
-            item = {k: v for k, v in record.items() if k != "canonical"}
-            if show:
-                item["canonicalJson"] = record["canonical"]
+            item = {k:v for k,v in record.items() if k != "canonical"}
+            if show: item["canonicalJson"] = record["canonical"]
             revisions.append(item)
-        files.append({
-            "path": str(report.path), "ok": report.ok,
-            "errors": report.errors, "warnings": report.warnings,
-            "idsDefined": report.ids, "objectiveReferences": report.objective_refs,
-            "activities": {"qcm": report.qcm, "fill": report.fill},
-            "revisions": revisions,
-        })
-    return json.dumps({
-        "ok": all(r.ok for r in reports) and not cross,
-        "crossFileErrors": cross, "files": files,
-    }, ensure_ascii=False, indent=2)
+        files.append({"path":str(report.path),"ok":report.ok,"errors":report.errors,"warnings":report.warnings,"idsDefined":report.ids,"objectiveReferences":report.objective_refs,"activities":{"qcm":report.qcm,"fill":report.fill},"revisions":revisions})
+    return json.dumps({"ok":all(r.ok for r in reports) and not cross,"crossFileErrors":cross,"files":files}, ensure_ascii=False, indent=2)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -423,7 +357,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--foundation-profile", action="store_true")
     p.add_argument("--write-digests", action="store_true", help="fill only missing/all-zero digests; refuse non-zero mismatches")
     p.add_argument("--show-canonical", action="store_true")
-    p.add_argument("--format", choices=("human", "json"), default="human")
+    p.add_argument("--format", choices=("human","json"), default="human")
     return p
 
 
@@ -431,14 +365,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
         schema = load(args.schema)
-        if not isinstance(schema, dict):
-            raise ToolError("schema root must be an object")
+        if not isinstance(schema, dict): raise ToolError("schema root must be an object")
         documents: list[tuple[Path, dict[str, Any]]] = []
         write_errors: list[str] = []
         for path in args.kits:
             document = load(path)
-            if not isinstance(document, dict):
-                raise ToolError(f"{path}: kit root must be an object")
+            if not isinstance(document, dict): raise ToolError(f"{path}: kit root must be an object")
             if args.write_digests:
                 document = copy.deepcopy(document)
                 write_errors += [f"{path}: {error}" for error in fill_new_digests(document)]
