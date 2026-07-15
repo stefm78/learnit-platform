@@ -1,112 +1,206 @@
-# Standalone-to-platform roadmap
+# Learn-it clean-generation roadmap
 
 ## Governing rule
 
-Do not transform the active player while the standalone product is still being stabilized. Prepare the future platform around it, then migrate through small seams after a promoted standalone baseline exists.
+RC718 remains the frozen legacy standalone product. The successor is a distinct generation, not an in-place migration.
 
-## Track A — standalone stabilization
+The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
-Allowed before the platform baseline:
+## Completed foundation
 
-- functional and UX corrections;
-- accessibility;
-- scroll, navigation, drag-and-drop, and responsive behavior;
-- local persistence and import/export robustness;
-- kit compatibility;
-- performance;
-- regression tests;
-- reproducible release and provenance.
+### L0 — frozen legacy product
 
-Held until baseline promotion:
+- RC718 source and promoted artifact are identified exactly.
+- RC719 is `PASS_WITH_RESERVATIONS`.
+- Permanent Player CI, repository governance and PR-scope controls exist.
+- The first reversible storage seam and controlled Stage D operating model are accepted.
 
-- backend;
-- accounts and profiles;
-- cloud synchronization;
-- commerce and marketplace;
-- global identifier rewrite;
-- transversal storage migration;
-- large-scale player reorganization.
+### D0 — strategic direction
 
-## Track B — platform readiness
+- `learnit-identity-v1` taxonomy is accepted.
+- `ARC-WP-021` selected trajectory C.
+- RC718 compatibility resolver, overlay, dual-read and learner-state migration are cancelled.
 
-Safe parallel work before baseline promotion:
+## Current gate
 
-- repository governance and CI;
-- exact architecture claims and open decisions;
-- read-only code cartography when source is available;
-- black-box behavioral tests;
-- migration scenarios;
-- canonical work-package format;
-- release and evidence controls.
+### C1 — clean-generation foundation design (`ARC-WP-022`)
 
-## Gates
+Freeze before implementation:
 
-### R0 — repository foundation
+- new major kit contract;
+- canonical package, course, objective, activity, revision and asset identity rules;
+- canonical digest and collision rules;
+- isolated localStorage and IndexedDB namespaces;
+- empty initial-state and legacy-package rejection behavior;
+- minimum vertical product slice;
+- exact file tree, ownership and source budget;
+- golden-kit regeneration plan;
+- tests, release provenance and human gate;
+- disjoint multi-AI scopes and integration order.
 
-- private repository initialized;
-- pull-request contract present;
-- governance validator executable;
-- architecture reference clearly marked as target, not current implementation;
-- canonical `ARC-WP-000` present.
+Exit gate: the foundation can be implemented without two agents editing the same file or inventing missing contract semantics.
 
-### R1 — standalone candidate selected
+## First implementation cycle
 
-- human promotion gate passed;
-- candidate source identified exactly;
-- source and artifact hashes captured;
-- known-issues register frozen.
+After C1 is accepted, four AI streams may run in parallel from the same exact baseline.
 
-### R2 — forensic baseline imported
+### C2A — contract and fixtures
 
-- source imported without refactor;
-- clean checkout rebuild succeeds;
-- rebuilt artifact is compared with the promoted candidate;
-- automated and human evidence is attached;
-- source-to-build-to-test-to-package provenance is demonstrated.
+Owner scope:
 
-### R3 — black-box protection
+- successor JSON Schema and canonicalization rules;
+- valid and invalid fixtures;
+- deterministic contract validator;
+- contract documentation.
 
-- representative kits and user journeys are captured as regression fixtures;
-- persistence, import/export, recovery, and activity behavior are reproducible;
-- performance baselines exist on target devices.
+No Player runtime or authoring implementation.
 
-### R4 — first architectural seam
+### C2B — storage-isolation test harness
 
-Encapsulate one legacy storage boundary behind a narrow interface without changing storage technology, data shape, UI, or behavior.
+Owner scope:
 
-### R5 — controlled AI parallelism pilot
+- negative fixtures preloading RC718 storage;
+- tests proving successor boot, use and reset do not mutate RC718 bytes;
+- successor namespace contract tests.
 
-Run one implementation agent, one independent adversarial QA agent, and one integrator on disjoint scopes. No broad multi-feature parallel development yet.
+No product storage implementation and no contract edits.
 
-### R6 — canonical identities and local event model
+### C2C — authoring and golden-kit preparation
 
-Introduce stable content and learner identifiers, immutable learning events, derived projections, and explicit migration rules.
+Owner scope:
 
-### R7 — IndexedDB and local outbox
+- authoring profile for the frozen successor contract;
+- Nombres complexes golden kit;
+- Signaux électriques golden kit;
+- pedagogical and media validation reports.
 
-Migrate behind existing interfaces with crash recovery, rollback, and data-equivalence proof.
+No Player runtime edits and no contract changes after freeze.
 
-### R8 — synchronization simulator
+### C2D — minimal successor shell
 
-Prove idempotence, deduplication, reordering, clock skew, partitions, and deterministic convergence with two simulated devices.
+Owner scope:
 
-### R9 — modular backend alpha
+- isolated successor application shell;
+- strict contract-version rejection path;
+- no RC718 runtime import;
+- no learning-session implementation beyond the accepted shell boundary.
 
-Add identity, profiles, progress synchronization, and a free catalog in one modular monolith with tenant-isolation tests and operational evidence.
+No shared contract or golden-kit edits.
 
-### R10 — distribution, commerce, institutions
+### C2I — controlled integration
 
-Proceed in this order only after prior gates pass:
+A separate integrator:
 
-1. free remote catalog;
-2. first-party purchases and entitlements;
-3. simple institutional licensing;
-4. invited publishers;
-5. open marketplace only on demonstrated demand and operational maturity.
+- verifies exact result commits from C2A–C2D;
+- rejects overlapping files or contract drift;
+- combines only green outputs;
+- runs clean-room build, repository governance and provenance checks;
+- does not repair failed agent work silently.
+
+Exit gate: one deterministic shell imports and validates both golden kits while RC718 storage remains byte-for-byte unchanged.
+
+## Minimal vertical product slice
+
+### C3 — learn one activity end to end
+
+Implement only:
+
+```text
+valid successor kit
+→ import
+→ minimal library
+→ launch one activity
+→ submit one answer
+→ record progress
+→ persist in successor namespace
+→ close and reopen
+```
+
+Required activity family for the first slice is selected by `ARC-WP-022`; it should minimize UI mechanics while exercising content, scoring, progress and persistence.
+
+Exit gate:
+
+- canonical identities survive label edits;
+- duplicate labels with distinct identities coexist;
+- immutable revision ID/digest conflicts are rejected;
+- refresh and browser restart preserve successor state;
+- RC718 data is untouched;
+- tested artifact equals proposed artifact.
+
+## Capability recovery
+
+### C4 — justified learning core
+
+Add capabilities only when required by a current product decision:
+
+- session navigation and resume;
+- a small justified set of activity families;
+- progress and basic bilan;
+- accessibility and responsive behavior;
+- import diagnostics and safe reset.
+
+Do not copy RC718 modules solely because they exist.
+
+### C5 — pedagogical completeness
+
+Prove the intended learning loop:
+
+- diagnostic or entry assessment where justified;
+- discovery and guided practice;
+- independent practice;
+- feedback and remediation;
+- review and retention rules;
+- transfer exercises.
+
+Exit gate: the two golden kits are pedagogically complete and pass human learning review.
+
+## Later local capabilities
+
+### C6 — structured transactional storage
+
+Consider only after the minimal product is stable. Introduce structured storage with crash recovery and explicit schema evolution inside the successor namespace.
+
+This is not an RC718 migration.
+
+### C7 — local event and projection model
+
+Introduce immutable learning events only when product use cases justify their cost. Prove deterministic projections and idempotence before any synchronization work.
+
+## Held platform evolution
+
+The following remain separate future decisions, not assumed roadmap commitments:
+
+1. synchronization simulator;
+2. accounts and learner profiles;
+3. modular-monolith backend;
+4. remote catalog;
+5. institutions;
+6. commerce and entitlements;
+7. controlled publishing;
+8. marketplace decision.
+
+No later item starts because an earlier one is technically possible. Each requires demonstrated user value and an accepted gate.
+
+## Multi-AI rule
+
+Parallel AI work is allowed only when:
+
+- all agents share one exact base commit;
+- shared contracts are frozen;
+- write scopes are disjoint and machine-checkable;
+- each agent produces an exact tested result;
+- contradictory QA is independent;
+- integration is performed by a separate role;
+- no agent merges directly to `main`;
+- failed work is not repaired by expanding another agent's scope.
+
+When these conditions are not met, work remains sequential.
 
 ## Release discipline
 
 - A commit or pull request is not automatically a release candidate.
-- Tag only artifacts submitted to a meaningful test gate.
-- Create a GitHub Release for human candidates, promoted baselines, handovers, or distributed versions.
-- Never publish an artifact different from the artifact tested.
+- Human candidates use a distinct successor release identity.
+- RC718 remains separately retrievable.
+- The new-generation rupture is communicated explicitly.
+- Tag only artifacts submitted to a meaningful gate.
+- Never distribute an artifact different from the artifact tested.
