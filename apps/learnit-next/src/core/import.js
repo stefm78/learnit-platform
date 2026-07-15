@@ -1,6 +1,8 @@
 import { assertValidPackage, validatePackageObject, CONTRACT_VERSION } from './contract.js';
 import { createInstallationId } from './identity.js';
 
+const UNSUPPORTED_CONTRACT_MESSAGE = 'Format non pris en charge : ce fichier n’est pas un kit learnit.kit.v2. Les formats legacy ne sont ni importés ni migrés.';
+
 export class ImportError extends Error {
   constructor(message, { code = 'import_failed', cause, errors = [] } = {}) {
     super(message, { cause });
@@ -22,6 +24,39 @@ export function parsePackagePayload(payload) {
     return structuredClone(payload);
   }
   throw new ImportError('A JSON string or object is required', { code: 'invalid_input' });
+}
+
+export function assertSupportedContract(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload) || payload.contract !== CONTRACT_VERSION) {
+    throw new ImportError(UNSUPPORTED_CONTRACT_MESSAGE, { code: 'unsupported_contract' });
+  }
+  return payload;
+}
+
+function validationResultFromError(error) {
+  return {
+    ok: false,
+    contractVersion: CONTRACT_VERSION,
+    errors: [{
+      code: error.code ?? 'invalid_input',
+      path: error.code === 'unsupported_contract' ? '$.contract' : '$',
+      message: error.message,
+    }],
+  };
+}
+
+function invalidPackageError(error) {
+  return new ImportError('Le kit learnit.kit.v2 est invalide et n’a pas été importé.', {
+    code: 'invalid_package',
+    cause: error,
+    errors: error.errors ?? [],
+  });
+}
+
+async function assertInstallablePackage(parsed, storage) {
+  await assertValidPackage(parsed);
+  const existingRevisionDigests = await storage.getRevisionDigestIndex();
+  await assertValidPackage(parsed, { existingRevisionDigests });
 }
 
 function makeSummary(payload) {
@@ -95,12 +130,9 @@ export function createImportService(storage) {
       let parsed;
       try {
         parsed = parsePackagePayload(payload);
+        assertSupportedContract(parsed);
       } catch (error) {
-        return {
-          ok: false,
-          contractVersion: CONTRACT_VERSION,
-          errors: [{ code: error.code, path: '$', message: error.message }],
-        };
+        return validationResultFromError(error);
       }
       const localValidation = await validatePackageObject(parsed);
       if (!localValidation.ok) return localValidation;
@@ -110,24 +142,22 @@ export function createImportService(storage) {
 
     async previewImport(payload) {
       const parsed = parsePackagePayload(payload);
-      await assertValidPackage(parsed);
-      const existingRevisionDigests = await storage.getRevisionDigestIndex();
-      await assertValidPackage(parsed, { existingRevisionDigests });
+      assertSupportedContract(parsed);
+      try {
+        await assertInstallablePackage(parsed, storage);
+      } catch (error) {
+        throw invalidPackageError(error);
+      }
       return makeSummary(parsed);
     },
 
     async importPackage(payload) {
       const parsed = parsePackagePayload(payload);
+      assertSupportedContract(parsed);
       try {
-        await assertValidPackage(parsed);
-        const existingRevisionDigests = await storage.getRevisionDigestIndex();
-        await assertValidPackage(parsed, { existingRevisionDigests });
+        await assertInstallablePackage(parsed, storage);
       } catch (error) {
-        throw new ImportError('Package rejected before storage mutation', {
-          code: parsed?.contract === CONTRACT_VERSION ? 'invalid_package' : 'unsupported_contract',
-          cause: error,
-          errors: error.errors ?? [],
-        });
+        throw invalidPackageError(error);
       }
 
       const plan = buildInstallationPlan(parsed);
