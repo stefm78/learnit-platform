@@ -60,6 +60,7 @@
     "Runtime self-checks demonstrate canonicalization, identity validation, semantic references and atomic import planning.",
     "Storage report identifies only learnit.next.v1. and learnit_next_v1 namespaces.",
     "Manual static review finds no RC718 storage key or database literal in successor runtime files.",
+    "The role-local validation commands and raw outputs are recorded and independently reproduced before integration.",
     "The result is independently reviewed before integration."
   ],
   "adversarialTests": [
@@ -87,7 +88,10 @@
   ],
   "execution": {
     "parallelGroup": "clean-generation-foundation-implementers",
-    "remoteAgentProfile": "repository",
+    "executionLane": "independent-clean-worktree",
+    "remoteAgentTransportAllowed": true,
+    "remoteAgentResultSufficient": false,
+    "validationPolicy": "The existing fixed Remote Agent profiles do not certify learnit-next behavior. Any Remote Agent status is transport evidence only; role-local commands and outputs must be recorded and independently reproduced before integration.",
     "maximumChangedFiles": 14,
     "maximumChangedLines": 3500,
     "requiresIndependentReviewBeforeIntegration": true
