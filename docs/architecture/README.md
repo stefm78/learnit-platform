@@ -2,42 +2,56 @@
 
 ## Repository authority
 
-This directory contains the architectural preparation for Learn-it Platform. It does **not** claim that the current standalone application already implements the target architecture.
+Current architecture authority is distributed deliberately:
 
-The active standalone source remains outside this repository until `ARC-WP-000` selects and imports an exact promoted candidate.
+1. `governance/governor-state.json` defines the active phase, held work, risks and next gate.
+2. Accepted ADRs define cross-cutting decisions.
+3. Accepted work packages define exact scope and evidence.
+4. `docs/handover/STAGE_D_RESTART_CHECKPOINT.md` is the concise restart point.
+5. Source, tests, build evidence and promoted artifact hashes describe implemented reality.
 
-## Status of reference v1
+No historical roadmap or architecture reference overrides these sources.
 
-The documents under `reference-v1/` are a **challenged architecture reference**. They provide direction, constraints, hypotheses, and migration gates. They are not yet fully normative because several package controls identified by forensic review still need to become executable repository checks.
+## Current product boundary
 
-Interpretation rules:
-
-- current source and reconstructed evidence describe reality;
-- architecture documents describe target constraints;
-- a claim is not an implemented capability;
-- an architecture rule becomes enforceable only when code, tests, or repository policy checks it;
-- disagreements require an ADR or an explicit work package, not a silent exception.
+- **RC718** is the frozen promoted legacy standalone Player under `apps/player/`.
+- **RC719** is the human promotion gate with `PASS_WITH_RESERVATIONS`.
+- `ARC-WP-021` selected a **clean-break successor generation**.
+- The successor does not automatically read or migrate RC718 content or learner data.
+- New-generation implementation remains blocked until `ARC-WP-022` is accepted.
 
 ## Current decisions
 
 - Local-first remains the product foundation.
-- The first backend topology will be a modular monolith, not microservices.
-- The standalone version must stabilize before transversal player refactoring.
-- Canonical identifiers, event semantics, and ownership boundaries must precede synchronization.
-- Work performed by AI agents must be bounded by exact baseline, scope, tests, independent review, and controlled integration.
-- Commerce and marketplace work remain on hold until synchronization and catalog distribution are proven.
+- The successor starts with a new major kit contract and isolated browser storage.
+- `learnit-identity-v1` remains the accepted identity taxonomy.
+- Canonical identity is native to the successor and never derived from editable titles, slugs, order or filenames.
+- RC718 compatibility resolver, identity overlay, dual-read and learner-state migration are not planned.
+- AI implementation uses exact baselines, disjoint write ownership, contradictory QA and controlled integration.
+- Tested artifact must equal distributed artifact.
+- Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
-## Reading order
+## Accepted architecture decisions
 
-1. `reference-v1/00_START_HERE.md`
-2. `reference-v1/01_ARCHITECTURE_CONSTITUTION.md`
-3. `reference-v1/02_TARGET_SYSTEM_ARCHITECTURE.md`
-4. `reference-v1/04_DEPENDENCY_AND_CONTRACT_RULES.md`
-5. `reference-v1/09_QUALITY_RELEASE_AND_PROVENANCE.md`
-6. `reference-v1/10_MULTI_AI_DEVELOPMENT_PROTOCOL.md`
-7. `reference-v1/12_ROADMAP_AND_GATES.md`
-8. `../roadmap/STANDALONE_TO_PLATFORM.md`
+- [`ADR-0001 — Stable identity taxonomy and migration design`](decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md): identity taxonomy retained; continuity sequence superseded by ADR-0002.
+- [`ADR-0002 — Clean-break generation`](decisions/ADR-0002-CLEAN-BREAK-GENERATION.md): current successor strategy.
 
-## First gate
+## Historical reference v1
 
-`ARC-WP-000` is blocked until the standalone development stream selects a candidate that is ready to become the reproducible repository baseline.
+Documents under `reference-v1/` are preserved challenged target material created before Player import and before the clean-break decision. They remain useful for long-term constraints such as modular-monolith preference, provenance and bounded multi-AI development.
+
+They are **not canonical for current phase, current baseline, next gate or migration sequence**. Begin with [`reference-v1/00_START_HERE.md`](reference-v1/00_START_HERE.md), which records this historical boundary.
+
+## Current reading order
+
+1. `../governance/governor-state.json`
+2. `../handover/STAGE_D_RESTART_CHECKPOINT.md`
+3. `decisions/ADR-0002-CLEAN-BREAK-GENERATION.md`
+4. `../../work-packages/ARC-WP-021.json`
+5. `../../GOVERNANCE.md`
+6. `../roadmap/STANDALONE_TO_PLATFORM.md`
+7. historical `reference-v1/` only when deeper background is needed
+
+## Next gate
+
+`ARC-WP-022` must design and authorize the minimum viable clean-generation foundation. It must freeze the new contract and shared boundaries before any parallel implementation starts.
