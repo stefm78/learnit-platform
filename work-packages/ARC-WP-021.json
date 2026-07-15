@@ -42,6 +42,34 @@
     "Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.",
     "No compatibility code may be introduced merely to reduce the visible cost of the chosen rupture."
   ],
+  "requiredEvidence": [
+    "Exact RC718 source commit, promoted artifact SHA-256 and human-gate evidence remain recorded.",
+    "Current identity inventory demonstrates that continuity would require mapping legacy library and learner-state keys.",
+    "The accountable-owner decision selecting trajectory C is recorded in the governor review.",
+    "Repository governance and PR-scope checks pass on the exact decision commit.",
+    "The restart checkpoint and governor state identify the clean break and the same next mandatory gate."
+  ],
+  "adversarialTests": [
+    "Verify that no Player, contract, data, workflow, build or artifact file changes in this decision package.",
+    "Verify that the decision preserves RC718 rather than authorizing deletion of its source, artifact or browser data.",
+    "Verify that no text authorizes a temporary legacy resolver, dual-read path, overlay or learner-state migration.",
+    "Verify that the new-generation foundation remains blocked pending a separate bounded work package.",
+    "Verify that backend, accounts, synchronization, catalog, commerce, tenancy and marketplace remain held."
+  ],
+  "nonGoals": [
+    "Implementing the new-generation Player.",
+    "Publishing the new major content contract.",
+    "Changing RC718 runtime, storage, content or artifact.",
+    "Migrating or deleting any RC718 local data.",
+    "Building a legacy compatibility reader or offline converter.",
+    "Entering any backend, account, synchronization, catalog, commerce, tenancy or marketplace domain."
+  ],
+  "independentReview": [
+    "Architecture governor distinguishes evidence, claims, assumptions and absence of evidence.",
+    "Contradictory review confirms that the cost reduction is not achieved by silent data deletion or storage-key reuse.",
+    "PR scope validates the exact five governance and architecture paths.",
+    "Repository governance validates the work-package and governor-state schemas."
+  ],
   "decision": {
     "trajectory": "C-clean-break",
     "legacyProduct": "RC718",
@@ -72,7 +100,8 @@
     "Prove that opening the new generation cannot mutate RC718 localStorage or IndexedDB data.",
     "Bind source, contract, build, tests, artifact and hashes atomically for the first new-generation candidate."
   ],
-  "rollback": {
+  "rollback": "Before implementation, revert this work package and its four companion governance files. After a new-generation candidate exists, fallback is the frozen RC718 artifact or a revert of that bounded candidate; no reverse data migration is promised.",
+  "rollbackPlan": {
     "designRollback": "Revert this work package and its four companion governance files before any new-generation implementation starts.",
     "productFallback": "Continue using the frozen RC718 artifact; no RC718 data has been changed by this decision.",
     "postImplementation": "Rollback means distributing RC718 again or reverting the bounded new-generation candidate. It does not mean migrating new-generation data back into RC718."
