@@ -1,59 +1,68 @@
-# Learn-it Platform
+# Learn-it
 
-Private engineering repository for the controlled evolution of Learn-it from a stable standalone application toward a scalable, multi-user, local-first learning platform.
+Private engineering repository for the controlled evolution of Learn-it.
 
 ## Current status
 
-RC715 is the **promoted standalone forensic baseline**.
+Learn-it now has two explicitly separated generations:
 
-- The complete player source is maintained under [`apps/player/`](apps/player/).
-- GitHub is the canonical source for all subsequent standalone development.
-- Promoted source commit: `6c826977e16985d50b45d1b5e53501b4d7b993a2`.
-- Promoted artifact SHA-256: `6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0`.
-- [`ARC-WP-000`](work-packages/ARC-WP-000.json) is accepted after reproducible reconstruction, automated checks, governor review, and accountable-owner human validation PASS.
-- The validated [`Remote Agent Worktree`](docs/governance/REMOTE_AGENT_WORKTREE.md) is accepted for bounded multi-file development with exact baseline, machine-checkable scope, read-only test execution, explicit test profiles, and pull-request review.
-- Backend, accounts, synchronization, remote catalog, commerce, institutions, and marketplace implementation remain on HOLD.
-- The permanent Architecture & Repository Governor maintains the frame through [`GOVERNANCE.md`](GOVERNANCE.md) and the canonical [`governor-state.json`](governance/governor-state.json).
+1. **RC718 legacy standalone** — frozen, promoted and retained for historical access.
+2. **Clean-generation successor** — design authorized in principle through the clean-break decision, but implementation not yet authorized.
 
-## Two-track strategy
+The legacy baseline is:
 
-1. **Standalone product line** — continue bounded functional, UX, accessibility, persistence, performance, test, and release improvements from the promoted baseline.
-2. **Controlled platform evolution** — establish permanent behavioral protection, then introduce one reversible architecture seam at a time under explicit gates.
+- source commit: `decd9b77bc77a6de9dc28497d0f3affeb972e964`;
+- promoted artifact SHA-256: `e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb`;
+- human gate: **RC719 — PASS_WITH_RESERVATIONS**;
+- source: [`apps/player/`](apps/player/).
 
-See [`docs/roadmap/STANDALONE_TO_PLATFORM.md`](docs/roadmap/STANDALONE_TO_PLATFORM.md).
+`ARC-WP-021` selected trajectory **C — clean break**. The next generation will not automatically read or migrate RC718 libraries, progress, sessions, bilans, retention or packages. RC718 remains independently usable and must not be mutated by new-generation work.
+
+## Canonical current state
+
+Read these sources in this order:
+
+1. [`governance/governor-state.json`](governance/governor-state.json) — machine-readable current authority;
+2. [`docs/handover/STAGE_D_RESTART_CHECKPOINT.md`](docs/handover/STAGE_D_RESTART_CHECKPOINT.md) — concise restart point;
+3. [`ADR-0002 — Clean-break generation`](docs/architecture/decisions/ADR-0002-CLEAN-BREAK-GENERATION.md);
+4. [`ARC-WP-021`](work-packages/ARC-WP-021.json);
+5. [`GOVERNANCE.md`](GOVERNANCE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+Historical work packages, reviews and architecture references remain evidence, but they do not override current governor state.
 
 ## Non-negotiable principles
 
-- local-first player;
-- modular monolith before microservices;
-- stable canonical identifiers before synchronization;
-- one owner per datum and one editable source of truth per normative artifact;
-- short-lived branches and pull requests;
-- AI work packages with exact baseline, bounded scope, independent QA, and controlled integration;
-- tested artifact equals published artifact;
-- no direct cloud coupling from UI or domain logic.
+- GitHub is the canonical editable source.
+- RC718 source, artifact and browser data remain isolated and immutable from the successor.
+- The new generation uses a new major content contract and isolated storage namespaces.
+- Titles, slugs, order and filenames are never canonical identity.
+- No compatibility resolver, dual-read layer or learner-state migration is introduced without a new accountable-owner decision.
+- One datum and one normative artifact have one owner.
+- AI work uses exact baselines, bounded paths, independent QA and controlled integration.
+- Tested artifact equals distributed artifact.
+- Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
-## Repository entry points
+## Engineering entry points
 
-- [Player source and engineering instructions](apps/player/README.md)
-- [Remote Agent Worktree operating contract](docs/governance/REMOTE_AGENT_WORKTREE.md)
-- [Remote Agent Worktree accepted work package](work-packages/DEV-WP-030.json)
-- [Standing architecture and repository governance](GOVERNANCE.md)
-- [Canonical current governor state](governance/governor-state.json)
-- [RC715 promotion review](docs/governance/reviews/GOV-REVIEW-0003-RC715-PROMOTION.md)
-- [Remote Agent Worktree acceptance review](docs/governance/reviews/GOV-REVIEW-0004-REMOTE-AGENT-WORKTREE.md)
-- [RC715 human validation attestation](docs/evidence/rc715/human-validation-attestation.json)
-- [Permanent player CI and behavioral protection gate](work-packages/QA-WP-010.json)
+- [Frozen RC718 Player](apps/player/README.md)
+- [Remote Agent Worktree contract](docs/governance/REMOTE_AGENT_WORKTREE.md)
+- [Architecture status](docs/architecture/README.md)
+- [Current roadmap](docs/roadmap/STANDALONE_TO_PLATFORM.md)
 - [Governor decision rights](docs/governance/DECISION_RIGHTS.md)
-- [Governor review template](docs/governance/GOVERNOR_REVIEW_TEMPLATE.md)
-- [Architecture status and authority](docs/architecture/README.md)
-- [Architecture reference — start here](docs/architecture/reference-v1/00_START_HERE.md)
-- [Architecture constitution](docs/architecture/reference-v1/01_ARCHITECTURE_CONSTITUTION.md)
-- [Contribution protocol](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
-- [Promoted standalone baseline work package](work-packages/ARC-WP-000.json)
-- [Standing governor work package](work-packages/GOV-WP-001.json)
+- [Repository security policy](SECURITY.md)
 
-## Immediate next step
+## Next mandatory gate
 
-Pass [`QA-WP-010`](work-packages/QA-WP-010.json): establish permanent player CI and representative black-box regression fixtures before implementing the first architectural seam.
+`ARC-WP-022` must design and authorize the minimum viable clean-generation foundation:
+
+- new major kit contract;
+- canonical identities from creation;
+- isolated localStorage and IndexedDB namespaces;
+- empty initial active state;
+- explicit rejection of RC718 packages;
+- regenerated Nombres complexes and Signaux électriques golden kits;
+- exact source and file-budget plan;
+- disjoint development, contradictory-QA, integration and governor scopes;
+- deterministic build and source-to-artifact evidence.
+
+No new-generation implementation begins before that gate is accepted.
