@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-018",
+  "title": "Clean canonical repository entry points after the clean-break decision",
+  "status": "accepted",
+  "changeClass": "repository-governance-documentation",
+  "riskClass": "low",
+  "purpose": "Remove stale current-state claims from canonical repository entry points after adoption of the clean-break trajectory. Preserve historical architecture evidence while making README, contribution, governance, architecture, roadmap and legacy Player documentation agree with RC718 as the frozen legacy product and ARC-WP-022 as the next mandatory gate.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "617bfaea591deb022e6019e100654fda85fe4472",
+    "candidateName": "canonical-entry-point-cleanup",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-018.json",
+      "docs/evidence/governance/repository-cleanliness-audit.json",
+      "docs/governance/reviews/GOV-REVIEW-0024-REPOSITORY-CLEANLINESS.md",
+      "README.md",
+      "CONTRIBUTING.md",
+      "GOVERNANCE.md",
+      "apps/player/README.md",
+      "docs/architecture/README.md",
+      "docs/architecture/reference-v1/00_START_HERE.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/player/src/**",
+      "apps/player/tests/**",
+      "apps/player/dev/**",
+      "apps/player/source_manifest.json",
+      "apps/player/dist/**",
+      "contracts/**",
+      "platform/**",
+      "tools/**",
+      "docs/evidence/architecture/**",
+      "docs/product/**",
+      "docs/handover/**",
+      "docs/architecture/decisions/**"
+    ]
+  },
+  "invariants": [
+    "RC718 source, artifact, runtime, tests and learner data remain unchanged.",
+    "ARC-WP-021 clean-break trajectory remains the canonical product direction.",
+    "The learnit-identity-v1 taxonomy remains accepted while the continuity strategy remains superseded.",
+    "ARC-WP-022 remains the next mandatory gate and no new-generation implementation is authorized.",
+    "Historical reference-v1 documents remain available but are explicitly non-canonical for current status.",
+    "No generated archive, credential, build output or Player working file is added.",
+    "Backend, accounts, synchronization, catalog, commerce, tenancy and marketplace remain held."
+  ],
+  "requiredEvidence": [
+    "Exact stale statements and their canonical replacements are recorded in the repository cleanliness audit.",
+    "The repository validator continues to reject generated archives and credential-like files.",
+    "The gitignore excludes build outputs, local data, credentials and archives.",
+    "No pull request is open at the audit baseline.",
+    "Repository governance and PR-scope checks pass on the exact cleanup head."
+  ],
+  "adversarialTests": [
+    "Fail if a canonical entry point still claims RC715 is current or promoted.",
+    "Fail if an entry point claims Player source remains outside the repository.",
+    "Fail if ARC-WP-000 or QA-WP-010 is described as the next gate.",
+    "Fail if the pre-clean-break migration roadmap is presented as current.",
+    "Fail if historical reference-v1 material is deleted or silently rewritten as implemented reality.",
+    "Fail if any Player source, test, build, contract, artifact or workflow file changes.",
+    "Fail if ARC-WP-022 is represented as implementation already accepted."
+  ],
+  "nonGoals": [
+    "Implementing ARC-WP-022.",
+    "Deleting historical work packages, reviews or evidence.",
+    "Reorganizing the repository tree.",
+    "Changing RC718 behavior or artifact.",
+    "Changing the identity taxonomy or clean-break decision.",
+    "Cleaning remote branches that cannot be proven stale from repository evidence."
+  ],
+  "independentReview": [
+    "Repository governance validates the work-package and governor-state schemas.",
+    "PR scope validates the exact documentation and governance paths.",
+    "The governor checks every current-status claim against main and accepted decisions.",
+    "Contradictory review confirms that historical evidence is preserved and implementation remains held."
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "documentationOnly": true,
+    "playerWorkingFilesAdded": 0,
+    "nextMandatoryGate": "ARC-WP-022"
+  },
+  "rollback": "Revert the cleanup merge. No source, artifact, learner data, build, contract or external system is affected."
+}
