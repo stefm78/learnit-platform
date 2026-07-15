@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "id": "INT-WP-001",
+  "title": "Integrate and prove the first clean-generation candidate",
+  "status": "approved",
+  "changeClass": "controlled-integration-build-and-release-evidence",
+  "riskClass": "high",
+  "purpose": "After independent acceptance of runtime, authoring and contradictory-QA outputs, create the deterministic build, exact source manifest, unified check runner, release envelope and permanent CI workflow. The integrator combines reviewed outputs without silently editing role-owned files.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+    "candidateName": "learnit-next-foundation-integrated-candidate",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/dev/release.py",
+      ".github/workflows/learnit-next-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "apps/learnit-next/README.md",
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/tests/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/**",
+      "docs/architecture/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "Integration starts only after reviewed result commits exist for DEV-WP-031, KIT-WP-001 and QA-WP-011.",
+    "The integrator owns only the five exact integration paths.",
+    "A defect in a role-owned file is returned to that role and is not silently repaired by the integrator.",
+    "The source manifest lists every committed successor source, authoring, fixture and test file exactly once and records hashes deterministically.",
+    "The build uses Python standard library only and emits no timestamp, random value or environment path.",
+    "Two clean builds produce byte-identical learnit-next.html artifacts.",
+    "The artifact tested is the artifact placed in the release envelope.",
+    "CI runs contract, storage-isolation, browser vertical-slice and build-determinism gates.",
+    "No generated dist or release file is committed.",
+    "No RC718 file, storage behavior or artifact changes."
+  ],
+  "requiredEvidence": [
+    "Exact reviewed input commits and integration order are recorded.",
+    "The source manifest and changed-path inventory prove the 32-file budget exactly.",
+    "Clean build succeeds twice with one SHA-256.",
+    "Contract and semantic checks pass for fixtures and both golden kits.",
+    "Browser storage-isolation and vertical-slice suites pass on the exact artifact.",
+    "The release envelope records source commit, manifest digest, artifact digest and test results.",
+    "Permanent CI and PR scope pass on the exact integrated result.",
+    "A separate governor acceptance PR is created before human testing."
+  ],
+  "adversarialTests": [
+    "Fail when the 32-file set differs by one path.",
+    "Fail when source manifest content is stale or uncommitted.",
+    "Fail when two clean builds differ.",
+    "Fail when a test runs against an artifact with a different digest from the release candidate.",
+    "Fail when RC718 protected storage changes after successor boot, import, session or reset.",
+    "Fail when legacy import causes any transient or durable installation.",
+    "Fail when the integrator diff includes a role-owned file.",
+    "Fail when any held platform domain or unplanned dependency is introduced."
+  ],
+  "nonGoals": [
+    "Repairing runtime, authoring or QA files within the integrator scope.",
+    "Changing the frozen schema or architecture design.",
+    "Expanding the activity families or file budget.",
+    "Publishing a release or promoting a human candidate directly.",
+    "Entering any backend, account, sync, catalog, commerce, tenancy or marketplace domain."
+  ],
+  "independentReview": [
+    "Integrator verifies exact input provenance and role-scope compliance.",
+    "Contradictory QA reruns all gates on the exact integrated artifact.",
+    "Governor reviews source-to-artifact identity, residual risks and human-gate readiness.",
+    "Human testing occurs only after a separate governor GO_WITH_CONDITIONS or GO."
+  ],
+  "execution": {
+    "parallelGroup": null,
+    "startsAfter": [
+      "DEV-WP-031 independent acceptance",
+      "KIT-WP-001 independent acceptance",
+      "QA-WP-011 independent acceptance"
+    ],
+    "maximumChangedFiles": 5,
+    "maximumChangedLines": 1800,
+    "requiresSeparateGovernorAcceptance": true
+  },
+  "rollback": "Revert the five integration files and discard the unpromoted successor artifact. Reviewed role outputs remain available for correction or reintegration; RC718 remains the active legacy product."
+}
