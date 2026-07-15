@@ -47,13 +47,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex="-1"]
 .course-card { display: grid; align-content: space-between; gap: 18px; padding: 20px; }
 .course-card h3 { margin: 0 0 6px; }
 .course-card p { margin-top: 0; }
+.course-label-form { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+.course-label-controls { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; }
+.course-label-controls input { flex: 1 1 180px; min-width: 0; padding: 9px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); }
 .progress-summary { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .92rem; }
 progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
 .course-complete { justify-self: start; margin: 0; padding: 10px 15px; border: 1px solid #9bc9ae; border-radius: 10px; background: #e5f4eb; color: var(--success); font-weight: 800; }
 
-.primary, .danger-quiet, .back-link { border-radius: 10px; padding: 10px 15px; font-weight: 700; }
+.primary, .secondary, .danger-quiet, .back-link { border-radius: 10px; padding: 10px 15px; font-weight: 700; }
 .primary { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
 .primary:hover { background: var(--accent-strong); }
+.secondary { border: 1px solid var(--accent); background: var(--surface); color: var(--accent-strong); }
+.secondary:hover { background: var(--surface-soft); }
 .danger-quiet { border: 1px solid #d8a6a6; background: transparent; color: var(--danger); }
 .back-link { justify-self: start; border: 0; background: transparent; color: var(--accent); padding-left: 0; }
 
@@ -82,6 +87,7 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
   .import-panel { grid-template-columns: 1fr; align-items: stretch; }
   .contract-badge { align-self: flex-start; }
   .danger-quiet { width: 100%; }
+  .course-label-controls > * { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
