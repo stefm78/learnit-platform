@@ -1,0 +1,114 @@
+{
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "11111111-1111-4111-8111-111111111111",
+  "packageRevisionId": "11111111-1111-4111-8111-111111111112",
+  "packageRevisionDigest": "sha256:0eee635695f7adfe55d0c31d126019127d99ebae3ead4750cdcafddb13c594c6",
+  "title": "Fixture QA minimale QCM et fill",
+  "description": "Fixture indépendante destinée aux tests contradictoires du contrat v2.",
+  "versionLabel": "qa-v1",
+  "language": "fr-FR",
+  "courses": [
+    {
+      "courseLineageId": "22222222-2222-4222-8222-222222222221",
+      "courseRevisionId": "22222222-2222-4222-8222-222222222222",
+      "courseRevisionDigest": "sha256:e61ebf045d9de347fcb8422692f384f40cec2879000ba187dc4b6ceb57b650a7",
+      "title": "Boucle minimale de validation",
+      "subtitle": "Identités stables, QCM par choiceId et token fill réutilisable.",
+      "estimatedMinutes": 8,
+      "objectives": [
+        {
+          "objectiveId": "33333333-3333-4333-8333-333333333331",
+          "label": "Valider une réponse QCM par identifiant."
+        },
+        {
+          "objectiveId": "33333333-3333-4333-8333-333333333332",
+          "label": "Réutiliser un token fill dans la limite de maxUses."
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "44444444-4444-4444-8444-444444444441",
+          "activityRevisionId": "44444444-4444-4444-8444-444444444442",
+          "activityRevisionDigest": "sha256:ce2098a44f788970d45c8c82eb0270b697c080634895154c2c0d39824be5129d",
+          "objectiveIds": [
+            "33333333-3333-4333-8333-333333333331"
+          ],
+          "type": "qcm",
+          "prompt": "Quelle propriété garantit que réordonner les choix ne change pas la correction ?",
+          "explanation": "La correction référence le choiceId, jamais la position dans le tableau.",
+          "difficulty": "easy",
+          "learningPhase": "comprehension",
+          "assessmentRole": "practice",
+          "choices": [
+            {
+              "choiceId": "55555555-5555-4555-8555-555555555551",
+              "label": "Le texte du premier choix"
+            },
+            {
+              "choiceId": "55555555-5555-4555-8555-555555555552",
+              "label": "Le choiceId explicitement référencé"
+            },
+            {
+              "choiceId": "55555555-5555-4555-8555-555555555553",
+              "label": "La position du choix dans le tableau"
+            }
+          ],
+          "correctChoiceId": "55555555-5555-4555-8555-555555555552"
+        },
+        {
+          "activityLineageId": "66666666-6666-4666-8666-666666666661",
+          "activityRevisionId": "66666666-6666-4666-8666-666666666662",
+          "activityRevisionDigest": "sha256:6524564f774179d05708bf1eca53b6c334992ead8e82512e5d70f5bd0c911bca",
+          "objectiveIds": [
+            "33333333-3333-4333-8333-333333333332"
+          ],
+          "type": "fill",
+          "prompt": "Compléter la phrase avec le même token aux deux positions.",
+          "explanation": "Le token « réutilisable » déclare maxUses=2 et peut donc remplir deux slots distincts.",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "validation",
+          "segments": [
+            {
+              "text": "Un token "
+            },
+            {
+              "slotId": "77777777-7777-4777-8777-777777777771"
+            },
+            {
+              "text": " reste disponible pour un second slot lorsqu’il est déclaré "
+            },
+            {
+              "slotId": "77777777-7777-4777-8777-777777777772"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "88888888-8888-4888-8888-888888888881",
+              "label": "réutilisable",
+              "maxUses": 2
+            },
+            {
+              "tokenId": "88888888-8888-4888-8888-888888888882",
+              "label": "à usage unique",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "77777777-7777-4777-8777-777777777771",
+              "tokenId": "88888888-8888-4888-8888-888888888881"
+            },
+            {
+              "slotId": "77777777-7777-4777-8777-777777777772",
+              "tokenId": "88888888-8888-4888-8888-888888888881"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
