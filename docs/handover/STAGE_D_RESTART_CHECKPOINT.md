@@ -2,158 +2,150 @@
 
 ## Canonical status
 
-This file is the concise restart point after acceptance of the controlled Stage D pilot and the design-only stable-identity gate.
+Repository state always takes precedence over this checkpoint. Verify current `main`, `governance/governor-state.json`, accepted work packages, open pull requests and exact evidence before acting. Historical handovers are not canonical when they conflict with the repository.
 
-Repository state always takes precedence over this checkpoint. On restart, verify current `main`, `governance/governor-state.json`, accepted work packages and exact evidence before acting. Historical handovers are not canonical when they conflict with the repository.
+Checkpoint decision baseline: `0575385c5891e56506de6aaa0244297d766ea458`.
 
-Identity-design baseline: `e9d3f1f36d34170111b6b583bc7d9219e68e03ab`.
+## Legacy product baseline
 
-## Product baseline
+The current architecture decisions do not modify the promoted legacy product:
 
-The architecture work below did not promote or modify the product baseline.
-
-- Promoted standalone baseline: **RC718**.
+- Frozen standalone generation: **RC718**.
 - Product source commit: `decd9b77bc77a6de9dc28497d0f3affeb972e964`.
 - Promoted artifact SHA-256: `e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb`.
 - Human gate: **RC719 — PASS_WITH_RESERVATIONS**.
 - Human evidence: `docs/evidence/rc718/human-validation-attestation.json`.
-- Reservations remain non-blocking but must be itemized in `docs/product/RC719_RESERVATIONS.md` before corrective implementation.
+- RC718 remains available as the legacy generation and must not be mutated by new-generation work.
 
-## Accepted architecture gates
+## Accepted architecture history
 
-### Stage B — design
-
-`ARC-WP-010` is accepted.
-
-The accepted design defines one minimal reversible storage boundary while preserving storage technology, keys, payloads, identifiers, callers, UI and behavior.
-
-### Stage C — first reversible seam
+### First reversible storage seam
 
 `ARC-WP-014` is accepted.
 
-- Exact execution base: `f272c81f172b7d3c46a708bc5277b8401b15db1a`.
 - Exact tested result: `a4bf1fb1726c5c82e1af2ae085327e358fe4e3f4`.
 - Implementation merge: `1346e5772bd18432d96b2f88eb0d276fc7a04e94`.
-- Governor acceptance merge: `d08cd1e1e63a135c819175fc7538d52487abeb92`.
-- Remote Agent run: `29354643840`.
 - Validation: 35/35 mandatory checks, 24/24 browser suites and 58/58 evidence bindings.
-- Tested artifact: 829075 bytes, SHA-256 `9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861`.
 - Durable evidence: `docs/evidence/architecture/first-storage-seam/`.
-- Governor review: `docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md`.
 
-The unchanged synchronous localStorage adapter is owned by runtime part 04. Direct IndexedDB opening remains owned by runtime part 05. Rollback requires one revert and no learner-data migration.
+The unchanged synchronous localStorage adapter is owned by runtime part 04. Direct IndexedDB opening remains owned by runtime part 05.
 
-### Stage D — controlled multi-agent pilot
+### Controlled Stage D operating model
 
 `ARC-WP-019` is accepted.
 
-The pilot added a deterministic role-scope ownership report through disjoint responsibilities:
-
-- Developer: `apps/player/dev/role_scope_report.py`.
-- Contradictory QA: `apps/player/tests/contract_role_scope.py`.
-- Integrator: mandatory registry, evidence map and durable evidence.
-- Governor: work package, state and decisions only.
-
-Exact evidence:
-
-- Execution base: `d65189b7ef59ccb74ba02c6c6ac96a212895a1e9`.
-- Remote Agent trigger: `c0101bde910c8f3a47ce7f981a4e939a55176589`.
 - Exact tested result: `5e379eea7ae3b495be2203355425e6549b8fcec5`.
 - Implementation merge: `ae6b82d90b72f0287462c7d34708d0330d5ce35b`.
-- Governor acceptance merge: `eb296c14825d1a624c96806ee3eba073e6225b69`.
-- Remote Agent run: `29356520176`.
-- Permanent Player CI run: `29356634330`.
-- Validation: 36/36 mandatory checks, 20/20 pilot contract checks, 24/24 permanent browser suites and 35/35 evidence bindings.
-- Result-envelope digest: `sha256:c4c6123c58caf8c070f47fe7c19970cabfa12b41bbd846caf517bd0b7361fb13`.
-- Product artifact remained unchanged: SHA-256 `9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861`.
+- Validation: 36/36 mandatory checks, 20/20 role-scope checks, 24/24 browser suites and 35/35 evidence bindings.
 - Durable evidence: `docs/evidence/architecture/stage-d-pilot/`.
-- Governor review: `docs/governance/reviews/GOV-REVIEW-0020-STAGE-D-PILOT-ACCEPTANCE.md`.
 
-The Stage D operating model is validated for future bounded work packages. This does not authorize broad parallel refactoring.
+The disjoint developer, contradictory-QA, integrator and governor model remains mandatory for bounded implementation work.
 
-### Stable identity and migration design
+### Stable identity taxonomy
 
-`ARC-WP-020` is accepted with conditions as a **design-only** gate.
+`ARC-WP-020` is accepted with conditions.
 
-The accepted scheme is `learnit-identity-v1`. It separates:
+`learnit-identity-v1` separates:
 
-1. canonical package, course, objective, activity, asset and revision lineage;
-2. local plan and course installation identities;
-3. current legacy compatibility keys such as `packageId`, `importPackageId`, `localCourseId`, activity `id`, normalized objective text and `contentVersion`.
+1. canonical lineage and immutable revision identity;
+2. local installation identity;
+3. legacy compatibility keys.
 
-Core decisions:
+The taxonomy and its prohibition against title-derived canonical identity remain valid.
 
-- canonical IDs are opaque, immutable and independent of titles, labels, ordering and local collision suffixes;
-- `learnit.import.v1.1` fields retain their current meaning and are not silently promoted to canonical identity;
-- canonical identity envelopes must be complete and digest-consistent or be rejected;
-- legacy-only content remains usable but is not globally deduplicated by title, slug, order, file name or digest inference;
-- two local installations of one canonical course remain separate progress namespaces;
-- historical learner evidence is retained across revisions but counted toward current mastery only under explicit compatibility rules;
-- migration is overlay-first, transactional and reversible, with legacy reads preserved through a compatibility window.
+## Current trajectory — clean break
 
-Canonical design and evidence:
+`ARC-WP-021` is accepted with conditions.
 
-- Work package: `work-packages/ARC-WP-020.json`.
-- Decision: `docs/architecture/decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md`.
-- Exact current-source inventory: `docs/evidence/architecture/stable-identity/current-identity-inventory.json`.
-- Governor review: `docs/governance/reviews/GOV-REVIEW-0022-ARC-WP-020-STABLE-IDENTITY-DESIGN.md`.
+The accountable owner selected **trajectory C — clean-break generation**. The compatibility and migration sequence previously proposed after `ARC-WP-020` is superseded.
 
-No identifier, contract, runtime, stored data or product behavior has been changed. Identity implementation and learner-state migration remain blocked.
+The following work is cancelled unless a future accountable-owner decision explicitly reopens it:
+
+- RC718 compatibility resolver;
+- identity overlay over RC718 data;
+- dual read or dual write between legacy and canonical keys;
+- transactional migration of RC718 learner state;
+- mixed RC718/new-generation library operation;
+- transparent upgrade of RC718 packages or browser state.
+
+## New-generation rules
+
+The next generation must start with:
+
+- a new major content contract;
+- canonical identity from creation;
+- new localStorage keys and a distinct IndexedDB identity;
+- an empty active library and learner state, except explicitly bundled new-generation content;
+- regenerated or deliberately converted kits;
+- explicit rejection of RC718 packages;
+- no read, write, reset or deletion of RC718 browser storage;
+- a distinct product and release identity;
+- atomic source, contract, build, tests, artifact and hash evidence.
+
+The identity taxonomy from `ARC-WP-020` is retained. Its resolver, overlay and migration path is not.
+
+## Accepted concessions
+
+The new generation does not automatically preserve:
+
+- imported RC718 plans or courses;
+- plan and course name customizations;
+- active sessions or answers;
+- progress and mastery state;
+- bilans and review lists;
+- retention schedules and history;
+- import history, field evidence or content patches.
+
+Historical access is provided by retaining RC718 itself, not by migrating its data.
 
 ## Current constraints
 
-- The Player working-file count is exactly **150**, equal to the enforced budget. The next implementation seam must modify existing files or remove/consolidate one before adding another.
+- The legacy Player working-file count is exactly **150**. The next foundation gate must explicitly retain, reduce or replace that budget.
 - The `main-protection` ruleset is configured but not technically enforced on this private personal-account repository. Pull requests, CI, scope validation and governor review remain mandatory operational controls.
-- Current RC718 identity is proven for local rename-safe progress, not for global lineage across devices or publishers.
-- RC719 reservations are not yet itemized.
-- The accepted first storage seam and RC718 product identity are frozen unless a dedicated work package says otherwise.
+- New-generation implementation is not yet authorized.
+- RC718 storage isolation must be proven negatively before any new-generation candidate is accepted.
 
 ## Still held
 
-- Writing canonical identity overlays.
-- Rewriting learner-state, progress, bilan, session, retention, import-history or patch keys.
-- Publishing or requiring a new import-contract version.
-- Removing or reinterpreting legacy identity fields.
-- Player-wide architecture refactoring.
-- localStorage-to-IndexedDB migration.
+- Any new-generation Player implementation before the next foundation gate.
+- Any RC718 compatibility or migration layer.
 - Backend, accounts and learner profiles.
 - Cloud synchronization and remote catalog.
 - Commerce, entitlements, institutional tenancy and publisher marketplace.
 
 ## Next mandatory gate
 
-`ARC-WP-021` may authorize only an **additive read-only identity resolver and shadow diagnostic**.
+`ARC-WP-022` must design and authorize the **minimum viable clean-generation foundation**.
 
-It must:
+It must define:
 
-- start from exact current `main`;
-- classify complete canonical, legacy-only and invalid-partial identity;
-- preserve every current legacy key and all existing behavior;
-- perform no identity-overlay write and no learner-state migration;
-- change no import decision, UI, product identity or storage ownership;
-- modify exact existing Player files so the working-file count remains 150;
-- use explicit disjoint developer, contradictory-QA, integrator and governor scopes;
-- pass permanent Player CI and separate governor acceptance;
-- provide one-revert rollback.
+- the exact new major content contract;
+- canonical identity fields and digest rules;
+- isolated localStorage and IndexedDB namespaces;
+- empty initial-state behavior;
+- explicit legacy-package rejection;
+- regeneration of the Nombres complexes and Signaux électriques golden kits;
+- the exact Player file plan and source-budget decision;
+- disjoint developer, contradictory-QA, integrator and governor scopes;
+- automated storage-isolation, contract, product-flow, deterministic-build and artifact-identity gates;
+- the first human release gate and rupture notice;
+- a one-revert implementation boundary.
 
-Contract publication, canonical identity writes and migration require later independent gates.
+It must not introduce RC718 compatibility, learner-state migration or any held platform domain.
 
 ## Restart instruction
 
-Use this instruction in a future session:
-
-> Reprends le dépôt privé `stefm78/learnit-platform` depuis `docs/handover/STAGE_D_RESTART_CHECKPOINT.md`. Vérifie d’abord l’état réel de `main`, `governance/governor-state.json`, les work packages acceptés, les PR ouvertes et les checks. Considère Stage B, Stage C, le pilote Stage D et le design-only `ARC-WP-020` comme acquis seulement si le dépôt et les preuves exactes le confirment. La prochaine étape autorisée est `ARC-WP-021`, limitée à un résolveur d’identité en lecture seule et un diagnostic fantôme dans des fichiers Player existants. N’écris aucun overlay d’identité, ne migre aucune donnée ou clé historique, ne publie aucun nouveau contrat et n’entre dans aucun domaine backend ou synchronisation. Préserve RC718, la première couture, le budget de 150 fichiers Player et les périmètres de rôles disjoints. Le dépôt prévaut sur tout ancien handover.
+> Reprends le dépôt privé `stefm78/learnit-platform` depuis `docs/handover/STAGE_D_RESTART_CHECKPOINT.md`. Vérifie l’état réel de `main`, du gouverneur, des work packages, des PR et des checks. RC718 est la génération legacy figée. La trajectoire canonique est C : nouvelle génération sans compatibilité ni migration RC718. Conserve la taxonomie `learnit-identity-v1`, mais n’implémente aucun resolver legacy, overlay, dual-read ou migration. La prochaine gate est `ARC-WP-022`, design et autorisation du socle minimal clean-break : nouveau contrat majeur, stockage isolé, état vide, kits régénérés, plan de fichiers exact, QA contradictoire et preuves de release. Le dépôt prévaut sur tout ancien handover.
 
 ## Resume verification
 
-Before any new action, confirm:
+Before any action, confirm:
 
 1. current `main` and open pull requests;
 2. governor state and next mandatory gate;
-3. promoted RC718 artifact hash;
+3. frozen RC718 source and artifact hash;
 4. accepted Stage C and Stage D evidence roots;
-5. accepted ARC-WP-020 ADR, inventory and governor review;
-6. permanent Player CI, PR scope and repository governance status;
-7. Player working-file count;
-8. active risks and the unenforced-ruleset exception;
-9. that no held identity, storage or platform domain has been entered.
+5. accepted identity taxonomy and accepted clean-break decision;
+6. that no compatibility or migration implementation has started;
+7. Player file count and active risks;
+8. that no held domain has been entered.
