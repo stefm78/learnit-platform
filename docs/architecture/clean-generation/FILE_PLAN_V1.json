@@ -1,0 +1,106 @@
+{
+  "schema": "learnit.clean_generation.file_plan.v1",
+  "workPackage": "ARC-WP-022",
+  "baselineCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
+  "successorRoot": "apps/learnit-next",
+  "workingFileBudget": 32,
+  "budgetRule": "The first integrated successor candidate may contain exactly these paths and no other successor, v2 contract, authoring, test, build or workflow file. A new governor decision is required to add, rename or split a path.",
+  "frozenSharedFiles": [
+    {
+      "path": "contracts/learnit-kit-v2.schema.json",
+      "owner": "architecture-governor",
+      "phase": "merged-before-parallel-start",
+      "editableDuringImplementation": false
+    }
+  ],
+  "roles": {
+    "runtime-agent": {
+      "parallel": true,
+      "dependsOn": [
+        "contracts/learnit-kit-v2.schema.json"
+      ],
+      "paths": [
+        "apps/learnit-next/README.md",
+        "apps/learnit-next/index.template.html",
+        "apps/learnit-next/src/styles.css",
+        "apps/learnit-next/src/main.js",
+        "apps/learnit-next/src/core/canonical_json.js",
+        "apps/learnit-next/src/core/identity.js",
+        "apps/learnit-next/src/core/contract.js",
+        "apps/learnit-next/src/core/import.js",
+        "apps/learnit-next/src/core/library.js",
+        "apps/learnit-next/src/core/session.js",
+        "apps/learnit-next/src/core/progress.js",
+        "apps/learnit-next/src/ports/storage.js",
+        "apps/learnit-next/src/adapters/indexeddb.js",
+        "apps/learnit-next/src/ui/render.js"
+      ]
+    },
+    "authoring-agent": {
+      "parallel": true,
+      "dependsOn": [
+        "contracts/learnit-kit-v2.schema.json"
+      ],
+      "paths": [
+        "authoring/v2/README.md",
+        "authoring/v2/generate_ids.py",
+        "authoring/v2/validate_kit.py",
+        "authoring/v2/golden/nombres_complexes.json",
+        "authoring/v2/golden/signaux_electriques.json"
+      ]
+    },
+    "qa-fixture-agent": {
+      "parallel": true,
+      "dependsOn": [
+        "contracts/learnit-kit-v2.schema.json"
+      ],
+      "paths": [
+        "contracts/fixtures/v2-valid-minimal.json",
+        "contracts/fixtures/v2-invalid-legacy.json",
+        "contracts/fixtures/v2-invalid-digest-mismatch.json",
+        "apps/learnit-next/tests/contract_v2.py",
+        "apps/learnit-next/tests/storage_isolation.py",
+        "apps/learnit-next/tests/browser_vertical_slice.py",
+        "apps/learnit-next/tests/build_determinism.py"
+      ]
+    },
+    "integrator": {
+      "parallel": false,
+      "dependsOn": [
+        "runtime-agent reviewed output",
+        "authoring-agent reviewed output",
+        "qa-fixture-agent reviewed output"
+      ],
+      "paths": [
+        "apps/learnit-next/build.py",
+        "apps/learnit-next/source_manifest.json",
+        "apps/learnit-next/dev/run_checks.py",
+        "apps/learnit-next/dev/release.py",
+        ".github/workflows/learnit-next-ci.yml"
+      ]
+    }
+  },
+  "counts": {
+    "frozenSharedFiles": 1,
+    "runtimeAgent": 14,
+    "authoringAgent": 5,
+    "qaFixtureAgent": 7,
+    "integrator": 5,
+    "total": 32
+  },
+  "disjointness": {
+    "required": true,
+    "sharedWritablePaths": [],
+    "contractMutationDuringParallelWork": false,
+    "directMainWrites": false,
+    "uncontrolledSharedWorktree": false
+  },
+  "generatedOutputsNotCommitted": [
+    "apps/learnit-next/dist/**",
+    "apps/learnit-next/release/**",
+    "apps/learnit-next/.agent-runtime/**",
+    "apps/learnit-next/.agent-result/**",
+    "**/__pycache__/**",
+    "**/.pytest_cache/**"
+  ]
+}
