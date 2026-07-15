@@ -64,71 +64,82 @@ NEXT_SNAPSHOT = r"""async name => {
       const keys = store.getAllKeys();
       const records = store.getAll();
       tx.oncomplete = () => resolve({
-        keyPath: store.keyPath,
-        autoIncrement: store.autoIncrement,
-        indexes: Array.from(store.indexNames).sort(),
-        keys: keys.result,
-        records: records.result
+        keyPath:store.keyPath,
+        autoIncrement:store.autoIncrement,
+        indexes:Array.from(store.indexNames).sort(),
+        keys:keys.result,
+        records:records.result
       });
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error || new Error('snapshot transaction aborted'));
     });
   }
-  const result = {version: db.version, stores};
+  const result = {version:db.version, stores};
   db.close();
   return result;
 }"""
 
 START_FEEDBACK_PROBE = r"""pattern => {
-  if (window.__qaFeedbackProbe && window.__qaFeedbackProbe.observer) {
+  if (window.__qaFeedbackProbe?.observer) {
     window.__qaFeedbackProbe.observer.disconnect();
   }
   const regex = new RegExp(pattern, 'i');
-  const visible = element => {
-    if (!(element instanceof Element)) return false;
+  const text = element => String(
+    element.innerText || element.textContent || ''
+  ).trim();
+  const exposed = element => {
+    if (!(element instanceof Element) || element.hidden ||
+        element.getAttribute('aria-hidden') === 'true') return false;
     const style = getComputedStyle(element);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  };
+  const visible = element => {
+    if (!exposed(element)) return false;
     const rect = element.getBoundingClientRect();
-    return style.display !== 'none' && style.visibility !== 'hidden' &&
-           rect.width > 0 && rect.height > 0;
+    return rect.width > 0 && rect.height > 0;
   };
-  const candidates = () => {
-    const semantic = Array.from(document.querySelectorAll(
-      '[role="alert"],[role="status"],[aria-live]:not([aria-live="off"])'
-    ));
-    const leaves = Array.from(document.querySelectorAll('main *')).filter(
-      element => element.children.length === 0
-    );
-    return Array.from(new Set([...semantic, ...leaves])).filter(visible);
+  const semantic = element => element.matches(
+    '[role="alert"],[role="status"],[aria-live]:not([aria-live="off"])'
+  );
+  const candidatesFrom = node => {
+    const root = node.nodeType === Node.ELEMENT_NODE
+      ? node : node.parentElement;
+    if (!root) return [];
+    const found = [];
+    const add = element => {
+      if (!(element instanceof Element)) return;
+      if (semantic(element) && exposed(element)) found.push(element);
+      if (element.children.length === 0 && visible(element)) found.push(element);
+    };
+    add(root);
+    for (const element of root.querySelectorAll(
+      '[role="alert"],[role="status"],[aria-live]:not([aria-live="off"]),*'
+    )) add(element);
+    return Array.from(new Set(found));
   };
-  const text = element => String(element.innerText || element.textContent || '').trim();
-  const initial = candidates().map(text).filter(Boolean);
-  const state = {matched: null, initial, observer: null};
+  const state = {matched:null, observer:null};
   state.observer = new MutationObserver(records => {
-    const current = candidates();
-    for (const element of current) {
-      const value = text(element);
-      if (!value || !regex.test(value)) continue;
-      const touched = records.some(record => {
-        const target = record.target.nodeType === Node.ELEMENT_NODE
-          ? record.target : record.target.parentElement;
-        if (!target) return false;
-        if (element === target || element.contains(target)) return true;
-        return Array.from(record.addedNodes || []).some(node =>
-          node === element || (node instanceof Element && node.contains(element))
-        );
-      });
-      if (!initial.includes(value) || touched) {
-        state.matched = value;
-        return;
+    for (const record of records) {
+      const nodes = [record.target, ...Array.from(record.addedNodes || [])];
+      for (const node of nodes) {
+        for (const element of candidatesFrom(node)) {
+          const value = text(element);
+          if (value && regex.test(value)) {
+            state.matched = {
+              text:value,
+              announced:semantic(element),
+              visible:visible(element)
+            };
+            return;
+          }
+        }
       }
     }
   });
   state.observer.observe(document.body, {
-    subtree: true,
-    childList: true,
-    characterData: true,
-    attributes: true,
-    attributeFilter: ['role', 'aria-live', 'aria-busy', 'hidden', 'class']
+    subtree:true,
+    childList:true,
+    characterData:true
   });
   window.__qaFeedbackProbe = state;
 }"""
@@ -150,8 +161,7 @@ class QuietHandler(SimpleHTTPRequestHandler):
 @contextmanager
 def artifact_server(artifact: Path):
     server = ThreadingHTTPServer(
-        ("127.0.0.1", 0),
-        partial(QuietHandler, directory=str(artifact.parent)),
+        ("127.0.0.1", 0), partial(QuietHandler, directory=str(artifact.parent))
     )
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -251,20 +261,19 @@ def slot_mapping(record: dict[str, Any]) -> dict[str, str] | None:
     )
     if isinstance(observed, dict):
         return {str(key): str(value) for key, value in observed.items()}
-    if isinstance(observed, list):
-        result: dict[str, str] = {}
-        for item in observed:
-            if not isinstance(item, dict):
-                return None
-            slot_id = item.get("slotId")
-            token_id = item.get("tokenId")
-            if not isinstance(slot_id, str) or not isinstance(token_id, str):
-                return None
-            if slot_id in result:
-                return None
-            result[slot_id] = token_id
-        return result
-    return None
+    if not isinstance(observed, list):
+        return None
+    result: dict[str, str] = {}
+    for item in observed:
+        if not isinstance(item, dict):
+            return None
+        slot_id, token_id = item.get("slotId"), item.get("tokenId")
+        if not isinstance(slot_id, str) or not isinstance(token_id, str):
+            return None
+        if slot_id in result:
+            return None
+        result[slot_id] = token_id
+    return result
 
 
 class BrowserVerticalSliceTests(unittest.TestCase):
@@ -301,17 +310,14 @@ class BrowserVerticalSliceTests(unittest.TestCase):
     def setUp(self) -> None:
         self.context = self.browser.new_context()
         self.page = self.context.new_page()
-        self.open_app()
+        self.page.goto(self.url, wait_until="domcontentloaded")
+        self.wait_api()
         self.api("resetNextData")
         self.page.reload(wait_until="domcontentloaded")
         self.wait_api()
 
     def tearDown(self) -> None:
         self.context.close()
-
-    def open_app(self) -> None:
-        self.page.goto(self.url, wait_until="domcontentloaded")
-        self.wait_api()
 
     def wait_api(self) -> None:
         self.page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
@@ -337,6 +343,13 @@ class BrowserVerticalSliceTests(unittest.TestCase):
             if candidate.is_visible():
                 return candidate
         return None
+
+    def visible_controls(self, locator: Locator) -> list[Locator]:
+        return [
+            locator.nth(index)
+            for index in range(locator.count())
+            if locator.nth(index).is_visible()
+        ]
 
     def assert_focused(self, control: Locator) -> None:
         self.assertTrue(
@@ -366,65 +379,89 @@ class BrowserVerticalSliceTests(unittest.TestCase):
     def wait_feedback(self) -> str:
         self.page.wait_for_function(
             """() => {
-              const probe = window.__qaFeedbackProbe;
-              if (!probe || !probe.matched) return false;
-              const visible = element => {
+              const result = window.__qaFeedbackProbe?.matched;
+              if (!result || (!result.visible && !result.announced)) return false;
+              const exposed = element => {
+                if (element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
                 const style = getComputedStyle(element);
-                const rect = element.getBoundingClientRect();
-                return style.display !== 'none' && style.visibility !== 'hidden' &&
-                       rect.width > 0 && rect.height > 0;
+                return style.display !== 'none' && style.visibility !== 'hidden';
               };
-              const busy = Array.from(document.querySelectorAll('[aria-busy="true"]'))
-                .some(visible);
-              return !busy;
+              return !Array.from(document.querySelectorAll('[aria-busy="true"]'))
+                .some(exposed);
             }"""
         )
-        text = self.page.evaluate(
+        matched = self.page.evaluate(
             """() => {
               const probe = window.__qaFeedbackProbe;
-              const text = probe.matched;
+              const result = probe.matched;
               probe.observer.disconnect();
-              return text;
+              return result;
             }"""
         )
-        self.assertTrue(text)
-        return text
+        self.assertTrue(matched["visible"] or matched["announced"], matched)
+        return matched["text"]
 
-    def optional_import_confirmation(self, chooser: Locator) -> None:
-        chooser_handle = chooser.element_handle()
-        for pattern in (IMPORT_NAMES, VALIDATE_NAMES):
-            candidates = self.page.get_by_role("button", name=pattern)
-            for index in range(candidates.count()):
-                candidate = candidates.nth(index)
-                if not candidate.is_visible() or candidate.is_disabled():
-                    continue
-                same = candidate.evaluate(
-                    "(element, chooser) => element === chooser", chooser_handle
-                )
-                if not same:
-                    self.activate(candidate)
-                    return
+    def import_trigger(self) -> Locator:
+        trigger = self.first_visible(self.page.get_by_role("button", name=IMPORT_NAMES))
+        if trigger is None:
+            self.fail("import trigger lacks an accessible button")
+        return trigger
+
+    def wait_import_idle(self) -> None:
+        trigger = self.import_trigger()
+        handle = trigger.element_handle()
+        self.page.wait_for_function(
+            "element => !element.disabled && element.getAttribute('aria-disabled') !== 'true'",
+            handle,
+        )
 
     def import_through_keyboard(self, payload: Any) -> None:
         text = payload if isinstance(payload, str) else json.dumps(
             payload, ensure_ascii=False
         )
-        chooser = self.first_visible(self.page.get_by_role("button", name=IMPORT_NAMES))
-        if chooser is None:
-            self.fail("import trigger lacks an accessible button")
+        trigger = self.import_trigger()
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", encoding="utf-8", delete=False
         ) as handle:
             handle.write(text)
             path = Path(handle.name)
         try:
-            chooser.focus()
-            self.assert_focused(chooser)
+            trigger.focus()
+            self.assert_focused(trigger)
+            trigger.evaluate("element => { window.__qaImportTrigger = element; }")
             with self.page.expect_file_chooser() as event:
                 self.page.keyboard.press("Enter")
             event.value.set_files(str(path))
-            self.page.evaluate("() => new Promise(resolve => requestAnimationFrame(resolve))")
-            self.optional_import_confirmation(chooser)
+            self.page.wait_for_function(
+                """async pattern => {
+                  if ((await window.__LEARNIT_NEXT_TEST__.listCourses()).length > 0) return true;
+                  if (window.__qaFeedbackProbe?.matched) return true;
+                  const regex = new RegExp(pattern, 'i');
+                  return Array.from(document.querySelectorAll('button')).some(button => {
+                    if (button === window.__qaImportTrigger || button.hidden || button.disabled ||
+                        button.getAttribute('aria-disabled') === 'true') return false;
+                    const style = getComputedStyle(button);
+                    if (style.display === 'none' || style.visibility === 'hidden') return false;
+                    const name = button.getAttribute('aria-label') || button.innerText || '';
+                    return regex.test(name);
+                  });
+                }""",
+                f"{IMPORT_NAMES.pattern}|{VALIDATE_NAMES.pattern}",
+            )
+            confirmation = None
+            for pattern in (IMPORT_NAMES, VALIDATE_NAMES):
+                for candidate in self.visible_controls(
+                    self.page.get_by_role("button", name=pattern)
+                ):
+                    if candidate.evaluate(
+                        "element => element !== window.__qaImportTrigger"
+                    ) and not candidate.is_disabled():
+                        confirmation = candidate
+                        break
+                if confirmation is not None:
+                    break
+            if confirmation is not None:
+                self.activate(confirmation)
         finally:
             path.unlink(missing_ok=True)
 
@@ -441,19 +478,14 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         title_control = None
         for role in ("button", "link"):
             title_control = self.first_visible(
-                self.page.get_by_role(
-                    role, name=re.compile(re.escape(title), re.I)
-                )
+                self.page.get_by_role(role, name=re.compile(re.escape(title), re.I))
             )
             if title_control is not None:
                 break
-        if title_control is not None:
-            self.activate(title_control)
-        else:
-            self.activate_named(START_NAMES)
-        self.page.get_by_text(first_prompt, exact=False).first.wait_for(
-            state="visible"
+        self.activate(title_control) if title_control is not None else self.activate_named(
+            START_NAMES
         )
+        self.page.get_by_text(first_prompt, exact=False).first.wait_for(state="visible")
 
     def assert_no_qcm_preselection(self, activity: dict[str, Any]) -> None:
         for choice in activity["choices"]:
@@ -478,17 +510,20 @@ class BrowserVerticalSliceTests(unittest.TestCase):
 
     def answer_qcm_with_keyboard(self, label: str) -> None:
         exact = re.compile(f"^{re.escape(label)}$", re.I)
-        radio = self.first_visible(self.page.get_by_role("radio", name=exact))
-        button = self.first_visible(self.page.get_by_role("button", name=exact))
-        control = radio or button
+        control = self.first_visible(self.page.get_by_role("radio", name=exact))
+        if control is None:
+            control = self.first_visible(self.page.get_by_role("button", name=exact))
         if control is None:
             self.fail("QCM choice lacks accessible radio/button role and name")
         self.activate(control, "Space")
         self.activate_named(VALIDATE_NAMES)
 
-    def choose_native_option_with_keyboard(
+    def choose_option_with_keyboard(
         self, control: Locator, token_id: str, token_label: str
     ) -> None:
+        self.assertTrue(control.get_attribute("aria-label") or control.get_attribute(
+            "aria-labelledby"
+        ), "fill slot needs an accessible name")
         tag_name = control.evaluate("element => element.tagName.toLowerCase()")
         if tag_name == "select":
             options = control.evaluate(
@@ -499,12 +534,11 @@ class BrowserVerticalSliceTests(unittest.TestCase):
                 (
                     index
                     for index, option in enumerate(options)
-                    if option["value"] == token_id
-                    or option["label"] == token_label
+                    if option["value"] == token_id or option["label"] == token_label
                 ),
                 None,
             )
-            self.assertIsNotNone(target, f"token {token_id} absent from slot options")
+            self.assertIsNotNone(target, f"token {token_id} absent from options")
             control.focus()
             self.assert_focused(control)
             self.page.keyboard.press("Home")
@@ -512,23 +546,24 @@ class BrowserVerticalSliceTests(unittest.TestCase):
                 self.page.keyboard.press("ArrowDown")
             self.page.keyboard.press("Enter")
             selected = control.evaluate(
-                "element => ({value:element.value,label:element.options[element.selectedIndex].textContent.trim()})"
+                "element => ({value:element.value," 
+                "label:element.options[element.selectedIndex].textContent.trim()})"
             )
             self.assertTrue(
                 selected["value"] == token_id or selected["label"] == token_label,
                 selected,
             )
             return
-
         control.focus()
         self.assert_focused(control)
         self.page.keyboard.press("Enter")
         self.page.keyboard.type(token_label)
         self.page.keyboard.press("Enter")
-        selected_text = control.evaluate(
-            "element => String(element.value || element.innerText || element.textContent || '').trim()"
+        selected = control.evaluate(
+            "element => String(element.value || element.innerText || "
+            "element.textContent || '').trim()"
         )
-        self.assertIn(token_label, selected_text)
+        self.assertIn(token_label, selected)
 
     def answer_fill_with_keyboard(self, activity: dict[str, Any]) -> None:
         slots = [
@@ -536,19 +571,11 @@ class BrowserVerticalSliceTests(unittest.TestCase):
             for segment in activity["segments"]
             if "slotId" in segment
         ]
+        controls = self.visible_controls(self.page.get_by_role("combobox"))
+        self.assertEqual(len(slots), len(controls), "one accessible combobox per slot")
         token = activity["tokens"][0]
-        controls: list[Locator] = []
-        for slot_id in slots:
-            control = self.first_visible(
-                self.page.get_by_role(
-                    "combobox", name=re.compile(re.escape(slot_id), re.I)
-                )
-            )
-            if control is None:
-                self.fail(f"slot {slot_id} lacks accessible combobox role/name")
-            controls.append(control)
         for control in controls:
-            self.choose_native_option_with_keyboard(
+            self.choose_option_with_keyboard(
                 control, token["tokenId"], token["label"]
             )
         self.activate_named(VALIDATE_NAMES)
@@ -578,10 +605,8 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         self.start_feedback_probe(pattern)
         self.import_through_keyboard(payload)
         feedback = self.wait_feedback()
+        self.wait_import_idle()
         self.wait_courses(0)
-        self.page.evaluate(
-            "() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))"
-        )
         self.assertEqual(
             before,
             self.snapshot_next(),
@@ -626,8 +651,9 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         )
         self.start_feedback_probe(SUCCESS_FEEDBACK)
         self.answer_qcm_with_keyboard(correct_label)
-        qcm_feedback = self.wait_feedback()
-        self.assertRegex(qcm_feedback, re.compile(SUCCESS_FEEDBACK, re.I))
+        self.assertRegex(
+            self.wait_feedback(), re.compile(SUCCESS_FEEDBACK, re.I)
+        )
         self.activate_named(NEXT_NAMES)
 
         fill = course["activities"][1]
@@ -636,8 +662,9 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         )
         self.start_feedback_probe(SUCCESS_FEEDBACK)
         self.answer_fill_with_keyboard(fill)
-        fill_feedback = self.wait_feedback()
-        self.assertRegex(fill_feedback, re.compile(SUCCESS_FEEDBACK, re.I))
+        self.assertRegex(
+            self.wait_feedback(), re.compile(SUCCESS_FEEDBACK, re.I)
+        )
 
         course_install_id = courses[0]["courseInstallId"]
         progress = self.api("getProgress", course_install_id)
@@ -654,7 +681,6 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         self.page.reload(wait_until="domcontentloaded")
         self.wait_api()
         self.assertEqual(progress, self.api("getProgress", course_install_id))
-
         reopened = self.context.new_page()
         reopened.goto(self.url, wait_until="domcontentloaded")
         reopened.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
@@ -669,10 +695,7 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         self,
     ) -> None:
         cases = (
-            (
-                self.legacy,
-                r"contrat|contract|version|legacy|learnit\.kit\.v2",
-            ),
+            (self.legacy, r"contrat|contract|version|legacy|learnit\.kit\.v2"),
             (
                 '{"contract":"learnit.kit.v2", invalid-json',
                 r"json|syntaxe|syntax|invalide|invalid|parse",
@@ -703,9 +726,10 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         self.assertRegex(
             self.wait_feedback(), re.compile(SUCCESS_FEEDBACK, re.I)
         )
-        progress = self.api("getProgress", courses[0]["courseInstallId"])
         self.assert_activity_success(
-            progress, qcm, selected=qcm["correctChoiceId"]
+            self.api("getProgress", courses[0]["courseInstallId"]),
+            qcm,
+            selected=qcm["correctChoiceId"],
         )
 
     def test_fill_maxuses_one_is_rejected_without_progress_or_storage_mutation(
