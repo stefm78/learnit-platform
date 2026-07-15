@@ -69,6 +69,30 @@ function addRevision(index, revisionId, digest) {
   index.set(revisionId, digest);
 }
 
+function revisionDigestIndexFromPackages(packages) {
+  const index = new Map();
+  for (const record of packages) {
+    const payload = record.payload;
+    addRevision(index, payload.packageRevisionId, payload.packageRevisionDigest);
+    for (const course of payload.courses) {
+      addRevision(index, course.courseRevisionId, course.courseRevisionDigest);
+      for (const activity of course.activities) {
+        addRevision(index, activity.activityRevisionId, activity.activityRevisionDigest);
+      }
+    }
+  }
+  return index;
+}
+
+export function assertRevisionDigestCompatibility(existingPackages, revisions) {
+  if (!Array.isArray(revisions)) throw new TypeError('Import plan revisions must be an array');
+  const index = revisionDigestIndexFromPackages(existingPackages);
+  for (const revision of revisions) {
+    addRevision(index, revision.revisionId, revision.digest);
+  }
+  return index;
+}
+
 export function createIndexedDbStorage({
   indexedDbApi = globalThis.indexedDB,
   localStorageApi = globalThis.localStorage,
@@ -85,14 +109,35 @@ export function createIndexedDbStorage({
     async commitImport(plan) {
       const db = await database();
       const transaction = db.transaction(['packages', 'courses', 'meta'], 'readwrite');
-      const requests = [requestResult(transaction.objectStore('packages').add(plan.package))];
-      for (const course of plan.courses) {
-        requests.push(requestResult(transaction.objectStore('courses').add(course)));
+      const completion = transactionDone(transaction);
+      const packageStore = transaction.objectStore('packages');
+
+      try {
+        const existingPackages = await requestResult(packageStore.getAll());
+        assertRevisionDigestCompatibility(existingPackages, plan.revisions);
+
+        const requests = [requestResult(packageStore.add(plan.package))];
+        for (const course of plan.courses) {
+          requests.push(requestResult(transaction.objectStore('courses').add(course)));
+        }
+        for (const meta of plan.meta) {
+          requests.push(requestResult(transaction.objectStore('meta').put(meta)));
+        }
+        await Promise.all(requests);
+        await completion;
+      } catch (error) {
+        try {
+          transaction.abort();
+        } catch {
+          // A failed request may already have aborted the transaction.
+        }
+        try {
+          await completion;
+        } catch {
+          // Preserve the validation or request error that caused the abort.
+        }
+        throw error;
       }
-      for (const meta of plan.meta) {
-        requests.push(requestResult(transaction.objectStore('meta').put(meta)));
-      }
-      await Promise.all([...requests, transactionDone(transaction)]);
     },
 
     async getRevisionDigestIndex() {
@@ -100,18 +145,7 @@ export function createIndexedDbStorage({
       const transaction = db.transaction('packages', 'readonly');
       const packages = await requestResult(transaction.objectStore('packages').getAll());
       await transactionDone(transaction);
-      const index = new Map();
-      for (const record of packages) {
-        const payload = record.payload;
-        addRevision(index, payload.packageRevisionId, payload.packageRevisionDigest);
-        for (const course of payload.courses) {
-          addRevision(index, course.courseRevisionId, course.courseRevisionDigest);
-          for (const activity of course.activities) {
-            addRevision(index, activity.activityRevisionId, activity.activityRevisionDigest);
-          }
-        }
-      }
-      return index;
+      return revisionDigestIndexFromPackages(packages);
     },
 
     async listCourses() {
