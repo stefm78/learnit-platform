@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-15-024",
-  "effectiveFromCommit": "0575385c5891e56506de6aaa0244297d766ea458",
-  "reviewedBaselineCommit": "0575385c5891e56506de6aaa0244297d766ea458",
+  "stateId": "GOV-STATE-2026-07-15-025",
+  "effectiveFromCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
+  "reviewedBaselineCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "clean-break-generation-accepted-foundation-design-gate",
+    "id": "clean-generation-foundation-accepted-execution-authorization-gate",
     "status": "active",
-    "description": "RC718 remains the frozen promoted legacy standalone product after RC719 PASS_WITH_RESERVATIONS. Stage B, Stage C and the controlled Stage D pilot remain accepted. ARC-WP-020 identity taxonomy remains accepted, but ARC-WP-021 supersedes its continuity path: no RC718 compatibility resolver, identity overlay, dual-read window or learner-state migration is planned. The next generation will use a new major contract, canonical identity from creation, isolated storage and an empty active state. Implementation remains blocked until the bounded clean-generation foundation gate is accepted."
+    "description": "RC718 remains the frozen promoted legacy standalone product after RC719 PASS_WITH_RESERVATIONS. ARC-WP-021 clean break remains canonical. ARC-WP-022 accepts the learnit.kit.v2 foundation contract, isolated successor storage namespaces, a 32-file successor budget, a minimal QCM/fill vertical slice and a three-stream disjoint multi-AI model with later independent integration. Successor implementation remains blocked until ARC-WP-023 binds subordinate work packages to the exact ARC-WP-022 merge commit."
   },
   "developmentBaseline": {
     "status": "promoted",
@@ -187,6 +187,27 @@
       "implementationAllowed": false,
       "decision": "docs/architecture/decisions/ADR-0002-CLEAN-BREAK-GENERATION.md",
       "review": "docs/governance/reviews/GOV-REVIEW-0023-ARC-WP-021-CLEAN-BREAK.md"
+    },
+    "cleanGenerationFoundation": {
+      "workPackage": "ARC-WP-022",
+      "status": "accepted-with-conditions",
+      "baselineCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
+      "contract": "learnit.kit.v2",
+      "successorRoot": "apps/learnit-next",
+      "localStoragePrefix": "learnit.next.v1.",
+      "indexedDbName": "learnit_next_v1",
+      "activityFamilies": [
+        "qcm",
+        "fill"
+      ],
+      "workingFileBudget": 32,
+      "parallelImplementers": 3,
+      "implementationInThisPackage": false,
+      "subordinateAuthorizationRequired": "ARC-WP-023",
+      "design": "docs/architecture/clean-generation/FOUNDATION_V1.md",
+      "filePlan": "docs/architecture/clean-generation/FILE_PLAN_V1.json",
+      "multiAiProtocol": "docs/architecture/clean-generation/MULTI_AI_EXECUTION_V1.md",
+      "review": "docs/governance/reviews/GOV-REVIEW-0025-ARC-WP-022-FOUNDATION.md"
     }
   },
   "authorizedWork": [
@@ -197,15 +218,19 @@
     "repository governance hardening",
     "the accepted learnit-identity-v1 taxonomy",
     "the accepted clean-break generation direction",
-    "a design-and-authorization package for the minimum viable clean-generation foundation",
-    "regeneration or explicit offline conversion of priority kits under a future accepted new-generation contract",
+    "the accepted learnit.kit.v2 clean-generation foundation contract and 32-file plan",
+    "creation of exact subordinate implementation work packages from the ARC-WP-022 merge commit",
+    "regeneration of the two priority foundation kits only through an accepted subordinate authoring work package",
     "work-package, evidence, provenance and restart-checkpoint tooling"
   ],
   "heldWork": [
-    "new-generation Player implementation until ARC-WP-022 is accepted",
+    "successor implementation until ARC-WP-023 binds exact subordinate work packages to the ARC-WP-022 merge commit",
+    "any successor file outside the accepted 32-file plan",
     "RC718 compatibility resolver, identity overlay, dual read, dual write or learner-state migration",
-    "automatic import or interpretation of RC718 packages by the new generation",
+    "automatic import or interpretation of RC718 packages by the successor",
     "automatic migration of RC718 library, custom labels, sessions, progress, bilan, retention, import history, field evidence or patches",
+    "media and activity families beyond qcm and fill in the foundation slice",
+    "advanced bilan, mastery, retention, patching or adaptive sequencing in the foundation slice",
     "backend implementation",
     "accounts and learner profiles",
     "cloud synchronization",
@@ -216,17 +241,19 @@
   ],
   "prohibitedWork": [
     "maintaining a separate canonical standalone source outside GitHub",
-    "silently reusing RC718 storage keys or database records for new-generation semantics",
+    "silently reusing RC718 storage keys or database records for successor semantics",
+    "accessing or mutating protected RC718 storage from successor code",
     "adding a temporary compatibility layer without an explicit accountable-owner reversal of ARC-WP-021",
     "canonical identifiers derived from editable titles, slugs, ordering, filenames or local collision suffixes",
-    "partially interpreting a legacy package as new-generation content",
-    "clearing or mutating RC718 localStorage or IndexedDB data from the new generation",
-    "presenting the new generation as a transparent RC718 upgrade",
+    "partially interpreting a legacy package as successor content",
+    "clearing or mutating RC718 localStorage or IndexedDB data from the successor",
+    "presenting the successor as a transparent RC718 upgrade",
     "copying all RC718 implementation without current product justification",
-    "parallel AI implementation without exact baseline and machine-checkable scopes",
+    "parallel AI implementation without one exact common baseline and machine-checkable disjoint scopes",
+    "allowing an integrator to silently repair role-owned files",
     "publishing an artifact different from the artifact tested",
-    "starting implementation without an accepted clean-generation foundation gate",
-    "adding another Player file while the working-file count is at 150 without an explicit file-budget decision",
+    "starting implementation without ARC-WP-023 exact subordinate authorization",
+    "adding, renaming or splitting a successor working file outside FILE_PLAN_V1.json without a new governor decision",
     "inventing missing RC719 reservation details"
   ],
   "activeRisks": [
@@ -237,15 +264,27 @@
       "closureGate": "move the repository to an eligible GitHub Team organization account or another topology that enforces private-repository rulesets"
     },
     {
-      "id": "RISK-ARCH-003",
+      "id": "RISK-ARCH-004",
       "severity": "moderate",
-      "statement": "The legacy Player working-file count is exactly 150. The clean-generation foundation must explicitly retain, reduce or replace this budget rather than growing around it.",
-      "closureGate": "accept an exact new-generation file plan and source-budget decision"
+      "statement": "The accepted 32-file successor budget is intentionally narrow and may prove insufficient during implementation. Expanding it without a new decision would recreate the legacy growth pattern.",
+      "closureGate": "implement the full foundation slice within the budget or obtain a separately reviewed file-budget amendment"
+    },
+    {
+      "id": "RISK-CONTRACT-003",
+      "severity": "moderate",
+      "statement": "Python authoring and JavaScript runtime canonical JSON and SHA-256 implementations may disagree, invalidating otherwise sound packages.",
+      "closureGate": "shared valid and invalid fixtures produce identical canonical bytes and digests in both implementations"
+    },
+    {
+      "id": "RISK-STORAGE-006",
+      "severity": "moderate",
+      "statement": "RC718 and the successor can share a browser origin, so storage isolation depends on strict namespace ownership and negative tests rather than browser process isolation.",
+      "closureGate": "integrated browser tests prove RC718 localStorage and IndexedDB records remain byte-for-byte unchanged after successor boot, import, use and reset"
     },
     {
       "id": "RISK-BREAK-005",
       "severity": "moderate",
-      "statement": "The clean-break decision intentionally does not migrate RC718 library or learner data. User confusion or perceived data loss is possible if the new generation is distributed without explicit communication and preserved RC718 access.",
+      "statement": "The clean-break decision intentionally does not migrate RC718 library or learner data. User confusion or perceived data loss is possible if the successor is distributed without explicit communication and preserved RC718 access.",
       "closureGate": "preserve retrievable RC718 access, publish an explicit rupture notice and pass a human release gate"
     },
     {
@@ -272,13 +311,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ARC-WP-022",
-    "condition": "Design and authorize the minimum viable clean-generation foundation from exact current main. Define the new major content contract, isolated localStorage and IndexedDB namespace, canonical identity rules, empty initial state, regenerated Nombres complexes and Signaux électriques golden kits, exact Player file plan and source-budget decision, disjoint Stage D role scopes, negative proof that RC718 storage is untouched, deterministic build and release identity. No RC718 compatibility or migration layer and no held platform domain may be introduced."
+    "id": "ARC-WP-023",
+    "condition": "From the exact ARC-WP-022 merge commit, create and validate subordinate runtime, authoring, contradictory-QA/fixture and integration work packages whose writable paths exactly reproduce FILE_PLAN_V1.json. The first three roles may then start in parallel on independent branches or worktrees. The contract remains frozen, the integrator starts only from reviewed role outputs, and no RC718 compatibility, unplanned file or held platform domain may be introduced."
   },
   "review": {
     "lastReviewedAt": "2026-07-15",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0023 ARC-WP-021 clean-break decision",
+    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0025 ARC-WP-022 clean-generation foundation",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "ARC-WP-022 foundation proposal, any compatibility or migration request, any RC718 storage access from new-generation code, contract proposal, file-budget change, failed or missing CI, product or artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
+    "nextReviewTrigger": "ARC-WP-023 subordinate authorization, any contract mutation, any file-budget change, overlapping AI scope, any RC718 storage access, failed or missing CI, source-to-artifact drift, contradictory QA finding, integrator finding, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
   }
 }
