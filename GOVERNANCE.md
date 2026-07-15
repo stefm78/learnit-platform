@@ -157,12 +157,18 @@ Next gate
 
 ## Current rule
 
-Until `ARC-WP-000` is accepted, the governor must keep the following on hold:
+RC718 is the frozen promoted legacy standalone generation. It remains available for historical access and bounded maintenance, but it is not an in-place migration base for the successor.
 
-- player-wide architectural refactoring;
-- backend implementation;
-- account and cloud synchronization;
-- global identifier migration;
-- commerce, institutions, and marketplace.
+`ARC-WP-021` selected trajectory **C — clean break**. The governor must therefore keep the following on hold unless a new accountable-owner decision explicitly reopens them:
 
-The active standalone development may continue its bounded stabilization work outside the repository until a promoted candidate is selected for baseline import.
+- RC718 compatibility resolver or identity overlay;
+- dual read or dual write between legacy and successor keys;
+- automatic migration of RC718 libraries, custom labels or learner state;
+- automatic interpretation of RC718 packages by the successor;
+- new-generation Player implementation before `ARC-WP-022` is accepted;
+- backend, accounts, cloud synchronization and remote catalog;
+- commerce, institutions, tenancy and marketplace.
+
+The next mandatory gate is `ARC-WP-022`: design and authorization of the minimum viable clean-generation foundation, including a new major contract, native canonical identity, isolated browser storage, regenerated golden kits, exact file ownership, contradictory QA and release provenance.
+
+Repository state, accepted ADRs and exact work-package evidence override historical roadmaps or handovers when they conflict.
