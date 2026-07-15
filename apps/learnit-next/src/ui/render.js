@@ -18,10 +18,12 @@ function node(tag, attributes = {}, children = []) {
 }
 
 function errorMessages(error) {
+  const summary = error?.message ?? 'Une erreur inattendue est survenue.';
+  if (error?.code === 'unsupported_contract') return [summary];
   if (Array.isArray(error?.errors) && error.errors.length) {
-    return error.errors.map((entry) => `${entry.path}: ${entry.message}`);
+    return [summary, ...error.errors.map((entry) => `${entry.path}: ${entry.message}`)];
   }
-  return [error?.message ?? 'Une erreur inattendue est survenue.'];
+  return [summary];
 }
 
 function renderNotice(messages, type = 'error') {
@@ -192,6 +194,43 @@ export function renderApp(root, runtime) {
     }
   }
 
+  function renderCourseLabelForm(course) {
+    const inputId = `course-display-label-${course.courseInstallId}`;
+    const helpId = `${inputId}-help`;
+    const input = node('input', {
+      id: inputId,
+      name: 'display-label',
+      type: 'text',
+      value: course.title,
+      required: 'required',
+      autocomplete: 'off',
+      'aria-describedby': helpId,
+    });
+    const form = node('form', { className: 'course-label-form' }, [
+      node('label', { className: 'field-label', for: inputId, text: 'Nom local du cours' }),
+      node('div', { className: 'course-label-controls' }, [
+        input,
+        node('button', { type: 'submit', className: 'secondary', text: 'Enregistrer' }),
+      ]),
+      node('p', {
+        id: helpId,
+        className: 'help',
+        text: 'Ce nom est local. Les identités et le titre canonique du kit restent inchangés.',
+      }),
+    ]);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const requestedLabel = input.value;
+      run(() => runtime.setCourseDisplayLabel(course.courseInstallId, requestedLabel), async () => {
+        const normalizedLabel = requestedLabel.trim();
+        const message = `Nom local enregistré : « ${normalizedLabel} ».`;
+        notice = renderNotice([message], 'success');
+        await renderLibrary({ announcement: message });
+      });
+    });
+    return form;
+  }
+
   async function renderLibrary({ focus = true, announcement = null } = {}) {
     const courses = await runtime.listCourses();
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
@@ -258,6 +297,7 @@ export function renderApp(root, runtime) {
             course.subtitle ? node('p', { text: course.subtitle }) : null,
             node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
           ]),
+          renderCourseLabelForm(course),
           renderProgress(course.progress),
           courseAction,
         ]));
