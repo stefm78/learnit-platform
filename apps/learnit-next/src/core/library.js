@@ -32,7 +32,8 @@ export function createLibraryService(storage, progressService) {
 
     async setDisplayLabel(courseInstallId, label) {
       const normalized = String(label ?? '').trim();
-      if (!normalized || normalized.length > 180) {
+      const codePointLength = Array.from(normalized).length;
+      if (!normalized || codePointLength > 180) {
         throw new TypeError('Display label must contain between 1 and 180 characters');
       }
       await storage.setCourseDisplayLabel(courseInstallId, normalized);
