@@ -45,6 +45,7 @@
     "Both golden kits parse as JSON and validate against the frozen schema.",
     "Semantic validation reports unique IDs, valid references, valid QCM choices, valid fill slots/tokens/maxUses and matching digests.",
     "Canonical bytes and digest values are emitted for QA cross-language comparison.",
+    "The role-local validation commands and raw outputs are recorded and independently reproduced before integration.",
     "Learning review confirms objective/activity alignment and scientifically correct content in the bounded fixture scope.",
     "The result is independently reviewed before integration."
   ],
@@ -73,7 +74,10 @@
   ],
   "execution": {
     "parallelGroup": "clean-generation-foundation-implementers",
-    "remoteAgentProfile": "repository",
+    "executionLane": "independent-clean-worktree",
+    "remoteAgentTransportAllowed": true,
+    "remoteAgentResultSufficient": false,
+    "validationPolicy": "The existing fixed Remote Agent profiles do not certify v2 authoring behavior. Any Remote Agent status is transport evidence only; role-local Python commands and outputs must be recorded and independently reproduced before integration.",
     "maximumChangedFiles": 5,
     "maximumChangedLines": 3000,
     "requiresIndependentReviewBeforeIntegration": true
