@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-022",
+  "title": "Design and authorize the minimum viable clean-generation foundation",
+  "status": "accepted",
+  "changeClass": "architecture-contract-and-execution-design",
+  "riskClass": "high",
+  "purpose": "Freeze the minimum successor-generation product contract, storage isolation boundary, exact 32-file implementation budget, vertical-slice behavior, deterministic build discipline and disjoint multi-AI execution model. This gate enables separately approved subordinate work packages to implement the successor without copying RC718 wholesale and without any RC718 compatibility or learner-state migration layer.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
+    "candidateName": "clean-generation-foundation-v1",
+    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-022.json",
+      "contracts/learnit-kit-v2.schema.json",
+      "docs/architecture/clean-generation/FOUNDATION_V1.md",
+      "docs/architecture/clean-generation/FILE_PLAN_V1.json",
+      "docs/architecture/clean-generation/MULTI_AI_EXECUTION_V1.md",
+      "docs/governance/reviews/GOV-REVIEW-0025-ARC-WP-022-FOUNDATION.md",
+      "governance/governor-state.json",
+      "docs/handover/STAGE_D_RESTART_CHECKPOINT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/fixtures/**",
+      "tools/**",
+      "docs/evidence/**",
+      "docs/product/**",
+      "docs/roadmap/**",
+      "docs/architecture/decisions/**"
+    ]
+  },
+  "invariants": [
+    "RC718 source, promoted artifact, browser storage and historical evidence remain unchanged and independently usable.",
+    "The successor is rooted at apps/learnit-next and is not an in-place refactor of apps/player.",
+    "The frozen contract identifier is learnit.kit.v2 and legacy learnit.import.v1.1 packages fail closed.",
+    "Canonical lineage and revision identifiers are opaque lowercase UUIDs persisted by authoring, never derived from titles, slugs, ordering, filenames or local collision suffixes.",
+    "The successor uses only localStorage key prefix learnit.next.v1. and IndexedDB database learnit_next_v1.",
+    "The successor never reads, writes, clears or deletes RC718 localStorage keys or IndexedDB databases.",
+    "The first product slice contains import, library, one course session, QCM and fill activities, progress persistence and refresh recovery only.",
+    "The first implementation is limited to the exact 32 working files in FILE_PLAN_V1.json.",
+    "The contract is frozen before parallel implementation and may change only through a new architecture work package.",
+    "Parallel AI write scopes are disjoint; integration files are owned only by the integrator.",
+    "Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held."
+  ],
+  "requiredEvidence": [
+    "Repository entry points are aligned with RC718 legacy status and the clean-break decision.",
+    "The v2 JSON Schema is syntactically valid and contains only the bounded foundation activity families.",
+    "The exact 32-file plan assigns one owner to every future file and contains no overlap between implementation roles.",
+    "The storage namespace table lists all protected RC718 keys and the distinct successor namespaces.",
+    "The vertical-slice acceptance matrix covers empty state, new package import, legacy rejection, session, progress, reload and RC718 storage immutability.",
+    "Repository governance, PR scope and Player CI pass on the exact design commit."
+  ],
+  "adversarialTests": [
+    "Reject any proposed successor file outside the exact file plan unless a new governor decision changes the budget.",
+    "Reject any use of learnit_clean_state_v2, learnit_imported_courses_v1, learnit_import_history_v1, learnit_import_last_applied_v1, learnit_import_transaction_v1, learnit_active_course_v1, learnit_content_patches_v2, learnit_library_revision_v1, learnit_library_persistence_meta_v1 or learnit_durable_library_v1 by successor code.",
+    "Reject a legacy package before any durable or transient library mutation.",
+    "Reject duplicate lineage or revision identifiers inside one package.",
+    "Reject one immutable revision identifier presented with a different canonical digest.",
+    "Verify that title and display-label changes do not change canonical identifiers.",
+    "Verify that QCM answers use choice identifiers rather than array positions.",
+    "Verify that fill answers use explicit slot and token identifiers and enforce token maxUses.",
+    "Verify deterministic clean builds and exact tested-artifact identity.",
+    "Verify that no held platform domain or RC718 migration logic appears in subordinate work."
+  ],
+  "nonGoals": [
+    "Reimplementing the complete RC718 interface or all activity families.",
+    "Migrating RC718 libraries, plan labels, sessions, progress, bilans, retention, import history, evidence or patches.",
+    "Reading RC718 packages through a compatibility adapter.",
+    "Publishing a production-ready authoring skill or complete learning catalog.",
+    "Implementing media, matching, ordering, classification, advanced bilan, spaced retention or content patching in the first slice.",
+    "Implementing backend, accounts, synchronization, remote catalog, commerce, tenancy or marketplace.",
+    "Promoting a successor release without a later human gate."
+  ],
+  "independentReview": [
+    "Architecture review challenges contract minimality, identity semantics, dependency direction and source-file budget.",
+    "Contradictory QA reviews storage isolation, atomic legacy rejection, digest collision handling and failure recovery.",
+    "Learning review confirms that the two foundation activity families and golden-kit scope are sufficient to test a real learning loop without claiming pedagogical completeness.",
+    "Integrator review confirms disjoint paths, deterministic build ownership and one source of truth for the contract and manifest.",
+    "Governor verifies evidence, claims, assumptions, absence of evidence, active risks and held domains before merge."
+  ],
+  "foundation": {
+    "contract": "learnit.kit.v2",
+    "successorRoot": "apps/learnit-next",
+    "workingFileBudget": 32,
+    "artifact": "apps/learnit-next/dist/learnit-next.html",
+    "localStoragePrefix": "learnit.next.v1.",
+    "indexedDbName": "learnit_next_v1",
+    "activityFamilies": [
+      "qcm",
+      "fill"
+    ],
+    "goldenKits": [
+      "nombres-complexes-foundation-v2",
+      "signaux-electriques-foundation-v2"
+    ]
+  },
+  "executionAuthorization": {
+    "implementationInThisWorkPackage": false,
+    "subordinateWorkPackagesAllowed": true,
+    "requiredBase": "exact ARC-WP-022 merge commit",
+    "parallelStartCondition": "the contract and file plan are merged, each subordinate work package has the same exact base commit, and all role write scopes are disjoint",
+    "maximumParallelImplementers": 3,
+    "integrationMode": "one integrator after or between reviewed role outputs; no direct merge to main"
+  },
+  "rollback": "Revert this design package before subordinate implementation starts. After subordinate work begins, stop all successor branches and continue using frozen RC718; no RC718 data or artifact is changed by this gate.",
+  "nextGate": {
+    "id": "ARC-WP-023",
+    "purpose": "Authorize exact subordinate implementation work packages from the ARC-WP-022 merge commit and launch the contract-fixture, runtime, authoring and contradictory-QA streams with disjoint paths."
+  }
+}
