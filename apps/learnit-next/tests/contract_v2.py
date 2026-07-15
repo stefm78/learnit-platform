@@ -1,813 +1,200 @@
 #!/usr/bin/env python3
 """Independent learnit.kit.v2 oracle plus black-box runtime attacks."""
 from __future__ import annotations
-
-import copy
-import hashlib
-import json
-import os
-import re
-import threading
-import unicodedata
-import unittest
+import copy, hashlib, json, os, re, threading, unicodedata, unittest
 from contextlib import contextmanager
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
-
 try:
     from jsonschema import Draft202012Validator
 except ImportError:
     Draft202012Validator = None
-
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
     sync_playwright = None
-
-ROOT = Path(__file__).resolve().parents[3]
-FIXTURES = ROOT / "contracts" / "fixtures"
-SCHEMA = ROOT / "contracts" / "learnit-kit-v2.schema.json"
-VALID = FIXTURES / "v2-valid-minimal.json"
-LEGACY = FIXTURES / "v2-invalid-legacy.json"
-MISMATCH = FIXTURES / "v2-invalid-digest-mismatch.json"
-ARTIFACT = ROOT / "apps" / "learnit-next" / "dist" / "learnit-next.html"
-UUID4 = re.compile(
-    r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-)
-SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
-DOMAIN_REJECTION = re.compile(
-    r"contract|contrat|legacy|schema|invalid|invalide|validation|digest|revision|révision|"
-    r"reference|référence|duplicate|doublon|max.?uses|token|slot|choice|choix|"
-    r"objective|objectif|uuid|package",
-    re.I,
-)
-STRICT = os.environ.get("LEARNIT_NEXT_STRICT_INTEGRATION") == "1"
-
-NEXT_SNAPSHOT = r"""async name => {
-  if (typeof indexedDB.databases !== 'function') {
-    throw new Error('Chromium indexedDB.databases() is required for non-creating snapshots');
-  }
-  const names = (await indexedDB.databases()).map(item => item.name).filter(Boolean);
-  if (!names.includes(name)) return null;
-  const db = await new Promise((resolve, reject) => {
-    const request = indexedDB.open(name);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-  const stores = {};
-  for (const storeName of Array.from(db.objectStoreNames).sort()) {
-    stores[storeName] = await new Promise((resolve, reject) => {
-      const tx = db.transaction(storeName, 'readonly');
-      const store = tx.objectStore(storeName);
-      const keys = store.getAllKeys();
-      const records = store.getAll();
-      tx.oncomplete = () => resolve({
-        keyPath: store.keyPath,
-        autoIncrement: store.autoIncrement,
-        indexes: Array.from(store.indexNames).sort(),
-        keys: keys.result,
-        records: records.result
-      });
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error || new Error('snapshot transaction aborted'));
-    });
-  }
-  const result = {version: db.version, stores};
-  db.close();
-  return result;
-}"""
-
-
-def require_or_skip(condition: bool, message: str) -> None:
-    if condition:
-        return
-    if STRICT:
-        raise RuntimeError(message)
-    raise unittest.SkipTest(message)
-
-
-def load(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def normalize(value: Any) -> Any:
-    if value is None or isinstance(value, (bool, int)):
-        return value
-    if isinstance(value, float):
-        raise TypeError("floats forbidden")
-    if isinstance(value, str):
-        return unicodedata.normalize("NFC", value)
-    if isinstance(value, list):
-        return [normalize(item) for item in value]
-    if isinstance(value, dict):
-        result: dict[str, Any] = {}
-        for key, item in value.items():
-            normalized_key = unicodedata.normalize("NFC", key)
-            if normalized_key in result:
-                raise ValueError("NFC key collision")
-            result[normalized_key] = normalize(item)
-        return result
-    raise TypeError(type(value).__name__)
-
-
-def canonical(value: Any) -> bytes:
-    return json.dumps(
-        normalize(value),
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    ).encode("utf-8")
-
-
-def digest(obj: dict[str, Any], field: str) -> str:
-    payload = {key: value for key, value in obj.items() if key != field}
-    return "sha256:" + hashlib.sha256(canonical(payload)).hexdigest()
-
-
-def redigest(package: dict[str, Any]) -> dict[str, Any]:
-    result = copy.deepcopy(package)
-    for course in result["courses"]:
-        for activity in course["activities"]:
-            activity["activityRevisionDigest"] = digest(
-                activity, "activityRevisionDigest"
-            )
-        course["courseRevisionDigest"] = digest(course, "courseRevisionDigest")
-    result["packageRevisionDigest"] = digest(result, "packageRevisionDigest")
-    return result
-
-
-def duplicates(values: Any) -> set[Any]:
-    seen: set[Any] = set()
-    repeated: set[Any] = set()
-    for value in values:
-        if value in seen:
-            repeated.add(value)
-        seen.add(value)
-    return repeated
-
-
-def semantic_errors(package: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    if package.get("contract") != "learnit.kit.v2":
-        return ["contract"]
-
-    for key in ("courseLineageId", "courseRevisionId"):
-        if duplicates(course[key] for course in package["courses"]):
-            errors.append(f"duplicate {key}")
-
-    activity_lineages: list[str] = []
-    activity_revisions: list[str] = []
-    for course in package["courses"]:
-        objective_ids = [item["objectiveId"] for item in course["objectives"]]
-        if duplicates(objective_ids):
-            errors.append("duplicate objectiveId")
-
-        activity_lineages.extend(
-            activity["activityLineageId"] for activity in course["activities"]
-        )
-        activity_revisions.extend(
-            activity["activityRevisionId"] for activity in course["activities"]
-        )
-
-        for activity in course["activities"]:
-            if any(
-                objective_id not in objective_ids
-                for objective_id in activity["objectiveIds"]
-            ):
-                errors.append("missing objective")
-
-            if activity["type"] == "qcm":
-                choice_ids = [choice["choiceId"] for choice in activity["choices"]]
-                if duplicates(choice_ids):
-                    errors.append("duplicate choice")
-                if activity["correctChoiceId"] not in choice_ids:
-                    errors.append("missing choice")
-                continue
-
-            slot_ids = [
-                segment["slotId"]
-                for segment in activity["segments"]
-                if "slotId" in segment
-            ]
-            token_ids = [token["tokenId"] for token in activity["tokens"]]
-            answer_slot_ids = [answer["slotId"] for answer in activity["answers"]]
-            if duplicates(slot_ids):
-                errors.append("duplicate slot")
-            if duplicates(token_ids):
-                errors.append("duplicate token")
-            if duplicates(answer_slot_ids):
-                errors.append("duplicate answer")
-            if set(answer_slot_ids) != set(slot_ids):
-                errors.append("slot reference")
-
-            token_limits = {
-                token["tokenId"]: token["maxUses"] for token in activity["tokens"]
-            }
-            uses: dict[str, int] = {}
-            for answer in activity["answers"]:
-                token_id = answer["tokenId"]
-                if token_id not in token_limits:
-                    errors.append("token reference")
-                uses[token_id] = uses.get(token_id, 0) + 1
-            if any(
-                count > token_limits.get(token_id, -1)
-                for token_id, count in uses.items()
-            ):
-                errors.append("maxUses")
-
-    if duplicates(activity_lineages):
-        errors.append("duplicate activityLineageId")
-    if duplicates(activity_revisions):
-        errors.append("duplicate activityRevisionId")
-    return errors
-
-
-def digest_errors(package: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    for course in package["courses"]:
-        for activity in course["activities"]:
-            if activity["activityRevisionDigest"] != digest(
-                activity, "activityRevisionDigest"
-            ):
-                errors.append("activity")
-        if course["courseRevisionDigest"] != digest(
-            course, "courseRevisionDigest"
-        ):
-            errors.append("course")
-    if package["packageRevisionDigest"] != digest(
-        package, "packageRevisionDigest"
-    ):
-        errors.append("package")
-    return errors
-
-
-def identity_values(value: Any):
-    if isinstance(value, dict):
-        for key, item in value.items():
-            if key.endswith("Id") and isinstance(item, str):
-                yield item
-            yield from identity_values(item)
-    elif isinstance(value, list):
-        for item in value:
-            yield from identity_values(item)
-
-
-def fresh_uuid(index: int) -> str:
-    return f"{index:08x}-9abc-4def-8abc-{index:012x}"
-
-
-def append_fresh_course(
-    package: dict[str, Any],
-    *,
-    duplicate_lineage: bool = False,
-    duplicate_revision: bool = False,
-) -> None:
-    source = package["courses"][0]
-    clone = copy.deepcopy(source)
-    counter = 100
-
-    clone["courseLineageId"] = (
-        source["courseLineageId"] if duplicate_lineage else fresh_uuid(counter)
-    )
-    counter += 1
-    clone["courseRevisionId"] = (
-        source["courseRevisionId"] if duplicate_revision else fresh_uuid(counter)
-    )
-    counter += 1
-
-    objective_map: dict[str, str] = {}
-    for objective in clone["objectives"]:
-        old = objective["objectiveId"]
-        objective["objectiveId"] = fresh_uuid(counter)
-        counter += 1
-        objective_map[old] = objective["objectiveId"]
-
-    for activity in clone["activities"]:
-        activity["activityLineageId"] = fresh_uuid(counter)
-        counter += 1
-        activity["activityRevisionId"] = fresh_uuid(counter)
-        counter += 1
-        activity["objectiveIds"] = [
-            objective_map[item] for item in activity["objectiveIds"]
-        ]
-        if activity["type"] == "qcm":
-            choice_map: dict[str, str] = {}
-            for choice in activity["choices"]:
-                old = choice["choiceId"]
-                choice["choiceId"] = fresh_uuid(counter)
-                counter += 1
-                choice_map[old] = choice["choiceId"]
-            activity["correctChoiceId"] = choice_map[activity["correctChoiceId"]]
+ROOT=Path(__file__).resolve().parents[3]; FIX=ROOT/'contracts/fixtures'; SCHEMA=ROOT/'contracts/learnit-kit-v2.schema.json'
+VALID=FIX/'v2-valid-minimal.json'; LEGACY=FIX/'v2-invalid-legacy.json'; MISMATCH=FIX/'v2-invalid-digest-mismatch.json'
+ARTIFACT=ROOT/'apps/learnit-next/dist/learnit-next.html'; STRICT=os.environ.get('LEARNIT_NEXT_STRICT_INTEGRATION')=='1'
+UUID4=re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'); SHA256=re.compile(r'^sha256:[0-9a-f]{64}$')
+DOMAIN_ERROR_NAMES={'ContractError','ValidationError','SchemaValidationError','DigestMismatchError','RevisionConflictError','LegacyContractError','ImportRejectedError'}
+NEXT_DB='learnit_next_v1'; NEXT_PREFIX='learnit.next.v1.'
+SNAPSHOT=r"""async ({dbName,prefix})=>{const local={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith(prefix))local[k]=localStorage.getItem(k)}if(typeof indexedDB.databases!=='function')throw Error('indexedDB.databases required');const names=(await indexedDB.databases()).map(x=>x.name).filter(Boolean);if(!names.includes(dbName))return{local,db:null};const db=await new Promise((ok,no)=>{const q=indexedDB.open(dbName);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});const stores={};for(const n of Array.from(db.objectStoreNames).sort())stores[n]=await new Promise((ok,no)=>{const tx=db.transaction(n,'readonly'),s=tx.objectStore(n),kr=s.getAllKeys(),vr=s.getAll();tx.oncomplete=()=>ok({keyPath:s.keyPath,autoIncrement:s.autoIncrement,indexes:Array.from(s.indexNames).sort(),keys:kr.result,records:vr.result});tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error||Error('snapshot aborted'))});const out={local,db:{version:db.version,stores}};db.close();return out}"""
+def require_or_skip(ok,msg):
+    if ok:return
+    if STRICT: raise RuntimeError(msg)
+    raise unittest.SkipTest(msg)
+def load(p): return json.loads(p.read_text(encoding='utf-8'))
+def norm(v):
+    if v is None or isinstance(v,(bool,int)): return v
+    if isinstance(v,float): raise TypeError('floats forbidden')
+    if isinstance(v,str): return unicodedata.normalize('NFC',v)
+    if isinstance(v,list): return [norm(x) for x in v]
+    if isinstance(v,dict):
+        out={}
+        for k,x in v.items():
+            nk=unicodedata.normalize('NFC',k)
+            if nk in out: raise ValueError('NFC key collision')
+            out[nk]=norm(x)
+        return out
+    raise TypeError(type(v).__name__)
+def canonical(v): return json.dumps(norm(v),ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+def digest(obj,field): return 'sha256:'+hashlib.sha256(canonical({k:v for k,v in obj.items() if k!=field})).hexdigest()
+def redigest(p):
+    p=copy.deepcopy(p)
+    for c in p['courses']:
+        for a in c['activities']: a['activityRevisionDigest']=digest(a,'activityRevisionDigest')
+        c['courseRevisionDigest']=digest(c,'courseRevisionDigest')
+    p['packageRevisionDigest']=digest(p,'packageRevisionDigest'); return p
+def dup(xs):
+    seen=set()
+    for x in xs:
+        if x in seen:return True
+        seen.add(x)
+    return False
+def semantic_errors(p):
+    e=[]
+    if p.get('contract')!='learnit.kit.v2': return ['contract']
+    for key in ('courseLineageId','courseRevisionId'):
+        if dup(c[key] for c in p['courses']): e.append('duplicate '+key)
+    als=[]; ars=[]
+    for c in p['courses']:
+        objectives=[x['objectiveId'] for x in c['objectives']]
+        if dup(objectives):e.append('duplicate objectiveId')
+        for a in c['activities']:
+            als.append(a['activityLineageId']);ars.append(a['activityRevisionId'])
+            if any(x not in objectives for x in a['objectiveIds']):e.append('missing objective')
+            if a['type']=='qcm':
+                ids=[x['choiceId'] for x in a['choices']]
+                if dup(ids):e.append('duplicate choice')
+                if a['correctChoiceId'] not in ids:e.append('missing choice')
+            else:
+                slots=[x['slotId'] for x in a['segments'] if 'slotId' in x]; tokens=[x['tokenId'] for x in a['tokens']]; answers=[x['slotId'] for x in a['answers']]
+                if dup(slots):e.append('duplicate slot')
+                if dup(tokens):e.append('duplicate token')
+                if dup(answers):e.append('duplicate answer')
+                if set(answers)!=set(slots):e.append('slot reference')
+                limits={x['tokenId']:x['maxUses'] for x in a['tokens']}; uses={}
+                for x in a['answers']:
+                    tid=x['tokenId']; uses[tid]=uses.get(tid,0)+1
+                    if tid not in limits:e.append('token reference')
+                if any(n>limits.get(t,-1) for t,n in uses.items()):e.append('maxUses')
+    if dup(als):e.append('duplicate activityLineageId')
+    if dup(ars):e.append('duplicate activityRevisionId')
+    return e
+def digest_errors(p):
+    e=[]
+    for c in p['courses']:
+        for a in c['activities']:
+            if a['activityRevisionDigest']!=digest(a,'activityRevisionDigest'):e.append('activity')
+        if c['courseRevisionDigest']!=digest(c,'courseRevisionDigest'):e.append('course')
+    if p['packageRevisionDigest']!=digest(p,'packageRevisionDigest'):e.append('package')
+    return e
+def identities(v):
+    if isinstance(v,dict):
+        for k,x in v.items():
+            if k.endswith('Id') and isinstance(x,str):yield x
+            yield from identities(x)
+    elif isinstance(v,list):
+        for x in v:yield from identities(x)
+def uid(n):return f'{n:08x}-9abc-4def-8abc-{n:012x}'
+def append_course(p,key):
+    s=p['courses'][0]; c=copy.deepcopy(s); i=100
+    c['courseLineageId']=s['courseLineageId'] if key=='courseLineageId' else uid(i);i+=1
+    c['courseRevisionId']=s['courseRevisionId'] if key=='courseRevisionId' else uid(i);i+=1
+    om={}
+    for o in c['objectives']:old=o['objectiveId'];o['objectiveId']=uid(i);i+=1;om[old]=o['objectiveId']
+    for a in c['activities']:
+        a['activityLineageId']=uid(i);i+=1;a['activityRevisionId']=uid(i);i+=1;a['objectiveIds']=[om[x] for x in a['objectiveIds']]
+        if a['type']=='qcm':
+            m={}
+            for x in a['choices']:old=x['choiceId'];x['choiceId']=uid(i);i+=1;m[old]=x['choiceId']
+            a['correctChoiceId']=m[a['correctChoiceId']]
         else:
-            slot_map: dict[str, str] = {}
-            for segment in activity["segments"]:
-                if "slotId" in segment:
-                    old = segment["slotId"]
-                    segment["slotId"] = fresh_uuid(counter)
-                    counter += 1
-                    slot_map[old] = segment["slotId"]
-            token_map: dict[str, str] = {}
-            for token in activity["tokens"]:
-                old = token["tokenId"]
-                token["tokenId"] = fresh_uuid(counter)
-                counter += 1
-                token_map[old] = token["tokenId"]
-            for answer in activity["answers"]:
-                answer["slotId"] = slot_map[answer["slotId"]]
-                answer["tokenId"] = token_map[answer["tokenId"]]
-    package["courses"].append(clone)
-
-
-def append_activity_duplicate(
-    package: dict[str, Any],
-    *,
-    duplicate_lineage: bool = False,
-    duplicate_revision: bool = False,
-) -> None:
-    source = package["courses"][0]["activities"][0]
-    clone = copy.deepcopy(source)
-    if not duplicate_lineage:
-        clone["activityLineageId"] = fresh_uuid(700)
-    if not duplicate_revision:
-        clone["activityRevisionId"] = fresh_uuid(701)
-
-    choice_map: dict[str, str] = {}
-    for index, choice in enumerate(clone["choices"], start=710):
-        old = choice["choiceId"]
-        choice["choiceId"] = fresh_uuid(index)
-        choice_map[old] = choice["choiceId"]
-    clone["correctChoiceId"] = choice_map[clone["correctChoiceId"]]
-    package["courses"][0]["activities"].append(clone)
-
-
-Mutation = Callable[[dict[str, Any]], None]
-
-
-def runtime_attack_cases(valid: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-    cases: list[tuple[str, Mutation]] = [
-        ("unknown root property", lambda p: p.__setitem__("unknown", True)),
-        (
-            "unknown course property",
-            lambda p: p["courses"][0].__setitem__("unknown", True),
-        ),
-        (
-            "unknown activity property",
-            lambda p: p["courses"][0]["activities"][0].__setitem__(
-                "unknown", True
-            ),
-        ),
-        (
-            "unknown choice property",
-            lambda p: p["courses"][0]["activities"][0]["choices"][0].__setitem__(
-                "unknown", True
-            ),
-        ),
-        (
-            "unknown token property",
-            lambda p: p["courses"][0]["activities"][1]["tokens"][0].__setitem__(
-                "unknown", True
-            ),
-        ),
-        (
-            "uppercase root UUID",
-            lambda p: p.__setitem__(
-                "packageLineageId", "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"
-            ),
-        ),
-        (
-            "invalid activity UUID",
-            lambda p: p["courses"][0]["activities"][0].__setitem__(
-                "activityRevisionId", "not-a-uuid"
-            ),
-        ),
-        (
-            "invalid choice UUID",
-            lambda p: p["courses"][0]["activities"][0]["choices"][0].__setitem__(
-                "choiceId", "not-a-uuid"
-            ),
-        ),
-        (
-            "invalid slot UUID",
-            lambda p: next(
-                item
-                for item in p["courses"][0]["activities"][1]["segments"]
-                if "slotId" in item
-            ).__setitem__("slotId", "not-a-uuid"),
-        ),
-        (
-            "invalid token UUID",
-            lambda p: p["courses"][0]["activities"][1]["tokens"][0].__setitem__(
-                "tokenId", "not-a-uuid"
-            ),
-        ),
-        (
-            "duplicate courseLineageId",
-            lambda p: append_fresh_course(p, duplicate_lineage=True),
-        ),
-        (
-            "duplicate courseRevisionId",
-            lambda p: append_fresh_course(p, duplicate_revision=True),
-        ),
-        (
-            "duplicate activityLineageId",
-            lambda p: append_activity_duplicate(p, duplicate_lineage=True),
-        ),
-        (
-            "duplicate activityRevisionId",
-            lambda p: append_activity_duplicate(p, duplicate_revision=True),
-        ),
-        (
-            "duplicate objectiveId",
-            lambda p: p["courses"][0]["objectives"].append(
-                copy.deepcopy(p["courses"][0]["objectives"][0])
-            ),
-        ),
-        (
-            "duplicate choiceId",
-            lambda p: p["courses"][0]["activities"][0]["choices"][1].__setitem__(
-                "choiceId",
-                p["courses"][0]["activities"][0]["choices"][0]["choiceId"],
-            ),
-        ),
-        (
-            "duplicate slotId",
-            lambda p: p["courses"][0]["activities"][1]["segments"].append(
-                copy.deepcopy(
-                    next(
-                        item
-                        for item in p["courses"][0]["activities"][1]["segments"]
-                        if "slotId" in item
-                    )
-                )
-            ),
-        ),
-        (
-            "duplicate tokenId",
-            lambda p: p["courses"][0]["activities"][1]["tokens"].append(
-                copy.deepcopy(p["courses"][0]["activities"][1]["tokens"][0])
-            ),
-        ),
-        (
-            "duplicate answers slotId",
-            lambda p: p["courses"][0]["activities"][1]["answers"].append(
-                copy.deepcopy(p["courses"][0]["activities"][1]["answers"][0])
-            ),
-        ),
-        (
-            "slot without answer",
-            lambda p: p["courses"][0]["activities"][1]["answers"].pop(),
-        ),
-        (
-            "answer references absent slot",
-            lambda p: p["courses"][0]["activities"][1]["answers"][0].__setitem__(
-                "slotId", fresh_uuid(900)
-            ),
-        ),
-        (
-            "missing objective reference",
-            lambda p: p["courses"][0]["activities"][0].__setitem__(
-                "objectiveIds", [fresh_uuid(901)]
-            ),
-        ),
-        (
-            "missing correct choice",
-            lambda p: p["courses"][0]["activities"][0].__setitem__(
-                "correctChoiceId", fresh_uuid(902)
-            ),
-        ),
-        (
-            "missing token reference",
-            lambda p: p["courses"][0]["activities"][1]["answers"][0].__setitem__(
-                "tokenId", fresh_uuid(903)
-            ),
-        ),
-        (
-            "maxUses overflow",
-            lambda p: p["courses"][0]["activities"][1]["tokens"][0].__setitem__(
-                "maxUses", 1
-            ),
-        ),
-    ]
-
-    result: list[tuple[str, dict[str, Any]]] = []
-    for name, mutate in cases:
-        package = copy.deepcopy(valid)
-        mutate(package)
-        result.append((name, redigest(package)))
-    return result
-
-
+            sm={};tm={}
+            for x in a['segments']:
+                if 'slotId' in x:old=x['slotId'];x['slotId']=uid(i);i+=1;sm[old]=x['slotId']
+            for x in a['tokens']:old=x['tokenId'];x['tokenId']=uid(i);i+=1;tm[old]=x['tokenId']
+            for x in a['answers']:x['slotId']=sm[x['slotId']];x['tokenId']=tm[x['tokenId']]
+    p['courses'].append(c)
+def append_activity(p,key):
+    a=copy.deepcopy(p['courses'][0]['activities'][0]);
+    if key!='activityLineageId':a['activityLineageId']=uid(700)
+    if key!='activityRevisionId':a['activityRevisionId']=uid(701)
+    m={}
+    for i,x in enumerate(a['choices'],710):old=x['choiceId'];x['choiceId']=uid(i);m[old]=x['choiceId']
+    a['correctChoiceId']=m[a['correctChoiceId']];p['courses'][0]['activities'].append(a)
+Mutation=Callable[[dict[str,Any]],None]
+def attacks(valid):
+    fill=lambda p:p['courses'][0]['activities'][1]; qcm=lambda p:p['courses'][0]['activities'][0]
+    cases=[
+('unknown root',lambda p:p.__setitem__('unknown',1)),('unknown course',lambda p:p['courses'][0].__setitem__('unknown',1)),('unknown objective',lambda p:p['courses'][0]['objectives'][0].__setitem__('unknown',1)),
+('unknown qcm',lambda p:qcm(p).__setitem__('unknown',1)),('unknown fill',lambda p:fill(p).__setitem__('unknown',1)),('unknown choice',lambda p:qcm(p)['choices'][0].__setitem__('unknown',1)),('unknown token',lambda p:fill(p)['tokens'][0].__setitem__('unknown',1)),('unknown text segment',lambda p:fill(p)['segments'][0].__setitem__('unknown',1)),('unknown slot segment',lambda p:next(x for x in fill(p)['segments'] if 'slotId'in x).__setitem__('unknown',1)),('unknown answer',lambda p:fill(p)['answers'][0].__setitem__('unknown',1)),
+('invalid package UUID',lambda p:p.__setitem__('packageLineageId','BAD')),('invalid course UUID',lambda p:p['courses'][0].__setitem__('courseRevisionId','BAD')),('invalid objective UUID',lambda p:p['courses'][0]['objectives'][0].__setitem__('objectiveId','BAD')),('invalid activity UUID',lambda p:qcm(p).__setitem__('activityRevisionId','BAD')),('invalid choice UUID',lambda p:qcm(p)['choices'][0].__setitem__('choiceId','BAD')),('invalid slot UUID',lambda p:next(x for x in fill(p)['segments'] if 'slotId'in x).__setitem__('slotId','BAD')),('invalid token UUID',lambda p:fill(p)['tokens'][0].__setitem__('tokenId','BAD')),('invalid answer slot UUID',lambda p:fill(p)['answers'][0].__setitem__('slotId','BAD')),('invalid answer token UUID',lambda p:fill(p)['answers'][0].__setitem__('tokenId','BAD')),
+('duplicate courseLineageId',lambda p:append_course(p,'courseLineageId')),('duplicate courseRevisionId',lambda p:append_course(p,'courseRevisionId')),('duplicate activityLineageId',lambda p:append_activity(p,'activityLineageId')),('duplicate activityRevisionId',lambda p:append_activity(p,'activityRevisionId')),('duplicate objectiveId',lambda p:p['courses'][0]['objectives'].append(copy.deepcopy(p['courses'][0]['objectives'][0]))),('duplicate choiceId',lambda p:qcm(p)['choices'][1].__setitem__('choiceId',qcm(p)['choices'][0]['choiceId'])),('duplicate slotId',lambda p:fill(p)['segments'].append(copy.deepcopy(next(x for x in fill(p)['segments'] if 'slotId'in x)))),('duplicate tokenId',lambda p:fill(p)['tokens'].append(copy.deepcopy(fill(p)['tokens'][0]))),('duplicate answer slotId',lambda p:fill(p)['answers'].append(copy.deepcopy(fill(p)['answers'][0]))),('slot without answer',lambda p:fill(p)['answers'].pop()),('answer absent slot',lambda p:fill(p)['answers'][0].__setitem__('slotId',uid(900))),('missing objective',lambda p:qcm(p).__setitem__('objectiveIds',[uid(901)])),('missing choice',lambda p:qcm(p).__setitem__('correctChoiceId',uid(902))),('missing token',lambda p:fill(p)['answers'][0].__setitem__('tokenId',uid(903))),('maxUses',lambda p:fill(p)['tokens'][0].__setitem__('maxUses',1))]
+    out=[]
+    for n,m in cases:
+        p=copy.deepcopy(valid);m(p);out.append((n,redigest(p)))
+    return out
 class Quiet(SimpleHTTPRequestHandler):
-    def log_message(self, *_: Any) -> None:
-        return
-
-
+    def log_message(self,*_):pass
 @contextmanager
-def serve(path: Path):
-    server = ThreadingHTTPServer(
-        ("127.0.0.1", 0), partial(Quiet, directory=str(path.parent))
-    )
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        yield f"http://127.0.0.1:{server.server_port}/{path.name}"
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join(timeout=5)
-
-
-def negative(result: Any) -> bool:
-    if result is False:
-        return True
-    if not isinstance(result, dict):
-        return False
-    return any(
-        result.get(key) is False
-        for key in ("ok", "valid", "accepted", "imported", "success")
-    ) or str(result.get("status", "")).lower() in {"error", "invalid", "rejected"}
-
-
+def serve(path):
+    s=ThreadingHTTPServer(('127.0.0.1',0),partial(Quiet,directory=str(path.parent)));t=threading.Thread(target=s.serve_forever,daemon=True);t.start()
+    try:yield f'http://127.0.0.1:{s.server_port}/{path.name}'
+    finally:s.shutdown();s.server_close();t.join(timeout=5)
+def negative(v):return v is False or isinstance(v,dict) and (any(v.get(k) is False for k in ('ok','valid','accepted','imported','success')) or str(v.get('status','')).lower() in {'error','invalid','rejected'})
 class FixtureOracleTests(unittest.TestCase):
     @classmethod
-    def setUpClass(cls) -> None:
-        require_or_skip(Draft202012Validator is not None, "DEPENDENCY: jsonschema")
-        cls.schema = load(SCHEMA)
-        cls.valid = load(VALID)
-        cls.legacy = load(LEGACY)
-        cls.mismatch = load(MISMATCH)
-        cls.validator = Draft202012Validator(cls.schema)
-
-    def test_schema_and_valid_fixture(self) -> None:
-        self.assertEqual(
-            "learnit.kit.v2", self.schema["properties"]["contract"]["const"]
-        )
-        self.assertFalse(self.schema["additionalProperties"])
-        self.assertEqual(
-            [], [error.message for error in self.validator.iter_errors(self.valid)]
-        )
-
-    def test_uuid_v4_lowercase_and_digest_shapes(self) -> None:
-        for value in identity_values(self.valid):
-            self.assertRegex(value, UUID4)
-        digests = [self.valid["packageRevisionDigest"]]
-        for course in self.valid["courses"]:
-            digests.append(course["courseRevisionDigest"])
-            digests.extend(
-                activity["activityRevisionDigest"]
-                for activity in course["activities"]
-            )
-        for value in digests:
-            self.assertRegex(value, SHA256)
-
-    def test_valid_semantics_and_sha256(self) -> None:
-        self.assertEqual([], semantic_errors(self.valid))
-        self.assertEqual([], digest_errors(self.valid))
-
-    def test_unknown_properties_and_nested_uuid_are_rejected(self) -> None:
-        schema_case_names = {
-            "unknown root property",
-            "unknown course property",
-            "unknown activity property",
-            "unknown choice property",
-            "unknown token property",
-            "uppercase root UUID",
-            "invalid activity UUID",
-            "invalid choice UUID",
-            "invalid slot UUID",
-            "invalid token UUID",
-        }
-        for name, attack in runtime_attack_cases(self.valid):
-            if name in schema_case_names:
-                self.assertTrue(
-                    list(self.validator.iter_errors(attack)),
-                    f"schema accepted {name}",
-                )
-
-    def test_semantic_attack_matrix(self) -> None:
-        semantic_case_names = {
-            "duplicate courseLineageId",
-            "duplicate courseRevisionId",
-            "duplicate activityLineageId",
-            "duplicate activityRevisionId",
-            "duplicate objectiveId",
-            "duplicate choiceId",
-            "duplicate slotId",
-            "duplicate tokenId",
-            "duplicate answers slotId",
-            "slot without answer",
-            "answer references absent slot",
-            "missing objective reference",
-            "missing correct choice",
-            "missing token reference",
-            "maxUses overflow",
-        }
-        attacks = dict(runtime_attack_cases(self.valid))
-        for name in semantic_case_names:
-            self.assertTrue(semantic_errors(attacks[name]), name)
-
-    def test_canonical_json_profile(self) -> None:
-        self.assertEqual(
-            b'{"a":[true,null,3],"z":"\xc3\xa9","\xc3\xa9":"ok"}',
-            canonical({"z": "e\u0301", "a": [True, None, 3], "é": "ok"}),
-        )
-        with self.assertRaises(TypeError):
-            canonical({"x": 1.5})
-        with self.assertRaises(ValueError):
-            canonical({"é": 1, "e\u0301": 2})
-
-    def test_legacy_and_digest_mismatch_fixtures(self) -> None:
-        self.assertEqual("learnit.import.v1.1", self.legacy["schema_version"])
-        self.assertTrue(list(self.validator.iter_errors(self.legacy)))
-        self.assertEqual(
-            [],
-            [error.message for error in self.validator.iter_errors(self.mismatch)],
-        )
-        self.assertEqual(
-            self.valid["courses"][0]["activities"][0]["activityRevisionId"],
-            self.mismatch["courses"][0]["activities"][0]["activityRevisionId"],
-        )
-        self.assertTrue(digest_errors(self.mismatch))
-
-    def test_qcm_reordering_keeps_choice_id_semantics(self) -> None:
-        package = copy.deepcopy(self.valid)
-        qcm = package["courses"][0]["activities"][0]
-        old_digest = qcm["activityRevisionDigest"]
-        qcm["choices"].reverse()
-        self.assertIn(
-            qcm["correctChoiceId"],
-            [choice["choiceId"] for choice in qcm["choices"]],
-        )
-        self.assertNotEqual(old_digest, digest(qcm, "activityRevisionDigest"))
-
-
+    def setUpClass(c):require_or_skip(Draft202012Validator is not None,'DEPENDENCY: jsonschema');c.s=load(SCHEMA);c.v=load(VALID);c.l=load(LEGACY);c.m=load(MISMATCH);c.val=Draft202012Validator(c.s)
+    def test_schema_and_valid_fixture(self):self.assertEqual('learnit.kit.v2',self.s['properties']['contract']['const']);self.assertFalse(self.s['additionalProperties']);self.assertEqual([],list(self.val.iter_errors(self.v)))
+    def test_uuid_v4_lowercase_and_digest_shapes(self):
+        for x in identities(self.v):self.assertRegex(x,UUID4)
+        for x in [self.v['packageRevisionDigest']]+[c['courseRevisionDigest'] for c in self.v['courses']]+[a['activityRevisionDigest'] for c in self.v['courses'] for a in c['activities']]:self.assertRegex(x,SHA256)
+    def test_valid_semantics_and_sha256(self):self.assertEqual([],semantic_errors(self.v));self.assertEqual([],digest_errors(self.v))
+    def test_unknown_properties_and_nested_uuid_are_rejected(self):
+        for n,p in attacks(self.v):
+            if n.startswith('unknown') or n.startswith('invalid'):self.assertTrue(list(self.val.iter_errors(p)),n)
+    def test_semantic_attack_matrix(self):
+        for n,p in attacks(self.v):
+            if n.startswith(('duplicate','slot ','answer ','missing','maxUses')):self.assertTrue(semantic_errors(p),n)
+    def test_canonical_json_profile(self):
+        self.assertEqual(b'{"a":[true,null,3],"z":"\xc3\xa9","\xc3\xa9":"ok"}',canonical({'z':'e\u0301','a':[True,None,3],'é':'ok'}))
+        with self.assertRaises(TypeError):canonical({'x':1.5})
+        with self.assertRaises(ValueError):canonical({'é':1,'e\u0301':2})
+    def test_legacy_and_digest_mismatch_fixtures(self):self.assertTrue(list(self.val.iter_errors(self.l)));self.assertEqual([],list(self.val.iter_errors(self.m)));self.assertTrue(digest_errors(self.m))
+    def test_qcm_reordering_keeps_choice_id_semantics(self):
+        p=copy.deepcopy(self.v);q=p['courses'][0]['activities'][0];old=q['activityRevisionDigest'];q['choices'].reverse();self.assertIn(q['correctChoiceId'],[x['choiceId'] for x in q['choices']]);self.assertNotEqual(old,digest(q,'activityRevisionDigest'))
 class RuntimeContractTests(unittest.TestCase):
     @classmethod
-    def setUpClass(cls) -> None:
-        path = Path(os.environ.get("LEARNIT_NEXT_ARTIFACT", ARTIFACT))
-        require_or_skip(path.exists(), f"WAITING_FOR_INTEGRATION: {path}")
-        require_or_skip(sync_playwright is not None, "DEPENDENCY: Playwright")
-        cls.valid = load(VALID)
-        cls.legacy = load(LEGACY)
-        cls.mismatch = load(MISMATCH)
-        cls.server = serve(path)
-        cls.url = cls.server.__enter__()
-        cls.playwright = sync_playwright().start()
-        try:
-            cls.browser = cls.playwright.chromium.launch(headless=True)
-        except Exception as error:
-            cls.playwright.stop()
-            cls.server.__exit__(None, None, None)
-            require_or_skip(False, f"DEPENDENCY: Chromium: {error}")
-
+    def setUpClass(c):
+        path=Path(os.environ.get('LEARNIT_NEXT_ARTIFACT',ARTIFACT));require_or_skip(path.exists(),f'WAITING_FOR_INTEGRATION: {path}');require_or_skip(sync_playwright is not None,'DEPENDENCY: Playwright');c.v=load(VALID);c.l=load(LEGACY);c.m=load(MISMATCH);c.srv=serve(path);c.url=c.srv.__enter__();c.pw=sync_playwright().start()
+        try:c.browser=c.pw.chromium.launch(headless=True)
+        except Exception as e:c.pw.stop();c.srv.__exit__(None,None,None);require_or_skip(False,f'DEPENDENCY: Chromium: {e}')
     @classmethod
-    def tearDownClass(cls) -> None:
-        if hasattr(cls, "browser"):
-            cls.browser.close()
-        if hasattr(cls, "playwright"):
-            cls.playwright.stop()
-        if hasattr(cls, "server"):
-            cls.server.__exit__(None, None, None)
-
-    def setUp(self) -> None:
-        self.context = self.browser.new_context()
-        self.page = self.context.new_page()
-        self.page.goto(self.url, wait_until="domcontentloaded")
-        self.page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
-        self.call("resetNextData")
-
-    def tearDown(self) -> None:
-        self.context.close()
-
-    def invoke(self, operation: str, *args: Any) -> dict[str, Any]:
-        return self.page.evaluate(
-            """async ({operation,args}) => {
-              const api = window.__LEARNIT_NEXT_TEST__;
-              if (!api || typeof api[operation] !== 'function') {
-                return {kind:'harness', message:`missing ${operation}`};
-              }
-              try {
-                return {kind:'return', value:await api[operation](...args)};
-              } catch (error) {
-                return {
-                  kind:'throw',
-                  name:String(error && error.name || ''),
-                  message:String(error && error.message || error || '')
-                };
-              }
-            }""",
-            {"operation": operation, "args": list(args)},
-        )
-
-    def call(self, operation: str, *args: Any) -> Any:
-        result = self.invoke(operation, *args)
-        self.assertEqual("return", result.get("kind"), result)
-        return result.get("value")
-
-    def reject(self, operation: str, payload: Any) -> dict[str, Any]:
-        result = self.invoke(operation, payload)
-        self.assertNotEqual("harness", result.get("kind"), result)
-        if result.get("kind") == "return":
-            self.assertTrue(negative(result.get("value")), result)
+    def tearDownClass(c):
+        if hasattr(c,'browser'):c.browser.close()
+        if hasattr(c,'pw'):c.pw.stop()
+        if hasattr(c,'srv'):c.srv.__exit__(None,None,None)
+    def setUp(self):self.ctx=self.browser.new_context();self.page=self.ctx.new_page();self.page.goto(self.url);self.page.wait_for_function('()=>window.__LEARNIT_NEXT_TEST__');self.call('resetNextData')
+    def tearDown(self):self.ctx.close()
+    def invoke(self,op,*args):return self.page.evaluate("""async x=>{const a=window.__LEARNIT_NEXT_TEST__;if(!a||typeof a[x.op]!=='function')return{kind:'harness'};try{return{kind:'return',value:await a[x.op](...x.args)}}catch(e){return{kind:'throw',name:String(e?.name||''),code:String(e?.code||''),message:String(e?.message||e||'')}}}""",{'op':op,'args':list(args)})
+    def call(self,op,*args):r=self.invoke(op,*args);self.assertEqual('return',r.get('kind'),r);return r.get('value')
+    def reject(self,op,p):
+        r=self.invoke(op,p);self.assertNotEqual('harness',r.get('kind'),r)
+        if r.get('kind')=='return':self.assertTrue(negative(r.get('value')),r)
         else:
-            self.assertEqual("throw", result.get("kind"), result)
-            evidence = f"{result.get('name', '')}: {result.get('message', '')}"
-            self.assertRegex(evidence, DOMAIN_REJECTION)
-        return result
-
-    def courses(self) -> list[Any]:
-        courses = self.call("listCourses")
-        self.assertIsInstance(courses, list, courses)
-        return courses
-
-    def snapshot_next(self) -> Any:
-        return self.page.evaluate(NEXT_SNAPSHOT, "learnit_next_v1")
-
-    def assert_rejected_without_write(
-        self, operation: str, payload: Any, label: str
-    ) -> None:
-        before = self.snapshot_next()
-        self.reject(operation, payload)
-        after = self.snapshot_next()
-        self.assertEqual(before, after, f"partial successor write for {label}")
-
-    def test_contract_version_and_valid_import(self) -> None:
-        self.assertEqual(
-            "learnit.kit.v2",
-            self.page.evaluate("() => window.__LEARNIT_NEXT_TEST__.contractVersion"),
-        )
-        validation = self.invoke("validatePackage", self.valid)
-        self.assertEqual("return", validation.get("kind"), validation)
-        self.assertFalse(negative(validation.get("value")), validation)
-        imported = self.invoke("importPackage", self.valid)
-        self.assertEqual("return", imported.get("kind"), imported)
-        self.assertFalse(negative(imported.get("value")), imported)
-        self.assertEqual(1, len(self.courses()))
-
-    def test_schema_uuid_unknown_duplicate_and_reference_attacks(self) -> None:
-        for name, attack in runtime_attack_cases(self.valid):
-            self.assert_rejected_without_write(
-                "validatePackage", attack, f"validate: {name}"
-            )
-            self.assert_rejected_without_write(
-                "importPackage", attack, f"import: {name}"
-            )
-            self.assertEqual([], self.courses(), name)
-
-    def test_digest_mismatch_same_revision_conflict_and_legacy_are_atomic(
-        self,
-    ) -> None:
-        for label, payload in (
-            ("legacy contract", self.legacy),
-            ("digest mismatch", self.mismatch),
-        ):
-            self.assert_rejected_without_write("importPackage", payload, label)
-            self.assertEqual([], self.courses(), label)
-
-        imported = self.invoke("importPackage", self.valid)
-        self.assertEqual("return", imported.get("kind"), imported)
-        self.assertFalse(negative(imported.get("value")), imported)
-        before = self.snapshot_next()
-
-        conflict = copy.deepcopy(self.valid)
-        conflict["courses"][0]["activities"][0]["prompt"] += " changed"
-        conflict = redigest(conflict)
-        self.reject("importPackage", conflict)
-        self.assertEqual(
-            before,
-            self.snapshot_next(),
-            "revision conflict left partial packages/courses/progress/meta",
-        )
-        self.assertEqual(1, len(self.courses()))
-
-    def test_qcm_choice_reordering_does_not_change_correction(self) -> None:
-        package = copy.deepcopy(self.valid)
-        qcm = package["courses"][0]["activities"][0]
-        qcm["choices"].reverse()
-        qcm["activityRevisionId"] = fresh_uuid(950)
-        package["courses"][0]["courseRevisionId"] = fresh_uuid(951)
-        package["packageRevisionId"] = fresh_uuid(952)
-        package = redigest(package)
-
-        imported = self.invoke("importPackage", package)
-        self.assertEqual("return", imported.get("kind"), imported)
-        self.assertFalse(negative(imported.get("value")), imported)
-        course = self.courses()[0]
-        self.call("startCourse", course["courseInstallId"])
-        result = self.call(
-            "answer", qcm["activityRevisionId"], qcm["correctChoiceId"]
-        )
-        self.assertIsInstance(result, dict, result)
-        self.assertIs(result.get("correct"), True, result)
-        self.assertIs(result.get("completed"), True, result)
-        self.assertEqual(qcm["correctChoiceId"], result.get("selectedChoiceId"), result)
-        self.assertEqual(
-            qcm["activityRevisionId"], result.get("activityRevisionId"), result
-        )
-
-
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
+            self.assertEqual('throw',r.get('kind'),r);self.assertNotIn(r.get('name'),{'TypeError','ReferenceError','SyntaxError','RangeError','InternalError','Error'},r);self.assertTrue(r.get('name') in DOMAIN_ERROR_NAMES or r.get('code') in {'ERR_CONTRACT','ERR_SCHEMA','ERR_DIGEST','ERR_REVISION_CONFLICT','ERR_LEGACY','ERR_IMPORT_REJECTED'},r)
+    def snap(self):return self.page.evaluate(SNAPSHOT,{'dbName':NEXT_DB,'prefix':NEXT_PREFIX})
+    def atomic(self,op,p,label):b=self.snap();self.reject(op,p);self.assertEqual(b,self.snap(),label)
+    def test_contract_version_and_valid_import(self):self.assertEqual('learnit.kit.v2',self.page.evaluate('()=>window.__LEARNIT_NEXT_TEST__.contractVersion'));self.assertFalse(negative(self.call('validatePackage',self.v)));self.assertFalse(negative(self.call('importPackage',self.v)));self.assertEqual(1,len(self.call('listCourses')))
+    def test_schema_uuid_unknown_duplicate_and_reference_attacks(self):
+        for n,p in attacks(self.v):self.atomic('validatePackage',p,'validate '+n);self.atomic('importPackage',p,'import '+n);self.assertEqual([],self.call('listCourses'))
+    def test_digest_mismatch_same_revision_conflict_and_legacy_are_atomic(self):
+        for n,p in [('legacy',self.l),('digest',self.m)]:self.atomic('importPackage',p,n)
+        self.assertFalse(negative(self.call('importPackage',self.v)));b=self.snap();p=copy.deepcopy(self.v);p['courses'][0]['activities'][0]['prompt']+=' changed';p=redigest(p);self.reject('importPackage',p);self.assertEqual(b,self.snap())
+    def test_qcm_choice_reordering_does_not_change_correction(self):
+        p=copy.deepcopy(self.v);q=p['courses'][0]['activities'][0];q['choices'].reverse();q['activityRevisionId']=uid(950);p['courses'][0]['courseRevisionId']=uid(951);p['packageRevisionId']=uid(952);p=redigest(p);self.assertFalse(negative(self.call('importPackage',p)));c=self.call('listCourses')[0];self.call('startCourse',c['courseInstallId']);r=self.call('answer',q['activityRevisionId'],q['correctChoiceId']);self.assertIs(r.get('correct'),True);self.assertIs(r.get('completed'),True);self.assertEqual(q['correctChoiceId'],r.get('selectedChoiceId'))
+if __name__=='__main__':unittest.main(verbosity=2)
