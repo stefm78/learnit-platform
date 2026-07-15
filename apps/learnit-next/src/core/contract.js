@@ -94,8 +94,9 @@ function stringValue(value, path, errors, { min = 0, max, pattern, constant } = 
     issue(errors, 'type', path, 'Expected a string');
     return false;
   }
-  if (value.length < min) issue(errors, 'min_length', path, `Expected at least ${min} character(s)`);
-  if (max !== undefined && value.length > max) issue(errors, 'max_length', path, `Expected at most ${max} character(s)`);
+  const codePointLength = Array.from(value).length;
+  if (codePointLength < min) issue(errors, 'min_length', path, `Expected at least ${min} character(s)`);
+  if (max !== undefined && codePointLength > max) issue(errors, 'max_length', path, `Expected at most ${max} character(s)`);
   if (pattern && !pattern.test(value)) issue(errors, 'pattern', path, 'String does not match the required format');
   if (constant !== undefined && value !== constant) issue(errors, 'const', path, `Expected ${constant}`);
   return true;
