@@ -40,7 +40,9 @@
     "The learnit.kit.v2 schema and ARC-WP-022 file plan remain frozen.",
     "DEV-WP-031, KIT-WP-001 and QA-WP-011 have mutually disjoint writable paths and may run in parallel.",
     "INT-WP-001 owns all shared build, manifest, workflow and release surfaces and does not run in parallel with unreviewed implementer outputs.",
-    "No subordinate work package writes governance, architecture or work-package files through the Remote Agent lane.",
+    "No subordinate work package writes governance, architecture or work-package files through an implementation lane.",
+    "The existing fixed Remote Agent profiles do not certify learnit-next behavior; a Remote Agent status is transport evidence only until role-local validation is independently reproduced.",
+    "Each parallel role uses an independent clean branch, clone or worktree and records exact role-local validation commands and raw outputs.",
     "No subordinate work package accesses or changes RC718 source, artifact or protected storage semantics.",
     "No subordinate work package adds a file outside FILE_PLAN_V1.json.",
     "The contract cannot change during implementation.",
@@ -51,6 +53,7 @@
     "The union of subordinate allowed paths equals the 31 implementation paths remaining after the frozen schema and contains no duplicate path.",
     "Every subordinate forbidden-path set blocks the other roles' writable surfaces.",
     "The three parallel roles declare exact tests, evidence and rollback.",
+    "Role-local validation commands and raw outputs are recorded and independently reproduced before integration.",
     "The integration role declares reviewed-output prerequisites and may not modify implementer-owned files.",
     "Repository governance and PR scope pass on the exact authorization commit."
   ],
@@ -61,6 +64,7 @@
     "Fail authorization if any implementation role can change build, manifest, workflow or release files.",
     "Fail authorization if the integrator can change runtime, authoring, fixture or test files.",
     "Fail authorization if any work package omits the exact common base or rollback.",
+    "Fail authorization if a transport-only status is presented as product-test evidence.",
     "Fail authorization if any RC718 path, compatibility layer or held platform domain is permitted."
   ],
   "nonGoals": [
