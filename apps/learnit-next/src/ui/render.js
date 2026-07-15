@@ -244,7 +244,14 @@ export function renderApp(root, runtime) {
     } else {
       const list = node('div', { className: 'course-grid' });
       for (const course of courses) {
-        const actionLabel = course.progress.completed === 0 ? 'Commencer' : course.progress.isComplete ? 'Revoir' : 'Reprendre';
+        const courseAction = course.progress.isComplete
+          ? node('p', { className: 'course-complete', text: 'Cours terminé' })
+          : node('button', {
+            type: 'button',
+            className: 'primary',
+            text: course.progress.completed === 0 ? 'Commencer' : 'Reprendre',
+            onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
+          });
         list.append(node('article', { className: 'course-card' }, [
           node('div', {}, [
             node('h3', { text: course.title }),
@@ -252,12 +259,7 @@ export function renderApp(root, runtime) {
             node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
           ]),
           renderProgress(course.progress),
-          node('button', {
-            type: 'button',
-            className: 'primary',
-            text: actionLabel,
-            onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
-          }),
+          courseAction,
         ]));
       }
       section.append(list);
