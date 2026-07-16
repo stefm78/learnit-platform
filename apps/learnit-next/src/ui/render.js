@@ -283,19 +283,57 @@ export function renderApp(root, runtime) {
 
     const importForm = node('form', { className: 'import-panel' });
     const fileInput = node('input', { id: 'kit-file', type: 'file', accept: '.json,application/json', required: 'required' });
+    const importButton = node('button', { type: 'submit', className: 'primary', text: 'Importer', disabled: true });
+    const fileStatus = node('p', {
+      className: 'help',
+      role: 'status',
+      'aria-live': 'polite',
+      'aria-atomic': 'true',
+      text: 'Sélectionnez un fichier JSON à importer.',
+    });
+    let selectionVersion = 0;
+    let selectedFileText = null;
+
+    fileInput.addEventListener('change', async () => {
+      const version = selectionVersion + 1;
+      selectionVersion = version;
+      selectedFileText = null;
+      importButton.disabled = true;
+      const file = fileInput.files?.[0];
+      if (!file) {
+        fileStatus.textContent = 'Sélectionnez un fichier JSON à importer.';
+        return;
+      }
+
+      fileStatus.textContent = `Lecture de « ${file.name} »…`;
+      try {
+        const text = await file.text();
+        if (version !== selectionVersion) return;
+        selectedFileText = text;
+        importButton.disabled = false;
+        fileStatus.textContent = `« ${file.name} » est prêt à être importé.`;
+      } catch (error) {
+        if (version !== selectionVersion) return;
+        const message = `Lecture du fichier impossible : ${error?.message ?? String(error)}`;
+        fileStatus.textContent = message;
+        announce(message);
+      }
+    });
+
     importForm.append(
       node('div', {}, [
         node('label', { for: 'kit-file', className: 'field-label', text: 'Importer un kit learnit.kit.v2' }),
         node('p', { className: 'help', text: 'Les packages legacy ou invalides sont rejetés avant toute écriture d’import.' }),
+        fileStatus,
       ]),
       fileInput,
-      node('button', { type: 'submit', className: 'primary', text: 'Importer' }),
+      importButton,
     );
     importForm.addEventListener('submit', (event) => {
       event.preventDefault();
-      const file = fileInput.files?.[0];
-      if (!file) return;
-      run(async () => runtime.importPackage(await file.text()), async (result) => {
+      if (selectedFileText === null) return;
+      const payload = selectedFileText;
+      run(() => runtime.importPackage(payload), async (result) => {
         const message = `${result.courseCount} cours importé(s) depuis « ${result.title} ».`;
         notice = renderNotice([message], 'success');
         await renderLibrary({ announcement: message });
