@@ -13,16 +13,20 @@ export function summarizeProgress(course, records) {
 }
 
 export function buildProgressRecord({ courseInstallId, activity, answer, correct, previous, now = new Date() }) {
-  return {
+  const normalizedAnswer = structuredClone(answer);
+  const record = {
     courseInstallId,
     activityLineageId: activity.activityLineageId,
     activityRevisionId: activity.activityRevisionId,
     attempts: (previous?.attempts ?? 0) + 1,
-    lastAnswer: structuredClone(answer),
+    lastAnswer: normalizedAnswer,
     correct: Boolean(correct),
     completed: true,
     updatedAt: now.toISOString(),
   };
+  if (activity.type === 'qcm') record.selectedChoiceId = normalizedAnswer.choiceId;
+  if (activity.type === 'fill') record.answers = normalizedAnswer;
+  return record;
 }
 
 export function createProgressService(storage) {
