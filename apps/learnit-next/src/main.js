@@ -47,10 +47,24 @@ export function createLearnitRuntime(storageAdapter = createIndexedDbStorage()) 
   return Object.freeze(runtime);
 }
 
+function waitForInitialRender(root) {
+  if (root.getAttribute('aria-busy') === 'false') return Promise.resolve();
+  return new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (root.getAttribute('aria-busy') !== 'false') return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ['aria-busy'] });
+  });
+}
+
 async function boot() {
   const root = document.getElementById('app');
   if (!root) throw new Error('Missing #app mount point');
   const runtime = createLearnitRuntime();
+  renderApp(root, runtime);
+  await waitForInitialRender(root);
   globalThis.__LEARNIT_NEXT_TEST__ = Object.freeze({
     contractVersion: runtime.contractVersion,
     validatePackage: runtime.validatePackage,
@@ -64,7 +78,6 @@ async function boot() {
     resetNextData: runtime.resetNextData,
     storageReport: runtime.storageReport,
   });
-  renderApp(root, runtime);
 }
 
 if (typeof document !== 'undefined' && document.querySelector('[data-learnit-next-app]')) {
