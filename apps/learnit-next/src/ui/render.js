@@ -129,7 +129,6 @@ function renderFillForm(activity, submit) {
 export function renderApp(root, runtime) {
   let notice = null;
   let busy = false;
-  let resetConfirmationVisible = false;
 
   const header = node('header', { className: 'app-header' }, [
     node('div', {}, [
@@ -233,41 +232,44 @@ export function renderApp(root, runtime) {
   }
 
   function renderResetAction() {
-    if (!resetConfirmationVisible) {
-      return node('button', {
+    const container = node('div', { className: 'reset-confirmation' });
+    const showInitial = () => {
+      container.replaceChildren(node('button', {
         type: 'button',
         className: 'danger-quiet',
         text: 'Réinitialiser Learn-it Next',
         onclick: () => {
-          resetConfirmationVisible = true;
-          renderLibrary({ announcement: 'Confirmez la réinitialisation des données de Learn-it Next.' });
-        },
-      });
-    }
-    return node('div', { className: 'reset-confirmation', role: 'group', 'aria-label': 'Confirmer la réinitialisation' }, [
-      node('button', {
-        type: 'button',
-        className: 'danger-quiet',
-        text: 'Confirmer la réinitialisation',
-        onclick: () => {
-          resetConfirmationVisible = false;
-          run(() => runtime.resetNextData(), () => {
-            const message = 'Les données de Learn-it Next ont été supprimées.';
-            notice = renderNotice([message], 'success');
-            return renderLibrary({ announcement: message });
+          const confirmButton = node('button', {
+            type: 'button',
+            className: 'danger-quiet',
+            text: 'Confirmer la réinitialisation',
+            onclick: () => run(() => runtime.resetNextData(), () => {
+              const message = 'Les données de Learn-it Next ont été supprimées.';
+              notice = renderNotice([message], 'success');
+              return renderLibrary({ announcement: message });
+            }),
           });
+          const cancelButton = node('button', {
+            type: 'button',
+            className: 'secondary',
+            text: 'Annuler',
+            onclick: () => {
+              showInitial();
+              announce('Réinitialisation annulée.');
+            },
+          });
+          container.setAttribute('role', 'group');
+          container.setAttribute('aria-label', 'Confirmer la réinitialisation');
+          container.replaceChildren(confirmButton, cancelButton);
+          announce('Confirmez la réinitialisation des données de Learn-it Next.');
+          focusAfterRender(confirmButton);
         },
-      }),
-      node('button', {
-        type: 'button',
-        className: 'secondary',
-        text: 'Annuler',
-        onclick: () => {
-          resetConfirmationVisible = false;
-          renderLibrary({ announcement: 'Réinitialisation annulée.' });
-        },
-      }),
-    ]);
+      }));
+      container.removeAttribute('role');
+      container.removeAttribute('aria-label');
+    };
+    showInitial();
+    return container;
   }
 
   async function renderLibrary({ focus = true, announcement = null } = {}) {
