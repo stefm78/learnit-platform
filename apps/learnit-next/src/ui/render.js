@@ -19,7 +19,7 @@ function node(tag, attributes = {}, children = []) {
 
 function errorMessages(error) {
   const summary = error?.message ?? 'Une erreur inattendue est survenue.';
-  if (error?.code === 'unsupported_contract') return [summary];
+  if (error?.code === 'ERR_LEGACY') return [summary];
   if (Array.isArray(error?.errors) && error.errors.length) {
     return [summary, ...error.errors.map((entry) => `${entry.path}: ${entry.message}`)];
   }
@@ -129,6 +129,7 @@ function renderFillForm(activity, submit) {
 export function renderApp(root, runtime) {
   let notice = null;
   let busy = false;
+  let resetConfirmationVisible = false;
 
   const header = node('header', { className: 'app-header' }, [
     node('div', {}, [
@@ -231,26 +232,51 @@ export function renderApp(root, runtime) {
     return form;
   }
 
+  function renderResetAction() {
+    if (!resetConfirmationVisible) {
+      return node('button', {
+        type: 'button',
+        className: 'danger-quiet',
+        text: 'Réinitialiser Learn-it Next',
+        onclick: () => {
+          resetConfirmationVisible = true;
+          renderLibrary({ announcement: 'Confirmez la réinitialisation des données de Learn-it Next.' });
+        },
+      });
+    }
+    return node('div', { className: 'reset-confirmation', role: 'group', 'aria-label': 'Confirmer la réinitialisation' }, [
+      node('button', {
+        type: 'button',
+        className: 'danger-quiet',
+        text: 'Confirmer la réinitialisation',
+        onclick: () => {
+          resetConfirmationVisible = false;
+          run(() => runtime.resetNextData(), () => {
+            const message = 'Les données de Learn-it Next ont été supprimées.';
+            notice = renderNotice([message], 'success');
+            return renderLibrary({ announcement: message });
+          });
+        },
+      }),
+      node('button', {
+        type: 'button',
+        className: 'secondary',
+        text: 'Annuler',
+        onclick: () => {
+          resetConfirmationVisible = false;
+          renderLibrary({ announcement: 'Réinitialisation annulée.' });
+        },
+      }),
+    ]);
+  }
+
   async function renderLibrary({ focus = true, announcement = null } = {}) {
     const courses = await runtime.listCourses();
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
     section.append(node('div', { className: 'section-heading' }, [
       node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque locale' }), libraryTitle]),
-      node('button', {
-        type: 'button',
-        className: 'danger-quiet',
-        text: 'Réinitialiser Learn-it Next',
-        onclick: () => {
-          if (globalThis.confirm('Supprimer uniquement les données de Learn-it Next ?')) {
-            run(() => runtime.resetNextData(), () => {
-              const message = 'Les données de Learn-it Next ont été supprimées.';
-              notice = renderNotice([message], 'success');
-              return renderLibrary({ announcement: message });
-            });
-          }
-        },
-      }),
+      renderResetAction(),
     ]));
 
     const importForm = node('form', { className: 'import-panel' });
