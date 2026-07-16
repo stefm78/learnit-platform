@@ -125,7 +125,7 @@ export function createSessionService(storage, progressService) {
       }
 
       const evaluation = evaluateAnswer(current.currentActivity, answer);
-      await progressService.recordAttempt({
+      const record = await progressService.recordAttempt({
         courseInstallId: current.courseInstallId,
         activity: current.currentActivity,
         answer: evaluation.normalized,
@@ -136,6 +136,9 @@ export function createSessionService(storage, progressService) {
       return {
         activityRevisionId,
         correct: evaluation.correct,
+        completed: record.completed,
+        ...(record.selectedChoiceId ? { selectedChoiceId: record.selectedChoiceId } : {}),
+        ...(record.answers ? { answers: structuredClone(record.answers) } : {}),
         answer: evaluation.normalized,
         explanation: current.currentActivity.explanation,
         progress: after.progress,
