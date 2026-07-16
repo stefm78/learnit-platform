@@ -2,14 +2,84 @@ import { assertValidPackage, validatePackageObject, CONTRACT_VERSION } from './c
 import { createInstallationId } from './identity.js';
 
 const UNSUPPORTED_CONTRACT_MESSAGE = 'Format non pris en charge : ce fichier n’est pas un kit learnit.kit.v2. Les formats legacy ne sont ni importés ni migrés.';
+const INVALID_PACKAGE_MESSAGE = 'Le kit learnit.kit.v2 est invalide et n’a pas été importé.';
 
-export class ImportError extends Error {
-  constructor(message, { code = 'import_failed', cause, errors = [] } = {}) {
+class DomainImportError extends Error {
+  constructor(name, code, message, { cause, errors = [] } = {}) {
     super(message, { cause });
-    this.name = 'ImportError';
+    this.name = name;
     this.code = code;
     this.errors = errors;
   }
+}
+
+export class ContractError extends DomainImportError {
+  constructor(message = INVALID_PACKAGE_MESSAGE, options) {
+    super('ContractError', 'ERR_CONTRACT', message, options);
+  }
+}
+
+export class SchemaValidationError extends DomainImportError {
+  constructor(message = INVALID_PACKAGE_MESSAGE, options) {
+    super('SchemaValidationError', 'ERR_SCHEMA', message, options);
+  }
+}
+
+export class DigestMismatchError extends DomainImportError {
+  constructor(message = INVALID_PACKAGE_MESSAGE, options) {
+    super('DigestMismatchError', 'ERR_DIGEST', message, options);
+  }
+}
+
+export class RevisionConflictError extends DomainImportError {
+  constructor(message = INVALID_PACKAGE_MESSAGE, options) {
+    super('RevisionConflictError', 'ERR_REVISION_CONFLICT', message, options);
+  }
+}
+
+export class LegacyContractError extends DomainImportError {
+  constructor(message = UNSUPPORTED_CONTRACT_MESSAGE, options) {
+    super('LegacyContractError', 'ERR_LEGACY', message, options);
+  }
+}
+
+export class ImportRejectedError extends DomainImportError {
+  constructor(message, options) {
+    super('ImportRejectedError', 'ERR_IMPORT_REJECTED', message, options);
+  }
+}
+
+const SCHEMA_ERROR_CODES = new Set([
+  'type',
+  'required',
+  'additional_property',
+  'min_length',
+  'max_length',
+  'pattern',
+  'const',
+  'minimum',
+  'maximum',
+  'min_items',
+  'max_items',
+  'unique_items',
+  'one_of',
+  'enum',
+  'activity_type',
+]);
+
+function domainValidationError(error) {
+  if (error instanceof DomainImportError) return error;
+  const errors = Array.isArray(error?.errors) ? error.errors : [];
+  const codes = new Set(errors.map((entry) => entry.code));
+  const options = { cause: error, errors };
+  if (codes.has('digest_mismatch')) return new DigestMismatchError(INVALID_PACKAGE_MESSAGE, options);
+  if (codes.has('revision_digest_conflict') || codes.has('existing_revision_digest_conflict')) {
+    return new RevisionConflictError(INVALID_PACKAGE_MESSAGE, options);
+  }
+  if ([...codes].some((code) => SCHEMA_ERROR_CODES.has(code))) {
+    return new SchemaValidationError(INVALID_PACKAGE_MESSAGE, options);
+  }
+  return new ContractError(INVALID_PACKAGE_MESSAGE, options);
 }
 
 export function parsePackagePayload(payload) {
@@ -17,18 +87,22 @@ export function parsePackagePayload(payload) {
     try {
       return JSON.parse(payload);
     } catch (error) {
-      throw new ImportError('The selected file is not valid JSON', { code: 'malformed_json', cause: error });
+      throw new ImportRejectedError('The selected file is not valid JSON', { cause: error });
     }
   }
   if (payload && typeof payload === 'object') {
-    return structuredClone(payload);
+    try {
+      return structuredClone(payload);
+    } catch (error) {
+      throw new ImportRejectedError('The selected package cannot be cloned as JSON data', { cause: error });
+    }
   }
-  throw new ImportError('A JSON string or object is required', { code: 'invalid_input' });
+  throw new ImportRejectedError('A JSON string or object is required');
 }
 
 export function assertSupportedContract(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload) || payload.contract !== CONTRACT_VERSION) {
-    throw new ImportError(UNSUPPORTED_CONTRACT_MESSAGE, { code: 'unsupported_contract' });
+    throw new LegacyContractError();
   }
   return payload;
 }
@@ -38,25 +112,25 @@ function validationResultFromError(error) {
     ok: false,
     contractVersion: CONTRACT_VERSION,
     errors: [{
-      code: error.code ?? 'invalid_input',
-      path: error.code === 'unsupported_contract' ? '$.contract' : '$',
+      code: error.code ?? 'ERR_IMPORT_REJECTED',
+      path: error.code === 'ERR_LEGACY' ? '$.contract' : '$',
       message: error.message,
     }],
   };
 }
 
-function invalidPackageError(error) {
-  return new ImportError('Le kit learnit.kit.v2 est invalide et n’a pas été importé.', {
-    code: 'invalid_package',
-    cause: error,
-    errors: error.errors ?? [],
-  });
-}
-
 async function assertInstallablePackage(parsed, storage) {
-  await assertValidPackage(parsed);
+  try {
+    await assertValidPackage(parsed);
+  } catch (error) {
+    throw domainValidationError(error);
+  }
   const existingRevisionDigests = await storage.getRevisionDigestIndex();
-  await assertValidPackage(parsed, { existingRevisionDigests });
+  try {
+    await assertValidPackage(parsed, { existingRevisionDigests });
+  } catch (error) {
+    throw domainValidationError(error);
+  }
 }
 
 function makeSummary(payload) {
@@ -143,32 +217,17 @@ export function createImportService(storage) {
     async previewImport(payload) {
       const parsed = parsePackagePayload(payload);
       assertSupportedContract(parsed);
-      try {
-        await assertInstallablePackage(parsed, storage);
-      } catch (error) {
-        throw invalidPackageError(error);
-      }
+      await assertInstallablePackage(parsed, storage);
       return makeSummary(parsed);
     },
 
     async importPackage(payload) {
       const parsed = parsePackagePayload(payload);
       assertSupportedContract(parsed);
-      try {
-        await assertInstallablePackage(parsed, storage);
-      } catch (error) {
-        throw invalidPackageError(error);
-      }
+      await assertInstallablePackage(parsed, storage);
 
       const plan = buildInstallationPlan(parsed);
-      try {
-        await storage.commitImport(plan);
-      } catch (error) {
-        throw new ImportError('The atomic import transaction was aborted', {
-          code: 'storage_transaction_aborted',
-          cause: error,
-        });
-      }
+      await storage.commitImport(plan);
 
       return {
         ...makeSummary(parsed),
