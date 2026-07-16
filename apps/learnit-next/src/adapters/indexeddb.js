@@ -61,10 +61,17 @@ function openDatabase(indexedDbApi) {
   });
 }
 
+function revisionConflict(message) {
+  const error = new Error(message);
+  error.name = 'RevisionConflictError';
+  error.code = 'ERR_REVISION_CONFLICT';
+  return error;
+}
+
 function addRevision(index, revisionId, digest) {
   const previous = index.get(revisionId);
   if (previous && previous !== digest) {
-    throw new Error(`Stored revision ${revisionId} has conflicting digests`);
+    throw revisionConflict(`Stored revision ${revisionId} has conflicting digests`);
   }
   index.set(revisionId, digest);
 }
