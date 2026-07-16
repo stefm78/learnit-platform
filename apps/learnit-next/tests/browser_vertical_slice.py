@@ -398,7 +398,7 @@ class BrowserVerticalSliceTests(unittest.TestCase):
               return !Array.from(document.querySelectorAll('[aria-busy="true"]'))
                 .some(exposed);
             }""",
-            require_semantic,
+            arg=require_semantic,
         )
         matched = self.page.evaluate(
             """() => {
@@ -424,7 +424,7 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         self.page.wait_for_function(
             "element => !element.disabled && "
             "element.getAttribute('aria-disabled') !== 'true'",
-            trigger.element_handle(),
+            arg=trigger.element_handle(),
         )
 
     def import_through_keyboard(self, payload: Any) -> None:
@@ -458,7 +458,7 @@ class BrowserVerticalSliceTests(unittest.TestCase):
                     return regex.test(name);
                   });
                 }""",
-                f"{IMPORT_NAMES.pattern}|{VALIDATE_NAMES.pattern}",
+                arg=f"{IMPORT_NAMES.pattern}|{VALIDATE_NAMES.pattern}",
             )
             confirmation = None
             for pattern in (IMPORT_NAMES, VALIDATE_NAMES):
@@ -480,7 +480,7 @@ class BrowserVerticalSliceTests(unittest.TestCase):
     def wait_courses(self, expected: int) -> list[Any]:
         self.page.wait_for_function(
             "async expected => (await window.__LEARNIT_NEXT_TEST__.listCourses()).length === expected",
-            expected,
+            arg=expected,
         )
         courses = self.api("listCourses")
         self.assertEqual(expected, len(courses))
