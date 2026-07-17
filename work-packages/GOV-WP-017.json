@@ -1,83 +1,127 @@
 {
   "schemaVersion": 1,
   "id": "GOV-WP-017",
-  "title": "Finalize the canonical restart checkpoint after the Stage D pilot",
-  "status": "accepted",
-  "changeClass": "repository-governance-documentation",
+  "title": "Record the v1.0.0 promotion and orchestrate the next parallel cycle",
+  "status": "implementation-complete-pending-independent-review",
+  "changeClass": "repository-governance-state",
   "riskClass": "low",
-  "purpose": "Replace the obsolete pre-Stage-D restart checkpoint with a concise repository-first checkpoint bound to the accepted Stage B, Stage C and controlled Stage D pilot results. The checkpoint must identify exact commits, current risks, held domains and the next design-only gate so a future agent does not repeat completed work or start stable-identifier implementation prematurely.",
+  "purpose": "Replace the obsolete pre-release governance checkpoint with a canonical state bound to the promoted Learn-it v1.0.0 baseline. Record CI-WP-001 as the only active implementation lane, ACC-WP-001 as deferred, the four independent read-only analysis lanes, and the accountable-owner arbitration gate that keeps all product implementation on HOLD.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "eb296c14825d1a624c96806ee3eba073e6225b69",
-    "candidateName": "post-stage-d-pilot-canonical-restart-checkpoint",
-    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb"
+    "baseBranch": "main",
+    "baseCommit": "0604cad79a8ca765148c30090906b9f658af7109",
+    "release": "Learn-it v1.0.0",
+    "releaseTag": "v1.0.0",
+    "releasedAsset": "learnit-next.html",
+    "releasedAssetBytes": 84060,
+    "artifactSha256": "53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4",
+    "releaseVerdict": "RELEASE_PROMOTED_WITH_CONDITIONS",
+    "candidateName": "v1.0.0-next-cycle-governance-state"
   },
   "scope": {
     "allowedPaths": [
-      "work-packages/GOV-WP-017.json",
-      "docs/handover/STAGE_D_RESTART_CHECKPOINT.md",
-      "docs/governance/reviews/GOV-REVIEW-0021-STAGE-D-FINAL-CHECKPOINT.md"
+      "governance/governor-state.json",
+      "work-packages/GOV-WP-017.json"
     ],
     "forbiddenPaths": [
       ".github/**",
-      "governance/governor-state.json",
-      "work-packages/ARC-WP-019.json",
-      "tools/**",
       "apps/**",
+      "tests/**",
+      "tools/**",
       "contracts/**",
       "platform/**",
-      "docs/architecture/**",
-      "docs/evidence/**",
-      "docs/product/**",
-      "docs/roadmap/**"
+      "authoring/**",
+      "kits/**",
+      "docs/**",
+      "work-packages/CI-WP-001.json",
+      "work-packages/ACC-WP-001.json",
+      "work-packages/PROD-WP-001.json",
+      "work-packages/ARC-WP-024.json",
+      "work-packages/LRN-WP-001.json",
+      "work-packages/QA-WP-012.json"
     ]
   },
+  "roleBoundary": {
+    "role": "governance-maintainer",
+    "permittedWrites": [
+      "governance/governor-state.json",
+      "work-packages/GOV-WP-017.json"
+    ],
+    "prohibitedScope": "workflows, product code, runtime, tests, fixtures, authoring, kits, contracts, evidence and product documentation",
+    "selfReviewAllowed": false,
+    "mergeAllowed": false
+  },
   "invariants": [
-    "The checkpoint reflects exact repository state at base commit eb296c14825d1a624c96806ee3eba073e6225b69.",
-    "Stage B, Stage C and the controlled Stage D pilot are recorded as accepted with their exact evidence roots.",
-    "The promoted product baseline remains RC718 with RC719 PASS_WITH_RESERVATIONS.",
-    "The Stage D pilot is not represented as a product RC and did not change the tested artifact.",
-    "The next gate is design-only stable identity and migration planning; implementation remains held.",
-    "The Player working-file count of 150 and the unenforced private-repository ruleset remain explicit risks.",
-    "Backend, accounts, synchronization, catalog, commerce, tenancy and marketplace remain held.",
-    "Old handovers are explicitly subordinate to current main, governor state, accepted work packages and exact evidence.",
-    "No runtime, workflow, architecture, roadmap, evidence or governor-state content changes."
+    "The branch starts directly from exact commit 0604cad79a8ca765148c30090906b9f658af7109.",
+    "Learn-it v1.0.0 remains immutable at 84060 bytes with SHA-256 53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4.",
+    "The release retains the verdict RELEASE_PROMOTED_WITH_CONDITIONS and all permanent release conditions.",
+    "RC718 remains separately accessible and no RC718 learner data migration or compatibility layer is authorized.",
+    "CI-WP-001 is active only within the exact four paths recorded in issue #85 and its merge remains held pending independent QA and governor review.",
+    "ACC-WP-001 remains DEFERRED_BY_GOVERNOR and current keyboard, NVDA, Android and TalkBack behavior is a non-regression constraint.",
+    "PROD-WP-001 #88, ARC-WP-024 #89, LRN-WP-001 #90 and QA-WP-012 #91 are independent read-only analyses with no branch, PR or product-decision authority.",
+    "All product implementation remains on HOLD until the accountable owner arbitrates after the four analysis reports and the governor creates bounded disjoint work packages.",
+    "Writable overlap across active lanes remains zero paths.",
+    "Only the two allowed governance JSON files change.",
+    "The draft pull request is not a review, acceptance or merge authorization."
   ],
   "requiredEvidence": [
-    "accepted ARC-WP-014 exact first-seam result and governor review",
-    "accepted ARC-WP-019 exact Stage D pilot result and governor review",
-    "current governor state GOV-STATE-2026-07-14-022",
-    "promoted RC718 baseline and RC719 human attestation",
-    "Repository governance and PR scope green on this documentation-only pull request"
+    "issue #84 immutable v1.0.0 baseline record",
+    "issue #85 CI-WP-001 authorization and four-path allowlist",
+    "issue #86 ACC-WP-001 deferment and non-regression conditions",
+    "issue #87 parallel-cycle authorization and convergence gate",
+    "issues #88, #89, #90 and #91 read-only analysis authorizations",
+    "main and both source blobs resolve to exact commit 0604cad79a8ca765148c30090906b9f658af7109",
+    "pull-request diff contains exactly governance/governor-state.json and work-packages/GOV-WP-017.json"
   ],
   "adversarialTests": [
-    "fail if the checkpoint claims a new product RC",
-    "fail if exact tested, merge or acceptance commits are omitted or mismatched",
-    "fail if stable-identifier implementation is described as authorized",
-    "fail if any held platform domain is described as open",
-    "fail if the Player file-budget or ruleset exception is hidden",
-    "fail if an old handover is given precedence over repository state",
-    "fail if any file outside the three exact allowed paths changes"
+    "fail if the v1.0.0 commit, asset name, byte size or SHA-256 differs from the immutable baseline",
+    "fail if any permanent release condition is removed or weakened",
+    "fail if RC718 migration, compatibility or storage mutation is authorized",
+    "fail if CI-WP-001 is absent, inactive or granted paths beyond issue #85",
+    "fail if ACC-WP-001 is represented as active implementation",
+    "fail if any analysis lane is granted repository writes or product-decision authority",
+    "fail if product implementation is authorized before accountable-owner arbitration",
+    "fail if the next mandatory gate is not accountable-owner product arbitration",
+    "fail if writable overlap is non-zero",
+    "fail if any file outside the exact two-path allowlist changes",
+    "fail if the maintainer self-approves, merges or represents the draft PR as independently reviewed"
   ],
   "nonGoals": [
-    "change product code or artifact",
-    "change governor state",
-    "change architecture or roadmap",
-    "authorize stable-identifier implementation",
-    "open a held platform domain",
-    "create another implementation pilot"
+    "change CI workflows or harness implementation",
+    "change product runtime, UX or learning behavior",
+    "change tests or fixtures",
+    "change authoring, kits or contracts",
+    "perform accessibility implementation or testing",
+    "select the next product priority",
+    "consult or consolidate the conclusions of the independent analysis lanes",
+    "create product implementation work packages",
+    "alter the v1.0.0 release or evidence chain",
+    "modify or migrate RC718",
+    "perform independent review or merge"
   ],
+  "delivery": {
+    "branch": "gov-wp-017-v1-next-cycle-state",
+    "pullRequestState": "draft",
+    "baseBranch": "main",
+    "changedPathsExpected": 2,
+    "independentGovernanceReviewRequired": true
+  },
   "independentReview": [
-    "Repository governance validates the work package",
-    "PR scope validates the exact three-file documentation scope",
-    "The governor verifies all commit and evidence references against main"
+    "verify the branch parent is exact commit 0604cad79a8ca765148c30090906b9f658af7109",
+    "verify the diff contains exactly the two allowed JSON paths",
+    "validate both files as JSON",
+    "verify all issue statuses and release identities against GitHub",
+    "verify product implementation remains explicitly held",
+    "verify no release condition or accessibility reservation was lost",
+    "verify no self-certification or merge occurred"
   ],
   "result": {
-    "decision": "GO",
-    "authorizedAt": "2026-07-14",
+    "stateUpdatePrepared": true,
     "documentationUpdateAllowed": true,
-    "documentationAccepted": false,
-    "nextMandatoryGate": "ARC-WP-020"
+    "independentReviewPending": true,
+    "mergeAuthorized": false,
+    "selfCertified": false,
+    "nextMandatoryGate": "ACCOUNTABLE-OWNER-PRODUCT-ARBITRATION"
   },
-  "rollback": "Revert the documentation-only merge. No source, artifact, learner data, governance state or external system is affected."
+  "rollback": "Close the draft pull request or revert the two-file governance commit. No workflow, product code, test, kit, contract, released artifact, learner data or RC718 data is changed."
 }
