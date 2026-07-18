@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import nullcontext
+import ctypes
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import hashlib
@@ -28,10 +29,6 @@ KEY_VALUE_RE = re.compile(
 )
 URL_CREDENTIAL_RE = re.compile(r"(?i)(https?://)([^/\s:@]+):([^@/\s]+)@")
 
-# Process-level values required to find executables, create temporary files and
-# preserve locale/TLS behavior. User configuration locations are intentionally
-# excluded and are either restored only for trusted GitHub transport or replaced
-# by fresh private directories for every ordinary subprocess.
 SAFE_PROCESS_ENV_KEYS = frozenset(
     {
         "PATH",
@@ -39,9 +36,6 @@ SAFE_PROCESS_ENV_KEYS = frozenset(
         "WINDIR",
         "COMSPEC",
         "PATHEXT",
-        "TMPDIR",
-        "TMP",
-        "TEMP",
         "LANG",
         "LC_ALL",
         "LC_CTYPE",
@@ -69,8 +63,39 @@ GITHUB_AUTH_ENV_KEYS = frozenset(
     {"GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN"}
 )
 ISOLATED_CONFIG_OVERRIDE_KEYS = frozenset(
-    {"HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "GH_CONFIG_DIR"}
+    {
+        "HOME",
+        "USERPROFILE",
+        "APPDATA",
+        "LOCALAPPDATA",
+        "XDG_CONFIG_HOME",
+        "GH_CONFIG_DIR",
+        "TMPDIR",
+        "TMP",
+        "TEMP",
+    }
 )
+
+_LANDLOCK_CREATE_RULESET_VERSION = 1
+_LANDLOCK_RULE_PATH_BENEATH = 1
+_PR_SET_NO_NEW_PRIVS = 38
+_LL_EXECUTE = 1 << 0
+_LL_WRITE_FILE = 1 << 1
+_LL_READ_FILE = 1 << 2
+_LL_READ_DIR = 1 << 3
+_LL_REMOVE_DIR = 1 << 4
+_LL_REMOVE_FILE = 1 << 5
+_LL_MAKE_CHAR = 1 << 6
+_LL_MAKE_DIR = 1 << 7
+_LL_MAKE_REG = 1 << 8
+_LL_MAKE_SOCK = 1 << 9
+_LL_MAKE_FIFO = 1 << 10
+_LL_MAKE_BLOCK = 1 << 11
+_LL_MAKE_SYM = 1 << 12
+_LL_REFER = 1 << 13
+_LL_TRUNCATE = 1 << 14
+_SANDBOX_MARKER = "--codespace-evidence-landlock-exec"
+_MOUNT_SANDBOX_MARKER = "--codespace-evidence-mount-sandbox-exec"
 
 
 class ExecutionError(RuntimeError):
@@ -144,7 +169,8 @@ def _isolated_config_environment(root: Path) -> dict[str, str]:
     gh = root / "gh"
     appdata = root / "appdata"
     local_appdata = root / "local-appdata"
-    for path in (home, xdg, gh, appdata, local_appdata):
+    temp = root / "tmp"
+    for path in (home, xdg, gh, appdata, local_appdata, temp):
         path.mkdir(parents=True, exist_ok=True)
     return {
         "HOME": str(home),
@@ -153,6 +179,9 @@ def _isolated_config_environment(root: Path) -> dict[str, str]:
         "GH_CONFIG_DIR": str(gh),
         "APPDATA": str(appdata),
         "LOCALAPPDATA": str(local_appdata),
+        "TMPDIR": str(temp),
+        "TMP": str(temp),
+        "TEMP": str(temp),
         "GIT_CONFIG_NOSYSTEM": "1",
         "GIT_CONFIG_GLOBAL": os.devnull,
     }
@@ -166,10 +195,9 @@ def safe_environment(
 ) -> dict[str, str]:
     """Build a strict subprocess environment.
 
-    Ordinary validators, tests, Python programs, Make and Git commands receive a
-    fresh HOME/config hierarchy and cannot discover the operator's gh hosts file.
-    Only explicitly trusted GitHub transport receives the real user configuration
-    and GitHub authentication variables.
+    Ordinary validators and tests receive fresh private configuration and temp
+    directories. Only trusted GitHub transport receives the operator's actual
+    GitHub authentication and configuration locations.
     """
 
     env: dict[str, str] = {}
@@ -178,6 +206,10 @@ def safe_environment(
             env[key] = value
     if include_github_auth:
         for key in USER_CONFIG_ENV_KEYS | GITHUB_AUTH_ENV_KEYS:
+            value = os.environ.get(key)
+            if value:
+                env[key] = value
+        for key in ("TMPDIR", "TMP", "TEMP"):
             value = os.environ.get(key)
             if value:
                 env[key] = value
@@ -195,6 +227,252 @@ def safe_environment(
                 raise ExecutionError(f"refusing user-config environment override: {key}")
             env[str(key)] = str(value)
     return env
+
+
+class _RulesetAttr(ctypes.Structure):
+    _fields_ = [("handled_access_fs", ctypes.c_uint64)]
+
+
+class _PathBeneathAttr(ctypes.Structure):
+    _fields_ = [
+        ("allowed_access", ctypes.c_uint64),
+        ("parent_fd", ctypes.c_int32),
+        ("reserved", ctypes.c_uint32),
+    ]
+
+
+def _landlock_syscall_numbers() -> tuple[int, int, int]:
+    if platform.system() != "Linux":
+        raise ExecutionError("filesystem confinement requires Linux Landlock")
+    return 444, 445, 446
+
+
+def _landlock_supported_mask(abi: int) -> int:
+    mask = (
+        _LL_EXECUTE
+        | _LL_WRITE_FILE
+        | _LL_READ_FILE
+        | _LL_READ_DIR
+        | _LL_REMOVE_DIR
+        | _LL_REMOVE_FILE
+        | _LL_MAKE_CHAR
+        | _LL_MAKE_DIR
+        | _LL_MAKE_REG
+        | _LL_MAKE_SOCK
+        | _LL_MAKE_FIFO
+        | _LL_MAKE_BLOCK
+        | _LL_MAKE_SYM
+    )
+    if abi >= 2:
+        mask |= _LL_REFER
+    if abi >= 3:
+        mask |= _LL_TRUNCATE
+    return mask
+
+
+def _add_landlock_path_rule(
+    libc: ctypes.CDLL,
+    add_rule_nr: int,
+    ruleset_fd: int,
+    path: Path,
+    access: int,
+) -> None:
+    try:
+        fd = os.open(path, getattr(os, "O_PATH", 0o10000000) | os.O_CLOEXEC)
+    except FileNotFoundError:
+        return
+    try:
+        attr = _PathBeneathAttr(access, fd, 0)
+        result = libc.syscall(
+            add_rule_nr,
+            ruleset_fd,
+            _LANDLOCK_RULE_PATH_BENEATH,
+            ctypes.byref(attr),
+            0,
+        )
+        if result != 0:
+            error = ctypes.get_errno()
+            raise ExecutionError(f"Landlock path rule failed for {path}: errno {error}")
+    finally:
+        os.close(fd)
+
+
+def _apply_landlock(isolated_root: Path, workspace_root: Path | None) -> None:
+    create_nr, add_rule_nr, restrict_nr = _landlock_syscall_numbers()
+    libc = ctypes.CDLL(None, use_errno=True)
+    abi = libc.syscall(create_nr, 0, 0, _LANDLOCK_CREATE_RULESET_VERSION)
+    if abi < 1:
+        error = ctypes.get_errno()
+        raise ExecutionError(f"Linux Landlock unavailable: errno {error}")
+    handled = _landlock_supported_mask(int(abi))
+    ruleset_attr = _RulesetAttr(handled)
+    ruleset_fd = libc.syscall(create_nr, ctypes.byref(ruleset_attr), ctypes.sizeof(ruleset_attr), 0)
+    if ruleset_fd < 0:
+        error = ctypes.get_errno()
+        raise ExecutionError(f"cannot create Landlock ruleset: errno {error}")
+    try:
+        read_exec = _LL_EXECUTE | _LL_READ_FILE | _LL_READ_DIR
+        full = handled
+        for system_root in (
+            Path("/usr"),
+            Path("/bin"),
+            Path("/sbin"),
+            Path("/lib"),
+            Path("/lib64"),
+            Path("/etc"),
+            Path("/proc"),
+            Path("/sys"),
+            Path("/opt"),
+        ):
+            _add_landlock_path_rule(libc, add_rule_nr, ruleset_fd, system_root, read_exec)
+        for device in (Path("/dev/null"), Path("/dev/urandom"), Path("/dev/random")):
+            _add_landlock_path_rule(
+                libc,
+                add_rule_nr,
+                ruleset_fd,
+                device,
+                _LL_READ_FILE | _LL_WRITE_FILE,
+            )
+        _add_landlock_path_rule(libc, add_rule_nr, ruleset_fd, isolated_root, full)
+        if workspace_root is not None:
+            _add_landlock_path_rule(libc, add_rule_nr, ruleset_fd, workspace_root, full)
+        if libc.prctl(_PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0:
+            error = ctypes.get_errno()
+            raise ExecutionError(f"cannot set no_new_privs: errno {error}")
+        if libc.syscall(restrict_nr, ruleset_fd, 0) != 0:
+            error = ctypes.get_errno()
+            raise ExecutionError(f"cannot enforce Landlock ruleset: errno {error}")
+    finally:
+        os.close(ruleset_fd)
+
+
+def _parse_sandbox_request(argv: list[str]) -> tuple[Path, Path | None, list[str]]:
+    if "--" not in argv:
+        raise ExecutionError("sandbox wrapper: missing command separator")
+    separator = argv.index("--")
+    options = argv[:separator]
+    command = argv[separator + 1 :]
+    isolated_root: Path | None = None
+    workspace_root: Path | None = None
+    index = 0
+    while index < len(options):
+        option = options[index]
+        if option == "--isolated-root" and index + 1 < len(options):
+            isolated_root = Path(options[index + 1]).resolve()
+            index += 2
+        elif option == "--workspace-root" and index + 1 < len(options):
+            workspace_root = Path(options[index + 1]).resolve()
+            index += 2
+        else:
+            raise ExecutionError(f"sandbox wrapper: invalid option {option}")
+    if isolated_root is None or not command:
+        raise ExecutionError("sandbox wrapper: incomplete request")
+    return isolated_root, workspace_root, command
+
+
+def _mount(args: list[str]) -> None:
+    completed = subprocess.run(args, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if completed.returncode != 0:
+        message = completed.stderr.decode("utf-8", "replace").strip()
+        raise ExecutionError(message or f"mount command failed: {' '.join(args)}")
+
+
+def _mount_sandbox_exec_main(argv: list[str]) -> int:
+    try:
+        isolated_root, workspace_root, command = _parse_sandbox_request(argv)
+        rootfs = isolated_root / "rootfs"
+        rootfs.mkdir(parents=True, exist_ok=True)
+        _mount(["mount", "--make-rprivate", "/"])
+        _mount(["mount", "-t", "tmpfs", "tmpfs", str(rootfs)])
+
+        for source in ("/usr", "/bin", "/sbin", "/lib", "/lib64", "/etc", "/opt"):
+            source_path = Path(source)
+            if not source_path.exists():
+                continue
+            target = rootfs / source.lstrip("/")
+            target.mkdir(parents=True, exist_ok=True)
+            _mount(["mount", "--rbind", source, str(target)])
+
+        (rootfs / "dev").mkdir(parents=True, exist_ok=True)
+        for source in ("/dev/null", "/dev/urandom", "/dev/random"):
+            target = rootfs / source.lstrip("/")
+            target.touch(exist_ok=True)
+            _mount(["mount", "--bind", source, str(target)])
+        (rootfs / "proc").mkdir(parents=True, exist_ok=True)
+        _mount(["mount", "-t", "proc", "proc", str(rootfs / "proc")])
+
+        sandbox_state = rootfs / "sandbox"
+        sandbox_state.mkdir(parents=True, exist_ok=True)
+        state_names = {
+            "HOME": "home",
+            "USERPROFILE": "home",
+            "XDG_CONFIG_HOME": "xdg",
+            "GH_CONFIG_DIR": "gh",
+            "APPDATA": "appdata",
+            "LOCALAPPDATA": "local-appdata",
+            "TMPDIR": "tmp",
+            "TMP": "tmp",
+            "TEMP": "tmp",
+        }
+        for name in sorted(set(state_names.values())):
+            source = isolated_root / name
+            source.mkdir(parents=True, exist_ok=True)
+            target = sandbox_state / name
+            target.mkdir(parents=True, exist_ok=True)
+            _mount(["mount", "--bind", str(source), str(target)])
+
+        if workspace_root is not None:
+            workspace_target = rootfs / "workspace"
+            workspace_target.mkdir(parents=True, exist_ok=True)
+            _mount(["mount", "--bind", str(workspace_root), str(workspace_target)])
+            workdir = "/workspace"
+        else:
+            workdir = "/sandbox/tmp"
+
+        environment = dict(os.environ)
+        for key, name in state_names.items():
+            environment[key] = f"/sandbox/{name}"
+        os.chroot(rootfs)
+        os.chdir(workdir)
+        os.execvpe(command[0], command, environment)
+    except Exception as exc:
+        print(f"filesystem sandbox unavailable: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 126
+
+
+def _sandbox_exec_main(argv: list[str]) -> int:
+    try:
+        isolated_root, workspace_root, command = _parse_sandbox_request(argv)
+        _apply_landlock(isolated_root, workspace_root)
+        os.execvpe(command[0], command, os.environ)
+    except ExecutionError as landlock_error:
+        unshare = shutil.which("unshare")
+        if unshare is None or platform.system() != "Linux":
+            print(f"filesystem sandbox unavailable: {landlock_error}", file=sys.stderr)
+            return 126
+        fallback = [
+            unshare,
+            "--user",
+            "--map-root-user",
+            "--mount",
+            "--fork",
+            sys.executable,
+            str(Path(__file__).resolve()),
+            _MOUNT_SANDBOX_MARKER,
+            "--isolated-root",
+            str(isolated_root),
+        ]
+        if workspace_root is not None:
+            fallback.extend(["--workspace-root", str(workspace_root)])
+        fallback.extend(["--", *command])
+        try:
+            os.execvpe(fallback[0], fallback, os.environ)
+        except Exception as exc:
+            print(f"filesystem sandbox unavailable: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 126
+    except Exception as exc:
+        print(f"filesystem sandbox unavailable: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 126
 
 
 @dataclass
@@ -259,6 +537,7 @@ class CommandRunner:
         extra_env: Mapping[str, str] | None = None,
         check: bool = False,
         github_credentials: bool = False,
+        filesystem_root: Path | None = None,
     ) -> CommandRecord:
         if not argv or not all(isinstance(item, str) and item for item in argv):
             raise ExecutionError("argv must be a non-empty list of non-empty strings")
@@ -269,20 +548,45 @@ class CommandRunner:
         start = time.monotonic()
         executable = Path(argv[0]).name.lower()
         include_github_auth = github_credentials or executable in {"gh", "gh.exe"}
+        trusted_infrastructure_git = executable in {"git", "git.exe"}
         ambient_secrets = _ambient_secret_values()
-        config_context = nullcontext(None) if include_github_auth else tempfile.TemporaryDirectory(
-            prefix="codespace-evidence-env-"
+        config_context = (
+            nullcontext(None)
+            if include_github_auth
+            else tempfile.TemporaryDirectory(prefix="codespace-evidence-env-")
         )
         with config_context as isolated_directory:
-            isolated_root = Path(isolated_directory) if isolated_directory is not None else None
+            isolated_root = Path(isolated_directory).resolve() if isolated_directory is not None else None
+            environment = safe_environment(
+                extra_env,
+                include_github_auth=include_github_auth,
+                isolated_config_root=isolated_root,
+            )
+            effective_filesystem_root = filesystem_root
+            if (
+                effective_filesystem_root is None
+                and cwd.name == "repository"
+                and cwd.parent.name.startswith("codespace-evidence-")
+                and (cwd / ".git").exists()
+            ):
+                effective_filesystem_root = cwd
+            launch_argv = list(argv)
+            if not include_github_auth and not trusted_infrastructure_git:
+                assert isolated_root is not None
+                launch_argv = [
+                    sys.executable,
+                    str(Path(__file__).resolve()),
+                    _SANDBOX_MARKER,
+                    "--isolated-root",
+                    str(isolated_root),
+                ]
+                if effective_filesystem_root is not None:
+                    launch_argv.extend(["--workspace-root", str(effective_filesystem_root.resolve())])
+                launch_argv.extend(["--", *argv])
             process = subprocess.Popen(
-                argv,
+                launch_argv,
                 cwd=str(cwd),
-                env=safe_environment(
-                    extra_env,
-                    include_github_auth=include_github_auth,
-                    isolated_config_root=isolated_root,
-                ),
+                env=environment,
                 text=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -379,3 +683,10 @@ def collect_environment(runner: CommandRunner, repository_root: Path) -> dict[st
     for name, args in (("git", ["--version"]), ("gh", ["--version"]), ("node", ["--version"])):
         facts[name] = executable_version(runner, name, args, repository_root)
     return facts
+
+
+if __name__ == "__main__" and len(sys.argv) >= 2:
+    if sys.argv[1] == _SANDBOX_MARKER:
+        raise SystemExit(_sandbox_exec_main(sys.argv[2:]))
+    if sys.argv[1] == _MOUNT_SANDBOX_MARKER:
+        raise SystemExit(_mount_sandbox_exec_main(sys.argv[2:]))
