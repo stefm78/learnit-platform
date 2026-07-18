@@ -131,9 +131,6 @@ jobs:
           else
             echo "Strict report was not created." >&2
           fi
-      - name: Create non-committed release envelope
-        if: steps.checks.outputs.exit_code == '0'
-        run: python apps/learnit-next/dev/release.py
       - name: Upload auditable proof bundle
         if: always()
         uses: actions/upload-artifact@v4
@@ -145,8 +142,6 @@ jobs:
             apps/learnit-next/source_manifest.json
             apps/learnit-next/.agent-result/tree-sha.txt
             apps/learnit-next/.agent-result/run_checks.json
-            apps/learnit-next/release/learnit-next.html
-            apps/learnit-next/release/release-envelope.json
       - name: Enforce strict result
         if: steps.checks.outputs.exit_code != '0'
         run: |
