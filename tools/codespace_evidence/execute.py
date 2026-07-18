@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import hashlib
@@ -13,6 +14,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from typing import Any, Iterable, Mapping
 
@@ -26,19 +28,17 @@ KEY_VALUE_RE = re.compile(
 )
 URL_CREDENTIAL_RE = re.compile(r"(?i)(https?://)([^/\s:@]+):([^@/\s]+)@")
 
-# Fixed subprocesses receive only the minimum process environment needed to run.
-# Ambient credentials are never inherited by local validation or test profiles.
-SAFE_ENV_KEYS = frozenset(
+# Process-level values required to find executables, create temporary files and
+# preserve locale/TLS behavior. User configuration locations are intentionally
+# excluded and are either restored only for trusted GitHub transport or replaced
+# by fresh private directories for every ordinary subprocess.
+SAFE_PROCESS_ENV_KEYS = frozenset(
     {
         "PATH",
-        "HOME",
-        "USERPROFILE",
         "SYSTEMROOT",
         "WINDIR",
         "COMSPEC",
         "PATHEXT",
-        "APPDATA",
-        "LOCALAPPDATA",
         "TMPDIR",
         "TMP",
         "TEMP",
@@ -51,14 +51,25 @@ SAFE_ENV_KEYS = frozenset(
         "SSL_CERT_DIR",
         "REQUESTS_CA_BUNDLE",
         "CURL_CA_BUNDLE",
+        "NO_COLOR",
+    }
+)
+USER_CONFIG_ENV_KEYS = frozenset(
+    {
+        "HOME",
+        "USERPROFILE",
+        "APPDATA",
+        "LOCALAPPDATA",
         "XDG_CONFIG_HOME",
         "GH_CONFIG_DIR",
         "GH_HOST",
-        "NO_COLOR",
     }
 )
 GITHUB_AUTH_ENV_KEYS = frozenset(
     {"GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN"}
+)
+ISOLATED_CONFIG_OVERRIDE_KEYS = frozenset(
+    {"HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "GH_CONFIG_DIR"}
 )
 
 
@@ -127,34 +138,61 @@ def redact_argv(argv: Iterable[str], secret_values: Iterable[str] = ()) -> list[
     return result
 
 
+def _isolated_config_environment(root: Path) -> dict[str, str]:
+    home = root / "home"
+    xdg = root / "xdg"
+    gh = root / "gh"
+    appdata = root / "appdata"
+    local_appdata = root / "local-appdata"
+    for path in (home, xdg, gh, appdata, local_appdata):
+        path.mkdir(parents=True, exist_ok=True)
+    return {
+        "HOME": str(home),
+        "USERPROFILE": str(home),
+        "XDG_CONFIG_HOME": str(xdg),
+        "GH_CONFIG_DIR": str(gh),
+        "APPDATA": str(appdata),
+        "LOCALAPPDATA": str(local_appdata),
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": os.devnull,
+    }
+
+
 def safe_environment(
     extra: Mapping[str, str] | None = None,
     *,
     include_github_auth: bool = False,
+    isolated_config_root: Path | None = None,
 ) -> dict[str, str]:
     """Build a strict subprocess environment.
 
-    Only the trusted ``gh`` executable may receive GitHub authentication variables.
-    Fixed local validators, tests and Git commands never inherit arbitrary ambient
-    variables, so an opaque secret cannot be printed by a child process merely by
-    reading its inherited environment.
+    Ordinary validators, tests, Python programs, Make and Git commands receive a
+    fresh HOME/config hierarchy and cannot discover the operator's gh hosts file.
+    Only explicitly trusted GitHub transport receives the real user configuration
+    and GitHub authentication variables.
     """
 
     env: dict[str, str] = {}
     for key, value in os.environ.items():
-        if key in SAFE_ENV_KEYS or key.startswith("LC_"):
+        if key in SAFE_PROCESS_ENV_KEYS or key.startswith("LC_"):
             env[key] = value
     if include_github_auth:
-        for key in GITHUB_AUTH_ENV_KEYS:
+        for key in USER_CONFIG_ENV_KEYS | GITHUB_AUTH_ENV_KEYS:
             value = os.environ.get(key)
             if value:
                 env[key] = value
+    else:
+        if isolated_config_root is None:
+            raise ExecutionError("isolated_config_root is required for non-GitHub subprocesses")
+        env.update(_isolated_config_environment(isolated_config_root))
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     env["GIT_TERMINAL_PROMPT"] = "0"
     if extra:
         for key, value in extra.items():
             if SENSITIVE_KEY_RE.search(key):
                 raise ExecutionError(f"refusing sensitive environment override: {key}")
+            if not include_github_auth and key in ISOLATED_CONFIG_OVERRIDE_KEYS:
+                raise ExecutionError(f"refusing user-config environment override: {key}")
             env[str(key)] = str(value)
     return env
 
@@ -220,6 +258,7 @@ class CommandRunner:
         timeout_seconds: int = 300,
         extra_env: Mapping[str, str] | None = None,
         check: bool = False,
+        github_credentials: bool = False,
     ) -> CommandRecord:
         if not argv or not all(isinstance(item, str) and item for item in argv):
             raise ExecutionError("argv must be a non-empty list of non-empty strings")
@@ -229,39 +268,48 @@ class CommandRunner:
         started_at = utc_now()
         start = time.monotonic()
         executable = Path(argv[0]).name.lower()
-        include_github_auth = executable in {"gh", "gh.exe"}
+        include_github_auth = github_credentials or executable in {"gh", "gh.exe"}
         ambient_secrets = _ambient_secret_values()
-        process = subprocess.Popen(
-            argv,
-            cwd=str(cwd),
-            env=safe_environment(extra_env, include_github_auth=include_github_auth),
-            text=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=False,
-            start_new_session=(os.name != "nt"),
+        config_context = nullcontext(None) if include_github_auth else tempfile.TemporaryDirectory(
+            prefix="codespace-evidence-env-"
         )
-        timed_out = False
-        try:
-            stdout_b, stderr_b = process.communicate(timeout=timeout_seconds)
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            if os.name != "nt":
-                try:
-                    os.killpg(process.pid, signal.SIGTERM)
-                except ProcessLookupError:
-                    pass
-                try:
-                    stdout_b, stderr_b = process.communicate(timeout=5)
-                except subprocess.TimeoutExpired:
+        with config_context as isolated_directory:
+            isolated_root = Path(isolated_directory) if isolated_directory is not None else None
+            process = subprocess.Popen(
+                argv,
+                cwd=str(cwd),
+                env=safe_environment(
+                    extra_env,
+                    include_github_auth=include_github_auth,
+                    isolated_config_root=isolated_root,
+                ),
+                text=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False,
+                start_new_session=(os.name != "nt"),
+            )
+            timed_out = False
+            try:
+                stdout_b, stderr_b = process.communicate(timeout=timeout_seconds)
+            except subprocess.TimeoutExpired:
+                timed_out = True
+                if os.name != "nt":
                     try:
-                        os.killpg(process.pid, signal.SIGKILL)
+                        os.killpg(process.pid, signal.SIGTERM)
                     except ProcessLookupError:
                         pass
+                    try:
+                        stdout_b, stderr_b = process.communicate(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        try:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+                        stdout_b, stderr_b = process.communicate()
+                else:
+                    process.kill()
                     stdout_b, stderr_b = process.communicate()
-            else:
-                process.kill()
-                stdout_b, stderr_b = process.communicate()
         completed_at = utc_now()
         duration = time.monotonic() - start
         stdout = redact_text(stdout_b.decode("utf-8", "replace"), ambient_secrets)
@@ -316,10 +364,7 @@ def executable_version(runner: CommandRunner, executable: str, args: list[str], 
 
 def collect_environment(runner: CommandRunner, repository_root: Path) -> dict[str, Any]:
     facts: dict[str, Any] = {
-        "python": {
-            "version": sys.version.split()[0],
-            "executable": sys.executable,
-        },
+        "python": {"version": sys.version.split()[0], "executable": sys.executable},
         "platform": {
             "system": platform.system(),
             "release": platform.release(),
