@@ -87,7 +87,7 @@
     "Subprocess environments are allowlisted; ambient secrets are not inherited by fixed local validators or tests.",
     "Repository-controlled fixed profiles and their descendants are filesystem-confined to the system runtime, fresh private state and the disposable exact-SHA workspace; failure to establish confinement fails closed.",
     "No request can provide a command, argv, shell fragment, script, plugin, path or environment override.",
-    "Every target SHA is a full lowercase 40-character SHA and is checked before execution and again before publication.",
+    "Every target SHA is a full lowercase 40-character SHA and is checked before execution, after execution, and again immediately before the publication POST.",
     "Local operations execute only in a disposable clone detached at the exact requested SHA.",
     "The primary checkout remains byte-for-byte equivalent in recorded HEAD, status, refs, index and remotes facts.",
     "The request is bound by marker and canonical request digest to one exact GitHub issue or pull-request conversation comment.",
@@ -99,16 +99,18 @@
     "Restart recovery accepts an existing final diagnostic only after authenticated-publisher author binding, canonical diagnostic digest recomputation and a new exact read-back.",
     "One publication is limited to 58000 UTF-8 bytes and partial evidence cannot appear final.",
     "Tokens, secrets, cookies, credentials and authorization material are excluded or redacted from local and durable evidence.",
-    "Retries allocate immutable attempt directories without overwriting earlier attempts.",
+    "A job_id is atomically bound to one request digest; the same pair never allocates a second attempt or duplicate publication, a different digest cannot reuse the job_id, and there is no allow_new_attempt escape hatch.",
     "GitHub request-binding and preflight failures allocate immutable local attempts classified FAIL_ENVIRONMENT.",
     "Self-stop is possible only after verified durable publication and exact Codespace identity validation.",
     "The engine runs outside Codespaces.",
-    "The ordinary runner cannot classify an outcome as GOVERNANCE_DECISION."
+    "The ordinary runner cannot classify an outcome as GOVERNANCE_DECISION.",
+    "The requested repository exactly equals the canonical GitHub nameWithOwner of the current checkout before the request comment is read.",
+    "Every confined profile enters a private user, mount and PID namespace with a private procfs before Landlock is applied; host parent processes are not visible."
   ],
   "requiredEvidence": [
     "Exact baseline, merge base, branch and head are reported.",
     "The complete diff and exact 21-file inventory remain inside the combined authorization allowlist with disjoint actor ownership.",
-    "Internal developer checks compile and exercise request validation, redaction, filesystem confinement, operation allowlisting, attempt immutability, authenticated publisher binding and final publication replay without modifying QA-owned tests.",
+    "Internal developer checks compile and exercise request validation, canonical checkout binding, strict job/digest idempotence, private-PID/proc filesystem confinement, operation allowlisting, authenticated publisher binding, immediate pre-POST SHA resolution, and final publication replay without modifying QA-owned tests.",
     "Direct non-Codespace CLI startup is demonstrated.",
     "The primary checkout immutability mechanism and disposable workspace architecture are documented.",
     "Independent contradictory QA is performed on every corrected exact head before any architecture or governor acceptance."
@@ -125,7 +127,11 @@
     "Reject a cryptographically self-consistent existing publication whose author differs from the authenticated publisher.",
     "Run a mutating profile only inside the disposable workspace and prove the primary checkout unchanged.",
     "Reject every GitHub mutation except a same-origin issue-conversation comment.",
-    "Verify self-stop is disabled for missing, wrong or ambiguous Codespace identity."
+    "Verify self-stop is disabled for missing, wrong or ambiguous Codespace identity.",
+    "Reject a request whose repository differs from the canonical GitHub identity of the current checkout.",
+    "Reject allow_new_attempt and prove repeated use of one job_id and digest cannot allocate or publish again.",
+    "Prove the nominal Landlock path runs as PID 1 with a private procfs and cannot observe the host parent process.",
+    "Move the target after rendering but before POST and prove the bridge records a local stale failure without publishing."
   ],
   "nonGoals": [
     "Gate 1 sequential queueing.",

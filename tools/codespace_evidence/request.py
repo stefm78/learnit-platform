@@ -33,7 +33,6 @@ REQUEST_FIELDS = frozenset(
         "created_at",
         "timeout_seconds",
         "parameters",
-        "allow_new_attempt",
     }
 )
 ORIGIN_FIELDS = frozenset({"type", "number", "request_comment_id"})
@@ -173,7 +172,6 @@ class EvidenceRequest:
     created_at: str
     timeout_seconds: int
     parameters: Parameters
-    allow_new_attempt: bool
     digest_sha256: str
     raw: dict[str, Any]
 
@@ -182,7 +180,7 @@ class EvidenceRequest:
         if not isinstance(value, dict):
             raise RequestError("request must be a JSON object")
         _exact_fields(value, REQUEST_FIELDS, "request")
-        required = REQUEST_FIELDS - {"target_number", "allow_new_attempt"}
+        required = REQUEST_FIELDS - {"target_number"}
         missing = sorted(required - set(value))
         if missing:
             raise RequestError(f"request is missing fields: {', '.join(missing)}")
@@ -269,10 +267,6 @@ class EvidenceRequest:
             include_artifacts=include_artifacts,
         )
 
-        allow_new_attempt = value.get("allow_new_attempt", False)
-        if not isinstance(allow_new_attempt, bool):
-            raise RequestError("allow_new_attempt must be boolean")
-
         if operation in {"pr-snapshot", "pr-governor-evidence"}:
             if target_type != "pull_request" or target_number is None:
                 raise RequestError(f"{operation} requires target_type=pull_request and target_number")
@@ -300,7 +294,6 @@ class EvidenceRequest:
             created_at=created_at,
             timeout_seconds=timeout_seconds,
             parameters=parameters,
-            allow_new_attempt=allow_new_attempt,
             digest_sha256=digest,
             raw=value,
         )

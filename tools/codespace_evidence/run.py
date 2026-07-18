@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import sys
 from typing import Any
@@ -48,6 +49,31 @@ from tools.codespace_evidence.workspace import (
 
 DEFAULT_REQUEST = Path(".codespace-evidence/request.json")
 DEFAULT_OUTPUT = Path(".agent-result/codespace-evidence")
+
+
+def _claim_request(output_root: Path, job_id: str, request_digest: str) -> bool:
+    """Atomically bind one job ID to one digest and permit only its first execution."""
+
+    job_root = output_root / job_id
+    job_root.mkdir(parents=True, exist_ok=True)
+    claim_path = job_root / "request.sha256"
+    payload = request_digest + "\n"
+    try:
+        fd = os.open(claim_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        existing = claim_path.read_text(encoding="utf-8").strip()
+        if existing != request_digest:
+            raise RuntimeError("job_id is already bound to a different request digest")
+        return False
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except Exception:
+        claim_path.unlink(missing_ok=True)
+        raise
+    return True
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -283,9 +309,11 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         _descriptor, request, _comment = load_and_verify_request(request_path, gh.fetch_request_comment)
-        # Allocate before preflight so missing gh/auth/network/private-repository access
-        # leaves an immutable, classified local attempt rather than only stderr.
-        attempt = allocate_attempt(output, request.job_id)
+        first_claim = _claim_request(output, request.job_id, request.digest_sha256)
+        if first_claim:
+            # The first claimant allocates before preflight so missing gh/auth/network/private
+            # repository access still leaves one immutable classified local attempt.
+            attempt = allocate_attempt(output, request.job_id)
         preflight = gh.preflight(request.repository)
         existing = gh.find_existing_final_publication(
             repository=request.repository,
@@ -295,27 +323,34 @@ def main(argv: list[str] | None = None) -> int:
             request_digest=request.digest_sha256,
             target_sha=request.target_sha,
         )
-        if existing is not None and not request.allow_new_attempt:
-            write_publication_receipt(
-                attempt,
-                {
-                    "state": "RECOVERED_AND_REVERIFIED_EXISTING_PUBLICATION",
-                    "comment_id": existing.get("id"),
-                    "html_url": existing.get("html_url"),
-                    "request_comment_id": request.origin.request_comment_id,
-                    "request_sha256": request.digest_sha256,
-                    "body_bytes": len(str(existing.get("body", "")).encode("utf-8")),
-                },
-            )
-            write_stop_receipt(
-                attempt,
-                {
-                    "state": "DISABLED_RECOVERY_ONLY",
-                    "reason": "Existing publication was reverified; no new operation executed.",
-                },
-            )
+        if existing is not None:
+            if attempt is not None:
+                write_publication_receipt(
+                    attempt,
+                    {
+                        "state": "RECOVERED_AND_REVERIFIED_EXISTING_PUBLICATION",
+                        "comment_id": existing.get("id"),
+                        "html_url": existing.get("html_url"),
+                        "request_comment_id": request.origin.request_comment_id,
+                        "request_sha256": request.digest_sha256,
+                        "body_bytes": len(str(existing.get("body", "")).encode("utf-8")),
+                    },
+                )
+                write_stop_receipt(
+                    attempt,
+                    {
+                        "state": "DISABLED_RECOVERY_ONLY",
+                        "reason": "Existing publication was reverified; no new operation executed.",
+                    },
+                )
             print(f"Existing sealed publication for {request.job_id} was re-read and verified; no duplicate posted.")
             return 0
+        if not first_claim:
+            raise RuntimeError(
+                "strict idempotence: this job_id and request digest were already claimed "
+                "without a verified final publication; submit a new job_id"
+            )
+        assert attempt is not None
 
         primary_before = snapshot_primary_checkout(runner, root)
         target_before = gh.resolve_target(
@@ -404,6 +439,35 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         ensure_publication_budget(body)
+
+        publication_target = gh.resolve_target(
+            repository=request.repository,
+            target_type=request.target_type,
+            target_number=request.target_number,
+            target_sha=request.target_sha,
+        )
+        if publication_target.get("sha") != request.target_sha:
+            failure = {
+                "state": "TARGET_MOVED_IMMEDIATELY_BEFORE_PUBLICATION",
+                "status": "FAILED",
+                "classification": "STALE_AFTER_EXECUTION",
+                "requested_sha": request.target_sha,
+                "observed_sha": publication_target.get("sha"),
+            }
+            write_publication_failure(attempt, failure)
+            write_stop_receipt(
+                attempt,
+                {
+                    "state": "DISABLED_TARGET_MOVED_BEFORE_PUBLICATION",
+                    "classification": "STALE_AFTER_EXECUTION",
+                },
+            )
+            print(
+                f"STALE_AFTER_EXECUTION: target moved immediately before publication: "
+                f"requested {request.target_sha}, observed {publication_target.get('sha')}; no comment posted.",
+                file=sys.stderr,
+            )
+            return 1
 
         posted = gh.publish_comment(
             repository=request.repository,

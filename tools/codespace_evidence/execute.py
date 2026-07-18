@@ -377,6 +377,20 @@ def _mount(args: list[str]) -> None:
         raise ExecutionError(message or f"mount command failed: {' '.join(args)}")
 
 
+def _require_private_pid_namespace() -> None:
+    if platform.system() != "Linux":
+        raise ExecutionError("filesystem confinement requires a Linux PID namespace")
+    if os.getpid() != 1:
+        raise ExecutionError("sandbox process is not PID 1 in a private PID namespace")
+    try:
+        proc_self = os.stat("/proc/self")
+        proc_one = os.stat("/proc/1")
+    except OSError as exc:
+        raise ExecutionError(f"private procfs is unavailable: {exc}") from exc
+    if proc_self.st_ino != proc_one.st_ino:
+        raise ExecutionError("/proc does not resolve self as the private namespace PID 1")
+
+
 def _mount_sandbox_exec_main(argv: list[str]) -> int:
     try:
         isolated_root, workspace_root, command = _parse_sandbox_request(argv)
@@ -442,35 +456,21 @@ def _mount_sandbox_exec_main(argv: list[str]) -> int:
 
 def _sandbox_exec_main(argv: list[str]) -> int:
     try:
+        _require_private_pid_namespace()
+    except Exception as exc:
+        print(f"filesystem sandbox unavailable: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 126
+    try:
         isolated_root, workspace_root, command = _parse_sandbox_request(argv)
         _apply_landlock(isolated_root, workspace_root)
         os.execvpe(command[0], command, os.environ)
     except ExecutionError as landlock_error:
-        unshare = shutil.which("unshare")
-        if unshare is None or platform.system() != "Linux":
-            print(f"filesystem sandbox unavailable: {landlock_error}", file=sys.stderr)
-            return 126
-        fallback = [
-            unshare,
-            "--user",
-            "--map-root-user",
-            "--mount",
-            "--pid",
-            "--fork",
-            sys.executable,
-            str(Path(__file__).resolve()),
-            _MOUNT_SANDBOX_MARKER,
-            "--isolated-root",
-            str(isolated_root),
-        ]
-        if workspace_root is not None:
-            fallback.extend(["--workspace-root", str(workspace_root)])
-        fallback.extend(["--", *command])
-        try:
-            os.execvpe(fallback[0], fallback, os.environ)
-        except Exception as exc:
-            print(f"filesystem sandbox unavailable: {type(exc).__name__}: {exc}", file=sys.stderr)
-            return 126
+        print(
+            f"Landlock unavailable inside private PID namespace; "
+            f"using confined mount fallback: {landlock_error}",
+            file=sys.stderr,
+        )
+        return _mount_sandbox_exec_main(argv)
     except Exception as exc:
         print(f"filesystem sandbox unavailable: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 126
@@ -574,7 +574,19 @@ class CommandRunner:
             launch_argv = list(argv)
             if not include_github_auth and not trusted_infrastructure_git:
                 assert isolated_root is not None
+                unshare = shutil.which("unshare")
+                if platform.system() != "Linux" or unshare is None:
+                    raise ExecutionError(
+                        "filesystem confinement requires Linux unshare with user, mount and PID namespaces"
+                    )
                 launch_argv = [
+                    unshare,
+                    "--user",
+                    "--map-root-user",
+                    "--mount",
+                    "--pid",
+                    "--fork",
+                    "--mount-proc",
                     sys.executable,
                     str(Path(__file__).resolve()),
                     _SANDBOX_MARKER,

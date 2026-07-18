@@ -26,7 +26,7 @@ The local launch descriptor contains only:
 - origin number;
 - request comment ID.
 
-The referenced GitHub comment must contain exactly one `AI_CODESPACE_REQUEST_V1` marker, exactly one lowercase SHA-256 request digest, and exactly one fenced JSON request. The digest is recalculated over canonical JSON. Repository, origin object, comment ID, operation, and full lowercase 40-character target SHA must all agree.
+Before the request comment is read, the requested repository must exactly equal the canonical `nameWithOwner` resolved from the current checkout by `gh repo view`; a checkout/request repository mismatch fails closed. The referenced GitHub comment must contain exactly one `AI_CODESPACE_REQUEST_V1` marker, exactly one lowercase SHA-256 request digest, and exactly one fenced JSON request. The digest is recalculated over canonical JSON. Repository, origin object, comment ID, operation, and full lowercase 40-character target SHA must all agree.
 
 ## Filesystem and credential boundary
 
@@ -41,9 +41,9 @@ Repository-controlled validators, tests, Python programs, Make processes, and th
 - system and global Git configuration disabled;
 - a filesystem access boundary.
 
-On Linux the primary boundary is Landlock. It permits only the system runtime required to execute tools, the fresh private state directories, and, when applicable, the disposable exact-SHA workspace. Absolute paths to the operator checkout, home directory, GitHub credential files, or unrelated temporary files remain inaccessible.
+On Linux every confined profile first enters a private user, mount and PID namespace, becomes PID 1 there, and receives a newly mounted `/proc` that exposes only that namespace. Landlock is then applied inside that namespace. It permits only the system runtime required to execute tools, the fresh private state directories, and, when applicable, the disposable exact-SHA workspace. Absolute paths to the operator checkout, home directory, GitHub credential files, unrelated temporary files, host processes, and the host parent process remain inaccessible.
 
-When Landlock is unavailable, the bridge fails closed through a user, mount and PID namespace fallback. That fallback constructs a minimal chroot containing only the runtime, private state directories, and optional disposable workspace. It does not fall back to unconstrained execution.
+When Landlock is unavailable, the bridge remains inside the same private namespaces and fails closed through the minimal mount/chroot fallback. That fallback contains only the runtime, private state directories, private `/proc`, and optional disposable workspace. It does not fall back to unconstrained execution.
 
 The exact-SHA clone/fetch/checkout infrastructure remains fixed and separately trusted. GitHub credentials are exposed only to the exact clone transport that requires them; subsequent fixed profile execution is confined.
 
@@ -59,7 +59,7 @@ Artifact metadata may be collected, but artifact content is not downloaded by Ga
 
 ## Publication and replay
 
-The local bundle is written once and sealed before publication. Its manifest contains the SHA-256 digest of every bundle file. `manifest_sha256` and `bundle_sha256` are derived from the reconstructed manifest.
+The local bundle is written once and sealed before publication. Its manifest contains the SHA-256 digest of every bundle file. `manifest_sha256` and `bundle_sha256` are derived from the reconstructed manifest. The target is resolved once more after rendering and immediately before the POST; any SHA movement records a local `STALE_AFTER_EXECUTION` publication failure and no comment is sent.
 
 A final sealed publication includes the immutable identity fields, the sealed bundle digests, the embedded evidence payload, and a statement that the result is evidence only. Restart recovery:
 
@@ -73,13 +73,13 @@ A final sealed publication includes the immutable identity fields, the sealed bu
 
 A final oversize diagnostic uses `FINAL_DIAGNOSTIC_ONLY`. It includes the exact identity, origin, sealed bundle references, oversize reason, and a canonical `diagnostic_sha256`. Restart recovery recalculates that digest and performs the same exact author/origin/read-back checks, preventing duplicate publication after a POST-before-receipt crash.
 
-A marker-shaped or internally self-consistent comment from another author is not a receipt.
+A marker-shaped or internally self-consistent comment from another author is not a receipt. A `job_id` is atomically bound to one request digest. Replaying the same pair never allocates another attempt and never posts a duplicate; if the first claimed execution did not reach a verified final publication, a retry requires a new `job_id`. The request schema exposes no `allow_new_attempt` escape hatch.
 
 ## Limits and failure handling
 
 The publication limit is 58,000 UTF-8 bytes. A required full capsule that exceeds the limit is represented only by a final diagnostic; partial evidence cannot appear final.
 
-Attempts are immutable and monotonically numbered. Preflight and environment failures allocate a local attempt where the request identity is available and persist `FAIL_ENVIRONMENT` evidence. Publication and stop receipts remain outside the sealed bundle.
+The first claim of a `job_id` and digest allocates one immutable attempt. Preflight and environment failures persist `FAIL_ENVIRONMENT` evidence in that attempt. The same `job_id` and digest cannot allocate a second attempt; a different digest cannot reuse the job ID. Publication and stop receipts remain outside the sealed bundle.
 
 ## Codespace stop
 

@@ -376,7 +376,27 @@ class GhClient:
         argv.append(endpoint)
         return self._run(argv, timeout=timeout)
 
+    def canonical_checkout_repository(self) -> str:
+        repo_text = self._run(
+            ["gh", "repo", "view", "--json", "nameWithOwner,url"],
+            timeout=60,
+        )
+        repo = _parse_json(repo_text, "canonical checkout repository")
+        canonical = repo.get("nameWithOwner") if isinstance(repo, dict) else None
+        if not isinstance(canonical, str) or not canonical:
+            raise GitHubError("current checkout canonical GitHub repository could not be established")
+        return canonical
+
+    def require_checkout_repository(self, repository: str) -> str:
+        canonical = self.canonical_checkout_repository()
+        if canonical != repository:
+            raise GitHubError(
+                f"requested repository {repository} differs from current checkout {canonical}"
+            )
+        return canonical
+
     def preflight(self, repository: str) -> dict[str, Any]:
+        checkout_repository = self.require_checkout_repository(repository)
         version = self._run(["gh", "--version"], timeout=30).strip().splitlines()
         auth_record = self.runner.run(
             ["gh", "auth", "status", "--active"],
@@ -401,12 +421,14 @@ class GhClient:
             "gh_version": version[0] if version else "",
             "authenticated_host": "github.com",
             "authenticated_login": login,
+            "checkout_repository": checkout_repository,
             "repository": repo,
             "credential_capabilities": "not inferred from token scope",
             "bridge_exposed_mutations": ["same-origin issue conversation comment creation"],
         }
 
     def fetch_request_comment(self, repository: str, comment_id: int) -> dict[str, Any]:
+        self.require_checkout_repository(repository)
         value = self.api_json(f"repos/{repository}/issues/comments/{comment_id}", timeout=60)
         if not isinstance(value, dict):
             raise GitHubError("request comment endpoint returned an invalid object")
