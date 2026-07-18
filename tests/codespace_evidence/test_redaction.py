@@ -131,6 +131,33 @@ class RedactionTests(unittest.TestCase):
             "non-gh profiles must run with an isolated HOME/config and no access path to operator credential files",
         )
 
+    def test_fixed_subprocess_cannot_read_operator_credential_by_absolute_path(self) -> None:
+        """Changing HOME is not a filesystem sandbox: target code can still open the real file directly."""
+        secret = "opaque-absolute-file-credential-f4aa6d-that-does-not-look-like-a-token"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            credential = root / "operator-home" / ".config" / "gh" / "hosts.yml"
+            credential.parent.mkdir(parents=True)
+            credential.write_text(secret, encoding="utf-8")
+            runner = CommandRunner()
+            record = runner.run(
+                [
+                    sys.executable,
+                    "-c",
+                    (
+                        "from pathlib import Path; "
+                        f"print(Path({str(credential)!r}).read_text(encoding='utf-8'))"
+                    ),
+                ],
+                cwd=root,
+                timeout_seconds=30,
+            )
+        self.assertNotIn(
+            secret,
+            record.stdout,
+            "repository-controlled profiles must not be able to read operator credentials through an absolute path",
+        )
+
     def test_common_authorization_and_url_credentials_are_removed(self) -> None:
         redacted = redact_text(
             "Authorization: Basic dXNlcjpwYXNz https://alice:password@example.invalid/path password=raw"
