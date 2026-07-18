@@ -140,6 +140,7 @@ def exact_sha_workspace(
             ["git", "fetch", "--no-tags", "--force", "origin", target_sha],
             cwd=checkout,
             timeout_seconds=600,
+            github_credentials=True,
         )
         if fetch.return_code != 0:
             raise WorkspaceError("failed to fetch the exact target SHA")
