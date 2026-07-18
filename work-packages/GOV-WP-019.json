@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-019",
+  "title": "Canonicalize the CI package for repository gates",
+  "status": "approved",
+  "changeClass": "repository-governance-bootstrap",
+  "riskClass": "low",
+  "purpose": "Create the missing canonical work-package records required for repository governance and pull-request scope validation without changing any existing file or weakening any validator.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "0604cad79a8ca765148c30090906b9f658af7109",
+    "candidateName": "canonical-ci-package-bootstrap",
+    "artifactSha256": "53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-019.json",
+      "work-packages/CI-WP-001.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tests/**",
+      "fixtures/**",
+      "kits/**",
+      "docs/product/**",
+      "docs/evidence/**",
+      "docs/architecture/**",
+      "docs/roadmap/**"
+    ]
+  },
+  "invariants": [
+    "Exactly the two allowed JSON paths are added and no existing repository file is modified, renamed or deleted.",
+    "No historical work package is overwritten, renamed or repurposed.",
+    "No workflow, runtime, product, test, fixture, contract, authoring, kit, product-document, governance-state or RC718 content changes.",
+    "The repository and pull-request validators are not weakened or bypassed.",
+    "The released v1.0.0 artifact identity remains immutable: learnit-next.html, 84060 bytes, SHA-256 53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4.",
+    "Merge remains held until governance-specific gates pass and an independent governance review is complete."
+  ],
+  "requiredEvidence": [
+    "The branch starts exactly at commit 0604cad79a8ca765148c30090906b9f658af7109.",
+    "Git comparison reports exactly two added paths and zero modified, renamed or deleted paths.",
+    "Repository governance passes on the exact pull-request head.",
+    "PR scope validates the exact two-file allowlist against this canonical package.",
+    "An independent governance reviewer verifies the exact diff and confirms that no product or build source changed.",
+    "Any ordinary-PR topology failure from Learn-it Next CI is reported separately as a harness topology defect and is not concealed."
+  ],
+  "adversarialTests": [
+    "Fail if any path outside the exact two-file allowlist changes.",
+    "Fail if either allowed path already existed at the required baseline.",
+    "Fail if an existing historical work package is modified.",
+    "Fail if any workflow, application, test, fixture, contract, authoring, kit, product document, governance-state or RC718 path changes.",
+    "Fail if the pull-request body names more than one work-package identifier.",
+    "Fail if a governance-specific gate is bypassed or weakened."
+  ],
+  "nonGoals": [
+    "Changing the CI implementation.",
+    "Changing workflows, runtime, product behavior, tests or fixtures.",
+    "Changing contracts, authoring tools, kits or product documents.",
+    "Changing governor state.",
+    "Migrating, modifying or adding compatibility for RC718.",
+    "Merging or self-certifying the pull request."
+  ],
+  "independentReview": [
+    "A reviewer independent from the implementation verifies the exact two-file addition.",
+    "Repository governance and PR scope must both pass on the reviewed head.",
+    "The governor retains final merge authority and may consider any exception only after the governance-specific evidence is complete."
+  ],
+  "result": {
+    "decision": "GO_WITH_CONDITIONS",
+    "mergeAuthorized": false,
+    "independentReviewRequired": true
+  },
+  "rollback": "Close the pull request without merge, or revert the single commit that adds the two canonical JSON files. No existing file, product source, released artifact, learner data or RC718 state is affected."
+}

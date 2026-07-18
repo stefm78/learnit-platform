@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-001",
+  "title": "Separate integration-head and post-merge verification modes",
+  "status": "in-progress",
+  "changeClass": "ci-harness-correction",
+  "riskClass": "moderate",
+  "purpose": "Correct the classified harness topology defect by making integration-head and post-merge verification explicit, fail-closed and independently auditable while preserving the released product bytes and the existing product test suite.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "0604cad79a8ca765148c30090906b9f658af7109",
+    "candidateName": "explicit-ci-topology-modes",
+    "artifactSha256": "53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/tests/build_determinism.py",
+      "apps/learnit-next/source_manifest.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/README.md",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/dev/release.py",
+      "apps/learnit-next/tests/browser_acceptance.py",
+      "apps/learnit-next/tests/fixtures/**",
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/**",
+      "docs/product/**",
+      "docs/evidence/**",
+      "kits/**"
+    ]
+  },
+  "invariants": [
+    "The implementation branch starts directly from commit 0604cad79a8ca765148c30090906b9f658af7109 and any later synchronization is explicitly reported.",
+    "Only the four exact allowed paths may change.",
+    "All four authorized paths already exist at the baseline; no file creation, deletion, rename or path substitution is authorized.",
+    "Mode selection is explicit and unknown or missing modes fail closed.",
+    "Integration-head mode retains the frozen four-parent topology and accepted-input provenance checks.",
+    "Post-merge mode verifies the expected two-parent ancestry, accepted integration-head identity and zero executable-tree divergence before build and product verification.",
+    "Topology, provenance, build and product failures remain distinct machine-readable classifications.",
+    "Product tests are not skipped because a topology mode is inappropriate.",
+    "The push workflow on main selects post-merge mode explicitly and pull-request integration verification selects integration-head mode explicitly.",
+    "The pre-existing 30 product tests remain present and pass with zero skip, failure or error; newly added topology tests are counted explicitly.",
+    "The released v1.0.0 artifact remains exactly learnit-next.html, 84060 bytes, SHA-256 53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4.",
+    "No product behavior, runtime source, authoring, contract, governance-state or RC718 content changes.",
+    "Merge remains held until all required gates, independent QA reproduction and governor review pass."
+  ],
+  "requiredEvidence": [
+    "A design note is posted on issue #85 before the first implementation commit.",
+    "The exact changed-path report contains only the four authorized existing files.",
+    "Clean-checkout evidence exercises both explicit modes and records commands, versions, return codes and machine-readable reports.",
+    "Regression coverage includes valid and invalid integration topology, valid and invalid post-merge provenance, executable-tree divergence, unknown or missing mode and distinct failure classifications.",
+    "The complete product suite and all new topology tests pass with zero skip, failure or error.",
+    "Two deterministic builds reproduce exactly 84060 bytes and SHA-256 53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4.",
+    "An independent QA agent reproduces the result without relying on implementation self-certification.",
+    "The governor reviews the independently reproduced evidence before merge.",
+    "A controlled post-merge verification is required after merge."
+  ],
+  "adversarialTests": [
+    "Valid four-parent integration topology passes its provenance stage.",
+    "Invalid integration parent order fails closed.",
+    "A moved frozen base fails closed in integration-head mode.",
+    "Valid two-parent post-merge topology reaches build and product checks.",
+    "Wrong accepted integration-head identity fails closed.",
+    "Executable-tree divergence from the accepted integration head fails closed.",
+    "Unknown or missing mode fails closed.",
+    "Topology and product failures produce distinct machine-readable classifications.",
+    "Existing and newly added tests are counted from actual execution rather than a hard-coded total.",
+    "Any added, deleted, renamed or unauthorized path fails scope validation."
+  ],
+  "nonGoals": [
+    "Changing product runtime behavior or user experience.",
+    "Changing authoring tools, kits, contracts or schemas.",
+    "Migrating, modifying or adding compatibility for RC718.",
+    "Adding product features or new test files.",
+    "Weakening or deleting existing tests.",
+    "Retroactively altering the v1.0.0 release evidence chain.",
+    "Changing governance state.",
+    "Authorizing merge before independent QA and governor review."
+  ],
+  "independentReview": [
+    "Independent QA reproduces both topology modes, regression tests, deterministic builds and the complete product suite from clean checkouts.",
+    "The governor verifies exact baseline provenance, four-path scope, immutable artifact identity and distinct failure classifications.",
+    "Merge is prohibited until repository gates, independent QA and governor review all pass."
+  ],
+  "execution": {
+    "issue": 85,
+    "maximumChangedFiles": 4,
+    "newFilesAuthorized": false,
+    "requiresIndependentQaBeforeMerge": true,
+    "requiresGovernorReviewBeforeMerge": true,
+    "mergeStatus": "held"
+  },
+  "rollback": "Close the implementation pull request without merge, or revert only the four-path CI correction commit. The released product artifact and RC718 remain unchanged."
+}
