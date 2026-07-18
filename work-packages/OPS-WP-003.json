@@ -85,6 +85,7 @@
   "invariants": [
     "All subprocesses use explicit argv and shell=False.",
     "Subprocess environments are allowlisted; ambient secrets are not inherited by fixed local validators or tests.",
+    "Repository-controlled fixed profiles and their descendants are filesystem-confined to the system runtime, fresh private state and the disposable exact-SHA workspace; failure to establish confinement fails closed.",
     "No request can provide a command, argv, shell fragment, script, plugin, path or environment override.",
     "Every target SHA is a full lowercase 40-character SHA and is checked before execution and again before publication.",
     "Local operations execute only in a disposable clone detached at the exact requested SHA.",
@@ -94,7 +95,8 @@
     "Paginated GitHub inventories are exhausted and incomplete evidence is explicit.",
     "The evidence bundle is sealed before publication and publication receipts remain separate.",
     "The exact posted comment is read back by returned comment ID and verified byte-for-byte.",
-    "Restart recovery accepts an existing final publication only after complete payload and digest validation plus a new exact read-back.",
+    "Restart recovery accepts an existing final sealed publication only after authenticated-publisher author binding, complete payload verification, manifest reconstruction, cryptographic digest recomputation and a new exact read-back.",
+    "Restart recovery accepts an existing final diagnostic only after authenticated-publisher author binding, canonical diagnostic digest recomputation and a new exact read-back.",
     "One publication is limited to 58000 UTF-8 bytes and partial evidence cannot appear final.",
     "Tokens, secrets, cookies, credentials and authorization material are excluded or redacted from local and durable evidence.",
     "Retries allocate immutable attempt directories without overwriting earlier attempts.",
@@ -106,7 +108,7 @@
   "requiredEvidence": [
     "Exact baseline, merge base, branch and head are reported.",
     "The complete diff and exact 21-file inventory remain inside the combined authorization allowlist with disjoint actor ownership.",
-    "Internal developer checks compile and exercise request validation, redaction, operation allowlisting, attempt immutability and publication boundaries without modifying QA-owned tests.",
+    "Internal developer checks compile and exercise request validation, redaction, filesystem confinement, operation allowlisting, attempt immutability, authenticated publisher binding and final publication replay without modifying QA-owned tests.",
     "Direct non-Codespace CLI startup is demonstrated.",
     "The primary checkout immutability mechanism and disposable workspace architecture are documented.",
     "Independent contradictory QA is performed on every corrected exact head before any architecture or governor acceptance."
@@ -117,8 +119,10 @@
     "Classify stale targets before and after execution distinctly.",
     "Exercise every paginated GitHub collector beyond one page.",
     "Exercise publication below, at and above 58000 UTF-8 bytes.",
-    "Exercise crash recovery, byte-identical read-back and duplicate-final-publication prevention.",
+    "Exercise crash recovery, byte-identical read-back and duplicate-final-publication prevention for sealed and diagnostic outcomes.",
     "Inject secret-shaped and opaque values into argv, stdout, stderr, environment and GitHub responses.",
+    "Prove fixed profiles cannot read operator credential files through inherited configuration or an absolute filesystem path.",
+    "Reject a cryptographically self-consistent existing publication whose author differs from the authenticated publisher.",
     "Run a mutating profile only inside the disposable workspace and prove the primary checkout unchanged.",
     "Reject every GitHub mutation except a same-origin issue-conversation comment.",
     "Verify self-stop is disabled for missing, wrong or ambiguous Codespace identity."
