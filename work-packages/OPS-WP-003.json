@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "OPS-WP-003",
   "title": "Implement Gate 0 Codespace Evidence Bridge",
-  "status": "in-progress",
+  "status": "under-qa",
   "changeClass": "repository-operations-evidence-bridge",
   "riskClass": "moderate",
   "purpose": "Implement the bounded Gate 0 bridge that collects exact-SHA GitHub and local execution evidence, seals it, publishes it only to its verified GitHub origin, and optionally stops the exact Codespace after verified durable publication.",
@@ -27,10 +27,17 @@
       "tools/codespace_evidence/workspace.py",
       "tools/codespace_evidence/stop.py",
       "docs/operations/CODESPACE_EVIDENCE_BRIDGE.md",
-      "work-packages/OPS-WP-003.json"
+      "work-packages/OPS-WP-003.json",
+      "tests/codespace_evidence/test_request.py",
+      "tests/codespace_evidence/test_sha_binding.py",
+      "tests/codespace_evidence/test_operations.py",
+      "tests/codespace_evidence/test_origin_binding.py",
+      "tests/codespace_evidence/test_publication.py",
+      "tests/codespace_evidence/test_redaction.py",
+      "tests/codespace_evidence/test_workspace_isolation.py",
+      "tests/codespace_evidence/test_stop.py"
     ],
     "forbiddenPaths": [
-      "tests/codespace_evidence/**",
       ".github/**",
       "apps/**",
       "authoring/**",
@@ -41,6 +48,34 @@
       "docs/evidence/**"
     ]
   },
+  "ownership": {
+    "ciOpsImplementation": [
+      ".devcontainer/devcontainer.json",
+      ".gitignore",
+      "tools/codespace_evidence/__init__.py",
+      "tools/codespace_evidence/run.py",
+      "tools/codespace_evidence/request.py",
+      "tools/codespace_evidence/github.py",
+      "tools/codespace_evidence/execute.py",
+      "tools/codespace_evidence/operations.py",
+      "tools/codespace_evidence/outcome.py",
+      "tools/codespace_evidence/workspace.py",
+      "tools/codespace_evidence/stop.py",
+      "docs/operations/CODESPACE_EVIDENCE_BRIDGE.md",
+      "work-packages/OPS-WP-003.json"
+    ],
+    "independentQa": [
+      "tests/codespace_evidence/test_request.py",
+      "tests/codespace_evidence/test_sha_binding.py",
+      "tests/codespace_evidence/test_operations.py",
+      "tests/codespace_evidence/test_origin_binding.py",
+      "tests/codespace_evidence/test_publication.py",
+      "tests/codespace_evidence/test_redaction.py",
+      "tests/codespace_evidence/test_workspace_isolation.py",
+      "tests/codespace_evidence/test_stop.py"
+    ],
+    "rule": "The implementation actor writes only ciOpsImplementation paths. The independent QA actor writes only independentQa paths. Both disjoint surfaces are authorized in the same draft PR by issue #102."
+  },
   "operations": [
     "pr-snapshot",
     "pr-governor-evidence",
@@ -49,6 +84,7 @@
   ],
   "invariants": [
     "All subprocesses use explicit argv and shell=False.",
+    "Subprocess environments are allowlisted; ambient secrets are not inherited by fixed local validators or tests.",
     "No request can provide a command, argv, shell fragment, script, plugin, path or environment override.",
     "Every target SHA is a full lowercase 40-character SHA and is checked before execution and again before publication.",
     "Local operations execute only in a disposable clone detached at the exact requested SHA.",
@@ -58,20 +94,22 @@
     "Paginated GitHub inventories are exhausted and incomplete evidence is explicit.",
     "The evidence bundle is sealed before publication and publication receipts remain separate.",
     "The exact posted comment is read back by returned comment ID and verified byte-for-byte.",
+    "Restart recovery accepts an existing final publication only after complete payload and digest validation plus a new exact read-back.",
     "One publication is limited to 58000 UTF-8 bytes and partial evidence cannot appear final.",
-    "Tokens, secrets, cookies, credentials and authorization material are redacted from local and durable evidence.",
+    "Tokens, secrets, cookies, credentials and authorization material are excluded or redacted from local and durable evidence.",
     "Retries allocate immutable attempt directories without overwriting earlier attempts.",
+    "GitHub request-binding and preflight failures allocate immutable local attempts classified FAIL_ENVIRONMENT.",
     "Self-stop is possible only after verified durable publication and exact Codespace identity validation.",
     "The engine runs outside Codespaces.",
     "The ordinary runner cannot classify an outcome as GOVERNANCE_DECISION."
   ],
   "requiredEvidence": [
     "Exact baseline, merge base, branch and head are reported.",
-    "The complete diff and exact file inventory remain inside this allowlist.",
-    "Internal developer checks compile and exercise request validation, redaction, operation allowlisting, attempt immutability and publication boundaries without creating QA-owned tests.",
+    "The complete diff and exact 21-file inventory remain inside the combined authorization allowlist with disjoint actor ownership.",
+    "Internal developer checks compile and exercise request validation, redaction, operation allowlisting, attempt immutability and publication boundaries without modifying QA-owned tests.",
     "Direct non-Codespace CLI startup is demonstrated.",
     "The primary checkout immutability mechanism and disposable workspace architecture are documented.",
-    "Independent contradictory QA is performed on the exact implementation head before any acceptance."
+    "Independent contradictory QA is performed on every corrected exact head before any architecture or governor acceptance."
   ],
   "adversarialTests": [
     "Reject a missing request, unknown field, unknown operation and abbreviated SHA.",
@@ -79,8 +117,8 @@
     "Classify stale targets before and after execution distinctly.",
     "Exercise every paginated GitHub collector beyond one page.",
     "Exercise publication below, at and above 58000 UTF-8 bytes.",
-    "Exercise crash recovery and duplicate-final-publication prevention.",
-    "Inject secret-shaped values into argv, stdout, stderr, environment and GitHub responses.",
+    "Exercise crash recovery, byte-identical read-back and duplicate-final-publication prevention.",
+    "Inject secret-shaped and opaque values into argv, stdout, stderr, environment and GitHub responses.",
     "Run a mutating profile only inside the disposable workspace and prove the primary checkout unchanged.",
     "Reject every GitHub mutation except a same-origin issue-conversation comment.",
     "Verify self-stop is disabled for missing, wrong or ambiguous Codespace identity."
@@ -92,21 +130,23 @@
     "Gate 4 parallel execution.",
     "Generic shell execution, branch creation, commit, push, merge, release or workflow mutation.",
     "Product, runtime, authoring, contract, kit, learner-data or governance-state changes.",
-    "Independent QA implementation or governor acceptance."
+    "Developer authorship or weakening of independent QA tests, self-certification or governor acceptance."
   ],
   "independentReview": [
-    "Independent contradictory QA owns only tests/codespace_evidence/ paths authorized by issue #102.",
-    "Every implementation correction remains inside the CI/Ops allowlist and requires QA rerun on the corrected exact head.",
+    "Independent contradictory QA owns only the eight tests/codespace_evidence paths authorized by issue #102.",
+    "Every implementation correction remains inside the thirteen CI/Ops implementation paths and requires QA rerun on the corrected exact head.",
     "An independent final architecture review and governor decision remain mandatory before merge."
   ],
   "execution": {
     "coordinationIssue": 100,
     "designIssue": 101,
     "authorizationIssue": 102,
-    "maximumChangedFiles": 13,
+    "maximumChangedFiles": 21,
+    "ciOpsOwnedFiles": 13,
+    "qaOwnedFiles": 8,
     "requiresIndependentQaBeforeMerge": true,
     "requiresGovernorReviewBeforeMerge": true,
     "mergeStatus": "held"
   },
-  "rollback": "Close the draft PR without merge or revert only the OPS-WP-003 implementation commits. Remove the minimal devcontainer hook, tools/codespace_evidence, documentation and work-package record, and revert the narrow .codespace-evidence ignore entry. No product state or data migration exists."
+  "rollback": "Close the draft PR without merge or revert only the OPS-WP-003 implementation and QA commits. Remove the minimal devcontainer hook, tools/codespace_evidence, documentation, QA tests and work-package record, and revert the narrow .codespace-evidence ignore entry. No product state or data migration exists."
 }
