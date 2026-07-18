@@ -168,8 +168,13 @@ def render_capsule(
     *, facts: Mapping[str, Any], summary: str, manifest_sha256: str,
     bundle_sha256: str, artifact_digests: Mapping[str, str], diff_content: str | None,
 ) -> str:
+    # The top-level marker appears exactly once in the comment. The sealed local
+    # facts file retains its marker; the durable JSON copy omits only that duplicate
+    # field so restart detection can validate one unambiguous marker line.
+    durable_facts = dict(facts)
+    durable_facts.pop("marker", None)
     payload: dict[str, Any] = {
-        "facts": facts, "summary": summary,
+        "facts": durable_facts, "summary": summary,
         "sealed_bundle": {"manifest_sha256": manifest_sha256, "bundle_sha256": bundle_sha256,
                           "artifact_sha256": dict(sorted(artifact_digests.items()))},
     }
