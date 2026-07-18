@@ -5,11 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 import tempfile
 from typing import Any, Iterable
 
-from . import OUTCOME_MARKER
+from . import OUTCOME_MARKER, STATEMENT
 from .execute import CommandRunner, ExecutionError, redact_value
+
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+HEADER_RE = re.compile(r"(?m)^([a-z_]+): ([^\n]+)$")
 
 
 class GitHubError(RuntimeError):
@@ -40,6 +44,133 @@ def _flatten_slurped_pages(value: Any, *, list_key: str | None = None) -> list[A
     return result
 
 
+def _publication_headers(body: str) -> dict[str, str] | None:
+    if body.count(OUTCOME_MARKER) != 1 or not body.startswith(OUTCOME_MARKER + "\n"):
+        return None
+    pairs = HEADER_RE.findall(body)
+    headers: dict[str, str] = {}
+    for key, value in pairs:
+        if key in headers:
+            return None
+        headers[key] = value
+    return headers
+
+
+def _publication_payload(body: str) -> dict[str, Any] | None:
+    blocks = re.findall(r"```json\n(.*?)\n```", body, flags=re.DOTALL)
+    if len(blocks) != 1:
+        return None
+    try:
+        payload = json.loads(blocks[0])
+    except json.JSONDecodeError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _matches_identity(
+    body: str,
+    *,
+    repository: str,
+    origin_type: str,
+    origin_number: int,
+    job_id: str,
+    request_digest: str,
+    target_sha: str,
+) -> bool:
+    return (
+        body.startswith(OUTCOME_MARKER + "\n")
+        and f"job_id: {job_id}\n" in body
+        and f"request_sha256: {request_digest}\n" in body
+        and f"repository: {repository}\n" in body
+        and f"origin: {origin_type}#{origin_number}\n" in body
+        and f"target_sha: {target_sha}\n" in body
+        and (
+            "completion_state: FINAL_SEALED\n" in body
+            or "completion_state: FINAL_DIAGNOSTIC_ONLY\n" in body
+        )
+    )
+
+
+def _cryptographically_complete_publication(
+    body: str,
+    *,
+    repository: str,
+    origin_type: str,
+    origin_number: int,
+    job_id: str,
+    request_digest: str,
+    target_sha: str,
+) -> bool:
+    """Validate the durable capsule before a restart may trust it.
+
+    Marker fragments are only candidates. The exact header, fenced JSON payload,
+    origin identity and both bundle digests must agree. The caller subsequently
+    re-reads the exact comment ID and requires byte-for-byte equality.
+    """
+
+    headers = _publication_headers(body)
+    payload = _publication_payload(body)
+    if headers is None or payload is None or STATEMENT not in body:
+        return False
+    expected_headers = {
+        "job_id": job_id,
+        "request_sha256": request_digest,
+        "repository": repository,
+        "origin": f"{origin_type}#{origin_number}",
+        "target_sha": target_sha,
+    }
+    if any(headers.get(key) != value for key, value in expected_headers.items()):
+        return False
+    manifest = headers.get("manifest_sha256", "")
+    bundle = headers.get("bundle_sha256", "")
+    if not SHA256_RE.fullmatch(manifest) or not SHA256_RE.fullmatch(bundle):
+        return False
+    completion = headers.get("completion_state")
+    if completion == "FINAL_SEALED":
+        facts = payload.get("facts")
+        sealed = payload.get("sealed_bundle")
+        if not isinstance(facts, dict) or not isinstance(sealed, dict):
+            return False
+        origin = facts.get("origin")
+        target = facts.get("target")
+        if not isinstance(origin, dict) or not isinstance(target, dict):
+            return False
+        if (
+            facts.get("job_id") != job_id
+            or facts.get("request_sha256") != request_digest
+            or facts.get("repository") != repository
+            or origin.get("type") != origin_type
+            or origin.get("number") != origin_number
+            or target.get("requested_sha") != target_sha
+            or sealed.get("manifest_sha256") != manifest
+            or sealed.get("bundle_sha256") != bundle
+        ):
+            return False
+        artifact_digests = sealed.get("artifact_sha256")
+        if not isinstance(artifact_digests, dict):
+            return False
+        if any(not isinstance(value, str) or not SHA256_RE.fullmatch(value) for value in artifact_digests.values()):
+            return False
+        return True
+    if completion == "FINAL_DIAGNOSTIC_ONLY":
+        origin = payload.get("origin")
+        if origin is not None and (
+            not isinstance(origin, dict)
+            or origin.get("type") != origin_type
+            or origin.get("number") != origin_number
+        ):
+            return False
+        return (
+            payload.get("job_id") == job_id
+            and payload.get("request_sha256") == request_digest
+            and payload.get("target_sha") == target_sha
+            and payload.get("manifest_sha256") == manifest
+            and payload.get("bundle_sha256") == bundle
+            and payload.get("classification") == "INCONCLUSIVE"
+        )
+    return False
+
+
 @dataclass(frozen=True)
 class PublicationResult:
     comment_id: int
@@ -54,7 +185,12 @@ class GhClient:
         self.repository_root = repository_root
 
     def _run(self, argv: list[str], *, timeout: int = 300) -> str:
-        record = self.runner.run(argv, cwd=self.repository_root, timeout_seconds=timeout)
+        try:
+            record = self.runner.run(argv, cwd=self.repository_root, timeout_seconds=timeout)
+        except FileNotFoundError as exc:
+            raise GitHubError("gh executable absent") from exc
+        except ExecutionError as exc:
+            raise GitHubError(str(exc)) from exc
         if record.return_code != 0 or record.timed_out:
             raise GitHubError(f"GitHub command failed: {' '.join(record.argv)}")
         return record.stdout
@@ -93,7 +229,7 @@ class GhClient:
         return {
             "gh_version": version[0] if version else "",
             "authenticated_host": "github.com",
-            "authenticated_login": user.get("login"),
+            "authenticated_login": user.get("login") if isinstance(user, dict) else None,
             "repository": repo,
             "credential_capabilities": "not inferred from token scope",
             "bridge_exposed_mutations": ["same-origin issue conversation comment creation"],
@@ -119,11 +255,10 @@ class GhClient:
             pr = self.api_json(f"repos/{repository}/pulls/{target_number}", timeout=60)
             if not isinstance(pr, dict) or not isinstance(pr.get("head"), dict):
                 raise GitHubError("pull request target could not be resolved")
-            resolved_sha = pr["head"].get("sha")
             return {
                 "type": "pull_request",
                 "number": target_number,
-                "sha": resolved_sha,
+                "sha": pr["head"].get("sha"),
                 "state": pr.get("state"),
                 "draft": pr.get("draft"),
                 "merged": pr.get("merged"),
@@ -146,75 +281,74 @@ class GhClient:
     ) -> tuple[dict[str, Any], dict[str, str], list[str]]:
         missing_proof: list[str] = []
         artifacts: dict[str, str] = {}
-
         pr = self.api_json(f"repos/{repository}/pulls/{pr_number}", timeout=60)
         if not isinstance(pr, dict):
             raise GitHubError("pull request metadata is invalid")
-
-        files_pages = self.api_json(
-            f"repos/{repository}/pulls/{pr_number}/files?per_page=100",
-            paginate=True,
-            timeout=300,
+        changed_files = _flatten_slurped_pages(
+            self.api_json(
+                f"repos/{repository}/pulls/{pr_number}/files?per_page=100",
+                paginate=True,
+                timeout=300,
+            )
         )
-        changed_files = _flatten_slurped_pages(files_pages)
-
         diff = self.api_text(
             f"repos/{repository}/pulls/{pr_number}",
             accept="application/vnd.github.v3.diff",
             timeout=300,
         )
         artifacts["diff.patch"] = diff
-
-        reviews_pages = self.api_json(
-            f"repos/{repository}/pulls/{pr_number}/reviews?per_page=100",
-            paginate=True,
-            timeout=300,
+        reviews = _flatten_slurped_pages(
+            self.api_json(
+                f"repos/{repository}/pulls/{pr_number}/reviews?per_page=100",
+                paginate=True,
+                timeout=300,
+            )
         )
-        reviews = _flatten_slurped_pages(reviews_pages)
         artifacts["reviews.json"] = json.dumps(reviews, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-
         status_pages = self.api_json(
             f"repos/{repository}/commits/{target_sha}/status?per_page=100",
             paginate=True,
             timeout=300,
         )
-        status_page_list = status_pages if isinstance(status_pages, list) else [status_pages]
         status_contexts: list[Any] = []
         combined_state: str | None = None
-        for page in status_page_list:
+        for page in status_pages if isinstance(status_pages, list) else [status_pages]:
             if not isinstance(page, dict) or not isinstance(page.get("statuses"), list):
                 raise GitHubError("combined status pagination returned an invalid page")
             combined_state = combined_state or page.get("state")
             status_contexts.extend(page["statuses"])
-
-        check_pages = self.api_json(
-            f"repos/{repository}/commits/{target_sha}/check-runs?per_page=100",
-            paginate=True,
-            timeout=300,
+        check_runs = _flatten_slurped_pages(
+            self.api_json(
+                f"repos/{repository}/commits/{target_sha}/check-runs?per_page=100",
+                paginate=True,
+                timeout=300,
+            ),
+            list_key="check_runs",
         )
-        check_runs = _flatten_slurped_pages(check_pages, list_key="check_runs")
-
-        workflow_pages = self.api_json(
-            f"repos/{repository}/actions/runs?head_sha={target_sha}&per_page=100",
-            paginate=True,
-            timeout=300,
+        workflow_runs = _flatten_slurped_pages(
+            self.api_json(
+                f"repos/{repository}/actions/runs?head_sha={target_sha}&per_page=100",
+                paginate=True,
+                timeout=300,
+            ),
+            list_key="workflow_runs",
         )
-        workflow_runs = _flatten_slurped_pages(workflow_pages, list_key="workflow_runs")
         workflow_jobs: list[dict[str, Any]] = []
         workflow_artifacts: list[dict[str, Any]] = []
         log_summaries: list[dict[str, Any]] = []
-
         for run in workflow_runs:
             if not isinstance(run, dict) or not isinstance(run.get("id"), int):
                 missing_proof.append("WORKFLOW_RUN_WITHOUT_ID")
                 continue
             run_id = run["id"]
-            jobs_pages = self.api_json(
-                f"repos/{repository}/actions/runs/{run_id}/jobs?per_page=100",
-                paginate=True,
-                timeout=300,
+            jobs = _flatten_slurped_pages(
+                self.api_json(
+                    f"repos/{repository}/actions/runs/{run_id}/jobs?per_page=100",
+                    paginate=True,
+                    timeout=300,
+                ),
+                list_key="jobs",
             )
-            jobs = _flatten_slurped_pages(jobs_pages, list_key="jobs")
             workflow_jobs.extend(jobs)
             if include_logs:
                 log_record = self.runner.run(
@@ -235,20 +369,22 @@ class GhClient:
                 else:
                     missing_proof.append(f"WORKFLOW_LOG_UNAVAILABLE:{run_id}")
             if include_artifacts:
-                artifact_pages = self.api_json(
-                    f"repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100",
-                    paginate=True,
-                    timeout=300,
+                workflow_artifacts.extend(
+                    _flatten_slurped_pages(
+                        self.api_json(
+                            f"repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100",
+                            paginate=True,
+                            timeout=300,
+                        ),
+                        list_key="artifacts",
+                    )
                 )
-                workflow_artifacts.extend(_flatten_slurped_pages(artifact_pages, list_key="artifacts"))
-
         if include_logs and not workflow_runs:
             missing_proof.append("NO_WORKFLOW_RUNS_FOR_LOG_COLLECTION")
         if include_artifacts and not workflow_runs:
             missing_proof.append("NO_WORKFLOW_RUNS_FOR_ARTIFACT_COLLECTION")
         if include_artifacts:
             missing_proof.append("ARTIFACT_CONTENT_NOT_DOWNLOADED_SECURITY_BOUNDARY")
-
         checks = {
             "combined_state": combined_state,
             "status_contexts": status_contexts,
@@ -259,7 +395,6 @@ class GhClient:
             "log_summaries": log_summaries,
         }
         artifacts["checks.json"] = json.dumps(checks, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-
         file_inventory = [
             {
                 "filename": item.get("filename"),
@@ -308,8 +443,7 @@ class GhClient:
             paginate=True,
             timeout=300,
         )
-        comments = _flatten_slurped_pages(pages)
-        return [item for item in comments if isinstance(item, dict)]
+        return [item for item in _flatten_slurped_pages(pages) if isinstance(item, dict)]
 
     def find_existing_final_publication(
         self,
@@ -321,27 +455,55 @@ class GhClient:
         request_digest: str,
         target_sha: str,
     ) -> dict[str, Any] | None:
-        matches: list[dict[str, Any]] = []
+        candidates: list[dict[str, Any]] = []
         for comment in self.list_origin_comments(repository, origin_number):
             body = comment.get("body")
-            if not isinstance(body, str):
-                continue
-            if (
-                body.startswith(OUTCOME_MARKER + "\n")
-                and f"job_id: {job_id}\n" in body
-                and f"request_sha256: {request_digest}\n" in body
-                and f"repository: {repository}\n" in body
-                and f"origin: {origin_type}#{origin_number}\n" in body
-                and f"target_sha: {target_sha}\n" in body
-                and (
-                    "completion_state: FINAL_SEALED\n" in body
-                    or "completion_state: FINAL_DIAGNOSTIC_ONLY\n" in body
-                )
+            if isinstance(body, str) and _matches_identity(
+                body,
+                repository=repository,
+                origin_type=origin_type,
+                origin_number=origin_number,
+                job_id=job_id,
+                request_digest=request_digest,
+                target_sha=target_sha,
             ):
-                matches.append(comment)
-        if len(matches) > 1:
+                candidates.append(comment)
+        if len(candidates) > 1:
             raise GitHubError("multiple verified final publications exist for the same job and request digest")
-        return matches[0] if matches else None
+        if not candidates:
+            return None
+        candidate = candidates[0]
+        body = candidate.get("body")
+        comment_id = candidate.get("id")
+        if not isinstance(body, str) or not isinstance(comment_id, int):
+            return None
+        if not _cryptographically_complete_publication(
+            body,
+            repository=repository,
+            origin_type=origin_type,
+            origin_number=origin_number,
+            job_id=job_id,
+            request_digest=request_digest,
+            target_sha=target_sha,
+        ):
+            return None
+        reread = self.read_comment(repository=repository, comment_id=comment_id)
+        expected_issue_url = f"https://api.github.com/repos/{repository}/issues/{origin_number}"
+        if reread.get("id") != comment_id or reread.get("issue_url") != expected_issue_url:
+            raise GitHubError("existing publication is not attached to the exact verified origin")
+        if reread.get("body") != body:
+            raise GitHubError("existing publication changed during exact read-back")
+        if not _cryptographically_complete_publication(
+            body,
+            repository=repository,
+            origin_type=origin_type,
+            origin_number=origin_number,
+            job_id=job_id,
+            request_digest=request_digest,
+            target_sha=target_sha,
+        ):
+            raise GitHubError("existing publication failed digest and payload verification")
+        return reread
 
     def publish_comment(self, *, repository: str, origin_number: int, body: str) -> PublicationResult:
         payload = {"body": body}
