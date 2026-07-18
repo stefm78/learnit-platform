@@ -98,6 +98,39 @@ class RedactionTests(unittest.TestCase):
             "subprocess environment must be allowlisted or secret values must be redacted even when printed without a key",
         )
 
+    def test_fixed_subprocess_cannot_read_real_github_credential_file(self) -> None:
+        """A fixed repository profile must not inherit the operator's real gh credential directory."""
+        secret = "opaque-file-credential-9c31d1-that-does-not-look-like-a-token"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            home = root / "home"
+            gh_config = home / ".config" / "gh"
+            gh_config.mkdir(parents=True)
+            (gh_config / "hosts.yml").write_text(secret, encoding="utf-8")
+            runner = CommandRunner()
+            with mock.patch.dict(
+                os.environ,
+                {"HOME": str(home), "GH_CONFIG_DIR": str(gh_config)},
+                clear=False,
+            ):
+                record = runner.run(
+                    [
+                        sys.executable,
+                        "-c",
+                        (
+                            "import os; from pathlib import Path; "
+                            "print((Path(os.environ['GH_CONFIG_DIR']) / 'hosts.yml').read_text())"
+                        ),
+                    ],
+                    cwd=root,
+                    timeout_seconds=30,
+                )
+        self.assertNotIn(
+            secret,
+            record.stdout,
+            "non-gh profiles must run with an isolated HOME/config and no access path to operator credential files",
+        )
+
     def test_common_authorization_and_url_credentials_are_removed(self) -> None:
         redacted = redact_text(
             "Authorization: Basic dXNlcjpwYXNz https://alice:password@example.invalid/path password=raw"
