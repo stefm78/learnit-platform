@@ -8,9 +8,9 @@
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "v1-release-promoted-next-cycle-parallel-analysis-ci-active-product-held",
+    "id": "v1-release-promoted-owner-arbitration-pending-ci-active-product-held",
     "status": "active",
-    "description": "Learn-it v1.0.0 is the immutable promoted successor baseline with permanent release conditions. CI-WP-001 is the only active implementation lane. PROD-WP-001, ARC-WP-024, LRN-WP-001 and QA-WP-012 are independent read-only analysis lanes. ACC-WP-001 is deferred. Product implementation remains on HOLD until the accountable owner arbitrates the next priority and the governor issues bounded implementation authorization."
+    "description": "Learn-it v1.0.0 is the immutable promoted successor baseline with permanent release conditions. The independent reports on issues #88, #89, #90 and #91 are complete and consolidated. The CI maintenance lane from issue #85 remains active, accessibility work from issue #86 remains deferred, and product implementation remains on HOLD while the accountable owner arbitrates issue #95 and the governor prepares any later bounded authorization."
   },
   "developmentBaseline": {
     "status": "released-with-conditions",
@@ -25,7 +25,8 @@
     "baselineIssue": 84
   },
   "promotedBaseline": {
-    "status": "promoted-with-conditions",
+    "status": "promoted",
+    "workPackage": "INT-WP-001",
     "release": "Learn-it v1.0.0",
     "tag": "v1.0.0",
     "sourceCommit": "0604cad79a8ca765148c30090906b9f658af7109",
@@ -84,23 +85,29 @@
     },
     "PROD-WP-001": {
       "issue": 88,
-      "status": "authorized-read-only-discovery",
+      "status": "analysis-complete",
       "writesAllowed": false
     },
     "ARC-WP-024": {
       "issue": 89,
-      "status": "authorized-read-only-architecture-audit",
+      "status": "analysis-complete",
       "writesAllowed": false
     },
     "LRN-WP-001": {
       "issue": 90,
-      "status": "authorized-read-only-learning-analysis",
+      "status": "analysis-complete",
       "writesAllowed": false
     },
     "QA-WP-012": {
       "issue": 91,
-      "status": "authorized-read-only-qa-design",
+      "status": "analysis-complete",
       "writesAllowed": false
+    },
+    "PROD-WP-002": {
+      "issue": 95,
+      "status": "pending-accountable-owner-decision",
+      "implementationAllowed": false,
+      "decisionRecorded": false
     },
     "GOV-WP-017": {
       "issue": 87,
@@ -165,12 +172,13 @@
       "activeImplementation": [
         "CI-WP-001"
       ],
-      "readOnlyAnalysis": [
+      "completedReadOnlyAnalysis": [
         "PROD-WP-001",
         "ARC-WP-024",
         "LRN-WP-001",
         "QA-WP-012"
       ],
+      "nextDecisionGate": "PROD-WP-002",
       "parallelWritableOverlap": 0,
       "productImplementationAllowed": false,
       "ownerArbitrationRequired": true
@@ -179,14 +187,14 @@
   "authorizedWork": [
     "preserve and reproduce the immutable Learn-it v1.0.0 released asset",
     "execute CI-WP-001 from the exact released commit inside its four-path allowlist",
-    "run PROD-WP-001, ARC-WP-024, LRN-WP-001 and QA-WP-012 independently in read-only mode",
+    "retain the independent reports posted on issues #88, #89, #90 and #91 as read-only decision inputs",
     "prepare GOV-WP-017 on a dedicated branch inside its two-path allowlist",
     "retain current keyboard, NVDA, Android and TalkBack behavior as a non-regression constraint",
     "preserve RC718 access separately without migration",
-    "perform accountable-owner arbitration after the four analysis reports"
+    "conduct accountable-owner product arbitration through PROD-WP-002 issue #95"
   ],
   "heldWork": [
-    "all product implementation until reports #88, #89, #90 and #91 are consolidated and the accountable owner selects the next priority",
+    "all product implementation until the accountable owner records one decision on issue #95 and the governor creates bounded disjoint implementation, QA and integration work packages",
     "merge of CI-WP-001 until independent QA reproduction and governor review",
     "merge of GOV-WP-017 until independent governance review",
     "ACC-WP-001 implementation and evidence work until formal governor reactivation",
@@ -195,7 +203,7 @@
   ],
   "prohibitedWork": [
     "starting product implementation from discovery recommendations without accountable-owner arbitration and a new governor authorization",
-    "treating any discovery report as merge or implementation authorization",
+    "treating any discovery report or owner preference as merge or implementation authorization",
     "modifying workflows, runtime, tests, authoring, kits, contracts or product documents from GOV-WP-017",
     "allowing writable overlap between active lanes",
     "changing the Learn-it v1.0.0 asset bytes, size, digest, tag or source commit",
@@ -215,15 +223,15 @@
     {
       "id": "RISK-CI-001",
       "severity": "moderate",
-      "statement": "The current verification harness applies integration-only four-parent topology expectations to the two-parent post-merge commit.",
+      "statement": "The current verification harness applies integration-only topology expectations to ordinary maintenance and post-merge contexts.",
       "classification": "HARNESS_TOPOLOGY_DEFECT_NOT_PRODUCT_DEFECT",
-      "closureGate": "CI-WP-001 independently proves explicit integration-head and post-merge modes without changing released product bytes"
+      "closureGate": "CI-WP-001 independently proves explicit verification modes without changing released product bytes"
     },
     {
       "id": "RISK-OWNER-001",
       "severity": "moderate",
-      "statement": "Parallel product, architecture, learning and QA analyses may disagree or recommend incompatible priorities.",
-      "closureGate": "the governor consolidates reports #88 through #91 and the accountable owner records one bounded product priority"
+      "statement": "The independent reports converge on a corrective-review problem, but no accountable-owner product option has yet been selected.",
+      "closureGate": "the accountable owner records exactly one permitted decision on PROD-WP-002 issue #95"
     },
     {
       "id": "RISK-ACC-001",
@@ -249,16 +257,16 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ACCOUNTABLE-OWNER-PRODUCT-ARBITRATION",
+    "id": "PROD-WP-002",
     "status": "pending",
-    "condition": "After PROD-WP-001 #88, ARC-WP-024 #89, LRN-WP-001 #90 and QA-WP-012 #91 have each posted their independent report, the governor consolidates agreements, disagreements, prerequisites and missing proof. The accountable owner then selects or rejects the next bounded product priority. Product implementation remains on HOLD until that owner decision is recorded and the governor creates disjoint implementation, QA and integration work packages.",
-    "parallelIndependentGate": "CI-WP-001 may proceed and be reviewed independently, but cannot merge before independent QA and governor review."
+    "condition": "Issue #95 must record exactly one accountable-owner decision from its permitted vocabulary. Product implementation remains on HOLD after that comment until the governor creates bounded disjoint implementation, QA and integration work packages.",
+    "parallelIndependentGate": "The CI maintenance lane from issue #85 may proceed and be reviewed independently, but cannot merge before independent QA and governor review."
   },
   "review": {
-    "lastReviewedAt": "2026-07-17",
-    "lastReviewedBy": "Accountable governor baseline record — issue #84",
-    "decision": "RELEASE_PROMOTED_WITH_CONDITIONS",
+    "lastReviewedAt": "2026-07-18",
+    "lastReviewedBy": "Governor convergence record — issue #87",
+    "decision": "HOLD",
     "pendingIndependentReview": "GOV-WP-017 draft pull request",
-    "nextReviewTrigger": "GOV-WP-017 review; CI-WP-001 result; any report on #88, #89, #90 or #91; owner arbitration; scope overlap; baseline or released-asset drift; accessibility regression; RC718 migration attempt; held-domain request"
+    "nextReviewTrigger": "independent review of GOV-WP-017; CI result from issue #85; accountable-owner decision on issue #95; scope overlap; baseline or released-asset drift; accessibility regression; RC718 migration attempt; held-domain request"
   }
 }
