@@ -33,6 +33,16 @@ def _json(value: Any) -> str:
     return json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n"
 
 
+def _canonical_json(value: Any) -> bytes:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+
+
 def _write_once(path: Path, text: str, mode: int = 0o600) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, mode)
@@ -66,7 +76,11 @@ class SealedBundle:
 def allocate_attempt(output_root: Path, job_id: str) -> AttemptPaths:
     job_root = output_root / job_id
     job_root.mkdir(parents=True, exist_ok=True)
-    seen = [int(match.group(1)) for child in job_root.iterdir() if (match := ATTEMPT_RE.fullmatch(child.name))]
+    seen = [
+        int(match.group(1))
+        for child in job_root.iterdir()
+        if (match := ATTEMPT_RE.fullmatch(child.name))
+    ]
     number = max(seen, default=0) + 1
     if number > 999:
         raise OutcomeError("attempt limit exceeded")
@@ -79,11 +93,20 @@ def allocate_attempt(output_root: Path, job_id: str) -> AttemptPaths:
 
 
 def build_facts(
-    *, request: Any, attempt: int, status: str, classification: str,
-    started_at: str, completed_at: str, target_before: Mapping[str, Any],
-    target_after: Mapping[str, Any], operation_facts: Mapping[str, Any],
-    missing_proof: list[str], checkout_proof: Mapping[str, Any],
-    preflight: Mapping[str, Any], commands: list[dict[str, Any]],
+    *,
+    request: Any,
+    attempt: int,
+    status: str,
+    classification: str,
+    started_at: str,
+    completed_at: str,
+    target_before: Mapping[str, Any],
+    target_after: Mapping[str, Any],
+    operation_facts: Mapping[str, Any],
+    missing_proof: list[str],
+    checkout_proof: Mapping[str, Any],
+    preflight: Mapping[str, Any],
+    commands: list[dict[str, Any]],
 ) -> dict[str, Any]:
     if classification not in CLASSIFICATIONS:
         raise OutcomeError(f"forbidden classification: {classification}")
@@ -95,13 +118,20 @@ def build_facts(
         "request_sha256": request.digest_sha256,
         "operation": request.operation,
         "repository": request.repository,
-        "origin": {"type": request.origin.type, "number": request.origin.number,
-                   "request_comment_id": request.origin.request_comment_id},
-        "target": {"type": request.target_type, "number": request.target_number,
-                   "requested_sha": request.target_sha, "resolved_before": dict(target_before),
-                   "resolved_after": dict(target_after),
-                   "stale_before": target_before.get("sha") != request.target_sha,
-                   "stale_after": target_after.get("sha") != request.target_sha},
+        "origin": {
+            "type": request.origin.type,
+            "number": request.origin.number,
+            "request_comment_id": request.origin.request_comment_id,
+        },
+        "target": {
+            "type": request.target_type,
+            "number": request.target_number,
+            "requested_sha": request.target_sha,
+            "resolved_before": dict(target_before),
+            "resolved_after": dict(target_after),
+            "stale_before": target_before.get("sha") != request.target_sha,
+            "stale_after": target_after.get("sha") != request.target_sha,
+        },
         "status": status,
         "classification": classification,
         "started_at": started_at,
@@ -120,8 +150,13 @@ def build_facts(
 
 
 def write_bundle_files(
-    attempt: AttemptPaths, *, facts: Mapping[str, Any], summary: str,
-    runner: CommandRunner, environment: Mapping[str, Any], artifacts: Mapping[str, str],
+    attempt: AttemptPaths,
+    *,
+    facts: Mapping[str, Any],
+    summary: str,
+    runner: CommandRunner,
+    environment: Mapping[str, Any],
+    artifacts: Mapping[str, str],
 ) -> None:
     _write_once(attempt.bundle / "facts.json", _json(facts))
     _write_once(attempt.bundle / "summary.md", summary.rstrip() + "\n")
@@ -136,7 +171,9 @@ def write_bundle_files(
 
 
 def seal_bundle(attempt: AttemptPaths) -> SealedBundle:
-    files = sorted(path for path in attempt.bundle.iterdir() if path.is_file() and path.name != "manifest.sha256")
+    files = sorted(
+        path for path in attempt.bundle.iterdir() if path.is_file() and path.name != "manifest.sha256"
+    )
     if not files:
         raise OutcomeError("cannot seal an empty bundle")
     digests = {path.name: _sha(path.read_bytes()) for path in files}
@@ -165,42 +202,82 @@ def _header(facts: Mapping[str, Any], manifest_sha: str, bundle_sha: str, comple
 
 
 def render_capsule(
-    *, facts: Mapping[str, Any], summary: str, manifest_sha256: str,
-    bundle_sha256: str, artifact_digests: Mapping[str, str], diff_content: str | None,
+    *,
+    facts: Mapping[str, Any],
+    summary: str,
+    manifest_sha256: str,
+    bundle_sha256: str,
+    artifact_digests: Mapping[str, str],
+    diff_content: str | None,
 ) -> str:
-    # The top-level marker appears exactly once in the comment. The sealed local
-    # facts file retains its marker; the durable JSON copy omits only that duplicate
-    # field so restart detection can validate one unambiguous marker line.
     durable_facts = dict(facts)
     durable_facts.pop("marker", None)
     payload: dict[str, Any] = {
-        "facts": durable_facts, "summary": summary,
-        "sealed_bundle": {"manifest_sha256": manifest_sha256, "bundle_sha256": bundle_sha256,
-                          "artifact_sha256": dict(sorted(artifact_digests.items()))},
+        "facts": durable_facts,
+        "summary": summary,
+        "sealed_bundle": {
+            "manifest_sha256": manifest_sha256,
+            "bundle_sha256": bundle_sha256,
+            "artifact_sha256": dict(sorted(artifact_digests.items())),
+        },
     }
     if diff_content is not None:
         payload["required_diff"] = diff_content
-    return _header(facts, manifest_sha256, bundle_sha256, "FINAL_SEALED") + "```json\n" + json.dumps(
-        payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n```\n\n" + STATEMENT + "\n"
+    return (
+        _header(facts, manifest_sha256, bundle_sha256, "FINAL_SEALED")
+        + "```json\n"
+        + json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        + "\n```\n\n"
+        + STATEMENT
+        + "\n"
+    )
 
 
-def preview_capsule_size(*, facts: Mapping[str, Any], summary: str, artifacts: Mapping[str, str]) -> int:
+def preview_capsule_size(
+    *, facts: Mapping[str, Any], summary: str, artifacts: Mapping[str, str]
+) -> int:
     digests = {name: _sha(str(content).encode("utf-8")) for name, content in artifacts.items()}
-    body = render_capsule(facts=facts, summary=summary, manifest_sha256="0" * 64,
-                          bundle_sha256="0" * 64, artifact_digests=digests,
-                          diff_content=artifacts.get("diff.patch"))
+    body = render_capsule(
+        facts=facts,
+        summary=summary,
+        manifest_sha256="0" * 64,
+        bundle_sha256="0" * 64,
+        artifact_digests=digests,
+        diff_content=artifacts.get("diff.patch"),
+    )
     return len(body.encode("utf-8"))
 
 
-def render_oversize_diagnostic(*, facts: Mapping[str, Any], manifest_sha256: str, bundle_sha256: str) -> str:
-    diagnostic = {"job_id": facts["job_id"], "attempt": facts["attempt"],
-                  "request_sha256": facts["request_sha256"], "target_sha": facts["target"]["requested_sha"],
-                  "classification": "INCONCLUSIVE", "reason": "DURABLE_CAPSULE_OVERSIZE",
-                  "manifest_sha256": manifest_sha256, "bundle_sha256": bundle_sha256, "statement": STATEMENT}
+def render_oversize_diagnostic(
+    *, facts: Mapping[str, Any], manifest_sha256: str, bundle_sha256: str
+) -> str:
+    diagnostic: dict[str, Any] = {
+        "job_id": facts["job_id"],
+        "attempt": facts["attempt"],
+        "request_sha256": facts["request_sha256"],
+        "repository": facts["repository"],
+        "origin": {
+            "type": facts["origin"]["type"],
+            "number": facts["origin"]["number"],
+        },
+        "target_sha": facts["target"]["requested_sha"],
+        "classification": "INCONCLUSIVE",
+        "reason": "DURABLE_CAPSULE_OVERSIZE",
+        "manifest_sha256": manifest_sha256,
+        "bundle_sha256": bundle_sha256,
+        "statement": STATEMENT,
+    }
+    diagnostic["diagnostic_sha256"] = _sha(_canonical_json(diagnostic))
     copy = dict(facts)
     copy["classification"] = "INCONCLUSIVE"
-    body = _header(copy, manifest_sha256, bundle_sha256, "FINAL_DIAGNOSTIC_ONLY") + "reason: DURABLE_CAPSULE_OVERSIZE\n\n```json\n" + json.dumps(
-        diagnostic, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n```\n\n" + STATEMENT + "\n"
+    body = (
+        _header(copy, manifest_sha256, bundle_sha256, "FINAL_DIAGNOSTIC_ONLY")
+        + "reason: DURABLE_CAPSULE_OVERSIZE\n\n```json\n"
+        + json.dumps(diagnostic, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        + "\n```\n\n"
+        + STATEMENT
+        + "\n"
+    )
     ensure_publication_budget(body)
     return body
 
