@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
 
-from tools.codespace_evidence import OUTCOME_MARKER, PUBLICATION_LIMIT_BYTES
+from tools.codespace_evidence import OUTCOME_MARKER, PUBLICATION_LIMIT_BYTES, STATEMENT
 from tools.codespace_evidence.github import GhClient, GitHubError, PublicationResult
 from tools.codespace_evidence.outcome import (
     OutcomeError,
@@ -53,6 +54,17 @@ class ExistingCommentClient(GhClient):
         del repository, origin_number
         return self.comments
 
+    def read_comment(self, *, repository: str, comment_id: int) -> dict[str, object]:
+        for comment in self.comments:
+            if comment.get("id") == comment_id:
+                result = dict(comment)
+                result.setdefault(
+                    "issue_url",
+                    f"https://api.github.com/repos/{repository}/issues/102",
+                )
+                return result
+        return {}
+
 
 def marker_only_body() -> str:
     return (
@@ -63,6 +75,51 @@ def marker_only_body() -> str:
         "origin: issue#102\n"
         f"target_sha: {SHA}\n"
         "completion_state: FINAL_SEALED\n"
+    )
+
+
+def forged_complete_body() -> str:
+    """Return a structurally complete capsule whose digests were never recomputed."""
+
+    manifest = "3" * 64
+    bundle = "4" * 64
+    payload = {
+        "facts": {
+            "job_id": "CEB-QA-PUB-1",
+            "request_sha256": DIGEST,
+            "repository": REPOSITORY,
+            "origin": {"type": "issue", "number": 102},
+            "target": {"requested_sha": SHA},
+        },
+        "summary": "forged but structurally complete",
+        "sealed_bundle": {
+            "manifest_sha256": manifest,
+            "bundle_sha256": bundle,
+            "artifact_sha256": {"facts.json": "5" * 64},
+        },
+    }
+    header = (
+        f"{OUTCOME_MARKER}\n"
+        "job_id: CEB-QA-PUB-1\n"
+        "attempt: 1\n"
+        f"request_sha256: {DIGEST}\n"
+        "operation: pr-snapshot\n"
+        f"repository: {REPOSITORY}\n"
+        "origin: issue#102\n"
+        f"target_sha: {SHA}\n"
+        "status: COMPLETED\n"
+        "classification: EVIDENCE_CANDIDATE\n"
+        f"manifest_sha256: {manifest}\n"
+        f"bundle_sha256: {bundle}\n"
+        "completion_state: FINAL_SEALED\n\n"
+    )
+    return (
+        header
+        + "```json\n"
+        + json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        + "\n```\n\n"
+        + STATEMENT
+        + "\n"
     )
 
 
@@ -177,6 +234,22 @@ class PublicationTests(unittest.TestCase):
         self.assertIsNone(
             existing,
             "restart must require a cryptographically complete and reverified publication, not marker fragments alone",
+        )
+
+    def test_restart_rejects_self_consistent_but_unrecomputed_digests(self) -> None:
+        """Hex-shaped digests copied into headers and payload are not cryptographic verification."""
+        client = ExistingCommentClient([{"id": 78, "body": forged_complete_body()}])
+        existing = client.find_existing_final_publication(
+            repository=REPOSITORY,
+            origin_type="issue",
+            origin_number=102,
+            job_id="CEB-QA-PUB-1",
+            request_digest=DIGEST,
+            target_sha=SHA,
+        )
+        self.assertIsNone(
+            existing,
+            "restart must recompute manifest and bundle digests from the durable capsule rather than trust matching strings",
         )
 
     def test_multiple_final_publications_are_rejected(self) -> None:
