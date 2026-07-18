@@ -73,13 +73,7 @@ def loads_exact(text: str) -> Any:
 
 
 def canonical_json_bytes(value: Any) -> bytes:
-    """Return deterministic UTF-8 JSON used for request digests.
-
-    The accepted request schema contains only strings, integers, booleans, null,
-    arrays and objects. Sorting object keys and using the shortest separators gives
-    the RFC-8785-style canonical form needed by this bounded contract.
-    """
-
+    """Return deterministic UTF-8 JSON used for request digests."""
     try:
         text = json.dumps(
             value,
@@ -207,9 +201,10 @@ class EvidenceRequest:
         if target_type not in TARGET_TYPES:
             raise RequestError("target_type must be commit or pull_request")
 
-        target_sha = _string(value["target_sha"], "target_sha")
-        if not SHA_RE.fullmatch(target_sha):
+        target_sha_value = value["target_sha"]
+        if not isinstance(target_sha_value, str) or not SHA_RE.fullmatch(target_sha_value):
             raise RequestError("target_sha must be a full lowercase 40-character SHA")
+        target_sha = target_sha_value
 
         target_number_value = value.get("target_number")
         target_number = None if target_number_value is None else _positive_int(target_number_value, "target_number")
@@ -348,18 +343,14 @@ def verify_bound_request(
     if request.origin.number != descriptor.origin_number:
         raise RequestError("request origin number differs from launch descriptor")
     if request.origin.request_comment_id != descriptor.request_comment_id:
-        raise RequestError("request origin comment differs from launch descriptor")
+        raise RequestError("request comment id differs from launch descriptor")
     return request
 
 
-def load_and_verify_request(
-    descriptor_path: Path,
-    fetch_comment: Callable[[str, int], dict[str, Any]],
-) -> tuple[LaunchDescriptor, EvidenceRequest, dict[str, Any]]:
-    descriptor = LaunchDescriptor.from_path(descriptor_path)
-    comment = fetch_comment(descriptor.repository, descriptor.request_comment_id)
-    expected_issue_url = (
-        f"https://api.github.com/repos/{descriptor.repository}/issues/{descriptor.origin_number}"
-    )
-    request = verify_bound_request(descriptor, comment, expected_issue_url=expected_issue_url)
-    return descriptor, request, comment
+def verify_request_with_fetcher(
+    descriptor: LaunchDescriptor,
+    fetcher: Callable[[str, int], dict[str, Any]],
+) -> EvidenceRequest:
+    expected_issue_url = f"https://api.github.com/repos/{descriptor.repository}/issues/{descriptor.origin_number}"
+    comment = fetcher(descriptor.repository, descriptor.request_comment_id)
+    return verify_bound_request(descriptor, comment, expected_issue_url=expected_issue_url)
