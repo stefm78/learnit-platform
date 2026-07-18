@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
+import json
 from pathlib import Path
+import tempfile
 from types import SimpleNamespace
+from unittest import mock
 import unittest
 
 from tools.codespace_evidence import OPERATIONS
-from tools.codespace_evidence.github import GhClient, _flatten_slurped_pages
+from tools.codespace_evidence.github import GhClient, GitHubError, _flatten_slurped_pages
 from tools.codespace_evidence.operations import HANDLERS, PROFILES, _checks, _reviews
+from tools.codespace_evidence.run import main
 
 
 SHA = "f" * 40
@@ -102,6 +108,20 @@ class PaginatedClient(GhClient):
         )
 
 
+def runtime_request() -> SimpleNamespace:
+    return SimpleNamespace(
+        job_id="CEB-QA-ENV-1",
+        digest_sha256="9" * 64,
+        operation="pr-snapshot",
+        repository=REPOSITORY,
+        origin=SimpleNamespace(type="issue", number=102, request_comment_id=123),
+        target_type="pull_request",
+        target_number=103,
+        target_sha=SHA,
+        allow_new_attempt=False,
+    )
+
+
 class OperationTests(unittest.TestCase):
     def test_exact_four_operation_allowlist_is_preserved(self) -> None:
         expected = {
@@ -190,6 +210,46 @@ class OperationTests(unittest.TestCase):
         self.assertEqual(snapshot["checks"]["workflow_runs"], [])
         self.assertIn("NO_WORKFLOW_RUNS_FOR_LOG_COLLECTION", missing)
         self.assertIn("NO_WORKFLOW_RUNS_FOR_ARTIFACT_COLLECTION", missing)
+
+    def _assert_preflight_failure_is_durably_classified(self, reason: str) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            descriptor = root / "request.json"
+            descriptor.write_text("{}", encoding="utf-8")
+            output = root / "out"
+            client = mock.MagicMock()
+            client.preflight.side_effect = GitHubError(reason)
+            stderr = io.StringIO()
+            with (
+                mock.patch("tools.codespace_evidence.run.discover_repository_root", return_value=root),
+                mock.patch(
+                    "tools.codespace_evidence.run.load_and_verify_request",
+                    return_value=(SimpleNamespace(), runtime_request(), {}),
+                ),
+                mock.patch("tools.codespace_evidence.run.GhClient", return_value=client),
+                contextlib.redirect_stderr(stderr),
+            ):
+                result = main(["--request", str(descriptor), "--output-root", str(output)])
+            self.assertNotEqual(result, 0)
+            failure = output / "CEB-QA-ENV-1" / "attempt-001" / "publication" / "failure.json"
+            self.assertTrue(
+                failure.is_file(),
+                "environment failures must allocate an immutable attempt and leave durable classified evidence",
+            )
+            payload = json.loads(failure.read_text(encoding="utf-8"))
+            self.assertEqual(payload["classification"], "FAIL_ENVIRONMENT")
+
+    def test_private_repository_inaccessible_is_durably_classified(self) -> None:
+        self._assert_preflight_failure_is_durably_classified("private repository inaccessible")
+
+    def test_gh_absent_is_durably_classified(self) -> None:
+        self._assert_preflight_failure_is_durably_classified("gh executable absent")
+
+    def test_expired_or_invalid_token_is_durably_classified(self) -> None:
+        self._assert_preflight_failure_is_durably_classified("gh authentication is unavailable or expired")
+
+    def test_network_interruption_is_durably_classified(self) -> None:
+        self._assert_preflight_failure_is_durably_classified("network interrupted")
 
 
 if __name__ == "__main__":
