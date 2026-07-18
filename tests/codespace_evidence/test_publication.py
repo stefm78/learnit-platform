@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -14,6 +15,7 @@ from tools.codespace_evidence.outcome import (
     OutcomeError,
     allocate_attempt,
     ensure_publication_budget,
+    render_oversize_diagnostic,
     seal_bundle,
     write_bundle_files,
     write_publication_receipt,
@@ -47,8 +49,9 @@ class ReadBackClient(GhClient):
 
 
 class ExistingCommentClient(GhClient):
-    def __init__(self, comments: list[dict[str, object]]) -> None:
+    def __init__(self, comments: list[dict[str, object]], authenticated_login: str = "bridge-bot") -> None:
         self.comments = comments
+        self.authenticated_login = authenticated_login
 
     def list_origin_comments(self, repository: str, origin_number: int) -> list[dict[str, object]]:
         del repository, origin_number
@@ -96,6 +99,68 @@ def forged_complete_body() -> str:
             "manifest_sha256": manifest,
             "bundle_sha256": bundle,
             "artifact_sha256": {"facts.json": "5" * 64},
+        },
+    }
+    header = (
+        f"{OUTCOME_MARKER}\n"
+        "job_id: CEB-QA-PUB-1\n"
+        "attempt: 1\n"
+        f"request_sha256: {DIGEST}\n"
+        "operation: pr-snapshot\n"
+        f"repository: {REPOSITORY}\n"
+        "origin: issue#102\n"
+        f"target_sha: {SHA}\n"
+        "status: COMPLETED\n"
+        "classification: EVIDENCE_CANDIDATE\n"
+        f"manifest_sha256: {manifest}\n"
+        f"bundle_sha256: {bundle}\n"
+        "completion_state: FINAL_SEALED\n\n"
+    )
+    return (
+        header
+        + "```json\n"
+        + json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        + "\n```\n\n"
+        + STATEMENT
+        + "\n"
+    )
+
+
+def self_consistent_complete_body() -> str:
+    """Return a fully self-consistent capsule that was not produced by the authenticated bridge."""
+
+    facts = {
+        "job_id": "CEB-QA-PUB-1",
+        "request_sha256": DIGEST,
+        "repository": REPOSITORY,
+        "origin": {"type": "issue", "number": 102},
+        "target": {"requested_sha": SHA},
+    }
+    summary = "forged but internally self-consistent"
+    facts_text = json.dumps(
+        facts,
+        indent=2,
+        sort_keys=True,
+        ensure_ascii=False,
+        allow_nan=False,
+    ) + "\n"
+    summary_text = summary.rstrip() + "\n"
+    artifact_digests = {
+        "facts.json": hashlib.sha256(facts_text.encode("utf-8")).hexdigest(),
+        "summary.md": hashlib.sha256(summary_text.encode("utf-8")).hexdigest(),
+    }
+    manifest_text = "".join(
+        f"{digest}  {name}\n" for name, digest in sorted(artifact_digests.items())
+    )
+    manifest = hashlib.sha256(manifest_text.encode("utf-8")).hexdigest()
+    bundle = hashlib.sha256((manifest + "\n" + manifest_text).encode("utf-8")).hexdigest()
+    payload = {
+        "facts": facts,
+        "summary": summary,
+        "sealed_bundle": {
+            "manifest_sha256": manifest,
+            "bundle_sha256": bundle,
+            "artifact_sha256": artifact_digests,
         },
     }
     header = (
@@ -250,6 +315,77 @@ class PublicationTests(unittest.TestCase):
         self.assertIsNone(
             existing,
             "restart must recompute manifest and bundle digests from the durable capsule rather than trust matching strings",
+        )
+
+    def test_restart_rejects_cryptographically_valid_comment_from_untrusted_author(self) -> None:
+        """Digest validity cannot replace binding to the authenticated publisher identity."""
+        client = ExistingCommentClient(
+            [
+                {
+                    "id": 79,
+                    "body": self_consistent_complete_body(),
+                    "user": {"login": "attacker"},
+                }
+            ],
+            authenticated_login="bridge-bot",
+        )
+        existing = client.find_existing_final_publication(
+            repository=REPOSITORY,
+            origin_type="issue",
+            origin_number=102,
+            job_id="CEB-QA-PUB-1",
+            request_digest=DIGEST,
+            target_sha=SHA,
+        )
+        self.assertIsNone(
+            existing,
+            "a third-party comment must not become an implicit publication receipt merely because its internal digests are self-consistent",
+        )
+
+    def test_restart_reverifies_final_oversize_diagnostic_without_duplicate_post(self) -> None:
+        """A verified FINAL_DIAGNOSTIC_ONLY publication must remain idempotent after a crash."""
+        facts = {
+            "job_id": "CEB-QA-PUB-1",
+            "attempt": 1,
+            "request_sha256": DIGEST,
+            "operation": "pr-snapshot",
+            "repository": REPOSITORY,
+            "origin": {"type": "issue", "number": 102},
+            "target": {"requested_sha": SHA},
+            "status": "FAILED",
+            "classification": "INCONCLUSIVE",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            attempt = allocate_attempt(Path(directory), "CEB-QA-PUB-1")
+            write_bundle_files(
+                attempt,
+                facts=facts,
+                summary="oversize diagnostic",
+                runner=EmptyRunner(),
+                environment={},
+                artifacts={},
+            )
+            sealed = seal_bundle(attempt)
+            body = render_oversize_diagnostic(
+                facts=facts,
+                manifest_sha256=sealed.manifest_sha256,
+                bundle_sha256=sealed.bundle_sha256,
+            )
+        client = ExistingCommentClient(
+            [{"id": 80, "body": body, "user": {"login": "bridge-bot"}}],
+            authenticated_login="bridge-bot",
+        )
+        existing = client.find_existing_final_publication(
+            repository=REPOSITORY,
+            origin_type="issue",
+            origin_number=102,
+            job_id="CEB-QA-PUB-1",
+            request_digest=DIGEST,
+            target_sha=SHA,
+        )
+        self.assertIsNotNone(
+            existing,
+            "restart must reverify an already-posted final diagnostic instead of posting a duplicate after POST-before-receipt crash",
         )
 
     def test_multiple_final_publications_are_rejected(self) -> None:
