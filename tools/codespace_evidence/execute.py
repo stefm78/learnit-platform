@@ -26,6 +26,41 @@ KEY_VALUE_RE = re.compile(
 )
 URL_CREDENTIAL_RE = re.compile(r"(?i)(https?://)([^/\s:@]+):([^@/\s]+)@")
 
+# Fixed subprocesses receive only the minimum process environment needed to run.
+# Ambient credentials are never inherited by local validation or test profiles.
+SAFE_ENV_KEYS = frozenset(
+    {
+        "PATH",
+        "HOME",
+        "USERPROFILE",
+        "SYSTEMROOT",
+        "WINDIR",
+        "COMSPEC",
+        "PATHEXT",
+        "APPDATA",
+        "LOCALAPPDATA",
+        "TMPDIR",
+        "TMP",
+        "TEMP",
+        "LANG",
+        "LC_ALL",
+        "LC_CTYPE",
+        "TERM",
+        "TZ",
+        "SSL_CERT_FILE",
+        "SSL_CERT_DIR",
+        "REQUESTS_CA_BUNDLE",
+        "CURL_CA_BUNDLE",
+        "XDG_CONFIG_HOME",
+        "GH_CONFIG_DIR",
+        "GH_HOST",
+        "NO_COLOR",
+    }
+)
+GITHUB_AUTH_ENV_KEYS = frozenset(
+    {"GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN"}
+)
+
 
 class ExecutionError(RuntimeError):
     """Raised for deterministic execution-layer failures."""
@@ -39,12 +74,22 @@ def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def redact_text(value: str) -> str:
-    value = URL_CREDENTIAL_RE.sub(lambda match: f"{match.group(1)}[REDACTED]@[", value)
-    value = value.replace("@[", "@")
+def _ambient_secret_values() -> tuple[str, ...]:
+    values = {
+        value
+        for key, value in os.environ.items()
+        if value and (SENSITIVE_KEY_RE.search(key) or key in GITHUB_AUTH_ENV_KEYS)
+    }
+    return tuple(sorted(values, key=len, reverse=True))
+
+
+def redact_text(value: str, secret_values: Iterable[str] = ()) -> str:
+    value = URL_CREDENTIAL_RE.sub(lambda match: f"{match.group(1)}[REDACTED]@", value)
     value = BEARER_RE.sub(lambda match: f"{match.group(1)} [REDACTED]", value)
     value = GITHUB_TOKEN_RE.sub("[REDACTED_TOKEN]", value)
     value = KEY_VALUE_RE.sub(lambda match: f"{match.group(1)}=[REDACTED]", value)
+    for secret in sorted({item for item in secret_values if item}, key=len, reverse=True):
+        value = value.replace(secret, "[REDACTED_AMBIENT_SECRET]")
     return value
 
 
@@ -62,7 +107,7 @@ def redact_value(value: Any, key: str | None = None) -> Any:
     return value
 
 
-def redact_argv(argv: Iterable[str]) -> list[str]:
+def redact_argv(argv: Iterable[str], secret_values: Iterable[str] = ()) -> list[str]:
     result: list[str] = []
     hide_next = False
     for item in argv:
@@ -78,12 +123,32 @@ def redact_argv(argv: Iterable[str]) -> list[str]:
                 result.append(text)
                 hide_next = True
             continue
-        result.append(redact_text(text))
+        result.append(redact_text(text, secret_values))
     return result
 
 
-def safe_environment(extra: Mapping[str, str] | None = None) -> dict[str, str]:
-    env = dict(os.environ)
+def safe_environment(
+    extra: Mapping[str, str] | None = None,
+    *,
+    include_github_auth: bool = False,
+) -> dict[str, str]:
+    """Build a strict subprocess environment.
+
+    Only the trusted ``gh`` executable may receive GitHub authentication variables.
+    Fixed local validators, tests and Git commands never inherit arbitrary ambient
+    variables, so an opaque secret cannot be printed by a child process merely by
+    reading its inherited environment.
+    """
+
+    env: dict[str, str] = {}
+    for key, value in os.environ.items():
+        if key in SAFE_ENV_KEYS or key.startswith("LC_"):
+            env[key] = value
+    if include_github_auth:
+        for key in GITHUB_AUTH_ENV_KEYS:
+            value = os.environ.get(key)
+            if value:
+                env[key] = value
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     env["GIT_TERMINAL_PROMPT"] = "0"
     if extra:
@@ -163,10 +228,13 @@ class CommandRunner:
         command_id = self._next_id()
         started_at = utc_now()
         start = time.monotonic()
+        executable = Path(argv[0]).name.lower()
+        include_github_auth = executable in {"gh", "gh.exe"}
+        ambient_secrets = _ambient_secret_values()
         process = subprocess.Popen(
             argv,
             cwd=str(cwd),
-            env=safe_environment(extra_env),
+            env=safe_environment(extra_env, include_github_auth=include_github_auth),
             text=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -196,13 +264,13 @@ class CommandRunner:
                 stdout_b, stderr_b = process.communicate()
         completed_at = utc_now()
         duration = time.monotonic() - start
-        stdout = redact_text(stdout_b.decode("utf-8", "replace"))
-        stderr = redact_text(stderr_b.decode("utf-8", "replace"))
+        stdout = redact_text(stdout_b.decode("utf-8", "replace"), ambient_secrets)
+        stderr = redact_text(stderr_b.decode("utf-8", "replace"), ambient_secrets)
         stdout_redacted_b = stdout.encode("utf-8")
         stderr_redacted_b = stderr.encode("utf-8")
         record = CommandRecord(
             id=command_id,
-            argv=redact_argv(argv),
+            argv=redact_argv(argv, ambient_secrets),
             cwd=str(cwd.resolve()),
             started_at=started_at,
             completed_at=completed_at,
