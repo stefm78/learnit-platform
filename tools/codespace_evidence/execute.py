@@ -455,6 +455,7 @@ def _sandbox_exec_main(argv: list[str]) -> int:
             "--user",
             "--map-root-user",
             "--mount",
+            "--pid",
             "--fork",
             sys.executable,
             str(Path(__file__).resolve()),
