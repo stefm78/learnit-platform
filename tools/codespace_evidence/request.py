@@ -73,7 +73,13 @@ def loads_exact(text: str) -> Any:
 
 
 def canonical_json_bytes(value: Any) -> bytes:
-    """Return deterministic UTF-8 JSON used for request digests."""
+    """Return deterministic UTF-8 JSON used for request digests.
+
+    The accepted request schema contains only strings, integers, booleans, null,
+    arrays and objects. Sorting object keys and using the shortest separators gives
+    the RFC-8785-style canonical form needed by this bounded contract.
+    """
+
     try:
         text = json.dumps(
             value,
@@ -343,14 +349,18 @@ def verify_bound_request(
     if request.origin.number != descriptor.origin_number:
         raise RequestError("request origin number differs from launch descriptor")
     if request.origin.request_comment_id != descriptor.request_comment_id:
-        raise RequestError("request comment id differs from launch descriptor")
+        raise RequestError("request origin comment differs from launch descriptor")
     return request
 
 
-def verify_request_with_fetcher(
-    descriptor: LaunchDescriptor,
-    fetcher: Callable[[str, int], dict[str, Any]],
-) -> EvidenceRequest:
-    expected_issue_url = f"https://api.github.com/repos/{descriptor.repository}/issues/{descriptor.origin_number}"
-    comment = fetcher(descriptor.repository, descriptor.request_comment_id)
-    return verify_bound_request(descriptor, comment, expected_issue_url=expected_issue_url)
+def load_and_verify_request(
+    descriptor_path: Path,
+    fetch_comment: Callable[[str, int], dict[str, Any]],
+) -> tuple[LaunchDescriptor, EvidenceRequest, dict[str, Any]]:
+    descriptor = LaunchDescriptor.from_path(descriptor_path)
+    comment = fetch_comment(descriptor.repository, descriptor.request_comment_id)
+    expected_issue_url = (
+        f"https://api.github.com/repos/{descriptor.repository}/issues/{descriptor.origin_number}"
+    )
+    request = verify_bound_request(descriptor, comment, expected_issue_url=expected_issue_url)
+    return descriptor, request, comment
