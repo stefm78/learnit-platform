@@ -14,6 +14,7 @@ on:
         options:
           - integration-head
           - post-merge
+          - maintenance-pr
       accepted_integration_head:
         description: Required exact accepted integration head for post-merge mode
         required: false
@@ -52,19 +53,25 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Resolve comparison refs
         run: |
-          git fetch --no-tags origin main:refs/remotes/origin/main
-          git fetch --no-tags origin e5ee65a37326f4861d33c3c80221527511a03f24
+          git fetch --force --no-tags origin main:refs/remotes/origin/main
+          git fetch --force --no-tags origin e5ee65a37326f4861d33c3c80221527511a03f24
       - name: Resolve explicit verification mode
         id: mode
         shell: bash
         env:
           DISPATCH_MODE: ${{ inputs.verification_mode }}
           DISPATCH_ACCEPTED_HEAD: ${{ inputs.accepted_integration_head }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_REF: ${{ github.head_ref }}
         run: |
           set -euo pipefail
           case "${GITHUB_EVENT_NAME}" in
             pull_request)
-              mode="integration-head"
+              if [[ "${PR_NUMBER}" == "92" && "${PR_HEAD_REF}" == "ci/CI-WP-001-separate-verification-modes" ]]; then
+                mode="maintenance-pr"
+              else
+                mode="integration-head"
+              fi
               accepted_head=""
               ;;
             push)
@@ -81,7 +88,7 @@ jobs:
               ;;
           esac
           case "${mode}" in
-            integration-head)
+            integration-head|maintenance-pr)
               ;;
             post-merge)
               test -n "${accepted_head}" || {
