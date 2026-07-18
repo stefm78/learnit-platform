@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-001",
+  "title": "Canonical CI topology modes and maintenance-pr governance",
+  "status": "in-progress",
+  "changeClass": "ci-harness-correction",
+  "riskClass": "moderate",
+  "purpose": "Canonicalize integration-head, post-merge and maintenance-pr modes while preserving released product bytes and separating harness topology defects from product evidence.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "0604cad79a8ca765148c30090906b9f658af7109",
+    "candidateName": "explicit-ci-topology-modes",
+    "artifactSha256": "53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/tests/build_determinism.py",
+      "apps/learnit-next/source_manifest.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/README.md",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/dev/release.py",
+      "apps/learnit-next/tests/browser_acceptance.py",
+      "apps/learnit-next/tests/fixtures/**",
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/**",
+      "docs/product/**",
+      "docs/evidence/**",
+      "kits/**"
+    ]
+  },
+  "modes": {
+    "integration-head": "Explicit workflow selection for integration verification using frozen four-parent topology and accepted provenance checks.",
+    "post-merge": "Explicit workflow selection for main verification using expected two-parent ancestry, accepted integration-head identity and executable-tree checks.",
+    "maintenance-pr": "Strictly limited to maintenance pull requests of the harness only; never usable for integration heads or post-merge commits. Selection is explicit, never inferred. Missing or unknown mode fails closed."
+  },
+  "maintenancePrRequirements": [
+    "The workflow selects maintenance-pr explicitly.",
+    "Mode absence or unknown mode fails closed.",
+    "The PR base descends from the authorized baseline.",
+    "The diff is checked exactly against the maintenance PR allowlist.",
+    "Regression tests for integration-head and post-merge modes execute on temporary Git repositories.",
+    "Double deterministic build verification is executed.",
+    "The complete product test suite is executed.",
+    "Failures use distinct machine-readable classifications.",
+    "No control from integration-head or post-merge modes is reduced or altered.",
+    "maintenance-pr cannot validate an integration head or a post-merge commit."
+  ],
+  "sourceManifestRestriction": [
+    "source_manifest.json may change only to preserve fingerprints and provenance of the other three authorized modified files.",
+    "No product source ordering may change.",
+    "No published artifact digest may change.",
+    "No product bytes may change.",
+    "No other use of source_manifest.json is authorized."
+  ],
+  "invariants": [
+    "Only the four exact allowed paths may change.",
+    "No new file creation, deletion, rename or path substitution is authorized.",
+    "Mode selection is explicit and fail-closed.",
+    "Topology, provenance, build and product failures remain distinct machine-readable classifications.",
+    "The released artifact remains learnit-next.html, 84060 bytes, SHA-256 53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4.",
+    "No product behavior, runtime source, authoring, contract, governance-state or RC718 content changes.",
+    "Merge remains held until repository gates, independent QA and governor review pass."
+  ],
+  "requiredEvidence": [
+    "The exact four existing authorized paths are reported.",
+    "Independent QA reproduces modes, regressions, deterministic builds and product tests.",
+    "The governor verifies provenance, scope, artifact identity and classifications.",
+    "QA independent review and governor review are mandatory before merge."
+  ],
+  "adversarialTests": [
+    "Unknown or missing mode fails closed.",
+    "Unauthorized path fails scope validation.",
+    "Invalid ancestry fails closed.",
+    "Executable-tree divergence fails closed.",
+    "Topology and product failures remain distinct.",
+    "Test counts come from execution and not hard-coded totals."
+  ],
+  "nonGoals": [
+    "Changing product runtime behavior.",
+    "Changing authoring tools, kits, contracts or schemas.",
+    "Adding product features or test files.",
+    "Weakening existing controls.",
+    "Changing governance state."
+  ],
+  "independentReview": [
+    "Independent QA reproduces the complete evidence chain.",
+    "The governor verifies the canonical scope and evidence before merge.",
+    "Merge is prohibited until all gates pass."
+  ],
+  "execution": {
+    "issue": 85,
+    "maximumChangedFiles": 4,
+    "newFilesAuthorized": false,
+    "requiresIndependentQaBeforeMerge": true,
+    "requiresGovernorReviewBeforeMerge": true,
+    "mergeStatus": "held"
+  },
+  "rollback": "Close the implementation pull request without merge, or revert only the four-path CI correction commit."
+}
