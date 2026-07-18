@@ -12,6 +12,7 @@ tmp/
 .cache/
 .agent-runtime/
 .agent-result/
+.codespace-evidence/
 
 # JavaScript
 node_modules/
