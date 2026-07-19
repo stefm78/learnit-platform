@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
+import hashlib
+import json
 import os
 from pathlib import Path
 import sys
@@ -24,7 +27,15 @@ from tools.codespace_evidence.execute import (
     redact_value,
     utc_now,
 )
-from tools.codespace_evidence.github import GhClient, GitHubError
+from tools.codespace_evidence.github import (
+    GhClient,
+    GitHubError,
+    PublicationResult,
+    _comment_login,
+    _cryptographically_complete_publication,
+    _publication_headers,
+    _publication_payload,
+)
 from tools.codespace_evidence.operations import OperationResult, execute_operation
 from tools.codespace_evidence.outcome import (
     allocate_attempt,
@@ -49,10 +60,41 @@ from tools.codespace_evidence.workspace import (
 
 DEFAULT_REQUEST = Path(".codespace-evidence/request.json")
 DEFAULT_OUTPUT = Path(".agent-result/codespace-evidence")
+SHA256_HEX = set("0123456789abcdef")
+
+
+class ArbitrationError(RuntimeError):
+    """GitHub-only final-outcome arbitration failed closed."""
+
+
+@dataclass(frozen=True)
+class FinalCandidate:
+    comment_id: int
+    html_url: str
+    body: str
+    body_sha256: str
+    request_digest: str
+    created_at: str | None
+
+
+@dataclass(frozen=True)
+class Election:
+    incumbent: FinalCandidate | None
+    valid: tuple[FinalCandidate, ...]
+
+    @property
+    def duplicate_ids(self) -> list[int]:
+        if self.incumbent is None:
+            return []
+        return [item.comment_id for item in self.valid if item.comment_id != self.incumbent.comment_id]
 
 
 def _claim_request(output_root: Path, job_id: str, request_digest: str) -> bool:
-    """Atomically bind one job ID to one digest and permit only its first execution."""
+    """Bind a local output root to one digest without pretending it is a global claim.
+
+    The file remains a local conflict detector. A same-digest restart is allowed because
+    GitHub arbitration, not this file, determines the authoritative final outcome.
+    """
 
     job_root = output_root / job_id
     job_root.mkdir(parents=True, exist_ok=True)
@@ -63,7 +105,7 @@ def _claim_request(output_root: Path, job_id: str, request_digest: str) -> bool:
     except FileExistsError:
         existing = claim_path.read_text(encoding="utf-8").strip()
         if existing != request_digest:
-            raise RuntimeError("job_id is already bound to a different request digest")
+            raise ArbitrationError("CONFLICT_DIFFERENT_DIGEST: local job_id binding differs")
         return False
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
@@ -163,19 +205,12 @@ def _facts(
 
 
 def _failure_classification(exc: Exception) -> str:
-    if isinstance(exc, (GitHubError, FileNotFoundError, ConnectionError, TimeoutError)):
+    if isinstance(exc, (GitHubError, ArbitrationError, FileNotFoundError, ConnectionError, TimeoutError)):
         return "FAIL_ENVIRONMENT"
     return "FAIL_HARNESS"
 
 
 def _unbound_attempt(output: Path, descriptor_path: Path) -> tuple[Any | None, dict[str, Any]]:
-    """Allocate deterministic local evidence when GitHub cannot bind the request.
-
-    A valid launch descriptor contains no job ID, so an origin-scoped synthetic ID
-    is used only for the pre-binding failure record. It is never published as a
-    verified request outcome.
-    """
-
     try:
         descriptor = LaunchDescriptor.from_path(descriptor_path)
     except Exception:
@@ -284,11 +319,167 @@ def _write_classified_failure(
     if not stop_path.exists():
         write_stop_receipt(
             attempt,
-            {
-                "state": "DISABLED_NOT_DURABLY_VERIFIED",
-                "classification": classification,
-            },
+            {"state": "DISABLED_NOT_DURABLY_VERIFIED", "classification": classification},
         )
+
+
+def _valid_digest(value: Any) -> bool:
+    return isinstance(value, str) and len(value) == 64 and set(value) <= SHA256_HEX
+
+
+def _candidate_matches_complete_identity(payload: dict[str, Any], request: Any) -> bool:
+    facts = payload.get("facts")
+    if facts is None:
+        # FINAL_DIAGNOSTIC_ONLY is cryptographically bound to the complete request digest.
+        return True
+    if not isinstance(facts, dict):
+        return False
+    origin = facts.get("origin")
+    target = facts.get("target")
+    return (
+        facts.get("operation") == request.operation
+        and isinstance(origin, dict)
+        and origin.get("request_comment_id") == request.origin.request_comment_id
+        and isinstance(target, dict)
+        and target.get("type") == request.target_type
+        and target.get("number") == request.target_number
+    )
+
+
+def _discover_candidates(gh: GhClient, request: Any) -> Election:
+    """Exhaustively reread, fully validate, and deterministically elect candidates."""
+
+    trusted_login = gh.authenticated_login
+    if not isinstance(trusted_login, str) or not trusted_login:
+        raise ArbitrationError("authenticated publisher identity is unavailable")
+    valid: list[FinalCandidate] = []
+    seen_ids: set[int] = set()
+    for comment in gh.list_origin_comments(request.repository, request.origin.number):
+        comment_id = comment.get("id")
+        body = comment.get("body")
+        if not isinstance(comment_id, int) or comment_id in seen_ids or not isinstance(body, str):
+            continue
+        seen_ids.add(comment_id)
+        if _comment_login(comment) != trusted_login:
+            continue
+        headers = _publication_headers(body)
+        payload = _publication_payload(body)
+        if headers is None or payload is None:
+            continue
+        digest = headers.get("request_sha256")
+        if not _valid_digest(digest):
+            continue
+        if (
+            headers.get("job_id") != request.job_id
+            or headers.get("repository") != request.repository
+            or headers.get("origin") != f"{request.origin.type}#{request.origin.number}"
+            or headers.get("target_sha") != request.target_sha
+        ):
+            continue
+        if not _candidate_matches_complete_identity(payload, request):
+            continue
+        if not _cryptographically_complete_publication(
+            body,
+            repository=request.repository,
+            origin_type=request.origin.type,
+            origin_number=request.origin.number,
+            job_id=request.job_id,
+            request_digest=digest,
+            target_sha=request.target_sha,
+        ):
+            continue
+        valid.append(
+            FinalCandidate(
+                comment_id=comment_id,
+                html_url=str(comment.get("html_url", "")),
+                body=body,
+                body_sha256=hashlib.sha256(body.encode("utf-8")).hexdigest(),
+                request_digest=digest,
+                created_at=comment.get("created_at") if isinstance(comment.get("created_at"), str) else None,
+            )
+        )
+    valid.sort(key=lambda item: item.comment_id)
+    return Election(valid[0] if valid else None, tuple(valid))
+
+
+def _check_recorded_incumbent(output_root: Path, request: Any, election: Election) -> None:
+    """Fail closed if a previously verified incumbent was edited or deleted."""
+
+    job_root = output_root / request.job_id
+    if not job_root.exists():
+        return
+    for receipt_path in sorted(job_root.glob("attempt-*/publication/receipt.json")):
+        try:
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            raise ArbitrationError("REGISTRY_INTEGRITY_LOST: unreadable verified receipt")
+        recorded_id = receipt.get("authoritative_comment_id", receipt.get("comment_id"))
+        recorded_sha = receipt.get("authoritative_body_sha256")
+        if not isinstance(recorded_id, int) or not isinstance(recorded_sha, str):
+            continue
+        match = next((item for item in election.valid if item.comment_id == recorded_id), None)
+        if match is None or match.body_sha256 != recorded_sha:
+            raise ArbitrationError("REGISTRY_INTEGRITY_LOST: recorded incumbent was edited or deleted")
+
+
+def _decision_for_request(election: Election, request: Any) -> str:
+    incumbent = election.incumbent
+    if incumbent is None:
+        return "ABSENT"
+    if incumbent.request_digest != request.digest_sha256:
+        return "CONFLICT_DIFFERENT_DIGEST"
+    return "AUTHORITATIVE_SAME_DIGEST"
+
+
+def _record_election_receipt(
+    attempt: Any,
+    request: Any,
+    election: Election,
+    *,
+    state: str,
+    posted_id: int | None = None,
+) -> None:
+    incumbent = election.incumbent
+    if incumbent is None:
+        raise ArbitrationError("cannot persist an election receipt without an incumbent")
+    write_publication_receipt(
+        attempt,
+        {
+            "state": state,
+            "classification": (
+                "DUPLICATE_FINAL_OUTCOME"
+                if posted_id is not None and posted_id != incumbent.comment_id
+                else "AUTHORITATIVE_FINAL_OUTCOME"
+            ),
+            "authoritative_comment_id": incumbent.comment_id,
+            "authoritative_body_sha256": incumbent.body_sha256,
+            "authoritative_html_url": incumbent.html_url,
+            "posted_comment_id": posted_id,
+            "duplicate_comment_ids": election.duplicate_ids,
+            "request_comment_id": request.origin.request_comment_id,
+            "request_sha256": request.digest_sha256,
+        },
+    )
+
+
+def _recover_existing(output: Path, attempt: Any, gh: GhClient, request: Any) -> bool:
+    election = _discover_candidates(gh, request)
+    _check_recorded_incumbent(output, request, election)
+    decision = _decision_for_request(election, request)
+    if decision == "CONFLICT_DIFFERENT_DIGEST":
+        raise ArbitrationError("CONFLICT_DIFFERENT_DIGEST: authoritative incumbent uses another digest")
+    if decision == "AUTHORITATIVE_SAME_DIGEST":
+        _record_election_receipt(attempt, request, election, state="RECOVERED_AUTHORITATIVE_OUTCOME")
+        write_stop_receipt(
+            attempt,
+            {"state": "DISABLED_RECOVERY_ONLY", "reason": "Authoritative outcome reverified."},
+        )
+        print(
+            f"AUTHORITATIVE_FINAL_OUTCOME: re-read and verified comment "
+            f"{election.incumbent.comment_id}; no operation or POST performed."
+        )
+        return True
+    return False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -309,48 +500,12 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         _descriptor, request, _comment = load_and_verify_request(request_path, gh.fetch_request_comment)
-        first_claim = _claim_request(output, request.job_id, request.digest_sha256)
-        if first_claim:
-            # The first claimant allocates before preflight so missing gh/auth/network/private
-            # repository access still leaves one immutable classified local attempt.
-            attempt = allocate_attempt(output, request.job_id)
+        _claim_request(output, request.job_id, request.digest_sha256)
+        attempt = allocate_attempt(output, request.job_id)
         preflight = gh.preflight(request.repository)
-        existing = gh.find_existing_final_publication(
-            repository=request.repository,
-            origin_type=request.origin.type,
-            origin_number=request.origin.number,
-            job_id=request.job_id,
-            request_digest=request.digest_sha256,
-            target_sha=request.target_sha,
-        )
-        if existing is not None:
-            if attempt is not None:
-                write_publication_receipt(
-                    attempt,
-                    {
-                        "state": "RECOVERED_AND_REVERIFIED_EXISTING_PUBLICATION",
-                        "comment_id": existing.get("id"),
-                        "html_url": existing.get("html_url"),
-                        "request_comment_id": request.origin.request_comment_id,
-                        "request_sha256": request.digest_sha256,
-                        "body_bytes": len(str(existing.get("body", "")).encode("utf-8")),
-                    },
-                )
-                write_stop_receipt(
-                    attempt,
-                    {
-                        "state": "DISABLED_RECOVERY_ONLY",
-                        "reason": "Existing publication was reverified; no new operation executed.",
-                    },
-                )
-            print(f"Existing sealed publication for {request.job_id} was re-read and verified; no duplicate posted.")
+
+        if _recover_existing(output, attempt, gh, request):
             return 0
-        if not first_claim:
-            raise RuntimeError(
-                "strict idempotence: this job_id and request digest were already claimed "
-                "without a verified final publication; submit a new job_id"
-            )
-        assert attempt is not None
 
         primary_before = snapshot_primary_checkout(runner, root)
         target_before = gh.resolve_target(
@@ -381,15 +536,7 @@ def main(argv: list[str] | None = None) -> int:
             result.summary += " Primary checkout changed; publication is diagnostic only."
 
         facts = _facts(
-            request,
-            attempt,
-            result,
-            started,
-            target_before,
-            target_after,
-            checkout,
-            preflight,
-            runner,
+            request, attempt, result, started, target_before, target_after, checkout, preflight, runner
         )
         preview = preview_capsule_size(facts=facts, summary=result.summary, artifacts=result.artifacts)
         oversize = preview > PUBLICATION_LIMIT_BYTES
@@ -397,8 +544,7 @@ def main(argv: list[str] | None = None) -> int:
             result.classification = "INCONCLUSIVE"
             result.missing_proof = sorted(set([*result.missing_proof, "DURABLE_CAPSULE_OVERSIZE"]))
             result.summary += (
-                f" Required capsule is {preview} UTF-8 bytes; "
-                f"limit is {PUBLICATION_LIMIT_BYTES}."
+                f" Required capsule is {preview} UTF-8 bytes; limit is {PUBLICATION_LIMIT_BYTES}."
             )
             facts = _facts(
                 request,
@@ -440,6 +586,25 @@ def main(argv: list[str] | None = None) -> int:
         )
         ensure_publication_budget(body)
 
+        # A concurrent client may have published while this read-only operation ran.
+        before_post = _discover_candidates(gh, request)
+        _check_recorded_incumbent(output, request, before_post)
+        before_post_decision = _decision_for_request(before_post, request)
+        if before_post_decision == "CONFLICT_DIFFERENT_DIGEST":
+            raise ArbitrationError("CONFLICT_DIFFERENT_DIGEST: incumbent appeared before POST")
+        if before_post_decision == "AUTHORITATIVE_SAME_DIGEST":
+            _record_election_receipt(
+                attempt, request, before_post, state="CONCURRENT_AUTHORITATIVE_OUTCOME_REUSED"
+            )
+            write_stop_receipt(
+                attempt,
+                {"state": "DISABLED_DUPLICATE_FINAL_OUTCOME", "classification": "DUPLICATE_FINAL_OUTCOME"},
+            )
+            print("DUPLICATE_FINAL_OUTCOME: concurrent authoritative outcome reused; no POST performed.")
+            return 0
+
+        # Required immediate SHA resolution: no unrelated GitHub call may occur between
+        # this successful check and the POST below.
         publication_target = gh.resolve_target(
             repository=request.repository,
             target_type=request.target_type,
@@ -457,10 +622,7 @@ def main(argv: list[str] | None = None) -> int:
             write_publication_failure(attempt, failure)
             write_stop_receipt(
                 attempt,
-                {
-                    "state": "DISABLED_TARGET_MOVED_BEFORE_PUBLICATION",
-                    "classification": "STALE_AFTER_EXECUTION",
-                },
+                {"state": "DISABLED_TARGET_MOVED_BEFORE_PUBLICATION", "classification": "STALE_AFTER_EXECUTION"},
             )
             print(
                 f"STALE_AFTER_EXECUTION: target moved immediately before publication: "
@@ -469,34 +631,62 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 1
 
-        posted = gh.publish_comment(
-            repository=request.repository,
-            origin_number=request.origin.number,
-            body=body,
-        )
-        receipt = gh.verify_publication(
+        posted: PublicationResult | None = None
+        try:
+            posted = gh.publish_comment(
+                repository=request.repository,
+                origin_number=request.origin.number,
+                body=body,
+            )
+        except GitHubError:
+            # A timeout may hide a successful POST. Only exhaustive cryptographic reread
+            # may convert that ambiguity into success.
+            ambiguous = _discover_candidates(gh, request)
+            _check_recorded_incumbent(output, request, ambiguous)
+            if _decision_for_request(ambiguous, request) != "AUTHORITATIVE_SAME_DIGEST":
+                raise
+            _record_election_receipt(
+                attempt, request, ambiguous, state="RECOVERED_AFTER_AMBIGUOUS_POST"
+            )
+            write_stop_receipt(
+                attempt,
+                {"state": "DISABLED_AMBIGUOUS_POST_RECOVERY", "classification": "AUTHORITATIVE_FINAL_OUTCOME"},
+            )
+            print("AUTHORITATIVE_FINAL_OUTCOME: recovered by exhaustive reread after ambiguous POST.")
+            return 0
+
+        gh.verify_publication(
             repository=request.repository,
             origin_number=request.origin.number,
             result=posted,
             expected_body=body,
             required_fragments=_required_fragments(
-                facts,
-                sealed.manifest_sha256,
-                sealed.bundle_sha256,
+                facts, sealed.manifest_sha256, sealed.bundle_sha256
             ),
         )
-        write_publication_receipt(
+
+        # POST success is not authority. Exhaustively reread the exact origin and elect
+        # the smallest cryptographically valid comment_id after convergence.
+        election = _discover_candidates(gh, request)
+        _check_recorded_incumbent(output, request, election)
+        decision = _decision_for_request(election, request)
+        if decision == "CONFLICT_DIFFERENT_DIGEST":
+            raise ArbitrationError("CONFLICT_DIFFERENT_DIGEST: another digest won final election")
+        if decision != "AUTHORITATIVE_SAME_DIGEST" or election.incumbent is None:
+            raise ArbitrationError("publication did not produce a cryptographically valid incumbent")
+        if not any(item.comment_id == posted.comment_id for item in election.valid):
+            raise ArbitrationError("posted comment absent or invalid during authoritative reread")
+
+        lost = posted.comment_id != election.incumbent.comment_id
+        _record_election_receipt(
             attempt,
-            {
-                **receipt,
-                "request_comment_id": request.origin.request_comment_id,
-                "request_sha256": request.digest_sha256,
-                "manifest_sha256": sealed.manifest_sha256,
-                "bundle_sha256": sealed.bundle_sha256,
-            },
+            request,
+            election,
+            state="POSTED_AND_ELECTED" if not lost else "POSTED_BUT_LOST_DETERMINISTIC_ELECTION",
+            posted_id=posted.comment_id,
         )
 
-        stop_eligible = not oversize and result.status == "COMPLETED"
+        stop_eligible = not lost and not oversize and result.status == "COMPLETED"
         stop_receipt = (
             stop_current_codespace(
                 runner,
@@ -512,11 +702,20 @@ def main(argv: list[str] | None = None) -> int:
                     else "DISABLED_OUTCOME_NOT_STOP_ELIGIBLE"
                 ),
                 "status": result.status,
-                "classification": result.classification,
+                "classification": "DUPLICATE_FINAL_OUTCOME" if lost else result.classification,
             }
         )
         write_stop_receipt(attempt, stop_receipt)
-        print(f"{result.classification}: published and verified {posted.html_url}; attempt {attempt.number}.")
+        if lost:
+            print(
+                f"DUPLICATE_FINAL_OUTCOME: comment {posted.comment_id} lost to authoritative "
+                f"comment {election.incumbent.comment_id}."
+            )
+            return 0
+        print(
+            f"{result.classification}: authoritative outcome {election.incumbent.html_url}; "
+            f"attempt {attempt.number}."
+        )
         return 0 if result.status == "COMPLETED" and result.classification != "INCONCLUSIVE" else 1
 
     except Exception as exc:
