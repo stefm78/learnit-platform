@@ -1,0 +1,4 @@
+{
+  "name": "Learn-it Evidence Bridge",
+  "postStartCommand": "python tools/codespace_evidence/run.py --request .codespace-evidence/request.json --stop-after-success"
+}
