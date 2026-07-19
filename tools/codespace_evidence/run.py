@@ -74,19 +74,43 @@ class FinalCandidate:
     body: str
     body_sha256: str
     request_digest: str
+    target_sha: str
     created_at: str | None
+
+
+@dataclass(frozen=True)
+class DuplicateFinalOutcome:
+    comment_id: int
+    classification: str
+    incumbent_comment_id: int
+    repository: str
+    job_id: str
+    request_digest: str
+    target_sha: str
+    reason: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "comment_id": self.comment_id,
+            "classification": self.classification,
+            "incumbent_comment_id": self.incumbent_comment_id,
+            "repository": self.repository,
+            "job_id": self.job_id,
+            "request_sha256": self.request_digest,
+            "target_sha": self.target_sha,
+            "reason": self.reason,
+        }
 
 
 @dataclass(frozen=True)
 class Election:
     incumbent: FinalCandidate | None
     valid: tuple[FinalCandidate, ...]
+    losers: tuple[DuplicateFinalOutcome, ...]
 
     @property
     def duplicate_ids(self) -> list[int]:
-        if self.incumbent is None:
-            return []
-        return [item.comment_id for item in self.valid if item.comment_id != self.incumbent.comment_id]
+        return [item.comment_id for item in self.losers]
 
 
 def _claim_request(output_root: Path, job_id: str, request_digest: str) -> bool:
@@ -330,7 +354,8 @@ def _valid_digest(value: Any) -> bool:
 def _candidate_matches_complete_identity(payload: dict[str, Any], request: Any) -> bool:
     facts = payload.get("facts")
     if facts is None:
-        # FINAL_DIAGNOSTIC_ONLY is cryptographically bound to the complete request digest.
+        # FINAL_DIAGNOSTIC_ONLY is already cryptographically bound to its
+        # declared repository, origin, digest and target SHA.
         return True
     if not isinstance(facts, dict):
         return False
@@ -339,67 +364,245 @@ def _candidate_matches_complete_identity(payload: dict[str, Any], request: Any) 
     return (
         facts.get("operation") == request.operation
         and isinstance(origin, dict)
+        and origin.get("type") == request.origin.type
+        and origin.get("number") == request.origin.number
         and origin.get("request_comment_id") == request.origin.request_comment_id
         and isinstance(target, dict)
         and target.get("type") == request.target_type
         and target.get("number") == request.target_number
+        and target.get("requested_sha") == request.target_sha
     )
 
 
+def _declared_final_failure(
+    *,
+    comment_id: int,
+    category: str,
+    reason: str,
+    stage: str,
+) -> ArbitrationError:
+    diagnostic = {
+        "classification": "INVALID_DECLARED_FINAL_OUTCOME",
+        "comment_id": comment_id,
+        "category": category,
+        "reason": reason,
+        "validation_stage": stage,
+    }
+    return ArbitrationError(
+        "INVALID_DECLARED_FINAL_OUTCOME: "
+        + json.dumps(diagnostic, sort_keys=True, separators=(",", ":"))
+    )
+
+
+def _parse_declared_origin(value: Any) -> tuple[str, int] | None:
+    if not isinstance(value, str) or "#" not in value:
+        return None
+    origin_type, number = value.rsplit("#", 1)
+    if origin_type not in {"issue", "pull_request"}:
+        return None
+    try:
+        parsed_number = int(number)
+    except ValueError:
+        return None
+    if parsed_number < 1:
+        return None
+    return origin_type, parsed_number
+
+
 def _discover_candidates(gh: GhClient, request: Any) -> Election:
-    """Exhaustively reread, fully validate, and deterministically elect candidates."""
+    """Discover by repository+job_id, reject collisions, validate, then elect."""
 
     trusted_login = gh.authenticated_login
     if not isinstance(trusted_login, str) or not trusted_login:
         raise ArbitrationError("authenticated publisher identity is unavailable")
-    valid: list[FinalCandidate] = []
+
+    valid_same_digest: list[FinalCandidate] = []
     seen_ids: set[int] = set()
+
     for comment in gh.list_origin_comments(request.repository, request.origin.number):
         comment_id = comment.get("id")
         body = comment.get("body")
-        if not isinstance(comment_id, int) or comment_id in seen_ids or not isinstance(body, str):
+
+        if not isinstance(comment_id, int) or comment_id in seen_ids:
             continue
         seen_ids.add(comment_id)
+
+        if not isinstance(body, str):
+            continue
+
+        # A comment without a final-outcome claim is ordinary conversation.
+        if OUTCOME_MARKER not in body:
+            continue
+
+        # From this point onward the comment declared itself final. It may no
+        # longer disappear through permissive filtering.
         if _comment_login(comment) != trusted_login:
-            continue
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="UNAUTHORIZED_AUTHOR",
+                reason="declared final outcome author differs from authenticated publisher",
+                stage="author_validation",
+            )
+
         headers = _publication_headers(body)
+        if headers is None:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="MALFORMED_OR_TRUNCATED_SCHEMA",
+                reason="marker exists but the closed unique header shape is invalid",
+                stage="header_parsing",
+            )
+
         payload = _publication_payload(body)
-        if headers is None or payload is None:
-            continue
+        if payload is None:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="MALFORMED_OR_TRUNCATED_PAYLOAD",
+                reason="marker exists but exactly one strict JSON payload was not obtained",
+                stage="payload_parsing",
+            )
+
+        declared_repository = headers.get("repository")
+        declared_job_id = headers.get("job_id")
         digest = headers.get("request_sha256")
+        declared_target_sha = headers.get("target_sha")
+        declared_origin = _parse_declared_origin(headers.get("origin"))
+
+        if declared_repository != request.repository:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="CANONICAL_REPOSITORY_MISMATCH",
+                reason="declared final outcome names another canonical repository",
+                stage="repository_job_discovery",
+            )
+
+        if declared_job_id != request.job_id:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="JOB_ID_MISMATCH_OR_AMBIGUITY",
+                reason="declared final outcome names another or missing job_id",
+                stage="repository_job_discovery",
+            )
+
         if not _valid_digest(digest):
-            continue
-        if (
-            headers.get("job_id") != request.job_id
-            or headers.get("repository") != request.repository
-            or headers.get("origin") != f"{request.origin.type}#{request.origin.number}"
-            or headers.get("target_sha") != request.target_sha
-        ):
-            continue
-        if not _candidate_matches_complete_identity(payload, request):
-            continue
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="INVALID_REQUEST_DIGEST",
+                reason="request_sha256 is not a full lowercase SHA-256",
+                stage="digest_validation",
+            )
+
+        if not isinstance(declared_target_sha, str) or len(declared_target_sha) != 40:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="INVALID_TARGET_SHA",
+                reason="target_sha is absent or malformed",
+                stage="declared_identity_validation",
+            )
+
+        if declared_origin is None:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="INVALID_ORIGIN",
+                reason="origin header is absent or malformed",
+                stage="declared_identity_validation",
+            )
+
+        declared_origin_type, declared_origin_number = declared_origin
+
+        # Validate the candidate against what it declared. This deliberately
+        # happens before comparison with operation, source comment or target
+        # identity of the incoming request.
         if not _cryptographically_complete_publication(
             body,
-            repository=request.repository,
-            origin_type=request.origin.type,
-            origin_number=request.origin.number,
-            job_id=request.job_id,
+            repository=declared_repository,
+            origin_type=declared_origin_type,
+            origin_number=declared_origin_number,
+            job_id=declared_job_id,
             request_digest=digest,
-            target_sha=request.target_sha,
+            target_sha=declared_target_sha,
         ):
-            continue
-        valid.append(
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="CRYPTOGRAPHIC_OR_SCHEMA_INCONSISTENCY",
+                reason=(
+                    "declared final outcome failed manifest, bundle, embedded hash, "
+                    "diagnostic digest or identity verification"
+                ),
+                stage="cryptographic_validation",
+            )
+
+        # Collision detection is keyed only by canonical repository + job_id.
+        # No operation, origin, request comment, target or author field can
+        # mask a different digest after the candidate is proven valid.
+        if digest != request.digest_sha256:
+            raise ArbitrationError(
+                "CONFLICT_DIFFERENT_DIGEST: "
+                + json.dumps(
+                    {
+                        "comment_id": comment_id,
+                        "repository": request.repository,
+                        "job_id": request.job_id,
+                        "incumbent_request_sha256": digest,
+                        "incoming_request_sha256": request.digest_sha256,
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+            )
+
+        if (
+            declared_origin_type != request.origin.type
+            or declared_origin_number != request.origin.number
+            or declared_target_sha != request.target_sha
+            or not _candidate_matches_complete_identity(payload, request)
+        ):
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="FULL_IDENTITY_MISMATCH",
+                reason=(
+                    "same-digest declared result does not match operation, origin, "
+                    "source request comment or target identity"
+                ),
+                stage="complete_identity_validation",
+            )
+
+        valid_same_digest.append(
             FinalCandidate(
                 comment_id=comment_id,
                 html_url=str(comment.get("html_url", "")),
                 body=body,
                 body_sha256=hashlib.sha256(body.encode("utf-8")).hexdigest(),
                 request_digest=digest,
-                created_at=comment.get("created_at") if isinstance(comment.get("created_at"), str) else None,
+                target_sha=declared_target_sha,
+                created_at=(
+                    comment.get("created_at")
+                    if isinstance(comment.get("created_at"), str)
+                    else None
+                ),
             )
         )
-    valid.sort(key=lambda item: item.comment_id)
-    return Election(valid[0] if valid else None, tuple(valid))
+
+    valid_same_digest.sort(key=lambda item: item.comment_id)
+    incumbent = valid_same_digest[0] if valid_same_digest else None
+
+    losers: tuple[DuplicateFinalOutcome, ...] = ()
+    if incumbent is not None:
+        losers = tuple(
+            DuplicateFinalOutcome(
+                comment_id=item.comment_id,
+                classification="DUPLICATE_FINAL_OUTCOME",
+                incumbent_comment_id=incumbent.comment_id,
+                repository=request.repository,
+                job_id=request.job_id,
+                request_digest=item.request_digest,
+                target_sha=item.target_sha,
+                reason="larger_comment_id_than_deterministic_incumbent",
+            )
+            for item in valid_same_digest[1:]
+        )
+
+    return Election(incumbent, tuple(valid_same_digest), losers)
 
 
 def _check_recorded_incumbent(output_root: Path, request: Any, election: Election) -> None:
@@ -456,6 +659,9 @@ def _record_election_receipt(
             "authoritative_html_url": incumbent.html_url,
             "posted_comment_id": posted_id,
             "duplicate_comment_ids": election.duplicate_ids,
+            "duplicate_final_outcomes": [
+                item.as_dict() for item in election.losers
+            ],
             "request_comment_id": request.origin.request_comment_id,
             "request_sha256": request.digest_sha256,
         },

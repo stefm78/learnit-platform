@@ -104,3 +104,23 @@ Self-stop is optional and enabled only for the elected authoritative, stop-eligi
 ## Independent review boundary
 
 Under OPS-WP-005, CI/Ops may modify only `outcome.py`, `github.py`, `run.py`, `request.py`, this document, and `work-packages/OPS-WP-003.json`. Independent QA owns only the four paths authorized in issue #105, including the optional new `test_outcome_arbitration.py`. Every corrected exact SHA requires a complete independent QA rerun before Linus or governor review.
+
+## Fail-closed declared-result arbitration
+
+Arbitration follows four ordered phases:
+
+1. discover every declared final outcome in the exact origin conversation;
+2. index a cryptographically valid declaration by canonical repository and `job_id`, then compare its request digest before any filtering on operation, origin, source request comment, target or author-supplied identity;
+3. fully validate same-digest candidates against the complete incoming request;
+4. elect the smallest numeric `comment_id` among fully valid same-digest candidates.
+
+A comment without the exact outcome marker is ordinary conversation and is ignored. Once a
+comment contains the outcome marker, it is a declared final outcome and must pass strict author,
+header, JSON, identity, manifest, bundle and digest validation. A malformed, truncated,
+unauthorized, falsified, edited or inconsistent declaration fails closed and prevents execution
+or publication.
+
+Every valid non-incumbent candidate is represented locally by a structured
+`DUPLICATE_FINAL_OUTCOME` entry containing its `comment_id`, the incumbent comment ID,
+canonical repository, `job_id`, request digest, target SHA and deterministic non-authority
+reason. GitHub comments are never edited by this classification.
