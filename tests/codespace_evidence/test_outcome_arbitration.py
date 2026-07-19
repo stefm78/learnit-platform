@@ -27,11 +27,11 @@ class ArbitrationClient:
         return list(self.comments)
 
 
-def request_for(job_id: str = "CEB-QA-CURRENT") -> SimpleNamespace:
+def request_for(job_id: str = "CEB-QA-CURRENT", digest: str = DIGEST) -> SimpleNamespace:
     return SimpleNamespace(
         repository=REPOSITORY,
         job_id=job_id,
-        digest_sha256=DIGEST,
+        digest_sha256=digest,
         operation="pr-snapshot",
         origin=SimpleNamespace(type="issue", number=105, request_comment_id=5015000000),
         target_type="pull_request",
@@ -111,6 +111,11 @@ def complete_body(*, job_id: str, digest: str = DIGEST) -> str:
     )
 
 
+def sealed_body_for(request: SimpleNamespace) -> str:
+    """Build a fresh sealed capsule after all request identity fields are fixed."""
+    return complete_body(job_id=request.job_id, digest=request.digest_sha256)
+
+
 def comment(comment_id: int, body: str, *, author: str = "bridge-bot") -> dict[str, object]:
     return {
         "id": comment_id,
@@ -145,8 +150,9 @@ class OutcomeArbitrationTests(unittest.TestCase):
 
     def test_valid_final_outcome_for_another_job_does_not_poison_discovery(self) -> None:
         """A strictly valid other partition remains isolated from the current job."""
+        unrelated_request = request_for("CEB-QA-UNRELATED", "3" * 64)
         client = ArbitrationClient(
-            [comment(700, complete_body(job_id="CEB-QA-UNRELATED"))]
+            [comment(700, sealed_body_for(unrelated_request))]
         )
 
         election = _discover_candidates(client, request_for())
@@ -161,7 +167,8 @@ class OutcomeArbitrationTests(unittest.TestCase):
         message = self.assert_declared_final_rejected(
             replace_job_header(complete_body(job_id="CEB-QA-CURRENT"), None)
         )
-        self.assertIn("header_parsing", message)
+        self.assertIn("INVALID_JOB_ID", message)
+        self.assertIn("repository_job_discovery", message)
 
     def test_null_empty_wrong_type_and_syntax_invalid_job_ids_fail_closed(self) -> None:
         original = complete_body(job_id="CEB-QA-CURRENT")
@@ -208,8 +215,9 @@ class OutcomeArbitrationTests(unittest.TestCase):
         self.assertIn("INVALID_JOB_ID", message)
 
     def test_mixed_current_other_and_hostile_candidates_fail_closed(self) -> None:
+        unrelated_request = request_for("CEB-QA-UNRELATED", "3" * 64)
         comments = [
-            comment(720, complete_body(job_id="CEB-QA-UNRELATED")),
+            comment(720, sealed_body_for(unrelated_request)),
             comment(721, complete_body(job_id="CEB-QA-CURRENT")),
             comment(
                 722,
@@ -220,8 +228,21 @@ class OutcomeArbitrationTests(unittest.TestCase):
                 author="attacker",
             ),
         ]
-        with self.assertRaisesRegex(ArbitrationError, "INVALID_JOB_ID"):
+        with self.assertRaises(ArbitrationError) as raised:
             _discover_candidates(ArbitrationClient(comments), request_for())
+
+        message = str(raised.exception)
+        self.assertIn("INVALID_DECLARED_FINAL_OUTCOME", message)
+        self.assertTrue(
+            "INVALID_JOB_ID" in message
+            or "CRYPTOGRAPHIC_OR_SCHEMA_INCONSISTENCY" in message,
+            message,
+        )
+        self.assertTrue(
+            "repository_job_discovery" in message
+            or "cryptographic_validation" in message,
+            message,
+        )
 
     def test_removing_job_id_cannot_downgrade_a_digest_conflict_to_unrelated(self) -> None:
         conflicting = complete_body(job_id="CEB-QA-CURRENT", digest="3" * 64)
@@ -230,20 +251,31 @@ class OutcomeArbitrationTests(unittest.TestCase):
         self.assertIn("INVALID_DECLARED_FINAL_OUTCOME", message)
 
     def test_other_valid_jobs_do_not_change_current_job_election_or_idempotence(self) -> None:
-        current = comment(730, complete_body(job_id="CEB-QA-CURRENT"))
-        unrelated = comment(729, complete_body(job_id="CEB-QA-UNRELATED"))
+        current_request = request_for()
+        unrelated_request = request_for("CEB-QA-UNRELATED", "3" * 64)
+        current = comment(730, sealed_body_for(current_request))
+        unrelated = comment(729, sealed_body_for(unrelated_request))
+
         first = _discover_candidates(
             ArbitrationClient([unrelated, current]),
-            request_for(),
+            current_request,
         )
         second = _discover_candidates(
             ArbitrationClient([current, unrelated]),
-            request_for(),
+            current_request,
         )
+
+        self.assertIsNotNone(first.incumbent)
+        self.assertIsNotNone(second.incumbent)
         self.assertEqual(first.incumbent.comment_id, 730)
         self.assertEqual(second.incumbent.comment_id, 730)
+        self.assertEqual(first.incumbent.body_sha256, second.incumbent.body_sha256)
+        self.assertEqual([item.comment_id for item in first.valid], [730])
+        self.assertEqual([item.comment_id for item in second.valid], [730])
         self.assertEqual(first.duplicate_ids, [])
         self.assertEqual(second.duplicate_ids, [])
+        self.assertEqual(first.losers, ())
+        self.assertEqual(second.losers, ())
 
     def test_simultaneous_identity_mutation_does_not_bypass_job_validation(self) -> None:
         body = complete_body(job_id="CEB-QA-CURRENT")
