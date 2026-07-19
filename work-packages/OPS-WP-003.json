@@ -1,80 +1,63 @@
 {
   "schemaVersion": 1,
   "id": "OPS-WP-003",
-  "title": "Implement Gate 0 Codespace Evidence Bridge",
-  "status": "under-qa",
+  "successorAuthorization": "OPS-WP-005",
+  "title": "Implement Gate 0 Codespace Evidence Bridge with GitHub-only final-outcome arbitration",
+  "status": "implementation-complete-awaiting-independent-qa",
   "changeClass": "repository-operations-evidence-bridge",
   "riskClass": "moderate",
-  "purpose": "Implement the bounded Gate 0 bridge that collects exact-SHA GitHub and local execution evidence, seals it, publishes it only to its verified GitHub origin, and optionally stops the exact Codespace after verified durable publication.",
+  "purpose": "Collect exact-SHA read-only evidence, seal it, publish only to the verified source conversation, and deterministically elect one cryptographically valid authoritative final outcome without AWS, external services, claims, queues or workflow orchestration.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
     "baseCommit": "c0658b71e2d3a91e85d6629547cb34188b12f632",
+    "authorizedEntryHead": "7ef6514bf60a36dbd869cbd9ddce3826daa154a7",
     "candidateName": "gate-0-codespace-evidence-bridge",
-    "designIssue": 101,
-    "authorizationIssue": 102
+    "designIssue": 104,
+    "authorizationIssue": 105,
+    "existingPullRequest": 103,
+    "existingBranch": "ops/OPS-WP-003-codespace-evidence-bridge"
   },
   "scope": {
-    "allowedPaths": [
-      ".devcontainer/devcontainer.json",
-      ".gitignore",
-      "tools/codespace_evidence/__init__.py",
+    "ciOpsAllowedPaths": [
+      "tools/codespace_evidence/outcome.py",
+      "tools/codespace_evidence/github.py",
       "tools/codespace_evidence/run.py",
       "tools/codespace_evidence/request.py",
-      "tools/codespace_evidence/github.py",
-      "tools/codespace_evidence/execute.py",
-      "tools/codespace_evidence/operations.py",
-      "tools/codespace_evidence/outcome.py",
-      "tools/codespace_evidence/workspace.py",
-      "tools/codespace_evidence/stop.py",
       "docs/operations/CODESPACE_EVIDENCE_BRIDGE.md",
-      "work-packages/OPS-WP-003.json",
+      "work-packages/OPS-WP-003.json"
+    ],
+    "independentQaAllowedPaths": [
+      "tests/codespace_evidence/test_publication.py",
       "tests/codespace_evidence/test_request.py",
       "tests/codespace_evidence/test_sha_binding.py",
-      "tests/codespace_evidence/test_operations.py",
-      "tests/codespace_evidence/test_origin_binding.py",
-      "tests/codespace_evidence/test_publication.py",
-      "tests/codespace_evidence/test_redaction.py",
-      "tests/codespace_evidence/test_workspace_isolation.py",
-      "tests/codespace_evidence/test_stop.py"
+      "tests/codespace_evidence/test_outcome_arbitration.py"
     ],
     "forbiddenPaths": [
       ".github/**",
-      "apps/**",
-      "authoring/**",
-      "contracts/**",
-      "governance/**",
-      "kits/**",
-      "docs/product/**",
-      "docs/evidence/**"
+      ".devcontainer/**",
+      "tools/codespace_evidence/execute.py",
+      "tools/codespace_evidence/operations.py",
+      "tools/codespace_evidence/workspace.py",
+      "tools/codespace_evidence/stop.py",
+      "tools/codespace_evidence/__init__.py"
     ]
   },
   "ownership": {
     "ciOpsImplementation": [
-      ".devcontainer/devcontainer.json",
-      ".gitignore",
-      "tools/codespace_evidence/__init__.py",
+      "tools/codespace_evidence/outcome.py",
+      "tools/codespace_evidence/github.py",
       "tools/codespace_evidence/run.py",
       "tools/codespace_evidence/request.py",
-      "tools/codespace_evidence/github.py",
-      "tools/codespace_evidence/execute.py",
-      "tools/codespace_evidence/operations.py",
-      "tools/codespace_evidence/outcome.py",
-      "tools/codespace_evidence/workspace.py",
-      "tools/codespace_evidence/stop.py",
       "docs/operations/CODESPACE_EVIDENCE_BRIDGE.md",
       "work-packages/OPS-WP-003.json"
     ],
     "independentQa": [
+      "tests/codespace_evidence/test_publication.py",
       "tests/codespace_evidence/test_request.py",
       "tests/codespace_evidence/test_sha_binding.py",
-      "tests/codespace_evidence/test_operations.py",
-      "tests/codespace_evidence/test_origin_binding.py",
-      "tests/codespace_evidence/test_publication.py",
-      "tests/codespace_evidence/test_redaction.py",
-      "tests/codespace_evidence/test_workspace_isolation.py",
-      "tests/codespace_evidence/test_stop.py"
+      "tests/codespace_evidence/test_outcome_arbitration.py"
     ],
-    "rule": "The implementation actor writes only ciOpsImplementation paths. The independent QA actor writes only independentQa paths. Both disjoint surfaces are authorized in the same draft PR by issue #102."
+    "rule": "Issue #105 defines disjoint exact allowlists. CI/Ops must not modify QA paths and QA must not modify implementation, documentation or work-package paths."
   },
   "operations": [
     "pr-snapshot",
@@ -82,81 +65,94 @@
     "run-repository-validation",
     "run-test-profile"
   ],
+  "arbitration": {
+    "mode": "github-only-authoritative-final-outcome-election",
+    "candidateSource": "exhaustive exact-origin issue-comment pagination",
+    "candidateValidation": [
+      "authenticated publisher author binding",
+      "closed outcome header and JSON shape",
+      "complete logical job identity binding",
+      "canonical request digest validation",
+      "manifest reconstruction",
+      "manifest and bundle SHA-256 recomputation",
+      "embedded file digest recomputation",
+      "canonical diagnostic digest recomputation"
+    ],
+    "election": "smallest numeric comment_id among all cryptographically valid candidates after convergence",
+    "loserClassification": "DUPLICATE_FINAL_OUTCOME",
+    "differentDigestClassification": "CONFLICT_DIFFERENT_DIGEST",
+    "integrityLossClassification": "REGISTRY_INTEGRITY_LOST",
+    "executionGuarantee": "concurrent read-only executions may occur; global at-most-once execution is not claimed"
+  },
   "invariants": [
     "All subprocesses use explicit argv and shell=False.",
-    "Subprocess environments are allowlisted; ambient secrets are not inherited by fixed local validators or tests.",
-    "Repository-controlled fixed profiles and their descendants are filesystem-confined to the system runtime, fresh private state and the disposable exact-SHA workspace; failure to establish confinement fails closed.",
     "No request can provide a command, argv, shell fragment, script, plugin, path or environment override.",
-    "Every target SHA is a full lowercase 40-character SHA and is checked before execution, after execution, and again immediately before the publication POST.",
-    "Local operations execute only in a disposable clone detached at the exact requested SHA.",
-    "The primary checkout remains byte-for-byte equivalent in recorded HEAD, status, refs, index and remotes facts.",
-    "The request is bound by marker and canonical request digest to one exact GitHub issue or pull-request conversation comment.",
-    "Publication can target only that verified same-origin issue-conversation object.",
-    "Paginated GitHub inventories are exhausted and incomplete evidence is explicit.",
-    "The evidence bundle is sealed before publication and publication receipts remain separate.",
-    "The exact posted comment is read back by returned comment ID and verified byte-for-byte.",
-    "Restart recovery accepts an existing final sealed publication only after authenticated-publisher author binding, complete payload verification, manifest reconstruction, cryptographic digest recomputation and a new exact read-back.",
-    "Restart recovery accepts an existing final diagnostic only after authenticated-publisher author binding, canonical diagnostic digest recomputation and a new exact read-back.",
-    "One publication is limited to 58000 UTF-8 bytes and partial evidence cannot appear final.",
-    "Tokens, secrets, cookies, credentials and authorization material are excluded or redacted from local and durable evidence.",
-    "A job_id is atomically bound to one request digest; the same pair never allocates a second attempt or duplicate publication, a different digest cannot reuse the job_id, and there is no allow_new_attempt escape hatch.",
-    "GitHub request-binding and preflight failures allocate immutable local attempts classified FAIL_ENVIRONMENT.",
-    "Self-stop is possible only after verified durable publication and exact Codespace identity validation.",
-    "The engine runs outside Codespaces.",
-    "The ordinary runner cannot classify an outcome as GOVERNANCE_DECISION.",
-    "The requested repository exactly equals the canonical GitHub nameWithOwner of the current checkout before the request comment is read.",
-    "Every confined profile enters a private user, mount and PID namespace with a private procfs before Landlock is applied; host parent processes are not visible."
+    "The requested repository equals the canonical GitHub nameWithOwner of the current checkout before the request comment is read.",
+    "Every target SHA is a full lowercase 40-character SHA checked before execution, after execution and immediately before POST.",
+    "No unrelated GitHub call occurs between the final successful SHA resolution and POST.",
+    "Local operations execute only in a disposable clone detached at the requested SHA.",
+    "The primary checkout remains unchanged in recorded HEAD, status, refs, index and remotes facts.",
+    "Publication targets only the exact verified source issue or pull-request conversation.",
+    "Every arbitration read exhausts GitHub pagination and fails closed on read or shape errors.",
+    "No marker-only or text-fragment-only comment can become authoritative.",
+    "All valid candidates are cryptographically reconstructed and validated before election.",
+    "The smallest valid comment_id is the deterministic incumbent after convergence.",
+    "A same-digest replay reuses the incumbent without a second authoritative publication.",
+    "A different-digest reuse conflicts and cannot displace the incumbent.",
+    "A losing concurrent valid result is classified DUPLICATE_FINAL_OUTCOME.",
+    "A recorded incumbent that is edited, deleted or invalid produces REGISTRY_INTEGRITY_LOST without silent re-election.",
+    "After POST the exact origin is reread exhaustively and authority is recomputed before success.",
+    "Ambiguous POST outcomes are resolved only by exhaustive cryptographic reread.",
+    "AWS, external services, external databases, new repositories, branches, tags, claim refs, workflows, queues, workers, leases and schedulers are forbidden.",
+    "The only remote mutation is creation of the final outcome comment on the exact origin.",
+    "Self-stop is disabled for recovery-only, stale, diagnostic, conflicting or duplicate-loser outcomes.",
+    "The ordinary runner cannot classify an outcome as GOVERNANCE_DECISION."
   ],
   "requiredEvidence": [
-    "Exact baseline, merge base, branch and head are reported.",
-    "The complete diff and exact 21-file inventory remain inside the combined authorization allowlist with disjoint actor ownership.",
-    "Internal developer checks compile and exercise request validation, canonical checkout binding, strict job/digest idempotence, private-PID/proc filesystem confinement, operation allowlisting, authenticated publisher binding, immediate pre-POST SHA resolution, and final publication replay without modifying QA-owned tests.",
-    "Direct non-Codespace CLI startup is demonstrated.",
-    "The primary checkout immutability mechanism and disposable workspace architecture are documented.",
-    "Independent contradictory QA is performed on every corrected exact head before any architecture or governor acceptance."
+    "Exact old and new heads, baseline and merge base are reported.",
+    "The implementation delta remains inside the six CI/Ops paths authorized by issue #105.",
+    "No QA-owned path is modified by CI/Ops.",
+    "Developer checks cover syntax, candidate validation, same-digest and different-digest races, crash recovery, ambiguous POST, immediate SHA movement and deterministic comment-order convergence.",
+    "Independent contradictory QA runs on the exact delivered head before Linus or governor review."
   ],
   "adversarialTests": [
-    "Reject a missing request, unknown field, unknown operation and abbreviated SHA.",
-    "Reject origin marker, origin identity or request digest mismatch.",
-    "Classify stale targets before and after execution distinctly.",
-    "Exercise every paginated GitHub collector beyond one page.",
-    "Exercise publication below, at and above 58000 UTF-8 bytes.",
-    "Exercise crash recovery, byte-identical read-back and duplicate-final-publication prevention for sealed and diagnostic outcomes.",
-    "Inject secret-shaped and opaque values into argv, stdout, stderr, environment and GitHub responses.",
-    "Prove fixed profiles cannot read operator credential files through inherited configuration or an absolute filesystem path.",
-    "Reject a cryptographically self-consistent existing publication whose author differs from the authenticated publisher.",
-    "Run a mutating profile only inside the disposable workspace and prove the primary checkout unchanged.",
-    "Reject every GitHub mutation except a same-origin issue-conversation comment.",
-    "Verify self-stop is disabled for missing, wrong or ambiguous Codespace identity.",
-    "Reject a request whose repository differs from the canonical GitHub identity of the current checkout.",
-    "Reject allow_new_attempt and prove repeated use of one job_id and digest cannot allocate or publish again.",
-    "Prove the nominal Landlock path runs as PID 1 with a private procfs and cannot observe the host parent process.",
-    "Move the target after rendering but before POST and prove the bridge records a local stale failure without publishing."
+    "Simultaneous same-job same-digest publication races elect one smallest valid comment_id.",
+    "Simultaneous same-job different-digest publication races produce a deterministic conflict for the loser.",
+    "Two isolated output roots or Codespaces converge on the same incumbent.",
+    "Crash before POST permits safe restart without treating a local file as a global claim.",
+    "Crash after POST and ambiguous POST timeout recover through authoritative reread.",
+    "Same-digest replay from a fresh output root does not execute or publish again after an incumbent exists.",
+    "Stale SHA immediately before POST prevents publication.",
+    "Incomplete pagination and transient read failure fail closed.",
+    "Edited, deleted, malformed, truncated, unknown-shape and hash-mismatched candidates never gain authority.",
+    "Retrieval order does not change the elected incumbent.",
+    "No branch, tag, ref, Actions workflow, queue, external service, secret or second repository is used."
   ],
   "nonGoals": [
-    "Gate 1 sequential queueing.",
-    "Gate 2 composable outcomes or fan-in.",
-    "Gate 3 repository write jobs.",
-    "Gate 4 parallel execution.",
+    "Global at-most-once execution.",
+    "Linearizable pre-execution claiming.",
+    "Gate 1 sequential queueing or later-stage orchestration.",
     "Generic shell execution, branch creation, commit, push, merge, release or workflow mutation.",
     "Product, runtime, authoring, contract, kit, learner-data or governance-state changes.",
-    "Developer authorship or weakening of independent QA tests, self-certification or governor acceptance."
+    "CI/Ops authorship of independent QA tests, self-certification or governor acceptance."
   ],
   "independentReview": [
-    "Independent contradictory QA owns only the eight tests/codespace_evidence paths authorized by issue #102.",
-    "Every implementation correction remains inside the thirteen CI/Ops implementation paths and requires QA rerun on the corrected exact head.",
-    "An independent final architecture review and governor decision remain mandatory before merge."
+    "Independent contradictory QA owns only the four paths authorized by issue #105.",
+    "Every correction remains on the existing branch and draft PR #103.",
+    "Linus and governor review remain mandatory on one exact QA-covered head before readiness or merge."
   ],
   "execution": {
     "coordinationIssue": 100,
-    "designIssue": 101,
-    "authorizationIssue": 102,
-    "maximumChangedFiles": 21,
-    "ciOpsOwnedFiles": 13,
-    "qaOwnedFiles": 8,
+    "designIssue": 104,
+    "authorizationIssue": 105,
+    "pullRequest": 103,
+    "ciOpsOwnedFiles": 6,
+    "qaOwnedFiles": 4,
     "requiresIndependentQaBeforeMerge": true,
+    "requiresLinusReviewBeforeMerge": true,
     "requiresGovernorReviewBeforeMerge": true,
-    "mergeStatus": "held"
+    "mergeStatus": "held",
+    "readyForReview": false
   },
-  "rollback": "Close the draft PR without merge or revert only the OPS-WP-003 implementation and QA commits. Remove the minimal devcontainer hook, tools/codespace_evidence, documentation, QA tests and work-package record, and revert the narrow .codespace-evidence ignore entry. No product state or data migration exists."
+  "rollback": "Close draft PR #103 without merge or revert only the bounded OPS-WP-005 commits on the existing branch. No external resource, product state, data migration, branch, tag, workflow or queue exists to remove."
 }
