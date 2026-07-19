@@ -434,16 +434,8 @@ def _discover_candidates(gh: GhClient, request: Any) -> Election:
         if OUTCOME_MARKER not in body:
             continue
 
-        # From this point onward the comment declared itself final. It may no
-        # longer disappear through permissive filtering.
-        if _comment_login(comment) != trusted_login:
-            raise _declared_final_failure(
-                comment_id=comment_id,
-                category="UNAUTHORIZED_AUTHOR",
-                reason="declared final outcome author differs from authenticated publisher",
-                stage="author_validation",
-            )
-
+        # Parse strict headers first so discovery can be partitioned by the
+        # canonical repository and job_id before validating the current job.
         headers = _publication_headers(body)
         if headers is None:
             raise _declared_final_failure(
@@ -451,6 +443,32 @@ def _discover_candidates(gh: GhClient, request: Any) -> Election:
                 category="MALFORMED_OR_TRUNCATED_SCHEMA",
                 reason="marker exists but the closed unique header shape is invalid",
                 stage="header_parsing",
+            )
+
+        declared_repository = headers.get("repository")
+        declared_job_id = headers.get("job_id")
+
+        if declared_repository != request.repository:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="CANONICAL_REPOSITORY_MISMATCH",
+                reason="declared final outcome names another canonical repository",
+                stage="repository_job_discovery",
+            )
+
+        # Another job in the same canonical repository is outside this
+        # arbitration partition and must not poison the current job.
+        if declared_job_id != request.job_id:
+            continue
+
+        # For the current repository+job_id partition, all remaining checks
+        # stay fail-closed.
+        if _comment_login(comment) != trusted_login:
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="UNAUTHORIZED_AUTHOR",
+                reason="declared final outcome author differs from authenticated publisher",
+                stage="author_validation",
             )
 
         payload = _publication_payload(body)
@@ -462,27 +480,9 @@ def _discover_candidates(gh: GhClient, request: Any) -> Election:
                 stage="payload_parsing",
             )
 
-        declared_repository = headers.get("repository")
-        declared_job_id = headers.get("job_id")
         digest = headers.get("request_sha256")
         declared_target_sha = headers.get("target_sha")
         declared_origin = _parse_declared_origin(headers.get("origin"))
-
-        if declared_repository != request.repository:
-            raise _declared_final_failure(
-                comment_id=comment_id,
-                category="CANONICAL_REPOSITORY_MISMATCH",
-                reason="declared final outcome names another canonical repository",
-                stage="repository_job_discovery",
-            )
-
-        if declared_job_id != request.job_id:
-            raise _declared_final_failure(
-                comment_id=comment_id,
-                category="JOB_ID_MISMATCH_OR_AMBIGUITY",
-                reason="declared final outcome names another or missing job_id",
-                stage="repository_job_discovery",
-            )
 
         if not _valid_digest(digest):
             raise _declared_final_failure(
