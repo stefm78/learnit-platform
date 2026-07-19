@@ -50,7 +50,7 @@ from tools.codespace_evidence.outcome import (
     write_publication_receipt,
     write_stop_receipt,
 )
-from tools.codespace_evidence.request import LaunchDescriptor, load_and_verify_request
+from tools.codespace_evidence.request import JOB_ID_RE, LaunchDescriptor, load_and_verify_request
 from tools.codespace_evidence.stop import stop_current_codespace
 from tools.codespace_evidence.workspace import (
     compare_snapshots,
@@ -456,8 +456,25 @@ def _discover_candidates(gh: GhClient, request: Any) -> Election:
                 stage="repository_job_discovery",
             )
 
-        # Another job in the same canonical repository is outside this
-        # arbitration partition and must not poison the current job.
+        # Only a strictly valid job_id may identify another arbitration
+        # partition. Missing, empty, mistyped, malformed, ambiguous or
+        # falsified values remain declared-final candidates and fail closed
+        # before they can bypass author, payload and integrity validation.
+        if not isinstance(declared_job_id, str) or not JOB_ID_RE.fullmatch(
+            declared_job_id
+        ):
+            raise _declared_final_failure(
+                comment_id=comment_id,
+                category="INVALID_JOB_ID",
+                reason=(
+                    "job_id is absent, empty, mistyped or does not satisfy "
+                    "the closed job identifier grammar"
+                ),
+                stage="repository_job_discovery",
+            )
+
+        # Another strictly identified job in the same canonical repository is
+        # outside this arbitration partition and must not poison the current job.
         if declared_job_id != request.job_id:
             continue
 
