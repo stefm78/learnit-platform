@@ -22,6 +22,7 @@ SHA = "a" * 40
 
 
 def valid_request(operation: str = "pr-snapshot") -> dict[str, object]:
+    """Build the smallest request valid for the selected fixed operation."""
     value: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,
         "job_id": "CEB-QA-0001",
@@ -43,7 +44,6 @@ def valid_request(operation: str = "pr-snapshot") -> dict[str, object]:
             "include_logs": False,
             "include_artifacts": False,
         },
-        "allow_new_attempt": False,
     }
     if operation in {"run-repository-validation", "run-test-profile"}:
         value["target_type"] = "commit"
@@ -70,6 +70,12 @@ class RequestContractTests(unittest.TestCase):
     def test_unknown_top_level_field_fails_closed(self) -> None:
         value = valid_request()
         value["unexpected"] = True
+        with self.assertRaisesRegex(RequestError, "unknown fields"):
+            self.parse(value)
+
+    def test_allow_new_attempt_is_strictly_rejected(self) -> None:
+        value = valid_request()
+        value["allow_new_attempt"] = False
         with self.assertRaisesRegex(RequestError, "unknown fields"):
             self.parse(value)
 
