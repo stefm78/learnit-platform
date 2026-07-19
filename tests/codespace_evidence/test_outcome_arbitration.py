@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import unittest
 
 from tools.codespace_evidence import OUTCOME_MARKER, STATEMENT
-from tools.codespace_evidence.run import _discover_candidates
+from tools.codespace_evidence.run import ArbitrationError, _discover_candidates
 
 
 REPOSITORY = "stefm78/learnit-platform"
@@ -111,18 +111,42 @@ def complete_body(*, job_id: str, digest: str = DIGEST) -> str:
     )
 
 
+def comment(comment_id: int, body: str, *, author: str = "bridge-bot") -> dict[str, object]:
+    return {
+        "id": comment_id,
+        "body": body,
+        "user": {"login": author},
+        "html_url": f"https://example.invalid/comments/{comment_id}",
+    }
+
+
+def replace_job_header(body: str, replacement: str | None) -> str:
+    lines = body.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if line.startswith("job_id:"):
+            if replacement is None:
+                del lines[index]
+            else:
+                lines[index] = f"job_id: {replacement}\n"
+            return "".join(lines)
+    raise AssertionError("fixture lacks job_id header")
+
+
 class OutcomeArbitrationTests(unittest.TestCase):
+    def assert_declared_final_rejected(self, body: str, *, author: str = "bridge-bot") -> str:
+        with self.assertRaises(ArbitrationError) as raised:
+            _discover_candidates(
+                ArbitrationClient([comment(701, body, author=author)]),
+                request_for(),
+            )
+        message = str(raised.exception)
+        self.assertIn("INVALID_DECLARED_FINAL_OUTCOME", message)
+        return message
+
     def test_valid_final_outcome_for_another_job_does_not_poison_discovery(self) -> None:
-        """Discovery is keyed by canonical repository plus job_id, not by origin alone."""
+        """A strictly valid other partition remains isolated from the current job."""
         client = ArbitrationClient(
-            [
-                {
-                    "id": 700,
-                    "body": complete_body(job_id="CEB-QA-UNRELATED"),
-                    "user": {"login": "bridge-bot"},
-                    "html_url": "https://example.invalid/comments/700",
-                }
-            ]
+            [comment(700, complete_body(job_id="CEB-QA-UNRELATED"))]
         )
 
         election = _discover_candidates(client, request_for())
@@ -132,6 +156,103 @@ class OutcomeArbitrationTests(unittest.TestCase):
         self.assertEqual(election.losers, ())
         self.assertEqual(client.seen_repository, REPOSITORY)
         self.assertEqual(client.seen_origin_number, 105)
+
+    def test_missing_job_id_is_not_silently_treated_as_another_job(self) -> None:
+        message = self.assert_declared_final_rejected(
+            replace_job_header(complete_body(job_id="CEB-QA-CURRENT"), None)
+        )
+        self.assertIn("header_parsing", message)
+
+    def test_null_empty_wrong_type_and_syntax_invalid_job_ids_fail_closed(self) -> None:
+        original = complete_body(job_id="CEB-QA-CURRENT")
+        for invalid in ("", "null", "7", "CEB QA CURRENT", "../CEB-QA-CURRENT"):
+            with self.subTest(job_id=invalid):
+                message = self.assert_declared_final_rejected(
+                    replace_job_header(original, invalid)
+                )
+                self.assertIn("INVALID_JOB_ID", message)
+                self.assertIn("repository_job_discovery", message)
+
+    def test_near_forged_job_id_cannot_escape_as_another_partition(self) -> None:
+        message = self.assert_declared_final_rejected(
+            replace_job_header(
+                complete_body(job_id="CEB-QA-CURRENT"),
+                "CEB-QA-CURRENT!",
+            )
+        )
+        self.assertIn("INVALID_JOB_ID", message)
+
+    def test_wrong_author_plus_invalid_job_id_is_rejected_at_partition_validation(self) -> None:
+        body = replace_job_header(complete_body(job_id="CEB-QA-CURRENT"), "null")
+        message = self.assert_declared_final_rejected(body, author="attacker")
+        self.assertIn("INVALID_JOB_ID", message)
+
+    def test_altered_payload_plus_invalid_job_id_cannot_bypass_validation(self) -> None:
+        body = complete_body(job_id="CEB-QA-CURRENT").replace(
+            "independent arbitration fixture",
+            "hostile altered payload",
+            1,
+        )
+        body = replace_job_header(body, "null")
+        message = self.assert_declared_final_rejected(body)
+        self.assertIn("INVALID_JOB_ID", message)
+
+    def test_bad_digest_plus_invalid_job_id_cannot_bypass_validation(self) -> None:
+        body = complete_body(job_id="CEB-QA-CURRENT").replace(
+            f"request_sha256: {DIGEST}",
+            f"request_sha256: {'f' * 64}",
+            1,
+        )
+        body = replace_job_header(body, "null")
+        message = self.assert_declared_final_rejected(body)
+        self.assertIn("INVALID_JOB_ID", message)
+
+    def test_mixed_current_other_and_hostile_candidates_fail_closed(self) -> None:
+        comments = [
+            comment(720, complete_body(job_id="CEB-QA-UNRELATED")),
+            comment(721, complete_body(job_id="CEB-QA-CURRENT")),
+            comment(
+                722,
+                replace_job_header(
+                    complete_body(job_id="CEB-QA-CURRENT"),
+                    "CEB-QA-CURRENT!",
+                ),
+                author="attacker",
+            ),
+        ]
+        with self.assertRaisesRegex(ArbitrationError, "INVALID_JOB_ID"):
+            _discover_candidates(ArbitrationClient(comments), request_for())
+
+    def test_removing_job_id_cannot_downgrade_a_digest_conflict_to_unrelated(self) -> None:
+        conflicting = complete_body(job_id="CEB-QA-CURRENT", digest="3" * 64)
+        stripped = replace_job_header(conflicting, None)
+        message = self.assert_declared_final_rejected(stripped)
+        self.assertIn("INVALID_DECLARED_FINAL_OUTCOME", message)
+
+    def test_other_valid_jobs_do_not_change_current_job_election_or_idempotence(self) -> None:
+        current = comment(730, complete_body(job_id="CEB-QA-CURRENT"))
+        unrelated = comment(729, complete_body(job_id="CEB-QA-UNRELATED"))
+        first = _discover_candidates(
+            ArbitrationClient([unrelated, current]),
+            request_for(),
+        )
+        second = _discover_candidates(
+            ArbitrationClient([current, unrelated]),
+            request_for(),
+        )
+        self.assertEqual(first.incumbent.comment_id, 730)
+        self.assertEqual(second.incumbent.comment_id, 730)
+        self.assertEqual(first.duplicate_ids, [])
+        self.assertEqual(second.duplicate_ids, [])
+
+    def test_simultaneous_identity_mutation_does_not_bypass_job_validation(self) -> None:
+        body = complete_body(job_id="CEB-QA-CURRENT")
+        body = replace_job_header(body, "CEB-QA-CURRENT!")
+        body = body.replace(f"repository: {REPOSITORY}", "repository: STEFM78/learnit-platform", 1)
+        body = body.replace("origin: issue#105", "origin: issue#104", 1)
+        body = body.replace(f"target_sha: {TARGET_SHA}", f"target_sha: {'4' * 40}", 1)
+        message = self.assert_declared_final_rejected(body, author="attacker")
+        self.assertIn("INVALID_DECLARED_FINAL_OUTCOME", message)
 
 
 if __name__ == "__main__":
