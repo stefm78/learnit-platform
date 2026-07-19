@@ -24,6 +24,7 @@ ISSUE_URL = f"https://api.github.com/repos/{REPOSITORY}/issues/{ORIGIN_NUMBER}"
 
 
 def request_value() -> dict[str, object]:
+    """Build a minimal valid origin-bound request before injecting one anomaly."""
     return {
         "schema_version": SCHEMA_VERSION,
         "job_id": "CEB-QA-ORIGIN-1",
@@ -45,7 +46,6 @@ def request_value() -> dict[str, object]:
             "include_logs": True,
             "include_artifacts": True,
         },
-        "allow_new_attempt": False,
     }
 
 
