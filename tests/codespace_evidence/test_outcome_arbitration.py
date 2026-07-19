@@ -4,10 +4,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
 
 from tools.codespace_evidence import OUTCOME_MARKER, STATEMENT
+from tools.codespace_evidence.execute import CommandRunner
+from tools.codespace_evidence.outcome import (
+    allocate_attempt,
+    build_facts,
+    render_capsule,
+    seal_bundle,
+    write_bundle_files,
+)
 from tools.codespace_evidence.run import ArbitrationError, _discover_candidates
 
 
@@ -112,8 +122,48 @@ def complete_body(*, job_id: str, digest: str = DIGEST) -> str:
 
 
 def sealed_body_for(request: SimpleNamespace) -> str:
-    """Build a fresh sealed capsule after all request identity fields are fixed."""
-    return complete_body(job_id=request.job_id, digest=request.digest_sha256)
+    """Build and render a fresh immutable capsule with production sealing helpers."""
+    runner = CommandRunner()
+    resolved_target = {
+        "type": request.target_type,
+        "number": request.target_number,
+        "sha": request.target_sha,
+    }
+    facts = build_facts(
+        request=request,
+        attempt=1,
+        status="COMPLETED",
+        classification="EVIDENCE_CANDIDATE",
+        started_at="2026-07-19T00:00:00Z",
+        completed_at="2026-07-19T00:00:01Z",
+        target_before=resolved_target,
+        target_after=resolved_target,
+        operation_facts={"fixture": "independent arbitration"},
+        missing_proof=[],
+        checkout_proof={"unchanged": True},
+        preflight={"state": "PASS"},
+        commands=[],
+    )
+    summary = "independent arbitration fixture"
+    with TemporaryDirectory() as directory:
+        attempt = allocate_attempt(Path(directory), request.job_id)
+        write_bundle_files(
+            attempt,
+            facts=facts,
+            summary=summary,
+            runner=runner,
+            environment={"fixture": True},
+            artifacts={},
+        )
+        sealed = seal_bundle(attempt)
+        return render_capsule(
+            facts=facts,
+            summary=summary,
+            manifest_sha256=sealed.manifest_sha256,
+            bundle_sha256=sealed.bundle_sha256,
+            artifact_digests=sealed.artifact_digests,
+            diff_content=None,
+        )
 
 
 def comment(comment_id: int, body: str, *, author: str = "bridge-bot") -> dict[str, object]:
