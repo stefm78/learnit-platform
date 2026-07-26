@@ -50,7 +50,7 @@ CI_ALLOWLIST = {
     SELF,
 }
 MAINTENANCE_STATUS_PROFILES = [
-    {path: ("A" if path == "work-packages/CI-WP-002.json" else "M") for path in CI_ALLOWLIST},
+    {path: ("A" if path in {"work-packages/CI-WP-002.json", "apps/learnit-next/tests/build_determinism.py"} else "M") for path in CI_ALLOWLIST},
 ]
 ROLE = {
     "runtime": {
@@ -215,7 +215,7 @@ def maintenance_topology(base_ref: str):
         statuses[parts[1]] = parts[0]
     if statuses not in MAINTENANCE_STATUS_PROFILES:
         fail(
-            f"maintenance paths must be four modifications plus the exact authority-file addition; statuses differ: expected={MAINTENANCE_STATUS_PROFILES} actual={statuses}",
+            f"maintenance paths must be three modifications plus the two exact additions; statuses differ: expected={MAINTENANCE_STATUS_PROFILES} actual={statuses}",
             "provenance", "MAINTENANCE_SCOPE_FAILURE",
         )
     return {
