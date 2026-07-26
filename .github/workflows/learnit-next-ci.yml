@@ -67,7 +67,7 @@ jobs:
           set -euo pipefail
           case "${GITHUB_EVENT_NAME}" in
             pull_request)
-              if [[ "${PR_NUMBER}" == "114" && "${PR_HEAD_REF}" == "ci/CI-WP-002-current-main" ]]; then
+              if [[ "${PR_HEAD_REF}" == ci/CI-WP-002-* ]]; then
                 mode="maintenance-pr"
               else
                 mode="integration-head"
