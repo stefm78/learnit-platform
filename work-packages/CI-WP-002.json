@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "id": "CI-WP-002",
-  "title": "Rebase the validated CI maintenance correction on current main",
+  "title": "Rebase the validated CI maintenance correction and normalize inherited package metadata",
   "status": "in-progress",
   "changeClass": "ci-harness-correction",
   "riskClass": "moderate",
-  "purpose": "Carry the already exercised explicit CI topology modes from PR #92 onto the current main baseline with one bounded maintenance PR and no product change.",
+  "purpose": "Carry the already exercised explicit CI topology modes from PR #92 onto the current main baseline and normalize the inherited OPS-WP-003 metadata required by repository validation, with one bounded maintenance PR and no product change.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
     "baseCommit": "2d3d68f822c863a4e52f11275bcce355440072b0",
@@ -17,6 +17,7 @@
   "scope": {
     "allowedPaths": [
       "work-packages/CI-WP-002.json",
+      "work-packages/OPS-WP-003.json",
       ".github/workflows/learnit-next-ci.yml",
       "apps/learnit-next/dev/run_checks.py",
       "apps/learnit-next/tests/build_determinism.py",
@@ -37,8 +38,9 @@
     ]
   },
   "invariants": [
-    "Only the five exact allowed paths may change.",
+    "Only the six exact allowed paths may change.",
     "Exactly two new paths are authorized: the work-package file and build_determinism.py; the other three CI paths must already exist.",
+    "The OPS-WP-003 delta is limited to status accepted and scope.allowedPaths as the exact union of its preserved CI/Ops and independent-QA path lists.",
     "integration-head, post-merge and maintenance-pr remain explicit and fail closed.",
     "The reviewed base is exactly the current main baseline and descends from the released baseline.",
     "Topology, provenance, build and product failures remain distinct machine-readable classifications.",
@@ -48,11 +50,12 @@
   ],
   "requiredEvidence": [
     "Repository governance passes on the exact head.",
+    "OPS-WP-003 has status accepted and scope.allowedPaths equals the exact union of its preserved CI/Ops and independent-QA path lists.",
     "PR scope / gate passes on the exact head.",
     "Learn-it Next CI passes on the exact head.",
     "At least 45 tests execute with zero skip, failure or error.",
     "Two clean builds are byte-identical and preserve the released artifact identity.",
-    "One contradictory exact-head review confirms the five-path scope and no product delta."
+    "One contradictory exact-head review confirms the six-path scope and no product delta."
   ],
   "nonGoals": [
     "New CI architecture or design.",
@@ -68,7 +71,7 @@
   "execution": {
     "issue": 113,
     "sourcePullRequest": 92,
-    "maximumChangedFiles": 5,
+    "maximumChangedFiles": 6,
     "newFilesAuthorized": [
       "work-packages/CI-WP-002.json",
       "apps/learnit-next/tests/build_determinism.py"
@@ -77,10 +80,11 @@
     "requiresGovernorLinusReviewBeforeMerge": true,
     "mergeStatus": "held"
   },
-  "rollback": "Close the draft PR without merge, or revert only the bounded CI correction commit after merge.",
+  "rollback": "Close the draft PR without merge, or revert only the bounded CI correction and OPS-WP-003 metadata normalization after merge.",
   "adversarialTests": [
     "Unknown or missing verification mode fails closed.",
-    "Any sixth changed path fails maintenance scope validation.",
+    "Any seventh changed path fails maintenance scope validation.",
+    "Any OPS-WP-003 change beyond status and scope.allowedPaths fails exact-head review.",
     "Any added path other than the two exact authorized additions fails closed.",
     "A maintenance base not descending from the released baseline fails closed.",
     "A branch not synchronized with its reviewed base fails closed.",
