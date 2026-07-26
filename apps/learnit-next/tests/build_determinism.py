@@ -178,7 +178,7 @@ class TopologyModeRegressionTests(unittest.TestCase):
   with self.assertRaisesRegex(self.gate.GateError,'requires --accepted-integration-head') as caught:self.gate.post_merge_topology('')
   self.assertEqual('CONFIGURATION_FAILURE',caught.exception.classification)
  def maintenance_maps(self,changed=None,statuses=None,base=None):
-  base=base or 'a'*40;changed=sorted(self.gate.CI_ALLOWLIST) if changed is None else changed;statuses=[f'{"A" if x=="work-packages/CI-WP-002.json" else "M"}\t{x}' for x in changed] if statuses is None else statuses
+  base=base or 'a'*40;changed=sorted(self.gate.CI_ALLOWLIST) if changed is None else changed;statuses=[f'{"A" if x in {"work-packages/CI-WP-002.json","apps/learnit-next/tests/build_determinism.py"} else "M"}\t{x}' for x in changed] if statuses is None else statuses
   return base,{('rev-parse','origin/main'):base,('merge-base','origin/main','HEAD'):base,('diff','--name-only','origin/main...HEAD'):'\n'.join(changed),('diff','--name-status','origin/main...HEAD'):'\n'.join(statuses)}
  def test_valid_maintenance_pr_requires_exact_modified_allowlist(self):
   base,m=self.maintenance_maps()
@@ -198,7 +198,7 @@ class TopologyModeRegressionTests(unittest.TestCase):
   self.assertEqual('MAINTENANCE_SCOPE_FAILURE',caught.exception.classification)
  def test_maintenance_new_file_fails_closed(self):
   base,m=self.maintenance_maps(statuses=[('A' if i==0 else 'M')+'\t'+p for i,p in enumerate(sorted(self.gate.CI_ALLOWLIST))])
-  with self.patch(m,{(self.gate.RELEASE_MERGE,base):True,(base,'HEAD'):True}),self.assertRaisesRegex(self.gate.GateError,'authority-file addition') as caught:self.gate.maintenance_topology('origin/main')
+  with self.patch(m,{(self.gate.RELEASE_MERGE,base):True,(base,'HEAD'):True}),self.assertRaisesRegex(self.gate.GateError,'two exact additions') as caught:self.gate.maintenance_topology('origin/main')
   self.assertEqual('MAINTENANCE_SCOPE_FAILURE',caught.exception.classification)
  def test_topology_and_product_failures_have_distinct_classifications(self):
   topology=self.gate.GateError('bad','topology','TOPOLOGY_FAILURE');product=self.gate.GateError('bad','product','PRODUCT_TEST_FAILURE');self.assertNotEqual(topology.classification,product.classification);self.assertNotEqual(topology.stage,product.stage)
