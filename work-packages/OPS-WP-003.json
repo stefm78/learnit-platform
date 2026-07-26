@@ -3,7 +3,7 @@
   "id": "OPS-WP-003",
   "successorAuthorization": "OPS-WP-005",
   "title": "Implement Gate 0 Codespace Evidence Bridge with GitHub-only final-outcome arbitration",
-  "status": "implementation-complete-awaiting-independent-qa",
+  "status": "accepted",
   "changeClass": "repository-operations-evidence-bridge",
   "riskClass": "moderate",
   "purpose": "Collect exact-SHA read-only evidence, seal it, publish only to the verified source conversation, and deterministically elect one cryptographically valid authoritative final outcome without AWS, external services, claims, queues or workflow orchestration.",
@@ -18,6 +18,18 @@
     "existingBranch": "ops/OPS-WP-003-codespace-evidence-bridge"
   },
   "scope": {
+    "allowedPaths": [
+      "tools/codespace_evidence/outcome.py",
+      "tools/codespace_evidence/github.py",
+      "tools/codespace_evidence/run.py",
+      "tools/codespace_evidence/request.py",
+      "docs/operations/CODESPACE_EVIDENCE_BRIDGE.md",
+      "work-packages/OPS-WP-003.json",
+      "tests/codespace_evidence/test_publication.py",
+      "tests/codespace_evidence/test_request.py",
+      "tests/codespace_evidence/test_sha_binding.py",
+      "tests/codespace_evidence/test_outcome_arbitration.py"
+    ],
     "ciOpsAllowedPaths": [
       "tools/codespace_evidence/outcome.py",
       "tools/codespace_evidence/github.py",

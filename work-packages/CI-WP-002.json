@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-002",
+  "title": "Rebase the validated CI maintenance correction and normalize inherited package metadata",
+  "status": "in-progress",
+  "changeClass": "ci-harness-correction",
+  "riskClass": "moderate",
+  "purpose": "Carry the already exercised explicit CI topology modes from PR #92 onto the current main baseline and normalize the inherited OPS-WP-003 metadata required by repository validation, with one bounded maintenance PR and no product change.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "2d3d68f822c863a4e52f11275bcce355440072b0",
+    "sourcePullRequest": 92,
+    "authorityIssue": 113,
+    "candidateName": "current-main-ci-maintenance-correction",
+    "artifactSha256": "53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/CI-WP-002.json",
+      "work-packages/OPS-WP-003.json",
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/tests/build_determinism.py",
+      "apps/learnit-next/source_manifest.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/dev/release.py",
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "docs/product/**",
+      "docs/evidence/**",
+      "kits/**"
+    ]
+  },
+  "invariants": [
+    "Only the six exact allowed paths may change.",
+    "Exactly two new paths are authorized: the CI work-package file and build_determinism.py; the other three CI paths and the inherited package metadata file must already exist.",
+    "The OPS-WP-003 delta is limited to status accepted and scope.allowedPaths as the exact union of its preserved CI/Ops and independent-QA path lists.",
+    "integration-head, post-merge and maintenance-pr remain explicit and fail closed.",
+    "The reviewed base is exactly the current main baseline and descends from the released baseline.",
+    "Topology, provenance, build and product failures remain distinct machine-readable classifications.",
+    "The released artifact remains learnit-next.html, 84060 bytes, SHA-256 53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4.",
+    "No product behavior, runtime source, contract, authoring, kit, storage, governance-state or RC718 content changes.",
+    "Merge remains held until all exact-head checks, one contradictory review and the final Governor/Linus review pass."
+  ],
+  "requiredEvidence": [
+    "Repository governance passes on the exact head.",
+    "OPS-WP-003 has status accepted and scope.allowedPaths equals the exact union of its preserved CI/Ops and independent-QA path lists.",
+    "PR scope / gate passes on the exact head.",
+    "Learn-it Next CI passes on the exact head.",
+    "At least 45 tests execute with zero skip, failure or error.",
+    "Two clean builds are byte-identical and preserve the released artifact identity.",
+    "One contradictory exact-head review confirms the six-path scope and no product delta."
+  ],
+  "nonGoals": [
+    "New CI architecture or design.",
+    "Product feature implementation.",
+    "Changing contract, storage, kits, authoring or governance state.",
+    "Creating a review quorum, ZIP or validation-of-validation."
+  ],
+  "independentReview": [
+    "One contradictory review covers the exact delivered head.",
+    "The Governor and Linus perform one final proportionality review before merge.",
+    "No quorum is required."
+  ],
+  "execution": {
+    "issue": 113,
+    "sourcePullRequest": 92,
+    "maximumChangedFiles": 6,
+    "newFilesAuthorized": [
+      "work-packages/CI-WP-002.json",
+      "apps/learnit-next/tests/build_determinism.py"
+    ],
+    "requiresContradictoryReviewBeforeMerge": true,
+    "requiresGovernorLinusReviewBeforeMerge": true,
+    "mergeStatus": "held"
+  },
+  "rollback": "Close the draft PR without merge, or revert only the bounded CI correction and OPS-WP-003 metadata normalization after merge.",
+  "adversarialTests": [
+    "Unknown or missing verification mode fails closed.",
+    "Any seventh changed path fails maintenance scope validation.",
+    "Any OPS-WP-003 change beyond status and scope.allowedPaths fails exact-head review.",
+    "Any added path other than the two exact authorized additions fails closed.",
+    "A maintenance base not descending from the released baseline fails closed.",
+    "A branch not synchronized with its reviewed base fails closed.",
+    "Executable-tree divergence remains distinct from topology and product failures.",
+    "Test counts are derived from execution and require zero skip, failure or error."
+  ]
+}
