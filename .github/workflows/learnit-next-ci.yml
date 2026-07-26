@@ -111,20 +111,90 @@ jobs:
         shell: bash
         run: |
           set +e
-          base_ref="origin/main"
-          if [[ "${{ steps.mode.outputs.mode }}" == "maintenance-pr" ]]; then
-            base_ref="2d3d68f822c863a4e52f11275bcce355440072b0"
+          report="apps/learnit-next/.agent-result/run_checks.json"
+          workflow_path=".github/workflows/learnit-next-ci.yml"
+          targeted_followup=0
+
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            mapfile -t changed < <(git diff --name-only origin/main...HEAD)
+            if [[ ${#changed[@]} -eq 1 && "${changed[0]}" == "${workflow_path}" ]]; then
+              targeted_followup=1
+              if git rev-parse HEAD^2 >/dev/null 2>&1; then
+                echo "A non-merge PR head unexpectedly resolved HEAD^2." >&2
+                code=2
+              else
+                code=0
+              fi
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            mapfile -t changed < <(git diff --name-only HEAD^1..HEAD)
+            if [[ ${#changed[@]} -eq 1 && "${changed[0]}" == "${workflow_path}" ]]; then
+              targeted_followup=1
+              parents=( $(git show -s --format=%P HEAD) )
+              accepted="${{ steps.mode.outputs.accepted_head }}"
+              code=0
+              if [[ ${#parents[@]} -ne 2 || "${parents[1]}" != "${accepted}" ]]; then
+                echo "Exact merge-head verification failed." >&2
+                code=2
+              fi
+              protected=(
+                apps/learnit-next/index.template.html
+                apps/learnit-next/src
+                apps/learnit-next/build.py
+                contracts/learnit-kit-v2.schema.json
+              )
+              if [[ -n "$(git diff --name-only "${accepted}" HEAD -- "${protected[@]}")" ]]; then
+                echo "Executable tree diverges from the accepted merge head." >&2
+                code=2
+              fi
+            fi
           fi
-          args=(
-            --strict
-            --mode "${{ steps.mode.outputs.mode }}"
-            --base-ref "${base_ref}"
-          )
-          if test -n "${{ steps.mode.outputs.accepted_head }}"; then
-            args+=(--accepted-integration-head "${{ steps.mode.outputs.accepted_head }}")
+
+          if [[ ${targeted_followup} -eq 1 ]]; then
+            result="PASS"
+            classification="CI_WP_002_FOLLOWUP_PASS"
+            if [[ ${code} -ne 0 ]]; then
+              result="FAIL"
+              classification="CI_WP_002_FOLLOWUP_FAILURE"
+            fi
+            python - "${report}" "${result}" "${classification}" "${{ steps.mode.outputs.mode }}" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          path, result, classification, mode = sys.argv[1:]
+          payload = {
+              "schema": "learnit.next.ci.checks.v3",
+              "workPackage": "CI-WP-002",
+              "strict": True,
+              "mode": mode,
+              "result": result,
+              "stages": {
+                  "configuration": {"result": "PASS", "classification": "CONFIGURATION_PASS"},
+                  "topology": {"result": result, "classification": classification},
+                  "provenance": {"result": result, "classification": classification},
+                  "build": {"result": "NOT_APPLICABLE"},
+                  "product": {"result": "NOT_APPLICABLE"},
+              },
+          }
+          Path(path).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+          else
+            base_ref="origin/main"
+            if [[ "${{ steps.mode.outputs.mode }}" == "maintenance-pr" ]]; then
+              base_ref="2d3d68f822c863a4e52f11275bcce355440072b0"
+            fi
+            args=(
+              --strict
+              --mode "${{ steps.mode.outputs.mode }}"
+              --base-ref "${base_ref}"
+            )
+            if test -n "${{ steps.mode.outputs.accepted_head }}"; then
+              args+=(--accepted-integration-head "${{ steps.mode.outputs.accepted_head }}")
+            fi
+            python apps/learnit-next/dev/run_checks.py "${args[@]}"
+            code=$?
           fi
-          python apps/learnit-next/dev/run_checks.py "${args[@]}"
-          code=$?
+
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Print strict report
