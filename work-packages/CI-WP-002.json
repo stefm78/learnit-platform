@@ -77,5 +77,14 @@
     "requiresGovernorLinusReviewBeforeMerge": true,
     "mergeStatus": "held"
   },
-  "rollback": "Close the draft PR without merge, or revert only the bounded CI correction commit after merge."
+  "rollback": "Close the draft PR without merge, or revert only the bounded CI correction commit after merge.",
+  "adversarialTests": [
+    "Unknown or missing verification mode fails closed.",
+    "Any sixth changed path fails maintenance scope validation.",
+    "Any added path other than the two exact authorized additions fails closed.",
+    "A maintenance base not descending from the released baseline fails closed.",
+    "A branch not synchronized with its reviewed base fails closed.",
+    "Executable-tree divergence remains distinct from topology and product failures.",
+    "Test counts are derived from execution and require zero skip, failure or error."
+  ]
 }
