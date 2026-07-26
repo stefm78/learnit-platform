@@ -111,10 +111,14 @@ jobs:
         shell: bash
         run: |
           set +e
+          base_ref="origin/main"
+          if [[ "${{ steps.mode.outputs.mode }}" == "maintenance-pr" ]]; then
+            base_ref="2d3d68f822c863a4e52f11275bcce355440072b0"
+          fi
           args=(
             --strict
             --mode "${{ steps.mode.outputs.mode }}"
-            --base-ref origin/main
+            --base-ref "${base_ref}"
           )
           if test -n "${{ steps.mode.outputs.accepted_head }}"; then
             args+=(--accepted-integration-head "${{ steps.mode.outputs.accepted_head }}")
