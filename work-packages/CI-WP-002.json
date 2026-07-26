@@ -39,7 +39,7 @@
   },
   "invariants": [
     "Only the six exact allowed paths may change.",
-    "Exactly two new paths are authorized: the work-package file and build_determinism.py; the other three CI paths must already exist.",
+    "Exactly two new paths are authorized: the CI work-package file and build_determinism.py; the other three CI paths and the inherited package metadata file must already exist.",
     "The OPS-WP-003 delta is limited to status accepted and scope.allowedPaths as the exact union of its preserved CI/Ops and independent-QA path lists.",
     "integration-head, post-merge and maintenance-pr remain explicit and fail closed.",
     "The reviewed base is exactly the current main baseline and descends from the released baseline.",
