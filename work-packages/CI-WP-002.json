@@ -38,7 +38,7 @@
   },
   "invariants": [
     "Only the five exact allowed paths may change.",
-    "The work-package file is the only new path; the four CI paths must already exist.",
+    "Exactly two new paths are authorized: the work-package file and build_determinism.py; the other three CI paths must already exist.",
     "integration-head, post-merge and maintenance-pr remain explicit and fail closed.",
     "The reviewed base is exactly the current main baseline and descends from the released baseline.",
     "Topology, provenance, build and product failures remain distinct machine-readable classifications.",
@@ -70,7 +70,8 @@
     "sourcePullRequest": 92,
     "maximumChangedFiles": 5,
     "newFilesAuthorized": [
-      "work-packages/CI-WP-002.json"
+      "work-packages/CI-WP-002.json",
+      "apps/learnit-next/tests/build_determinism.py"
     ],
     "requiresContradictoryReviewBeforeMerge": true,
     "requiresGovernorLinusReviewBeforeMerge": true,
