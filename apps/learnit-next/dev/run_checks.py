@@ -44,6 +44,7 @@ INTEGRATOR = {
 }
 CI_ALLOWLIST = {
     "work-packages/CI-WP-002.json",
+    "work-packages/OPS-WP-003.json",
     ".github/workflows/learnit-next-ci.yml",
     "apps/learnit-next/dev/run_checks.py",
     "apps/learnit-next/tests/build_determinism.py",
