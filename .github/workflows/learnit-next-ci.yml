@@ -76,7 +76,7 @@ jobs:
               ;;
             push)
               mode="post-merge"
-              accepted_head="e5ee65a37326f4861d33c3c80221527511a03f24"
+              accepted_head="$(git rev-parse HEAD^2)"
               ;;
             workflow_dispatch)
               mode="${DISPATCH_MODE}"
