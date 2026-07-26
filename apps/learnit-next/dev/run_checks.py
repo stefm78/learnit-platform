@@ -206,7 +206,7 @@ def maintenance_topology(base_ref: str):
     if not ancestor(base, "HEAD") or git("merge-base", base_ref, "HEAD") != base:
         fail(f"maintenance branch is not synchronized with reviewed base: {base}", "topology", "MAINTENANCE_TOPOLOGY_FAILURE")
     changed = [path for path in git("diff", "--name-only", f"{base_ref}...HEAD").splitlines() if path]
-    if len(changed) != 5 or set(changed) != CI_ALLOWLIST:
+    if len(changed) != 6 or set(changed) != CI_ALLOWLIST:
         fail(f"maintenance diff differs from exact CI allowlist: {changed}", "provenance", "MAINTENANCE_SCOPE_FAILURE")
     statuses: dict[str, str] = {}
     for line in filter(None, git("diff", "--name-status", f"{base_ref}...HEAD").splitlines()):
@@ -216,13 +216,13 @@ def maintenance_topology(base_ref: str):
         statuses[parts[1]] = parts[0]
     if statuses not in MAINTENANCE_STATUS_PROFILES:
         fail(
-            f"maintenance paths must be three modifications plus the two exact additions; statuses differ: expected={MAINTENANCE_STATUS_PROFILES} actual={statuses}",
+            f"maintenance paths must be four modifications plus the two exact additions; statuses differ: expected={MAINTENANCE_STATUS_PROFILES} actual={statuses}",
             "provenance", "MAINTENANCE_SCOPE_FAILURE",
         )
     return {
         "maintenanceBaseRef": base_ref, "maintenanceBaseCommit": base,
         "releasedBaseline": RELEASE_MERGE, "changedPaths": sorted(changed),
-        "changedPathCount": 5, "pathStatuses": dict(sorted(statuses.items())),
+        "changedPathCount": 6, "pathStatuses": dict(sorted(statuses.items())),
     }
 
 
