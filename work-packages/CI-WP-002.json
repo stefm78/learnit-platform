@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-002",
+  "title": "Rebase the validated CI maintenance correction on current main",
+  "status": "in-progress",
+  "changeClass": "ci-harness-correction",
+  "riskClass": "moderate",
+  "purpose": "Carry the already exercised explicit CI topology modes from PR #92 onto the current main baseline with one bounded maintenance PR and no product change.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "2d3d68f822c863a4e52f11275bcce355440072b0",
+    "sourcePullRequest": 92,
+    "authorityIssue": 113,
+    "candidateName": "current-main-ci-maintenance-correction",
+    "artifactSha256": "53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/CI-WP-002.json",
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/tests/build_determinism.py",
+      "apps/learnit-next/source_manifest.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/dev/release.py",
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "docs/product/**",
+      "docs/evidence/**",
+      "kits/**"
+    ]
+  },
+  "invariants": [
+    "Only the five exact allowed paths may change.",
+    "The work-package file is the only new path; the four CI paths must already exist.",
+    "integration-head, post-merge and maintenance-pr remain explicit and fail closed.",
+    "The reviewed base is exactly the current main baseline and descends from the released baseline.",
+    "Topology, provenance, build and product failures remain distinct machine-readable classifications.",
+    "The released artifact remains learnit-next.html, 84060 bytes, SHA-256 53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4.",
+    "No product behavior, runtime source, contract, authoring, kit, storage, governance-state or RC718 content changes.",
+    "Merge remains held until all exact-head checks, one contradictory review and the final Governor/Linus review pass."
+  ],
+  "requiredEvidence": [
+    "Repository governance passes on the exact head.",
+    "PR scope / gate passes on the exact head.",
+    "Learn-it Next CI passes on the exact head.",
+    "At least 45 tests execute with zero skip, failure or error.",
+    "Two clean builds are byte-identical and preserve the released artifact identity.",
+    "One contradictory exact-head review confirms the five-path scope and no product delta."
+  ],
+  "nonGoals": [
+    "New CI architecture or design.",
+    "Product feature implementation.",
+    "Changing contract, storage, kits, authoring or governance state.",
+    "Creating a review quorum, ZIP or validation-of-validation."
+  ],
+  "independentReview": [
+    "One contradictory review covers the exact delivered head.",
+    "The Governor and Linus perform one final proportionality review before merge.",
+    "No quorum is required."
+  ],
+  "execution": {
+    "issue": 113,
+    "sourcePullRequest": 92,
+    "maximumChangedFiles": 5,
+    "newFilesAuthorized": [
+      "work-packages/CI-WP-002.json"
+    ],
+    "requiresContradictoryReviewBeforeMerge": true,
+    "requiresGovernorLinusReviewBeforeMerge": true,
+    "mergeStatus": "held"
+  },
+  "rollback": "Close the draft PR without merge, or revert only the bounded CI correction commit after merge."
+}
