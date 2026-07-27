@@ -1,76 +1,82 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-15-026",
-  "effectiveFromCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
-  "reviewedBaselineCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
+  "stateId": "GOV-STATE-2026-07-27-027",
+  "effectiveFromCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
+  "reviewedBaselineCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "clean-generation-parallel-implementation-authorized-integration-held",
+    "id": "learning-loop-v2-minimal-ai-bootstrap-authorized",
     "status": "active",
-    "description": "RC718 remains the frozen promoted legacy standalone product. ARC-WP-021 clean break and ARC-WP-022 foundation remain canonical. ARC-WP-023 approves DEV-WP-031 runtime, KIT-WP-001 authoring and QA-WP-011 contradictory QA to execute concurrently from exact common base d0186d7c0d65d44287c59534855ea90ffa3f8d06 on disjoint paths. INT-WP-001 remains held until all three outputs have independent reviews."
+    "description": "Learn-it Next P1 is integrated, post-merge verified and human-validated on Android. Issue #119 authorizes only one minimal bootstrap pull request that extends the accepted Remote Agent Worktree with fixed-profile read-only analysis and Learn-it Next validation profiles. Learning Loop V2 product implementation remains held until the bootstrap and one exact-baseline snapshot are accepted."
+  },
+  "currentMain": {
+    "commit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
+    "sourcePullRequest": 118,
+    "description": "CI-WP-002 exact P1 post-merge artifact publication correction"
   },
   "developmentBaseline": {
-    "status": "promoted",
-    "workPackage": "UX-WP-020",
-    "candidate": "RC718 editable imported plan naming candidate",
-    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
-    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
-    "humanPromotion": "PASS_WITH_RESERVATIONS",
-    "humanGate": "RC719",
-    "evidence": "docs/evidence/rc718/human-validation-attestation.json"
+    "status": "selected",
+    "workPackage": "PROD-WP-003",
+    "candidate": "Learn-it Next P1 corrective review loop",
+    "sourceCommit": "5c2a037955f2b1bd0fbb353db92368f47915e691",
+    "artifactSha256": "d62bd435c6e398b0f5ea4b59b0e30bc553e5c6d011ce42e4ab5bf3b74a21e68e",
+    "artifactBytes": 91367,
+    "automatedGate": "PASS",
+    "humanAndroidGate": "PASS",
+    "authorityIssue": 116,
+    "authorityStatus": "completed"
   },
   "promotedBaseline": {
     "status": "promoted",
-    "workPackage": "UX-WP-020",
+    "workPackage": "INT-WP-001",
+    "candidate": "Learn-it v1.0.0 clean-generation foundation",
+    "sourceCommit": "0604cad79a8ca765148c30090906b9f658af7109",
+    "artifactSha256": "53ab18a61fdac152117a4c098bfa991c14970334bad00dffc9ae14fc2c1b0ef4",
+    "promotedAt": "2026-07-17",
+    "humanValidation": "PASS",
+    "release": "v1.0.0"
+  },
+  "previousPromotedBaseline": {
     "candidate": "RC718 editable imported plan naming candidate",
     "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
     "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
     "promotedAt": "2026-07-14",
     "humanValidation": "PASS_WITH_RESERVATIONS",
-    "humanGate": "RC719",
-    "evidence": "docs/evidence/rc718/human-validation-attestation.json",
-    "reservationRegister": "docs/product/RC719_RESERVATIONS.md"
-  },
-  "previousPromotedBaseline": {
-    "candidate": "RC715 durable library and rename candidate",
-    "sourceCommit": "6c826977e16985d50b45d1b5e53501b4d7b993a2",
-    "artifactSha256": "6d4546efbf9a1216e18fa90ee260e7d79841171c48f533d6b107266e281aa7c0",
-    "promotedAt": "2026-07-14",
-    "humanValidation": "PASS",
-    "evidence": "docs/evidence/rc715/human-validation-attestation.json"
+    "status": "frozen-legacy"
   },
   "acceptedControls": {
     "remoteAgentWorktree": {
       "workPackage": "DEV-WP-030",
       "status": "accepted",
-      "requiredResultContext": "Remote agent worktree / tested result"
+      "requiredResultContext": "Remote agent worktree / tested result",
+      "policy": "bounded patch, fixed profile, no write credentials during test, exact tested result committed only to the originating agent branch"
     },
-    "remoteAgentFailureEvidence": {
-      "workPackage": "GOV-WP-016",
+    "codespaceEvidenceBridge": {
+      "workPackage": "OPS-WP-003",
       "status": "accepted",
-      "policy": "failed Remote Agent runs retain distinct structured diagnostics without weakening validation or being treated as tested results",
-      "workflowMergeCommit": "b038f644d3a7d524077bf9a4b3e04ea8911a6357"
+      "policy": "fixed read-only evidence operations bound to an exact repository origin and target SHA"
     },
-    "permanentPlayerCi": {
-      "workPackage": "QA-WP-010",
+    "learnitNextCi": {
+      "workPackage": "CI-WP-002",
       "status": "accepted",
-      "requiredCheck": "Player CI / gate",
-      "browserSuites": 24,
-      "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md"
+      "mergeCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
+      "policy": "build once, test exact bytes, publish the same HTML with proof"
     },
-    "pullRequestScope": {
-      "workPackage": "GOV-WP-010",
+    "p1CorrectiveReview": {
+      "workPackage": "PROD-WP-003",
+      "status": "accepted",
+      "mergeCommit": "5c2a037955f2b1bd0fbb353db92368f47915e691",
+      "authorityIssue": 116,
+      "automatedTests": "49/49",
+      "p1Matrix": "19/19",
+      "androidHumanGate": "PASS"
+    },
+    "stageDOperatingModel": {
+      "workPackage": "ARC-WP-019",
       "status": "accepted-with-conditions",
-      "requiredCheck": "PR scope / gate",
-      "review": "docs/governance/reviews/GOV-REVIEW-0005-QUALITY-GATES.md"
-    },
-    "remoteAgentPrScopeCompatibility": {
-      "workPackage": "GOV-WP-015",
-      "status": "accepted",
-      "mergeCommit": "dd6679b1b890efadb2c049113993d3e2c78f96b2",
-      "policy": "exact transport envelope plus dual canonical scope validation for intended patch and tested result"
+      "policy": "disjoint developer, contradictory-QA, integrator and governor scopes for bounded work"
     },
     "branchHygiene": {
       "workPackage": "GOV-WP-012",
@@ -80,179 +86,21 @@
     "mainRuleset": {
       "name": "main-protection",
       "status": "configured-not-enforced",
-      "reason": "GitHub UI reports that rulesets are not enforced on this private repository until it is moved to a GitHub Team organization account."
-    },
-    "firstSeamDesign": {
-      "workPackage": "ARC-WP-010",
-      "status": "accepted",
-      "boundary": "unchanged synchronous localStorage adapter extracted from runtime part 00 into runtime part 04",
-      "review": "docs/governance/reviews/GOV-REVIEW-0008-ARC-WP-010.md"
-    },
-    "firstSeamImplementationAuthorization": {
-      "workPackage": "ARC-WP-011",
-      "status": "accepted",
-      "implementationStatus": "accepted-through-ARC-WP-014",
-      "requiredTestProfile": "player-full",
-      "review": "docs/governance/reviews/GOV-REVIEW-0009-ARC-WP-011-AUTHORIZATION.md"
-    },
-    "firstSeamTestRegistration": {
-      "workPackage": "ARC-WP-012",
-      "status": "accepted",
-      "authorizedChange": "tests/contract_storage_boundary.py is one mandatory checks-registry entry",
-      "review": "docs/governance/reviews/GOV-REVIEW-0010-STORAGE-SEAM-TEST-REGISTRATION.md"
-    },
-    "firstSeamFingerprintReconciliation": {
-      "workPackage": "ARC-WP-013",
-      "status": "accepted",
-      "failedAttempt": "PR-44 / Remote Agent run 29329093616 — HOLD with no tested result",
-      "diagnosticResult": "PR-46 / result 5c6440838fe400c331ebf26fce5d97f964effeae — PASS, closed unmerged",
-      "review": "docs/governance/reviews/GOV-REVIEW-0011-FIRST-SEAM-FINGERPRINT-HOLD.md"
-    },
-    "firstSeamEvidenceCoverage": {
-      "workPackage": "ARC-WP-018",
-      "status": "accepted",
-      "surface": "storage-resilience",
-      "test": "tests/contract_storage_boundary.py",
-      "failureEvidence": "remote-agent-failure-29353545001"
-    },
-    "firstSeamExecution": {
-      "workPackage": "ARC-WP-014",
-      "status": "accepted-with-conditions",
-      "implementationStatus": "accepted",
-      "executionBaseCommit": "f272c81f172b7d3c46a708bc5277b8401b15db1a",
-      "triggerCommit": "79c9124740bab0a104c21e4e3059cd84e6740c5e",
-      "testedResultCommit": "a4bf1fb1726c5c82e1af2ae085327e358fe4e3f4",
-      "mergeCommit": "1346e5772bd18432d96b2f88eb0d276fc7a04e94",
-      "pullRequest": 69,
-      "remoteAgentRun": 29354643840,
-      "permanentPlayerCiRun": 29355055312,
-      "requiredTestProfile": "player-full",
-      "mandatoryChecks": "35/35",
-      "browserSuites": "24/24",
-      "evidenceBindings": "58/58",
-      "testedArtifactSha256": "9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861",
-      "review": "docs/governance/reviews/GOV-REVIEW-0013-FIRST-SEAM-ACCEPTANCE.md",
-      "evidence": "docs/evidence/architecture/first-storage-seam/implementation-evidence.json"
-    },
-    "stageDPilotExecution": {
-      "workPackage": "ARC-WP-019",
-      "status": "accepted-with-conditions",
-      "pilotStatus": "accepted",
-      "executionBaseCommit": "d65189b7ef59ccb74ba02c6c6ac96a212895a1e9",
-      "triggerCommit": "c0101bde910c8f3a47ce7f981a4e939a55176589",
-      "testedResultCommit": "5e379eea7ae3b495be2203355425e6549b8fcec5",
-      "mergeCommit": "ae6b82d90b72f0287462c7d34708d0330d5ce35b",
-      "pullRequest": 72,
-      "remoteAgentRun": 29356520176,
-      "permanentPlayerCiRun": 29356634330,
-      "requiredTestProfile": "player-fast",
-      "mandatoryChecks": "36/36",
-      "roleScopeContract": "20/20",
-      "permanentBrowserSuites": "24/24",
-      "evidenceBindings": "35/35",
-      "resultEnvelopeDigest": "sha256:c4c6123c58caf8c070f47fe7c19970cabfa12b41bbd846caf517bd0b7361fb13",
-      "testedArtifactSha256": "9e9db99065b678267818eb478849d7bd02c2e34e42f2f8e0628e01a3c22ef861",
-      "playerWorkingFiles": 150,
-      "review": "docs/governance/reviews/GOV-REVIEW-0020-STAGE-D-PILOT-ACCEPTANCE.md",
-      "evidence": "docs/evidence/architecture/stage-d-pilot/implementation-evidence.json"
-    },
-    "stableIdentityMigrationDesign": {
-      "workPackage": "ARC-WP-020",
-      "status": "accepted-with-conditions",
-      "designStatus": "accepted",
-      "baselineCommit": "e9d3f1f36d34170111b6b583bc7d9219e68e03ab",
-      "scheme": "learnit-identity-v1",
-      "identityLayers": [
-        "canonical-lineage-and-revision",
-        "local-installation",
-        "legacy-compatibility"
-      ],
-      "identityTaxonomyRetained": true,
-      "continuityStrategyStatus": "superseded-by-ARC-WP-021",
-      "decision": "docs/architecture/decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md",
-      "inventory": "docs/evidence/architecture/stable-identity/current-identity-inventory.json",
-      "review": "docs/governance/reviews/GOV-REVIEW-0022-ARC-WP-020-STABLE-IDENTITY-DESIGN.md"
-    },
-    "cleanBreakGenerationDecision": {
-      "workPackage": "ARC-WP-021",
-      "status": "accepted-with-conditions",
-      "trajectory": "C-clean-break",
-      "baselineCommit": "0575385c5891e56506de6aaa0244297d766ea458",
-      "legacyProduct": "RC718",
-      "legacyDataMigration": "not-planned",
-      "legacyRuntimeCompatibility": "not-planned",
-      "legacyKitCompatibility": "not-planned",
-      "newGenerationInitialState": "empty",
-      "newGenerationStorage": "isolated-namespace-required",
-      "implementationAllowed": false,
-      "decision": "docs/architecture/decisions/ADR-0002-CLEAN-BREAK-GENERATION.md",
-      "review": "docs/governance/reviews/GOV-REVIEW-0023-ARC-WP-021-CLEAN-BREAK.md"
-    },
-    "cleanGenerationFoundation": {
-      "workPackage": "ARC-WP-022",
-      "status": "accepted-with-conditions",
-      "baselineCommit": "135c7ee2729451e7e796749a38bf250f142c0ed4",
-      "contract": "learnit.kit.v2",
-      "successorRoot": "apps/learnit-next",
-      "localStoragePrefix": "learnit.next.v1.",
-      "indexedDbName": "learnit_next_v1",
-      "activityFamilies": [
-        "qcm",
-        "fill"
-      ],
-      "workingFileBudget": 32,
-      "parallelImplementers": 3,
-      "implementationInThisPackage": false,
-      "subordinateAuthorizationRequired": "ARC-WP-023",
-      "design": "docs/architecture/clean-generation/FOUNDATION_V1.md",
-      "filePlan": "docs/architecture/clean-generation/FILE_PLAN_V1.json",
-      "multiAiProtocol": "docs/architecture/clean-generation/MULTI_AI_EXECUTION_V1.md",
-      "review": "docs/governance/reviews/GOV-REVIEW-0025-ARC-WP-022-FOUNDATION.md"
-    },
-    "parallelExecutionAuthorization": {
-      "workPackage": "ARC-WP-023",
-      "status": "accepted-with-conditions",
-      "commonBaseCommit": "d0186d7c0d65d44287c59534855ea90ffa3f8d06",
-      "parallelWorkPackages": [
-        "DEV-WP-031",
-        "KIT-WP-001",
-        "QA-WP-011"
-      ],
-      "sequentialIntegrationWorkPackage": "INT-WP-001",
-      "parallelWritableOverlap": 0,
-      "implementationPaths": 31,
-      "frozenSharedPaths": [
-        "contracts/learnit-kit-v2.schema.json"
-      ],
-      "implementationAllowed": true,
-      "integrationAllowed": false,
-      "review": "docs/governance/reviews/GOV-REVIEW-0026-ARC-WP-023-PARALLEL-AUTHORIZATION.md"
+      "reason": "GitHub reports that the ruleset is not enforced on the current private personal-account repository."
     }
   },
   "authorizedWork": [
-    "standalone functional, UX, accessibility, persistence, performance, test, and release improvements to frozen RC718 only through explicitly bounded maintenance decisions",
-    "bounded multi-file AI implementation through the accepted Remote Agent Worktree with exact baseline, machine-checkable scope and explicit test profile",
-    "reuse of the accepted Stage D operating model for bounded work packages with disjoint developer, contradictory-QA, integrator and governor scopes",
-    "permanent Player CI and black-box behavioral protection",
-    "repository governance hardening",
-    "the accepted learnit-identity-v1 taxonomy",
-    "the accepted clean-break generation direction",
-    "the accepted learnit.kit.v2 clean-generation foundation contract and 32-file plan",
-    "DEV-WP-031 runtime implementation from exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06",
-    "KIT-WP-001 authoring and foundation golden kits from exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06",
-    "QA-WP-011 independent fixtures and contradictory tests from exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06",
-    "parallel execution of DEV-WP-031, KIT-WP-001 and QA-WP-011 on independent branches or worktrees",
-    "work-package, evidence, provenance and restart-checkpoint tooling"
+    "PROG-WP-001 bootstrap changes on one governed branch and one pull request from exact baseline d0a68fb4f47545a795934dc90ecadc834304c61e",
+    "fixed-profile read-only ANALYZE execution in the existing Remote Agent Worktree validation job",
+    "Learn-it Next fixed validation profiles and structured evidence artifacts",
+    "preservation of the accepted bounded IMPLEMENT exact-tested-result path",
+    "repository, workflow, tool, test, documentation and governor-state changes explicitly listed by PROG-WP-001",
+    "historical P1 maintenance only through separately authorized bounded work"
   ],
   "heldWork": [
-    "INT-WP-001 integration until independently reviewed result commits exist for DEV-WP-031, KIT-WP-001 and QA-WP-011",
-    "human successor testing until a full integrated automated gate and separate governor acceptance pass",
-    "any successor file outside the accepted 32-file plan",
-    "RC718 compatibility resolver, identity overlay, dual read, dual write or learner-state migration",
-    "automatic import or interpretation of RC718 packages by the successor",
-    "automatic migration of RC718 library, custom labels, sessions, progress, bilan, retention, import history, field evidence or patches",
-    "media and activity families beyond qcm and fill in the foundation slice",
-    "advanced bilan, mastery, retention, patching or adaptive sequencing in the foundation slice",
+    "Learning Loop V2 product implementation until the PROG-WP-001 bootstrap is accepted and one exact-baseline snapshot is reviewed",
+    "creation of the four Learning Loop V2 development lanes until file ownership and shared interfaces are derived from the accepted snapshot",
+    "contract or storage semantic changes until an explicit program decision records their necessity and rollback",
     "backend implementation",
     "accounts and learner profiles",
     "cloud synchronization",
@@ -262,71 +110,39 @@
     "publisher marketplace"
   ],
   "prohibitedWork": [
-    "maintaining a separate canonical standalone source outside GitHub",
-    "silently reusing RC718 storage keys or database records for successor semantics",
-    "accessing or mutating protected RC718 storage from successor code",
-    "adding a temporary compatibility layer without an explicit accountable-owner reversal of ARC-WP-021",
-    "canonical identifiers derived from editable titles, slugs, ordering, filenames or local collision suffixes",
-    "partially interpreting a legacy package as successor content",
-    "clearing or mutating RC718 localStorage or IndexedDB data from the successor",
-    "presenting the successor as a transparent RC718 upgrade",
-    "copying all RC718 implementation without current product justification",
-    "parallel AI implementation without exact base d0186d7c0d65d44287c59534855ea90ffa3f8d06 and the approved disjoint scopes",
-    "allowing an integrator to silently repair role-owned files",
-    "starting INT-WP-001 before all three role outputs have independent reviews",
+    "arbitrary shell commands, scripts, plugins or environment overrides supplied by an AI job",
+    "autonomous merge, release publication or direct write to main",
+    "passing GitHub write credentials to analyzed or patched repository code",
+    "creating a generic AI execution platform, scheduler, queue, database or orchestrator in PROG-WP-001",
+    "modifying Learn-it Next product source during the bootstrap",
+    "allowing an integrator to silently repair lane-owned product files",
     "publishing an artifact different from the artifact tested",
-    "adding, renaming or splitting a successor working file outside FILE_PLAN_V1.json without a new governor decision",
-    "changing contracts/learnit-kit-v2.schema.json from an implementing role branch",
-    "inventing missing RC719 reservation details"
+    "silently reusing or mutating protected RC718 storage"
   ],
   "activeRisks": [
     {
       "id": "RISK-GOV-002",
       "severity": "high",
       "statement": "The main-protection ruleset is configured but not enforced on this private personal-account repository.",
-      "closureGate": "move the repository to an eligible GitHub Team organization account or another topology that enforces private-repository rulesets"
+      "closureGate": "Move the repository to an eligible GitHub Team organization account or another topology that enforces private-repository rulesets."
     },
     {
-      "id": "RISK-ARCH-004",
+      "id": "RISK-AGENT-007",
       "severity": "moderate",
-      "statement": "The accepted 32-file successor budget is intentionally narrow and may prove insufficient during implementation. Expanding it without a new decision would recreate the legacy growth pattern.",
-      "closureGate": "implement the full foundation slice within the budget or obtain a separately reviewed file-budget amendment"
+      "statement": "Adding analysis profiles to a write-capable workflow could accidentally route read-only jobs into the result-commit path.",
+      "closureGate": "Unit and end-to-end tests prove every successful ANALYZE run skips all write-token jobs and leaves the branch unchanged."
     },
     {
-      "id": "RISK-CONTRACT-003",
+      "id": "RISK-PROFILE-008",
       "severity": "moderate",
-      "statement": "Python authoring and JavaScript runtime canonical JSON and SHA-256 implementations may disagree, invalidating otherwise sound packages.",
-      "closureGate": "shared valid and invalid fixtures produce identical canonical bytes and digests in both implementations"
+      "statement": "Learn-it Next sources and tests are partly manifest-controlled Git blobs rather than materialized files on main, so naive profiles can inspect or test an incomplete checkout.",
+      "closureGate": "Every Learn-it Next profile materializes the complete declared tree and reports its inventory before validation."
     },
     {
-      "id": "RISK-STORAGE-006",
-      "severity": "moderate",
-      "statement": "RC718 and the successor can share a browser origin, so storage isolation depends on strict namespace ownership and negative tests rather than browser process isolation.",
-      "closureGate": "integrated browser tests prove RC718 localStorage and IndexedDB records remain byte-for-byte unchanged after successor boot, import, use and reset"
-    },
-    {
-      "id": "RISK-PARALLEL-002",
-      "severity": "moderate",
-      "statement": "The three implementing branches start from an earlier immutable commit than the authorization merge. Scope discipline and controlled PR merge bases must prevent accidental inclusion or omission of later governance changes.",
-      "closureGate": "each role PR proves exact base, only role-owned changes and clean integration against current main"
-    },
-    {
-      "id": "RISK-BREAK-005",
-      "severity": "moderate",
-      "statement": "The clean-break decision intentionally does not migrate RC718 library or learner data. User confusion or perceived data loss is possible if the successor is distributed without explicit communication and preserved RC718 access.",
-      "closureGate": "preserve retrievable RC718 access, publish an explicit rupture notice and pass a human release gate"
-    },
-    {
-      "id": "RISK-EVIDENCE-002",
+      "id": "RISK-CI-FLAKE-009",
       "severity": "low",
-      "statement": "The RC719 promotion is recorded as accountable-owner PASS_WITH_RESERVATIONS without raw device recordings or per-case test logs.",
-      "closureGate": "optional attachment of detailed human evidence or continued acceptance of owner attestation"
-    },
-    {
-      "id": "RISK-UX-021",
-      "severity": "low",
-      "statement": "RC719 reservations remain unitemized, but they do not block a distinct clean generation and must not be silently copied into its scope.",
-      "closureGate": "itemize only if RC718 maintenance or direct capability carry-forward is proposed"
+      "statement": "The browser vertical suite has previously required a bounded retry even though the final gate passed.",
+      "closureGate": "Track profile attempts and remove deterministic causes before relying on a single-attempt promotion gate."
     }
   ],
   "activeExceptions": [
@@ -340,13 +156,14 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "INT-WP-001",
-    "condition": "Wait for exact independently reviewed result commits from DEV-WP-031, KIT-WP-001 and QA-WP-011. Then integrate only those reviewed outputs, without editing role-owned files, through the five INT-WP-001 paths. Prove the exact 32-file set, cross-language digest agreement, both golden kits, RC718 storage immutability, browser vertical slice, deterministic clean build and tested-artifact identity before a separate governor acceptance."
+    "id": "PROG-WP-001",
+    "condition": "Merge no bootstrap change until repository governance, PR scope, Remote Agent unit tests and independent review pass on the exact head. After merge, run one learnit-next-snapshot ANALYZE job against d0a68fb4f47545a795934dc90ecadc834304c61e, verify that the branch remains unchanged and review the structured artifact before authorizing Learning Loop V2 implementation lanes."
   },
   "review": {
-    "lastReviewedAt": "2026-07-15",
-    "lastReviewedBy": "Architecture & Repository Governor — GOV-REVIEW-0026 ARC-WP-023 parallel authorization",
+    "lastReviewedAt": "2026-07-27",
+    "lastReviewedBy": "Governor + Linus recursive challenge consensus",
     "decision": "GO_WITH_CONDITIONS",
-    "nextReviewTrigger": "any role result, role-path overlap, contract mutation, unplanned file, base-commit drift, RC718 storage access, failed or missing validation, high contradictory-QA finding, attempted integration, source-to-artifact drift, repository ownership or plan change, first external collaborator, serious regression, or held-domain request"
+    "authorityIssue": 119,
+    "nextReviewTrigger": "bootstrap PR exact head, scope drift, unsupported command surface, write-token reachability from ANALYZE, failed profile, incomplete materialization, product-source modification, requested contract or storage change, or proposed Learning Loop V2 lane activation"
   }
 }
