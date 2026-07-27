@@ -14,6 +14,7 @@
   },
   "scope": {
     "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
       ".github/workflows/remote-agent-worktree.yml",
       "tools/agent_worktree.py",
       "tools/learnit_next_agent.py",
@@ -37,6 +38,7 @@
     "ANALYZE accepts only fixed versioned profiles and never accepts caller-supplied shell, command, script, plugin or environment content.",
     "ANALYZE runs in the read-token job and never reaches a write-token job or creates a result commit.",
     "IMPLEMENT preserves the exact base, path budget, patch validation, no-credential test execution, separate result commit and exact tested-result status guarantees.",
+    "The Learn-it Next CI bootstrap exception is bound to the exact branch and exact eight-path allowlist and runs only governance plus Remote Agent tests.",
     "Neither mode writes directly to main or merges a pull request.",
     "No Learning Loop V2 product source is changed by this bootstrap.",
     "The exact built Learn-it Next HTML is included when a fixed profile produces it."
@@ -44,6 +46,7 @@
   "requiredEvidence": [
     "repository governance validation PASS",
     "PR scope validation PASS on the exact bootstrap head",
+    "Learn-it Next CI exact bootstrap follow-up PASS",
     "Remote Agent bootstrap unit tests PASS",
     "unknown profile rejection",
     "arbitrary command field rejection",
@@ -61,6 +64,7 @@
     "reject calling apply, package or commit-prepare for ANALYZE",
     "reject implementation paths outside allowedPaths or inside permanent forbidden paths",
     "skip every write-token job after a successful ANALYZE run",
+    "reject any bootstrap CI path set different from the exact eight-path allowlist",
     "preserve branch-moved, digest-mismatch and final-scope checks for IMPLEMENT"
   ],
   "nonGoals": [
@@ -74,6 +78,7 @@
   "independentReview": [
     "Repository governance workflow",
     "PR scope workflow",
+    "Learn-it Next CI targeted bootstrap follow-up",
     "Architecture and Repository Governor",
     "Linus code review of permission separation and compatibility",
     "one read-only end-to-end analysis smoke run before bootstrap acceptance"
