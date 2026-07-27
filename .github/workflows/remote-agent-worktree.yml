@@ -25,6 +25,9 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      profile: ${{ steps.plan.outputs.profile }}
     env:
       AGENT_BRANCH: ${{ github.event.pull_request.head.ref }}
     steps:
@@ -40,41 +43,53 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Validate job envelope and patch scope
+      - name: Validate job envelope and fixed profile
         id: plan
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p .agent-runtime
           GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py prepare --output .agent-runtime/plan.json
-          profile="$(python -c "import json; print(json.load(open('.agent-runtime/plan.json'))['testProfile'])")"
-          printf 'test_profile=%s\n' "$profile" >> "$GITHUB_OUTPUT"
+          mode="$(python -c "import json; print(json.load(open('.agent-runtime/plan.json'))['mode'])")"
+          profile="$(python -c "import json; print(json.load(open('.agent-runtime/plan.json'))['profile'])")"
+          printf 'mode=%s\n' "$mode" >> "$GITHUB_OUTPUT"
+          printf 'profile=%s\n' "$profile" >> "$GITHUB_OUTPUT"
 
       - name: Install player test dependencies
-        if: ${{ startsWith(steps.plan.outputs.test_profile, 'player-') }}
+        if: ${{ startsWith(steps.plan.outputs.profile, 'player-') }}
         run: python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
 
+      - name: Install Learn-it Next test dependencies
+        if: ${{ startsWith(steps.plan.outputs.profile, 'learnit-next-') }}
+        run: python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
+
       - name: Install Chromium for browser profiles
-        if: ${{ steps.plan.outputs.test_profile == 'player-targeted' || steps.plan.outputs.test_profile == 'player-full' }}
+        if: ${{ steps.plan.outputs.profile == 'player-targeted' || steps.plan.outputs.profile == 'player-full' || steps.plan.outputs.profile == 'learnit-next-full' || steps.plan.outputs.profile == 'learnit-next-browser' }}
         run: python -m playwright install --with-deps chromium
 
-      - name: Apply patch without repository credentials
+      - name: Apply bounded implementation patch without repository credentials
+        if: ${{ steps.plan.outputs.mode == 'implement' }}
         run: GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py apply --plan .agent-runtime/plan.json
 
       - name: Validate repository governance
         run: python tools/validate_repository.py
 
-      - name: Run fixed validation profile
+      - name: Run Remote Agent bootstrap unit tests
+        run: python tools/test_agent_worktree.py
+
+      - name: Run fixed analysis or validation profile
         run: GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py test --plan .agent-runtime/plan.json
 
-      - name: Package the exact tested result
+      - name: Package the exact tested implementation result
+        if: ${{ steps.plan.outputs.mode == 'implement' }}
         run: |
           GITHUB_REF_NAME="$AGENT_BRANCH" python tools/agent_worktree.py package \
             --plan .agent-runtime/plan.json \
             --output-patch .agent-runtime/result.patch \
             --output-manifest .agent-runtime/result.json
 
-      - name: Upload tested result envelope
+      - name: Upload tested implementation result envelope
+        if: ${{ steps.plan.outputs.mode == 'implement' }}
         uses: actions/upload-artifact@v4
         with:
           name: remote-agent-result-${{ github.run_id }}
@@ -82,9 +97,25 @@ jobs:
             .agent-runtime/plan.json
             .agent-runtime/applied.json
             .agent-runtime/tests.json
+            .agent-runtime/learnit-next.json
             .agent-runtime/result.patch
             .agent-runtime/result.json
             apps/player/dist/learnit.html
+            apps/learnit-next/dist/learnit-next.html
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
+
+      - name: Upload read-only analysis result
+        if: ${{ steps.plan.outputs.mode == 'analyze' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-agent-analysis-${{ github.run_id }}
+          path: |
+            .agent-runtime/plan.json
+            .agent-runtime/tests.json
+            .agent-runtime/learnit-next.json
+            apps/learnit-next/dist/learnit-next.html
           if-no-files-found: error
           retention-days: 14
           compression-level: 6
@@ -98,14 +129,16 @@ jobs:
             .agent-runtime/plan.json
             .agent-runtime/applied.json
             .agent-runtime/tests.json
+            .agent-runtime/learnit-next.json
             apps/player/reports
+            apps/learnit-next/.agent-result
           if-no-files-found: warn
           retention-days: 7
           compression-level: 6
 
   commit-tested-result:
     needs: validate-and-test
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ needs.validate-and-test.result == 'success' && needs.validate-and-test.outputs.mode == 'implement' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -162,6 +195,7 @@ jobs:
 
   attest-tested-result:
     needs: commit-tested-result
+    if: ${{ needs.commit-tested-result.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
