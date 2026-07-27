@@ -47,6 +47,32 @@ function renderProgress(progress) {
   ]);
 }
 
+function assertObjectiveUi(objectiveUi) {
+  if (objectiveUi == null) return null;
+  if (typeof objectiveUi.renderObjectiveProgress !== 'function') {
+    throw new TypeError('Learning Loop V2 objectiveUi.renderObjectiveProgress() is required');
+  }
+  return objectiveUi;
+}
+
+function renderObjectiveSurface(objectiveUi, model) {
+  if (!objectiveUi || !Array.isArray(model.progress?.objectives)) return null;
+  const rendered = objectiveUi.renderObjectiveProgress({
+    document,
+    context: model.context,
+    courseObjectives: structuredClone(model.courseObjectives ?? []),
+    objectiveProgress: structuredClone(model.progress.objectives),
+    recommendation: structuredClone(model.progress.recommendation ?? null),
+    activity: model.activity ? structuredClone(model.activity) : null,
+  });
+  if (rendered == null) return null;
+  if (rendered instanceof Node) return rendered;
+  if (Array.isArray(rendered) && rendered.every((item) => item instanceof Node)) {
+    return node('div', { 'data-learning-loop-v2-ui': model.context }, rendered);
+  }
+  throw new TypeError('renderObjectiveProgress() must return a Node, an array of Nodes, or null');
+}
+
 function renderQcmForm(activity, submit) {
   const fieldset = node('fieldset', { className: 'answer-fieldset' });
   fieldset.append(node('legend', { text: 'Choisissez une réponse' }));
@@ -126,9 +152,10 @@ function renderFillForm(activity, submit) {
   return form;
 }
 
-export function renderApp(root, runtime) {
+export function renderApp(root, runtime, objectiveUiIntegration = null) {
   let notice = null;
   let busy = false;
+  const objectiveUi = assertObjectiveUi(objectiveUiIntegration);
 
   const header = node('header', { className: 'app-header' }, [
     node('div', {}, [
@@ -250,7 +277,6 @@ export function renderApp(root, runtime) {
             }),
           });
           const cancelButton = node('button', {
-            type: 'button',
             className: 'secondary',
             text: 'Annuler',
             onclick: () => {
@@ -369,6 +395,11 @@ export function renderApp(root, runtime) {
               onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
             }),
           ]);
+        const objectiveSurface = renderObjectiveSurface(objectiveUi, {
+          context: 'library',
+          courseObjectives: course.objectives,
+          progress: course.progress,
+        });
         list.append(node('article', { className: 'course-card' }, [
           node('div', {}, [
             node('h3', { text: course.title }),
@@ -377,6 +408,7 @@ export function renderApp(root, runtime) {
           ]),
           renderCourseLabelForm(course),
           renderProgress(course.progress),
+          objectiveSurface,
           courseAction,
           reviewAction,
         ]));
@@ -401,11 +433,18 @@ export function renderApp(root, runtime) {
     const activity = session.currentActivity;
     const reviewMode = session.mode === 'review';
     const activityTitle = node('h2', { id: 'activity-title', tabindex: '-1', text: activity.prompt });
+    const objectiveSurface = renderObjectiveSurface(objectiveUi, {
+      context: reviewMode ? 'review' : 'session',
+      courseObjectives: session.courseObjectives,
+      progress: session.progress,
+      activity,
+    });
     const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel' }, [
       node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: () => renderLibrary() }),
       node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
       activityTitle,
       renderProgress(session.progress),
+      objectiveSurface,
       reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
       activity.type === 'qcm'
         ? renderQcmForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
@@ -446,11 +485,18 @@ export function renderApp(root, runtime) {
         text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
         onclick: complete ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
       });
+    const objectiveSurface = renderObjectiveSurface(objectiveUi, {
+      context: 'feedback',
+      courseObjectives: result.courseObjectives,
+      progress: result.progress,
+      activity: result.nextActivity,
+    });
     const section = node('section', { 'aria-labelledby': 'feedback-title', className: 'feedback-panel' }, [
       outcome,
       node('h2', { id: 'feedback-title', text: 'Explication' }),
       node('p', { text: result.explanation }),
       renderProgress(result.progress),
+      objectiveSurface,
       reviewMode ? node('p', {
         text: reviewRemaining === 0
           ? 'File À revoir vide. Cette réussite retire l’activité de la file.'
