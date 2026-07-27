@@ -2,104 +2,155 @@
 
 ## Purpose
 
-This mechanism lets an AI development agent prepare a bounded multi-file change in a real, clean Git checkout without requiring Codex, Codespaces, or a developer workstation.
+The Remote Agent Worktree gives an AI agent two bounded capabilities in a real Git checkout:
 
-It is a transport and validation mechanism, not an autonomous merge authority.
+- `ANALYZE`: run one fixed, versioned, read-only analysis profile on an exact commit;
+- `IMPLEMENT`: apply one scoped text patch, run one fixed validation profile, and commit only the exact tested result to the originating `agent/**` branch.
 
-## Operating sequence
+It is not an autonomous merge authority. It never writes directly to `main`.
 
-1. Create an `agent/**` branch from one exact commit.
-2. Stage one job under `.agent-jobs/<JOB-ID>/`:
-   - `job.json` — baseline, branch, scope, limits, validation profile and commit message;
-   - `change.patch` — one text-only Git patch;
-   - `READY` — empty activation marker, always written last.
-3. Open a pull request from the internal `agent/**` branch to `main`.
-4. GitHub Actions checks the exact pull-request head and verifies that the branch contains only the job envelope.
-5. The patch is rejected when it exceeds the declared scope, size or line budgets, touches a default forbidden area, contains a binary, symlink or submodule, or fails `git apply --check`.
-6. Build and tests run in a job with `contents: read` and no persisted repository credential.
-7. The exact tested result is packaged as a patch plus manifest.
-8. A separate short job with `contents: write` revalidates the result, commits it only to the pull request's `agent/**` branch, removes the temporary job envelope and appends `[agent-applied]` to the commit message.
-9. A final job that does not check out or execute repository code writes a success status on the exact result commit SHA.
-10. The same pull request now exposes only the tested product change for normal review and merge decision.
+## Common request envelope
 
-The workflow rejects forks and never pushes directly to `main`.
+Every request is staged under `.agent-jobs/<JOB-ID>/` and activated by writing `READY` last.
 
-## Fixed validation profiles
+Common fields:
 
-- `repository`: repository governance validation only.
-- `player-fast`: player build and mandatory non-browser checks through `make -C apps/player test-fast`.
-- `player-targeted`: rebuilds the player, then runs an explicit non-empty list of Python tests under `apps/player/tests/`; Chromium is installed.
-- `player-full`: full player test command through `make -C apps/player test`; Chromium is installed.
+```json
+{
+  "schemaVersion": 1,
+  "id": "LLV2-ANALYZE-001",
+  "baseCommit": "<full-lowercase-40-character-sha>",
+  "branch": "agent/llv2-analyze-001",
+  "mode": "analyze"
+}
+```
 
-A job cannot supply arbitrary shell commands.
+The branch must start from the declared commit and contain only its job envelope before execution.
 
-## Permanent default prohibitions
+Unknown fields are rejected. In particular, a request cannot provide `command`, `commands`, `shell`, scripts, environment overrides, plugins or arbitrary paths.
 
-Remote agent patches cannot modify:
+## ANALYZE mode
 
-- `.github/**`;
-- `.agent-jobs/**`;
-- `.agent-runtime/**` or `.agent-result/**`;
-- `governance/**`;
-- `docs/architecture/**`;
-- `work-packages/**`;
-- `tools/agent_worktree.py`;
-- Git metadata, symlinks, submodules or binary files.
+An analysis request adds exactly one fixed profile:
 
-Changes to these areas require the governed connector/PR path rather than the fast development lane.
+```json
+{
+  "schemaVersion": 1,
+  "id": "LLV2-ANALYZE-001",
+  "baseCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
+  "branch": "agent/llv2-analyze-001",
+  "mode": "analyze",
+  "analysisProfile": "learnit-next-snapshot"
+}
+```
 
-## Job constraints
+The validation job:
 
-Every job requires:
+1. checks out the exact pull-request head without persisted credentials;
+2. verifies the exact base commit and envelope-only branch;
+3. runs repository governance validation and Remote Agent unit tests;
+4. executes the selected fixed profile with `contents: read` only;
+5. uploads the structured report and any tested HTML artifact;
+6. creates no result commit and performs no push.
 
-- a full immutable `baseCommit` SHA;
-- an exact `agent/**` branch name;
-- non-empty, non-global `allowedPaths`;
-- explicit `forbiddenPaths`;
-- one fixed validation profile;
-- file, line and patch-size budgets;
-- a one-line commit message.
+Supported analysis profiles:
 
-The hard ceilings are:
+- `learnit-next-snapshot`
+- `learnit-next-fast`
+- `learnit-next-full`
+- `learnit-next-browser`
+- `learnit-next-authoring`
+- `learnit-next-contract`
+
+`learnit-next-snapshot` reports the materialized runtime files, module import edges, test inventory, ownership groups, composition points and declared artifact identity.
+
+## IMPLEMENT mode
+
+Existing implementation requests remain compatible. `mode` may be omitted and defaults to `implement`.
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "LLV2-DEV-001",
+  "baseCommit": "<full-sha>",
+  "branch": "agent/llv2-dev-001",
+  "mode": "implement",
+  "patchFile": ".agent-jobs/LLV2-DEV-001/change.patch",
+  "allowedPaths": ["apps/learnit-next/src/core/**"],
+  "forbiddenPaths": [],
+  "testProfile": "learnit-next-fast",
+  "commitMessage": "LLV2: implement bounded learning change"
+}
+```
+
+The implementation sequence remains:
+
+1. validate branch, base, patch, paths and budgets;
+2. apply the patch without repository credentials;
+3. validate repository governance;
+4. run the fixed profile;
+5. package the exact tested patch and manifest;
+6. revalidate the envelope in a separate write-token job;
+7. commit and push only to the originating `agent/**` branch;
+8. attach `Remote agent worktree / tested result` to the exact result commit.
+
+## Fixed profiles
+
+Legacy profiles remain supported:
+
+- `repository`
+- `player-fast`
+- `player-targeted`
+- `player-full`
+
+Learn-it Next profiles:
+
+- `learnit-next-snapshot`: inventory only, no build;
+- `learnit-next-fast`: deterministic build plus bounded contract, storage and P1 checks;
+- `learnit-next-full`: deterministic build plus the complete unittest discovery suite;
+- `learnit-next-browser`: deterministic build plus browser and P1 scenarios;
+- `learnit-next-authoring`: validate both canonical golden kits with the foundation profile;
+- `learnit-next-contract`: run the contract-v2 contradictory suite.
+
+The profiles materialize the manifest-controlled Learn-it Next tree, including files preserved as Git blobs, before running commands. When a profile builds the application, the exact produced `apps/learnit-next/dist/learnit-next.html` is included in the evidence artifact.
+
+## Permanent prohibitions
+
+The fast implementation lane cannot modify:
+
+- `.github/**`
+- `.agent-jobs/**`
+- `.agent-runtime/**` or `.agent-result/**`
+- `governance/**`
+- `docs/architecture/**`
+- `work-packages/**`
+- `tools/agent_worktree.py`
+- Git metadata, binaries, symlinks or submodules
+
+Workflow, governance, architecture, work-package, secret, release and policy changes use the normal governed branch and pull-request path.
+
+## Security boundary
+
+Patched or analyzed repository code executes only in the read-token validation job. `actions/checkout` does not persist credentials.
+
+The write-token job does not execute repository tests. It only downloads and revalidates the previously tested result envelope, stages that exact result and pushes to the originating internal branch.
+
+An `ANALYZE` job never reaches the write-token job.
+
+## Limits
+
+Hard implementation ceilings remain:
 
 - 1,000,000 patch bytes;
 - 80 changed files;
 - 8,000 added plus deleted lines.
 
-Jobs should normally use substantially smaller limits.
-
-## Security boundary
-
-The build/test job has read-only repository permissions and `actions/checkout` does not persist credentials. Patched code may execute during tests but does not receive the write token.
-
-The write-token job does not execute the patched test suite. It only:
-
-- downloads the tested result envelope;
-- revalidates baseline, pull-request branch, digest, paths and limits using the protected runner script;
-- stages the previously tested result;
-- commits and pushes to the originating internal `agent/**` branch.
-
-The final status job receives only `statuses: write`. It does not check out the repository or execute patched code. It posts the `Remote agent worktree / tested result` status to the exact SHA emitted by the result-commit job.
-
-The branch is rejected when the pull request head repository is not the current repository. This limits the blast radius without pretending that CI execution of repository code is risk-free.
-
-## Usage policy
-
-Use this lane for bounded product, UX, test and documentation changes whose work package explicitly permits the affected paths.
-
-Do not use it for:
-
-- workflow or governance changes;
-- architecture constitution changes;
-- secret handling;
-- repository policy changes;
-- global identifier or storage migrations;
-- backend, synchronization, tenancy or commerce activation;
-- direct release publication;
-- direct merging.
+Each work package should set substantially smaller limits.
 
 ## Failure and recovery
 
-A failed validation or test leaves the pull request branch with only its job envelope. Correct or replace the patch, then update `READY` last to start a new pull-request synchronization attempt.
+A failed analysis leaves the branch unchanged and publishes diagnostics only.
 
-A successful run removes the job envelope from the branch tree. The pull request, exact-result commit status and Actions evidence remain reviewable before any merge.
+A failed implementation leaves the pull request branch with its job envelope. Correct or replace the patch and update `READY` last to trigger a new attempt.
+
+A successful analysis PR is evidence transport and should be closed unmerged after its report is consumed. A successful implementation PR exposes only the exact tested product change for normal review and an explicit human merge decision.
