@@ -7,9 +7,36 @@ import { createIndexedDbStorage } from './adapters/indexeddb.js';
 import { assertStoragePort } from './ports/storage.js';
 import { renderApp } from './ui/render.js';
 
-export function createLearnitRuntime(storageAdapter = createIndexedDbStorage()) {
+export const LEARNING_LOOP_V2_COMPOSITION = Object.freeze({
+  registry: '__LEARNIT_NEXT_WAVE_A__',
+  modules: Object.freeze({
+    objectiveProgress: './core/objective_progress.js',
+    learningRecommendation: './core/learning_recommendation.js',
+    objectiveUi: './ui/objective_progress.js',
+  }),
+  requiredExports: Object.freeze({
+    objectiveProgress: 'projectObjectiveProgress',
+    learningRecommendation: 'recommendLearningAction',
+    objectiveUi: 'renderObjectiveProgress',
+  }),
+});
+
+function resolveIntegrations(value = {}) {
+  if (value == null) return Object.freeze({});
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('Learning Loop V2 integrations must be an object');
+  }
+  return Object.freeze({
+    objectiveProgress: value.objectiveProgress ?? null,
+    learningRecommendation: value.learningRecommendation ?? null,
+    objectiveUi: value.objectiveUi ?? null,
+  });
+}
+
+export function createLearnitRuntime(storageAdapter = createIndexedDbStorage(), integrations = {}) {
   const storage = assertStoragePort(storageAdapter);
-  const progress = createProgressService(storage);
+  const resolvedIntegrations = resolveIntegrations(integrations);
+  const progress = createProgressService(storage, resolvedIntegrations);
   const library = createLibraryService(storage, progress);
   const imports = createImportService(storage);
   const sessions = createSessionService(storage, progress);
@@ -19,7 +46,30 @@ export function createLearnitRuntime(storageAdapter = createIndexedDbStorage()) 
     validatePackage: (payload) => imports.validatePackage(payload),
     previewImport: (payload) => imports.previewImport(payload),
     importPackage: (payload) => imports.importPackage(payload),
-    listCourses: () => library.listCourses(),
+    async listCourses() {
+      const courses = await library.listCourses();
+      if (!progress.learningLoopV2Enabled) return courses;
+      const enriched = [];
+      for (const course of courses) {
+        const courseRecord = await library.getCourse(course.courseInstallId);
+        if (!courseRecord) continue;
+        const courseProgress = await progress.getCourseProgress(
+          course.courseInstallId,
+          courseRecord.course,
+        );
+        enriched.push({
+          ...course,
+          objectives: structuredClone(courseRecord.course.objectives ?? []),
+          progress: {
+            ...course.progress,
+            needsReview: courseProgress.needsReview,
+            objectives: courseProgress.objectives ?? [],
+            recommendation: courseProgress.recommendation ?? null,
+          },
+        });
+      }
+      return enriched;
+    },
     setCourseDisplayLabel: (courseInstallId, label) => library.setDisplayLabel(courseInstallId, label),
     startCourse: (courseInstallId) => sessions.startCourse(courseInstallId),
     startReviewQueue: (courseInstallId) => sessions.startReviewQueue(courseInstallId),
@@ -27,11 +77,16 @@ export function createLearnitRuntime(storageAdapter = createIndexedDbStorage()) 
     async getProgress(courseInstallId) {
       const courseRecord = await library.getCourse(courseInstallId);
       if (!courseRecord) throw new Error(`Unknown courseInstallId ${courseInstallId}`);
-      const records = await progress.getProgress(courseInstallId);
+      const summary = await progress.getCourseProgress(courseInstallId, courseRecord.course);
       return {
-        ...progress.summarize(courseRecord.course, records),
+        ...summary,
         courseInstallId,
       };
+    },
+    async getObjectiveProgress(courseInstallId) {
+      const courseRecord = await library.getCourse(courseInstallId);
+      if (!courseRecord) throw new Error(`Unknown courseInstallId ${courseInstallId}`);
+      return progress.getObjectiveProgress(courseInstallId, courseRecord.course);
     },
     async getReviewQueue(courseInstallId) {
       const courseRecord = await library.getCourse(courseInstallId);
@@ -50,6 +105,10 @@ export function createLearnitRuntime(storageAdapter = createIndexedDbStorage()) 
       return storage.storageReport();
     },
     storageReport: () => storage.storageReport(),
+    integrationStatus: () => ({
+      learningLoopV2: progress.learningLoopV2Enabled,
+      objectiveUi: typeof resolvedIntegrations.objectiveUi?.renderObjectiveProgress === 'function',
+    }),
 
     // Visible UI helpers use the same domain services as the bounded diagnostic surface.
     resumeActiveCourse: () => sessions.resumeActiveCourse(),
@@ -74,8 +133,9 @@ function waitForInitialRender(root) {
 async function boot() {
   const root = document.getElementById('app');
   if (!root) throw new Error('Missing #app mount point');
-  const runtime = createLearnitRuntime();
-  renderApp(root, runtime);
+  const integrations = resolveIntegrations(globalThis[LEARNING_LOOP_V2_COMPOSITION.registry] ?? {});
+  const runtime = createLearnitRuntime(createIndexedDbStorage(), integrations);
+  renderApp(root, runtime, integrations.objectiveUi);
   await waitForInitialRender(root);
   globalThis.__LEARNIT_NEXT_TEST__ = Object.freeze({
     contractVersion: runtime.contractVersion,
@@ -88,9 +148,11 @@ async function boot() {
     startReviewQueue: runtime.startReviewQueue,
     answer: runtime.answer,
     getProgress: runtime.getProgress,
+    getObjectiveProgress: runtime.getObjectiveProgress,
     getReviewQueue: runtime.getReviewQueue,
     resetNextData: runtime.resetNextData,
     storageReport: runtime.storageReport,
+    integrationStatus: runtime.integrationStatus,
   });
 }
 
