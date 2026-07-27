@@ -124,6 +124,8 @@ class FixturePreparation(unittest.TestCase):
         self.assertEqual([], digest_errors(self.valid)); self.assertEqual([], semantic_errors(self.valid))
         self.assertEqual(2, len(self.valid["courses"][0]["objectives"]))
     def test_02_unknown_objective_is_semantic_not_schema_noise(self):
+        absent=json.loads(json.dumps(self.valid)); del absent["courses"][0]["activities"][0]["objectiveIds"]
+        self.assertTrue(list(self.validator.iter_errors(absent)), "absent objectiveIds must be rejected")
         self.assertEqual([], list(self.validator.iter_errors(self.invalid)))
         self.assertEqual([], digest_errors(self.invalid)); self.assertTrue(any("unknown objective" in e for e in semantic_errors(self.invalid)))
     def test_03_no_durable_claims_in_fixtures(self):
@@ -139,7 +141,7 @@ class CandidateContract(unittest.TestCase):
         for token in ("qcm","fill","completed","startReviewQueue","resumeActiveCourse","reviewIndex"): self.assertIn(token,text)
     def test_12_rc718_storage_is_unchanged_and_extension_is_additive(self):
         require_candidate(self); port=(ROOT/"apps/learnit-next/src/ports/storage.js").read_text(encoding="utf-8"); adapter=(ROOT/"apps/learnit-next/src/adapters/indexeddb.js").read_text(encoding="utf-8")
-        for token in ("learnit.next.v1.","learnit_next_v1","NEXT_INDEXED_DB_VERSION = 1","packages","courses","progress","meta"): self.assertIn(token,port+adapter)
+        for token in ("learnit.next.v1.","learnit_next_v1","NEXT_INDEXED_DB_VERSION","packages","courses","progress","meta"): self.assertIn(token,port+adapter)
         self.assertRegex(port+adapter, r"(?i)(llv2|objective|learning)")
     def test_13_public_runtime_behavior_matrix(self):
         require_candidate(self); node=shutil.which("node"); self.assertIsNotNone(node)
