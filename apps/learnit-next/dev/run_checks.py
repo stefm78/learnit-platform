@@ -36,6 +36,73 @@ def load_manifest():
     data=subprocess.run(["git","cat-file","blob",declared],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
    if not data or blob(data)!=declared: raise GateError("manifest blob differs: "+x["path"])
  return m
+def compose_wave_a_projection(root,manifest):
+ main_path=root/"apps/learnit-next/src/main.js"
+ source=main_path.read_text(encoding="utf-8")
+ signature="export function createLearnitRuntime(storageAdapter = createIndexedDbStorage(), integrations = {}) {"
+ boot_line="const integrations = resolveIntegrations(globalThis[LEARNING_LOOP_V2_COMPOSITION.registry] ?? {});"
+ if source.count(signature)!=1 or source.count(boot_line)!=1:
+  raise GateError("Wave A composition seam differs")
+ prefix="""import * as __waveAObjectiveProgress from './core/objective_progress.js';
+import * as __waveALearningRecommendation from './core/learning_recommendation.js';
+import * as __waveAObjectiveUiModule from './ui/objective_progress.js';
+
+const __waveAObjectiveUi = Object.freeze({
+  renderObjectiveProgress(input = {}) {
+    const labelsById = Object.fromEntries(
+      (input.courseObjectives ?? []).map((objective) => [
+        objective.objectiveId,
+        objective.label ?? objective.objectiveId,
+      ]),
+    );
+    return __waveAObjectiveUiModule.renderObjectiveProgressPanel(
+      {
+        objectives: input.objectiveProgress ?? [],
+        recommendation: input.recommendation ?? null,
+      },
+      {
+        documentRef: input.document ?? globalThis.document,
+        labelsById,
+        idPrefix: `learning-loop-${input.context ?? 'surface'}`,
+      },
+    );
+  },
+});
+
+const __waveADefaultIntegrations = Object.freeze({
+  objectiveProgress: __waveAObjectiveProgress,
+  learningRecommendation: __waveALearningRecommendation,
+  objectiveUi: __waveAObjectiveUi,
+});
+
+"""
+ composed=prefix+source.replace(signature,"export function createLearnitRuntime(storageAdapter = createIndexedDbStorage(), integrations = __waveADefaultIntegrations) {").replace(boot_line,"const integrations = resolveIntegrations(globalThis[LEARNING_LOOP_V2_COMPOSITION.registry] ?? __waveADefaultIntegrations);")
+ main_path.write_text(composed,encoding="utf-8")
+ projected=json.loads(json.dumps(manifest,ensure_ascii=False))
+ item=next((x for x in projected["workingFiles"] if x["path"]=="apps/learnit-next/src/main.js"),None)
+ if not item or item["fingerprint"]["value"]!="86eb2cf95d9173c361618a2e10b4f6fd0122b06e":
+  raise GateError("Wave A source main identity differs")
+ item["fingerprint"]["value"]=blob(composed.encode("utf-8"))
+ item["projection"]={"kind":"deterministic-int-composition-v1","sourceBlob":"86eb2cf95d9173c361618a2e10b4f6fd0122b06e"}
+ self_item=next(x for x in projected["workingFiles"] if x["path"]==SELF)
+ self_item["fingerprint"]["value"]=self_digest(projected)
+ (root/SELF).write_text(json.dumps(projected,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n",encoding="utf-8")
+ return {"mainSourceBlob":"86eb2cf95d9173c361618a2e10b4f6fd0122b06e","projectedMainBlob":item["fingerprint"]["value"],"kind":"deterministic-int-composition-v1"}
+
+def attach_git_metadata(root):
+ source=ROOT/".git"
+ if source.is_dir(): gitdir=source.resolve()
+ elif source.is_file() and source.read_text(encoding="utf-8").startswith("gitdir:"):
+  raw=source.read_text(encoding="utf-8").split(":",1)[1].strip(); gitdir=(ROOT/raw).resolve() if not Path(raw).is_absolute() else Path(raw)
+ else: raise GateError("Git metadata unavailable for strict provenance QA")
+ (root/".git").write_text(f"gitdir: {gitdir}\n",encoding="utf-8")
+
+def install_p1_compatibility_port(root):
+ source=root/"apps/learnit-next/src/ports/storage.js"
+ target=Path(tempfile.gettempdir())/"ports/storage.js"
+ target.parent.mkdir(parents=True,exist_ok=True)
+ target.write_bytes(source.read_bytes())
+
 def materialize(destination,manifest):
  root=destination/"repo"
  def ignore(d,n):
@@ -52,6 +119,9 @@ def materialize(destination,manifest):
    target.parent.mkdir(parents=True,exist_ok=True); target.write_bytes(data)
  old=root/"apps/learnit-next/tests/build_determinism.py"
  if old.exists(): old.unlink()
+ attach_git_metadata(root)
+ install_p1_compatibility_port(root)
+ compose_wave_a_projection(root,manifest)
  return root
 def provenance():
  if set().union(*LANES.values())&INT: raise GateError("ownership overlap")
