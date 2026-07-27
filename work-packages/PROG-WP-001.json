@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "PROG-WP-001",
+  "title": "Bootstrap minimal AI execution for Learning Loop V2",
+  "status": "in-progress",
+  "changeClass": "repository-governance",
+  "riskClass": "high",
+  "purpose": "Extend the accepted Remote Agent Worktree with one fixed-profile read-only ANALYZE mode and Learn-it Next validation profiles, while preserving the exact-tested-result IMPLEMENT path and authorizing no product implementation yet.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
+    "candidateName": "Learning Loop V2 minimal AI bootstrap",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/remote-agent-worktree.yml",
+      "tools/agent_worktree.py",
+      "tools/learnit_next_agent.py",
+      "tools/test_agent_worktree.py",
+      "docs/governance/REMOTE_AGENT_WORKTREE.md",
+      "work-packages/PROG-WP-001.json",
+      "governance/governor-state.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/source_manifest.json",
+      "contracts/**",
+      "authoring/**",
+      "docs/architecture/**",
+      "apps/player/**"
+    ]
+  },
+  "invariants": [
+    "The bootstrap changes at most eight repository paths and at most 1500 added plus deleted lines.",
+    "ANALYZE accepts only fixed versioned profiles and never accepts caller-supplied shell, command, script, plugin or environment content.",
+    "ANALYZE runs in the read-token job and never reaches a write-token job or creates a result commit.",
+    "IMPLEMENT preserves the exact base, path budget, patch validation, no-credential test execution, separate result commit and exact tested-result status guarantees.",
+    "Neither mode writes directly to main or merges a pull request.",
+    "No Learning Loop V2 product source is changed by this bootstrap.",
+    "The exact built Learn-it Next HTML is included when a fixed profile produces it."
+  ],
+  "requiredEvidence": [
+    "repository governance validation PASS",
+    "PR scope validation PASS on the exact bootstrap head",
+    "Remote Agent bootstrap unit tests PASS",
+    "unknown profile rejection",
+    "arbitrary command field rejection",
+    "invalid SHA rejection",
+    "forbidden path rejection",
+    "analyze apply rejection",
+    "one exact-baseline learnit-next-snapshot analysis artifact",
+    "existing implementation result-commit behavior preserved"
+  ],
+  "adversarialTests": [
+    "reject a non-full or uppercase base commit SHA",
+    "reject an unknown analyze or implement profile",
+    "reject command, commands, shell or any unsupported job field",
+    "reject an ANALYZE request containing a patch",
+    "reject calling apply, package or commit-prepare for ANALYZE",
+    "reject implementation paths outside allowedPaths or inside permanent forbidden paths",
+    "skip every write-token job after a successful ANALYZE run",
+    "preserve branch-moved, digest-mismatch and final-scope checks for IMPLEMENT"
+  ],
+  "nonGoals": [
+    "build a generic AI execution platform",
+    "support arbitrary shell commands",
+    "create an agent scheduler or orchestrator",
+    "grant autonomous merge or release authority",
+    "implement Learning Loop V2 product behavior",
+    "activate backend, accounts, cloud synchronization, marketplace, commerce or tenancy"
+  ],
+  "independentReview": [
+    "Repository governance workflow",
+    "PR scope workflow",
+    "Architecture and Repository Governor",
+    "Linus code review of permission separation and compatibility",
+    "one read-only end-to-end analysis smoke run before bootstrap acceptance"
+  ],
+  "programAfterBootstrap": {
+    "name": "LEARNING-LOOP-V2",
+    "authorityIssue": 119,
+    "maximumDevelopmentLanes": 4,
+    "lanes": [
+      "DEV-LEARNING",
+      "DEV-UX",
+      "DEV-AUTHORING",
+      "DEV-PLATFORM"
+    ],
+    "implementationAuthorized": false,
+    "activationGate": "Bootstrap accepted and exact snapshot evidence reviewed"
+  },
+  "rollback": "Revert the bootstrap pull request. Existing P1 product source, accepted post-merge artifact, Remote Agent v1 implementation lane and repository data remain unchanged; analysis-only branches can be closed without migration."
+}
