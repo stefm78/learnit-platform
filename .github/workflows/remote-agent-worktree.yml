@@ -10,6 +10,13 @@ on:
       - reopened
     paths:
       - '.agent-jobs/**/READY'
+      - '.github/workflows/remote-agent-worktree.yml'
+      - 'tools/agent_worktree.py'
+      - 'tools/learnit_next_agent.py'
+      - 'tools/test_agent_worktree.py'
+      - 'docs/governance/REMOTE_AGENT_WORKTREE.md'
+      - 'work-packages/PROG-WP-001.json'
+      - 'governance/governor-state.json'
 
 permissions:
   contents: read
@@ -19,8 +26,32 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  bootstrap-self-test:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'gov/PROG-WP-001-ai-bootstrap' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out exact bootstrap head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Compile bootstrap tools
+        run: python -m py_compile tools/agent_worktree.py tools/learnit_next_agent.py tools/test_agent_worktree.py
+      - name: Validate repository governance
+        run: python tools/validate_repository.py
+      - name: Run fail-closed bootstrap tests
+        run: python tools/test_agent_worktree.py
+
   validate-and-test:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.event.pull_request.head.ref, 'agent/') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
