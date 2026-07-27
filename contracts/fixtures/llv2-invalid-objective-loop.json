@@ -1,0 +1,162 @@
+{
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
+  "packageRevisionId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+  "packageRevisionDigest": "sha256:90394aa3c72282e06cd8910700f0fe5522d3b6765fede308454af78330e6faeb",
+  "title": "LLV2 — boucle objectifs contradictoire",
+  "description": "Fixture QA indépendante couvrant deux objectifs, entraînement, correction et validation distincte.",
+  "versionLabel": "llv2-wave-a-qa-invalid-unknown-objective",
+  "language": "fr-FR",
+  "courses": [
+    {
+      "courseLineageId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1",
+      "courseRevisionId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
+      "courseRevisionDigest": "sha256:3d1c42b591dc3677c8fbfe75146990e00f01f65083fa32a7f7d9b49d0f182e01",
+      "title": "Boucle minimale multi-objectifs",
+      "subtitle": "Entraînement, reprise corrective et validation séparée.",
+      "estimatedMinutes": 12,
+      "objectives": [
+        {
+          "objectiveId": "11111111-1111-4111-8111-111111111101",
+          "label": "Distinguer entraînement et validation."
+        },
+        {
+          "objectiveId": "11111111-1111-4111-8111-111111111102",
+          "label": "Préserver une progression indépendante par objectif."
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "c1111111-1111-4111-8111-111111111111",
+          "activityRevisionId": "d1111111-1111-4111-8111-111111111111",
+          "activityRevisionDigest": "sha256:d7e21008807e7e901f5489fde5de4cb15e808e847986b79dc94233db2dfffe9a",
+          "objectiveIds": [
+            "11111111-1111-4111-8111-111111111101"
+          ],
+          "type": "qcm",
+          "prompt": "En entraînement, quelle action doit rester sans crédit de validation ?",
+          "explanation": "La réponse est évaluée par identifiant et ne crédite pas la validation.",
+          "difficulty": "medium",
+          "learningPhase": "comprehension",
+          "assessmentRole": "practice",
+          "choices": [
+            {
+              "choiceId": "e1111111-1111-4111-8111-111111111111",
+              "label": "Une correction affichée"
+            },
+            {
+              "choiceId": "f1111111-1111-4111-8111-111111111112",
+              "label": "Une réponse d’entraînement correcte"
+            }
+          ],
+          "correctChoiceId": "f1111111-1111-4111-8111-111111111112"
+        },
+        {
+          "activityLineageId": "c2222222-2222-4222-8222-222222222222",
+          "activityRevisionId": "d2222222-2222-4222-8222-222222222222",
+          "activityRevisionDigest": "sha256:158b7820a8423b980370ae0fa7370ecb7084b6635bb8fd01b6af6de300eb29c0",
+          "objectiveIds": [
+            "11111111-1111-4111-8111-111111111101"
+          ],
+          "type": "fill",
+          "prompt": "Compléter l’activité distincte de validation du premier objectif.",
+          "explanation": "La validation exige une réponse distincte et correcte, sans crédit provenant de l’entraînement.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "segments": [
+            {
+              "text": "Réponse : "
+            },
+            {
+              "slotId": "e2222222-2222-4222-8222-222222222223"
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "f2222222-2222-4222-8222-222222222224",
+              "label": "validation distincte",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "92222222-2222-4222-8222-222222222225",
+              "label": "distracteur",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "e2222222-2222-4222-8222-222222222223",
+              "tokenId": "f2222222-2222-4222-8222-222222222224"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "c3333333-3333-4333-8333-333333333333",
+          "activityRevisionId": "d3333333-3333-4333-8333-333333333333",
+          "activityRevisionDigest": "sha256:c11894e5a72ede044bd67cb1835efc2f660e347420415d555477f0fe53edd355",
+          "objectiveIds": [
+            "11111111-1111-4111-8111-111111111199"
+          ],
+          "type": "fill",
+          "prompt": "Compléter l’entraînement du second objectif.",
+          "explanation": "La validation exige une réponse distincte et correcte, sans crédit provenant de l’entraînement.",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "segments": [
+            {
+              "text": "Réponse : "
+            },
+            {
+              "slotId": "e3333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "f3333333-3333-4333-8333-333333333334",
+              "label": "objectif isolé",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "93333333-3333-4333-8333-333333333335",
+              "label": "distracteur",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "e3333333-3333-4333-8333-333333333333",
+              "tokenId": "f3333333-3333-4333-8333-333333333334"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "c4444444-4444-4444-8444-444444444444",
+          "activityRevisionId": "d4444444-4444-4444-8444-444444444444",
+          "activityRevisionDigest": "sha256:59f95ca7a3f9769fd7370689550637c18bbd41ec689f0323fd1273bed8f3f77d",
+          "objectiveIds": [
+            "11111111-1111-4111-8111-111111111102"
+          ],
+          "type": "qcm",
+          "prompt": "Quelle activité peut créditer la validation du second objectif ?",
+          "explanation": "La réponse est évaluée par identifiant et ne crédite pas la validation.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "choices": [
+            {
+              "choiceId": "e4444444-4444-4444-8444-444444444441",
+              "label": "Une activité practice"
+            },
+            {
+              "choiceId": "f4444444-4444-4444-8444-444444444442",
+              "label": "L’activité explicitement marquée validation"
+            }
+          ],
+          "correctChoiceId": "f4444444-4444-4444-8444-444444444442"
+        }
+      ]
+    }
+  ]
+}

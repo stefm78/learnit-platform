@@ -6,6 +6,8 @@ export class AnswerValidationError extends Error {
   }
 }
 
+export const LEARNING_LOOP_V2_SESSION_META_KEY = 'learningLoopV2Session';
+
 function normalizeQcmAnswer(activity, answer) {
   const choiceId = typeof answer === 'string' ? answer : answer?.choiceId;
   if (typeof choiceId !== 'string') {
@@ -69,13 +71,29 @@ function evaluateAnswer(activity, answer) {
   throw new AnswerValidationError(`Unsupported activity type ${activity.type}`, 'unsupported_activity');
 }
 
-function nextIncompleteIndex(course, records) {
+function nextIncompleteIndex(course, records, preferredIndex = null) {
   const complete = new Set(records.filter((record) => record.completed).map((record) => record.activityRevisionId));
+  if (
+    Number.isInteger(preferredIndex)
+    && preferredIndex >= 0
+    && preferredIndex < course.activities.length
+    && !complete.has(course.activities[preferredIndex].activityRevisionId)
+  ) {
+    return preferredIndex;
+  }
   return course.activities.findIndex((activity) => !complete.has(activity.activityRevisionId));
+}
+
+function validLearningLoopMeta(meta, activeCourseMeta) {
+  return meta
+    && meta.schemaVersion === 1
+    && meta.courseInstallId === activeCourseMeta.courseInstallId
+    && meta.mode === (activeCourseMeta.mode ?? 'learn');
 }
 
 export function createSessionService(storage, progressService) {
   let active = null;
+  const learningLoopV2Enabled = progressService.learningLoopV2Enabled === true;
 
   async function loadCourse(courseInstallId) {
     const courseRecord = await storage.getCourse(courseInstallId);
@@ -83,59 +101,94 @@ export function createSessionService(storage, progressService) {
     return courseRecord;
   }
 
-  async function persistActive() {
-    if (!active) return;
-    await storage.setMeta('activeCourse', {
+  function legacyActiveMeta() {
+    return {
       courseInstallId: active.courseRecord.courseInstallId,
       mode: active.mode,
       ...(active.mode === 'review' ? { reviewIndex: active.reviewIndex } : {}),
-    });
+    };
+  }
+
+  function learningLoopMeta(current) {
+    return {
+      schemaVersion: 1,
+      courseInstallId: active.courseRecord.courseInstallId,
+      mode: active.mode,
+      currentIndex: current?.currentIndex ?? active.currentIndex ?? -1,
+      reviewIndex: active.mode === 'review' ? active.reviewIndex : 0,
+      currentActivityRevisionId: current?.currentActivity?.activityRevisionId ?? null,
+      reviewQueueActivityRevisionIds: current?.review?.activityRevisionIds ?? [],
+    };
+  }
+
+  async function persistActive(current = null) {
+    if (!active) return;
+    if (learningLoopV2Enabled) {
+      // Write the additive record first. The protected P1 record remains the resume authority.
+      await storage.setMeta(LEARNING_LOOP_V2_SESSION_META_KEY, learningLoopMeta(current));
+    }
+    await storage.setMeta('activeCourse', legacyActiveMeta());
+  }
+
+  async function clearPersistedActive() {
+    if (learningLoopV2Enabled) {
+      // Preserve the protected P1 resume record if cleanup of the additive record fails.
+      await storage.deleteMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
+    }
+    await storage.deleteMeta('activeCourse');
   }
 
   async function snapshot() {
     if (!active) return null;
     const records = await progressService.getProgress(active.courseRecord.courseInstallId);
-    const summary = progressService.summarize(active.courseRecord.course, records);
+    const summary = await progressService.getCourseProgress(
+      active.courseRecord.courseInstallId,
+      active.courseRecord.course,
+      records,
+    );
+    const common = {
+      courseInstallId: active.courseRecord.courseInstallId,
+      title: active.courseRecord.displayLabel,
+      canonicalTitle: active.courseRecord.title,
+      ...(learningLoopV2Enabled ? { courseObjectives: structuredClone(active.courseRecord.course.objectives ?? []) } : {}),
+      progress: { ...summary, courseInstallId: active.courseRecord.courseInstallId },
+    };
 
     if (active.mode === 'review') {
       const queue = progressService.reviewQueue(active.courseRecord.course, records);
       if (queue.length === 0) {
         active.reviewIndex = 0;
         return {
-          courseInstallId: active.courseRecord.courseInstallId,
-          title: active.courseRecord.displayLabel,
-          canonicalTitle: active.courseRecord.title,
+          ...common,
           mode: 'review',
           currentIndex: -1,
           currentActivity: null,
-          review: { remaining: 0 },
-          progress: { ...summary, courseInstallId: active.courseRecord.courseInstallId },
+          review: learningLoopV2Enabled ? { remaining: 0, activityRevisionIds: [] } : { remaining: 0 },
         };
       }
       const index = active.reviewIndex % queue.length;
       active.reviewIndex = index;
       return {
-        courseInstallId: active.courseRecord.courseInstallId,
-        title: active.courseRecord.displayLabel,
-        canonicalTitle: active.courseRecord.title,
+        ...common,
         mode: 'review',
         currentIndex: index,
         currentActivity: structuredClone(queue[index]),
-        review: { remaining: queue.length },
-        progress: { ...summary, courseInstallId: active.courseRecord.courseInstallId },
+        review: learningLoopV2Enabled
+          ? {
+            remaining: queue.length,
+            activityRevisionIds: queue.map((activity) => activity.activityRevisionId),
+          }
+          : { remaining: queue.length },
       };
     }
 
-    const index = nextIncompleteIndex(active.courseRecord.course, records);
+    const index = nextIncompleteIndex(active.courseRecord.course, records, active.currentIndex);
     active.currentIndex = index;
     return {
-      courseInstallId: active.courseRecord.courseInstallId,
-      title: active.courseRecord.displayLabel,
-      canonicalTitle: active.courseRecord.title,
+      ...common,
       mode: 'learn',
       currentIndex: index,
       currentActivity: index >= 0 ? structuredClone(active.courseRecord.course.activities[index]) : null,
-      progress: { ...summary, courseInstallId: active.courseRecord.courseInstallId },
     };
   }
 
@@ -143,16 +196,21 @@ export function createSessionService(storage, progressService) {
     async startCourse(courseInstallId) {
       const courseRecord = await loadCourse(courseInstallId);
       active = { courseRecord, mode: 'learn', currentIndex: 0 };
-      await persistActive();
-      return snapshot();
+      if (!learningLoopV2Enabled) {
+        await persistActive();
+        return snapshot();
+      }
+      const current = await snapshot();
+      await persistActive(current);
+      return current;
     },
 
     async startReviewQueue(courseInstallId) {
       const courseRecord = await loadCourse(courseInstallId);
       active = { courseRecord, mode: 'review', reviewIndex: 0 };
       const current = await snapshot();
-      if (current.review.remaining > 0) await persistActive();
-      else await storage.deleteMeta('activeCourse');
+      if (current.review.remaining > 0) await persistActive(current);
+      else await clearPersistedActive();
       return current;
     },
 
@@ -174,6 +232,7 @@ export function createSessionService(storage, progressService) {
       if (!validCourseInstallId || !validMode) {
         active = null;
         await storage.deleteMeta('activeCourse');
+        if (learningLoopV2Enabled) await storage.deleteMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
         return null;
       }
 
@@ -187,12 +246,36 @@ export function createSessionService(storage, progressService) {
       if (!courseRecord) {
         active = null;
         await storage.deleteMeta('activeCourse');
+        if (learningLoopV2Enabled) await storage.deleteMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
         return null;
       }
 
+      let waveMeta = null;
+      if (learningLoopV2Enabled) {
+        try {
+          const candidate = await storage.getMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
+          if (validLearningLoopMeta(candidate, meta)) waveMeta = candidate;
+        } catch {
+          active = null;
+          return null;
+        }
+      }
+
       active = meta.mode === 'review'
-        ? { courseRecord, mode: 'review', reviewIndex: Number.isInteger(meta.reviewIndex) && meta.reviewIndex >= 0 ? meta.reviewIndex : 0 }
-        : { courseRecord, mode: 'learn', currentIndex: 0 };
+        ? {
+          courseRecord,
+          mode: 'review',
+          reviewIndex: Number.isInteger(meta.reviewIndex) && meta.reviewIndex >= 0
+            ? meta.reviewIndex
+            : (Number.isInteger(waveMeta?.reviewIndex) && waveMeta.reviewIndex >= 0 ? waveMeta.reviewIndex : 0),
+        }
+        : {
+          courseRecord,
+          mode: 'learn',
+          currentIndex: Number.isInteger(waveMeta?.currentIndex) && waveMeta.currentIndex >= 0
+            ? waveMeta.currentIndex
+            : 0,
+        };
 
       let current;
       try {
@@ -202,7 +285,9 @@ export function createSessionService(storage, progressService) {
         return null;
       }
       if (current?.mode === 'review' && current.review.remaining === 0) {
-        await storage.deleteMeta('activeCourse');
+        await clearPersistedActive();
+      } else if (learningLoopV2Enabled) {
+        await persistActive(current);
       }
       return current;
     },
@@ -221,20 +306,24 @@ export function createSessionService(storage, progressService) {
       const evaluation = evaluateAnswer(current.currentActivity, answer);
       const record = await progressService.recordAttempt({
         courseInstallId: current.courseInstallId,
+        course: active.courseRecord.course,
         activity: current.currentActivity,
         answer: evaluation.normalized,
         correct: evaluation.correct,
       });
 
       const previousReviewIndex = current.mode === 'review' ? active.reviewIndex : null;
+      const previousCurrentIndex = active.currentIndex;
       try {
         if (current.mode === 'review' && !evaluation.correct) active.reviewIndex += 1;
         const after = await snapshot();
         if (current.mode === 'review') {
-          if (after.review.remaining === 0) await storage.deleteMeta('activeCourse');
-          else await persistActive();
+          if (after.review.remaining === 0) await clearPersistedActive();
+          else await persistActive(after);
         } else if (after.progress.isComplete) {
-          await storage.deleteMeta('activeCourse');
+          await clearPersistedActive();
+        } else if (learningLoopV2Enabled) {
+          await persistActive(after);
         }
 
         return {
@@ -247,12 +336,16 @@ export function createSessionService(storage, progressService) {
           ...(record.answers ? { answers: structuredClone(record.answers) } : {}),
           answer: evaluation.normalized,
           explanation: current.currentActivity.explanation,
+          ...(learningLoopV2Enabled ? { courseObjectives: current.courseObjectives } : {}),
           progress: after.progress,
           ...(current.mode === 'review' ? { review: after.review } : {}),
           nextActivity: after.currentActivity,
         };
       } catch (error) {
-        if (current.mode === 'review' && active) active.reviewIndex = previousReviewIndex;
+        if (active) {
+          if (current.mode === 'review') active.reviewIndex = previousReviewIndex;
+          else active.currentIndex = previousCurrentIndex;
+        }
         throw error;
       }
     },

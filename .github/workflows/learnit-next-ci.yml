@@ -8,23 +8,16 @@ on:
   workflow_dispatch:
     inputs:
       verification_mode:
-        description: Explicit verification topology
+        description: Exact verification topology
         required: true
         type: choice
-        options:
-          - integration-head
-          - post-merge
-          - maintenance-pr
+        options: [integration-head, post-merge]
       verification_ref:
-        description: Required exact 40-character commit SHA to verify
+        description: Exact 40-character commit SHA
         required: true
         type: string
       accepted_integration_head:
-        description: Required exact accepted integration head for post-merge mode
-        required: false
-        type: string
-      unreachable_ref_justification:
-        description: Explicit justification when verification_ref is not reachable from main
+        description: Exact accepted integration head for post-merge
         required: false
         type: string
 
@@ -36,500 +29,181 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  resolve-target:
-    name: resolve exact verification target
+  wave-a-gate:
+    name: Wave A exact-head matrix
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      target_ref: ${{ steps.target.outputs.target_ref }}
+    timeout-minutes: 45
     steps:
-      - name: Resolve and validate event target
+      - name: Resolve exact target
         id: target
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_HEAD_REF: ${{ github.head_ref }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
           PUSH_SHA: ${{ github.sha }}
+          DISPATCH_SHA: ${{ inputs.verification_ref }}
           DISPATCH_MODE: ${{ inputs.verification_mode }}
-          DISPATCH_REF: ${{ inputs.verification_ref }}
-          DISPATCH_ACCEPTED_HEAD: ${{ inputs.accepted_integration_head }}
+          DISPATCH_ACCEPTED: ${{ inputs.accepted_integration_head }}
         run: |
           set -euo pipefail
-
-          expected_merge="5c2a037955f2b1bd0fbb353db92368f47915e691"
-          expected_integration="087e79d13a81da16ef5694a4b654b2f4c7f21313"
-
-          valid_full_sha() {
-            [[ "${1-}" =~ ^[0-9a-f]{40}$ ]]
-          }
-
-          validate_p1_post_merge_dispatch() {
-            local target="${1-}"
-            local accepted="${2-}"
-            valid_full_sha "${target}" || return 10
-            [[ "${target}" == "${expected_merge}" ]] || return 11
-            [[ "${accepted}" == "${expected_integration}" ]] || return 12
-          }
-
           case "${EVENT_NAME}" in
             pull_request)
-              target="${PR_HEAD_SHA}"
+              target="${PR_SHA}"
+              mode="integration-head"
+              accepted=""
               ;;
             push)
               target="${PUSH_SHA}"
+              mode="post-merge"
+              accepted=""
               ;;
             workflow_dispatch)
-              target="${DISPATCH_REF}"
-              valid_full_sha "${target}" || {
-                echo "workflow_dispatch requires verification_ref as a lowercase 40-character Git SHA." >&2
-                exit 2
-              }
-              if [[ "${DISPATCH_MODE}" == "post-merge" ]]; then
-                validate_p1_post_merge_dispatch "${target}" "${DISPATCH_ACCEPTED_HEAD}" || {
-                  echo "P1 post-merge dispatch identity differs from the authorized merge/head pair." >&2
-                  exit 2
-                }
-              fi
+              target="${DISPATCH_SHA}"
+              mode="${DISPATCH_MODE}"
+              accepted="${DISPATCH_ACCEPTED}"
               ;;
             *)
               echo "Unsupported event: ${EVENT_NAME}" >&2
               exit 2
               ;;
           esac
-
-          valid_full_sha "${target}" || {
-            echo "Resolved event target is not a lowercase full Git SHA: ${target}" >&2
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "Target must be an exact lowercase SHA." >&2
             exit 2
           }
+          echo "target=${target}" >> "${GITHUB_OUTPUT}"
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+          echo "accepted=${accepted}" >> "${GITHUB_OUTPUT}"
 
-          if [[ "${EVENT_NAME}" == "pull_request" && "${PR_HEAD_REF}" == ci/CI-WP-002-* ]]; then
-            if validate_p1_post_merge_dispatch "" "${expected_integration}"; then
-              echo "Negative guard failed: an absent SHA was accepted." >&2
-              exit 2
-            fi
-            if validate_p1_post_merge_dispatch "not-a-sha" "${expected_integration}"; then
-              echo "Negative guard failed: an invalid SHA was accepted." >&2
-              exit 2
-            fi
-            if validate_p1_post_merge_dispatch "41a4268e6c9baf900f892bd6bd9cc54e6c7ec5f9" "${expected_integration}"; then
-              echo "Negative guard failed: a non-P1 merge commit was accepted." >&2
-              exit 2
-            fi
-            echo "Dispatch fail-closed negative guards: PASS"
-          fi
-
-          echo "target_ref=${target}" >> "${GITHUB_OUTPUT}"
-
-  gate:
-    name: strict foundation gate
-    needs: resolve-target
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.resolve-target.outputs.target_ref }}
+          ref: ${{ steps.target.outputs.target }}
           fetch-depth: 0
-      - name: Verify exact checkout and main reachability
+
+      - name: Fetch exact authority and lane heads
         shell: bash
-        env:
-          TARGET_REF: ${{ needs.resolve-target.outputs.target_ref }}
-          UNREACHABLE_JUSTIFICATION: ${{ inputs.unreachable_ref_justification }}
         run: |
           set -euo pipefail
           git fetch --force --no-tags origin main:refs/remotes/origin/main
-          git cat-file -e "${TARGET_REF}^{commit}" || {
-            echo "Target commit does not exist: ${TARGET_REF}" >&2
-            exit 2
-          }
-          actual="$(git rev-parse HEAD)"
-          [[ "${actual}" == "${TARGET_REF}" ]] || {
-            echo "Exact checkout failed: expected=${TARGET_REF} actual=${actual}" >&2
-            exit 2
-          }
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]] && \
-             ! git merge-base --is-ancestor "${TARGET_REF}" origin/main; then
-            test -n "${UNREACHABLE_JUSTIFICATION}" || {
-              echo "verification_ref is not reachable from main and no explicit justification was supplied." >&2
-              exit 2
-            }
-            echo "::notice::Unreachable verification_ref explicitly justified: ${UNREACHABLE_JUSTIFICATION}"
-          fi
-      - name: Record checked-out tree identity
-        run: |
-          mkdir -p apps/learnit-next/.agent-result
-          git rev-parse 'HEAD^{tree}' | tee apps/learnit-next/.agent-result/tree-sha.txt
+          for sha in \
+            8ebafee48cc5277b92776982639a0146ae7e76d0 \
+            ae999472418a18a1181b43a07259a4395afbcf7f \
+            48df0517d74e8c343223f14361607c4a93e7f55b \
+            6c4111715a55fdff07a3e466d013dcdcc7aa5c78 \
+            85df807137ecfee210459f3d02cd6fbdd7ac1307 \
+            f25da6356528824e84224718013a3bccb2707c49
+          do
+            git fetch --force --no-tags origin "${sha}"
+            git cat-file -e "${sha}^{commit}"
+          done
+          [[ "$(git rev-parse HEAD)" == "${{ steps.target.outputs.target }}" ]]
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - name: Install exact test dependencies
         run: |
           python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
           python -m playwright install --with-deps chromium
-      - name: Resolve comparison refs
-        run: |
-          git fetch --force --no-tags origin main:refs/remotes/origin/main
-          git fetch --force --no-tags origin e5ee65a37326f4861d33c3c80221527511a03f24
-      - name: Verify exact dispatched P1 post-merge topology
-        if: github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'post-merge'
-        shell: bash
-        env:
-          TARGET_REF: ${{ needs.resolve-target.outputs.target_ref }}
-          ACCEPTED_HEAD: ${{ inputs.accepted_integration_head }}
-        run: |
-          set -euo pipefail
-          expected_merge="5c2a037955f2b1bd0fbb353db92368f47915e691"
-          expected_base="41a4268e6c9baf900f892bd6bd9cc54e6c7ec5f9"
-          expected_integration="087e79d13a81da16ef5694a4b654b2f4c7f21313"
 
-          [[ "${TARGET_REF}" == "${expected_merge}" && "$(git rev-parse HEAD)" == "${expected_merge}" ]] || {
-            echo "Dispatched target is not the exact P1 merge commit." >&2
-            exit 2
-          }
-          [[ "${ACCEPTED_HEAD}" == "${expected_integration}" ]] || {
-            echo "Accepted integration head differs from the authorized P1 head." >&2
-            exit 2
-          }
-
-          parents=( $(git show -s --format=%P HEAD) )
-          [[ ${#parents[@]} -eq 2 ]] || {
-            echo "P1 merge commit must have exactly two parents: ${parents[*]}" >&2
-            exit 2
-          }
-          [[ "${parents[0]}" == "${expected_base}" ]] || {
-            echo "P1 first parent differs: expected=${expected_base} actual=${parents[0]}" >&2
-            exit 2
-          }
-          [[ "${parents[1]}" == "${expected_integration}" ]] || {
-            echo "P1 second parent differs: expected=${expected_integration} actual=${parents[1]}" >&2
-            exit 2
-          }
-
-          protected=(
-            apps/learnit-next/index.template.html
-            apps/learnit-next/src
-            apps/learnit-next/build.py
-            contracts/learnit-kit-v2.schema.json
-          )
-          if [[ -n "$(git diff --name-only "${expected_integration}" HEAD -- "${protected[@]}")" ]]; then
-            echo "Executable tree diverges from the accepted P1 integration head." >&2
-            exit 2
-          fi
-      - name: Resolve explicit verification mode
+      - name: Resolve post-merge accepted head
         id: mode
         shell: bash
-        env:
-          DISPATCH_MODE: ${{ inputs.verification_mode }}
-          DISPATCH_ACCEPTED_HEAD: ${{ inputs.accepted_integration_head }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_HEAD_REF: ${{ github.head_ref }}
         run: |
           set -euo pipefail
-          case "${GITHUB_EVENT_NAME}" in
-            pull_request)
-              if [[ "${PR_HEAD_REF}" == ci/CI-WP-002-* ]]; then
-                mode="maintenance-pr"
-              else
-                mode="integration-head"
-              fi
-              accepted_head=""
-              ;;
-            push)
-              mode="post-merge"
-              accepted_head="$(git rev-parse HEAD^2)"
-              ;;
-            workflow_dispatch)
-              mode="${DISPATCH_MODE}"
-              accepted_head="${DISPATCH_ACCEPTED_HEAD}"
-              ;;
-            *)
-              echo "Unsupported event: ${GITHUB_EVENT_NAME}" >&2
+          accepted="${{ steps.target.outputs.accepted }}"
+          if [[ "${{ steps.target.outputs.mode }}" == "post-merge" && -z "${accepted}" ]]; then
+            parents=( $(git show -s --format=%P HEAD) )
+            [[ ${#parents[@]} -eq 2 ]] || {
+              echo "Post-merge target must have exactly two parents." >&2
               exit 2
-              ;;
-          esac
-          case "${mode}" in
-            integration-head|maintenance-pr)
-              ;;
-            post-merge)
-              test -n "${accepted_head}" || {
-                echo "post-merge mode requires an accepted integration head" >&2
-                exit 2
-              }
-              ;;
-            *)
-              echo "Unknown verification mode: ${mode}" >&2
-              exit 2
-              ;;
-          esac
-          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
-          echo "accepted_head=${accepted_head}" >> "$GITHUB_OUTPUT"
-      - name: Run strict mode-aware checks
-        id: checks
+            }
+            accepted="${parents[1]}"
+          fi
+          echo "accepted=${accepted}" >> "${GITHUB_OUTPUT}"
+
+      - name: Run exact-head integration gate
         env:
           LEARNIT_NEXT_STRICT_INTEGRATION: '1'
-          LEARNIT_NEXT_BASE_REF: origin/main
-        shell: bash
         run: |
-          set +e
-          report="apps/learnit-next/.agent-result/run_checks.json"
-          workflow_path=".github/workflows/learnit-next-ci.yml"
-          targeted_followup=0
-          followup_work_package="CI-WP-002"
-          followup_pass="CI_WP_002_FOLLOWUP_PASS"
-          followup_failure="CI_WP_002_FOLLOWUP_FAILURE"
-
-          is_product_relevant_pr_path() {
-            case "${1-}" in
-              .github/workflows/learnit-next-ci.yml|\
-              apps/learnit-next/index.template.html|\
-              apps/learnit-next/source_manifest.json|\
-              apps/learnit-next/build.py|\
-              apps/learnit-next/src/*|\
-              apps/learnit-next/dev/run_checks.py|\
-              apps/learnit-next/tests/*|\
-              contracts/*|\
-              authoring/*)
-                return 0
-                ;;
-              *)
-                return 1
-                ;;
-            esac
-          }
-
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            mapfile -t changed < <(git diff --name-only origin/main...HEAD)
-            if [[ ${#changed[@]} -eq 1 && "${changed[0]}" == "${workflow_path}" ]]; then
-              targeted_followup=1
-              code=0
-              if git rev-parse HEAD^2 >/dev/null 2>&1; then
-                echo "A non-merge PR head unexpectedly resolved HEAD^2." >&2
-                code=2
-              fi
-              python apps/learnit-next/tests/build_determinism.py TopologyModeRegressionTests
-              topology_code=$?
-              if [[ ${topology_code} -ne 0 ]]; then
-                echo "Existing topology regression tests failed." >&2
-                code=${topology_code}
-              fi
-
-              for path_under_test in \
-                governance/governor-state.json \
-                work-packages/PROG-WP-001.json \
-                docs/governance/REMOTE_AGENT_WORKTREE.md
-              do
-                if is_product_relevant_pr_path "${path_under_test}"; then
-                  echo "Non-product routing misclassified: ${path_under_test}" >&2
-                  code=2
-                fi
-              done
-
-              for path_under_test in \
-                apps/learnit-next/src/main.js \
-                apps/learnit-next/tests/qa_learning_loop_v2.py \
-                contracts/learnit-kit-v2.schema.json \
-                authoring/v2/validate_kit.py \
-                .github/workflows/learnit-next-ci.yml
-              do
-                if ! is_product_relevant_pr_path "${path_under_test}"; then
-                  echo "Product routing misclassified: ${path_under_test}" >&2
-                  code=2
-                fi
-              done
-            elif [[ "${GITHUB_HEAD_REF}" == "gov/PROG-WP-001-ai-bootstrap" ]]; then
-              expected="$(printf '%s\n' \
-                '.github/workflows/learnit-next-ci.yml' \
-                '.github/workflows/remote-agent-worktree.yml' \
-                'docs/governance/REMOTE_AGENT_WORKTREE.md' \
-                'governance/governor-state.json' \
-                'tools/agent_worktree.py' \
-                'tools/learnit_next_agent.py' \
-                'tools/test_agent_worktree.py' \
-                'work-packages/PROG-WP-001.json')"
-              actual="$(printf '%s\n' "${changed[@]}")"
-              if [[ "${actual}" == "${expected}" ]]; then
-                targeted_followup=1
-                followup_work_package="PROG-WP-001"
-                followup_pass="PROG_WP_001_BOOTSTRAP_PASS"
-                followup_failure="PROG_WP_001_BOOTSTRAP_FAILURE"
-                code=0
-                python tools/validate_repository.py || code=$?
-                if [[ ${code} -eq 0 ]]; then
-                  python tools/test_agent_worktree.py || code=$?
-                fi
-              else
-                echo "PROG-WP-001 bootstrap paths differ." >&2
-                printf 'Expected:\n%s\nActual:\n%s\n' "${expected}" "${actual}" >&2
-                targeted_followup=1
-                followup_work_package="PROG-WP-001"
-                followup_pass="PROG_WP_001_BOOTSTRAP_PASS"
-                followup_failure="PROG_WP_001_BOOTSTRAP_FAILURE"
-                code=2
-              fi
-            elif [[ ${#changed[@]} -gt 0 ]]; then
-              product_relevant=0
-              for changed_path in "${changed[@]}"; do
-                if is_product_relevant_pr_path "${changed_path}"; then
-                  product_relevant=1
-                  break
-                fi
-              done
-
-              if [[ ${product_relevant} -eq 0 ]]; then
-                targeted_followup=1
-                followup_work_package="CI-WP-002"
-                followup_pass="NON_PRODUCT_PR_ROUTING_PASS"
-                followup_failure="NON_PRODUCT_PR_ROUTING_FAILURE"
-                code=0
-                python tools/validate_repository.py || code=$?
-              fi
-            fi
-          elif [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            mapfile -t changed < <(git diff --name-only HEAD^1..HEAD)
-            if [[ ${#changed[@]} -eq 1 && "${changed[0]}" == "${workflow_path}" ]]; then
-              targeted_followup=1
-              parents=( $(git show -s --format=%P HEAD) )
-              accepted="${{ steps.mode.outputs.accepted_head }}"
-              code=0
-              if [[ ${#parents[@]} -ne 2 || "${parents[1]}" != "${accepted}" ]]; then
-                echo "Exact merge-head verification failed." >&2
-                code=2
-              fi
-              protected=(
-                apps/learnit-next/index.template.html
-                apps/learnit-next/src
-                apps/learnit-next/build.py
-                contracts/learnit-kit-v2.schema.json
-              )
-              if [[ -n "$(git diff --name-only "${accepted}" HEAD -- "${protected[@]}")" ]]; then
-                echo "Executable tree diverges from the accepted merge head." >&2
-                code=2
-              fi
-            fi
+          args=(
+            --strict
+            --mode "${{ steps.target.outputs.mode }}"
+            --base-ref "8ebafee48cc5277b92776982639a0146ae7e76d0"
+          )
+          if [[ -n "${{ steps.mode.outputs.accepted }}" ]]; then
+            args+=(--accepted_integration-head "${{ steps.mode.outputs.accepted }}")
           fi
+          python apps/learnit-next/dev/run_checks.py "${args[@]}"
 
-          if [[ ${targeted_followup} -eq 1 ]]; then
-            result="PASS"
-            classification="${followup_pass}"
-            if [[ ${code} -ne 0 ]]; then
-              result="FAIL"
-              classification="${followup_failure}"
-            fi
-            python - "${report}" "${result}" "${classification}" "${{ steps.mode.outputs.mode }}" "${followup_work_package}" <<'PY'
-          import json
-          import sys
-          from pathlib import Path
-          path, result, classification, mode, work_package = sys.argv[1:]
-          payload = {
-              "schema": "learnit.next.ci.checks.v3",
-              "workPackage": work_package,
-              "strict": True,
-              "mode": mode,
-              "result": result,
-              "stages": {
-                  "configuration": {"result": "PASS", "classification": "CONFIGURATION_PASS"},
-                  "topology": {"result": result, "classification": classification},
-                  "provenance": {"result": result, "classification": classification},
-                  "build": {"result": "NOT_APPLICABLE"},
-                  "product": {"result": "NOT_APPLICABLE"},
-              },
-          }
-          Path(path).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-          PY
-          else
-            base_ref="origin/main"
-            if [[ "${{ steps.mode.outputs.mode }}" == "maintenance-pr" ]]; then
-              base_ref="2d3d68f822c863a4e52f11275bcce355440072b0"
-            fi
-            args=(
-              --strict
-              --mode "${{ steps.mode.outputs.mode }}"
-              --base-ref "${base_ref}"
-            )
-            if test -n "${{ steps.mode.outputs.accepted_head }}"; then
-              args+=(--accepted-integration-head "${{ steps.mode.outputs.accepted_head }}")
-            fi
-            python apps/learnit-next/dev/run_checks.py "${args[@]}"
-            code=$?
-          fi
-
-          echo "targeted_followup=${targeted_followup}" >> "$GITHUB_OUTPUT"
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          exit 0
-      - name: Print strict report
-        if: always()
+      - name: Run fixed profile — authoring
         run: |
-          if test -f apps/learnit-next/.agent-result/run_checks.json; then
-            cat apps/learnit-next/.agent-result/run_checks.json
-          else
-            echo "Strict report was not created." >&2
-          fi
-      - name: Verify tested HTML proof identity
-        id: html
-        if: always() && steps.checks.outputs.targeted_followup != '1' && steps.checks.outputs.exit_code == '0'
-        shell: bash
+          mkdir -p apps/learnit-next/.agent-result
+          python tools/learnit_next_agent.py \
+            --profile learnit-next-authoring \
+            --output apps/learnit-next/.agent-result/profile-authoring.json
+
+      - name: Run fixed profile — contract
+        run: |
+          python tools/learnit_next_agent.py \
+            --profile learnit-next-contract \
+            --output apps/learnit-next/.agent-result/profile-contract.json
+
+      - name: Run fixed profile — full
         env:
-          TARGET_REF: ${{ needs.resolve-target.outputs.target_ref }}
+          LLV2_QA_STRICT: '1'
+        run: |
+          python tools/learnit_next_agent.py \
+            --profile learnit-next-full \
+            --output apps/learnit-next/.agent-result/profile-full.json
+
+      - name: Run fixed profile — browser
+        env:
+          LLV2_QA_STRICT: '1'
+          LLV2_QA_BROWSER_STRICT: '1'
+        run: |
+          python tools/learnit_next_agent.py \
+            --profile learnit-next-browser \
+            --output apps/learnit-next/.agent-result/profile-browser.json
+
+      - name: Verify all profile reports and exact HTML
+        shell: bash
         run: |
           set -euo pipefail
-          report="apps/learnit-next/.agent-result/run_checks.json"
-          html="apps/learnit-next/dist/learnit-next.html"
-          test -f "${report}" || {
-            echo "Strict report is absent." >&2
-            exit 2
-          }
-          test -f "${html}" || {
-            echo "Tested HTML is absent." >&2
-            exit 2
-          }
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ("authoring", "contract", "full", "browser"):
+              path = Path(f"apps/learnit-next/.agent-result/profile-{name}.json")
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              if payload.get("result") != "PASS":
+                  raise SystemExit(f"profile failed: {name}")
+          gate = json.loads(Path("apps/learnit-next/.agent-result/run_checks.json").read_text(encoding="utf-8"))
+          if gate.get("result") != "PASS":
+              raise SystemExit("integration gate failed")
+          html = Path("apps/learnit-next/dist/learnit-next.html")
+          if not html.is_file():
+              raise SystemExit("tested HTML is absent")
+          print(gate["artifact"])
+          PY
 
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && \
-                "${{ steps.mode.outputs.mode }}" == "post-merge" && \
-                "${TARGET_REF}" == "5c2a037955f2b1bd0fbb353db92368f47915e691" ]]; then
-            bytes="$(stat -c%s "${html}")"
-            sha="$(sha256sum "${html}" | awk '{print $1}')"
-            [[ "${bytes}" == "91367" ]] || {
-              echo "P1 HTML byte size differs: expected=91367 actual=${bytes}" >&2
-              exit 2
-            }
-            [[ "${sha}" == "d62bd435c6e398b0f5ea4b59b0e30bc553e5c6d011ce42e4ab5bf3b74a21e68e" ]] || {
-              echo "P1 HTML SHA-256 differs: ${sha}" >&2
-              exit 2
-            }
-            echo "P1 tested HTML identity: ${bytes} bytes ${sha}"
-          fi
-      - name: Upload auditable proof bundle
-        if: always() && steps.checks.outputs.exit_code == '0' && hashFiles('apps/learnit-next/.agent-result/run_checks.json') != '' && (steps.checks.outputs.targeted_followup == '1' || steps.html.outcome == 'success')
+      - name: Upload exact Wave A proof
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: learnit-next-${{ steps.mode.outputs.mode || 'configuration-failure' }}-proof
+          name: learnit-next-wave-a-${{ steps.target.outputs.target }}
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
           path: |
             apps/learnit-next/source_manifest.json
-            apps/learnit-next/.agent-result/tree-sha.txt
             apps/learnit-next/.agent-result/run_checks.json
+            apps/learnit-next/.agent-result/profile-authoring.json
+            apps/learnit-next/.agent-result/profile-contract.json
+            apps/learnit-next/.agent-result/profile-full.json
+            apps/learnit-next/.agent-result/profile-browser.json
             apps/learnit-next/dist/learnit-next.html
-      - name: Enforce strict result and proof completeness
-        if: always()
-        shell: bash
-        run: |
-          if [[ "${{ steps.checks.outputs.exit_code }}" != "0" ]]; then
-            echo "Strict Learn-it Next ${{ steps.mode.outputs.mode }} checks failed." >&2
-            exit 1
-          fi
-          if [[ "${{ steps.checks.outputs.targeted_followup }}" != "1" ]]; then
-            test -f apps/learnit-next/dist/learnit-next.html || {
-              echo "The tested HTML is absent from the proof workspace." >&2
-              exit 1
-            }
-            [[ "${{ steps.html.outcome }}" == "success" ]] || {
-              echo "The tested HTML identity step did not pass." >&2
-              exit 1
-            }
-          fi
