@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Validated remote worktree runner for Learn-it agent branches."""
-
+"""Validated remote worktree runner for bounded AI analysis and implementation."""
 from __future__ import annotations
 
 import argparse
@@ -25,22 +24,57 @@ HARD_MAX_PATCH_BYTES = 1_000_000
 HARD_MAX_CHANGED_FILES = 80
 HARD_MAX_CHANGED_LINES = 8_000
 DEFAULT_FORBIDDEN = (
-    ".github/**", ".agent-jobs/**", ".agent-runtime/**", ".agent-result/**", ".git/**", "governance/**",
-    "docs/architecture/**", "work-packages/**", "tools/agent_worktree.py",
+    ".github/**", ".agent-jobs/**", ".agent-runtime/**", ".agent-result/**",
+    ".git/**", "governance/**", "docs/architecture/**", "work-packages/**",
+    "tools/agent_worktree.py",
 )
+
+NEXT_PROFILES = {
+    "learnit-next-snapshot",
+    "learnit-next-fast",
+    "learnit-next-full",
+    "learnit-next-browser",
+    "learnit-next-authoring",
+    "learnit-next-contract",
+}
+ANALYSIS_PROFILES = set(NEXT_PROFILES)
 PROFILE_COMMANDS: dict[str, list[list[str]]] = {
     "repository": [],
     "player-fast": [["make", "-C", "apps/player", "test-fast"]],
     "player-full": [["make", "-C", "apps/player", "test"]],
+    **{
+        profile: [[
+            sys.executable,
+            "tools/learnit_next_agent.py",
+            "--profile", profile,
+            "--output", ".agent-runtime/learnit-next.json",
+        ]]
+        for profile in NEXT_PROFILES
+    },
 }
+COMMON_FIELDS = {"schemaVersion", "id", "baseCommit", "branch", "mode"}
+IMPLEMENT_FIELDS = COMMON_FIELDS | {
+    "patchFile", "allowedPaths", "forbiddenPaths", "testProfile", "testTargets",
+    "commitMessage", "maxPatchBytes", "maxChangedFiles", "maxChangedLines",
+}
+ANALYZE_FIELDS = COMMON_FIELDS | {"analysisProfile"}
 
 
 class AgentError(RuntimeError):
     pass
 
 
-def run(args: list[str], *, cwd: Path = ROOT, check: bool = True) -> subprocess.CompletedProcess[str]:
-    completed = subprocess.run(args, cwd=cwd, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def run(
+    args: list[str], *, cwd: Path = ROOT, check: bool = True
+) -> subprocess.CompletedProcess[str]:
+    completed = subprocess.run(
+        args,
+        cwd=cwd,
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     if check and completed.returncode != 0:
         raise AgentError(
             f"command failed ({completed.returncode}): {' '.join(args)}\n"
@@ -93,34 +127,82 @@ def match_any(path: str, patterns: Iterable[str]) -> bool:
 
 
 def discover_job() -> tuple[Path, dict[str, Any]]:
-    ready_files = sorted(JOB_ROOT.glob("*/READY"))
-    if len(ready_files) != 1:
-        raise AgentError(f"expected exactly one READY job, found {len(ready_files)}")
-    job_dir = ready_files[0].parent
-    return job_dir, load_json(job_dir / "job.json")
+    ready = sorted(JOB_ROOT.glob("*/READY"))
+    if len(ready) != 1:
+        raise AgentError(f"expected exactly one READY job, found {len(ready)}")
+    directory = ready[0].parent
+    return directory, load_json(directory / "job.json")
 
 
-def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
-    branch = os.environ.get("AGENT_BRANCH") or os.environ.get("GITHUB_REF_NAME", git("branch", "--show-current"))
+def validate_common(job_dir: Path, job: dict[str, Any]) -> tuple[str, str, str, str]:
+    branch = os.environ.get("AGENT_BRANCH") or os.environ.get(
+        "GITHUB_REF_NAME", git("branch", "--show-current")
+    )
     if not BRANCH_RE.fullmatch(branch):
         raise AgentError(f"remote worktree only accepts agent/** branches: {branch}")
-    required = {
-        "schemaVersion", "id", "baseCommit", "branch", "patchFile",
-        "allowedPaths", "forbiddenPaths", "testProfile", "commitMessage",
-    }
-    missing = sorted(required - set(job))
-    if missing:
-        raise AgentError(f"job is missing required fields: {', '.join(missing)}")
-    if job["schemaVersion"] != 1:
+    if job.get("schemaVersion") != 1:
         raise AgentError("unsupported job schemaVersion")
-    job_id = str(job["id"])
+    job_id = str(job.get("id", ""))
     if not JOB_ID_RE.fullmatch(job_id) or job_dir.name != job_id:
         raise AgentError("invalid job id or directory")
-    base = str(job["baseCommit"]).lower()
+    base = str(job.get("baseCommit", "")).lower()
     if not SHA_RE.fullmatch(base):
         raise AgentError("baseCommit must be a full lowercase SHA")
-    if str(job["branch"]) != branch:
+    if str(job.get("branch", "")) != branch:
         raise AgentError("job branch does not match the triggering branch")
+    mode = str(job.get("mode", "implement"))
+    if mode not in {"analyze", "implement"}:
+        raise AgentError(f"unsupported job mode: {mode}")
+
+    git("cat-file", "-e", f"{base}^{{commit}}")
+    if git("merge-base", base, "HEAD") != base:
+        raise AgentError("baseCommit is not an ancestor of the trigger commit")
+    prefix = f".agent-jobs/{job_id}/"
+    changed = [
+        item for item in git("diff", "--name-only", f"{base}...HEAD").splitlines()
+        if item
+    ]
+    foreign = [item for item in changed if not item.startswith(prefix)]
+    if foreign:
+        raise AgentError(
+            "branch contains non-job changes before execution: " + ", ".join(foreign)
+        )
+    return branch, job_id, base, mode
+
+
+def validate_analyze(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
+    branch, job_id, base, mode = validate_common(job_dir, job)
+    unknown = sorted(set(job) - ANALYZE_FIELDS)
+    if unknown:
+        raise AgentError("analyze job contains unsupported fields: " + ", ".join(unknown))
+    profile = str(job.get("analysisProfile", ""))
+    if profile not in ANALYSIS_PROFILES:
+        raise AgentError(f"unsupported analysisProfile: {profile}")
+    return {
+        "schemaVersion": 2,
+        "mode": mode,
+        "jobId": job_id,
+        "jobDir": job_dir.relative_to(ROOT).as_posix(),
+        "branch": branch,
+        "baseCommit": base,
+        "triggerCommit": git("rev-parse", "HEAD"),
+        "profile": profile,
+        "testProfile": profile,
+        "testTargets": [],
+    }
+
+
+def validate_implement(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
+    branch, job_id, base, mode = validate_common(job_dir, job)
+    unknown = sorted(set(job) - IMPLEMENT_FIELDS)
+    if unknown:
+        raise AgentError("implement job contains unsupported fields: " + ", ".join(unknown))
+    required = {
+        "patchFile", "allowedPaths", "forbiddenPaths", "testProfile", "commitMessage"
+    }
+    missing = sorted(field for field in required if field not in job)
+    if missing:
+        raise AgentError("job is missing required fields: " + ", ".join(missing))
 
     patch_rel = normalize_repo_path(str(job["patchFile"]))
     prefix = f".agent-jobs/{job_id}/"
@@ -129,13 +211,16 @@ def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
     patch_path = ROOT / patch_rel
     if not patch_path.is_file():
         raise AgentError(f"missing patch file: {patch_rel}")
-    limit = min(max(1, int(job.get("maxPatchBytes", HARD_MAX_PATCH_BYTES))), HARD_MAX_PATCH_BYTES)
-    if patch_path.stat().st_size > limit:
+    patch_limit = min(
+        max(1, int(job.get("maxPatchBytes", HARD_MAX_PATCH_BYTES))),
+        HARD_MAX_PATCH_BYTES,
+    )
+    if patch_path.stat().st_size > patch_limit:
         raise AgentError("patch exceeds size limit")
     patch_text = patch_path.read_text(encoding="utf-8")
     if "GIT binary patch" in patch_text or "\x00" in patch_text:
         raise AgentError("binary patches are forbidden")
-    if "mode 120000" in patch_text or "mode 160000" in patch_text or "Subproject commit" in patch_text:
+    if any(token in patch_text for token in ("mode 120000", "mode 160000", "Subproject commit")):
         raise AgentError("symbolic links and submodules are forbidden")
 
     allowed = job["allowedPaths"]
@@ -150,6 +235,8 @@ def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
     forbidden = [normalize_repo_path(x) for x in forbidden] + list(DEFAULT_FORBIDDEN)
 
     profile = str(job["testProfile"])
+    if profile == "learnit-next-snapshot":
+        raise AgentError("learnit-next-snapshot is analysis-only")
     if profile not in PROFILE_COMMANDS and profile != "player-targeted":
         raise AgentError(f"unsupported testProfile: {profile}")
     targets = job.get("testTargets", [])
@@ -169,14 +256,6 @@ def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
     message = str(job["commitMessage"]).strip()
     if not message or "\n" in message or len(message) > 120:
         raise AgentError("commitMessage must be one line of 1..120 chars")
-
-    git("cat-file", "-e", f"{base}^{{commit}}")
-    if git("merge-base", base, "HEAD") != base:
-        raise AgentError("baseCommit is not an ancestor of the trigger commit")
-    staged_paths = [x for x in git("diff", "--name-only", f"{base}...HEAD").splitlines() if x]
-    foreign = [x for x in staged_paths if not x.startswith(prefix)]
-    if foreign:
-        raise AgentError("branch contains non-job changes before application: " + ", ".join(foreign))
 
     run(["git", "apply", "--check", "--whitespace=error-all", str(patch_path)])
     numstat = run(["git", "apply", "--numstat", str(patch_path)]).stdout.splitlines()
@@ -211,7 +290,8 @@ def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
         raise AgentError("patch exceeds changed-file or changed-line limits")
 
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
+        "mode": mode,
         "jobId": job_id,
         "jobDir": job_dir.relative_to(ROOT).as_posix(),
         "branch": branch,
@@ -221,6 +301,7 @@ def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
         "patchSha256": sha256_file(patch_path),
         "allowedPaths": allowed,
         "forbiddenPaths": sorted(set(forbidden)),
+        "profile": profile,
         "testProfile": profile,
         "testTargets": targets,
         "commitMessage": message,
@@ -232,29 +313,37 @@ def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def validate_job(job_dir: Path, job: dict[str, Any]) -> dict[str, Any]:
+    mode = str(job.get("mode", "implement"))
+    if mode == "analyze":
+        return validate_analyze(job_dir, job)
+    if mode == "implement":
+        return validate_implement(job_dir, job)
+    raise AgentError(f"unsupported job mode: {mode}")
+
+
 def load_plan(path: Path) -> dict[str, Any]:
     plan = load_json(path)
-    if plan.get("schemaVersion") != 1:
+    if plan.get("schemaVersion") != 2:
         raise AgentError("invalid plan schema")
     return plan
 
 
 def validate_changed_paths(plan: dict[str, Any], against: str) -> dict[str, Any]:
     mode_summary = git("diff", "--summary", against)
-    if "mode 120000" in mode_summary or "mode 160000" in mode_summary or "Subproject commit" in mode_summary:
+    if any(token in mode_summary for token in ("mode 120000", "mode 160000", "Subproject commit")):
         raise AgentError("symbolic links and submodules are forbidden")
-    raw = git("diff", "--numstat", against)
     paths: list[str] = []
     additions = deletions = 0
-    for line in raw.splitlines():
+    for line in git("diff", "--numstat", against).splitlines():
         parts = line.split("\t", 2)
         if len(parts) != 3:
             continue
-        add_s, del_s, path_s = parts
+        add_s, del_s, raw_path = parts
         if add_s == "-" or del_s == "-":
             raise AgentError("binary changes are forbidden")
-        path = normalize_repo_path(path_s)
-        if path.startswith(plan["jobDir"] + "/") or path.startswith(".agent-runtime/") or path.startswith(".agent-result/"):
+        path = normalize_repo_path(raw_path)
+        if path.startswith(plan["jobDir"] + "/") or path.startswith((".agent-runtime/", ".agent-result/")):
             continue
         if match_any(path, plan["forbiddenPaths"]):
             raise AgentError(f"generated change is forbidden: {path}")
@@ -277,6 +366,8 @@ def cmd_prepare(output: Path) -> None:
 
 def cmd_apply(plan_path: Path) -> None:
     plan = load_plan(plan_path)
+    if plan.get("mode") != "implement":
+        raise AgentError("analyze jobs cannot apply a patch")
     patch_path = ROOT / plan["patchFile"]
     if sha256_file(patch_path) != plan["patchSha256"]:
         raise AgentError("patch changed after validation")
@@ -289,11 +380,12 @@ def cmd_apply(plan_path: Path) -> None:
 
 def cmd_test(plan_path: Path) -> None:
     plan = load_plan(plan_path)
-    commands = [*PROFILE_COMMANDS.get(plan["testProfile"], [])]
-    if plan["testProfile"] == "player-targeted":
+    profile = plan["profile"]
+    commands = [*PROFILE_COMMANDS.get(profile, [])]
+    if profile == "player-targeted":
         commands = [
             ["make", "-C", "apps/player", "build"],
-            *[["python", target] for target in plan["testTargets"]],
+            *[[sys.executable, target] for target in plan["testTargets"]],
         ]
     results = []
     for command in commands:
@@ -305,13 +397,33 @@ def cmd_test(plan_path: Path) -> None:
             "stderrTail": completed.stderr[-4000:],
         })
         if completed.returncode:
-            write_json(RUNTIME_DIR / "tests.json", {"ok": False, "results": results})
+            write_json(RUNTIME_DIR / "tests.json", {
+                "ok": False, "mode": plan["mode"], "profile": profile, "results": results,
+            })
             raise AgentError(f"test command failed: {' '.join(command)}")
-    write_json(RUNTIME_DIR / "tests.json", {"ok": True, "results": results})
+    write_json(RUNTIME_DIR / "tests.json", {
+        "ok": True, "mode": plan["mode"], "profile": profile, "results": results,
+    })
+
+
+def artifact_record() -> dict[str, Any] | None:
+    for artifact in (
+        ROOT / "apps/learnit-next/dist/learnit-next.html",
+        ROOT / "apps/player/dist/learnit.html",
+    ):
+        if artifact.is_file():
+            return {
+                "path": artifact.relative_to(ROOT).as_posix(),
+                "sha256": sha256_file(artifact),
+                "size": artifact.stat().st_size,
+            }
+    return None
 
 
 def cmd_package(plan_path: Path, output_patch: Path, output_manifest: Path) -> None:
     plan = load_plan(plan_path)
+    if plan.get("mode") != "implement":
+        raise AgentError("analyze jobs do not create result commits")
     job_dir = ROOT / plan["jobDir"]
     if job_dir.exists():
         shutil.rmtree(job_dir)
@@ -327,9 +439,9 @@ def cmd_package(plan_path: Path, output_patch: Path, output_manifest: Path) -> N
     if not patch.strip():
         raise AgentError("result patch is empty")
     output_patch.write_text(patch, encoding="utf-8")
-    artifact = ROOT / "apps/player/dist/learnit.html"
-    manifest = {
-        "schemaVersion": 1,
+    write_json(output_manifest, {
+        "schemaVersion": 2,
+        "mode": "implement",
         "jobId": plan["jobId"],
         "branch": plan["branch"],
         "baseCommit": plan["baseCommit"],
@@ -338,20 +450,20 @@ def cmd_package(plan_path: Path, output_patch: Path, output_manifest: Path) -> N
         "resultPatch": output_patch.name,
         "resultPatchSha256": sha256_file(output_patch),
         "changed": summary,
+        "profile": plan["profile"],
         "testProfile": plan["testProfile"],
-        "artifact": ({
-            "path": artifact.relative_to(ROOT).as_posix(),
-            "sha256": sha256_file(artifact),
-            "size": artifact.stat().st_size,
-        } if artifact.is_file() else None),
-    }
-    write_json(output_manifest, manifest)
+        "artifact": artifact_record(),
+    })
 
 
 def cmd_commit_prepare(manifest_path: Path, result_patch: Path) -> None:
     manifest = load_json(manifest_path)
+    if manifest.get("mode") != "implement":
+        raise AgentError("only implement results can be committed")
     job_dir, job = discover_job()
     plan = validate_job(job_dir, job)
+    if plan.get("mode") != "implement":
+        raise AgentError("job mode changed after validation")
     for field in ("jobId", "branch", "baseCommit", "triggerCommit", "commitMessage"):
         if manifest.get(field) != plan.get(field):
             raise AgentError(f"result manifest mismatch for {field}")
@@ -372,11 +484,19 @@ def cmd_commit_prepare(manifest_path: Path, result_patch: Path) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
-    p = sub.add_parser("prepare"); p.add_argument("--output", type=Path, required=True)
-    p = sub.add_parser("apply"); p.add_argument("--plan", type=Path, required=True)
-    p = sub.add_parser("test"); p.add_argument("--plan", type=Path, required=True)
-    p = sub.add_parser("package"); p.add_argument("--plan", type=Path, required=True); p.add_argument("--output-patch", type=Path, required=True); p.add_argument("--output-manifest", type=Path, required=True)
-    p = sub.add_parser("commit-prepare"); p.add_argument("--manifest", type=Path, required=True); p.add_argument("--result-patch", type=Path, required=True)
+    item = sub.add_parser("prepare")
+    item.add_argument("--output", type=Path, required=True)
+    item = sub.add_parser("apply")
+    item.add_argument("--plan", type=Path, required=True)
+    item = sub.add_parser("test")
+    item.add_argument("--plan", type=Path, required=True)
+    item = sub.add_parser("package")
+    item.add_argument("--plan", type=Path, required=True)
+    item.add_argument("--output-patch", type=Path, required=True)
+    item.add_argument("--output-manifest", type=Path, required=True)
+    item = sub.add_parser("commit-prepare")
+    item.add_argument("--manifest", type=Path, required=True)
+    item.add_argument("--result-patch", type=Path, required=True)
     return parser.parse_args()
 
 
@@ -384,11 +504,16 @@ def main() -> int:
     os.chdir(ROOT)
     args = parse_args()
     try:
-        if args.command == "prepare": cmd_prepare(args.output)
-        elif args.command == "apply": cmd_apply(args.plan)
-        elif args.command == "test": cmd_test(args.plan)
-        elif args.command == "package": cmd_package(args.plan, args.output_patch, args.output_manifest)
-        elif args.command == "commit-prepare": cmd_commit_prepare(args.manifest, args.result_patch)
+        if args.command == "prepare":
+            cmd_prepare(args.output)
+        elif args.command == "apply":
+            cmd_apply(args.plan)
+        elif args.command == "test":
+            cmd_test(args.plan)
+        elif args.command == "package":
+            cmd_package(args.plan, args.output_patch, args.output_manifest)
+        elif args.command == "commit-prepare":
+            cmd_commit_prepare(args.manifest, args.result_patch)
         return 0
     except AgentError as exc:
         print(f"REMOTE AGENT ERROR: {exc}", file=sys.stderr)
