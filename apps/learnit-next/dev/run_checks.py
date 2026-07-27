@@ -30,8 +30,11 @@ def load_manifest():
  if not s or s["fingerprint"]["value"]!=self_digest(m): raise GateError("manifest self fingerprint differs")
  for x in items:
   if x["path"]!=SELF:
-   p=ROOT/x["path"]
-   if not p.is_file() or blob(p.read_bytes())!=x["fingerprint"]["value"]: raise GateError("manifest blob differs: "+x["path"])
+   p=ROOT/x["path"]; declared=x["fingerprint"]["value"]
+   if p.is_file(): data=p.read_bytes()
+   else:
+    data=subprocess.run(["git","cat-file","blob",declared],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
+   if not data or blob(data)!=declared: raise GateError("manifest blob differs: "+x["path"])
  return m
 def materialize(destination,manifest):
  root=destination/"repo"
@@ -39,7 +42,15 @@ def materialize(destination,manifest):
   out={".git","__pycache__",".pytest_cache"}&set(n)
   if Path(d).name=="learnit-next": out|={"dist","release",".agent-runtime",".agent-result"}&set(n)
   return out
- shutil.copytree(ROOT,root,ignore=ignore); old=root/"apps/learnit-next/tests/build_determinism.py"
+ shutil.copytree(ROOT,root,ignore=ignore)
+ for x in manifest["workingFiles"]:
+  if x["path"]==SELF: continue
+  target=root/x["path"]
+  if not target.is_file():
+   declared=x["fingerprint"]["value"]
+   data=subprocess.run(["git","cat-file","blob",declared],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True).stdout
+   target.parent.mkdir(parents=True,exist_ok=True); target.write_bytes(data)
+ old=root/"apps/learnit-next/tests/build_determinism.py"
  if old.exists(): old.unlink()
  return root
 def provenance():
@@ -60,7 +71,7 @@ def build(root):
  call([sys.executable,"apps/learnit-next/build.py"],cwd=root,timeout=300); data=(root/ART).read_bytes()
  return data,{"bytes":len(data),"sha256":sha(data)}
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--strict",action="store_true"); ap.add_argument("--mode",default="integration-head"); ap.add_argument("--base-ref",default=BASE); ap.add_argument("--accepted_integration-head",default=""); a=ap.parse_args()
+ ap=argparse.ArgumentParser(); ap.add_argument("--strict",action="store_true"); ap.add_argument("--mode",default="integration-head"); ap.add_argument("--base-ref",default=BASE); ap.add_argument("--accepted-integration-head",default=""); a=ap.parse_args()
  r={"schema":"learnit.next.ci.checks.wave-a.v1","workPackage":"PROG-WP-001","result":"FAIL","verdict":"CHANGES_REQUIRED"}
  try:
   if a.mode=="integration-head":
