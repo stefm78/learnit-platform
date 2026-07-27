@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "PROD-WP-003",
-  "title": "Implement the P1 corrective review loop",
+  "title": "Implement, verify and integrate the P1 corrective review loop",
   "status": "approved",
   "changeClass": "product-corrective-review-loop",
   "riskClass": "moderate",
@@ -10,7 +10,7 @@
     "issue": 116,
     "productSlice": "P1_CORRECTIVE_REVIEW_LOOP"
   },
-  "purpose": "Implement the bounded visible local À revoir loop from the latest stored activity result while preserving completion semantics, QCM/fill behavior, persistence, resume, accessibility and Learn-it Next storage isolation.",
+  "purpose": "Implement the bounded visible local À revoir loop, independently verify it, and integrate the exact accepted DEV and QA results while preserving completion semantics, QCM/fill behavior, persistence, resume, accessibility and Learn-it Next storage isolation.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
     "baseCommit": "41a4268e6c9baf900f892bd6bd9cc54e6c7ec5f9",
@@ -19,18 +19,19 @@
   },
   "scope": {
     "allowedPaths": [
-      "apps/learnit-next/src/main.js",
       "apps/learnit-next/src/core/progress.js",
       "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/main.js",
       "apps/learnit-next/src/ui/render.js",
-      "work-packages/PROD-WP-003.json"
+      "work-packages/PROD-WP-003.json",
+      "apps/learnit-next/tests/p1_corrective_review.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/tests/build_determinism.py"
     ],
     "forbiddenPaths": [
       ".github/**",
       "apps/player/**",
-      "apps/learnit-next/source_manifest.json",
-      "apps/learnit-next/dev/**",
-      "apps/learnit-next/tests/**",
       "authoring/**",
       "contracts/**",
       "governance/**",
@@ -45,27 +46,43 @@
     "No mastery, retention, certification or durable-learning claim is introduced.",
     "The learnit.kit.v2 contract, JSON Schema, RC718 and golden kits remain unchanged.",
     "No IndexedDB store, key, database version, namespace or migration is introduced.",
-    "QCM, fill, import, refresh, resume, keyboard focus and native accessible controls are preserved."
+    "QCM, fill, import, refresh, resume, keyboard focus and native accessible controls are preserved.",
+    "The four product files are materialized blob-for-blob from accepted DEV head c5aa1e7c158db33f1e2a56e48c391a7bff21baf4.",
+    "apps/learnit-next/tests/p1_corrective_review.py is materialized blob-for-blob from accepted QA head 67c92e6d3fde49f1a83b9e6a7321403d80d80269."
   ],
   "requiredEvidence": [
-    "Exact changed paths are limited to the five allowed files.",
-    "Static syntax checks pass for all modified JavaScript files.",
+    "The pull request diff contains exactly the nine allowed paths.",
+    "Static syntax checks pass for all four modified product JavaScript files.",
     "Developer checks cover QCM, fill, completed semantics, latest-incorrect inclusion, later-correct removal, uniqueness, deterministic order and review resume.",
-    "Manual smoke covers error to À revoir to reload/resume to success/removal.",
-    "Independent QA is performed separately before integration."
+    "The independent P1 matrix passes 19/19 against the exact accepted DEV head.",
+    "Two clean builds are byte-for-byte identical and retain the declared artifact SHA-256 and byte size.",
+    "Repository governance, PR scope and Learn-it Next CI pass on the exact pull-request head.",
+    "Post-merge verification proves HEAD^2 equals the exact pull-request head and the executable tree does not diverge."
+  ],
+  "adversarialTests": [
+    "apps/learnit-next/tests/p1_corrective_review.py is the bounded contradictory product test for the P1 review loop.",
+    "The exact accepted QA commit is 67c92e6d3fde49f1a83b9e6a7321403d80d80269.",
+    "The contradictory domain and persistence matrix result is 19/19 PASS."
   ],
   "nonGoals": [
-    "Independent QA, integration, merge or release.",
-    "Contract, schema, storage, CI or governance evolution.",
+    "Creating another issue, work package, branch, pull request or independent product-QA cycle.",
+    "Contract, schema, storage, workflow or governance-validator evolution.",
     "Mastery scoring, spaced retention, backend synchronization or broad UX redesign.",
-    "Unrelated refactoring."
+    "Unrelated refactoring or additional product behavior."
+  ],
+  "independentReview": [
+    "Issue #116 is the sole DEV / QA / INT authority for PROD-WP-003.",
+    "QA rerun comment 5087471471 records the exact replay against accepted DEV head c5aa1e7c158db33f1e2a56e48c391a7bff21baf4.",
+    "The independent QA verdict is PASS_TO_INTEGRATION."
   ],
   "execution": {
-    "executionLane": "bounded-dev-branch",
-    "branch": "dev/PROD-WP-003-p1-corrective-review",
-    "maximumProductFiles": 5,
-    "maximumChangedFiles": 5,
-    "requiresIndependentReviewBeforeIntegration": true
+    "executionLane": "bounded-dev-qa-int-cycle",
+    "branch": "int/PROD-WP-003-p1-corrective-review",
+    "maximumProductFiles": 4,
+    "maximumChangedFiles": 9,
+    "requiresIndependentReviewBeforeIntegration": true,
+    "acceptedDevHead": "c5aa1e7c158db33f1e2a56e48c391a7bff21baf4",
+    "acceptedQaHead": "67c92e6d3fde49f1a83b9e6a7321403d80d80269"
   },
-  "rollback": "Discard or revert the single DEV commit. No contract, storage schema, RC718 source, QA file, manifest, workflow or release artifact is changed."
+  "rollback": "Revert the single integrated PROD-WP-003 pull request. The frozen contract, storage schema, RC718, authoring inputs and accepted DEV/QA commits remain unchanged."
 }
