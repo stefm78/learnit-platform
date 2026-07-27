@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "PROG-WP-001-SNAPSHOT-001",
+  "baseCommit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+  "branch": "agent/PROG-WP-001-snapshot-001",
+  "mode": "analyze",
+  "analysisProfile": "learnit-next-snapshot"
+}
