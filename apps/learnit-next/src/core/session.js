@@ -157,23 +157,54 @@ export function createSessionService(storage, progressService) {
     },
 
     async resumeActiveCourse() {
-      const meta = await storage.getMeta('activeCourse');
-      if (!meta?.courseInstallId) return null;
+      let meta;
       try {
-        const courseRecord = await loadCourse(meta.courseInstallId);
-        active = meta.mode === 'review'
-          ? { courseRecord, mode: 'review', reviewIndex: Number.isInteger(meta.reviewIndex) && meta.reviewIndex >= 0 ? meta.reviewIndex : 0 }
-          : { courseRecord, mode: 'learn', currentIndex: 0 };
-        const current = await snapshot();
-        if (current?.mode === 'review' && current.review.remaining === 0) {
-          await storage.deleteMeta('activeCourse');
-        }
-        return current;
+        meta = await storage.getMeta('activeCourse');
       } catch {
-        await storage.deleteMeta('activeCourse');
         active = null;
         return null;
       }
+      if (meta == null) {
+        active = null;
+        return null;
+      }
+
+      const validCourseInstallId = typeof meta.courseInstallId === 'string' && meta.courseInstallId.length > 0;
+      const validMode = meta.mode == null || meta.mode === 'learn' || meta.mode === 'review';
+      if (!validCourseInstallId || !validMode) {
+        active = null;
+        await storage.deleteMeta('activeCourse');
+        return null;
+      }
+
+      let courseRecord;
+      try {
+        courseRecord = await storage.getCourse(meta.courseInstallId);
+      } catch {
+        active = null;
+        return null;
+      }
+      if (!courseRecord) {
+        active = null;
+        await storage.deleteMeta('activeCourse');
+        return null;
+      }
+
+      active = meta.mode === 'review'
+        ? { courseRecord, mode: 'review', reviewIndex: Number.isInteger(meta.reviewIndex) && meta.reviewIndex >= 0 ? meta.reviewIndex : 0 }
+        : { courseRecord, mode: 'learn', currentIndex: 0 };
+
+      let current;
+      try {
+        current = await snapshot();
+      } catch {
+        active = null;
+        return null;
+      }
+      if (current?.mode === 'review' && current.review.remaining === 0) {
+        await storage.deleteMeta('activeCourse');
+      }
+      return current;
     },
 
     async getSession() {
@@ -195,29 +226,35 @@ export function createSessionService(storage, progressService) {
         correct: evaluation.correct,
       });
 
-      if (current.mode === 'review' && !evaluation.correct) active.reviewIndex += 1;
-      const after = await snapshot();
-      if (current.mode === 'review') {
-        if (after.review.remaining === 0) await storage.deleteMeta('activeCourse');
-        else await persistActive();
-      } else if (after.progress.isComplete) {
-        await storage.deleteMeta('activeCourse');
-      }
+      const previousReviewIndex = current.mode === 'review' ? active.reviewIndex : null;
+      try {
+        if (current.mode === 'review' && !evaluation.correct) active.reviewIndex += 1;
+        const after = await snapshot();
+        if (current.mode === 'review') {
+          if (after.review.remaining === 0) await storage.deleteMeta('activeCourse');
+          else await persistActive();
+        } else if (after.progress.isComplete) {
+          await storage.deleteMeta('activeCourse');
+        }
 
-      return {
-        courseInstallId: current.courseInstallId,
-        mode: current.mode,
-        activityRevisionId,
-        correct: evaluation.correct,
-        completed: record.completed,
-        ...(record.selectedChoiceId ? { selectedChoiceId: record.selectedChoiceId } : {}),
-        ...(record.answers ? { answers: structuredClone(record.answers) } : {}),
-        answer: evaluation.normalized,
-        explanation: current.currentActivity.explanation,
-        progress: after.progress,
-        ...(current.mode === 'review' ? { review: after.review } : {}),
-        nextActivity: after.currentActivity,
-      };
+        return {
+          courseInstallId: current.courseInstallId,
+          mode: current.mode,
+          activityRevisionId,
+          correct: evaluation.correct,
+          completed: record.completed,
+          ...(record.selectedChoiceId ? { selectedChoiceId: record.selectedChoiceId } : {}),
+          ...(record.answers ? { answers: structuredClone(record.answers) } : {}),
+          answer: evaluation.normalized,
+          explanation: current.currentActivity.explanation,
+          progress: after.progress,
+          ...(current.mode === 'review' ? { review: after.review } : {}),
+          nextActivity: after.currentActivity,
+        };
+      } catch (error) {
+        if (current.mode === 'review' && active) active.reviewIndex = previousReviewIndex;
+        throw error;
+      }
     },
 
     clearActiveSession() {
