@@ -1,32 +1,29 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-27-027",
-  "effectiveFromCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
-  "reviewedBaselineCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
+  "stateId": "GOV-STATE-2026-07-27-028",
+  "effectiveFromCommit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+  "reviewedBaselineCommit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "learning-loop-v2-minimal-ai-bootstrap-authorized",
+    "id": "learning-loop-v2-wave-a-active",
     "status": "active",
-    "description": "Learn-it Next P1 is integrated, post-merge verified and human-validated on Android. Issue #119 authorizes only one minimal bootstrap pull request that extends the accepted Remote Agent Worktree with fixed-profile read-only analysis and Learn-it Next validation profiles. Learning Loop V2 product implementation remains held until the bootstrap and one exact-baseline snapshot are accepted."
+    "description": "The minimal AI bootstrap and first read-only snapshot are accepted. Learning Loop V2 Wave A product implementation is authorized under issue #119 with four disjoint development lanes, independent QA, non-repairing integration and human merge."
   },
   "currentMain": {
-    "commit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
-    "sourcePullRequest": 118,
-    "description": "CI-WP-002 exact P1 post-merge artifact publication correction"
+    "commit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+    "sourcePullRequest": 120,
+    "description": "PROG-WP-001 minimal AI ANALYZE bootstrap"
   },
   "developmentBaseline": {
     "status": "selected",
-    "workPackage": "PROD-WP-003",
-    "candidate": "Learn-it Next P1 corrective review loop",
-    "sourceCommit": "5c2a037955f2b1bd0fbb353db92368f47915e691",
-    "artifactSha256": "d62bd435c6e398b0f5ea4b59b0e30bc553e5c6d011ce42e4ab5bf3b74a21e68e",
-    "artifactBytes": 91367,
-    "automatedGate": "PASS",
-    "humanAndroidGate": "PASS",
-    "authorityIssue": 116,
-    "authorityStatus": "completed"
+    "workPackage": "PROG-WP-001",
+    "candidate": "Learning Loop V2 Wave A",
+    "sourceCommit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+    "authorityIssue": 119,
+    "bootstrap": "PASS",
+    "snapshot": "PASS"
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -38,132 +35,95 @@
     "humanValidation": "PASS",
     "release": "v1.0.0"
   },
-  "previousPromotedBaseline": {
-    "candidate": "RC718 editable imported plan naming candidate",
-    "sourceCommit": "decd9b77bc77a6de9dc28497d0f3affeb972e964",
-    "artifactSha256": "e6ca9523bfd8fd59a5bf6abbfb1ee1c2f0de46c429c44749354c881eb31ff3eb",
-    "promotedAt": "2026-07-14",
-    "humanValidation": "PASS_WITH_RESERVATIONS",
-    "status": "frozen-legacy"
-  },
   "acceptedControls": {
     "remoteAgentWorktree": {
-      "workPackage": "DEV-WP-030",
+      "workPackage": "PROG-WP-001",
       "status": "accepted",
-      "requiredResultContext": "Remote agent worktree / tested result",
-      "policy": "bounded patch, fixed profile, no write credentials during test, exact tested result committed only to the originating agent branch"
+      "bootstrapMergeCommit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+      "snapshotRunId": 30267545775,
+      "snapshotArtifactSha256": "b11a3ca9c64c31781843fb44403490575ac0dea4db054fe6b2683eef10604349",
+      "policy": "fixed-profile read-only ANALYZE and bounded exact-tested-result IMPLEMENT; no write credentials during analyzed or patched code execution"
     },
-    "codespaceEvidenceBridge": {
-      "workPackage": "OPS-WP-003",
-      "status": "accepted",
-      "policy": "fixed read-only evidence operations bound to an exact repository origin and target SHA"
-    },
-    "learnitNextCi": {
-      "workPackage": "CI-WP-002",
-      "status": "accepted",
-      "mergeCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
-      "policy": "build once, test exact bytes, publish the same HTML with proof"
-    },
-    "p1CorrectiveReview": {
+    "learnitNextP1": {
       "workPackage": "PROD-WP-003",
       "status": "accepted",
       "mergeCommit": "5c2a037955f2b1bd0fbb353db92368f47915e691",
-      "authorityIssue": 116,
-      "automatedTests": "49/49",
-      "p1Matrix": "19/19",
+      "artifactSha256": "d62bd435c6e398b0f5ea4b59b0e30bc553e5c6d011ce42e4ab5bf3b74a21e68e",
       "androidHumanGate": "PASS"
     },
     "stageDOperatingModel": {
       "workPackage": "ARC-WP-019",
       "status": "accepted-with-conditions",
-      "policy": "disjoint developer, contradictory-QA, integrator and governor scopes for bounded work"
-    },
-    "branchHygiene": {
-      "workPackage": "GOV-WP-012",
-      "status": "accepted",
-      "policy": "main-only when no pull request is open"
-    },
-    "mainRuleset": {
-      "name": "main-protection",
-      "status": "configured-not-enforced",
-      "reason": "GitHub reports that the ruleset is not enforced on the current private personal-account repository."
+      "policy": "disjoint DEV, independent QA, non-repairing INT and Governor decisions at contract, candidate and promotion boundaries"
     }
   },
   "authorizedWork": [
-    "PROG-WP-001 bootstrap changes on one governed branch and one pull request from exact baseline d0a68fb4f47545a795934dc90ecadc834304c61e",
-    "fixed-profile read-only ANALYZE execution in the existing Remote Agent Worktree validation job",
-    "Learn-it Next fixed validation profiles and structured evidence artifacts",
-    "preservation of the accepted bounded IMPLEMENT exact-tested-result path",
-    "repository, workflow, tool, test, documentation and governor-state changes explicitly listed by PROG-WP-001",
-    "historical P1 maintenance only through separately authorized bounded work"
+    "Learning Loop V2 Wave A implementation from exact baseline e34dbcc75f7beaf693aa5702e3a649d000307bec",
+    "four disjoint development lanes DEV-LEARNING, DEV-UX, DEV-AUTHORING and DEV-PLATFORM using the path ownership declared in PROG-WP-001",
+    "independent contradictory QA in its declared test and fixture paths",
+    "integration of exact accepted lane heads with build, manifest and CI reconciliation only in integration-owned paths",
+    "additive Learn-it Next objective-progress persistence that does not mutate or reuse protected RC718 storage",
+    "frequent technical candidates without a separate Governor decision for every normal lane commit"
   ],
   "heldWork": [
-    "Learning Loop V2 product implementation until the PROG-WP-001 bootstrap is accepted and one exact-baseline snapshot is reviewed",
-    "creation of the four Learning Loop V2 development lanes until file ownership and shared interfaces are derived from the accepted snapshot",
-    "contract or storage semantic changes until an explicit program decision records their necessity and rollback",
-    "backend implementation",
-    "accounts and learner profiles",
-    "cloud synchronization",
-    "remote catalog distribution",
-    "commerce and entitlements",
-    "institutional tenancy",
-    "publisher marketplace"
+    "learnit.kit.v2 JSON Schema change during Wave A",
+    "destructive storage migration or protected RC718 namespace reuse",
+    "Wave B expansion before the Wave A technical candidate is integrated and reviewed",
+    "backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace work"
   ],
   "prohibitedWork": [
-    "arbitrary shell commands, scripts, plugins or environment overrides supplied by an AI job",
     "autonomous merge, release publication or direct write to main",
+    "arbitrary shell commands, scripts, plugins or environment overrides supplied by an AI job",
     "passing GitHub write credentials to analyzed or patched repository code",
-    "creating a generic AI execution platform, scheduler, queue, database or orchestrator in PROG-WP-001",
-    "modifying Learn-it Next product source during the bootstrap",
-    "allowing an integrator to silently repair lane-owned product files",
-    "publishing an artifact different from the artifact tested",
-    "silently reusing or mutating protected RC718 storage"
+    "silent product repair by the integrator in a development-lane-owned file",
+    "claiming mastery, retention, certification or durable learning from Wave A product state",
+    "publishing an artifact different from the exact artifact tested"
   ],
   "activeRisks": [
     {
       "id": "RISK-GOV-002",
       "severity": "high",
       "statement": "The main-protection ruleset is configured but not enforced on this private personal-account repository.",
-      "closureGate": "Move the repository to an eligible GitHub Team organization account or another topology that enforces private-repository rulesets."
+      "closureGate": "Move the repository to an eligible topology and verify a negative bypass test."
     },
     {
-      "id": "RISK-AGENT-007",
+      "id": "RISK-CI-010",
       "severity": "moderate",
-      "statement": "Adding analysis profiles to a write-capable workflow could accidentally route read-only jobs into the result-commit path.",
-      "closureGate": "Unit and end-to-end tests prove every successful ANALYZE run skips all write-token jobs and leaves the branch unchanged."
+      "statement": "Generic PR scope and Learn-it Next CI currently report red on analysis-only execution-envelope pull requests even when the specialized Remote Agent run passes.",
+      "closureGate": "DEV-PLATFORM makes generic workflows explicitly recognize and skip non-merge ANALYZE envelopes without weakening product PR gates."
     },
     {
-      "id": "RISK-PROFILE-008",
+      "id": "RISK-COMPOSITION-011",
       "severity": "moderate",
-      "statement": "Learn-it Next sources and tests are partly manifest-controlled Git blobs rather than materialized files on main, so naive profiles can inspect or test an incomplete checkout.",
-      "closureGate": "Every Learn-it Next profile materializes the complete declared tree and reports its inventory before validation."
+      "statement": "main.js, session.js, progress.js and render.js remain high-conflict composition points and could serialize parallel delivery.",
+      "closureGate": "DEV-LEARNING and DEV-UX expose isolated modules; DEV-PLATFORM alone composes them, and the first technical candidate proves zero undeclared path overlap."
     },
     {
       "id": "RISK-CI-FLAKE-009",
       "severity": "low",
-      "statement": "The browser vertical suite has previously required a bounded retry even though the final gate passed.",
-      "closureGate": "Track profile attempts and remove deterministic causes before relying on a single-attempt promotion gate."
+      "statement": "The browser vertical suite has previously required a bounded retry.",
+      "closureGate": "Track attempts in Wave A evidence and remove deterministic causes before promotion."
     }
   ],
   "activeExceptions": [
     {
       "id": "EXC-GOV-001",
       "rule": "main branch protection must technically require pull requests and mandatory checks",
-      "reason": "The repository remains on the current private personal-account setup, where GitHub reports the configured ruleset as not enforced.",
+      "reason": "GitHub reports the configured ruleset as not enforced on the current private personal-account repository.",
       "owner": "stefm78",
       "expiryOrRemovalGate": "repository plan or ownership topology change, serious governance bypass, or first external collaborator",
-      "rollback": "Remove this exception only after the repository reports the main-protection ruleset as enforced and a negative bypass test confirms the control."
+      "rollback": "Remove the exception only after enforcement is reported and a negative bypass test passes."
     }
   ],
   "nextMandatoryGate": {
     "id": "PROG-WP-001",
-    "condition": "Merge no bootstrap change until repository governance, PR scope, Remote Agent unit tests and independent review pass on the exact head. After merge, run one learnit-next-snapshot ANALYZE job against d0a68fb4f47545a795934dc90ecadc834304c61e, verify that the branch remains unchanged and review the structured artifact before authorizing Learning Loop V2 implementation lanes."
+    "condition": "Produce the Wave A technical candidate from exact accepted lane heads, prove no undeclared path overlap, run deterministic build and independent QA, and publish the exact tested HTML. No human product gate is required until the complete product candidate."
   },
   "review": {
     "lastReviewedAt": "2026-07-27",
-    "lastReviewedBy": "Governor + Linus recursive challenge consensus",
+    "lastReviewedBy": "Governor + Linus after accepted ANALYZE snapshot",
     "decision": "GO_WITH_CONDITIONS",
     "authorityIssue": 119,
-    "nextReviewTrigger": "bootstrap PR exact head, scope drift, unsupported command surface, write-token reachability from ANALYZE, failed profile, incomplete materialization, product-source modification, requested contract or storage change, or proposed Learning Loop V2 lane activation"
+    "nextReviewTrigger": "contract or schema change request, lane scope overlap, destructive storage change, failed technical candidate, independent QA blocker, complete product candidate, or promotion request"
   }
 }

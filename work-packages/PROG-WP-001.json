@@ -1,100 +1,252 @@
 {
   "schemaVersion": 1,
   "id": "PROG-WP-001",
-  "title": "Bootstrap minimal AI execution for Learning Loop V2",
+  "title": "Learning Loop V2 program authority and controlled parallel execution",
   "status": "in-progress",
-  "changeClass": "repository-governance",
+  "changeClass": "product-learning-loop-v2",
   "riskClass": "high",
-  "purpose": "Extend the accepted Remote Agent Worktree with one fixed-profile read-only ANALYZE mode and Learn-it Next validation profiles, while preserving the exact-tested-result IMPLEMENT path and authorizing no product implementation yet.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 119,
+    "program": "LEARNING-LOOP-V2"
+  },
+  "purpose": "Deliver one complete local-first learning loop with explicit objectives, training, corrective review, distinct validation, per-objective progress and reliable desktop/Android resume, using four disjoint development lanes, independent QA and a non-repairing integrator.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
-    "baseCommit": "d0a68fb4f47545a795934dc90ecadc834304c61e",
-    "candidateName": "Learning Loop V2 minimal AI bootstrap",
+    "baseCommit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+    "candidateName": "learning-loop-v2-wave-a",
     "artifactSha256": null
+  },
+  "bootstrapEvidence": {
+    "bootstrapPullRequest": 120,
+    "bootstrapMergeCommit": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+    "snapshotExecutionPullRequest": 121,
+    "snapshotJobHead": "4808ec07a42ae1b191592ac31c90555a830e13fc",
+    "snapshotRunId": 30267545775,
+    "snapshotArtifactSha256": "b11a3ca9c64c31781843fb44403490575ac0dea4db054fe6b2683eef10604349",
+    "snapshotResult": "PASS",
+    "writeTokenJobsSkipped": true,
+    "analysisBranchUnchanged": true,
+    "inventory": {
+      "modules": 11,
+      "dependencyEdges": 13,
+      "tests": 5,
+      "workingFiles": 33
+    }
+  },
+  "programDecision": {
+    "implementationAuthorized": true,
+    "authorizedFromBaseline": "e34dbcc75f7beaf693aa5702e3a649d000307bec",
+    "maximumDevelopmentLanes": 4,
+    "integrationModel": "frequent-technical-candidates-with-independent-qa",
+    "humanGate": "one complete product candidate on desktop and Android"
+  },
+  "waveA": {
+    "objective": "Produce a complete minimal vertical slice on one representative kit: objectives visible, training result recorded, corrective review usable, distinct validation evaluated, per-objective progress persisted and resume preserved.",
+    "contractDecision": "Use the existing learnit.kit.v2 objectiveIds, learningPhase and assessmentRole fields. No JSON Schema change is authorized in Wave A.",
+    "storageDecision": "Only additive Learn-it Next state may be introduced. No mutation or reuse of protected RC718 storage and no destructive migration.",
+    "acceptanceScenarios": [
+      "Import a representative existing v2 kit and display its authored objectives.",
+      "Submit an incorrect training activity and retain normal course progress.",
+      "Enter the corrective review queue, correct the activity and remove it from the queue.",
+      "Complete a distinct validation activity for the same objective.",
+      "Display separate per-objective training, review-needed and validation states without claiming durable mastery.",
+      "Close and reopen the application and preserve course, review and objective-progress state.",
+      "Produce one exact tested HTML artifact for desktop and Android human validation."
+    ]
+  },
+  "sharedInterfaces": {
+    "activityClassification": {
+      "objectiveIds": "existing authored objective references",
+      "learningPhase": "existing authored learning phase",
+      "assessmentRole": "existing authored assessment role"
+    },
+    "learningDomainOutput": [
+      "objectiveId",
+      "trainingAttempts",
+      "latestTrainingCorrect",
+      "needsReview",
+      "validationAttempts",
+      "latestValidationCorrect",
+      "status"
+    ],
+    "allowedStatuses": [
+      "not-started",
+      "training",
+      "review-needed",
+      "ready-for-validation",
+      "validated-recently"
+    ],
+    "claimBoundary": "validated-recently is a product-state label only; it is not a claim of mastery, retention or certification."
+  },
+  "lanes": {
+    "DEV-LEARNING": {
+      "mission": "Implement pure objective-progress and recommendation logic behind stable data-only interfaces.",
+      "allowedPaths": [
+        "apps/learnit-next/src/core/objective_progress.js",
+        "apps/learnit-next/src/core/learning_recommendation.js",
+        "apps/learnit-next/tests/dev_learning_loop_v2_learning.py"
+      ],
+      "forbiddenSharedPaths": [
+        "apps/learnit-next/src/main.js",
+        "apps/learnit-next/src/core/session.js",
+        "apps/learnit-next/src/core/progress.js",
+        "apps/learnit-next/src/ui/render.js",
+        "apps/learnit-next/build.py",
+        "apps/learnit-next/source_manifest.json"
+      ]
+    },
+    "DEV-UX": {
+      "mission": "Implement objective and recommendation presentation as isolated UI helpers and styles.",
+      "allowedPaths": [
+        "apps/learnit-next/src/ui/objective_progress.js",
+        "apps/learnit-next/src/styles.css",
+        "apps/learnit-next/tests/dev_learning_loop_v2_ui.py"
+      ],
+      "forbiddenSharedPaths": [
+        "apps/learnit-next/src/main.js",
+        "apps/learnit-next/src/ui/render.js",
+        "apps/learnit-next/build.py",
+        "apps/learnit-next/source_manifest.json"
+      ]
+    },
+    "DEV-AUTHORING": {
+      "mission": "Strengthen authoring validation and representative kits using the existing frozen v2 contract.",
+      "allowedPaths": [
+        "authoring/v2/README.md",
+        "authoring/v2/validate_kit.py",
+        "authoring/v2/golden/nombres_complexes.json",
+        "authoring/v2/golden/signaux_electriques.json",
+        "apps/learnit-next/tests/dev_learning_loop_v2_authoring.py"
+      ],
+      "forbiddenSharedPaths": [
+        "contracts/learnit-kit-v2.schema.json",
+        "apps/learnit-next/src/**",
+        "apps/learnit-next/source_manifest.json"
+      ]
+    },
+    "DEV-PLATFORM": {
+      "mission": "Compose the domain and UI interfaces into session, progress, persistence and runtime behavior without changing the frozen contract.",
+      "allowedPaths": [
+        "apps/learnit-next/src/main.js",
+        "apps/learnit-next/src/core/session.js",
+        "apps/learnit-next/src/core/progress.js",
+        "apps/learnit-next/src/ui/render.js",
+        "apps/learnit-next/src/ports/storage.js",
+        "apps/learnit-next/src/adapters/indexeddb.js",
+        "apps/learnit-next/tests/dev_learning_loop_v2_platform.py"
+      ],
+      "forbiddenSharedPaths": [
+        "apps/learnit-next/build.py",
+        "apps/learnit-next/source_manifest.json",
+        "apps/learnit-next/dev/run_checks.py",
+        "contracts/learnit-kit-v2.schema.json"
+      ]
+    }
+  },
+  "independentQa": {
+    "mission": "Prepare and execute contradictory end-to-end behavior tests against integrated candidates without modifying product files.",
+    "allowedPaths": [
+      "apps/learnit-next/tests/qa_learning_loop_v2.py",
+      "contracts/fixtures/llv2-valid-objective-loop.json",
+      "contracts/fixtures/llv2-invalid-objective-loop.json"
+    ],
+    "readsDeveloperClaimsAfterRiskHypotheses": true
+  },
+  "integration": {
+    "mission": "Assemble exact accepted lane heads, reconcile build inputs and run the complete matrix without silently repairing lane-owned files.",
+    "ownedPaths": [
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/dev/run_checks.py",
+      ".github/workflows/learnit-next-ci.yml"
+    ],
+    "productRepairAuthorized": false,
+    "firstGate": "Wave A technical candidate",
+    "promotionGate": "Wave B complete product candidate after independent QA and human validation"
   },
   "scope": {
     "allowedPaths": [
       ".github/workflows/learnit-next-ci.yml",
-      ".github/workflows/remote-agent-worktree.yml",
-      "tools/agent_worktree.py",
-      "tools/learnit_next_agent.py",
-      "tools/test_agent_worktree.py",
-      "docs/governance/REMOTE_AGENT_WORKTREE.md",
-      "work-packages/PROG-WP-001.json",
-      "governance/governor-state.json"
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/dev_learning_loop_v2_authoring.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_learning.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_ui.py",
+      "apps/learnit-next/tests/qa_learning_loop_v2.py",
+      "authoring/v2/README.md",
+      "authoring/v2/golden/nombres_complexes.json",
+      "authoring/v2/golden/signaux_electriques.json",
+      "authoring/v2/validate_kit.py",
+      "contracts/fixtures/llv2-invalid-objective-loop.json",
+      "contracts/fixtures/llv2-valid-objective-loop.json",
+      "governance/governor-state.json",
+      "work-packages/PROG-WP-001.json"
     ],
     "forbiddenPaths": [
-      "apps/learnit-next/src/**",
-      "apps/learnit-next/index.template.html",
-      "apps/learnit-next/source_manifest.json",
-      "contracts/**",
-      "authoring/**",
-      "docs/architecture/**",
-      "apps/player/**"
+      "contracts/learnit-kit-v2.schema.json",
+      "apps/player/**",
+      "backend/**",
+      "marketplace/**",
+      "commerce/**",
+      "accounts/**"
     ]
   },
   "invariants": [
-    "The bootstrap changes at most eight repository paths and at most 1500 added plus deleted lines.",
-    "ANALYZE accepts only fixed versioned profiles and never accepts caller-supplied shell, command, script, plugin or environment content.",
-    "ANALYZE runs in the read-token job and never reaches a write-token job or creates a result commit.",
-    "IMPLEMENT preserves the exact base, path budget, patch validation, no-credential test execution, separate result commit and exact tested-result status guarantees.",
-    "The Learn-it Next CI bootstrap exception is bound to the exact branch and exact eight-path allowlist and runs only governance plus Remote Agent tests.",
-    "Neither mode writes directly to main or merges a pull request.",
-    "No Learning Loop V2 product source is changed by this bootstrap.",
-    "The exact built Learn-it Next HTML is included when a fixed profile produces it."
+    "The four development lanes have no overlapping owned file path.",
+    "The frozen learnit.kit.v2 JSON Schema is not modified in Wave A.",
+    "An integrator never silently repairs a lane-owned product file.",
+    "Developer tests and independent QA tests are separate files.",
+    "No mastery, retention, certification or durable-learning claim is introduced.",
+    "Completed activity semantics, QCM/fill behavior, accessibility, import and P1 corrective review remain non-regressive.",
+    "Every integrated candidate builds deterministically and publishes the exact HTML bytes that were tested.",
+    "No autonomous merge, direct write to main or release publication is authorized."
   ],
   "requiredEvidence": [
-    "repository governance validation PASS",
-    "PR scope validation PASS on the exact bootstrap head",
-    "Learn-it Next CI exact bootstrap follow-up PASS",
-    "Remote Agent bootstrap unit tests PASS",
-    "unknown profile rejection",
-    "arbitrary command field rejection",
-    "invalid SHA rejection",
-    "forbidden path rejection",
-    "analyze apply rejection",
-    "one exact-baseline learnit-next-snapshot analysis artifact",
-    "existing implementation result-commit behavior preserved"
+    "Each lane is based on the exact authorized baseline and changes only its allowlist.",
+    "Each lane passes its fixed Learn-it Next profile and developer tests.",
+    "The integrator proves exact accepted lane heads and no undeclared path overlap.",
+    "Independent QA executes against the exact integrated candidate.",
+    "Two clean builds are byte-for-byte identical.",
+    "The exact tested HTML artifact is downloadable.",
+    "Desktop and Android human validation pass before promotion."
   ],
   "adversarialTests": [
-    "reject a non-full or uppercase base commit SHA",
-    "reject an unknown analyze or implement profile",
-    "reject command, commands, shell or any unsupported job field",
-    "reject an ANALYZE request containing a patch",
-    "reject calling apply, package or commit-prepare for ANALYZE",
-    "reject implementation paths outside allowedPaths or inside permanent forbidden paths",
-    "skip every write-token job after a successful ANALYZE run",
-    "reject any bootstrap CI path set different from the exact eight-path allowlist",
-    "preserve branch-moved, digest-mismatch and final-scope checks for IMPLEMENT"
+    "Reject a lane patch that touches a shared composition path it does not own.",
+    "Reject a contract or schema change in Wave A.",
+    "Reject objective progress inferred from display-only events.",
+    "Reject validation credit from a training activity.",
+    "Reject a corrected training item being reported as durable mastery.",
+    "Reject destructive storage migration or protected RC718 namespace reuse.",
+    "Reject integrated candidates whose manifest or artifact does not match the accepted lane heads."
   ],
   "nonGoals": [
-    "build a generic AI execution platform",
-    "support arbitrary shell commands",
-    "create an agent scheduler or orchestrator",
-    "grant autonomous merge or release authority",
-    "implement Learning Loop V2 product behavior",
-    "activate backend, accounts, cloud synchronization, marketplace, commerce or tenancy"
+    "Backend implementation",
+    "Accounts or learner profiles",
+    "Cloud synchronization",
+    "Remote catalog distribution",
+    "Commerce or entitlements",
+    "Institutional tenancy",
+    "Publisher marketplace",
+    "Generic agent orchestration"
   ],
   "independentReview": [
-    "Repository governance workflow",
-    "PR scope workflow",
-    "Learn-it Next CI targeted bootstrap follow-up",
-    "Architecture and Repository Governor",
-    "Linus code review of permission separation and compatibility",
-    "one read-only end-to-end analysis smoke run before bootstrap acceptance"
+    "Issue #119 remains the single program authority.",
+    "QA remains independent from all four development lanes.",
+    "Governor review is required only for contract changes, scope changes, product-candidate acceptance and promotion.",
+    "Human merge remains mandatory."
   ],
-  "programAfterBootstrap": {
-    "name": "LEARNING-LOOP-V2",
-    "authorityIssue": 119,
-    "maximumDevelopmentLanes": 4,
-    "lanes": [
-      "DEV-LEARNING",
-      "DEV-UX",
-      "DEV-AUTHORING",
-      "DEV-PLATFORM"
-    ],
-    "implementationAuthorized": false,
-    "activationGate": "Bootstrap accepted and exact snapshot evidence reviewed"
-  },
-  "rollback": "Revert the bootstrap pull request. Existing P1 product source, accepted post-merge artifact, Remote Agent v1 implementation lane and repository data remain unchanged; analysis-only branches can be closed without migration."
+  "rollback": "Revert the integrated Learning Loop V2 candidate. Existing P1 product behavior, frozen contract, protected RC718 storage, bootstrap tools and accepted snapshot evidence remain available."
 }
