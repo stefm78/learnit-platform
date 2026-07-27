@@ -282,6 +282,25 @@ jobs:
           followup_pass="CI_WP_002_FOLLOWUP_PASS"
           followup_failure="CI_WP_002_FOLLOWUP_FAILURE"
 
+          is_product_relevant_pr_path() {
+            case "${1-}" in
+              .github/workflows/learnit-next-ci.yml|\
+              apps/learnit-next/index.template.html|\
+              apps/learnit-next/source_manifest.json|\
+              apps/learnit-next/build.py|\
+              apps/learnit-next/src/*|\
+              apps/learnit-next/dev/run_checks.py|\
+              apps/learnit-next/tests/*|\
+              contracts/*|\
+              authoring/*)
+                return 0
+                ;;
+              *)
+                return 1
+                ;;
+            esac
+          }
+
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
             mapfile -t changed < <(git diff --name-only origin/main...HEAD)
             if [[ ${#changed[@]} -eq 1 && "${changed[0]}" == "${workflow_path}" ]]; then
@@ -297,6 +316,30 @@ jobs:
                 echo "Existing topology regression tests failed." >&2
                 code=${topology_code}
               fi
+
+              for path_under_test in \
+                governance/governor-state.json \
+                work-packages/PROG-WP-001.json \
+                docs/governance/REMOTE_AGENT_WORKTREE.md
+              do
+                if is_product_relevant_pr_path "${path_under_test}"; then
+                  echo "Non-product routing misclassified: ${path_under_test}" >&2
+                  code=2
+                fi
+              done
+
+              for path_under_test in \
+                apps/learnit-next/src/main.js \
+                apps/learnit-next/tests/qa_learning_loop_v2.py \
+                contracts/learnit-kit-v2.schema.json \
+                authoring/v2/validate_kit.py \
+                .github/workflows/learnit-next-ci.yml
+              do
+                if ! is_product_relevant_pr_path "${path_under_test}"; then
+                  echo "Product routing misclassified: ${path_under_test}" >&2
+                  code=2
+                fi
+              done
             elif [[ "${GITHUB_HEAD_REF}" == "gov/PROG-WP-001-ai-bootstrap" ]]; then
               expected="$(printf '%s\n' \
                 '.github/workflows/learnit-next-ci.yml' \
@@ -326,6 +369,23 @@ jobs:
                 followup_pass="PROG_WP_001_BOOTSTRAP_PASS"
                 followup_failure="PROG_WP_001_BOOTSTRAP_FAILURE"
                 code=2
+              fi
+            elif [[ ${#changed[@]} -gt 0 ]]; then
+              product_relevant=0
+              for changed_path in "${changed[@]}"; do
+                if is_product_relevant_pr_path "${changed_path}"; then
+                  product_relevant=1
+                  break
+                fi
+              done
+
+              if [[ ${product_relevant} -eq 0 ]]; then
+                targeted_followup=1
+                followup_work_package="CI-WP-002"
+                followup_pass="NON_PRODUCT_PR_ROUTING_PASS"
+                followup_failure="NON_PRODUCT_PR_ROUTING_FAILURE"
+                code=0
+                python tools/validate_repository.py || code=$?
               fi
             fi
           elif [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
