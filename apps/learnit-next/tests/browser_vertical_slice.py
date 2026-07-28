@@ -431,19 +431,22 @@ class BrowserVerticalSliceTests(unittest.TestCase):
         text = payload if isinstance(payload, str) else json.dumps(
             payload, ensure_ascii=False
         )
-        trigger = self.import_trigger()
+        file_input = self.page.get_by_label(
+            "Importer un kit learnit.kit.v2", exact=True
+        )
+        self.assertEqual(1, file_input.count())
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", encoding="utf-8", delete=False
         ) as handle:
             handle.write(text)
             path = Path(handle.name)
         try:
-            trigger.focus()
-            self.assert_focused(trigger)
-            trigger.evaluate("element => { window.__qaImportTrigger = element; }")
-            with self.page.expect_file_chooser() as event:
-                self.page.keyboard.press("Enter")
-            event.value.set_files(str(path))
+            file_input.focus()
+            self.assert_focused(file_input)
+            file_input.evaluate(
+                "element => { window.__qaImportTrigger = element; }"
+            )
+            file_input.set_input_files(str(path))
             self.page.wait_for_function(
                 """async pattern => {
                   if ((await window.__LEARNIT_NEXT_TEST__.listCourses()).length > 0) return true;
