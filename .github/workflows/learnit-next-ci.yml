@@ -171,16 +171,82 @@ jobs:
             --output apps/learnit-next/.agent-result/profile-browser.json
 
       - name: Replay exact QA head
-        env:
-          LLV2_PRODUCT_TREE: ${{ github.workspace }}
-          LEARNIT_NEXT_ARTIFACT: ${{ github.workspace }}/apps/learnit-next/dist/learnit-next.html
-          LLV2_QA_STRICT: '1'
-          LLV2_QA_BROWSER_STRICT: '1'
+        shell: bash
         run: |
           set -euo pipefail
           test -z "$(git status --porcelain --untracked-files=no)"
-          python apps/learnit-next/tests/qa_learning_loop_v2.py -v 2>&1 | tee apps/learnit-next/.agent-result/qa-exact.log
+
+          artifact="${GITHUB_WORKSPACE}/apps/learnit-next/dist/learnit-next.html"
+          test -f "${artifact}"
+          artifact_bytes_before="$(stat -c '%s' "${artifact}")"
+          artifact_sha_before="$(sha256sum "${artifact}" | awk '{print $1}')"
+
+          qa_parent="$(mktemp -d "${RUNNER_TEMP}/wave-a-qa.XXXXXX")"
+          trap 'rm -rf -- "${qa_parent}"' EXIT
+          qa_root="$(python - "${qa_parent}" <<'PY'
+          import importlib.util
+          import sys
+          from pathlib import Path
+
+          destination = Path(sys.argv[1]).resolve()
+          run_checks_path = Path.cwd() / "apps/learnit-next/dev/run_checks.py"
+          spec = importlib.util.spec_from_file_location("wave_a_run_checks", run_checks_path)
+          if spec is None or spec.loader is None:
+              raise SystemExit("cannot load run_checks materialization API")
+          run_checks = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(run_checks)
+          manifest = run_checks.load_manifest()
+          root = run_checks.materialize(destination, manifest).resolve()
+          print(root)
+          PY
+          )"
+
+          [[ "${qa_root}" == "${qa_parent}/repo" ]]
+          [[ "${qa_root}" == "${RUNNER_TEMP}"/* ]]
+          [[ "${qa_root}" != "${GITHUB_WORKSPACE}"/* ]]
+
+          for required in \
+            apps/learnit-next/src/main.js \
+            apps/learnit-next/src/core/contract.js \
+            apps/learnit-next/tests/qa_learning_loop_v2.py
+          do
+            test -f "${qa_root}/${required}"
+          done
+
+          qa_path="apps/learnit-next/tests/qa_learning_loop_v2.py"
+          expected_qa_blob="$(git rev-parse "f25da6356528824e84224718013a3bccb2707c49:${qa_path}")"
+          actual_qa_blob="$(git hash-object "${qa_root}/${qa_path}")"
+          [[ "${expected_qa_blob}" == "514d095b5fa028d12dc6d87ba7d4bd82c64a0cd9" ]]
+          [[ "${actual_qa_blob}" == "${expected_qa_blob}" ]]
+
+          export LLV2_PRODUCT_TREE="${qa_root}"
+          export LEARNIT_NEXT_ARTIFACT="${artifact}"
+          export LLV2_QA_STRICT='1'
+          export LLV2_QA_BROWSER_STRICT='1'
+          export PYTHONDONTWRITEBYTECODE='1'
+
+          python - "${qa_root}" <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          expected = Path(sys.argv[1]).resolve()
+          actual = Path(os.environ["LLV2_PRODUCT_TREE"]).resolve()
+          if actual != expected:
+              raise SystemExit("QA product tree differs from materialized tree")
+          if Path(os.environ["LEARNIT_NEXT_ARTIFACT"]).resolve() == expected / "apps/learnit-next/dist/learnit-next.html":
+              raise SystemExit("QA artifact must be the exact workspace HTML already tested")
+          PY
+
+          (
+            cd "${qa_root}"
+            python "${qa_path}" -v
+          ) 2>&1 | tee "${GITHUB_WORKSPACE}/apps/learnit-next/.agent-result/qa-exact.log"
+
+          [[ "$(git hash-object "${qa_root}/${qa_path}")" == "${expected_qa_blob}" ]]
           test -z "$(git status --porcelain --untracked-files=no)"
+          [[ "$(stat -c '%s' "${artifact}")" == "${artifact_bytes_before}" ]]
+          [[ "$(sha256sum "${artifact}" | awk '{print $1}')" == "${artifact_sha_before}" ]]
 
       - name: Verify all reports and exact HTML
         shell: bash
