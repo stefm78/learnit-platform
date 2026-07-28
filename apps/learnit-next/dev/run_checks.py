@@ -5,10 +5,11 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]; APP=ROOT/"apps/learnit-next"
 MANIFEST=APP/"source_manifest.json"; REPORT=APP/".agent-result/run_checks.json"
 ART=Path("apps/learnit-next/dist/learnit-next.html"); BASE="8ebafee48cc5277b92776982639a0146ae7e76d0"
-HEADS={"DEV-LEARNING":"ae999472418a18a1181b43a07259a4395afbcf7f","DEV-UX":"48df0517d74e8c343223f14361607c4a93e7f55b","DEV-AUTHORING":"6c4111715a55fdff07a3e466d013dcdcc7aa5c78","DEV-PLATFORM":"85df807137ecfee210459f3d02cd6fbdd7ac1307","QA":"f25da6356528824e84224718013a3bccb2707c49"}
+HEADS={"DEV-LEARNING":"ae999472418a18a1181b43a07259a4395afbcf7f","DEV-UX":"48df0517d74e8c343223f14361607c4a93e7f55b","DEV-AUTHORING":"6c4111715a55fdff07a3e466d013dcdcc7aa5c78","DEV-PLATFORM":"f260093914542f93ff9145cbac8e98aae415fe01","QA":"f25da6356528824e84224718013a3bccb2707c49"}
 LANES={"DEV-LEARNING":{"apps/learnit-next/src/core/learning_recommendation.js","apps/learnit-next/src/core/objective_progress.js","apps/learnit-next/tests/dev_learning_loop_v2_learning.py"},"DEV-UX":{"apps/learnit-next/src/styles.css","apps/learnit-next/src/ui/objective_progress.js","apps/learnit-next/tests/dev_learning_loop_v2_ui.py"},"DEV-AUTHORING":{"authoring/v2/README.md","authoring/v2/validate_kit.py","authoring/v2/golden/nombres_complexes.json","authoring/v2/golden/signaux_electriques.json","apps/learnit-next/tests/dev_learning_loop_v2_authoring.py"},"DEV-PLATFORM":{"apps/learnit-next/src/main.js","apps/learnit-next/src/core/session.js","apps/learnit-next/src/core/progress.js","apps/learnit-next/src/ui/render.js","apps/learnit-next/src/ports/storage.js","apps/learnit-next/src/adapters/indexeddb.js","apps/learnit-next/tests/dev_learning_loop_v2_platform.py"},"QA":{"apps/learnit-next/tests/qa_learning_loop_v2.py","contracts/fixtures/llv2-valid-objective-loop.json","contracts/fixtures/llv2-invalid-objective-loop.json"}}
 INT={"apps/learnit-next/build.py","apps/learnit-next/source_manifest.json","apps/learnit-next/dev/run_checks.py",".github/workflows/learnit-next-ci.yml"}; EXPECTED=set().union(*LANES.values(),INT)
-SELF="apps/learnit-next/source_manifest.json"; SCHEMA="contracts/learnit-kit-v2.schema.json"
+SELF="apps/learnit-next/source_manifest.json"; SCHEMA="contracts/learnit-kit-v2.schema.json"; MAIN="apps/learnit-next/src/main.js"
+MAIN_BLOB="408edb3aba78b1754331d7f622d65a0d38b102c2"
 class GateError(RuntimeError): pass
 def sha(b): return hashlib.sha256(b).hexdigest()
 def blob(b): return hashlib.sha1(("blob %d\0"%len(b)).encode()+b).hexdigest()
@@ -36,59 +37,18 @@ def load_manifest():
     data=subprocess.run(["git","cat-file","blob",declared],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
    if not data or blob(data)!=declared: raise GateError("manifest blob differs: "+x["path"])
  return m
-def compose_wave_a_projection(root,manifest):
- main_path=root/"apps/learnit-next/src/main.js"
- source=main_path.read_text(encoding="utf-8")
- signature="export function createLearnitRuntime(storageAdapter = createIndexedDbStorage(), integrations = {}) {"
- boot_line="const integrations = resolveIntegrations(globalThis[LEARNING_LOOP_V2_COMPOSITION.registry] ?? {});"
- if source.count(signature)!=1 or source.count(boot_line)!=1:
-  raise GateError("Wave A composition seam differs")
- prefix="""import * as __waveAObjectiveProgress from './core/objective_progress.js';
-import * as __waveALearningRecommendation from './core/learning_recommendation.js';
-import * as __waveAObjectiveUiModule from './ui/objective_progress.js';
-
-const __waveAObjectiveUi = Object.freeze({
-  renderObjectiveProgress(input = {}) {
-    const labelsById = Object.fromEntries(
-      (input.courseObjectives ?? []).map((objective) => [
-        objective.objectiveId,
-        objective.label ?? objective.objectiveId,
-      ]),
-    );
-    return __waveAObjectiveUiModule.renderObjectiveProgressPanel(
-      {
-        objectives: input.objectiveProgress ?? [],
-        recommendation: input.recommendation ?? null,
-      },
-      {
-        documentRef: input.document ?? globalThis.document,
-        labelsById,
-        idPrefix: `learning-loop-${input.context ?? 'surface'}`,
-      },
-    );
-  },
-});
-
-const __waveADefaultIntegrations = Object.freeze({
-  objectiveProgress: __waveAObjectiveProgress,
-  learningRecommendation: __waveALearningRecommendation,
-  objectiveUi: __waveAObjectiveUi,
-});
-
-"""
- composed=prefix+source.replace(signature,"export function createLearnitRuntime(storageAdapter = createIndexedDbStorage(), integrations = __waveADefaultIntegrations) {").replace(boot_line,"const integrations = resolveIntegrations(globalThis[LEARNING_LOOP_V2_COMPOSITION.registry] ?? __waveADefaultIntegrations);")
- main_path.write_text(composed,encoding="utf-8")
- projected=json.loads(json.dumps(manifest,ensure_ascii=False))
- item=next((x for x in projected["workingFiles"] if x["path"]=="apps/learnit-next/src/main.js"),None)
- if not item or item["fingerprint"]["value"]!="86eb2cf95d9173c361618a2e10b4f6fd0122b06e":
-  raise GateError("Wave A source main identity differs")
- item["fingerprint"]["value"]=blob(composed.encode("utf-8"))
- item["projection"]={"kind":"deterministic-int-composition-v1","sourceBlob":"86eb2cf95d9173c361618a2e10b4f6fd0122b06e"}
- self_item=next(x for x in projected["workingFiles"] if x["path"]==SELF)
- self_item["fingerprint"]["value"]=self_digest(projected)
- (root/SELF).write_text(json.dumps(projected,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n",encoding="utf-8")
- return {"mainSourceBlob":"86eb2cf95d9173c361618a2e10b4f6fd0122b06e","projectedMainBlob":item["fingerprint"]["value"],"kind":"deterministic-int-composition-v1"}
-
+def verify_native_composition(root,manifest):
+ main_path=root/MAIN; data=main_path.read_bytes()
+ if blob(data)!=MAIN_BLOB: raise GateError("native PLATFORM main identity differs")
+ item=next((x for x in manifest["workingFiles"] if x["path"]==MAIN),None)
+ if not item or item["fingerprint"]["value"]!=MAIN_BLOB: raise GateError("manifest main identity differs")
+ declaration=manifest.get("build",{}).get("integrationProjection")
+ expected={"kind":"lane-owned-native-composition-v1","learningRecommendationModule":"apps/learnit-next/src/core/learning_recommendation.js","objectiveProgressModule":"apps/learnit-next/src/core/objective_progress.js","objectiveUiModule":"apps/learnit-next/src/ui/objective_progress.js","scope":"exact frozen lane blob","sourceMainBlob":MAIN_BLOB}
+ if declaration!=expected: raise GateError("native composition declaration differs")
+ text=data.decode("utf-8")
+ markers=("createLearningLoopV2DomainAdapters(","reduceObjectiveEvents","recommendNextObjective","renderObjectiveProgressPanel","defaultIntegrations")
+ if any(marker not in text for marker in markers): raise GateError("native composition seam differs")
+ return expected
 def attach_git_metadata(root):
  source=ROOT/".git"
  if source.is_dir(): gitdir=source.resolve()
@@ -96,13 +56,11 @@ def attach_git_metadata(root):
   raw=source.read_text(encoding="utf-8").split(":",1)[1].strip(); gitdir=(ROOT/raw).resolve() if not Path(raw).is_absolute() else Path(raw)
  else: raise GateError("Git metadata unavailable for strict provenance QA")
  (root/".git").write_text(f"gitdir: {gitdir}\n",encoding="utf-8")
-
 def install_p1_compatibility_port(root):
  source=root/"apps/learnit-next/src/ports/storage.js"
  target=Path(tempfile.gettempdir())/"ports/storage.js"
  target.parent.mkdir(parents=True,exist_ok=True)
  target.write_bytes(source.read_bytes())
-
 def materialize(destination,manifest):
  root=destination/"repo"
  def ignore(d,n):
@@ -121,7 +79,7 @@ def materialize(destination,manifest):
  if old.exists(): old.unlink()
  attach_git_metadata(root)
  install_p1_compatibility_port(root)
- compose_wave_a_projection(root,manifest)
+ verify_native_composition(root,manifest)
  return root
 def provenance():
  if set().union(*LANES.values())&INT: raise GateError("ownership overlap")
@@ -132,9 +90,12 @@ def provenance():
   if git("merge-base",BASE,h)!=BASE: raise GateError(lane+" merge-base differs")
   paths=set(filter(None,git("diff","--name-only",BASE+".."+h).splitlines()))
   if paths!=LANES[lane] or subprocess.run(["git","merge-base","--is-ancestor",h,"HEAD"],cwd=ROOT).returncode: raise GateError(lane+" topology differs")
+  blobs={}
   for p in paths:
-   if git("rev-parse",h+":"+p)!=git("rev-parse","HEAD:"+p): raise GateError(lane+" blob differs: "+p)
-  proof[lane]={"head":h,"paths":sorted(paths)}
+   expected=git("rev-parse",h+":"+p); integrated=git("rev-parse","HEAD:"+p)
+   if expected!=integrated: raise GateError(lane+" blob differs: "+p)
+   blobs[p]={"expected":expected,"integrated":integrated,"equal":True}
+  proof[lane]={"head":h,"paths":sorted(paths),"blobs":blobs}
  if git("rev-parse",BASE+":"+SCHEMA)!=git("rev-parse","HEAD:"+SCHEMA): raise GateError("frozen contract changed")
  return {"changedPaths":sorted(changed),"lanes":proof}
 def build(root):
@@ -150,7 +111,7 @@ def main():
    parents=git("show","-s","--format=%P","HEAD").split()
    if len(parents)!=2 or not a.accepted_integration_head or parents[1]!=a.accepted_integration_head: raise GateError("post-merge topology differs")
   else: raise GateError("unsupported topology")
-  m=load_manifest(); r["provenance"]=provenance()
+  m=load_manifest(); r["provenance"]=provenance(); r["composition"]=verify_native_composition(ROOT,m)
   with tempfile.TemporaryDirectory(prefix="wave-a-int-") as raw:
    one=materialize(Path(raw)/"one",m); two=materialize(Path(raw)/"two",m); d1,p1=build(one); d2,p2=build(two)
   if d1!=d2: raise GateError("clean builds differ")

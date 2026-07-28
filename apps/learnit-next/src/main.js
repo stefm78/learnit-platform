@@ -1,10 +1,16 @@
 import { CONTRACT_VERSION } from './core/contract.js';
 import { createImportService } from './core/import.js';
 import { createLibraryService } from './core/library.js';
-import { createProgressService } from './core/progress.js';
+import {
+  createLearningLoopV2DomainAdapters,
+  createProgressService,
+} from './core/progress.js';
 import { createSessionService } from './core/session.js';
+import * as objectiveProgressDomain from './core/objective_progress.js';
+import * as learningRecommendationDomain from './core/learning_recommendation.js';
 import { createIndexedDbStorage } from './adapters/indexeddb.js';
 import { assertStoragePort } from './ports/storage.js';
+import * as objectiveUiModule from './ui/objective_progress.js';
 import { renderApp } from './ui/render.js';
 
 export const LEARNING_LOOP_V2_COMPOSITION = Object.freeze({
@@ -15,13 +21,89 @@ export const LEARNING_LOOP_V2_COMPOSITION = Object.freeze({
     objectiveUi: './ui/objective_progress.js',
   }),
   requiredExports: Object.freeze({
-    objectiveProgress: 'projectObjectiveProgress',
-    learningRecommendation: 'recommendLearningAction',
-    objectiveUi: 'renderObjectiveProgress',
+    objectiveProgress: Object.freeze(['reduceObjectiveEvents', 'normalizeObjectiveProgress']),
+    learningRecommendation: Object.freeze(['recommendNextObjective']),
+    objectiveUi: Object.freeze(['renderObjectiveProgressPanel']),
   }),
 });
 
-function resolveIntegrations(value = {}) {
+const RECOMMENDATION_PRESENTATION = Object.freeze({
+  correct: Object.freeze({
+    title: 'Révision nécessaire',
+    description: 'Reprenez une activité incorrecte avant de poursuivre vers la validation.',
+  }),
+  validate: Object.freeze({
+    title: 'Validation disponible',
+    description: 'L’entraînement est à jour. Une activité distincte peut maintenant valider cet objectif.',
+  }),
+  'continue-training': Object.freeze({
+    title: 'Poursuivre l’entraînement',
+    description: 'Continuez les activités d’entraînement associées à cet objectif.',
+  }),
+  'start-training': Object.freeze({
+    title: 'Commencer l’entraînement',
+    description: 'Commencez par une activité d’entraînement associée à cet objectif.',
+  }),
+  'revisit-later': Object.freeze({
+    title: 'Revenir plus tard',
+    description: 'La validation est récente et devra être revue ultérieurement.',
+  }),
+});
+
+function presentRecommendation(recommendation) {
+  if (recommendation == null) return null;
+  if (typeof recommendation !== 'object' || Array.isArray(recommendation)) {
+    throw new TypeError('Learning Loop V2 recommendation must be a data object or null');
+  }
+  const presentation = RECOMMENDATION_PRESENTATION[recommendation.action];
+  if (!presentation) {
+    throw new TypeError(`Unsupported Learning Loop V2 recommendation action: ${String(recommendation.action)}`);
+  }
+  return {
+    ...presentation,
+    actionKey: recommendation.action,
+    objectiveId: recommendation.objectiveId,
+    status: recommendation.status,
+  };
+}
+
+function createObjectiveUiAdapter(moduleValue) {
+  if (typeof moduleValue?.renderObjectiveProgressPanel !== 'function') {
+    throw new TypeError('Learning Loop V2 objectiveUi.renderObjectiveProgressPanel() is required');
+  }
+  return Object.freeze({
+    renderObjectiveProgress(input = {}) {
+      const labelsById = Object.fromEntries(
+        (input.courseObjectives ?? []).map((objective) => [
+          objective.objectiveId,
+          objective.label ?? objective.objectiveId,
+        ]),
+      );
+      return moduleValue.renderObjectiveProgressPanel(
+        {
+          objectives: input.objectiveProgress ?? [],
+          recommendation: presentRecommendation(input.recommendation ?? null),
+        },
+        {
+          documentRef: input.document ?? globalThis.document,
+          labelsById,
+          idPrefix: `learning-loop-${input.context ?? 'surface'}`,
+        },
+      );
+    },
+  });
+}
+
+const domainIntegrations = createLearningLoopV2DomainAdapters(
+  objectiveProgressDomain,
+  learningRecommendationDomain,
+);
+const defaultIntegrations = Object.freeze({
+  ...domainIntegrations,
+  objectiveUi: createObjectiveUiAdapter(objectiveUiModule),
+});
+
+function resolveIntegrations(value = defaultIntegrations) {
   if (value == null) return Object.freeze({});
   if (typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Learning Loop V2 integrations must be an object');
@@ -33,7 +115,10 @@ function resolveIntegrations(value = {}) {
   });
 }
 
-export function createLearnitRuntime(storageAdapter = createIndexedDbStorage(), integrations = {}) {
+export function createLearnitRuntime(
+  storageAdapter = createIndexedDbStorage(),
+  integrations = defaultIntegrations,
+) {
   const storage = assertStoragePort(storageAdapter);
   const resolvedIntegrations = resolveIntegrations(integrations);
   const progress = createProgressService(storage, resolvedIntegrations);
@@ -133,7 +218,9 @@ function waitForInitialRender(root) {
 async function boot() {
   const root = document.getElementById('app');
   if (!root) throw new Error('Missing #app mount point');
-  const integrations = resolveIntegrations(globalThis[LEARNING_LOOP_V2_COMPOSITION.registry] ?? {});
+  const integrations = resolveIntegrations(
+    globalThis[LEARNING_LOOP_V2_COMPOSITION.registry] ?? defaultIntegrations,
+  );
   const runtime = createLearnitRuntime(createIndexedDbStorage(), integrations);
   renderApp(root, runtime, integrations.objectiveUi);
   await waitForInitialRender(root);
@@ -153,6 +240,8 @@ async function boot() {
     resetNextData: runtime.resetNextData,
     storageReport: runtime.storageReport,
     integrationStatus: runtime.integrationStatus,
+    resumeActiveCourse: runtime.resumeActiveCourse,
+    getSession: runtime.getSession,
   });
 }
 

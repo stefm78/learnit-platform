@@ -90,7 +90,7 @@ jobs:
             ae999472418a18a1181b43a07259a4395afbcf7f \
             48df0517d74e8c343223f14361607c4a93e7f55b \
             6c4111715a55fdff07a3e466d013dcdcc7aa5c78 \
-            85df807137ecfee210459f3d02cd6fbdd7ac1307 \
+            f260093914542f93ff9145cbac8e98aae415fe01 \
             f25da6356528824e84224718013a3bccb2707c49
           do
             git fetch --force --no-tags origin "${sha}"
@@ -136,7 +136,7 @@ jobs:
             --base-ref "8ebafee48cc5277b92776982639a0146ae7e76d0"
           )
           if [[ -n "${{ steps.mode.outputs.accepted }}" ]]; then
-            args+=(--accepted_integration-head "${{ steps.mode.outputs.accepted }}")
+            args+=(--accepted-integration-head "${{ steps.mode.outputs.accepted }}")
           fi
           python apps/learnit-next/dev/run_checks.py "${args[@]}"
 
@@ -170,25 +170,45 @@ jobs:
             --profile learnit-next-browser \
             --output apps/learnit-next/.agent-result/profile-browser.json
 
-      - name: Verify all profile reports and exact HTML
+      - name: Replay exact QA head
+        env:
+          LLV2_PRODUCT_TREE: ${{ github.workspace }}
+          LEARNIT_NEXT_ARTIFACT: ${{ github.workspace }}/apps/learnit-next/dist/learnit-next.html
+          LLV2_QA_STRICT: '1'
+          LLV2_QA_BROWSER_STRICT: '1'
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain --untracked-files=no)"
+          python apps/learnit-next/tests/qa_learning_loop_v2.py -v 2>&1 | tee apps/learnit-next/.agent-result/qa-exact.log
+          test -z "$(git status --porcelain --untracked-files=no)"
+
+      - name: Verify all reports and exact HTML
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
           from pathlib import Path
+          reports={}
           for name in ("authoring", "contract", "full", "browser"):
-              path = Path(f"apps/learnit-next/.agent-result/profile-{name}.json")
-              payload = json.loads(path.read_text(encoding="utf-8"))
-              if payload.get("result") != "PASS":
+              path=Path(f"apps/learnit-next/.agent-result/profile-{name}.json")
+              payload=json.loads(path.read_text(encoding="utf-8"))
+              if payload.get("result")!="PASS":
                   raise SystemExit(f"profile failed: {name}")
-          gate = json.loads(Path("apps/learnit-next/.agent-result/run_checks.json").read_text(encoding="utf-8"))
-          if gate.get("result") != "PASS":
+              reports[name]=payload
+          gate=json.loads(Path("apps/learnit-next/.agent-result/run_checks.json").read_text(encoding="utf-8"))
+          if gate.get("result")!="PASS":
               raise SystemExit("integration gate failed")
-          html = Path("apps/learnit-next/dist/learnit-next.html")
-          if not html.is_file():
-              raise SystemExit("tested HTML is absent")
-          print(gate["artifact"])
+          identity={key:gate["artifact"][key] for key in ("path","bytes","sha256")}
+          for name in ("full","browser"):
+              if reports[name].get("artifact")!=identity:
+                  raise SystemExit(f"profile artifact differs: {name}")
+          html=Path(identity["path"])
+          if not html.is_file() or html.stat().st_size!=identity["bytes"]:
+              raise SystemExit("tested HTML is absent or has wrong size")
+          if not Path("apps/learnit-next/.agent-result/qa-exact.log").is_file():
+              raise SystemExit("exact QA log is absent")
+          print(json.dumps(identity,sort_keys=True))
           PY
 
       - name: Upload exact Wave A proof
@@ -206,4 +226,5 @@ jobs:
             apps/learnit-next/.agent-result/profile-contract.json
             apps/learnit-next/.agent-result/profile-full.json
             apps/learnit-next/.agent-result/profile-browser.json
+            apps/learnit-next/.agent-result/qa-exact.log
             apps/learnit-next/dist/learnit-next.html
