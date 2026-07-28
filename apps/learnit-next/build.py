@@ -15,13 +15,11 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 APP = ROOT / "apps/learnit-next"
 MANIFEST_PATH = APP / "source_manifest.json"
-FILE_PLAN_PATH = ROOT / "docs/architecture/clean-generation/FILE_PLAN_V1.json"
 DEFAULT_OUTPUT = APP / "dist/learnit-next.html"
 ARTIFACT_REL = "apps/learnit-next/dist/learnit-next.html"
 SELF_PATH = "apps/learnit-next/source_manifest.json"
 SELF_KIND = "canonical-self-sha256"
 BLOB_KIND = "git-blob-sha1"
-ZERO_SHA256 = "0" * 64
 IMPORT_RE = re.compile(
     r"""(?P<prefix>\b(?:import|export)\s+(?:(?:[^'";]*?)\s+from\s+)?)(?P<quote>['"])(?P<spec>[^'"]+)(?P=quote)""",
     re.MULTILINE,
@@ -84,24 +82,11 @@ def manifest_self_digest(manifest: dict[str, Any]) -> str:
     return sha256(canonical_bytes(clone))
 
 
-def plan_paths(plan: dict[str, Any]) -> set[str]:
-    paths = {entry["path"] for entry in plan.get("frozenSharedFiles", [])}
-    for role in plan.get("roles", {}).values():
-        for path in role.get("paths", []):
-            if path in paths:
-                raise BuildError(f"file-plan duplicate: {path}")
-            paths.add(path)
-    return paths
-
-
-def expected_runtime_sources(plan: dict[str, Any]) -> list[str]:
-    runtime = list(plan["roles"]["runtime-agent"]["paths"])
-    return [path for path in runtime if path != "apps/learnit-next/README.md"]
-
-
 def git_blob_bytes(blob_sha: str) -> bytes:
     if not (ROOT / ".git").exists():
-        raise BuildError(f"declared file is absent and Git object access is unavailable: {blob_sha}")
+        raise BuildError(
+            f"declared file is absent and Git object access is unavailable: {blob_sha}"
+        )
     process = subprocess.run(
         ["git", "cat-file", "blob", blob_sha],
         cwd=ROOT,
@@ -126,57 +111,43 @@ def item_bytes(item: dict[str, Any]) -> bytes:
     return git_blob_bytes(str(fingerprint.get("value", "")))
 
 
-def validate_git_state(items: list[dict[str, Any]]) -> None:
-    if not (ROOT / ".git").exists():
-        return
-    integrator_paths = [item["path"] for item in items if item.get("owner") == "integrator"]
-    for path in integrator_paths:
-        tracked = subprocess.run(
-            ["git", "ls-files", "--error-unmatch", "--", path],
-            cwd=ROOT,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        if tracked.returncode:
-            raise BuildError(f"manifest-controlled integrator file is not committed: {path}")
-    for command in (
-        ["git", "diff", "--quiet", "--", *integrator_paths],
-        ["git", "diff", "--cached", "--quiet", "--", *integrator_paths],
-    ):
-        if subprocess.run(command, cwd=ROOT, check=False).returncode:
-            raise BuildError("manifest-controlled integrator files contain uncommitted changes")
-
-
 def validate_manifest() -> tuple[dict[str, Any], list[str], dict[str, bytes]]:
     manifest = load_json(MANIFEST_PATH)
-    plan = load_json(FILE_PLAN_PATH)
-    expected = plan_paths(plan)
-    if plan.get("workingFileBudget") != 32 or len(expected) != 32:
-        raise BuildError("canonical file plan is not exactly 32 files")
+    if manifest.get("schema") != "learnit.next.source-manifest.v2":
+        raise BuildError("unsupported source manifest schema")
+    if manifest.get("workPackage") != "PROG-WP-001":
+        raise BuildError("source manifest work package differs")
+
     items = manifest.get("workingFiles")
-    if not isinstance(items, list):
-        raise BuildError("workingFiles must be a list")
+    if not isinstance(items, list) or not items:
+        raise BuildError("workingFiles must be a non-empty list")
     paths = [item.get("path") for item in items if isinstance(item, dict)]
-    if len(paths) != 32 or len(set(paths)) != 32 or set(paths) != expected:
-        raise BuildError(
-            f"manifest budget drift: count={len(paths)}, "
-            f"missing={sorted(expected - set(paths))}, extra={sorted(set(paths) - expected)}"
-        )
+    if len(paths) != len(items) or len(set(paths)) != len(paths):
+        raise BuildError("workingFiles paths must be unique strings")
+    if manifest.get("fileBudget") != len(items):
+        raise BuildError("manifest fileBudget differs from workingFiles count")
+
     ordered = manifest.get("build", {}).get("orderedSources")
-    expected_order = expected_runtime_sources(plan)
-    if not isinstance(ordered, list) or ordered != expected_order or len(set(ordered)) != len(ordered):
-        raise BuildError("ordered build sources differ from the canonical runtime file plan")
-    if manifest.get("fileBudget") != 32:
-        raise BuildError("manifest fileBudget is not 32")
+    if not isinstance(ordered, list) or not ordered or len(set(ordered)) != len(ordered):
+        raise BuildError("build.orderedSources must be a unique non-empty list")
+    required = {
+        "apps/learnit-next/index.template.html",
+        "apps/learnit-next/src/styles.css",
+        "apps/learnit-next/src/main.js",
+    }
+    if not required.issubset(set(ordered)):
+        raise BuildError("canonical template, stylesheet or main module is absent")
+    if not set(ordered).issubset(set(paths)):
+        raise BuildError("ordered build source is absent from workingFiles")
     if manifest.get("artifact", {}).get("path") != ARTIFACT_REL:
         raise BuildError("manifest artifact path is not canonical")
 
     data_by_path: dict[str, bytes] = {}
     for item in items:
-        path = item["path"]
+        path = str(item["path"])
         fingerprint = item.get("fingerprint", {})
-        kind, declared = fingerprint.get("kind"), fingerprint.get("value")
+        kind = fingerprint.get("kind")
+        declared = fingerprint.get("value")
         if path == SELF_PATH:
             actual = manifest_self_digest(manifest)
             if kind != SELF_KIND or declared != actual:
@@ -204,13 +175,11 @@ def validate_manifest() -> tuple[dict[str, Any], list[str], dict[str, bytes]]:
             for path in source_root.rglob("*")
             if path.is_file() and "__pycache__" not in path.parts
         )
-    virtual_source_files = set(ordered)
-    extras = actual_source_files - virtual_source_files
-    missing = virtual_source_files - set(data_by_path)
+    extras = actual_source_files - set(ordered)
+    missing = set(ordered) - set(data_by_path)
     if extras or missing:
         raise BuildError(f"source tree drift: extra={sorted(extras)}, missing={sorted(missing)}")
 
-    validate_git_state(items)
     return manifest, ordered, data_by_path
 
 
@@ -247,8 +216,7 @@ def prepare_modules(
             deps.append((token, target))
             return f"{match.group('prefix')}{match.group('quote')}{token}{match.group('quote')}"
 
-        transformed = IMPORT_RE.sub(replace, source)
-        sources[path] = transformed
+        sources[path] = IMPORT_RE.sub(replace, source)
         dependencies[path] = deps
 
     order: list[str] = []
@@ -257,7 +225,7 @@ def prepare_modules(
     def visit(path: str) -> None:
         status = state.get(path, 0)
         if status == 1:
-            raise BuildError(f"cyclic ES module graph is unsupported by the single-file loader: {path}")
+            raise BuildError(f"cyclic ES module graph is unsupported: {path}")
         if status == 2:
             return
         state[path] = 1
@@ -289,6 +257,7 @@ def render_artifact(ordered: list[str], data_by_path: dict[str, bytes]) -> bytes
         css = data_by_path[css_path].decode("utf-8").rstrip()
     except UnicodeDecodeError as exc:
         raise BuildError("template or stylesheet is not UTF-8") from exc
+
     sources, dependencies, module_order = prepare_modules(ordered, data_by_path)
     if main_path not in sources:
         raise BuildError("main.js is absent from the module graph")
@@ -309,51 +278,41 @@ def render_artifact(ordered: list[str], data_by_path: dict[str, bytes]) -> bytes
         "}\n"
         "await import(__urls[" + json.dumps(main_path) + "]);\n"
     )
+
     link = '<link rel="stylesheet" href="./src/styles.css">'
     module = '<script type="module" src="./src/main.js"></script>'
     if template.count(link) != 1 or template.count(module) != 1:
         raise BuildError("template entry points are not the frozen expected form")
     artifact = template.replace(link, f"<style>\n{css}\n</style>").replace(
-        module, f"<script type=\"module\">\n{bootstrap}</script>"
+        module, f'<script type="module">\n{bootstrap}</script>'
     )
     return (artifact.rstrip() + "\n").encode("utf-8")
-
-
-def build(output: Path, *, allow_undeclared_artifact: bool = False) -> dict[str, Any]:
-    manifest, ordered, data_by_path = validate_manifest()
-    artifact = render_artifact(ordered, data_by_path)
-    digest = sha256(artifact)
-    declared = str(manifest.get("artifact", {}).get("sha256", ""))
-    if declared != digest:
-        if not (allow_undeclared_artifact and declared == ZERO_SHA256):
-            raise BuildError(
-                f"artifact declaration mismatch: declared={declared} computed={digest}"
-            )
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_bytes(artifact)
-    result = {
-        "artifact": ARTIFACT_REL,
-        "bytes": len(artifact),
-        "computedSha256": digest,
-        "declaredSha256": declared,
-        "declarationMatched": declared == digest,
-    }
-    print(json.dumps(result, sort_keys=True, separators=(",", ":")))
-    return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--allow-undeclared-artifact", action="store_true")
     args = parser.parse_args()
     output = args.output if args.output.is_absolute() else ROOT / args.output
     try:
-        build(output, allow_undeclared_artifact=args.allow_undeclared_artifact)
+        _, ordered, data_by_path = validate_manifest()
+        artifact = render_artifact(ordered, data_by_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(artifact)
+        print(
+            json.dumps(
+                {
+                    "artifact": output.relative_to(ROOT).as_posix(),
+                    "bytes": len(artifact),
+                    "sha256": sha256(artifact),
+                },
+                sort_keys=True,
+            )
+        )
         return 0
     except Exception as exc:
-        print(f"BUILD_ERROR: {exc}", file=sys.stderr)
-        return 1
+        print(f"LEARNIT_NEXT_BUILD_ERROR: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

@@ -1,3 +1,24 @@
+import { assertObjectiveProgressStorage } from '../ports/storage.js';
+
+export const LEARNING_LOOP_V2_STATUSES = Object.freeze([
+  'not-started',
+  'training',
+  'review-needed',
+  'ready-for-validation',
+  'validated-recently',
+]);
+
+const STATUS_SET = new Set(LEARNING_LOOP_V2_STATUSES);
+const OBJECTIVE_FIELDS = [
+  'objectiveId',
+  'trainingAttempts',
+  'latestTrainingCorrect',
+  'needsReview',
+  'validationAttempts',
+  'latestValidationCorrect',
+  'status',
+];
+
 export function deriveReviewQueue(course, records) {
   const byActivity = new Map(records.map((record) => [record.activityRevisionId, record]));
   return course.activities.filter(
@@ -37,16 +58,340 @@ export function buildProgressRecord({ courseInstallId, activity, answer, correct
   return record;
 }
 
-export function createProgressService(storage) {
+function optionalBoolean(value, field, objectiveId) {
+  if (value === null || typeof value === 'boolean') return value;
+  throw new TypeError(`Objective ${objectiveId} has invalid ${field}`);
+}
+
+function nonNegativeInteger(value, field, objectiveId) {
+  if (Number.isInteger(value) && value >= 0) return value;
+  throw new TypeError(`Objective ${objectiveId} has invalid ${field}`);
+}
+
+function requireDomainFunction(moduleValue, exportName, moduleLabel) {
+  if (!moduleValue || typeof moduleValue !== 'object' || Array.isArray(moduleValue)) {
+    throw new TypeError(`Learning Loop V2 ${moduleLabel} module is required`);
+  }
+  const candidate = moduleValue[exportName];
+  if (typeof candidate !== 'function') {
+    throw new TypeError(`Learning Loop V2 ${moduleLabel}.${exportName}() is required`);
+  }
+  return candidate.bind(moduleValue);
+}
+
+function requireAuthoredCourse(course) {
+  if (!course || typeof course !== 'object' || Array.isArray(course)) {
+    throw new TypeError('Learning Loop V2 authored course must be an object');
+  }
+  if (!Array.isArray(course.objectives) || !Array.isArray(course.activities)) {
+    throw new TypeError('Learning Loop V2 authored course requires objectives and activities arrays');
+  }
+
+  const objectiveIds = [];
+  const objectiveIdSet = new Set();
+  for (const objective of course.objectives) {
+    const objectiveId = objective?.objectiveId;
+    if (typeof objectiveId !== 'string' || objectiveId.trim() === '') {
+      throw new TypeError('Learning Loop V2 authored objectiveId must be a non-empty string');
+    }
+    if (objectiveIdSet.has(objectiveId)) {
+      throw new TypeError(`Learning Loop V2 duplicate authored objectiveId: ${objectiveId}`);
+    }
+    objectiveIdSet.add(objectiveId);
+    objectiveIds.push(objectiveId);
+  }
+
+  const activities = [];
+  const activityByRevisionId = new Map();
+  course.activities.forEach((activity, authorIndex) => {
+    const activityRevisionId = activity?.activityRevisionId;
+    if (typeof activityRevisionId !== 'string' || activityRevisionId.trim() === '') {
+      throw new TypeError('Learning Loop V2 activityRevisionId must be a non-empty string');
+    }
+    if (activityByRevisionId.has(activityRevisionId)) {
+      throw new TypeError(`Learning Loop V2 duplicate activityRevisionId: ${activityRevisionId}`);
+    }
+    if (!Array.isArray(activity.objectiveIds) || activity.objectiveIds.length === 0) {
+      throw new TypeError(`Learning Loop V2 activity ${activityRevisionId} requires objectiveIds`);
+    }
+    const seen = new Set();
+    for (const objectiveId of activity.objectiveIds) {
+      if (typeof objectiveId !== 'string' || !objectiveIdSet.has(objectiveId) || seen.has(objectiveId)) {
+        throw new TypeError(
+          `Learning Loop V2 activity ${activityRevisionId} contains an unknown or duplicate objectiveId`,
+        );
+      }
+      seen.add(objectiveId);
+    }
+    if (typeof activity.assessmentRole !== 'string' || activity.assessmentRole.trim() === '') {
+      throw new TypeError(`Learning Loop V2 activity ${activityRevisionId} requires assessmentRole`);
+    }
+    const normalized = { activity, activityRevisionId, authorIndex };
+    activityByRevisionId.set(activityRevisionId, normalized);
+    activities.push(normalized);
+  });
+
+  return { objectiveIds, activities, activityByRevisionId };
+}
+
+function requireActivityProgress(activityProgress, activityByRevisionId) {
+  if (!Array.isArray(activityProgress)) {
+    throw new TypeError('Learning Loop V2 activityProgress must be an array');
+  }
+  const entries = [];
+  const seen = new Set();
+  for (const record of activityProgress) {
+    if (!record || typeof record !== 'object' || Array.isArray(record)) {
+      throw new TypeError('Learning Loop V2 activity progress record must be an object');
+    }
+    const activityRevisionId = record.activityRevisionId;
+    const authored = activityByRevisionId.get(activityRevisionId);
+    if (!authored || seen.has(activityRevisionId)) {
+      throw new TypeError(
+        `Learning Loop V2 progress contains an unknown or duplicate activityRevisionId: ${String(activityRevisionId)}`,
+      );
+    }
+    if (record.completed !== true) {
+      throw new TypeError(`Learning Loop V2 progress ${activityRevisionId} must be completed`);
+    }
+    if (!Number.isInteger(record.attempts) || record.attempts < 1) {
+      throw new TypeError(`Learning Loop V2 progress ${activityRevisionId} has invalid attempts`);
+    }
+    if (typeof record.correct !== 'boolean') {
+      throw new TypeError(`Learning Loop V2 progress ${activityRevisionId} has invalid correct`);
+    }
+    if (typeof record.updatedAt !== 'string' || record.updatedAt.trim() === '') {
+      throw new TypeError(`Learning Loop V2 progress ${activityRevisionId} has invalid updatedAt`);
+    }
+    seen.add(activityRevisionId);
+    entries.push({ ...authored, record });
+  }
+  return entries.sort(
+    (left, right) => (left.record.updatedAt < right.record.updatedAt ? -1
+      : left.record.updatedAt > right.record.updatedAt ? 1
+        : left.authorIndex - right.authorIndex),
+  );
+}
+
+export function createLearningLoopV2DomainAdapters(
+  objectiveProgressModule,
+  learningRecommendationModule,
+) {
+  const reduceObjectiveEvents = requireDomainFunction(
+    objectiveProgressModule,
+    'reduceObjectiveEvents',
+    'objectiveProgress',
+  );
+  const normalizeObjectiveProgress = requireDomainFunction(
+    objectiveProgressModule,
+    'normalizeObjectiveProgress',
+    'objectiveProgress',
+  );
+  const recommendNextObjective = requireDomainFunction(
+    learningRecommendationModule,
+    'recommendNextObjective',
+    'learningRecommendation',
+  );
+
+  const objectiveProgress = Object.freeze({
+    projectObjectiveProgress({ course, activityProgress }) {
+      const authored = requireAuthoredCourse(course);
+      const progressEntries = requireActivityProgress(
+        activityProgress,
+        authored.activityByRevisionId,
+      );
+      return authored.objectiveIds.map((objectiveId) => {
+        const events = [];
+        for (const { activity, record } of progressEntries) {
+          if (!activity.objectiveIds.includes(objectiveId)) continue;
+          const type = activity.assessmentRole === 'validation'
+            ? 'validation-result'
+            : 'training-result';
+          for (let index = 0; index < record.attempts; index += 1) {
+            events.push({ type, objectiveId, correct: record.correct });
+          }
+        }
+        return normalizeObjectiveProgress(reduceObjectiveEvents(objectiveId, events));
+      });
+    },
+  });
+
+  const learningRecommendation = Object.freeze({
+    recommendLearningAction({ course, objectiveProgress: records }) {
+      const authored = requireAuthoredCourse(course);
+      if (!Array.isArray(records)) {
+        throw new TypeError('Learning Loop V2 objectiveProgress must be an array');
+      }
+      return recommendNextObjective(authored.objectiveIds, records);
+    },
+  });
+
+  return Object.freeze({ objectiveProgress, learningRecommendation });
+}
+
+function normalizeObjectiveProjection(courseInstallId, course, projected, existing, now) {
+  if (!Array.isArray(projected)) {
+    throw new TypeError('projectObjectiveProgress() must return an array');
+  }
+  const authored = Array.isArray(course.objectives) ? course.objectives : [];
+  const authoredIds = authored.map((objective) => objective.objectiveId);
+  if (projected.length !== authoredIds.length) {
+    throw new TypeError('Objective projection must contain every authored objective exactly once');
+  }
+
+  const existingById = new Map(existing.map((record) => [record.objectiveId, record]));
+  const projectedById = new Map();
+  for (const state of projected) {
+    const objectiveId = state?.objectiveId;
+    if (typeof objectiveId !== 'string' || !authoredIds.includes(objectiveId) || projectedById.has(objectiveId)) {
+      throw new TypeError('Objective projection contains an unknown or duplicate objectiveId');
+    }
+    const normalized = {
+      objectiveId,
+      trainingAttempts: nonNegativeInteger(state.trainingAttempts, 'trainingAttempts', objectiveId),
+      latestTrainingCorrect: optionalBoolean(state.latestTrainingCorrect, 'latestTrainingCorrect', objectiveId),
+      needsReview: typeof state.needsReview === 'boolean'
+        ? state.needsReview
+        : (() => { throw new TypeError(`Objective ${objectiveId} has invalid needsReview`); })(),
+      validationAttempts: nonNegativeInteger(state.validationAttempts, 'validationAttempts', objectiveId),
+      latestValidationCorrect: optionalBoolean(state.latestValidationCorrect, 'latestValidationCorrect', objectiveId),
+      status: STATUS_SET.has(state.status)
+        ? state.status
+        : (() => { throw new TypeError(`Objective ${objectiveId} has invalid status`); })(),
+    };
+    projectedById.set(objectiveId, normalized);
+  }
+
+  return authoredIds.map((objectiveId) => {
+    const normalized = projectedById.get(objectiveId);
+    const previous = existingById.get(objectiveId);
+    const unchanged = previous && OBJECTIVE_FIELDS.every((field) => previous[field] === normalized[field]);
+    return {
+      schemaVersion: 1,
+      courseInstallId,
+      ...normalized,
+      updatedAt: unchanged && typeof previous.updatedAt === 'string' ? previous.updatedAt : now.toISOString(),
+    };
+  });
+}
+
+function normalizeRecommendation(value) {
+  if (value == null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('recommendLearningAction() must return a data object or null');
+  }
+  return structuredClone(value);
+}
+
+function sameObjectiveRecords(left, right) {
+  if (left.length !== right.length) return false;
+  const byId = new Map(left.map((record) => [record.objectiveId, record]));
+  return right.every((record) => {
+    const previous = byId.get(record.objectiveId);
+    return previous && OBJECTIVE_FIELDS.every((field) => previous[field] === record[field]);
+  });
+}
+
+export function assertLearningLoopV2Integrations(integrations = {}) {
+  const objectiveProgress = integrations?.objectiveProgress ?? null;
+  const learningRecommendation = integrations?.learningRecommendation ?? null;
+  if (objectiveProgress == null && learningRecommendation == null) {
+    return Object.freeze({ objectiveProgress: null, learningRecommendation: null });
+  }
+  if (typeof objectiveProgress?.projectObjectiveProgress !== 'function') {
+    throw new TypeError('Learning Loop V2 objectiveProgress.projectObjectiveProgress() is required');
+  }
+  if (learningRecommendation != null && typeof learningRecommendation.recommendLearningAction !== 'function') {
+    throw new TypeError('Learning Loop V2 learningRecommendation.recommendLearningAction() is required');
+  }
+  return Object.freeze({ objectiveProgress, learningRecommendation });
+}
+
+export function createProgressService(storage, integrations = {}) {
+  const resolved = assertLearningLoopV2Integrations(integrations);
+  const learningLoopV2Enabled = Boolean(resolved.objectiveProgress);
+  if (learningLoopV2Enabled) assertObjectiveProgressStorage(storage);
+
+  async function projectCourseProgress(courseInstallId, course, records = null) {
+    const activityProgress = records ?? await storage.listProgress(courseInstallId);
+    const legacy = summarizeProgress(course, activityProgress);
+    if (!learningLoopV2Enabled) return legacy;
+
+    const existing = await storage.listObjectiveProgress(courseInstallId);
+    const projected = await resolved.objectiveProgress.projectObjectiveProgress({
+      course: structuredClone(course),
+      activityProgress: structuredClone(activityProgress),
+    });
+    const objectiveRecords = normalizeObjectiveProjection(
+      courseInstallId,
+      course,
+      projected,
+      existing,
+      new Date(),
+    );
+    if (!sameObjectiveRecords(existing, objectiveRecords)) {
+      await storage.putObjectiveProgressRecords(objectiveRecords);
+    }
+
+    const objectiveProgress = objectiveRecords.map((record) => {
+      const { schemaVersion, courseInstallId: storedCourseInstallId, updatedAt, ...state } = record;
+      void schemaVersion;
+      void storedCourseInstallId;
+      void updatedAt;
+      return state;
+    });
+    const reviewActivityRevisionIds = deriveReviewQueue(course, activityProgress)
+      .map((activity) => activity.activityRevisionId);
+    const recommendation = resolved.learningRecommendation
+      ? normalizeRecommendation(await resolved.learningRecommendation.recommendLearningAction({
+        course: structuredClone(course),
+        objectiveProgress: structuredClone(objectiveProgress),
+        activityProgress: structuredClone(activityProgress),
+        reviewActivityRevisionIds,
+      }))
+      : null;
+
+    return {
+      ...legacy,
+      objectives: objectiveProgress,
+      recommendation,
+    };
+  }
+
   return {
+    learningLoopV2Enabled,
+
     async getProgress(courseInstallId) {
       return storage.listProgress(courseInstallId);
+    },
+
+    async getCourseProgress(courseInstallId, course, records = null) {
+      return projectCourseProgress(courseInstallId, course, records);
+    },
+
+    async getObjectiveProgress(courseInstallId, course) {
+      const projection = await projectCourseProgress(courseInstallId, course);
+      return {
+        courseInstallId,
+        objectives: projection.objectives ?? [],
+        recommendation: projection.recommendation ?? null,
+      };
     },
 
     async recordAttempt(input) {
       const previous = await storage.getProgress(input.courseInstallId, input.activity.activityRevisionId);
       const record = buildProgressRecord({ ...input, previous });
       await storage.putProgress(record);
+      if (learningLoopV2Enabled) {
+        if (!input.course) throw new TypeError('Learning Loop V2 recordAttempt() requires the authored course');
+        const records = await storage.listProgress(input.courseInstallId);
+        const projection = await projectCourseProgress(input.courseInstallId, input.course, records);
+        return {
+          ...record,
+          objectiveProgress: projection.objectives,
+          recommendation: projection.recommendation,
+        };
+      }
       return record;
     },
 

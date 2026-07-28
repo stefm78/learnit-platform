@@ -181,6 +181,7 @@
       "apps/learnit-next/src/styles.css",
       "apps/learnit-next/src/ui/objective_progress.js",
       "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/browser_vertical_slice.py",
       "apps/learnit-next/tests/dev_learning_loop_v2_authoring.py",
       "apps/learnit-next/tests/dev_learning_loop_v2_learning.py",
       "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
