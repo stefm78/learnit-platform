@@ -7,7 +7,8 @@ MANIFEST=APP/"source_manifest.json"; REPORT=APP/".agent-result/run_checks.json"
 ART=Path("apps/learnit-next/dist/learnit-next.html"); BASE="8ebafee48cc5277b92776982639a0146ae7e76d0"
 HEADS={"DEV-LEARNING":"ae999472418a18a1181b43a07259a4395afbcf7f","DEV-UX":"48df0517d74e8c343223f14361607c4a93e7f55b","DEV-AUTHORING":"6c4111715a55fdff07a3e466d013dcdcc7aa5c78","DEV-PLATFORM":"f260093914542f93ff9145cbac8e98aae415fe01","QA":"f25da6356528824e84224718013a3bccb2707c49"}
 LANES={"DEV-LEARNING":{"apps/learnit-next/src/core/learning_recommendation.js","apps/learnit-next/src/core/objective_progress.js","apps/learnit-next/tests/dev_learning_loop_v2_learning.py"},"DEV-UX":{"apps/learnit-next/src/styles.css","apps/learnit-next/src/ui/objective_progress.js","apps/learnit-next/tests/dev_learning_loop_v2_ui.py"},"DEV-AUTHORING":{"authoring/v2/README.md","authoring/v2/validate_kit.py","authoring/v2/golden/nombres_complexes.json","authoring/v2/golden/signaux_electriques.json","apps/learnit-next/tests/dev_learning_loop_v2_authoring.py"},"DEV-PLATFORM":{"apps/learnit-next/src/main.js","apps/learnit-next/src/core/session.js","apps/learnit-next/src/core/progress.js","apps/learnit-next/src/ui/render.js","apps/learnit-next/src/ports/storage.js","apps/learnit-next/src/adapters/indexeddb.js","apps/learnit-next/tests/dev_learning_loop_v2_platform.py"},"QA":{"apps/learnit-next/tests/qa_learning_loop_v2.py","contracts/fixtures/llv2-valid-objective-loop.json","contracts/fixtures/llv2-invalid-objective-loop.json"}}
-INT={"apps/learnit-next/build.py","apps/learnit-next/source_manifest.json","apps/learnit-next/dev/run_checks.py",".github/workflows/learnit-next-ci.yml"}; EXPECTED=set().union(*LANES.values(),INT)
+BASELINE_QA_SUPPORT={"apps/learnit-next/tests/browser_vertical_slice.py"}
+INT={"apps/learnit-next/build.py","apps/learnit-next/source_manifest.json","apps/learnit-next/dev/run_checks.py",".github/workflows/learnit-next-ci.yml"}; EXPECTED=set().union(*LANES.values(),BASELINE_QA_SUPPORT,INT)
 SELF="apps/learnit-next/source_manifest.json"; SCHEMA="contracts/learnit-kit-v2.schema.json"; MAIN="apps/learnit-next/src/main.js"
 MAIN_BLOB="408edb3aba78b1754331d7f622d65a0d38b102c2"
 class GateError(RuntimeError): pass
@@ -82,7 +83,9 @@ def materialize(destination,manifest):
  verify_native_composition(root,manifest)
  return root
 def provenance():
- if set().union(*LANES.values())&INT: raise GateError("ownership overlap")
+ lane_paths=set().union(*LANES.values())
+ if lane_paths&(INT|BASELINE_QA_SUPPORT): raise GateError("ownership overlap")
+ if INT&BASELINE_QA_SUPPORT: raise GateError("ownership overlap")
  changed=set(filter(None,git("diff","--name-only",BASE+"...HEAD").splitlines()))
  if changed!=EXPECTED: raise GateError("INT path set differs")
  proof={}
