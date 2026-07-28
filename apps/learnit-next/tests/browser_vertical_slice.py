@@ -478,23 +478,66 @@ class BrowserVerticalSliceTests(unittest.TestCase):
             path.unlink(missing_ok=True)
 
     def wait_courses(self, expected: int) -> list[dict[str, Any]]:
-        handle = self.page.wait_for_function(
-            """async expected => {
-              const api = window.__LEARNIT_NEXT_TEST__;
-              if (!api || typeof api.listCourses !== "function") {
-                throw new Error("Missing public test operation: listCourses");
-              }
-              const courses = await api.listCourses();
-              return Array.isArray(courses) && courses.length === expected
-                ? courses
-                : null;
+        self.page.evaluate(
+            """expected => {
+              window.__qaCourseObservation = {
+                expected,
+                pending: false,
+                value: null,
+                error: null,
+              };
             }""",
-            arg=expected,
+            expected,
         )
         try:
-            courses = handle.json_value()
+            self.page.wait_for_function(
+                """expected => {
+                  const state = window.__qaCourseObservation;
+                  const api = window.__LEARNIT_NEXT_TEST__;
+
+                  if (!api || typeof api.listCourses !== "function") {
+                    throw new Error(
+                      "Missing public test operation: listCourses"
+                    );
+                  }
+                  if (!state || state.expected !== expected) {
+                    return false;
+                  }
+                  if (state.error) {
+                    throw new Error(state.error);
+                  }
+                  if (
+                    Array.isArray(state.value) &&
+                    state.value.length === expected
+                  ) {
+                    return true;
+                  }
+
+                  if (!state.pending) {
+                    state.pending = true;
+                    Promise.resolve(api.listCourses())
+                      .then(value => {
+                        state.value = value;
+                      })
+                      .catch(error => {
+                        state.error = String(error?.stack || error);
+                      })
+                      .finally(() => {
+                        state.pending = false;
+                      });
+                  }
+
+                  return false;
+                }""",
+                arg=expected,
+            )
+            courses = self.page.evaluate(
+                "() => window.__qaCourseObservation.value"
+            )
         finally:
-            handle.dispose()
+            self.page.evaluate(
+                "() => { delete window.__qaCourseObservation; }"
+            )
 
         self.assertIsInstance(courses, list)
         self.assertEqual(expected, len(courses))
