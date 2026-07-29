@@ -29,74 +29,89 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  wave-a-gate:
-    name: Wave A exact-head matrix
+  exact-head-matrix:
+    name: Learn-it Next exact-head matrix
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Resolve exact target
-        id: target
+      - name: Resolve exact target and route
+        id: route
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
+          EVENT: ${{ github.event_name }}
           PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_REF: ${{ github.event.pull_request.head.ref }}
           PUSH_SHA: ${{ github.sha }}
           DISPATCH_SHA: ${{ inputs.verification_ref }}
           DISPATCH_MODE: ${{ inputs.verification_mode }}
           DISPATCH_ACCEPTED: ${{ inputs.accepted_integration_head }}
         run: |
           set -euo pipefail
-          case "${EVENT_NAME}" in
+          case "${EVENT}" in
             pull_request)
-              target="${PR_SHA}"
-              mode="integration-head"
-              accepted=""
+              target="${PR_SHA}"; mode=integration-head; accepted=""; branch="${PR_REF}"
+              case "${branch}" in
+                agent/ATLAS-WP-001-support-governance-ci) profile=atlas-support ;;
+                agent/ATLAS-WP-001-learning) profile=atlas-learning ;;
+                agent/ATLAS-WP-001-experience) profile=atlas-experience ;;
+                agent/ATLAS-WP-001-core) profile=atlas-core ;;
+                agent/ATLAS-WP-001-content) profile=atlas-content ;;
+                agent/ATLAS-WP-001-qa) profile=atlas-qa ;;
+                agent/PROG-WP-001-wave-a-learning|agent/PROG-WP-001-wave-a-ux|agent/PROG-WP-001-wave-a-authoring|agent/PROG-WP-001-wave-a-platform|agent/PROG-WP-001-wave-a-qa|agent/PROG-WP-001-wave-a-int) profile=wave-a ;;
+                *) echo "Unrecognized pull-request branch: ${branch}" >&2; exit 2 ;;
+              esac
               ;;
             push)
-              target="${PUSH_SHA}"
-              mode="post-merge"
-              accepted=""
-              ;;
+              target="${PUSH_SHA}"; mode=post-merge; accepted=""; branch=main; profile=post-merge-auto ;;
             workflow_dispatch)
-              target="${DISPATCH_SHA}"
-              mode="${DISPATCH_MODE}"
-              accepted="${DISPATCH_ACCEPTED}"
-              ;;
-            *)
-              echo "Unsupported event: ${EVENT_NAME}" >&2
-              exit 2
-              ;;
+              target="${DISPATCH_SHA}"; mode="${DISPATCH_MODE}"; accepted="${DISPATCH_ACCEPTED}"; branch=""; profile=wave-a ;;
+            *) echo "Unsupported event: ${EVENT}" >&2; exit 2 ;;
           esac
-          [[ "${target}" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "Target must be an exact lowercase SHA." >&2
-            exit 2
-          }
-          echo "target=${target}" >> "${GITHUB_OUTPUT}"
-          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
-          echo "accepted=${accepted}" >> "${GITHUB_OUTPUT}"
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]] || { echo "Target must be an exact lowercase SHA." >&2; exit 2; }
+          for pair in target mode accepted branch profile; do echo "${pair}=${!pair}" >> "${GITHUB_OUTPUT}"; done
 
       - uses: actions/checkout@v4
         with:
-          ref: ${{ steps.target.outputs.target }}
+          ref: ${{ steps.route.outputs.target }}
           fetch-depth: 0
 
-      - name: Fetch exact authority and lane heads
+      - name: Resolve post-merge route
+        id: resolved
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          INITIAL_PROFILE: ${{ steps.route.outputs.profile }}
+          INITIAL_BRANCH: ${{ steps.route.outputs.branch }}
+          INITIAL_ACCEPTED: ${{ steps.route.outputs.accepted }}
+        run: |
+          set -euo pipefail
+          profile="${INITIAL_PROFILE}"; branch="${INITIAL_BRANCH}"; accepted="${INITIAL_ACCEPTED}"
+          if [[ "${EVENT}" == push ]]; then
+            parents=( $(git show -s --format=%P HEAD) ); [[ ${#parents[@]} -eq 2 ]] || exit 2
+            mapfile -t actual < <(git diff --name-only "${parents[0]}" HEAD | sort)
+            expected=(.github/workflows/learnit-next-ci.yml apps/learnit-next/dev/run_checks.py governance/governor-state.json)
+            if [[ "$(printf '%s\n' "${actual[@]}")" == "$(printf '%s\n' "${expected[@]}" | sort)" ]]; then
+              profile=atlas-support; branch=agent/ATLAS-WP-001-support-governance-ci
+            else
+              profile=wave-a; branch=main; accepted="${parents[1]}"
+            fi
+          fi
+          echo "profile=${profile}" >> "${GITHUB_OUTPUT}"
+          echo "branch=${branch}" >> "${GITHUB_OUTPUT}"
+          echo "accepted=${accepted}" >> "${GITHUB_OUTPUT}"
+
+      - name: Fetch exact authorities
         shell: bash
         run: |
           set -euo pipefail
           git fetch --force --no-tags origin main:refs/remotes/origin/main
-          for sha in \
-            8ebafee48cc5277b92776982639a0146ae7e76d0 \
-            ae999472418a18a1181b43a07259a4395afbcf7f \
-            48df0517d74e8c343223f14361607c4a93e7f55b \
-            6c4111715a55fdff07a3e466d013dcdcc7aa5c78 \
-            f260093914542f93ff9145cbac8e98aae415fe01 \
-            f25da6356528824e84224718013a3bccb2707c49
-          do
-            git fetch --force --no-tags origin "${sha}"
-            git cat-file -e "${sha}^{commit}"
-          done
-          [[ "$(git rev-parse HEAD)" == "${{ steps.target.outputs.target }}" ]]
+          git fetch --force --no-tags origin 58e39e8917006058fdf177a5daa37535f5e2c78d
+          if [[ "${{ steps.resolved.outputs.profile }}" == wave-a ]]; then
+            for sha in 8ebafee48cc5277b92776982639a0146ae7e76d0 ae999472418a18a1181b43a07259a4395afbcf7f 48df0517d74e8c343223f14361607c4a93e7f55b 6c4111715a55fdff07a3e466d013dcdcc7aa5c78 f260093914542f93ff9145cbac8e98aae415fe01 f25da6356528824e84224718013a3bccb2707c49; do
+              git fetch --force --no-tags origin "${sha}"
+            done
+          fi
+          [[ "$(git rev-parse HEAD)" == "${{ steps.route.outputs.target }}" ]]
 
       - uses: actions/setup-python@v5
         with:
@@ -104,189 +119,45 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-
       - name: Install exact test dependencies
         run: |
           python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
           python -m playwright install --with-deps chromium
 
-      - name: Resolve post-merge accepted head
-        id: mode
+      - name: Select support runner
+        id: runner
         shell: bash
         run: |
           set -euo pipefail
-          accepted="${{ steps.target.outputs.accepted }}"
-          if [[ "${{ steps.target.outputs.mode }}" == "post-merge" && -z "${accepted}" ]]; then
-            parents=( $(git show -s --format=%P HEAD) )
-            [[ ${#parents[@]} -eq 2 ]] || {
-              echo "Post-merge target must have exactly two parents." >&2
-              exit 2
-            }
-            accepted="${parents[1]}"
+          runner="${GITHUB_WORKSPACE}/apps/learnit-next/dev/run_checks.py"
+          if [[ "${{ steps.resolved.outputs.profile }}" != atlas-support && "$(git show origin/main:apps/learnit-next/dev/run_checks.py | grep -c 'learnit.next.ci.checks.atlas-m1.v1')" -gt 0 ]]; then
+            runner="${RUNNER_TEMP}/learnit-next-run-checks.py"
+            git show origin/main:apps/learnit-next/dev/run_checks.py > "${runner}"
           fi
-          echo "accepted=${accepted}" >> "${GITHUB_OUTPUT}"
+          echo "path=${runner}" >> "${GITHUB_OUTPUT}"
 
-      - name: Run exact-head integration gate
-        env:
-          LEARNIT_NEXT_STRICT_INTEGRATION: '1'
+      - name: Run routed checks
+        shell: bash
         run: |
-          args=(
-            --strict
-            --mode "${{ steps.target.outputs.mode }}"
-            --base-ref "8ebafee48cc5277b92776982639a0146ae7e76d0"
-          )
-          if [[ -n "${{ steps.mode.outputs.accepted }}" ]]; then
-            args+=(--accepted-integration-head "${{ steps.mode.outputs.accepted }}")
+          set -euo pipefail
+          profile="${{ steps.resolved.outputs.profile }}"
+          if [[ "${profile}" == wave-a ]]; then
+            args=(--strict --profile wave-a-ci --mode "${{ steps.route.outputs.mode }}" --base-ref 8ebafee48cc5277b92776982639a0146ae7e76d0)
+            [[ -z "${{ steps.resolved.outputs.accepted }}" ]] || args+=(--accepted-integration-head "${{ steps.resolved.outputs.accepted }}")
+          else
+            args=(--strict --profile "${profile}" --base-ref 58e39e8917006058fdf177a5daa37535f5e2c78d --branch-ref "${{ steps.resolved.outputs.branch }}")
           fi
-          python apps/learnit-next/dev/run_checks.py "${args[@]}"
+          LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${{ steps.runner.outputs.path }}" "${args[@]}"
 
-      - name: Run fixed profile — authoring
-        run: |
-          mkdir -p apps/learnit-next/.agent-result
-          python tools/learnit_next_agent.py \
-            --profile learnit-next-authoring \
-            --output apps/learnit-next/.agent-result/profile-authoring.json
-
-      - name: Run fixed profile — contract
-        run: |
-          python tools/learnit_next_agent.py \
-            --profile learnit-next-contract \
-            --output apps/learnit-next/.agent-result/profile-contract.json
-
-      - name: Run fixed profile — full
-        env:
-          LLV2_QA_STRICT: '1'
-        run: |
-          python tools/learnit_next_agent.py \
-            --profile learnit-next-full \
-            --output apps/learnit-next/.agent-result/profile-full.json
-
-      - name: Run fixed profile — browser
-        env:
-          LLV2_QA_STRICT: '1'
-          LLV2_QA_BROWSER_STRICT: '1'
-        run: |
-          python tools/learnit_next_agent.py \
-            --profile learnit-next-browser \
-            --output apps/learnit-next/.agent-result/profile-browser.json
-
-      - name: Replay exact QA head
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -z "$(git status --porcelain --untracked-files=no)"
-
-          artifact="${GITHUB_WORKSPACE}/apps/learnit-next/dist/learnit-next.html"
-          test -f "${artifact}"
-          artifact_bytes_before="$(stat -c '%s' "${artifact}")"
-          artifact_sha_before="$(sha256sum "${artifact}" | awk '{print $1}')"
-
-          qa_parent="$(mktemp -d "${RUNNER_TEMP}/wave-a-qa.XXXXXX")"
-          trap 'rm -rf -- "${qa_parent}"' EXIT
-          qa_root="$(python - "${qa_parent}" <<'PY'
-          import importlib.util
-          import sys
-          from pathlib import Path
-
-          destination = Path(sys.argv[1]).resolve()
-          run_checks_path = Path.cwd() / "apps/learnit-next/dev/run_checks.py"
-          spec = importlib.util.spec_from_file_location("wave_a_run_checks", run_checks_path)
-          if spec is None or spec.loader is None:
-              raise SystemExit("cannot load run_checks materialization API")
-          run_checks = importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(run_checks)
-          manifest = run_checks.load_manifest()
-          root = run_checks.materialize(destination, manifest).resolve()
-          print(root)
-          PY
-          )"
-
-          [[ "${qa_root}" == "${qa_parent}/repo" ]]
-          [[ "${qa_root}" == "${RUNNER_TEMP}"/* ]]
-          [[ "${qa_root}" != "${GITHUB_WORKSPACE}"/* ]]
-
-          for required in \
-            apps/learnit-next/src/main.js \
-            apps/learnit-next/src/core/contract.js \
-            apps/learnit-next/tests/qa_learning_loop_v2.py
-          do
-            test -f "${qa_root}/${required}"
-          done
-
-          qa_path="apps/learnit-next/tests/qa_learning_loop_v2.py"
-          expected_qa_blob="$(git rev-parse "f25da6356528824e84224718013a3bccb2707c49:${qa_path}")"
-          actual_qa_blob="$(git hash-object "${qa_root}/${qa_path}")"
-          [[ "${expected_qa_blob}" == "514d095b5fa028d12dc6d87ba7d4bd82c64a0cd9" ]]
-          [[ "${actual_qa_blob}" == "${expected_qa_blob}" ]]
-
-          export LLV2_PRODUCT_TREE="${qa_root}"
-          export LEARNIT_NEXT_ARTIFACT="${artifact}"
-          export LLV2_QA_STRICT='1'
-          export LLV2_QA_BROWSER_STRICT='1'
-          export PYTHONDONTWRITEBYTECODE='1'
-
-          python - "${qa_root}" <<'PY'
-          import os
-          import sys
-          from pathlib import Path
-
-          expected = Path(sys.argv[1]).resolve()
-          actual = Path(os.environ["LLV2_PRODUCT_TREE"]).resolve()
-          if actual != expected:
-              raise SystemExit("QA product tree differs from materialized tree")
-          if Path(os.environ["LEARNIT_NEXT_ARTIFACT"]).resolve() == expected / "apps/learnit-next/dist/learnit-next.html":
-              raise SystemExit("QA artifact must be the exact workspace HTML already tested")
-          PY
-
-          (
-            cd "${qa_root}"
-            python "${qa_path}" -v
-          ) 2>&1 | tee "${GITHUB_WORKSPACE}/apps/learnit-next/.agent-result/qa-exact.log"
-
-          [[ "$(git hash-object "${qa_root}/${qa_path}")" == "${expected_qa_blob}" ]]
-          test -z "$(git status --porcelain --untracked-files=no)"
-          [[ "$(stat -c '%s' "${artifact}")" == "${artifact_bytes_before}" ]]
-          [[ "$(sha256sum "${artifact}" | awk '{print $1}')" == "${artifact_sha_before}" ]]
-
-      - name: Verify all reports and exact HTML
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          reports={}
-          for name in ("authoring", "contract", "full", "browser"):
-              path=Path(f"apps/learnit-next/.agent-result/profile-{name}.json")
-              payload=json.loads(path.read_text(encoding="utf-8"))
-              if payload.get("result")!="PASS":
-                  raise SystemExit(f"profile failed: {name}")
-              reports[name]=payload
-          gate=json.loads(Path("apps/learnit-next/.agent-result/run_checks.json").read_text(encoding="utf-8"))
-          if gate.get("result")!="PASS":
-              raise SystemExit("integration gate failed")
-          identity={key:gate["artifact"][key] for key in ("path","bytes","sha256")}
-          for name in ("full","browser"):
-              if reports[name].get("artifact")!=identity:
-                  raise SystemExit(f"profile artifact differs: {name}")
-          html=Path(identity["path"])
-          if not html.is_file() or html.stat().st_size!=identity["bytes"]:
-              raise SystemExit("tested HTML is absent or has wrong size")
-          if not Path("apps/learnit-next/.agent-result/qa-exact.log").is_file():
-              raise SystemExit("exact QA log is absent")
-          print(json.dumps(identity,sort_keys=True))
-          PY
-
-      - name: Upload exact Wave A proof
+      - name: Upload exact proof
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: learnit-next-wave-a-${{ steps.target.outputs.target }}
+          name: learnit-next-${{ steps.resolved.outputs.profile }}-${{ steps.route.outputs.target }}
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
           path: |
-            apps/learnit-next/source_manifest.json
             apps/learnit-next/.agent-result/run_checks.json
             apps/learnit-next/.agent-result/profile-authoring.json
             apps/learnit-next/.agent-result/profile-contract.json
