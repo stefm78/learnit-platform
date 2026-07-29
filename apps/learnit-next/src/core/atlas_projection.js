@@ -40,24 +40,8 @@ function emptyEvidence(objectiveId) {
     latestValidationCorrect: null,
     lastEvidenceAt: null,
     state: 'not-started',
-    reasons: ['NEW_OBJECTIVE'],
+    reasons: [],
   };
-}
-
-function reasonsFor(state, evidence, latestEvent) {
-  if (state === 'not-started') return ['NEW_OBJECTIVE'];
-  if (state === 'review-needed') return ['RECENT_ERROR', 'REVIEW_REQUIRED'];
-  if (state === 'validated-recently') return ['RECENTLY_VALIDATED'];
-  if (state === 'ready-for-validation') {
-    return ['VALIDATION_AVAILABLE', 'NO_INDEPENDENT_VALIDATION'];
-  }
-  if (latestEvent?.kind === 'activity-corrected') {
-    return ['CORRECTION_COMPLETED', 'NO_INDEPENDENT_VALIDATION'];
-  }
-  if (evidence.practiceAttempts > 0 || latestEvent?.kind === 'session-interrupted') {
-    return ['PRACTICE_IN_PROGRESS', 'NO_INDEPENDENT_VALIDATION'];
-  }
-  return ['PRACTICE_IN_PROGRESS'];
 }
 
 function isLater(left, right) {
@@ -121,7 +105,7 @@ export function projectObjectiveEvidence(objectiveId, events) {
   } else {
     evidence.state = 'training';
   }
-  evidence.reasons = reasonsFor(evidence.state, evidence, latestEvent);
+  evidence.reasons = [];
   return cloneFrozenAtlasValue(evidence);
 }
 
