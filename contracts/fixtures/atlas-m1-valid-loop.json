@@ -1,0 +1,68 @@
+{
+  "fixtureVersion": 1,
+  "contractVersion": "0.2",
+  "engineVersion": "atlas-m1-deterministic-v1",
+  "controlledClock": "2026-07-29T09:30:00.000Z",
+  "durationsMinutes": [5, 15, 30],
+  "canonicalReasonCodes": [
+    "NEW_OBJECTIVE",
+    "PRACTICE_IN_PROGRESS",
+    "RECENT_ERROR",
+    "REVIEW_REQUIRED",
+    "CORRECTION_COMPLETED",
+    "NO_INDEPENDENT_VALIDATION",
+    "VALIDATION_AVAILABLE",
+    "RECENTLY_VALIDATED",
+    "SESSION_TIME_LIMIT"
+  ],
+  "kits": [
+    {
+      "kitId": "atlas-kit-complexes",
+      "courseLineageId": "10000000-0000-4000-8000-000000000001",
+      "title": "Nombres complexes — Atlas QA",
+      "objectives": [
+        {"objectiveId": "11000000-0000-4000-8000-000000000001", "title": "Calculer avec la forme algébrique"},
+        {"objectiveId": "11000000-0000-4000-8000-000000000002", "title": "Interpréter module et argument"}
+      ],
+      "activities": [
+        {"activityLineageId": "12000000-0000-4000-8000-000000000001", "objectiveId": "11000000-0000-4000-8000-000000000001", "assessmentRole": "practice", "estimatedMinutes": 3, "difficulty": "medium"},
+        {"activityLineageId": "12000000-0000-4000-8000-000000000002", "objectiveId": "11000000-0000-4000-8000-000000000001", "assessmentRole": "validation", "estimatedMinutes": 4, "difficulty": "advanced"},
+        {"activityLineageId": "12000000-0000-4000-8000-000000000003", "objectiveId": "11000000-0000-4000-8000-000000000002", "assessmentRole": "practice", "estimatedMinutes": 5, "difficulty": "medium"},
+        {"activityLineageId": "12000000-0000-4000-8000-000000000004", "objectiveId": "11000000-0000-4000-8000-000000000002", "assessmentRole": "validation", "estimatedMinutes": 6, "difficulty": "advanced"}
+      ]
+    },
+    {
+      "kitId": "atlas-kit-signaux",
+      "courseLineageId": "20000000-0000-4000-8000-000000000001",
+      "title": "Signaux électriques — Atlas QA",
+      "objectives": [
+        {"objectiveId": "21000000-0000-4000-8000-000000000001", "title": "Appliquer les lois de Kirchhoff"},
+        {"objectiveId": "21000000-0000-4000-8000-000000000002", "title": "Utiliser les impédances complexes"}
+      ],
+      "activities": [
+        {"activityLineageId": "22000000-0000-4000-8000-000000000001", "objectiveId": "21000000-0000-4000-8000-000000000001", "assessmentRole": "practice", "estimatedMinutes": 4, "difficulty": "medium"},
+        {"activityLineageId": "22000000-0000-4000-8000-000000000002", "objectiveId": "21000000-0000-4000-8000-000000000001", "assessmentRole": "validation", "estimatedMinutes": 5, "difficulty": "advanced"},
+        {"activityLineageId": "22000000-0000-4000-8000-000000000003", "objectiveId": "21000000-0000-4000-8000-000000000002", "assessmentRole": "practice", "estimatedMinutes": 6, "difficulty": "advanced"},
+        {"activityLineageId": "22000000-0000-4000-8000-000000000004", "objectiveId": "21000000-0000-4000-8000-000000000002", "assessmentRole": "validation", "estimatedMinutes": 7, "difficulty": "advanced"}
+      ]
+    }
+  ],
+  "events": [
+    {"eventId": "30000000-0000-4000-8000-000000000001", "eventVersion": 1, "occurredAt": "2026-07-29T09:00:00.000Z", "kind": "session-started", "sessionId": "31000000-0000-4000-8000-000000000001", "metadata": {"planId": "sha256:fixture-plan-15"}},
+    {"eventId": "30000000-0000-4000-8000-000000000002", "eventVersion": 1, "occurredAt": "2026-07-29T09:02:00.000Z", "kind": "activity-attempt", "sessionId": "31000000-0000-4000-8000-000000000001", "courseLineageId": "10000000-0000-4000-8000-000000000001", "objectiveId": "11000000-0000-4000-8000-000000000001", "activityLineageId": "12000000-0000-4000-8000-000000000001", "assessmentRole": "practice", "outcome": "incorrect", "assistance": "none", "metadata": {}},
+    {"eventId": "30000000-0000-4000-8000-000000000003", "eventVersion": 1, "occurredAt": "2026-07-29T09:04:00.000Z", "kind": "activity-corrected", "sessionId": "31000000-0000-4000-8000-000000000001", "courseLineageId": "10000000-0000-4000-8000-000000000001", "objectiveId": "11000000-0000-4000-8000-000000000001", "activityLineageId": "12000000-0000-4000-8000-000000000001", "assessmentRole": "practice", "outcome": "completed", "assistance": "review", "metadata": {}},
+    {"eventId": "30000000-0000-4000-8000-000000000004", "eventVersion": 1, "occurredAt": "2026-07-29T09:06:00.000Z", "kind": "session-interrupted", "sessionId": "31000000-0000-4000-8000-000000000001", "courseLineageId": "10000000-0000-4000-8000-000000000001", "objectiveId": "11000000-0000-4000-8000-000000000002", "activityLineageId": "12000000-0000-4000-8000-000000000003", "outcome": "interrupted", "metadata": {"planId": "sha256:fixture-plan-15", "position": 2}},
+    {"eventId": "30000000-0000-4000-8000-000000000005", "eventVersion": 1, "occurredAt": "2026-07-29T09:10:00.000Z", "kind": "session-started", "sessionId": "31000000-0000-4000-8000-000000000002", "metadata": {"resumedFromSessionId": "31000000-0000-4000-8000-000000000001", "planId": "sha256:fixture-plan-15"}},
+    {"eventId": "30000000-0000-4000-8000-000000000006", "eventVersion": 1, "occurredAt": "2026-07-29T09:12:00.000Z", "kind": "activity-attempt", "sessionId": "31000000-0000-4000-8000-000000000002", "courseLineageId": "10000000-0000-4000-8000-000000000001", "objectiveId": "11000000-0000-4000-8000-000000000001", "activityLineageId": "12000000-0000-4000-8000-000000000002", "assessmentRole": "validation", "outcome": "correct", "assistance": "none", "metadata": {}},
+    {"eventId": "30000000-0000-4000-8000-000000000007", "eventVersion": 1, "occurredAt": "2026-07-29T09:14:00.000Z", "kind": "session-completed", "sessionId": "31000000-0000-4000-8000-000000000002", "outcome": "completed", "metadata": {"planId": "sha256:fixture-plan-15"}}
+  ],
+  "expected": {
+    "orderedEventIds": ["30000000-0000-4000-8000-000000000001", "30000000-0000-4000-8000-000000000002", "30000000-0000-4000-8000-000000000003", "30000000-0000-4000-8000-000000000004", "30000000-0000-4000-8000-000000000005", "30000000-0000-4000-8000-000000000006", "30000000-0000-4000-8000-000000000007"],
+    "objectiveEvidence": {
+      "11000000-0000-4000-8000-000000000001": {"practiceAttempts": 1, "latestPracticeCorrect": false, "needsReview": false, "correctionsCompleted": 1, "validationAttempts": 1, "latestValidationCorrect": true, "state": "validated-recently"},
+      "11000000-0000-4000-8000-000000000002": {"practiceAttempts": 0, "latestPracticeCorrect": null, "needsReview": false, "correctionsCompleted": 0, "validationAttempts": 0, "latestValidationCorrect": null, "state": "not-started"}
+    },
+    "rewardEligibleEvidence": ["correction-completed", "independent-validation", "resume-after-interruption"],
+    "rewardIneligibleSignals": ["click-count", "elapsed-time-only", "trivial-repeat-count", "public-rank", "random-loot", "punitive-streak"]
+  }
+}
