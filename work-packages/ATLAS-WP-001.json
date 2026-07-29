@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-001",
   "title": "Project Atlas M1 Daily Learning Loop",
-  "status": "proposed",
+  "status": "in-progress",
   "changeClass": "product-atlas-daily-learning-loop",
   "riskClass": "high",
   "authority": {
@@ -20,7 +20,9 @@
   },
   "bootstrap": {
     "authorized": true,
+    "ownerApproved": true,
     "implementationAuthorizedAfterBootstrapMerge": true,
+    "contractVersion": "0.2",
     "canonicalDocs": [
       "docs/atlas/README.md",
       "docs/atlas/CONTRACTS.md",
@@ -189,10 +191,11 @@
   },
   "invariants": [
     "No runtime LLM, remote API call, secret or network dependency is introduced.",
-    "The same history, content, controlled clock and engine version produce the same session plan.",
-    "Learning events are immutable and projections are recalculable.",
+    "The same history, content, controlled clock and engine version produce the same normalized session plan and deterministic planId; runtime sessionId is assigned only when execution starts.",
+    "Learning events are immutable, fields are required by event kind, and non-applicable identifiers are absent rather than fabricated.",
+    "ObjectiveEvidence projections are recalculable.",
     "Practice, correction and validation remain distinct.",
-    "Every recommendation exposes stable reason codes.",
+    "Every recommendation exposes reason codes from the frozen M1 canonical registry.",
     "Gamification rewards pedagogical evidence and never click volume, time consumption, public rank or punitive streaks.",
     "The four development lanes have no overlapping owned file path.",
     "The learnit.kit.v2 schema remains unchanged in M1.",
@@ -201,20 +204,21 @@
     "No autonomous merge, direct main write or release publication is authorized."
   ],
   "requiredEvidence": [
-    "Bootstrap PR records the constitution, ADR, shared contracts, work package and updated governor state.",
+    "Bootstrap PR records the constitution, accepted ADR, shared contracts version 0.2, work package and updated governor state.",
     "Each lane starts from the exact bootstrap merge commit and changes only its allowlist.",
     "Developer tests and independent QA remain separate.",
-    "Independent QA tests deterministic planning, interruptions, invalid inputs, reward integrity and no-network operation.",
+    "Independent QA tests deterministic planning, event-kind validation, interruptions, invalid inputs, reward integrity and no-network operation.",
     "Two clean builds are byte-for-byte identical.",
     "The exact tested HTML artifact is downloadable.",
     "Desktop and Android human validation pass before promotion."
   ],
   "adversarialTests": [
     "Reject any runtime network request or LLM integration.",
+    "Reject a LearningEvent with missing kind-required fields or fabricated non-applicable identifiers.",
     "Reject validation credit originating from a practice activity.",
     "Reject a corrected item being represented as durable mastery or certification.",
-    "Reject a session plan without stable explanation reason codes.",
-    "Reject non-deterministic plans under identical controlled inputs.",
+    "Reject a session plan without reason codes from the canonical M1 registry.",
+    "Reject non-deterministic normalized plans or planIds under identical controlled inputs.",
     "Reject rewards generated only from clicks, elapsed time or repeated trivial activity.",
     "Reject loss of events after interruption, close, reopen, export or import.",
     "Reject a lane patch that touches a shared composition path it does not own.",
