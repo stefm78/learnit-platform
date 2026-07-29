@@ -1,6 +1,6 @@
 # ADR-0003 — Atlas local adaptive runtime
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-29
 - Authority: issue #130 / `ATLAS-WP-001`
 - Baseline: `06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35`
