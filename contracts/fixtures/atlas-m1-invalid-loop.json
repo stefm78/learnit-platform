@@ -1,0 +1,46 @@
+{
+  "fixtureVersion": 1,
+  "contractVersion": "0.2",
+  "cases": [
+    {
+      "id": "event-missing-kind-required-field",
+      "category": "event-validation",
+      "input": {"eventId": "40000000-0000-4000-8000-000000000001", "eventVersion": 1, "occurredAt": "2026-07-29T10:00:00.000Z", "kind": "activity-attempt", "sessionId": "41000000-0000-4000-8000-000000000001", "courseLineageId": "10000000-0000-4000-8000-000000000001", "objectiveId": "11000000-0000-4000-8000-000000000001", "assessmentRole": "practice", "outcome": "correct", "assistance": "none", "metadata": {}},
+      "expected": "reject"
+    },
+    {
+      "id": "session-started-fabricated-identifiers",
+      "category": "event-validation",
+      "input": {"eventId": "40000000-0000-4000-8000-000000000002", "eventVersion": 1, "occurredAt": "2026-07-29T10:01:00.000Z", "kind": "session-started", "sessionId": "41000000-0000-4000-8000-000000000001", "courseLineageId": "00000000-0000-4000-8000-000000000000", "objectiveId": "00000000-0000-4000-8000-000000000000", "activityLineageId": "00000000-0000-4000-8000-000000000000", "metadata": {}},
+      "expected": "reject"
+    },
+    {
+      "id": "session-completed-fabricated-identifiers",
+      "category": "event-validation",
+      "input": {"eventId": "40000000-0000-4000-8000-000000000003", "eventVersion": 1, "occurredAt": "2026-07-29T10:02:00.000Z", "kind": "session-completed", "sessionId": "41000000-0000-4000-8000-000000000001", "courseLineageId": "", "objectiveId": "not-applicable", "activityLineageId": "none", "outcome": "completed", "metadata": {}},
+      "expected": "reject"
+    },
+    {
+      "id": "correction-claims-validation-role",
+      "category": "event-validation",
+      "input": {"eventId": "40000000-0000-4000-8000-000000000004", "eventVersion": 1, "occurredAt": "2026-07-29T10:03:00.000Z", "kind": "activity-corrected", "sessionId": "41000000-0000-4000-8000-000000000001", "courseLineageId": "10000000-0000-4000-8000-000000000001", "objectiveId": "11000000-0000-4000-8000-000000000001", "activityLineageId": "12000000-0000-4000-8000-000000000001", "assessmentRole": "validation", "outcome": "completed", "assistance": "review", "metadata": {}},
+      "expected": "reject"
+    },
+    {"id": "practice-attempt-credited-as-validation", "category": "projection-integrity", "input": {"assessmentRole": "practice", "forbiddenValidationAttempts": 1}, "expected": "no-validation-credit"},
+    {"id": "duplicate-identical-event", "category": "journal-integrity", "input": {"eventIds": ["40000000-0000-4000-8000-000000000006", "40000000-0000-4000-8000-000000000006"]}, "expected": "reject-or-idempotent-single-event"},
+    {"id": "duplicate-contradictory-event", "category": "journal-integrity", "input": {"eventId": "40000000-0000-4000-8000-000000000007", "outcomes": ["correct", "incorrect"]}, "expected": "reject"},
+    {"id": "event-rewritten-after-publication", "category": "journal-integrity", "input": {"eventId": "40000000-0000-4000-8000-000000000008", "originalOutcome": "incorrect", "rewrittenOutcome": "correct"}, "expected": "reject"},
+    {"id": "event-order-disagrees-with-insertion-order", "category": "journal-integrity", "input": {"occurredAt": "2026-07-29T10:06:00.000Z", "insertedEventIds": ["...00b", "...00a"], "expectedEventIds": ["...00a", "...00b"]}, "expected": "sort-by-occurredAt-then-eventId"},
+    {"id": "recommendation-missing-reasonCodes", "category": "recommendation-integrity", "input": {"action": "correct-practice"}, "expected": "reject"},
+    {"id": "recommendation-unknown-reasonCode", "category": "recommendation-integrity", "input": {"reasonCodes": ["MODEL_GUESSED_MASTERY"]}, "expected": "reject"},
+    {"id": "plan-overruns-selected-duration", "category": "planning-integrity", "input": {"durationMinutes": 5, "estimatedMinutes": [3, 4]}, "expected": "reject"},
+    {"id": "same-controlled-inputs-divergent-plans", "category": "planning-integrity", "input": {"historyDigest": "same", "contentDigest": "same", "controlledClock": "2026-07-29T09:30:00.000Z", "engineVersion": "atlas-m1-deterministic-v1", "planIds": ["sha256:first", "sha256:second"]}, "expected": "reject"},
+    {"id": "reward-clicks-only", "category": "reward-integrity", "input": {"clickCount": 100, "learningEvents": []}, "expected": "no-reward"},
+    {"id": "reward-time-only", "category": "reward-integrity", "input": {"elapsedSeconds": 3600, "learningEvents": []}, "expected": "no-reward"},
+    {"id": "reward-trivial-repeat-only", "category": "reward-integrity", "input": {"repeatCount": 50, "independentValidationEvents": []}, "expected": "no-reward"},
+    {"id": "corrupt-export-missing-events", "category": "persistence-integrity", "input": {"formatVersion": 1, "sessions": []}, "expected": "reject"},
+    {"id": "partial-export-null-event", "category": "persistence-integrity", "input": {"formatVersion": 1, "events": [null]}, "expected": "reject"},
+    {"id": "durable-mastery-claim-after-correction", "category": "claim-integrity", "input": {"sourceEvidence": "activity-corrected", "visibleClaim": "Maîtrise durable certifiée"}, "expected": "reject"},
+    {"id": "remote-api-attempt", "category": "network-integrity", "input": {"url": "https://api.example.invalid/adapt", "method": "POST"}, "expected": "zero-network-calls"}
+  ]
+}
