@@ -1,6 +1,6 @@
 # Atlas M1 shared contracts
 
-Version de bootstrap : `0.1`
+Version de bootstrap : `0.2`
 
 Ces contrats sont des interfaces de données. Ils ne définissent ni service distant, ni framework, ni format de stockage définitif.
 
@@ -17,19 +17,21 @@ Ces contrats sont des interfaces de données. Ils ne définissent ni service dis
 
 Événement immuable décrivant un fait observé.
 
+Exemple d’une tentative :
+
 ```json
 {
   "eventId": "uuid-v4",
   "eventVersion": 1,
   "occurredAt": "2026-07-29T09:00:00.000Z",
+  "kind": "activity-attempt",
+  "sessionId": "uuid-v4",
   "courseLineageId": "uuid-v4",
   "objectiveId": "uuid-v4",
   "activityLineageId": "uuid-v4",
-  "kind": "activity-attempt",
   "assessmentRole": "practice",
   "outcome": "incorrect",
   "assistance": "none",
-  "sessionId": "uuid-v4",
   "metadata": {}
 }
 ```
@@ -40,6 +42,25 @@ Valeurs M1 minimales :
 - `assessmentRole` : `practice`, `validation` ;
 - `outcome` : `correct`, `incorrect`, `completed`, `interrupted` ;
 - `assistance` : `none`, `hint`, `review`.
+
+Champs communs obligatoires pour tous les événements :
+
+- `eventId` ;
+- `eventVersion` ;
+- `occurredAt` ;
+- `kind` ;
+- `sessionId` ;
+- `metadata`.
+
+Champs obligatoires selon `kind` :
+
+- `activity-attempt` exige `courseLineageId`, `objectiveId`, `activityLineageId`, `assessmentRole`, `outcome` égal à `correct` ou `incorrect`, et `assistance` ;
+- `activity-corrected` exige `courseLineageId`, `objectiveId`, `activityLineageId`, `assessmentRole` égal à `practice`, `outcome` égal à `completed`, et `assistance` égal à `review` ;
+- `session-started` n’exige aucun identifiant de cours, d’objectif ou d’activité ;
+- `session-interrupted` exige `outcome` égal à `interrupted` ; les identifiants de cours, d’objectif et d’activité sont facultatifs et ne sont présents que si l’interruption survient dans une activité ;
+- `session-completed` exige `outcome` égal à `completed` et n’exige aucun identifiant de cours, d’objectif ou d’activité.
+
+Un champ non applicable doit être absent. Il est interdit de créer un UUID fictif, une chaîne vide ou une valeur sentinelle pour satisfaire artificiellement la forme de l’événement.
 
 Invariants :
 
@@ -103,10 +124,24 @@ Actions M1 :
 - `attempt-validation`
 - `maintain-recent-validation`
 
+Registre canonique M1 de `reasonCodes` :
+
+- `NEW_OBJECTIVE` : aucune preuve n’existe encore pour l’objectif ;
+- `PRACTICE_IN_PROGRESS` : l’objectif possède un entraînement commencé mais incomplet ;
+- `RECENT_ERROR` : une tentative récente est incorrecte ;
+- `REVIEW_REQUIRED` : une correction est requise avant une nouvelle progression ;
+- `CORRECTION_COMPLETED` : l’erreur a été corrigée sans constituer une validation ;
+- `NO_INDEPENDENT_VALIDATION` : aucune validation distincte réussie n’est disponible ;
+- `VALIDATION_AVAILABLE` : les préconditions locales d’une validation sont satisfaites ;
+- `RECENTLY_VALIDATED` : une validation récente peut être entretenue sans affirmation de rétention durable ;
+- `SESSION_TIME_LIMIT` : la durée choisie limite les actions admissibles dans la séance.
+
+Toute addition, suppression ou modification sémantique d’un `reasonCode` exige un amendement explicite à `ATLAS-WP-001`.
+
 Invariants :
 
 - `priority` est calculée par une règle embarquée versionnée ;
-- `reasonCodes` explique la recommandation sans texte généré ;
+- `reasonCodes` appartient au registre canonique M1 et explique la recommandation sans texte généré ;
 - aucune recommandation ne dépend d’un réseau ou d’un LLM ;
 - une activité non reliée à l’objectif est inéligible.
 
@@ -117,7 +152,7 @@ Plan déterministe pour une durée choisie.
 ```json
 {
   "planVersion": 1,
-  "sessionId": "uuid-v4",
+  "planId": "sha256:normalized-input-and-plan-digest",
   "generatedAt": "2026-07-29T09:00:00.000Z",
   "durationMinutes": 15,
   "items": [
@@ -134,20 +169,25 @@ Plan déterministe pour une durée choisie.
 }
 ```
 
+`planId` est dérivé de manière déterministe des entrées normalisées et de la version du moteur. Il identifie le plan, pas son exécution.
+
+Lorsque l’utilisateur démarre réellement le plan, le runtime crée un `sessionId` UUID v4 distinct. Les événements de cette exécution portent ce `sessionId` et peuvent référencer `planId` dans `metadata`.
+
 Invariants :
 
 - durées autorisées M1 : `5`, `15`, `30` ;
-- même historique, même contenu, même horloge contrôlée et même version de moteur produisent le même plan ;
+- même historique, même contenu, même horloge contrôlée et même version de moteur produisent le même plan normalisé et le même `planId` ;
+- l’identité aléatoire d’une exécution n’entre pas dans le calcul déterministe du plan ;
 - le total estimé ne dépasse pas la durée choisie ;
 - chaque item correspond à une recommandation admissible ;
 - le plan reste sérialisable, exportable et reprenable.
 
 ## Ownership
 
-- `ATLAS-CORE` produit et projette `LearningEvent`.
-- `ATLAS-LEARNING` consomme `ObjectiveEvidence` et produit `LearningRecommendation` et `SessionPlan`.
-- `ATLAS-EXPERIENCE` consomme les quatre contrats sans modifier leur sémantique.
-- `ATLAS-CONTENT` garantit que les kits fournissent objectifs, activités et rôles nécessaires.
+- `ATLAS-CORE` produit les `LearningEvent` et calcule les projections `ObjectiveEvidence` ;
+- `ATLAS-LEARNING` consomme `ObjectiveEvidence` et produit `LearningRecommendation` et `SessionPlan` ;
+- `ATLAS-EXPERIENCE` consomme les quatre contrats sans modifier leur sémantique ;
+- `ATLAS-CONTENT` garantit que les kits fournissent objectifs, activités et rôles nécessaires ;
 - INT compose les modules ; INT ne redéfinit aucun contrat.
 
 Toute modification sémantique de ces quatre contrats exige un amendement explicite à `ATLAS-WP-001`.
