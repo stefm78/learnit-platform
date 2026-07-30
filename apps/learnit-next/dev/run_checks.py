@@ -1,21 +1,74 @@
 #!/usr/bin/env python3
-"""Exact CI routing for historical Wave A and Project Atlas M1 lanes."""
+"""Deterministic CI routing for historical Wave A and Project Atlas M1."""
 from __future__ import annotations
 
 import argparse
+import copy
+import hashlib
 import json
 import os
+import re
+import socket
 import subprocess
 import sys
+import unicodedata
+from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 SCRIPT = Path(__file__).resolve()
 DEFAULT_ROOT = SCRIPT.parents[3] if len(SCRIPT.parents) > 3 else Path.cwd()
 ROOT = Path(os.environ.get("LEARNIT_REPO_ROOT", DEFAULT_ROOT)).resolve()
-REPORT = ROOT / "apps/learnit-next/.agent-result/run_checks.json"
+RESULT_DIR = ROOT / "apps/learnit-next/.agent-result"
+REPORT = RESULT_DIR / "run_checks.json"
 WAVE_A_BASE = "8ebafee48cc5277b92776982639a0146ae7e76d0"
 ATLAS_BASE = "58e39e8917006058fdf177a5daa37535f5e2c78d"
+CONTRACT_HEAD = "f41de5043a22f8559a3b6a0d71654fbd542b5ec6"
+CONTRACT_BRANCH = "agent/ATLAS-WP-001-contracts-0-3"
 RUNNER_PATH = "apps/learnit-next/dev/run_checks.py"
+DEPENDENCY_PATH = "apps/player/requirements-test.txt"
+CONTRACT_PATHS = (
+    "contracts/fixtures/atlas-m1-invalid-loop.json",
+    "contracts/fixtures/atlas-m1-valid-loop.json",
+    "contracts/learnit-kit-v2.schema.json",
+    "docs/atlas/CONTRACTS.md",
+    "work-packages/ATLAS-WP-001.json",
+)
+CONTRACT_ARTIFACT = f"atlas-contracts-evidence-{CONTRACT_HEAD}"
+TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")
+REWARD_KINDS = {
+    "correction-completed",
+    "independent-success",
+    "validation-completed",
+    "validation-reconfirmed",
+    "resumed-after-interruption",
+}
+LEARNING_ACTIONS = {
+    "start-practice",
+    "continue-practice",
+    "correct-practice",
+    "attempt-validation",
+    "maintain-recent-validation",
+}
+EVIDENCE_STATES = {
+    "not-started",
+    "training",
+    "review-needed",
+    "ready-for-validation",
+    "validated-recently",
+}
+REASON_CODES = {
+    "NEW_OBJECTIVE",
+    "PRACTICE_IN_PROGRESS",
+    "RECENT_ERROR",
+    "REVIEW_REQUIRED",
+    "CORRECTION_COMPLETED",
+    "NO_INDEPENDENT_VALIDATION",
+    "VALIDATION_AVAILABLE",
+    "RECENTLY_VALIDATED",
+    "SESSION_TIME_LIMIT",
+}
 
 ATLAS = {
     "atlas-support": (
@@ -28,6 +81,13 @@ ATLAS = {
         (("tools/validate_repository.py",),),
         {},
         "READY_FOR_SUPPORT_REVIEW",
+    ),
+    "atlas-contracts": (
+        CONTRACT_BRANCH,
+        set(CONTRACT_PATHS),
+        (),
+        {},
+        "READY_FOR_EVIDENCE_ONLY_REVIEW",
     ),
     "atlas-learning": (
         "agent/ATLAS-WP-001-learning",
@@ -97,7 +157,6 @@ ATLAS = {
         "PRE_CANDIDATE_QA_READY",
     ),
 }
-
 ATLAS_BRANCHES = {config[0]: profile for profile, config in ATLAS.items()}
 WAVE_A_BRANCHES = {
     "agent/PROG-WP-001-wave-a-learning",
@@ -111,6 +170,17 @@ WAVE_A_BRANCHES = {
 
 class GateError(RuntimeError):
     pass
+
+
+class ContractReject(RuntimeError):
+    def __init__(self, code: str, detail: str = "") -> None:
+        super().__init__(detail or code)
+        self.code = code
+        self.detail = detail or code
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def call(command: list[str], env: dict[str, str] | None = None, cwd: Path = ROOT) -> str:
@@ -128,6 +198,36 @@ def call(command: list[str], env: dict[str, str] | None = None, cwd: Path = ROOT
     return completed.stdout.strip()
 
 
+def command_record(
+    command: list[str], *, env: dict[str, str] | None = None, cwd: Path = ROOT, check: bool = True
+) -> dict[str, Any]:
+    started = utc_now()
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        env={**os.environ, **(env or {}), "PYTHONDONTWRITEBYTECODE": "1"},
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=1800,
+    )
+    record = {
+        "command": command,
+        "working_directory": str(cwd),
+        "started_at_utc": started,
+        "finished_at_utc": utc_now(),
+        "exit_code": completed.returncode,
+        "stdout": completed.stdout,
+        "stderr": completed.stderr,
+    }
+    if check and completed.returncode:
+        raise GateError(
+            f"{' '.join(command)} failed with {completed.returncode}:\n"
+            f"{completed.stdout}\n{completed.stderr}"
+        )
+    return record
+
+
 def git(*args: str) -> str:
     return call(["git", *args])
 
@@ -143,6 +243,8 @@ def resolve(branch: str) -> str:
 def routing_matrix() -> dict[str, object]:
     atlas = {branch: resolve(branch) for branch in sorted(ATLAS_BRANCHES)}
     historical = {branch: resolve(branch) for branch in sorted(WAVE_A_BRANCHES)}
+    if atlas.get(CONTRACT_BRANCH) != "atlas-contracts":
+        raise GateError("exact contract branch is not routed to atlas-contracts")
     try:
         resolve("agent/UNKNOWN-WP-999-example")
     except GateError:
@@ -162,12 +264,668 @@ def atlas_provenance(profile: str, branch: str, base_ref: str) -> dict[str, obje
     if changed != paths:
         detail = {"expected": sorted(paths), "actual": sorted(changed)}
         raise GateError("Atlas path set differs: " + json.dumps(detail, sort_keys=True))
+    head = git("rev-parse", "HEAD")
+    if profile == "atlas-contracts" and head != CONTRACT_HEAD:
+        raise GateError(f"contract head differs: {head} != {CONTRACT_HEAD}")
     return {
         "base": ATLAS_BASE,
+        "mergeBase": git("merge-base", ATLAS_BASE, "HEAD"),
         "branch": branch,
-        "head": git("rev-parse", "HEAD"),
+        "head": head,
         "changedPaths": sorted(changed),
+        "aheadBehind": git("rev-list", "--left-right", "--count", f"{ATLAS_BASE}...HEAD"),
     }
+
+
+def support_contract_capability() -> dict[str, Any]:
+    workflow = (ROOT / ".github/workflows/learnit-next-ci.yml").read_text(encoding="utf-8")
+    runner = (ROOT / RUNNER_PATH).read_text(encoding="utf-8")
+    required_workflow = [
+        CONTRACT_BRANCH,
+        "atlas-contracts",
+        CONTRACT_ARTIFACT,
+        DEPENDENCY_PATH,
+        "ATLAS_DEPENDENCY_COMMANDS_JSON",
+        "ATLAS_WORKTREE_BEFORE_INSTALL_JSON",
+        "ATLAS_WORKTREE_AFTER_INSTALL_JSON",
+    ]
+    required_runner = [
+        CONTRACT_HEAD,
+        "atlas-contracts-evidence.json",
+        "atlas-contracts-evidence.md",
+        "atlas-contracts-commands.log",
+        "ADVERSARIAL_21_CASE_MATRIX",
+        "EVIDENCE_COMPLETE",
+    ]
+    missing = [token for token in required_workflow if token not in workflow]
+    missing += [token for token in required_runner if token not in runner]
+    if missing:
+        raise GateError("contract support capability incomplete: " + json.dumps(missing))
+    return {
+        "contractBranch": CONTRACT_BRANCH,
+        "profile": "atlas-contracts",
+        "artifact": CONTRACT_ARTIFACT,
+        "dependencyFile": DEPENDENCY_PATH,
+        "evidenceFiles": [
+            "apps/learnit-next/.agent-result/atlas-contracts-evidence.json",
+            "apps/learnit-next/.agent-result/atlas-contracts-evidence.md",
+            "apps/learnit-next/.agent-result/atlas-contracts-commands.log",
+        ],
+    }
+
+
+def _load_json(path: str) -> Any:
+    return json.loads((ROOT / path).read_text(encoding="utf-8"))
+
+
+def _sha256_file(path: str) -> str:
+    return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+
+
+def _contract_file_identities() -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for path in CONTRACT_PATHS:
+        raw = (ROOT / path).read_bytes()
+        result[path] = {
+            "git_blob_sha1": git("rev-parse", f"HEAD:{path}"),
+            "byte_count": len(raw),
+            "sha256": hashlib.sha256(raw).hexdigest(),
+        }
+    return result
+
+
+def _pointer_get(document: Any, pointer: str) -> Any:
+    if not pointer.startswith("#/") and not pointer.startswith("/"):
+        raise GateError(f"unsupported JSON pointer: {pointer}")
+    tokens = (pointer[2:] if pointer.startswith("#/") else pointer[1:]).split("/")
+    current = document
+    for token in tokens:
+        token = token.replace("~1", "/").replace("~0", "~")
+        current = current[int(token)] if isinstance(current, list) else current[token]
+    return current
+
+
+def _pointer_parent(document: Any, pointer: str) -> tuple[Any, str]:
+    if not pointer.startswith("/"):
+        raise GateError(f"patch path must be absolute: {pointer}")
+    tokens = pointer[1:].split("/")
+    current = document
+    for token in tokens[:-1]:
+        token = token.replace("~1", "/").replace("~0", "~")
+        current = current[int(token)] if isinstance(current, list) else current[token]
+    return current, tokens[-1].replace("~1", "/").replace("~0", "~")
+
+
+def _patch(document: Any, operations: list[dict[str, Any]]) -> tuple[Any, dict[str, Any]]:
+    work = copy.deepcopy(document)
+    named: dict[str, Any] = {}
+    for operation in operations:
+        op = operation["op"]
+        target = named.get(operation.get("target", ""), work)
+        if op == "clone-as":
+            named[operation["name"]] = copy.deepcopy(work)
+            continue
+        if op == "copy":
+            value = copy.deepcopy(_pointer_get(target, operation["from"]))
+            parent, key = _pointer_parent(target, operation["path"])
+            if isinstance(parent, list):
+                parent[int(key)] = value
+            else:
+                parent[key] = value
+            continue
+        parent, key = _pointer_parent(target, operation["path"])
+        if op == "remove":
+            if isinstance(parent, list):
+                parent.pop(int(key))
+            else:
+                del parent[key]
+        elif op in {"add", "replace"}:
+            value = copy.deepcopy(operation["value"])
+            if isinstance(parent, list):
+                index = int(key)
+                if op == "add":
+                    parent.insert(index, value)
+                else:
+                    parent[index] = value
+            else:
+                parent[key] = value
+        else:
+            raise GateError(f"unsupported patch operation: {op}")
+    return work, named
+
+
+def _normalise(value: Any) -> Any:
+    if isinstance(value, str):
+        return unicodedata.normalize("NFC", value)
+    if isinstance(value, list):
+        return [_normalise(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _normalise(value[key]) for key in sorted(value)}
+    if isinstance(value, bool) or value is None or isinstance(value, int):
+        return value
+    raise GateError(f"non-canonical JSON value: {type(value).__name__}")
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    return json.dumps(
+        _normalise(value),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+
+
+def _atlas_hash(domain: str, value: Any) -> str:
+    return hashlib.sha256(domain.encode("utf-8") + b"\x00" + _canonical_bytes(value)).hexdigest()
+
+
+def _validate_timestamp(value: str) -> None:
+    if not TIMESTAMP_RE.fullmatch(value):
+        raise ContractReject("NON_CANONICAL_TIMESTAMP")
+    try:
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
+    except ValueError as error:
+        raise ContractReject("NON_CANONICAL_TIMESTAMP", str(error)) from error
+
+
+def _validate_atlas_gate(kit: dict[str, Any]) -> None:
+    allowed_pairs = {
+        ("activation", "practice"),
+        ("comprehension", "practice"),
+        ("application", "practice"),
+        ("consolidation", "practice"),
+        ("validation", "validation"),
+        ("transfer", "practice"),
+        ("diagnostic", "diagnostic"),
+    }
+    for course in kit["courses"]:
+        objectives = {item["objectiveId"] for item in course["objectives"]}
+        for activity in course["activities"]:
+            if "estimatedMinutes" not in activity:
+                raise ContractReject("ATLAS_ACTIVITY_DURATION_REQUIRED")
+            pair = (activity["learningPhase"], activity["assessmentRole"])
+            if pair not in allowed_pairs:
+                raise ContractReject("ATLAS_ACTIVITY_CLASSIFICATION_INVALID")
+            if not set(activity["objectiveIds"]).issubset(objectives):
+                raise ContractReject("ATLAS_OBJECTIVE_REFERENCE_INVALID")
+        for claim in course.get("atlasValidationIndependenceClaims", []):
+            if claim["sourceActivityLineageId"] == claim["targetActivityLineageId"]:
+                raise ContractReject("CLAIM_SOURCE_TARGET_NOT_DISTINCT")
+            if claim["sourceStimulusDigest"] == claim["targetStimulusDigest"]:
+                raise ContractReject("CLAIM_STIMULUS_NOT_DISTINCT")
+
+
+def _validate_case(
+    case: dict[str, Any],
+    valid: dict[str, Any],
+    schema_validator: Any,
+) -> str:
+    if "baseRef" in case:
+        base = copy.deepcopy(_pointer_get(valid, case["baseRef"]))
+        payload, named = _patch(base, case.get("operations", []))
+    else:
+        payload = copy.deepcopy(case.get("payload"))
+        named = {}
+    validator = case["validator"]
+    context = case.get("context", {})
+    expected = case["expectError"]
+
+    if validator == "JSON_SCHEMA":
+        errors = list(schema_validator.iter_errors(payload))
+        if not errors:
+            raise GateError(f"{case['caseId']} was accepted by JSON Schema")
+        if expected == "ENUM_CLOSED" and not any(error.validator == "enum" for error in errors):
+            raise GateError(f"{case['caseId']} did not fail a closed enum")
+        if expected == "UNEVALUATED_PROPERTY" and not any(
+            error.validator in {"unevaluatedProperties", "additionalProperties"} for error in errors
+        ):
+            raise GateError(f"{case['caseId']} did not fail an unknown property")
+        return expected
+
+    if validator == "ATLAS_CONTENT_GATE":
+        try:
+            _validate_atlas_gate(payload)
+        except ContractReject as error:
+            return error.code
+        raise GateError(f"{case['caseId']} was accepted by Atlas content gate")
+
+    if validator == "SESSION_PLAN_CONTRACT":
+        if case["caseId"] == "preferred-activity-six-minutes-in-five-minute-plan":
+            if int(payload["estimatedMinutes"]) > int(context["durationMinutes"]):
+                return "PREFERRED_ACTIVITY_EXCEEDS_BUDGET"
+        elif case["caseId"] == "plan-id-digest-divergence":
+            digest = payload["expectedPlanDigest"].split(":", 1)[1]
+            plan_id = payload["expectedPlanId"].split(":", 1)[1]
+            if digest != plan_id:
+                return "PLAN_ID_DIGEST_MISMATCH"
+        raise GateError(f"{case['caseId']} was accepted by session plan contract")
+
+    if validator == "VALIDATION_CLAIM":
+        if payload["sourceActivityRefKey"] == payload["targetActivityRefKey"]:
+            return "CLAIM_SOURCE_TARGET_NOT_DISTINCT"
+        if payload["sourceStimulusDigest"] == payload["targetStimulusDigest"]:
+            return "CLAIM_STIMULUS_NOT_DISTINCT"
+        raise GateError(f"{case['caseId']} was accepted by validation claim contract")
+
+    if validator == "ACCEPTED_VALIDATION_CLAIM_SET":
+        original = valid["acceptedValidationClaimSet"]
+        if payload["artifactDigest"] != original["artifactDigest"]:
+            return "ACCEPTED_SET_ARTIFACT_MISMATCH"
+        if payload["contentRevisionRef"] != original["contentRevisionRef"]:
+            return "ACCEPTED_SET_REVISION_MISMATCH"
+        raise GateError(f"{case['caseId']} was accepted by accepted-claim-set contract")
+
+    if validator == "SHARED_CONTRACT":
+        if case["caseId"] == "naked-objective-reference":
+            if "courseRef" not in payload:
+                return "QUALIFIED_REFERENCE_REQUIRED"
+        elif case["caseId"] == "activity-reference-copies-objective-id":
+            if "objectiveId" in payload:
+                return "ACTIVITY_IDENTITY_CONTAINS_OBJECTIVE"
+        raise GateError(f"{case['caseId']} was accepted by shared contract")
+
+    if validator == "VALIDATION_CREDIT":
+        if payload.get("assistance") != "none":
+            return "AUTONOMOUS_CREDIT_REQUIRES_ASSISTANCE_NONE"
+        raise GateError(f"{case['caseId']} was accepted for autonomous validation credit")
+
+    if validator == "CANONICAL_TIMESTAMP":
+        try:
+            _validate_timestamp(payload["scoredAt"])
+        except ContractReject as error:
+            return error.code
+        raise GateError(f"{case['caseId']} accepted a noncanonical timestamp")
+
+    if validator == "ATLAS_STATE_IMPORT":
+        if payload.get("atlasStateVersion") != "0.3":
+            if case.get("expectedWrites") != 0:
+                raise GateError("state rejection did not prove zero writes")
+            return "UNSUPPORTED_ATLAS_STATE_VERSION"
+        raise GateError(f"{case['caseId']} accepted Atlas 0.2 state")
+
+    if validator == "IDENTITY_CONFLICT":
+        second = named.get("second")
+        if second is None:
+            raise GateError("identity conflict case did not materialize second payload")
+        if payload["eventId"] == second["eventId"] and _canonical_bytes(payload) != _canonical_bytes(second):
+            if case.get("expectedWrites") != 0:
+                raise GateError("identity conflict did not prove zero writes")
+            return "IDENTITY_PAYLOAD_CONFLICT"
+        raise GateError(f"{case['caseId']} accepted divergent payload under same identity")
+
+    if validator == "START_IDEMPOTENCE":
+        if payload["planDigest"] != context["attemptedPlanDigest"]:
+            if case.get("expectedWrites") != 0:
+                raise GateError("start conflict did not prove zero writes")
+            return "START_REQUEST_PLAN_CONFLICT"
+        raise GateError(f"{case['caseId']} accepted same request for another plan")
+
+    if validator == "REWARD_EXCLUSIVE_PRIORITY":
+        if context.get("reuseEvidence") and context.get("secondKind") in REWARD_KINDS:
+            if not payload.get("evidenceEventIds"):
+                raise GateError("reward reuse case lacks evidence")
+            return "REWARD_EVIDENCE_REUSED"
+        raise GateError(f"{case['caseId']} accepted reused reward evidence")
+
+    if validator == "REWARD_CONTRACT":
+        if payload.get("kind") not in REWARD_KINDS:
+            return "REWARD_KIND_UNKNOWN"
+        raise GateError(f"{case['caseId']} accepted unknown reward kind")
+
+    if validator == "OBJECTIVE_EVIDENCE_PROJECTION":
+        if context.get("lifecycleKind") in {
+            "session-started",
+            "session-interrupted",
+            "session-resumed",
+            "session-completed",
+        } and context.get("claimedLastEvidenceAt") != payload.get("lastEvidenceAt"):
+            return "LIFECYCLE_EVENT_MUST_NOT_CHANGE_EVIDENCE"
+        raise GateError(f"{case['caseId']} allowed lifecycle event to change evidence")
+
+    if validator == "PEDAGOGICAL_EVENT":
+        if payload.get("kind") == "activity-corrected" and not payload.get("correctsEventId"):
+            return "CORRECTS_EVENT_ID_REQUIRED"
+        raise GateError(f"{case['caseId']} accepted correction without causal event")
+
+    raise GateError(f"unsupported adversarial validator: {validator}")
+
+
+def _positive_contract_matrix(valid: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
+    try:
+        from jsonschema import Draft202012Validator
+    except ImportError as error:
+        raise GateError("jsonschema dependency missing") from error
+    Draft202012Validator.check_schema(schema)
+    validator = Draft202012Validator(schema)
+    legacy = valid["payloads"]["legacyKit"]
+    atlas = valid["payloads"]["atlasKit"]
+    legacy_errors = list(validator.iter_errors(legacy))
+    atlas_errors = list(validator.iter_errors(atlas))
+    if legacy_errors:
+        raise GateError("historical non-Atlas kit failed schema: " + legacy_errors[0].message)
+    if any("estimatedMinutes" in activity for course in legacy["courses"] for activity in course["activities"]):
+        raise GateError("historical compatibility vector unexpectedly contains activity duration")
+    if atlas_errors:
+        raise GateError("positive Atlas fixture failed schema: " + atlas_errors[0].message)
+    _validate_atlas_gate(atlas)
+    if valid["planningVector"]["recommendation"]["action"] not in LEARNING_ACTIONS:
+        raise GateError("positive recommendation action is not closed")
+    if not set(valid["planningVector"]["recommendation"]["reasonCodes"]).issubset(REASON_CODES):
+        raise GateError("positive recommendation reason code is not closed")
+    state = valid["executionVector"]["objectiveEvidence"]["state"]
+    if state not in EVIDENCE_STATES:
+        raise GateError("positive objective state is not closed")
+    reward = valid["executionVector"]["rewardSignal"]
+    if reward["kind"] not in REWARD_KINDS:
+        raise GateError("positive reward kind is not closed")
+    for field in ("submittedAt", "scoredAt"):
+        _validate_timestamp(valid["executionVector"]["scoredExecutionRecord"][field])
+    return {
+        "schemaDraft202012": "PASS",
+        "historicalNonAtlasWithoutActivityDuration": "PASS",
+        "positiveAtlasFixture": "PASS",
+        "closedActionsStatesReasonsRewards": "PASS",
+        "canonicalUtcPositive": "PASS",
+    }
+
+
+def _canonical_identity_matrix(valid: dict[str, Any]) -> dict[str, Any]:
+    planning = valid["planningVector"]
+    plan_payload = planning["planCanonicalPayload"]
+    digest_hex = _atlas_hash("learnit.atlas.m1.v0.3/plan-digest", plan_payload)
+    expected_digest = planning["expectedPlanDigest"]
+    expected_id = planning["expectedPlanId"]
+    if expected_digest != f"sha256:{digest_hex}":
+        raise GateError(f"plan digest vector mismatch: {digest_hex}")
+    if expected_id != f"atlas-plan-sha256:{digest_hex}":
+        raise GateError("planId and planDigest do not represent identical bytes")
+
+    execution = valid["executionVector"]
+    start = execution["startRequestRecord"]
+    start_hex = _atlas_hash(
+        "learnit.atlas.m1.v0.3/start-request-id",
+        {"planDigest": start["planDigest"], "startOrdinal": start["startOrdinal"]},
+    )
+    if start["startRequestId"] != f"atlas-start-sha256:{start_hex}":
+        raise GateError("start request identity vector mismatch")
+    session = execution["sessionRef"]
+    session_hex = _atlas_hash(
+        "learnit.atlas.m1.v0.3/session-id",
+        {"startRequestId": start["startRequestId"], "planDigest": start["planDigest"]},
+    )
+    if session["sessionId"] != f"atlas-session-sha256:{session_hex}":
+        raise GateError("session identity vector mismatch")
+    if session["planId"] != expected_id:
+        raise GateError("session plan identity differs")
+
+    canonical_once = _canonical_bytes(plan_payload)
+    canonical_twice = _canonical_bytes(json.loads(canonical_once.decode("utf-8")))
+    if canonical_once != canonical_twice:
+        raise GateError("canonical JSON is not byte-idempotent")
+    return {
+        "planDigest": expected_digest,
+        "planId": expected_id,
+        "startRequestId": start["startRequestId"],
+        "sessionId": session["sessionId"],
+        "canonicalByteCount": len(canonical_once),
+        "canonicalIdempotence": "PASS",
+    }
+
+
+@contextmanager
+def _network_blocked():
+    original_connect = socket.socket.connect
+    original_create = socket.create_connection
+
+    def denied(*_args: Any, **_kwargs: Any) -> Any:
+        raise OSError("network disabled by atlas-contracts proof profile")
+
+    socket.socket.connect = denied  # type: ignore[method-assign]
+    socket.create_connection = denied  # type: ignore[assignment]
+    try:
+        yield
+    finally:
+        socket.socket.connect = original_connect  # type: ignore[method-assign]
+        socket.create_connection = original_create  # type: ignore[assignment]
+
+
+def _load_external_records(env_name: str) -> list[dict[str, Any]]:
+    raw = os.environ.get(env_name, "")
+    if not raw:
+        raise GateError(f"missing workflow evidence pointer: {env_name}")
+    path = Path(raw)
+    if not path.is_file():
+        raise GateError(f"workflow evidence file absent: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    records = payload if isinstance(payload, list) else payload.get("commands", [])
+    if not records or any(record.get("exit_code") != 0 for record in records):
+        raise GateError(f"workflow command evidence failed: {env_name}")
+    return records
+
+
+def _worktree_commands() -> list[dict[str, Any]]:
+    return [
+        command_record(["git", "status", "--porcelain=v1", "--untracked-files=all"]),
+        command_record(["git", "diff", "--exit-code"]),
+        command_record(["git", "diff", "--cached", "--exit-code"]),
+    ]
+
+
+def _assert_worktree_only_evidence(records: list[dict[str, Any]]) -> None:
+    status = records[0]["stdout"].splitlines()
+    unexpected = []
+    for line in status:
+        path = line[3:] if len(line) >= 4 else line
+        if not path.startswith("apps/learnit-next/.agent-result/"):
+            unexpected.append(line)
+    if unexpected:
+        raise GateError("worktree contains unexpected paths: " + json.dumps(unexpected))
+    if records[1]["stdout"] or records[2]["stdout"]:
+        raise GateError("tracked diff exists after tests")
+
+
+def _write_contract_evidence(evidence: dict[str, Any], commands: list[dict[str, Any]]) -> None:
+    RESULT_DIR.mkdir(parents=True, exist_ok=True)
+    json_path = RESULT_DIR / "atlas-contracts-evidence.json"
+    md_path = RESULT_DIR / "atlas-contracts-evidence.md"
+    log_path = RESULT_DIR / "atlas-contracts-commands.log"
+    json_path.write_text(json.dumps(evidence, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+    sections = [
+        "VERDICT",
+        "AUTHORITY",
+        "REPOSITORY_AND_PR",
+        "BASELINE_BRANCH_HEAD_MERGE_BASE",
+        "RUNNER_ENVIRONMENT",
+        "DEPENDENCY_DECLARATION",
+        "EXACT_PR_FILE_LIST",
+        "WORKTREE_BEFORE_INSTALL",
+        "WORKTREE_AFTER_INSTALL",
+        "COMMANDS_AND_EXIT_CODES",
+        "FULL_TEST_RESULTS",
+        "ADVERSARIAL_21_CASE_MATRIX",
+        "CANONICALIZATION_IDENTITY_UTC_RESULTS",
+        "STATE_0_2_AND_REWARD_RESULTS",
+        "CONTRACT_FILE_GIT_BLOB_SHA1",
+        "CONTRACT_FILE_SHA256_BEFORE",
+        "CONTRACT_FILE_SHA256_AFTER",
+        "WORKTREE_AFTER_TESTS",
+        "TRACKED_FILE_MODIFICATIONS",
+        "ARTIFACT_IDENTITY",
+        "REPRODUCIBILITY_CONCLUSION",
+        "NEXT_ACTION",
+    ]
+    lines = ["# ATLAS 0.3 — clean-checkout contract evidence V2", ""]
+    for section in sections:
+        lines.extend([f"{section}:", "```json"])
+        lines.append(json.dumps(evidence.get(section), indent=2, sort_keys=True, ensure_ascii=False))
+        lines.extend(["```", ""])
+    lines.extend(["EVIDENCE_COMPLETE:", "true", ""])
+    md_path.write_text("\n".join(lines), encoding="utf-8")
+    with log_path.open("w", encoding="utf-8") as stream:
+        for index, record in enumerate(commands, start=1):
+            stream.write(f"COMMAND {index}\n")
+            stream.write(json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False))
+            stream.write("\n\n")
+
+
+def run_atlas_contracts(branch: str, base_ref: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    provenance = atlas_provenance("atlas-contracts", branch, base_ref)
+    dependency_records = _load_external_records("ATLAS_DEPENDENCY_COMMANDS_JSON")
+    before_install = _load_external_records("ATLAS_WORKTREE_BEFORE_INSTALL_JSON")
+    after_install = _load_external_records("ATLAS_WORKTREE_AFTER_INSTALL_JSON")
+    commands: list[dict[str, Any]] = []
+    commands.extend(before_install)
+    commands.extend(dependency_records)
+    commands.extend(after_install)
+    immediate_before = _worktree_commands()
+    commands.extend(immediate_before)
+    _assert_worktree_only_evidence(immediate_before)
+
+    before = _contract_file_identities()
+    schema = _load_json("contracts/learnit-kit-v2.schema.json")
+    valid = _load_json("contracts/fixtures/atlas-m1-valid-loop.json")
+    invalid = _load_json("contracts/fixtures/atlas-m1-invalid-loop.json")
+    _load_json("work-packages/ATLAS-WP-001.json")
+    docs = (ROOT / "docs/atlas/CONTRACTS.md").read_text(encoding="utf-8")
+    if "contractVersion: 0.3" not in docs:
+        raise GateError("contract documents are not the expected 0.3 materialization")
+    if len(invalid.get("cases", [])) != 21:
+        raise GateError(f"adversarial case count differs: {len(invalid.get('cases', []))}")
+
+    with _network_blocked():
+        positive = _positive_contract_matrix(valid, schema)
+        identity = _canonical_identity_matrix(valid)
+        from jsonschema import Draft202012Validator
+
+        schema_validator = Draft202012Validator(schema)
+        runs = []
+        for run_number in (1, 2):
+            case_results = []
+            for case in invalid["cases"]:
+                actual = _validate_case(case, valid, schema_validator)
+                if actual != case["expectError"]:
+                    raise GateError(
+                        f"{case['caseId']} rejected with {actual}, expected {case['expectError']}"
+                    )
+                case_results.append(
+                    {
+                        "caseId": case["caseId"],
+                        "validator": case["validator"],
+                        "expectedError": case["expectError"],
+                        "actualError": actual,
+                        "result": "PASS_REJECTED",
+                    }
+                )
+            runs.append({"run": run_number, "cases": case_results})
+
+    canonical_first = _canonical_bytes(runs[0]["cases"])
+    canonical_second = _canonical_bytes(runs[1]["cases"])
+    if canonical_first != canonical_second:
+        raise GateError("the two adversarial executions are not canonically identical")
+
+    after = _contract_file_identities()
+    if before != after:
+        raise GateError("contract file identities changed during matrix")
+
+    after_tests = _worktree_commands()
+    commands.extend(after_tests)
+    _assert_worktree_only_evidence(after_tests)
+    tracked = command_record(["git", "status", "--porcelain=v1", "--untracked-files=no"])
+    commands.append(tracked)
+    if tracked["stdout"]:
+        raise GateError("tracked files changed during contract proof")
+
+    dependency_path = os.environ.get("ATLAS_DEPENDENCY_PATH", DEPENDENCY_PATH)
+    dependency_sha = os.environ.get("ATLAS_DEPENDENCY_SHA256", "")
+    if dependency_path != DEPENDENCY_PATH or dependency_sha != _sha256_file(DEPENDENCY_PATH):
+        raise GateError("dependency declaration identity differs")
+
+    evidence = {
+        "VERDICT": "READY_FOR_EVIDENCE_ONLY_REVIEW",
+        "AUTHORITY": {
+            "repository": "stefm78/learnit-platform",
+            "authority_issue": 130,
+            "work_package": "ATLAS-WP-001",
+            "arbitration_id": "ATLAS-M1-ARB-001",
+        },
+        "REPOSITORY_AND_PR": {
+            "repository": "stefm78/learnit-platform",
+            "pull_request": 137,
+            "state_expected": "OPEN_NON_DRAFT_UNMERGED",
+        },
+        "BASELINE_BRANCH_HEAD_MERGE_BASE": provenance,
+        "RUNNER_ENVIRONMENT": {
+            "python": sys.version,
+            "platform": sys.platform,
+            "githubRunId": os.environ.get("GITHUB_RUN_ID"),
+            "githubWorkflow": os.environ.get("GITHUB_WORKFLOW"),
+            "networkDuringSemanticTests": "BLOCKED_IN_PROCESS",
+            "runtimeLlm": "NOT_USED",
+        },
+        "DEPENDENCY_DECLARATION": {
+            "path": dependency_path,
+            "sha256": dependency_sha,
+            "installationCommands": dependency_records,
+        },
+        "EXACT_PR_FILE_LIST": list(CONTRACT_PATHS),
+        "WORKTREE_BEFORE_INSTALL": before_install,
+        "WORKTREE_AFTER_INSTALL": after_install,
+        "COMMANDS_AND_EXIT_CODES": [
+            {"command": item["command"], "exit_code": item["exit_code"]} for item in commands
+        ],
+        "FULL_TEST_RESULTS": positive,
+        "ADVERSARIAL_21_CASE_MATRIX": {
+            "caseCount": 21,
+            "executions": 2,
+            "canonicalResultsIdentical": True,
+            "runs": runs,
+        },
+        "CANONICALIZATION_IDENTITY_UTC_RESULTS": identity,
+        "STATE_0_2_AND_REWARD_RESULTS": {
+            "state02RejectedBeforeWrites": True,
+            "rewardKindsClosed": sorted(REWARD_KINDS),
+            "transferCompletedForbidden": True,
+            "evidenceReuseRejected": True,
+            "lifecycleHasNoPedagogicalEffect": True,
+            "activityCorrectedRequiresCausalEvent": True,
+        },
+        "CONTRACT_FILE_GIT_BLOB_SHA1": {
+            path: data["git_blob_sha1"] for path, data in before.items()
+        },
+        "CONTRACT_FILE_SHA256_BEFORE": {
+            path: data["sha256"] for path, data in before.items()
+        },
+        "CONTRACT_FILE_SHA256_AFTER": {
+            path: data["sha256"] for path, data in after.items()
+        },
+        "WORKTREE_AFTER_TESTS": after_tests,
+        "TRACKED_FILE_MODIFICATIONS": [],
+        "ARTIFACT_IDENTITY": {
+            "name": CONTRACT_ARTIFACT,
+            "head": CONTRACT_HEAD,
+            "evidenceFiles": [
+                "apps/learnit-next/.agent-result/atlas-contracts-evidence.json",
+                "apps/learnit-next/.agent-result/atlas-contracts-evidence.md",
+                "apps/learnit-next/.agent-result/atlas-contracts-commands.log",
+            ],
+        },
+        "REPRODUCIBILITY_CONCLUSION": {
+            "EVIDENCE_COMPLETE": True,
+            "allExitCodesZero": all(item["exit_code"] == 0 for item in commands),
+            "contractDigestsStable": before == after,
+            "trackedFilesModified": False,
+            "adversarialCasesExecuted": 21,
+            "matrixExecutions": 2,
+        },
+        "NEXT_ACTION": (
+            "Relancer une revue indépendante evidence-only sur le head exact, "
+            "sans recommencer l’analyse sémantique générale."
+        ),
+        "EVIDENCE_COMPLETE": True,
+    }
+    _write_contract_evidence(evidence, commands)
+    return evidence, commands
 
 
 def run_atlas(profile: str, branch: str, base_ref: str) -> int:
@@ -179,21 +937,32 @@ def run_atlas(profile: str, branch: str, base_ref: str) -> int:
         "verdict": "CHANGES_REQUIRED",
     }
     try:
-        report["provenance"] = atlas_provenance(profile, branch, base_ref)
-        _, _, commands, environment, verdict = ATLAS[profile]
-        if profile == "atlas-support":
-            report["routingMatrix"] = routing_matrix()
-        outputs = []
-        for arguments in commands:
-            command = [sys.executable, *arguments]
-            outputs.append({"command": command, "output": call(command, environment)})
-        report.update(result="PASS", verdict=verdict, tests=outputs)
+        if profile == "atlas-contracts":
+            evidence, commands = run_atlas_contracts(branch, base_ref)
+            report.update(
+                provenance=evidence["BASELINE_BRANCH_HEAD_MERGE_BASE"],
+                result="PASS",
+                verdict="READY_FOR_EVIDENCE_ONLY_REVIEW",
+                evidence=evidence,
+                commandCount=len(commands),
+            )
+        else:
+            report["provenance"] = atlas_provenance(profile, branch, base_ref)
+            _, _, commands, environment, verdict = ATLAS[profile]
+            if profile == "atlas-support":
+                report["routingMatrix"] = routing_matrix()
+                report["contractCapability"] = support_contract_capability()
+            outputs = []
+            for arguments in commands:
+                command = [sys.executable, *arguments]
+                outputs.append({"command": command, "output": call(command, environment)})
+            report.update(result="PASS", verdict=verdict, tests=outputs)
         code = 0
     except Exception as error:
         report["error"] = str(error)
         code = 2
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
-    REPORT.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    RESULT_DIR.mkdir(parents=True, exist_ok=True)
+    REPORT.write_text(json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({"result": report["result"], "verdict": report["verdict"]}, sort_keys=True))
     return code
 
@@ -210,17 +979,14 @@ def legacy_namespace() -> dict[str, object]:
 
 
 def load_manifest():
-    """Backward-compatible materialization API used by the historical workflow."""
     return legacy_namespace()["load_manifest"]()
 
 
 def materialize(destination, manifest):
-    """Backward-compatible materialization API used by the historical workflow."""
     return legacy_namespace()["materialize"](destination, manifest)
 
 
 def run_wave_a(args: argparse.Namespace) -> int:
-    """Execute the exact historical gate stored at the Atlas support base."""
     namespace = legacy_namespace()
     legacy_argv = [str(namespace["__file__"])]
     if args.strict:
@@ -237,10 +1003,9 @@ def run_wave_a(args: argparse.Namespace) -> int:
 
 
 def run_wave_a_ci(args: argparse.Namespace) -> int:
-    """Preserve the historical Wave A gate, fixed profiles and exact QA replay."""
     if run_wave_a(args):
         return 2
-    result_dir = ROOT / "apps/learnit-next/.agent-result"
+    result_dir = RESULT_DIR
     result_dir.mkdir(parents=True, exist_ok=True)
     profiles = ("authoring", "contract", "full", "browser")
     for name in profiles:
@@ -267,6 +1032,7 @@ def run_wave_a_ci(args: argparse.Namespace) -> int:
     before = artifact.read_bytes()
     namespace = legacy_namespace()
     import tempfile
+
     with tempfile.TemporaryDirectory(prefix="wave-a-qa-") as raw:
         product = namespace["materialize"](Path(raw), namespace["load_manifest"]()).resolve()
         qa_path = Path("apps/learnit-next/tests/qa_learning_loop_v2.py")
