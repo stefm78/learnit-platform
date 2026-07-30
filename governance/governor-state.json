@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-29-029",
-  "effectiveFromCommit": "06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35",
-  "reviewedBaselineCommit": "06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35",
+  "stateId": "GOV-STATE-2026-07-29-030",
+  "effectiveFromCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
+  "reviewedBaselineCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m1-bootstrap-authorized",
+    "id": "project-atlas-m1-lanes-active",
     "status": "active",
-    "description": "Learning Loop V2 is promoted. Project Atlas M1 bootstrap is authorized under issue #130 to freeze the local adaptive runtime decision, four shared data contracts, four disjoint AI lanes and the minimal-governance execution frame."
+    "description": "Project Atlas M1 bootstrap is merged. The four disjoint Atlas lanes and independent pre-candidate QA are published from the exact common baseline, while the shared governance and CI support repair remains subject to human review."
   },
   "currentMain": {
-    "commit": "06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35",
-    "sourcePullRequest": 124,
-    "description": "Promoted Learning Loop V2 Wave A baseline after Wave B human validation."
+    "commit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
+    "sourcePullRequest": 131,
+    "description": "Project Atlas M1 bootstrap merge on top of the promoted Learning Loop V2 baseline."
   },
   "developmentBaseline": {
     "status": "selected",
     "workPackage": "ATLAS-WP-001",
     "candidate": "Project Atlas M1 Daily Learning Loop",
-    "sourceCommit": "06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35",
+    "sourceCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
     "authorityIssue": 130,
-    "bootstrap": "PENDING_MERGE"
+    "bootstrap": "MERGED"
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -47,11 +47,17 @@
       "artifactSha256": "9780bf3763864fbd42804a7dee129ae16e999e7971c4fce9a0a6a240d52b20df",
       "desktopHumanGate": "PASS",
       "androidHumanGate": "PASS"
+    },
+    "projectAtlasM1Bootstrap": {
+      "workPackage": "ATLAS-WP-001",
+      "status": "accepted",
+      "mergeCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
+      "sourcePullRequest": 131
     }
   },
   "authorizedWork": [
-    "ATLAS-WP-001 bootstrap documentation and repository-frame preparation from exact baseline 06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35",
-    "after human merge of the bootstrap PR, four disjoint lanes ATLAS-LEARNING, ATLAS-EXPERIENCE, ATLAS-CORE and ATLAS-CONTENT as declared in ATLAS-WP-001",
+    "ATLAS-WP-001 support repair for exact governance and deterministic CI routing from baseline 58e39e8917006058fdf177a5daa37535f5e2c78d",
+    "four disjoint lanes ATLAS-LEARNING, ATLAS-EXPERIENCE, ATLAS-CORE and ATLAS-CONTENT as declared in ATLAS-WP-001",
     "independent contradictory QA in its declared test and fixture paths",
     "non-repairing integration of exact accepted lane heads",
     "local offline deterministic explainable adaptive planning with no runtime LLM or network dependency",
@@ -116,8 +122,8 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ATLAS-WP-001-BOOTSTRAP",
-    "condition": "Human merge of the bootstrap PR after review of the Atlas constitution, ADR-0003, shared contracts, disjoint lane ownership and this governor state. The bootstrap must not change product runtime code."
+    "id": "ATLAS-WP-001",
+    "condition": "Human review and merge of the exact support governance and CI PR, followed by independent review of the published lane heads before any non-repairing integrated candidate is assembled."
   },
   "review": {
     "lastReviewedAt": "2026-07-29",
