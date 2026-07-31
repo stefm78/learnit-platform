@@ -35,6 +35,6 @@ function buildRecommendation({objectiveRef,evidence,index,context={}}) {
   const eligible=E.eligibleActivities(index,objectiveRef,action);
   if(!eligible.length) fail('NO_ELIGIBLE_ACTIVITY');
   const preferred=eligible[0];
-  const out={recommendationVersion:'atlas.recommendation.v1',objectiveRef,action,eligibleActivityRefs:eligible.map(x=>x.activityRef),preferredActivityRef:preferred.activityRef,estimatedMinutes:preferred.estimatedMinutes,reasonCodes:Object.freeze(reasonCodes)}; if(context.correctsEventId)out.correctsEventId=context.correctsEventId; if(context.validationBasisEventId)out.validationBasisEventId=context.validationBasisEventId; if(context.independenceClaimId)out.independenceClaimId=context.independenceClaimId; return Object.freeze(out);
+  return Object.freeze({recommendationVersion:'atlas.recommendation.v1',objectiveRef,action,eligibleActivityRefs:Object.freeze(eligible.map(x=>x.activityRef)),preferredActivityRef:preferred.activityRef,estimatedMinutes:preferred.estimatedMinutes,reasonCodes:Object.freeze([...new Set(reasonCodes)])});
 }
 module.exports=Object.freeze({lastSelectionStats,rankRecommendations,actionForEvidence,buildRecommendation});
