@@ -130,10 +130,15 @@ jobs:
           git fetch --force --no-tags origin main:refs/remotes/origin/main
           for sha in "${CONTRACT_EVIDENCE_BASE}" "${CORRECTIVE_COMMON_BASELINE}"; do git fetch --force --no-tags origin "${sha}"; git cat-file -e "${sha}^{commit}"; done
           [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
-          lanes=(agent/ATLAS-WP-001-learning-corrective-0-3:0db8d3b929c74b605cbcfea2135fda40fbd72fdd agent/ATLAS-WP-001-core-corrective-0-3:7aca506a7b243f6a6ee64dbda634dad0f98dc01a agent/ATLAS-WP-001-experience-corrective-0-3:aecae5700867c3f9a918c5b86acf3bda9d13b7ce agent/ATLAS-WP-001-content-corrective-0-3:8a00e8bc1179c94ed3e0bd110d5a19794768e86c agent/ATLAS-WP-001-qa-0-3:4109b1fd7e89d62c14d074b67f64aad65991ca7b)
-          for item in "${lanes[@]}"; do b="${item%%:*}"; h="${item##*:}"; git fetch --force --no-tags origin "${b}:refs/remotes/origin/${b}"; [[ "$(git rev-parse "refs/remotes/origin/${b}")" == "${h}" ]]; done
+          lanes=(agent/ATLAS-WP-001-learning-corrective-0-3:0db8d3b929c74b605cbcfea2135fda40fbd72fdd:140 agent/ATLAS-WP-001-core-corrective-0-3:7aca506a7b243f6a6ee64dbda634dad0f98dc01a:141 agent/ATLAS-WP-001-experience-corrective-0-3:aecae5700867c3f9a918c5b86acf3bda9d13b7ce:142 agent/ATLAS-WP-001-content-corrective-0-3:8a00e8bc1179c94ed3e0bd110d5a19794768e86c:143 agent/ATLAS-WP-001-qa-0-3:4109b1fd7e89d62c14d074b67f64aad65991ca7b:144)
+          for item in "${lanes[@]}"; do
+            b="${item%%:*}"; rest="${item#*:}"; h="${rest%%:*}"; pr="${item##*:}"
+            if git ls-remote --exit-code --heads origin "${b}" >/dev/null; then git fetch --force --no-tags origin "${b}:refs/remotes/origin/${b}"; else git fetch --force --no-tags origin "refs/pull/${pr}/head:refs/remotes/origin/${b}"; fi
+            [[ "$(git rev-parse "refs/remotes/origin/${b}")" == "${h}" ]]
+          done
           if [[ "${EVENT}" == pull_request && "${PROFILE}" == atlas-* ]] || [[ "${EVENT}" == workflow_dispatch && "${PROFILE}" == atlas-* && "${PROFILE}" != atlas-contracts ]]; then
-            git fetch --force --no-tags origin "${BRANCH}:refs/remotes/origin/${BRANCH}"; [[ "$(git rev-parse "refs/remotes/origin/${BRANCH}")" == "${TARGET}" ]]
+            git show-ref --verify --quiet "refs/remotes/origin/${BRANCH}" || git fetch --force --no-tags origin "${BRANCH}:refs/remotes/origin/${BRANCH}"
+            [[ "$(git rev-parse "refs/remotes/origin/${BRANCH}")" == "${TARGET}" ]]
           fi
           if [[ "${PROFILE}" == atlas-contracts ]]; then [[ "${BASE}" == "${CONTRACT_EVIDENCE_BASE}" && "${TARGET}" == f41de5043a22f8559a3b6a0d71654fbd542b5ec6 ]]; fi
           if [[ "${PROFILE}" == atlas-support || "${BRANCH}" == *-corrective-0-3 || "${BRANCH}" == agent/ATLAS-WP-001-qa-0-3 ]]; then [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]]; fi
