@@ -111,6 +111,79 @@ class AtlasLearningTests(unittest.TestCase):
     cp=subprocess.run(['node','-e',script,str(ROOT)],capture_output=True,text=True)
     self.assertEqual(cp.returncode,0,cp.stderr)
     self.assertRegex(cp.stdout,r'ATLAS_LEARNING_NODE_PASS \d+/\d+')
+
+  def test_v3_permutation_boundary_and_root_closure(self):
+    script=textwrap.dedent(r'''
+      const assert=require('assert');
+      const E=require(process.argv[1]+'/src/core/atlas_evidence.js');
+      const R=require(process.argv[1]+'/src/core/atlas_recommendation.js');
+      const P=require(process.argv[1]+'/src/core/atlas_planner.js');
+      let checks=0;
+      const check=fn=>{fn();checks+=1;};
+      const rejects=(fn,rx)=>{assert.throws(fn,rx);checks+=1;};
+      const courseRef={packageLineageId:'pkg',courseLineageId:'course'};
+      const objectiveA={courseRef,objectiveId:'obj-a'};
+      const objectiveB={courseRef,objectiveId:'obj-b'};
+      const activity=(objectiveRef,id)=>({activityRef:{courseRef,activityLineageId:id},objectiveRef,learningPhase:'consolidation',assessmentRole:'practice',estimatedMinutes:3});
+      const activities=[activity(objectiveA,'correction-a'),activity(objectiveB,'correction-b')];
+      const links=activities.map(row=>({objectiveRef:row.objectiveRef,activityRef:row.activityRef,authorIndex:0}));
+      const index=E.indexActivities(activities,links);
+      const recommendationRows=[
+        {objectiveRef:objectiveA,evidence:{objectiveRef:objectiveA,state:'review-needed'}},
+        {objectiveRef:objectiveB,evidence:{objectiveRef:objectiveB,state:'review-needed'}}
+      ];
+      const event=(ordinal,objectiveRef)=>({
+        kind:'session-started',
+        eventId:'atlas-event-sha256:'+ordinal.toString(16).padStart(64,'0'),
+        occurredAt:'2026-07-31T12:00:00.000Z',
+        selectedItems:[{objectiveRef}]
+      });
+      const journal=[event(0,objectiveA),...Array.from({length:10},(_,index)=>event(index+1,objectiveB))];
+      const contentRevisionRef={packageLineageId:'pkg',packageRevisionId:'rev',packageDigest:'sha256:'+'2'.repeat(64)};
+      const provenanceFor=objectiveRef=>({correctsEventId:'atlas-event-sha256:'+(objectiveRef.objectiveId==='obj-a'?'a':'b').repeat(64)});
+      const snapshot=events=>{
+        const ranked=R.rankRecommendations(recommendationRows,events);
+        const recommendations=ranked.map(row=>R.buildRecommendation({objectiveRef:row.objectiveRef,evidence:row.evidence,index}));
+        const itemProvenance=ranked.map(row=>provenanceFor(row.objectiveRef));
+        const plan=P.buildPlan({engineVersion:'v1',courseRef,contentRevisionRef,durationMinutes:5,recommendations,itemProvenance});
+        return {
+          statsA:R.lastSelectionStats(objectiveA,events),
+          statsB:R.lastSelectionStats(objectiveB,events),
+          ranked:ranked.map(row=>row.objectiveRef.objectiveId),
+          recommendations:P.canonicalJson(recommendations),
+          plan:P.canonicalJson(plan)
+        };
+      };
+      const expected=snapshot(journal);
+      check(()=>assert.equal(expected.statsA.recentCount,0));
+      check(()=>assert.equal(expected.statsB.recentCount,10));
+      check(()=>assert.deepStrictEqual(expected.ranked,['obj-a','obj-b']));
+      const permutations=[journal,[...journal].reverse()];
+      for(let offset=0;offset<journal.length;offset++)permutations.push(journal.slice(offset).concat(journal.slice(0,offset)));
+      for(let left=0;left<journal.length;left++)for(let right=left+1;right<journal.length;right++){
+        const swapped=[...journal];[swapped[left],swapped[right]]=[swapped[right],swapped[left]];permutations.push(swapped);
+      }
+      for(const permutation of permutations)check(()=>assert.deepStrictEqual(snapshot(permutation),expected));
+
+      const ranked=R.rankRecommendations(recommendationRows,journal);
+      const recommendations=ranked.map(row=>R.buildRecommendation({objectiveRef:row.objectiveRef,evidence:row.evidence,index}));
+      const itemProvenance=ranked.map(row=>provenanceFor(row.objectiveRef));
+      const valid={engineVersion:'v1',courseRef,contentRevisionRef,durationMinutes:5,recommendations,itemProvenance};
+      check(()=>assert.match(P.buildPlan(valid).planId,/^atlas-plan-sha256:[0-9a-f]{64}$/));
+      rejects(()=>P.buildPlan({...valid,engineVersion:''}),/INVALID_ENGINE_VERSION/);
+      rejects(()=>P.buildPlan({...valid,courseRef:{}}),/INVALID_COURSE_REF/);
+      rejects(()=>P.buildPlan({...valid,contentRevisionRef:{}}),/INVALID_CONTENT_REVISION_REF/);
+      rejects(()=>P.buildPlan({...valid,unexpected:true}),/UNKNOWN_FIELD/);
+      rejects(()=>P.buildPlan({...valid,courseRef:{...courseRef,unexpected:true}}),/UNKNOWN_FIELD/);
+      rejects(()=>P.buildPlan({...valid,contentRevisionRef:{...contentRevisionRef,unexpected:true}}),/UNKNOWN_FIELD/);
+      rejects(()=>P.buildPlan({...valid,contentRevisionRef:{...contentRevisionRef,packageDigest:'SHA256:'+'2'.repeat(64)}}),/INVALID_CONTENT_REVISION_REF/);
+      rejects(()=>P.buildPlan({...valid,contentRevisionRef:{...contentRevisionRef,packageDigest:'sha256:'+'A'.repeat(64)}}),/INVALID_CONTENT_REVISION_REF/);
+      console.log(`ATLAS_LEARNING_V3_NODE_PASS ${checks}/${checks}`);
+    ''')
+    cp=subprocess.run(['node','-e',script,str(ROOT)],capture_output=True,text=True)
+    self.assertEqual(cp.returncode,0,cp.stderr)
+    self.assertRegex(cp.stdout,r'ATLAS_LEARNING_V3_NODE_PASS \d+/\d+')
+
   def test_no_network_llm_or_ambient_randomness(self):
     text='\n'.join(p.read_text() for p in (ROOT/'src/core').glob('atlas_*.js'))
     for forbidden in ('fetch(','XMLHttpRequest','WebSocket','Math.random','Date.now','openai','anthropic'):
