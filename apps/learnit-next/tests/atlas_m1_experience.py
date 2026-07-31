@@ -16,6 +16,66 @@ class Experience(unittest.TestCase):
             check=False,
         )
 
+    def event_identity_prelude(self) -> str:
+        return r'''
+          const assert = require('assert');
+          const root = process.argv[1];
+          const T = require(root + '/src/ui/atlas_today.js');
+          const S = require(root + '/src/ui/atlas_session.js');
+
+          const id = (prefix, ch) => prefix + ch.repeat(64);
+          const courseRef = {packageLineageId:'p', courseLineageId:'c'};
+          const objectiveRef = {courseRef, objectiveId:'o'};
+          const otherObjectiveRef = {courseRef, objectiveId:'other'};
+          const correctionTarget = id('atlas-event-sha256:','c');
+          const attemptExecutionId = id('atlas-execution-sha256:','a');
+          const correctedExecutionId = id('atlas-execution-sha256:','b');
+
+          function coreIdentity(event) {
+            const identity = {
+              eventVersion:event.eventVersion,
+              kind:event.kind,
+              executionId:event.executionId
+            };
+            if (event.kind === 'activity-corrected') identity.correctsEventId = event.correctsEventId;
+            return identity;
+          }
+
+          const coreEventId = event => T.typedHash(
+            'atlas-event-sha256:',
+            'learnit.atlas.m1.v0.3/event-id',
+            coreIdentity(event)
+          );
+          const legacyEventId = event => T.typedHash(
+            'atlas-event-sha256:',
+            'learnit.atlas.m1.v0.3/event-id',
+            T.without(event, 'eventId')
+          );
+
+          const attemptBase = {
+            eventVersion:'atlas.learning-event.v1',
+            kind:'activity-attempt',
+            objectiveRef,
+            executionId:attemptExecutionId,
+            occurredAt:'2026-01-01T00:00:00.000Z'
+          };
+          const attemptEvent = {...attemptBase,eventId:coreEventId(attemptBase)};
+          const attemptExecution = {executionId:attemptExecutionId};
+          const attemptItem = {executionClass:'practice',objectiveRef};
+
+          const correctedBase = {
+            eventVersion:'atlas.learning-event.v1',
+            kind:'activity-corrected',
+            objectiveRef,
+            executionId:correctedExecutionId,
+            correctsEventId:correctionTarget,
+            occurredAt:'2026-01-01T00:00:00.001Z'
+          };
+          const correctedEvent = {...correctedBase,eventId:coreEventId(correctedBase)};
+          const correctedExecution = {executionId:correctedExecutionId};
+          const correctedItem = {executionClass:'correction',objectiveRef,correctsEventId:correctionTarget};
+        '''
+
     def test_node_positive_and_v2_regression_matrix(self):
         script = r'''
           const assert = require('assert');
@@ -120,7 +180,14 @@ class Experience(unittest.TestCase):
               objectiveRef, executionId:execution.executionId,
               correctsEventId:item.correctsEventId, occurredAt:'2026-01-01T00:00:00.002Z'
             };
-            const event = {...eventBase,eventId:T.typedHash('atlas-event-sha256:','learnit.atlas.m1.v0.3/event-id',eventBase)};
+            const event = {
+              ...eventBase,
+              eventId:T.typedHash(
+                'atlas-event-sha256:',
+                'learnit.atlas.m1.v0.3/event-id',
+                S.pedagogicalEventIdentity(eventBase)
+              )
+            };
             const resumeState = {
               ...initialResume, nextItemPosition:1, focusTarget:'atlas-session-summary',
               lastCommittedEventId:event.eventId,
@@ -185,12 +252,129 @@ class Experience(unittest.TestCase):
             };
             assert(R.renderRewards([signal]).includes('reconfirmée'));
             assert.throws(() => R.validateSignal({...signal,kind:'transfer-completed'}), /INVALID_REWARD/);
-            console.log('ATLAS_EXPERIENCE_V2_NODE_PASS 52/52');
+            console.log('ATLAS_EXPERIENCE_V3_NODE_PASS 52/52');
           })().catch(error => {console.error(error); process.exit(1);});
         '''
         completed = self.run_node(script)
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn('52/52', completed.stdout)
+
+    def test_event_identity_fixed_contract_vectors(self):
+        script = self.event_identity_prelude() + r'''
+          assert.deepStrictEqual(S.pedagogicalEventIdentity(attemptEvent), {
+            eventVersion:'atlas.learning-event.v1',
+            kind:'activity-attempt',
+            executionId:attemptExecutionId
+          });
+          assert.deepStrictEqual(S.pedagogicalEventIdentity(correctedEvent), {
+            eventVersion:'atlas.learning-event.v1',
+            kind:'activity-corrected',
+            executionId:correctedExecutionId,
+            correctsEventId:correctionTarget
+          });
+          assert.equal(
+            T.canonicalJson(S.pedagogicalEventIdentity(attemptEvent)),
+            '{"eventVersion":"atlas.learning-event.v1","executionId":"atlas-execution-sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"activity-attempt"}'
+          );
+          assert.equal(
+            T.canonicalJson(S.pedagogicalEventIdentity(correctedEvent)),
+            '{"correctsEventId":"atlas-event-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","eventVersion":"atlas.learning-event.v1","executionId":"atlas-execution-sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","kind":"activity-corrected"}'
+          );
+          assert.equal(attemptEvent.eventId, 'atlas-event-sha256:1012f4383ec8101f37275415f0dd5e3cb07b3d50c9b849e7208b46c8e84509ba');
+          assert.equal(correctedEvent.eventId, 'atlas-event-sha256:186542615b69bb6b96054ba2ecc8499b192fd954b9bce41f01e533dfca246e01');
+          console.log('ATLAS_EXPERIENCE_EVENT_FIXED_VECTORS_PASS');
+        '''
+        completed = self.run_node(script)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn('FIXED_VECTORS_PASS', completed.stdout)
+
+    def test_event_identity_timestamp_objective_and_permutation_invariance(self):
+        script = self.event_identity_prelude() + r'''
+          const later = {...attemptEvent,occurredAt:'2026-12-31T23:59:59.999Z'};
+          const otherObjective = {...attemptEvent,objectiveRef:otherObjectiveRef};
+          const permuted = {
+            occurredAt:attemptEvent.occurredAt,
+            executionId:attemptEvent.executionId,
+            eventId:attemptEvent.eventId,
+            objectiveRef:attemptEvent.objectiveRef,
+            kind:attemptEvent.kind,
+            eventVersion:attemptEvent.eventVersion
+          };
+          assert.equal(coreEventId(later), attemptEvent.eventId);
+          assert.equal(coreEventId(otherObjective), attemptEvent.eventId);
+          assert.equal(coreEventId(permuted), attemptEvent.eventId);
+          assert.doesNotThrow(() => S.validatePedagogicalEvent(later,attemptExecution,attemptItem));
+          assert.doesNotThrow(() => S.validatePedagogicalEvent(permuted,attemptExecution,attemptItem));
+          assert.doesNotThrow(() => S.validatePedagogicalEvent(otherObjective,attemptExecution,{executionClass:'practice',objectiveRef:otherObjectiveRef}));
+          console.log('ATLAS_EXPERIENCE_EVENT_INVARIANCE_PASS');
+        '''
+        completed = self.run_node(script)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn('INVARIANCE_PASS', completed.stdout)
+
+    def test_core_formula_accepted_and_legacy_expanded_formula_rejected(self):
+        script = self.event_identity_prelude() + r'''
+          assert.doesNotThrow(() => S.validatePedagogicalEvent(attemptEvent,attemptExecution,attemptItem));
+          assert.doesNotThrow(() => S.validatePedagogicalEvent(correctedEvent,correctedExecution,correctedItem));
+
+          const legacyAttempt = {...attemptBase,eventId:legacyEventId(attemptBase)};
+          const legacyCorrected = {...correctedBase,eventId:legacyEventId(correctedBase)};
+          assert.notEqual(legacyAttempt.eventId, attemptEvent.eventId);
+          assert.notEqual(legacyCorrected.eventId, correctedEvent.eventId);
+          assert.throws(
+            () => S.validatePedagogicalEvent(legacyAttempt,attemptExecution,attemptItem),
+            /CORE_COMMIT_IDENTITY_MISMATCH/
+          );
+          assert.throws(
+            () => S.validatePedagogicalEvent(legacyCorrected,correctedExecution,correctedItem),
+            /CORE_COMMIT_IDENTITY_MISMATCH/
+          );
+          console.log('ATLAS_EXPERIENCE_CORE_COMPATIBILITY_PASS');
+        '''
+        completed = self.run_node(script)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn('CORE_COMPATIBILITY_PASS', completed.stdout)
+
+    def test_event_identity_boundaries_and_fail_closed(self):
+        script = self.event_identity_prelude() + r'''
+          const attemptWithCorrectionTarget = {...attemptEvent,correctsEventId:correctionTarget};
+          assert.throws(
+            () => S.validatePedagogicalEvent(attemptWithCorrectionTarget,attemptExecution,attemptItem),
+            /UNKNOWN_FIELD/
+          );
+
+          const correctedWithoutTarget = {...correctedEvent};
+          delete correctedWithoutTarget.correctsEventId;
+          assert.throws(
+            () => S.validatePedagogicalEvent(correctedWithoutTarget,correctedExecution,correctedItem),
+            /CORE_COMMIT_EVENT_MISMATCH/
+          );
+
+          const foreignTarget = id('atlas-event-sha256:','d');
+          const correctedForeignBase = {...correctedBase,correctsEventId:foreignTarget};
+          const correctedForeign = {...correctedForeignBase,eventId:coreEventId(correctedForeignBase)};
+          assert.throws(
+            () => S.validatePedagogicalEvent(correctedForeign,correctedExecution,correctedItem),
+            /CORE_COMMIT_EVENT_MISMATCH/
+          );
+
+          assert.throws(
+            () => S.validatePedagogicalEvent({...attemptEvent,unexpected:true},attemptExecution,attemptItem),
+            /UNKNOWN_FIELD/
+          );
+          assert.throws(
+            () => S.validatePedagogicalEvent({...attemptEvent,eventVersion:'atlas.learning-event.v2'},attemptExecution,attemptItem),
+            /INVALID_CORE_COMMIT/
+          );
+          assert.throws(
+            () => S.validatePedagogicalEvent({...attemptEvent,executionId:id('atlas-execution-sha256:','f')},attemptExecution,attemptItem),
+            /CORE_COMMIT_EVENT_MISMATCH/
+          );
+          console.log('ATLAS_EXPERIENCE_EVENT_FAIL_CLOSED_PASS');
+        '''
+        completed = self.run_node(script)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn('FAIL_CLOSED_PASS', completed.stdout)
 
     def test_css_isolated_and_mobile(self):
         css = (ROOT / 'src/atlas.css').read_text(encoding='utf-8')
