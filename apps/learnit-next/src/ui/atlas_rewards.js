@@ -1,0 +1,5 @@
+'use strict';
+const LABELS=Object.freeze({'correction-completed':'Correction effectuée','independent-success':'Réussite autonome','validation-completed':'Validation autonome enregistrée','validation-reconfirmed':'Validation autonome reconfirmée','resumed-after-interruption':'Séance reprise'});
+function validateSignal(signal){if(!signal||!LABELS[signal.kind]||!Array.isArray(signal.evidenceEventIds)||!signal.evidenceEventIds.length)throw new Error('INVALID_REWARD_SIGNAL');if(signal.labelCode!==`reward.${signal.kind.replaceAll('-','_')}`)throw new Error('INVALID_REWARD_LABEL');return signal;}
+function renderRewards(signals){if(!Array.isArray(signals))throw new Error('INVALID_REWARD_SIGNALS');return `<section class="atlas-m1 atlas-rewards" aria-label="Repères pédagogiques"><ul>${signals.map(s=>{validateSignal(s);return `<li data-reward-id="${s.rewardId}"><strong>${LABELS[s.kind]}</strong><span>${s.occurredAt}</span></li>`;}).join('')}</ul></section>`;}
+module.exports=Object.freeze({LABELS,validateSignal,renderRewards});
