@@ -61,6 +61,10 @@
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
+    "typedClaimId": {
+      "type": "string",
+      "pattern": "^atlas-claim-sha256:[0-9a-f]{64}$"
+    },
     "title": {
       "type": "string",
       "minLength": 1,
@@ -79,6 +83,50 @@
         },
         "label": {
           "$ref": "#/$defs/title"
+        }
+      }
+    },
+    "atlasValidationIndependenceClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claimVersion",
+        "claimId",
+        "objectiveId",
+        "sourceActivityLineageId",
+        "targetActivityLineageId",
+        "basisCode",
+        "sourceStimulusDigest",
+        "targetStimulusDigest"
+      ],
+      "properties": {
+        "claimVersion": {
+          "const": "atlas.independence.v1"
+        },
+        "claimId": {
+          "$ref": "#/$defs/typedClaimId"
+        },
+        "objectiveId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "sourceActivityLineageId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "targetActivityLineageId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "basisCode": {
+          "enum": [
+            "new-instance",
+            "new-context",
+            "alternate-representation"
+          ]
+        },
+        "sourceStimulusDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "targetStimulusDigest": {
+          "$ref": "#/$defs/digest"
         }
       }
     },
@@ -137,6 +185,13 @@
                 "$ref": "#/$defs/fill"
               }
             ]
+          }
+        },
+        "atlasValidationIndependenceClaims": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/atlasValidationIndependenceClaim"
           }
         }
       }
@@ -215,6 +270,11 @@
             "diagnostic",
             "validation"
           ]
+        },
+        "estimatedMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
         }
       }
     },
