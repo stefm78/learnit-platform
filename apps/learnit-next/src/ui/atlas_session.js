@@ -43,6 +43,16 @@ function validateScoredExecution(record, plan, sessionRef, itemPosition) {
   return record;
 }
 
+function pedagogicalEventIdentity(event) {
+  const identity = {
+    eventVersion: event.eventVersion,
+    kind: event.kind,
+    executionId: event.executionId
+  };
+  if (event.kind === 'activity-corrected') identity.correctsEventId = event.correctsEventId;
+  return identity;
+}
+
 function validatePedagogicalEvent(event, execution, planItem) {
   const expectedKind = planItem.executionClass === 'correction' ? 'activity-corrected' : 'activity-attempt';
   const optional = expectedKind === 'activity-corrected' ? ['correctsEventId'] : [];
@@ -52,7 +62,7 @@ function validatePedagogicalEvent(event, execution, planItem) {
   T.assertCanonicalTimestamp(event.occurredAt, 'INVALID_CORE_COMMIT');
   if (!T.sameCanonical(event.objectiveRef, planItem.objectiveRef) || event.executionId !== execution.executionId) fail('CORE_COMMIT_EVENT_MISMATCH');
   if (expectedKind === 'activity-corrected' && (event.correctsEventId !== planItem.correctsEventId || !T.IDS.event.test(event.correctsEventId))) fail('CORE_COMMIT_EVENT_MISMATCH');
-  const expectedId = T.typedHash('atlas-event-sha256:', 'learnit.atlas.m1.v0.3/event-id', T.without(event, 'eventId'));
+  const expectedId = T.typedHash('atlas-event-sha256:', 'learnit.atlas.m1.v0.3/event-id', pedagogicalEventIdentity(event));
   if (event.eventId !== expectedId) fail('CORE_COMMIT_IDENTITY_MISMATCH');
   return event;
 }
@@ -158,6 +168,7 @@ function renderSession({ plan, resumeState, activityHtml = '', feedbackHtml = ''
 module.exports = Object.freeze({
   validateResumeState: T.validateResumeState,
   validateScoredExecution,
+  pedagogicalEventIdentity,
   validatePedagogicalEvent,
   validateCommitResult,
   validateAssistanceConfirmation,
