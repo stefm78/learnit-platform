@@ -27,6 +27,7 @@ permissions:
 env:
   CONTRACT_EVIDENCE_BASE: 58e39e8917006058fdf177a5daa37535f5e2c78d
   CORRECTIVE_COMMON_BASELINE: 6dae2f4f754431ed97c535a3a78fa71067bcd1de
+  REVISION_SAFE_SUPPORT_BASE: 247325c61d990731a24efdcff6e4f0b2e5d4b9c2
   WAVE_A_BASE: 8ebafee48cc5277b92776982639a0146ae7e76d0
 
 concurrency:
@@ -46,14 +47,17 @@ jobs:
           EVENT: ${{ github.event_name }}
           PR_SHA: ${{ github.event.pull_request.head.sha }}
           PR_REF: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PUSH_SHA: ${{ github.sha }}
           DISPATCH_SHA: ${{ inputs.verification_ref }}
           DISPATCH_MODE: ${{ inputs.verification_mode }}
           ACCEPTED: ${{ inputs.accepted_integration_head }}
         run: |
           set -euo pipefail
-          route() {
+
+          route_branch() {
             case "$1" in
-              agent/ATLAS-WP-001-support-governance-ci) echo 'atlas-support corrective' ;;
+              agent/ATLAS-WP-001-support-governance-ci) echo 'atlas-support support' ;;
               agent/ATLAS-WP-001-contracts-0-3) echo 'atlas-contracts contract' ;;
               agent/ATLAS-WP-001-learning-corrective-0-3) echo 'atlas-learning corrective' ;;
               agent/ATLAS-WP-001-core-corrective-0-3) echo 'atlas-core corrective' ;;
@@ -69,28 +73,62 @@ jobs:
               *) return 2 ;;
             esac
           }
+
+          target=''; branch=''; profile=''; family=''; pr=''; mode=''; accepted=''; post_merge=false
           case "${EVENT}" in
-            pull_request) target="${PR_SHA}"; branch="${PR_REF}"; mode=integration-head; accepted=''; read -r profile family < <(route "${branch}") || { echo "Unrecognized pull-request branch: ${branch}" >&2; exit 2; } ;;
-            push) target="${{ github.sha }}"; branch=main; mode=post-merge; accepted=''; profile=post-merge-auto; family=wave ;;
+            pull_request)
+              target="${PR_SHA}"
+              branch="${PR_REF}"
+              pr="${PR_NUMBER}"
+              mode=integration-head
+              read -r profile family < <(route_branch "${branch}") || {
+                echo "Unrecognized pull-request branch: ${branch}" >&2
+                exit 2
+              }
+              ;;
+            push)
+              target="${PUSH_SHA}"
+              branch=main
+              profile=post-merge-auto
+              family=wave
+              mode=post-merge
+              post_merge=true
+              ;;
             workflow_dispatch)
-              target="${DISPATCH_SHA}"; accepted="${ACCEPTED}"
+              target="${DISPATCH_SHA}"
+              accepted="${ACCEPTED}"
+              mode="${DISPATCH_MODE}"
               case "${DISPATCH_MODE}" in
-                atlas-contracts) branch=agent/ATLAS-WP-001-contracts-0-3 ;;
-                atlas-learning) branch=agent/ATLAS-WP-001-learning-corrective-0-3; accepted='' ;;
-                atlas-core) branch=agent/ATLAS-WP-001-core-corrective-0-3; accepted='' ;;
-                atlas-experience) branch=agent/ATLAS-WP-001-experience-corrective-0-3; accepted='' ;;
-                atlas-content) branch=agent/ATLAS-WP-001-content-corrective-0-3; accepted='' ;;
-                atlas-qa) branch=agent/ATLAS-WP-001-qa-0-3; accepted='' ;;
-                integration-head|post-merge) branch=''; profile=wave-a; family=wave ;;
+                atlas-contracts) branch=agent/ATLAS-WP-001-contracts-0-3; pr=137 ;;
+                atlas-learning) branch=agent/ATLAS-WP-001-learning-corrective-0-3; pr=140; accepted='' ;;
+                atlas-core) branch=agent/ATLAS-WP-001-core-corrective-0-3; pr=141; accepted='' ;;
+                atlas-experience) branch=agent/ATLAS-WP-001-experience-corrective-0-3; pr=142; accepted='' ;;
+                atlas-content) branch=agent/ATLAS-WP-001-content-corrective-0-3; pr=143; accepted='' ;;
+                atlas-qa) branch=agent/ATLAS-WP-001-qa-0-3; pr=144; accepted='' ;;
+                integration-head|post-merge) profile=wave-a; family=wave ;;
                 *) echo "Unsupported dispatch mode: ${DISPATCH_MODE}" >&2; exit 2 ;;
               esac
-              mode="${DISPATCH_MODE}"; [[ -z "${branch}" ]] || { mode=integration-head; read -r profile family < <(route "${branch}"); }
+              if [[ -n "${branch}" ]]; then
+                read -r profile family < <(route_branch "${branch}")
+                mode=integration-head
+              fi
               ;;
-            *) exit 2 ;;
+            *) echo "Unsupported event: ${EVENT}" >&2; exit 2 ;;
           esac
-          case "${family}" in contract) base="${CONTRACT_EVIDENCE_BASE}" ;; corrective) base="${CORRECTIVE_COMMON_BASELINE}" ;; wave) base="${WAVE_A_BASE}" ;; *) exit 2 ;; esac
-          [[ "${target}" =~ ^[0-9a-f]{40}$ ]] || { echo 'Target must be an exact lowercase SHA.' >&2; exit 2; }
-          printf 'target=%s\nbranch=%s\nprofile=%s\nbase=%s\nmode=%s\naccepted=%s\n' "${target}" "${branch}" "${profile}" "${base}" "${mode}" "${accepted}" >> "${GITHUB_OUTPUT}"
+
+          case "${family}" in
+            contract) base="${CONTRACT_EVIDENCE_BASE}" ;;
+            corrective) base="${CORRECTIVE_COMMON_BASELINE}" ;;
+            support) base="${REVISION_SAFE_SUPPORT_BASE}" ;;
+            wave) base="${WAVE_A_BASE}" ;;
+            *) echo "Unsupported route family: ${family}" >&2; exit 2 ;;
+          esac
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'Target must be an exact lowercase SHA.' >&2
+            exit 2
+          }
+          printf 'target=%s\nbranch=%s\nprofile=%s\nfamily=%s\nbase=%s\nmode=%s\naccepted=%s\npr=%s\npost_merge=%s\n' \
+            "${target}" "${branch}" "${profile}" "${family}" "${base}" "${mode}" "${accepted}" "${pr}" "${post_merge}" >> "${GITHUB_OUTPUT}"
 
       - uses: actions/checkout@v4
         with:
@@ -106,18 +144,40 @@ jobs:
           PROFILE: ${{ steps.target.outputs.profile }}
           BRANCH: ${{ steps.target.outputs.branch }}
           BASE: ${{ steps.target.outputs.base }}
+          TARGET: ${{ steps.target.outputs.target }}
+          POST_MERGE: ${{ steps.target.outputs.post_merge }}
         run: |
-          set -euo pipefail; profile="${PROFILE}"; branch="${BRANCH}"; base="${BASE}"
+          set -euo pipefail
+          profile="${PROFILE}"; branch="${BRANCH}"; base="${BASE}"; post_merge="${POST_MERGE}"
           if [[ "${EVENT}" == push ]]; then
-            p=( $(git show -s --format=%P HEAD) ); [[ ${#p[@]} -eq 2 ]] || exit 2
-            mapfile -t changed < <(git diff --name-only "${p[0]}" HEAD | sed '/^$/d' | sort -u)
+            parents=( $(git show -s --format=%P HEAD) )
+            [[ ${#parents[@]} -eq 2 ]] || {
+              echo 'Post-merge target must have exactly two parents.' >&2
+              exit 2
+            }
+            mapfile -t changed < <(git diff --name-only "${parents[0]}" HEAD | sed '/^$/d' | sort -u)
             expected=$'.github/workflows/learnit-next-ci.yml\napps/learnit-next/dev/run_checks.py'
             actual="$(printf '%s\n' "${changed[@]}")"
-            if [[ "${actual}" == "${expected}" ]]; then profile=atlas-support; branch=agent/ATLAS-WP-001-support-governance-ci; base="${CORRECTIVE_COMMON_BASELINE}"; else profile=wave-a; branch=main; base="${WAVE_A_BASE}"; fi
+            if [[ "${actual}" == "${expected}" ]]; then
+              profile=atlas-support
+              branch=agent/ATLAS-WP-001-support-governance-ci
+              base="${REVISION_SAFE_SUPPORT_BASE}"
+            else
+              profile=wave-a
+              branch=main
+              base="${WAVE_A_BASE}"
+              post_merge=false
+            fi
           fi
-          printf 'name=%s\nbranch=%s\nbase=%s\n' "${profile}" "${branch}" "${base}" >> "${GITHUB_OUTPUT}"
+          if [[ "${profile}" == atlas-contracts ]]; then
+            artifact="atlas-contracts-evidence-${TARGET}"
+          else
+            artifact="learnit-next-${profile}-${TARGET}"
+          fi
+          printf 'name=%s\nbranch=%s\nbase=%s\nartifact=%s\npost_merge=%s\n' \
+            "${profile}" "${branch}" "${base}" "${artifact}" "${post_merge}" >> "${GITHUB_OUTPUT}"
 
-      - name: Fetch authority and verify frozen heads
+      - name: Fetch authority and bind exact branch head
         shell: bash
         env:
           EVENT: ${{ github.event_name }}
@@ -125,24 +185,74 @@ jobs:
           BRANCH: ${{ steps.profile.outputs.branch }}
           BASE: ${{ steps.profile.outputs.base }}
           TARGET: ${{ steps.target.outputs.target }}
+          PR_NUMBER: ${{ steps.target.outputs.pr }}
+          POST_MERGE: ${{ steps.profile.outputs.post_merge }}
         run: |
           set -euo pipefail
+
+          materialize_branch_or_pr() {
+            local branch="$1" pr="$2" expected="${3:-}" remote='' source_ref=''
+            if remote="$(git ls-remote --exit-code --heads origin "${branch}" | awk 'NR==1 {print $1}')"; then
+              source_ref="refs/heads/${branch}"
+            else
+              [[ "${pr}" =~ ^[0-9]+$ ]] || {
+                echo "No remote branch and no exact PR fallback for ${branch}" >&2
+                return 2
+              }
+              remote="$(git ls-remote --exit-code origin "refs/pull/${pr}/head" | awk 'NR==1 {print $1}')"
+              source_ref="refs/pull/${pr}/head"
+            fi
+            [[ "${remote}" =~ ^[0-9a-f]{40}$ ]] || {
+              echo "Resolved ref is not an exact SHA40: ${branch}" >&2
+              return 2
+            }
+            if [[ -n "${expected}" && "${remote}" != "${expected}" ]]; then
+              echo "Branch/PR head differs from requested target: ${branch}: ${remote} != ${expected}" >&2
+              return 2
+            fi
+            git fetch --force --no-tags origin "${source_ref}:refs/remotes/origin/${branch}"
+            [[ "$(git rev-parse "refs/remotes/origin/${branch}")" == "${remote}" ]]
+          }
+
           git fetch --force --no-tags origin main:refs/remotes/origin/main
-          for sha in "${CONTRACT_EVIDENCE_BASE}" "${CORRECTIVE_COMMON_BASELINE}"; do git fetch --force --no-tags origin "${sha}"; git cat-file -e "${sha}^{commit}"; done
-          [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
-          lanes=(agent/ATLAS-WP-001-learning-corrective-0-3:0db8d3b929c74b605cbcfea2135fda40fbd72fdd:140 agent/ATLAS-WP-001-core-corrective-0-3:7aca506a7b243f6a6ee64dbda634dad0f98dc01a:141 agent/ATLAS-WP-001-experience-corrective-0-3:aecae5700867c3f9a918c5b86acf3bda9d13b7ce:142 agent/ATLAS-WP-001-content-corrective-0-3:8a00e8bc1179c94ed3e0bd110d5a19794768e86c:143 agent/ATLAS-WP-001-qa-0-3:4109b1fd7e89d62c14d074b67f64aad65991ca7b:144)
-          for item in "${lanes[@]}"; do
-            b="${item%%:*}"; rest="${item#*:}"; h="${rest%%:*}"; pr="${item##*:}"
-            if git ls-remote --exit-code --heads origin "${b}" >/dev/null; then git fetch --force --no-tags origin "${b}:refs/remotes/origin/${b}"; else git fetch --force --no-tags origin "refs/pull/${pr}/head:refs/remotes/origin/${b}"; fi
-            [[ "$(git rev-parse "refs/remotes/origin/${b}")" == "${h}" ]]
+          for sha in "${CONTRACT_EVIDENCE_BASE}" "${CORRECTIVE_COMMON_BASELINE}" "${REVISION_SAFE_SUPPORT_BASE}"; do
+            git fetch --force --no-tags origin "${sha}"
+            git cat-file -e "${sha}^{commit}"
           done
-          if [[ "${EVENT}" == pull_request && "${PROFILE}" == atlas-* ]] || [[ "${EVENT}" == workflow_dispatch && "${PROFILE}" == atlas-* && "${PROFILE}" != atlas-contracts ]]; then
-            git show-ref --verify --quiet "refs/remotes/origin/${BRANCH}" || git fetch --force --no-tags origin "${BRANCH}:refs/remotes/origin/${BRANCH}"
-            [[ "$(git rev-parse "refs/remotes/origin/${BRANCH}")" == "${TARGET}" ]]
+          [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
+
+          if [[ "${PROFILE}" == atlas-* && "${POST_MERGE}" != true ]]; then
+            materialize_branch_or_pr "${BRANCH}" "${PR_NUMBER}" "${TARGET}"
           fi
-          if [[ "${PROFILE}" == atlas-contracts ]]; then [[ "${BASE}" == "${CONTRACT_EVIDENCE_BASE}" && "${TARGET}" == f41de5043a22f8559a3b6a0d71654fbd542b5ec6 ]]; fi
-          if [[ "${PROFILE}" == atlas-support || "${BRANCH}" == *-corrective-0-3 || "${BRANCH}" == agent/ATLAS-WP-001-qa-0-3 ]]; then [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]]; fi
-          if [[ "${PROFILE}" == wave-a ]]; then for sha in "${WAVE_A_BASE}" ae999472418a18a1181b43a07259a4395afbcf7f 48df0517d74e8c343223f14361607c4a93e7f55b 6c4111715a55fdff07a3e466d013dcdcc7aa5c78 f260093914542f93ff9145cbac8e98aae415fe01 f25da6356528824e84224718013a3bccb2707c49; do git fetch --force --no-tags origin "${sha}"; done; fi
+
+          if [[ "${PROFILE}" == atlas-support ]]; then
+            materialize_branch_or_pr agent/ATLAS-WP-001-learning-corrective-0-3 140
+            materialize_branch_or_pr agent/ATLAS-WP-001-core-corrective-0-3 141
+            materialize_branch_or_pr agent/ATLAS-WP-001-experience-corrective-0-3 142
+            materialize_branch_or_pr agent/ATLAS-WP-001-content-corrective-0-3 143
+            materialize_branch_or_pr agent/ATLAS-WP-001-qa-0-3 144
+          fi
+
+          [[ "$(git merge-base "${BASE}" HEAD)" == "${BASE}" ]] || {
+            echo "Merge-base differs from exact route baseline." >&2
+            exit 2
+          }
+          if [[ "${PROFILE}" == atlas-contracts ]]; then
+            [[ "${BASE}" == "${CONTRACT_EVIDENCE_BASE}" ]]
+            [[ "${TARGET}" == f41de5043a22f8559a3b6a0d71654fbd542b5ec6 ]]
+          elif [[ "${PROFILE}" == atlas-support ]]; then
+            [[ "${BASE}" == "${REVISION_SAFE_SUPPORT_BASE}" ]]
+          elif [[ "${PROFILE}" == atlas-learning || "${PROFILE}" == atlas-core || "${PROFILE}" == atlas-experience || "${PROFILE}" == atlas-content || "${PROFILE}" == atlas-qa ]]; then
+            case "${BRANCH}" in
+              *-corrective-0-3|agent/ATLAS-WP-001-qa-0-3) [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]] ;;
+              *) [[ "${BASE}" == "${CONTRACT_EVIDENCE_BASE}" ]] ;;
+            esac
+          fi
+          if [[ "${PROFILE}" == wave-a ]]; then
+            for sha in "${WAVE_A_BASE}" ae999472418a18a1181b43a07259a4395afbcf7f 48df0517d74e8c343223f14361607c4a93e7f55b 6c4111715a55fdff07a3e466d013dcdcc7aa5c78 f260093914542f93ff9145cbac8e98aae415fe01 f25da6356528824e84224718013a3bccb2707c49; do
+              git fetch --force --no-tags origin "${sha}"
+            done
+          fi
 
       - uses: actions/setup-python@v5
         with:
@@ -165,14 +275,24 @@ jobs:
           import datetime,json,os,subprocess,sys
           from pathlib import Path
           def rec(c):
-              s=datetime.datetime.now(datetime.timezone.utc).isoformat(); r=subprocess.run(c,text=True,capture_output=True); return {'command':c,'started_at_utc':s,'exit_code':r.returncode,'stdout':r.stdout,'stderr':r.stderr}
+              s=datetime.datetime.now(datetime.timezone.utc).isoformat()
+              r=subprocess.run(c,text=True,capture_output=True)
+              return {'command':c,'started_at_utc':s,'exit_code':r.returncode,'stdout':r.stdout,'stderr':r.stderr}
           def clean(p):
-              x=[rec(['git','status','--porcelain=v1','--untracked-files=all']),rec(['git','diff','--exit-code']),rec(['git','diff','--cached','--exit-code'])]; Path(p).write_text(json.dumps(x)); assert not any(i['exit_code'] for i in x) and not x[0]['stdout']
-          clean(os.environ['BEFORE']); cmds=[[sys.executable,'-m','pip','install','--disable-pip-version-check','--no-cache-dir','-r',os.environ['DEPENDENCY']]]
-          if os.environ['PROFILE']=='wave-a': cmds.append([sys.executable,'-m','playwright','install','--with-deps','chromium'])
-          x=[rec(c) for c in cmds]; Path(os.environ['INSTALL']).write_text(json.dumps(x)); assert not any(i['exit_code'] for i in x); clean(os.environ['AFTER'])
+              x=[rec(['git','status','--porcelain=v1','--untracked-files=all']),rec(['git','diff','--exit-code']),rec(['git','diff','--cached','--exit-code'])]
+              Path(p).write_text(json.dumps(x))
+              assert not any(i['exit_code'] for i in x) and not x[0]['stdout']
+          clean(os.environ['BEFORE'])
+          cmds=[[sys.executable,'-m','pip','install','--disable-pip-version-check','--no-cache-dir','-r',os.environ['DEPENDENCY']]]
+          if os.environ['PROFILE']=='wave-a':
+              cmds.append([sys.executable,'-m','playwright','install','--with-deps','chromium'])
+          x=[rec(c) for c in cmds]
+          Path(os.environ['INSTALL']).write_text(json.dumps(x))
+          assert not any(i['exit_code'] for i in x)
+          clean(os.environ['AFTER'])
           PY
-          printf 'ATLAS_WORKTREE_BEFORE_INSTALL_JSON=%s\nATLAS_DEPENDENCY_COMMANDS_JSON=%s\nATLAS_WORKTREE_AFTER_INSTALL_JSON=%s\nATLAS_DEPENDENCY_PATH=%s\n' "${BEFORE}" "${INSTALL}" "${AFTER}" "${DEPENDENCY}" >> "${GITHUB_ENV}"
+          printf 'ATLAS_WORKTREE_BEFORE_INSTALL_JSON=%s\nATLAS_DEPENDENCY_COMMANDS_JSON=%s\nATLAS_WORKTREE_AFTER_INSTALL_JSON=%s\nATLAS_DEPENDENCY_PATH=%s\n' \
+            "${BEFORE}" "${INSTALL}" "${AFTER}" "${DEPENDENCY}" >> "${GITHUB_ENV}"
           echo "ATLAS_DEPENDENCY_SHA256=$(sha256sum "${DEPENDENCY}" | awk '{print $1}')" >> "${GITHUB_ENV}"
 
       - name: Run exact routed profile
@@ -181,22 +301,39 @@ jobs:
           PROFILE: ${{ steps.profile.outputs.name }}
           BRANCH: ${{ steps.profile.outputs.branch }}
           BASE: ${{ steps.profile.outputs.base }}
+          TARGET: ${{ steps.target.outputs.target }}
           MODE: ${{ steps.target.outputs.mode }}
           ACCEPTED: ${{ steps.target.outputs.accepted }}
+          POST_MERGE: ${{ steps.profile.outputs.post_merge }}
           HTTP_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           HTTPS_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           ALL_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           ATLAS_NETWORK_BLOCKED: ${{ steps.profile.outputs.name == 'atlas-contracts' && '1' || '0' }}
         run: |
-          set -euo pipefail; runner="${GITHUB_WORKSPACE}/apps/learnit-next/dev/run_checks.py"
-          if [[ "${PROFILE}" != atlas-support ]]; then runner="${RUNNER_TEMP}/atlas-m1-run-checks.py"; git show origin/main:apps/learnit-next/dev/run_checks.py > "${runner}"; grep -q CONTRACT_EVIDENCE_BASE "${runner}"; grep -q CORRECTIVE_COMMON_BASELINE "${runner}"; fi
-          if [[ "${PROFILE}" == wave-a ]]; then args=(--strict --profile wave-a-ci --mode "${MODE}" --base-ref "${BASE}"); [[ -z "${ACCEPTED}" ]] || args+=(--accepted-integration-head "${ACCEPTED}"); LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" "${args[@]}"; else LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" --strict --profile "${PROFILE}" --base-ref "${BASE}" --branch-ref "${BRANCH}"; fi
+          set -euo pipefail
+          runner="${GITHUB_WORKSPACE}/apps/learnit-next/dev/run_checks.py"
+          if [[ "${PROFILE}" != atlas-support ]]; then
+            runner="${RUNNER_TEMP}/atlas-m1-run-checks.py"
+            git show origin/main:apps/learnit-next/dev/run_checks.py > "${runner}"
+            grep -q CONTRACT_BASE "${runner}"
+            grep -q CORRECTIVE_BASE "${runner}"
+            grep -q branch_current_head_equals_requested_target "${runner}"
+          fi
+          if [[ "${PROFILE}" == wave-a ]]; then
+            args=(--strict --profile wave-a-ci --mode "${MODE}" --base-ref "${BASE}")
+            [[ -z "${ACCEPTED}" ]] || args+=(--accepted-integration-head "${ACCEPTED}")
+            LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" "${args[@]}"
+          else
+            args=(--strict --profile "${PROFILE}" --base-ref "${BASE}" --branch-ref "${BRANCH}" --target-ref "${TARGET}")
+            [[ "${POST_MERGE}" == true ]] && args+=(--post-merge)
+            LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" "${args[@]}"
+          fi
 
       - name: Upload exact contract proof
         if: always() && steps.profile.outputs.name == 'atlas-contracts'
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-contracts-evidence-f41de5043a22f8559a3b6a0d71654fbd542b5ec6
+          name: ${{ steps.profile.outputs.artifact }}
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
@@ -210,7 +347,7 @@ jobs:
         if: always() && steps.profile.outputs.name == 'wave-a'
         uses: actions/upload-artifact@v4
         with:
-          name: learnit-next-wave-a-${{ steps.target.outputs.target }}
+          name: ${{ steps.profile.outputs.artifact }}
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
@@ -228,7 +365,7 @@ jobs:
         if: always() && startsWith(steps.profile.outputs.name, 'atlas-') && steps.profile.outputs.name != 'atlas-contracts'
         uses: actions/upload-artifact@v4
         with:
-          name: learnit-next-${{ steps.profile.outputs.name }}-${{ steps.target.outputs.target }}
+          name: ${{ steps.profile.outputs.artifact }}
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30

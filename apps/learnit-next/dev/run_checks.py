@@ -1,220 +1,127 @@
 #!/usr/bin/env python3
-"""Fail-closed CI router for historical Wave A and Atlas 0.3 corrective lanes."""
+"""Fail-closed, revision-safe router for Wave A and Atlas 0.3."""
 from __future__ import annotations
-
-import argparse
-import json
-import os
-import re
-import subprocess
-import sys
+import argparse, json, os, re, subprocess, sys
 from pathlib import Path
 from typing import Any
 
-SCRIPT = Path(__file__).resolve()
-DEFAULT_ROOT = SCRIPT.parents[3] if len(SCRIPT.parents) > 3 else Path.cwd()
-ROOT = Path(os.environ.get("LEARNIT_REPO_ROOT", DEFAULT_ROOT)).resolve()
-RUNNER_PATH = "apps/learnit-next/dev/run_checks.py"
-WORKFLOW_PATH = ".github/workflows/learnit-next-ci.yml"
-WAVE_A_BASE = "8ebafee48cc5277b92776982639a0146ae7e76d0"
-CONTRACT_EVIDENCE_BASE = "58e39e8917006058fdf177a5daa37535f5e2c78d"
-CORRECTIVE_COMMON_BASELINE = "6dae2f4f754431ed97c535a3a78fa71067bcd1de"
-CONTRACT_HEAD = "f41de5043a22f8559a3b6a0d71654fbd542b5ec6"
-CONTRACT_BRANCH = "agent/ATLAS-WP-001-contracts-0-3"
-SUPPORT_BRANCH = "agent/ATLAS-WP-001-support-governance-ci"
-SHA40 = re.compile(r"^[0-9a-f]{40}$")
+P=Path(__file__).resolve(); ROOT=Path(os.environ.get('LEARNIT_REPO_ROOT',P.parents[3] if len(P.parents)>3 else Path.cwd())).resolve()
+RUNNER='apps/learnit-next/dev/run_checks.py'; WORKFLOW='.github/workflows/learnit-next-ci.yml'
+WAVE='8ebafee48cc5277b92776982639a0146ae7e76d0'; CONTRACT_BASE='58e39e8917006058fdf177a5daa37535f5e2c78d'
+CORRECTIVE_BASE='6dae2f4f754431ed97c535a3a78fa71067bcd1de'; SUPPORT_BASE='247325c61d990731a24efdcff6e4f0b2e5d4b9c2'
+CONTRACT_HEAD='f41de5043a22f8559a3b6a0d71654fbd542b5ec6'; CONTRACT_BRANCH='agent/ATLAS-WP-001-contracts-0-3'
+SUPPORT_BRANCH='agent/ATLAS-WP-001-support-governance-ci'; SHA=re.compile(r'^[0-9a-f]{40}$'); SHA_ANY=re.compile(r'\b[0-9a-f]{40}\b')
+CORRECTIVE={
+'atlas-learning':'agent/ATLAS-WP-001-learning-corrective-0-3','atlas-core':'agent/ATLAS-WP-001-core-corrective-0-3',
+'atlas-experience':'agent/ATLAS-WP-001-experience-corrective-0-3','atlas-content':'agent/ATLAS-WP-001-content-corrective-0-3',
+'atlas-qa':'agent/ATLAS-WP-001-qa-0-3'}
+HIST={'agent/ATLAS-WP-001-learning':'atlas-learning','agent/ATLAS-WP-001-core':'atlas-core','agent/ATLAS-WP-001-experience':'atlas-experience','agent/ATLAS-WP-001-content':'atlas-content','agent/ATLAS-WP-001-qa':'atlas-qa'}
+WAVE_BRANCHES={'agent/PROG-WP-001-wave-a-learning','agent/PROG-WP-001-wave-a-ux','agent/PROG-WP-001-wave-a-authoring','agent/PROG-WP-001-wave-a-platform','agent/PROG-WP-001-wave-a-qa','agent/PROG-WP-001-wave-a-int'}
+BY_BRANCH={v:k for k,v in CORRECTIVE.items()}; ATLAS={CONTRACT_BRANCH:'atlas-contracts',SUPPORT_BRANCH:'atlas-support',**HIST,**BY_BRANCH}
+class E(RuntimeError): pass
 
-CORRECTIVE = {
-    "atlas-learning": ("agent/ATLAS-WP-001-learning-corrective-0-3", "0db8d3b929c74b605cbcfea2135fda40fbd72fdd"),
-    "atlas-core": ("agent/ATLAS-WP-001-core-corrective-0-3", "7aca506a7b243f6a6ee64dbda634dad0f98dc01a"),
-    "atlas-experience": ("agent/ATLAS-WP-001-experience-corrective-0-3", "aecae5700867c3f9a918c5b86acf3bda9d13b7ce"),
-    "atlas-content": ("agent/ATLAS-WP-001-content-corrective-0-3", "8a00e8bc1179c94ed3e0bd110d5a19794768e86c"),
-    "atlas-qa": ("agent/ATLAS-WP-001-qa-0-3", "4109b1fd7e89d62c14d074b67f64aad65991ca7b"),
-}
-HISTORICAL = {
-    "agent/ATLAS-WP-001-learning": "atlas-learning",
-    "agent/ATLAS-WP-001-core": "atlas-core",
-    "agent/ATLAS-WP-001-experience": "atlas-experience",
-    "agent/ATLAS-WP-001-content": "atlas-content",
-    "agent/ATLAS-WP-001-qa": "atlas-qa",
-}
-WAVE_A_BRANCHES = {
-    "agent/PROG-WP-001-wave-a-learning", "agent/PROG-WP-001-wave-a-ux",
-    "agent/PROG-WP-001-wave-a-authoring", "agent/PROG-WP-001-wave-a-platform",
-    "agent/PROG-WP-001-wave-a-qa", "agent/PROG-WP-001-wave-a-int",
-}
-CORRECTIVE_BY_BRANCH = {branch: profile for profile, (branch, _) in CORRECTIVE.items()}
-ATLAS_BRANCHES = {CONTRACT_BRANCH: "atlas-contracts", SUPPORT_BRANCH: "atlas-support", **HISTORICAL, **CORRECTIVE_BY_BRANCH}
+def git(*a:str)->str:
+ r=subprocess.run(['git',*a],cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1'},timeout=1800)
+ if r.returncode: raise E(f"git {' '.join(a)} failed:\n{r.stdout}")
+ return r.stdout.strip()
+def sha(v:str,label='target')->str:
+ if not SHA.fullmatch(v): raise E(f'{label} must be an exact lowercase SHA40')
+ return v
+def resolve(b:str)->str:
+ if b in ATLAS:return ATLAS[b]
+ if b in WAVE_BRANCHES:return 'wave-a'
+ raise E(f'unrecognized CI branch: {b}')
+def base(b:str)->str:
+ if b==CONTRACT_BRANCH or b in HIST:return CONTRACT_BASE
+ if b==SUPPORT_BRANCH:return SUPPORT_BASE
+ if b in BY_BRANCH:return CORRECTIVE_BASE
+ if b in WAVE_BRANCHES:return WAVE
+ raise E(f'no baseline for CI branch: {b}')
+def require_eq(actual:str,expected:str,label:str)->str:
+ if actual!=expected:raise E(f'{label} differs: {actual} != {expected}')
+ return actual
+def remote(b:str)->str:return sha(git('rev-parse','--verify',f'refs/remotes/origin/{b}^{{commit}}'),'branch current head')
+def bind(b:str,t:str)->str:return require_eq(remote(b),sha(t,'requested target'),'branch current head from requested target')
+def reject(fn:Any,fragment:str)->str:
+ try:fn()
+ except E as e:
+  if fragment in str(e):return 'PASS_REJECTED'
+  raise
+ raise E(f'expected rejection: {fragment}')
+def profile_branch(p:str,b:str)->None:
+ if resolve(b)!=p:raise E(f'Atlas branch/profile mismatch: {b} routes to {resolve(b)}, not {p}')
+def paths(a:set[str],e:set[str])->None:
+ if a!=e:raise E('Atlas path set differs: '+json.dumps({'actual':sorted(a),'expected':sorted(e)},sort_keys=True))
+def artifact(p:str,t:str)->str:
+ t=sha(t,'artifact target');return f'atlas-contracts-evidence-{t}' if p=='atlas-contracts' else f'learnit-next-{p}-{t}'
+def frozen()->dict[str,Any]:
+ ns={'__file__':str(ROOT/RUNNER),'__name__':'learnit_frozen_runner'};exec(compile(git('show',f'{CORRECTIVE_BASE}:{RUNNER}'),ns['__file__'],'exec'),ns)
+ if ns.get('CONTRACT_HEAD')!=CONTRACT_HEAD:raise E('frozen runner contract head differs')
+ return ns
 
+def matrix()->dict[str,Any]:
+ old=frozen()['ATLAS']; heads={}; bindings={}
+ for p,b in sorted(CORRECTIVE.items()):
+  require_eq(resolve(b),p,'route');require_eq(base(b),CORRECTIVE_BASE,'baseline');h=remote(b);bind(b,h);heads[p]=h
+  bindings[p]={'branch':b,'requestedTarget':h,'branchCurrentHead':h,'result':'PASS_DYNAMIC_BINDING'}
+ p='atlas-learning';b=CORRECTIVE[p];h=heads[p];other='0'*40 if h!='0'*40 else '1'*40; allowed=set(old[p][1])
+ if SHA_ANY.findall(json.dumps(CORRECTIVE,sort_keys=True)):raise E('corrective route table contains a permanent lane head')
+ neg={
+ 'otherSha40Rejected':reject(lambda:bind(b,other),'branch current head from requested target'),
+ 'profileBranchMismatchRejected':reject(lambda:profile_branch('atlas-core',b),'branch/profile mismatch'),
+ 'unknownBranchRejected':reject(lambda:resolve('agent/UNKNOWN-WP-999-example'),'unrecognized CI branch'),
+ 'badBaselineRejected':reject(lambda:require_eq(other,base(b),'baseline'),'baseline differs'),
+ 'badMergeBaseRejected':reject(lambda:require_eq(other,CORRECTIVE_BASE,'merge-base'),'merge-base differs'),
+ 'allowlistExcessRejected':reject(lambda:paths(allowed|{'unexpected/path'},allowed),'path set differs'),
+ 'allowlistDeficitRejected':reject(lambda:paths(set(sorted(allowed)[1:]),allowed),'path set differs')}
+ c={'profile':resolve(CONTRACT_BRANCH),'branch':CONTRACT_BRANCH,'base':base(CONTRACT_BRANCH),'head':CONTRACT_HEAD,'artifact':artifact('atlas-contracts',CONTRACT_HEAD)}
+ expected={'profile':'atlas-contracts','branch':CONTRACT_BRANCH,'base':CONTRACT_BASE,'head':CONTRACT_HEAD,'artifact':f'atlas-contracts-evidence-{CONTRACT_HEAD}'}
+ require_eq(c,expected,'atlas-contracts identity')
+ names={p:artifact(p,h) for p,h in heads.items()}
+ if any(not names[p].endswith(h) for p,h in heads.items()):raise E('artifact does not contain verified target')
+ return {'dynamicBinding':'branch_current_head_equals_requested_target','correctiveRoutes':{p:{'branch':b,'base':CORRECTIVE_BASE} for p,b in sorted(CORRECTIVE.items())},'currentLaneBindings':bindings,'preservedLaneHeads':heads,'historicalAtlas':{b:{'profile':p,'base':base(b)} for b,p in sorted(HIST.items())},'waveA':{b:'wave-a' for b in sorted(WAVE_BRANCHES)},'atlasContracts':c,'artifactNames':names,'staticRejectedHeadPinningRemoved':True,'negativeTests':neg}
 
-class RoutingError(RuntimeError):
-    pass
+def capability()->dict[str,Any]:
+ w=(ROOT/WORKFLOW).read_text();r=(ROOT/RUNNER).read_text()
+ wt={'atlas-contracts','atlas-learning','atlas-core','atlas-experience','atlas-content','atlas-qa',CONTRACT_BASE,CORRECTIVE_BASE,SUPPORT_BASE,'name: ${{ steps.profile.outputs.artifact }}',*BY_BRANCH,*HIST}
+ rt={CONTRACT_BASE,CORRECTIVE_BASE,SUPPORT_BASE,'branch_current_head_equals_requested_target',*BY_BRANCH,*HIST}
+ missing=[f'workflow:{x}' for x in wt if x not in w]+[f'runner:{x}' for x in rt if x not in r]
+ if missing:raise E('revision-safe CI capability incomplete: '+json.dumps(sorted(missing)))
+ allowed={WAVE,CONTRACT_BASE,CORRECTIVE_BASE,SUPPORT_BASE,CONTRACT_HEAD,'ae999472418a18a1181b43a07259a4395afbcf7f','48df0517d74e8c343223f14361607c4a93e7f55b','6c4111715a55fdff07a3e466d013dcdcc7aa5c78','f260093914542f93ff9145cbac8e98aae415fe01','f25da6356528824e84224718013a3bccb2707c49'}
+ unexpected={p:sorted(set(SHA_ANY.findall(t))-allowed) for p,t in ((WORKFLOW,w),(RUNNER,r))};unexpected={p:v for p,v in unexpected.items() if v}
+ if unexpected:raise E('unexpected permanent SHA40 in revision-safe CI: '+json.dumps(unexpected,sort_keys=True))
+ return {'contractEvidenceBase':CONTRACT_BASE,'correctiveCommonBaseline':CORRECTIVE_BASE,'revisionSafeSupportBase':SUPPORT_BASE,'contractHead':CONTRACT_HEAD,'dispatchProfiles':sorted(CORRECTIVE),'dynamicBinding':'branch_current_head_equals_requested_target','staticRejectedHeadPinningRemoved':True,'staticShaAllowlistCheck':'PASS','routingSelfTest':matrix(),'failClosed':True}
 
+def patch(ns:dict[str,Any],p:str,bref:str)->None:
+ ns['ATLAS_BASE']=bref;a=ns['ATLAS'];cur=a[p];b=SUPPORT_BRANCH if p=='atlas-support' else CORRECTIVE[p]
+ pp={WORKFLOW,RUNNER} if p=='atlas-support' else ({'apps/learnit-next/tests/qa_atlas_m1.py'} if p=='atlas-qa' else set(cur[1]))
+ a[p]=(b,pp,cur[2],cur[3],cur[4]);ns['ATLAS_BRANCHES']={v[0]:k for k,v in a.items()}
+ if p=='atlas-support':ns['routing_matrix']=matrix;ns['support_contract_capability']=capability
 
-def git(*args: str) -> str:
-    result = subprocess.run(["git", *args], cwd=ROOT, text=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}, timeout=1800)
-    if result.returncode:
-        raise RoutingError(f"git {' '.join(args)} failed:\n{result.stdout}")
-    return result.stdout.strip()
+def run_atlas(a:argparse.Namespace)->int:
+ try:
+  if not a.branch_ref:raise E('Atlas profile requires --branch-ref')
+  profile_branch(a.profile,a.branch_ref);expected=base(a.branch_ref);require_eq(a.base_ref,expected,'baseline')
+  require_eq(sha(git('rev-parse','HEAD'),'checked-out head'),sha(a.target_ref,'requested target'),'checked-out head from requested target')
+  require_eq(sha(git('merge-base',expected,'HEAD'),'merge-base'),expected,'merge-base')
+  if a.post_merge:
+   if a.profile!='atlas-support':raise E('post-merge branch-binding exemption is support-only')
+  else:bind(a.branch_ref,a.target_ref)
+  if a.profile=='atlas-contracts':require_eq(a.target_ref,CONTRACT_HEAD,'contract head')
+  ns=frozen()
+  if a.branch_ref==SUPPORT_BRANCH or a.branch_ref in BY_BRANCH:patch(ns,a.profile,expected)
+  return int(ns['run_atlas'](a.profile,a.branch_ref,a.base_ref))
+ except Exception as e:print(str(e),file=sys.stderr);return 2
 
-
-def resolve(branch: str) -> str:
-    if branch in ATLAS_BRANCHES:
-        return ATLAS_BRANCHES[branch]
-    if branch in WAVE_A_BRANCHES:
-        return "wave-a"
-    raise RoutingError(f"unrecognized CI branch: {branch}")
-
-
-def baseline(branch: str) -> str:
-    if branch == CONTRACT_BRANCH or branch in HISTORICAL:
-        return CONTRACT_EVIDENCE_BASE
-    if branch == SUPPORT_BRANCH or branch in CORRECTIVE_BY_BRANCH:
-        return CORRECTIVE_COMMON_BASELINE
-    if branch in WAVE_A_BRANCHES:
-        return WAVE_A_BASE
-    raise RoutingError(f"no baseline for CI branch: {branch}")
-
-
-def reject(callback: Any, fragment: str) -> str:
-    try:
-        callback()
-    except RoutingError as error:
-        if fragment in str(error):
-            return "PASS_REJECTED"
-        raise
-    raise RoutingError(f"expected rejection: {fragment}")
-
-
-def profile_branch(profile: str, branch: str) -> None:
-    routed = resolve(branch)
-    if routed != profile:
-        raise RoutingError(f"Atlas branch/profile mismatch: {branch} routes to {routed}, not {profile}")
-
-
-def exact_paths(actual: set[str], expected: set[str]) -> None:
-    if actual != expected:
-        raise RoutingError("Atlas path set differs: " + json.dumps({"actual": sorted(actual), "expected": sorted(expected)}))
-
-
-def frozen() -> dict[str, Any]:
-    if not SHA40.fullmatch(CORRECTIVE_COMMON_BASELINE):
-        raise RoutingError("corrective baseline is not an exact SHA")
-    source = git("show", f"{CORRECTIVE_COMMON_BASELINE}:{RUNNER_PATH}")
-    namespace: dict[str, Any] = {"__file__": str(ROOT / RUNNER_PATH), "__name__": "learnit_frozen_runner"}
-    exec(compile(source, str(namespace["__file__"]), "exec"), namespace)
-    if namespace.get("CONTRACT_HEAD") != CONTRACT_HEAD:
-        raise RoutingError("frozen runner contract head differs")
-    return namespace
-
-
-def matrix() -> dict[str, Any]:
-    namespace = frozen()
-    old_atlas = namespace["ATLAS"]
-    corrective, heads = {}, {}
-    for profile, (branch, expected_head) in sorted(CORRECTIVE.items()):
-        if resolve(branch) != profile or baseline(branch) != CORRECTIVE_COMMON_BASELINE:
-            raise RoutingError(f"corrective route differs: {branch}")
-        actual = git("rev-parse", f"refs/remotes/origin/{branch}")
-        if actual != expected_head:
-            raise RoutingError(f"corrective head moved: {branch}: {actual} != {expected_head}")
-        corrective[branch] = {"profile": profile, "base": CORRECTIVE_COMMON_BASELINE}
-        heads[branch] = actual
-    historical = {branch: {"profile": profile, "base": baseline(branch)} for branch, profile in sorted(HISTORICAL.items())}
-    if baseline(CONTRACT_BRANCH) != CONTRACT_EVIDENCE_BASE:
-        raise RoutingError("atlas-contracts baseline differs")
-    learning_paths = set(old_atlas["atlas-learning"][1])
-    negatives = {
-        "unknownBranchRejected": reject(lambda: resolve("agent/UNKNOWN-WP-999-example"), "unrecognized CI branch"),
-        "profileBranchMismatchRejected": reject(lambda: profile_branch("atlas-core", CORRECTIVE["atlas-learning"][0]), "branch/profile mismatch"),
-        "allowlistExcessRejected": reject(lambda: exact_paths(learning_paths | {"unexpected/path"}, learning_paths), "path set differs"),
-        "allowlistDeficitRejected": reject(lambda: exact_paths(set(sorted(learning_paths)[1:]), learning_paths), "path set differs"),
-    }
-    return {"contract": {CONTRACT_BRANCH: {"profile": "atlas-contracts", "base": CONTRACT_EVIDENCE_BASE}},
-            "corrective": corrective, "historical": historical,
-            "waveA": {branch: "wave-a" for branch in sorted(WAVE_A_BRANCHES)},
-            "negativeTests": negatives, "preservedLaneHeads": heads}
-
-
-def capability() -> dict[str, Any]:
-    workflow = (ROOT / WORKFLOW_PATH).read_text(encoding="utf-8")
-    runner = (ROOT / RUNNER_PATH).read_text(encoding="utf-8")
-    tokens = {"atlas-contracts", "atlas-learning", "atlas-core", "atlas-experience", "atlas-content", "atlas-qa",
-              CONTRACT_EVIDENCE_BASE, CORRECTIVE_COMMON_BASELINE,
-              "learnit-next-${{ steps.profile.outputs.name }}-${{ steps.target.outputs.target }}",
-              *CORRECTIVE_BY_BRANCH, *HISTORICAL}
-    missing = [f"workflow:{token}" for token in tokens if token not in workflow]
-    missing += [f"runner:{token}" for token in {CONTRACT_EVIDENCE_BASE, CORRECTIVE_COMMON_BASELINE, *CORRECTIVE_BY_BRANCH, *HISTORICAL} if token not in runner]
-    if missing:
-        raise RoutingError("corrective CI capability incomplete: " + json.dumps(sorted(missing)))
-    return {"contractEvidenceBase": CONTRACT_EVIDENCE_BASE, "correctiveCommonBaseline": CORRECTIVE_COMMON_BASELINE,
-            "contractHead": CONTRACT_HEAD, "dispatchProfiles": sorted(CORRECTIVE),
-            "routingSelfTest": matrix(), "failClosed": True}
-
-
-def patch(namespace: dict[str, Any], profile: str) -> None:
-    namespace["ATLAS_BASE"] = CORRECTIVE_COMMON_BASELINE
-    atlas = namespace["ATLAS"]
-    current = atlas[profile]
-    branch = SUPPORT_BRANCH if profile == "atlas-support" else CORRECTIVE[profile][0]
-    if profile == "atlas-support":
-        paths = {WORKFLOW_PATH, RUNNER_PATH}
-    elif profile == "atlas-qa":
-        paths = {"apps/learnit-next/tests/qa_atlas_m1.py"}
-    else:
-        paths = set(current[1])
-    atlas[profile] = (branch, paths, current[2], current[3], current[4])
-    namespace["ATLAS_BRANCHES"] = {item[0]: name for name, item in atlas.items()}
-    if profile == "atlas-support":
-        namespace["routing_matrix"] = matrix
-        namespace["support_contract_capability"] = capability
-
-
-def run_atlas(args: argparse.Namespace) -> int:
-    try:
-        if not args.branch_ref:
-            raise RoutingError("Atlas profile requires --branch-ref")
-        profile_branch(args.profile, args.branch_ref)
-        expected = baseline(args.branch_ref)
-        if args.base_ref != expected:
-            raise RoutingError(f"baseline mismatch: {args.base_ref} != {expected}")
-        namespace = frozen()
-        if args.branch_ref == SUPPORT_BRANCH or args.branch_ref in CORRECTIVE_BY_BRANCH:
-            patch(namespace, args.profile)
-        return int(namespace["run_atlas"](args.profile, args.branch_ref, args.base_ref))
-    except Exception as error:
-        print(str(error), file=sys.stderr)
-        return 2
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--strict", action="store_true")
-    parser.add_argument("--mode", default="integration-head")
-    parser.add_argument("--base-ref", default=WAVE_A_BASE)
-    parser.add_argument("--accepted-integration-head", default="")
-    parser.add_argument("--profile", default="wave-a")
-    parser.add_argument("--branch-ref", default="")
-    parser.add_argument("--resolve-branch", default="")
-    parser.add_argument("--routing-self-test", action="store_true")
-    args = parser.parse_args()
-    if args.resolve_branch:
-        try:
-            print(resolve(args.resolve_branch)); return 0
-        except RoutingError as error:
-            print(str(error), file=sys.stderr); return 2
-    if args.routing_self_test:
-        try:
-            print(json.dumps(matrix(), indent=2, sort_keys=True)); return 0
-        except RoutingError as error:
-            print(str(error), file=sys.stderr); return 2
-    if args.profile in {"wave-a", "wave-a-ci"}:
-        return int(frozen()["main"]())
-    if args.profile not in {"atlas-support", "atlas-contracts", *CORRECTIVE}:
-        print(f"unsupported Atlas profile: {args.profile}", file=sys.stderr); return 2
-    return run_atlas(args)
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+def main()->int:
+ p=argparse.ArgumentParser();p.add_argument('--strict',action='store_true');p.add_argument('--mode',default='integration-head');p.add_argument('--base-ref',default=WAVE);p.add_argument('--accepted-integration-head',default='');p.add_argument('--profile',default='wave-a');p.add_argument('--branch-ref',default='');p.add_argument('--target-ref',default='');p.add_argument('--post-merge',action='store_true');p.add_argument('--resolve-branch',default='');p.add_argument('--routing-self-test',action='store_true');a=p.parse_args()
+ if a.resolve_branch:
+  try:print(resolve(a.resolve_branch));return 0
+  except E as e:print(e,file=sys.stderr);return 2
+ if a.routing_self_test:
+  try:print(json.dumps(matrix(),indent=2,sort_keys=True));return 0
+  except E as e:print(e,file=sys.stderr);return 2
+ if a.profile in {'wave-a','wave-a-ci'}:return int(frozen()['main']())
+ if a.profile not in {'atlas-support','atlas-contracts',*CORRECTIVE}:print(f'unsupported Atlas profile: {a.profile}',file=sys.stderr);return 2
+ return run_atlas(a)
+if __name__=='__main__':raise SystemExit(main())
