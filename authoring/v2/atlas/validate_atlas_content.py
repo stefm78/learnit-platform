@@ -38,8 +38,13 @@ def stimulus_payload(a):
         base['choices']=labels
         base['answerOperation']={'kind':'select-one','correctValue':choices[a['correctChoiceId']]}
     elif a['type']=='fill':
-        token_labels={x['tokenId']:norm(x['label']) for x in a['tokens']}
-        if len(token_labels)!=len(a['tokens']):raise ValueError('FILL_TOKEN_COLLISION')
+        tokens={}
+        for token in a['tokens']:
+            token_id=token['tokenId']
+            if token_id in tokens:raise ValueError('FILL_TOKEN_COLLISION')
+            max_uses=token.get('maxUses')
+            if type(max_uses) is not int or not 1<=max_uses<=20:raise ValueError('FILL_TOKEN_MAX_USES_INVALID')
+            tokens[token_id]={'label':norm(token['label']),'maxUses':max_uses}
         slot_order=[];segments=[]
         for segment in a['segments']:
             if 'text' in segment:segments.append({'text':norm(segment['text'])})
@@ -49,10 +54,16 @@ def stimulus_payload(a):
             else:raise ValueError('FILL_SEGMENT_INVALID')
         answers={x['slotId']:x['tokenId'] for x in a['answers']}
         if len(answers)!=len(a['answers']) or set(answers)!=set(slot_order):raise ValueError('FILL_ANSWER_MAPPING_INVALID')
-        try:correct=[token_labels[answers[slot]] for slot in slot_order]
+        try:
+            correct_token_ids=[answers[slot] for slot in slot_order]
+            correct=[tokens[token_id]['label'] for token_id in correct_token_ids]
         except KeyError as exc:raise ValueError('FILL_ANSWER_TOKEN_UNKNOWN') from exc
+        required_uses={}
+        for token_id in correct_token_ids:required_uses[token_id]=required_uses.get(token_id,0)+1
+        if any(count>tokens[token_id]['maxUses'] for token_id,count in required_uses.items()):raise ValueError('FILL_TOKEN_MAX_USES_EXCEEDED')
         base['segments']=segments
-        base['tokens']=sorted(token_labels.values())
+        ordered_tokens=sorted(tokens.values(),key=lambda token:(token['label'],token['maxUses']))
+        base['tokens']=[token['label'] if token['maxUses']==1 else token for token in ordered_tokens]
         base['answerOperation']={'kind':'fill-blanks','correctValues':correct}
     else:raise ValueError('ATLAS_ACTIVITY_TYPE_UNSUPPORTED')
     return base
