@@ -1,13 +1,20 @@
 'use strict';
 const E = require('./atlas_evidence.js');
 function fail(code){const e=new Error(code);e.code=code;throw e;}
+function compareStartedEvents(a,b){
+  const byTime=a.occurredAt.localeCompare(b.occurredAt);
+  return byTime || a.eventId.localeCompare(b.eventId);
+}
 function lastSelectionStats(objectiveRef, startedEvents) {
-  const key=E.canonicalRefKey(objectiveRef); const accepted=(startedEvents||[]).filter(e=>e.kind==='session-started');
-  let lastSelectedAt=null; let recentCount=0;
-  accepted.forEach((event,index)=>{
-    const selected=(event.selectedItems||[]).some(item=>E.sameRef(item.objectiveRef,objectiveRef));
-    if(selected){if(!lastSelectedAt || event.occurredAt>lastSelectedAt) lastSelectedAt=event.occurredAt; if(index>=Math.max(0,accepted.length-10)) recentCount++;}
-  });
+  const key=E.canonicalRefKey(objectiveRef);
+  const accepted=(startedEvents||[])
+    .filter(event=>event.kind==='session-started')
+    .slice()
+    .sort(compareStartedEvents);
+  const selectedEvents=accepted.filter(event=>(event.selectedItems||[]).some(item=>E.sameRef(item.objectiveRef,objectiveRef)));
+  const recentAccepted=accepted.slice(Math.max(0,accepted.length-10));
+  const recentCount=recentAccepted.filter(event=>(event.selectedItems||[]).some(item=>E.sameRef(item.objectiveRef,objectiveRef))).length;
+  const lastSelectedAt=selectedEvents.length ? selectedEvents[selectedEvents.length-1].occurredAt : null;
   return {lastSelectedAt,recentCount,key};
 }
 function rankRecommendations(rows, startedEvents=[]) {
