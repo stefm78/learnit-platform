@@ -1,10 +1,27 @@
 'use strict';
 const E=require('./atlas_evidence.js');
+const DIGEST_RX=/^sha256:[0-9a-f]{64}$/;
 function fail(code){const e=new Error(code);e.code=code;throw e;}
 function canonicalize(value){return E.canonicalize(value);}
 function canonicalJson(value){return E.canonicalJson(value);}
 function atlasHash(domain,value){return E.atlasHash(domain,value);}
 function assertClosed(value,required,optional=[]){if(!value||typeof value!=='object'||Array.isArray(value))fail('INVALID_OBJECT');const allowed=new Set([...required,...optional]);for(const key of Object.keys(value))if(!allowed.has(key))fail('UNKNOWN_FIELD');for(const key of required)if(!(key in value))fail('MISSING_FIELD');}
+function assertNonEmptyString(value,code){if(typeof value!=='string'||value.length===0)fail(code);return value;}
+function assertCourseRef(ref){
+  if(!ref||typeof ref!=='object'||Array.isArray(ref))fail('INVALID_COURSE_REF');
+  try{assertClosed(ref,['packageLineageId','courseLineageId']);}catch(error){if(error.code==='UNKNOWN_FIELD')throw error;fail('INVALID_COURSE_REF');}
+  assertNonEmptyString(ref.packageLineageId,'INVALID_COURSE_REF');
+  assertNonEmptyString(ref.courseLineageId,'INVALID_COURSE_REF');
+  return ref;
+}
+function assertContentRevisionRef(ref){
+  if(!ref||typeof ref!=='object'||Array.isArray(ref))fail('INVALID_CONTENT_REVISION_REF');
+  try{assertClosed(ref,['packageLineageId','packageRevisionId','packageDigest']);}catch(error){if(error.code==='UNKNOWN_FIELD')throw error;fail('INVALID_CONTENT_REVISION_REF');}
+  assertNonEmptyString(ref.packageLineageId,'INVALID_CONTENT_REVISION_REF');
+  assertNonEmptyString(ref.packageRevisionId,'INVALID_CONTENT_REVISION_REF');
+  if(typeof ref.packageDigest!=='string'||!DIGEST_RX.test(ref.packageDigest))fail('INVALID_CONTENT_REVISION_REF');
+  return ref;
+}
 function assertObjectiveRef(ref){E.canonicalRefKey(ref);if(!Object.prototype.hasOwnProperty.call(ref,'objectiveId'))fail('INVALID_OBJECTIVE_REF');return ref;}
 function assertActivityRef(ref){E.canonicalRefKey(ref);if(!Object.prototype.hasOwnProperty.call(ref,'activityLineageId'))fail('INVALID_ACTIVITY_REF');return ref;}
 function sameCourse(left,right){return E.canonicalJson(left.courseRef)===E.canonicalJson(right.courseRef);}
@@ -38,7 +55,12 @@ function validateProvenance(action,provenance){
   }
   assertClosed(p,[]);return p;
 }
-function buildPlan({engineVersion,courseRef,contentRevisionRef,durationMinutes,recommendations,itemProvenance=[]}){
+function buildPlan(input){
+  assertClosed(input,['engineVersion','courseRef','contentRevisionRef','durationMinutes','recommendations'],['itemProvenance']);
+  const {engineVersion,courseRef,contentRevisionRef,durationMinutes,recommendations,itemProvenance=[]}=input;
+  assertNonEmptyString(engineVersion,'INVALID_ENGINE_VERSION');
+  assertCourseRef(courseRef);
+  assertContentRevisionRef(contentRevisionRef);
   if(![5,15,30].includes(durationMinutes))fail('INVALID_DURATION');
   if(!Array.isArray(recommendations)||!Array.isArray(itemProvenance))fail('INVALID_PLAN_INPUT');
   const items=[];let total=0;
