@@ -11,7 +11,7 @@ on:
         description: Exact verification topology
         required: true
         type: choice
-        options: [integration-head, post-merge, atlas-contracts]
+        options: [integration-head, post-merge, atlas-contracts, atlas-learning, atlas-core, atlas-experience, atlas-content, atlas-qa]
       verification_ref:
         description: Exact 40-character commit SHA
         required: true
@@ -23,6 +23,11 @@ on:
 
 permissions:
   contents: read
+
+env:
+  CONTRACT_EVIDENCE_BASE: 58e39e8917006058fdf177a5daa37535f5e2c78d
+  CORRECTIVE_COMMON_BASELINE: 6dae2f4f754431ed97c535a3a78fa71067bcd1de
+  WAVE_A_BASE: 8ebafee48cc5277b92776982639a0146ae7e76d0
 
 concurrency:
   group: learnit-next-${{ github.workflow }}-${{ github.event.pull_request.number || inputs.verification_ref || github.sha }}
@@ -38,81 +43,54 @@ jobs:
         id: target
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
+          EVENT: ${{ github.event_name }}
           PR_SHA: ${{ github.event.pull_request.head.sha }}
           PR_REF: ${{ github.event.pull_request.head.ref }}
-          PUSH_SHA: ${{ github.sha }}
           DISPATCH_SHA: ${{ inputs.verification_ref }}
           DISPATCH_MODE: ${{ inputs.verification_mode }}
-          DISPATCH_ACCEPTED: ${{ inputs.accepted_integration_head }}
+          ACCEPTED: ${{ inputs.accepted_integration_head }}
         run: |
           set -euo pipefail
-          case "${EVENT_NAME}" in
-            pull_request)
-              target="${PR_SHA}"
-              mode="integration-head"
-              accepted=""
-              branch_ref="${PR_REF}"
-              case "${branch_ref}" in
-                agent/ATLAS-WP-001-support-governance-ci) profile="atlas-support" ;;
-                agent/ATLAS-WP-001-contracts-0-3) profile="atlas-contracts" ;;
-                agent/ATLAS-WP-001-learning) profile="atlas-learning" ;;
-                agent/ATLAS-WP-001-experience) profile="atlas-experience" ;;
-                agent/ATLAS-WP-001-core) profile="atlas-core" ;;
-                agent/ATLAS-WP-001-content) profile="atlas-content" ;;
-                agent/ATLAS-WP-001-qa) profile="atlas-qa" ;;
-                agent/PROG-WP-001-wave-a-learning|\
-                agent/PROG-WP-001-wave-a-ux|\
-                agent/PROG-WP-001-wave-a-authoring|\
-                agent/PROG-WP-001-wave-a-platform|\
-                agent/PROG-WP-001-wave-a-qa|\
-                agent/PROG-WP-001-wave-a-int)
-                  profile="wave-a"
-                  ;;
-                *)
-                  echo "Unrecognized pull-request branch: ${branch_ref}" >&2
-                  exit 2
-                  ;;
-              esac
-              ;;
-            push)
-              target="${PUSH_SHA}"
-              mode="post-merge"
-              accepted=""
-              branch_ref="main"
-              profile="post-merge-auto"
-              ;;
-            workflow_dispatch)
-              if [[ "${DISPATCH_MODE}" == "atlas-contracts" ]]; then
-                target="${DISPATCH_SHA}"
-                mode="integration-head"
-                accepted=""
-                branch_ref="agent/ATLAS-WP-001-contracts-0-3"
-                profile="atlas-contracts"
-              else
-                target="${DISPATCH_SHA}"
-                mode="${DISPATCH_MODE}"
-                accepted="${DISPATCH_ACCEPTED}"
-                branch_ref=""
-                profile="wave-a"
-              fi
-              ;;
-            *)
-              echo "Unsupported event: ${EVENT_NAME}" >&2
-              exit 2
-              ;;
-          esac
-          [[ "${target}" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "Target must be an exact lowercase SHA." >&2
-            exit 2
+          route() {
+            case "$1" in
+              agent/ATLAS-WP-001-support-governance-ci) echo 'atlas-support corrective' ;;
+              agent/ATLAS-WP-001-contracts-0-3) echo 'atlas-contracts contract' ;;
+              agent/ATLAS-WP-001-learning-corrective-0-3) echo 'atlas-learning corrective' ;;
+              agent/ATLAS-WP-001-core-corrective-0-3) echo 'atlas-core corrective' ;;
+              agent/ATLAS-WP-001-experience-corrective-0-3) echo 'atlas-experience corrective' ;;
+              agent/ATLAS-WP-001-content-corrective-0-3) echo 'atlas-content corrective' ;;
+              agent/ATLAS-WP-001-qa-0-3) echo 'atlas-qa corrective' ;;
+              agent/ATLAS-WP-001-learning) echo 'atlas-learning contract' ;;
+              agent/ATLAS-WP-001-core) echo 'atlas-core contract' ;;
+              agent/ATLAS-WP-001-experience) echo 'atlas-experience contract' ;;
+              agent/ATLAS-WP-001-content) echo 'atlas-content contract' ;;
+              agent/ATLAS-WP-001-qa) echo 'atlas-qa contract' ;;
+              agent/PROG-WP-001-wave-a-learning|agent/PROG-WP-001-wave-a-ux|agent/PROG-WP-001-wave-a-authoring|agent/PROG-WP-001-wave-a-platform|agent/PROG-WP-001-wave-a-qa|agent/PROG-WP-001-wave-a-int) echo 'wave-a wave' ;;
+              *) return 2 ;;
+            esac
           }
-          {
-            echo "target=${target}"
-            echo "mode=${mode}"
-            echo "accepted=${accepted}"
-            echo "branch_ref=${branch_ref}"
-            echo "profile=${profile}"
-          } >> "${GITHUB_OUTPUT}"
+          case "${EVENT}" in
+            pull_request) target="${PR_SHA}"; branch="${PR_REF}"; mode=integration-head; accepted=''; read -r profile family < <(route "${branch}") || { echo "Unrecognized pull-request branch: ${branch}" >&2; exit 2; } ;;
+            push) target="${{ github.sha }}"; branch=main; mode=post-merge; accepted=''; profile=post-merge-auto; family=wave ;;
+            workflow_dispatch)
+              target="${DISPATCH_SHA}"; accepted="${ACCEPTED}"
+              case "${DISPATCH_MODE}" in
+                atlas-contracts) branch=agent/ATLAS-WP-001-contracts-0-3 ;;
+                atlas-learning) branch=agent/ATLAS-WP-001-learning-corrective-0-3; accepted='' ;;
+                atlas-core) branch=agent/ATLAS-WP-001-core-corrective-0-3; accepted='' ;;
+                atlas-experience) branch=agent/ATLAS-WP-001-experience-corrective-0-3; accepted='' ;;
+                atlas-content) branch=agent/ATLAS-WP-001-content-corrective-0-3; accepted='' ;;
+                atlas-qa) branch=agent/ATLAS-WP-001-qa-0-3; accepted='' ;;
+                integration-head|post-merge) branch=''; profile=wave-a; family=wave ;;
+                *) echo "Unsupported dispatch mode: ${DISPATCH_MODE}" >&2; exit 2 ;;
+              esac
+              mode="${DISPATCH_MODE}"; [[ -z "${branch}" ]] || { mode=integration-head; read -r profile family < <(route "${branch}"); }
+              ;;
+            *) exit 2 ;;
+          esac
+          case "${family}" in contract) base="${CONTRACT_EVIDENCE_BASE}" ;; corrective) base="${CORRECTIVE_COMMON_BASELINE}" ;; wave) base="${WAVE_A_BASE}" ;; *) exit 2 ;; esac
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]] || { echo 'Target must be an exact lowercase SHA.' >&2; exit 2; }
+          printf 'target=%s\nbranch=%s\nprofile=%s\nbase=%s\nmode=%s\naccepted=%s\n' "${target}" "${branch}" "${profile}" "${base}" "${mode}" "${accepted}" >> "${GITHUB_OUTPUT}"
 
       - uses: actions/checkout@v4
         with:
@@ -120,94 +98,46 @@ jobs:
           fetch-depth: 0
           clean: true
 
-      - name: Resolve checked-out profile
+      - name: Resolve post-merge profile
         id: profile
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          INITIAL_PROFILE: ${{ steps.target.outputs.profile }}
-          INITIAL_BRANCH: ${{ steps.target.outputs.branch_ref }}
+          EVENT: ${{ github.event_name }}
+          PROFILE: ${{ steps.target.outputs.profile }}
+          BRANCH: ${{ steps.target.outputs.branch }}
+          BASE: ${{ steps.target.outputs.base }}
         run: |
-          set -euo pipefail
-          profile="${INITIAL_PROFILE}"
-          branch_ref="${INITIAL_BRANCH}"
-          if [[ "${EVENT_NAME}" == "push" ]]; then
-            parents=( $(git show -s --format=%P HEAD) )
-            [[ ${#parents[@]} -eq 2 ]] || {
-              echo "Post-merge target must have exactly two parents." >&2
-              exit 2
-            }
-            mapfile -t changed < <(git diff --name-only "${parents[0]}" HEAD)
-            support_paths=(
-              .github/workflows/learnit-next-ci.yml
-              apps/learnit-next/dev/run_checks.py
-              governance/governor-state.json
-            )
-            mapfile -t actual < <(printf '%s\n' "${changed[@]}" | sed '/^$/d' | sort -u)
-            support_only=true
-            [[ ${#actual[@]} -gt 0 ]] || support_only=false
-            for path in "${actual[@]}"; do
-              known=false
-              for support_path in "${support_paths[@]}"; do
-                if [[ "${path}" == "${support_path}" ]]; then
-                  known=true
-                  break
-                fi
-              done
-              [[ "${known}" == true ]] || {
-                support_only=false
-                break
-              }
-            done
-            if [[ "${support_only}" == true ]]; then
-              profile="atlas-support"
-              branch_ref="agent/ATLAS-WP-001-support-governance-ci"
-            else
-              profile="wave-a"
-              branch_ref="main"
-            fi
+          set -euo pipefail; profile="${PROFILE}"; branch="${BRANCH}"; base="${BASE}"
+          if [[ "${EVENT}" == push ]]; then
+            p=( $(git show -s --format=%P HEAD) ); [[ ${#p[@]} -eq 2 ]] || exit 2
+            mapfile -t changed < <(git diff --name-only "${p[0]}" HEAD | sed '/^$/d' | sort -u)
+            expected=$'.github/workflows/learnit-next-ci.yml\napps/learnit-next/dev/run_checks.py'
+            actual="$(printf '%s\n' "${changed[@]}")"
+            if [[ "${actual}" == "${expected}" ]]; then profile=atlas-support; branch=agent/ATLAS-WP-001-support-governance-ci; base="${CORRECTIVE_COMMON_BASELINE}"; else profile=wave-a; branch=main; base="${WAVE_A_BASE}"; fi
           fi
-          {
-            echo "name=${profile}"
-            echo "branch_ref=${branch_ref}"
-          } >> "${GITHUB_OUTPUT}"
+          printf 'name=%s\nbranch=%s\nbase=%s\n' "${profile}" "${branch}" "${base}" >> "${GITHUB_OUTPUT}"
 
-      - name: Fetch exact authority
+      - name: Fetch authority and verify frozen heads
         shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          PROFILE: ${{ steps.profile.outputs.name }}
+          BRANCH: ${{ steps.profile.outputs.branch }}
+          BASE: ${{ steps.profile.outputs.base }}
+          TARGET: ${{ steps.target.outputs.target }}
         run: |
           set -euo pipefail
           git fetch --force --no-tags origin main:refs/remotes/origin/main
-          git fetch --force --no-tags origin 58e39e8917006058fdf177a5daa37535f5e2c78d
-          git cat-file -e 58e39e8917006058fdf177a5daa37535f5e2c78d^{commit}
-          [[ "$(git rev-parse HEAD)" == "${{ steps.target.outputs.target }}" ]]
-          if [[ "${{ steps.profile.outputs.name }}" == "wave-a" ]]; then
-            for sha in \
-              8ebafee48cc5277b92776982639a0146ae7e76d0 \
-              ae999472418a18a1181b43a07259a4395afbcf7f \
-              48df0517d74e8c343223f14361607c4a93e7f55b \
-              6c4111715a55fdff07a3e466d013dcdcc7aa5c78 \
-              f260093914542f93ff9145cbac8e98aae415fe01 \
-              f25da6356528824e84224718013a3bccb2707c49
-            do
-              git fetch --force --no-tags origin "${sha}"
-              git cat-file -e "${sha}^{commit}"
-            done
+          for sha in "${CONTRACT_EVIDENCE_BASE}" "${CORRECTIVE_COMMON_BASELINE}"; do git fetch --force --no-tags origin "${sha}"; git cat-file -e "${sha}^{commit}"; done
+          [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
+          lanes=(agent/ATLAS-WP-001-learning-corrective-0-3:0db8d3b929c74b605cbcfea2135fda40fbd72fdd agent/ATLAS-WP-001-core-corrective-0-3:7aca506a7b243f6a6ee64dbda634dad0f98dc01a agent/ATLAS-WP-001-experience-corrective-0-3:aecae5700867c3f9a918c5b86acf3bda9d13b7ce agent/ATLAS-WP-001-content-corrective-0-3:8a00e8bc1179c94ed3e0bd110d5a19794768e86c agent/ATLAS-WP-001-qa-0-3:4109b1fd7e89d62c14d074b67f64aad65991ca7b)
+          for item in "${lanes[@]}"; do b="${item%%:*}"; h="${item##*:}"; git fetch --force --no-tags origin "${b}:refs/remotes/origin/${b}"; [[ "$(git rev-parse "refs/remotes/origin/${b}")" == "${h}" ]]; done
+          if [[ "${EVENT}" == pull_request && "${PROFILE}" == atlas-* ]] || [[ "${EVENT}" == workflow_dispatch && "${PROFILE}" == atlas-* && "${PROFILE}" != atlas-contracts ]]; then
+            git fetch --force --no-tags origin "${BRANCH}:refs/remotes/origin/${BRANCH}"; [[ "$(git rev-parse "refs/remotes/origin/${BRANCH}")" == "${TARGET}" ]]
           fi
-          if [[ "${{ steps.profile.outputs.name }}" == "atlas-contracts" ]]; then
-            [[ "$(git rev-parse HEAD)" == "f41de5043a22f8559a3b6a0d71654fbd542b5ec6" ]]
-            [[ "$(git merge-base HEAD 58e39e8917006058fdf177a5daa37535f5e2c78d)" == "58e39e8917006058fdf177a5daa37535f5e2c78d" ]]
-            expected="$(
-              printf '%s\n' \
-                contracts/fixtures/atlas-m1-invalid-loop.json \
-                contracts/fixtures/atlas-m1-valid-loop.json \
-                contracts/learnit-kit-v2.schema.json \
-                docs/atlas/CONTRACTS.md \
-                work-packages/ATLAS-WP-001.json |
-              sort
-            )"
-            actual="$(git diff --name-only 58e39e8917006058fdf177a5daa37535f5e2c78d...HEAD | sort)"
-            [[ "${actual}" == "${expected}" ]]
-          fi
+          if [[ "${PROFILE}" == atlas-contracts ]]; then [[ "${BASE}" == "${CONTRACT_EVIDENCE_BASE}" && "${TARGET}" == f41de5043a22f8559a3b6a0d71654fbd542b5ec6 ]]; fi
+          if [[ "${PROFILE}" == atlas-support || "${BRANCH}" == *-corrective-0-3 || "${BRANCH}" == agent/ATLAS-WP-001-qa-0-3 ]]; then [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]]; fi
+          if [[ "${PROFILE}" == wave-a ]]; then for sha in "${WAVE_A_BASE}" ae999472418a18a1181b43a07259a4395afbcf7f 48df0517d74e8c343223f14361607c4a93e7f55b 6c4111715a55fdff07a3e466d013dcdcc7aa5c78 f260093914542f93ff9145cbac8e98aae415fe01 f25da6356528824e84224718013a3bccb2707c49; do git fetch --force --no-tags origin "${sha}"; done; fi
 
       - uses: actions/setup-python@v5
         with:
@@ -216,128 +146,36 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Capture worktree before dependency installation
+      - name: Prove clean worktree and install declared dependencies
         shell: bash
         env:
-          OUTPUT: ${{ runner.temp }}/atlas-worktree-before-install.json
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import datetime, json, os, subprocess
-          from pathlib import Path
-
-          def now():
-              return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-          records = []
-          for command in (
-              ["git", "status", "--porcelain=v1", "--untracked-files=all"],
-              ["git", "diff", "--exit-code"],
-              ["git", "diff", "--cached", "--exit-code"],
-          ):
-              started = now()
-              completed = subprocess.run(command, text=True, capture_output=True)
-              records.append({
-                  "command": command,
-                  "working_directory": str(Path.cwd()),
-                  "started_at_utc": started,
-                  "finished_at_utc": now(),
-                  "exit_code": completed.returncode,
-                  "stdout": completed.stdout,
-                  "stderr": completed.stderr,
-              })
-          Path(os.environ["OUTPUT"]).write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
-          if any(item["exit_code"] for item in records) or records[0]["stdout"]:
-              raise SystemExit("worktree is not clean before dependency installation")
-          PY
-          echo "ATLAS_WORKTREE_BEFORE_INSTALL_JSON=${OUTPUT}" >> "${GITHUB_ENV}"
-
-      - name: Install dependencies from repository declaration
-        shell: bash
-        env:
-          OUTPUT: ${{ runner.temp }}/atlas-dependency-commands.json
           PROFILE: ${{ steps.profile.outputs.name }}
-          DEPENDENCY_PATH: apps/player/requirements-test.txt
-        run: |
-          set -euo pipefail
-          test -f "${DEPENDENCY_PATH}"
-          dependency_sha="$(sha256sum "${DEPENDENCY_PATH}" | awk '{print $1}')"
-          echo "ATLAS_DEPENDENCY_PATH=${DEPENDENCY_PATH}" >> "${GITHUB_ENV}"
-          echo "ATLAS_DEPENDENCY_SHA256=${dependency_sha}" >> "${GITHUB_ENV}"
-          python - <<'PY'
-          import datetime, json, os, subprocess, sys
-          from pathlib import Path
-
-          def now():
-              return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-          commands = [
-              [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--no-cache-dir", "-r", os.environ["DEPENDENCY_PATH"]],
-          ]
-          if os.environ["PROFILE"] == "wave-a":
-              commands.append([sys.executable, "-m", "playwright", "install", "--with-deps", "chromium"])
-          records = []
-          for command in commands:
-              started = now()
-              completed = subprocess.run(command, text=True, capture_output=True)
-              records.append({
-                  "command": command,
-                  "working_directory": str(Path.cwd()),
-                  "started_at_utc": started,
-                  "finished_at_utc": now(),
-                  "exit_code": completed.returncode,
-                  "stdout": completed.stdout,
-                  "stderr": completed.stderr,
-              })
-              if completed.returncode:
-                  break
-          Path(os.environ["OUTPUT"]).write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
-          if not records or any(item["exit_code"] for item in records):
-              raise SystemExit("dependency installation failed")
-          PY
-          echo "ATLAS_DEPENDENCY_COMMANDS_JSON=${OUTPUT}" >> "${GITHUB_ENV}"
-
-      - name: Capture worktree after dependency installation
-        shell: bash
-        env:
-          OUTPUT: ${{ runner.temp }}/atlas-worktree-after-install.json
+          BEFORE: ${{ runner.temp }}/atlas-worktree-before-install.json
+          INSTALL: ${{ runner.temp }}/atlas-dependency-commands.json
+          AFTER: ${{ runner.temp }}/atlas-worktree-after-install.json
+          DEPENDENCY: apps/player/requirements-test.txt
         run: |
           set -euo pipefail
           python - <<'PY'
-          import datetime, json, os, subprocess
+          import datetime,json,os,subprocess,sys
           from pathlib import Path
-
-          def now():
-              return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-          records = []
-          for command in (
-              ["git", "status", "--porcelain=v1", "--untracked-files=all"],
-              ["git", "diff", "--exit-code"],
-              ["git", "diff", "--cached", "--exit-code"],
-          ):
-              started = now()
-              completed = subprocess.run(command, text=True, capture_output=True)
-              records.append({
-                  "command": command,
-                  "working_directory": str(Path.cwd()),
-                  "started_at_utc": started,
-                  "finished_at_utc": now(),
-                  "exit_code": completed.returncode,
-                  "stdout": completed.stdout,
-                  "stderr": completed.stderr,
-              })
-          Path(os.environ["OUTPUT"]).write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
-          if any(item["exit_code"] for item in records) or records[0]["stdout"]:
-              raise SystemExit("worktree changed during dependency installation")
+          def rec(c):
+              s=datetime.datetime.now(datetime.timezone.utc).isoformat(); r=subprocess.run(c,text=True,capture_output=True); return {'command':c,'started_at_utc':s,'exit_code':r.returncode,'stdout':r.stdout,'stderr':r.stderr}
+          def clean(p):
+              x=[rec(['git','status','--porcelain=v1','--untracked-files=all']),rec(['git','diff','--exit-code']),rec(['git','diff','--cached','--exit-code'])]; Path(p).write_text(json.dumps(x)); assert not any(i['exit_code'] for i in x) and not x[0]['stdout']
+          clean(os.environ['BEFORE']); cmds=[[sys.executable,'-m','pip','install','--disable-pip-version-check','--no-cache-dir','-r',os.environ['DEPENDENCY']]]
+          if os.environ['PROFILE']=='wave-a': cmds.append([sys.executable,'-m','playwright','install','--with-deps','chromium'])
+          x=[rec(c) for c in cmds]; Path(os.environ['INSTALL']).write_text(json.dumps(x)); assert not any(i['exit_code'] for i in x); clean(os.environ['AFTER'])
           PY
-          echo "ATLAS_WORKTREE_AFTER_INSTALL_JSON=${OUTPUT}" >> "${GITHUB_ENV}"
+          printf 'ATLAS_WORKTREE_BEFORE_INSTALL_JSON=%s\nATLAS_DEPENDENCY_COMMANDS_JSON=%s\nATLAS_WORKTREE_AFTER_INSTALL_JSON=%s\nATLAS_DEPENDENCY_PATH=%s\n' "${BEFORE}" "${INSTALL}" "${AFTER}" "${DEPENDENCY}" >> "${GITHUB_ENV}"
+          echo "ATLAS_DEPENDENCY_SHA256=$(sha256sum "${DEPENDENCY}" | awk '{print $1}')" >> "${GITHUB_ENV}"
 
       - name: Run exact routed profile
         shell: bash
         env:
           PROFILE: ${{ steps.profile.outputs.name }}
-          BRANCH_REF: ${{ steps.profile.outputs.branch_ref }}
+          BRANCH: ${{ steps.profile.outputs.branch }}
+          BASE: ${{ steps.profile.outputs.base }}
           MODE: ${{ steps.target.outputs.mode }}
           ACCEPTED: ${{ steps.target.outputs.accepted }}
           HTTP_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
@@ -345,31 +183,9 @@ jobs:
           ALL_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           ATLAS_NETWORK_BLOCKED: ${{ steps.profile.outputs.name == 'atlas-contracts' && '1' || '0' }}
         run: |
-          set -euo pipefail
-          runner="${GITHUB_WORKSPACE}/apps/learnit-next/dev/run_checks.py"
-          if [[ "${PROFILE}" != "atlas-support" ]]; then
-            runner="${RUNNER_TEMP}/atlas-m1-run-checks.py"
-            git show origin/main:apps/learnit-next/dev/run_checks.py > "${runner}"
-            grep -q 'learnit.next.ci.checks.atlas-m1.v1' "${runner}"
-          fi
-          if [[ "${PROFILE}" == "wave-a" ]]; then
-            args=(
-              --strict
-              --profile wave-a-ci
-              --mode "${MODE}"
-              --base-ref 8ebafee48cc5277b92776982639a0146ae7e76d0
-            )
-            if [[ -n "${ACCEPTED}" ]]; then
-              args+=(--accepted-integration-head "${ACCEPTED}")
-            fi
-            LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" "${args[@]}"
-          else
-            LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" \
-              --strict \
-              --profile "${PROFILE}" \
-              --base-ref 58e39e8917006058fdf177a5daa37535f5e2c78d \
-              --branch-ref "${BRANCH_REF}"
-          fi
+          set -euo pipefail; runner="${GITHUB_WORKSPACE}/apps/learnit-next/dev/run_checks.py"
+          if [[ "${PROFILE}" != atlas-support ]]; then runner="${RUNNER_TEMP}/atlas-m1-run-checks.py"; git show origin/main:apps/learnit-next/dev/run_checks.py > "${runner}"; grep -q CONTRACT_EVIDENCE_BASE "${runner}"; grep -q CORRECTIVE_COMMON_BASELINE "${runner}"; fi
+          if [[ "${PROFILE}" == wave-a ]]; then args=(--strict --profile wave-a-ci --mode "${MODE}" --base-ref "${BASE}"); [[ -z "${ACCEPTED}" ]] || args+=(--accepted-integration-head "${ACCEPTED}"); LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" "${args[@]}"; else LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" --strict --profile "${PROFILE}" --base-ref "${BASE}" --branch-ref "${BRANCH}"; fi
 
       - name: Upload exact contract proof
         if: always() && steps.profile.outputs.name == 'atlas-contracts'
