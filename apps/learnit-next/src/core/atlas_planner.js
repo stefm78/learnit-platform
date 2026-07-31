@@ -5,11 +5,24 @@ function canonicalize(value){return E.canonicalize(value);}
 function canonicalJson(value){return E.canonicalJson(value);}
 function atlasHash(domain,value){return E.atlasHash(domain,value);}
 function assertClosed(value,required,optional=[]){if(!value||typeof value!=='object'||Array.isArray(value))fail('INVALID_OBJECT');const allowed=new Set([...required,...optional]);for(const key of Object.keys(value))if(!allowed.has(key))fail('UNKNOWN_FIELD');for(const key of required)if(!(key in value))fail('MISSING_FIELD');}
+function assertObjectiveRef(ref){E.canonicalRefKey(ref);if(!Object.prototype.hasOwnProperty.call(ref,'objectiveId'))fail('INVALID_OBJECTIVE_REF');return ref;}
+function assertActivityRef(ref){E.canonicalRefKey(ref);if(!Object.prototype.hasOwnProperty.call(ref,'activityLineageId'))fail('INVALID_ACTIVITY_REF');return ref;}
+function sameCourse(left,right){return E.canonicalJson(left.courseRef)===E.canonicalJson(right.courseRef);}
 function validateRecommendation(rec){
   assertClosed(rec,['recommendationVersion','objectiveRef','action','eligibleActivityRefs','preferredActivityRef','estimatedMinutes','reasonCodes']);
   if(rec.recommendationVersion!=='atlas.recommendation.v1')fail('INVALID_RECOMMENDATION');
-  E.canonicalRefKey(rec.objectiveRef);E.canonicalRefKey(rec.preferredActivityRef);
-  if(!Array.isArray(rec.eligibleActivityRefs)||!rec.eligibleActivityRefs.length||!rec.eligibleActivityRefs.some(ref=>E.sameRef(ref,rec.preferredActivityRef)))fail('INVALID_RECOMMENDATION');
+  assertObjectiveRef(rec.objectiveRef);assertActivityRef(rec.preferredActivityRef);E.executionClassForAction(rec.action);
+  if(!sameCourse(rec.objectiveRef,rec.preferredActivityRef))fail('PREFERRED_ACTIVITY_COURSE_MISMATCH');
+  if(!Array.isArray(rec.eligibleActivityRefs)||!rec.eligibleActivityRefs.length)fail('INVALID_RECOMMENDATION');
+  const eligibleKeys=new Set();
+  for(const ref of rec.eligibleActivityRefs){
+    assertActivityRef(ref);
+    if(!sameCourse(rec.objectiveRef,ref))fail('ELIGIBLE_ACTIVITY_COURSE_MISMATCH');
+    const key=E.canonicalRefKey(ref);
+    if(eligibleKeys.has(key))fail('DUPLICATE_ELIGIBLE_ACTIVITY_REF');
+    eligibleKeys.add(key);
+  }
+  if(!eligibleKeys.has(E.canonicalRefKey(rec.preferredActivityRef)))fail('PREFERRED_ACTIVITY_NOT_ELIGIBLE');
   if(!Number.isInteger(rec.estimatedMinutes)||rec.estimatedMinutes<1||rec.estimatedMinutes>30)fail('INVALID_ESTIMATED_MINUTES');
   if(!Array.isArray(rec.reasonCodes)||new Set(rec.reasonCodes).size!==rec.reasonCodes.length||rec.reasonCodes.some(x=>!E.REASON_CODES.includes(x)))fail('INVALID_REASON_CODES');
   return rec;
@@ -32,8 +45,7 @@ function buildPlan({engineVersion,courseRef,contentRevisionRef,durationMinutes,r
   for(let index=0;index<recommendations.length;index++){
     const rec=validateRecommendation(recommendations[index]);
     if(rec.estimatedMinutes>durationMinutes-total){if(!items.length)fail('SESSION_TIME_LIMIT');continue;}
-    const executionClass=({'start-practice':'practice','continue-practice':'practice','correct-practice':'correction','attempt-validation':'validation','maintain-recent-validation':'validation'})[rec.action];
-    if(!executionClass)fail('UNKNOWN_ACTION');
+    const executionClass=E.executionClassForAction(rec.action);
     const provenance=validateProvenance(rec.action,itemProvenance[index]);
     const item={position:items.length,objectiveRef:rec.objectiveRef,activityRef:rec.preferredActivityRef,action:rec.action,executionClass,estimatedMinutes:rec.estimatedMinutes,...provenance};
     items.push(Object.freeze(item));total+=rec.estimatedMinutes;
