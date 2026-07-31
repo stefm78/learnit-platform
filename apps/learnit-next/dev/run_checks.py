@@ -301,11 +301,13 @@ def support_contract_capability() -> dict[str, Any]:
     missing += [token for token in required_runner if token not in runner]
     if missing:
         raise GateError("contract support capability incomplete: " + json.dumps(missing))
+    classifier_tests = _schema_error_classification_self_test()
     return {
         "contractBranch": CONTRACT_BRANCH,
         "profile": "atlas-contracts",
         "artifact": CONTRACT_ARTIFACT,
         "dependencyFile": DEPENDENCY_PATH,
+        "schemaErrorClassificationHarness": classifier_tests,
         "evidenceFiles": [
             "apps/learnit-next/.agent-result/atlas-contracts-evidence.json",
             "apps/learnit-next/.agent-result/atlas-contracts-evidence.md",
@@ -456,10 +458,145 @@ def _validate_atlas_gate(kit: dict[str, Any]) -> None:
                 raise ContractReject("CLAIM_STIMULUS_NOT_DISTINCT")
 
 
+def _walk_schema_errors(errors: list[Any]) -> Any:
+    for error in errors:
+        yield error
+        yield from _walk_schema_errors(list(error.context))
+
+
+def _serialise_schema_error(error: Any) -> dict[str, Any]:
+    return {
+        "validator": error.validator,
+        "validatorValue": error.validator_value,
+        "message": error.message,
+        "absolutePath": list(error.absolute_path),
+        "absoluteSchemaPath": list(error.absolute_schema_path),
+        "context": [_serialise_schema_error(child) for child in error.context],
+    }
+
+
+def _classify_schema_rejection(
+    case_id: str,
+    expected: str,
+    errors: list[Any],
+) -> tuple[str, dict[str, Any]]:
+    if not errors:
+        raise GateError(f"{case_id} was accepted by JSON Schema")
+    flattened = list(_walk_schema_errors(errors))
+    validators = [error.validator for error in flattened]
+    if expected == "ENUM_CLOSED" and "enum" not in validators:
+        raise GateError(f"{case_id} did not fail a closed enum")
+    if expected == "UNEVALUATED_PROPERTY" and not any(
+        validator in {"unevaluatedProperties", "additionalProperties"}
+        for validator in validators
+    ):
+        raise GateError(f"{case_id} did not fail an unknown property")
+    return expected, {
+        "topLevelErrorCount": len(errors),
+        "flattenedErrorCount": len(flattened),
+        "flattenedValidators": validators,
+        "errors": [_serialise_schema_error(error) for error in errors],
+    }
+
+
+def _schema_error_classification_self_test() -> dict[str, Any]:
+    try:
+        from jsonschema import Draft202012Validator
+    except ImportError as error:
+        raise GateError("jsonschema dependency missing") from error
+
+    nested_schema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "oneOf": [
+            {
+                "type": "object",
+                "required": ["type"],
+                "properties": {"type": {"const": "qcm"}},
+                "unevaluatedProperties": False,
+            },
+            {
+                "type": "object",
+                "required": ["type", "segments"],
+                "properties": {
+                    "type": {"const": "fill"},
+                    "segments": {"type": "array"},
+                },
+                "unevaluatedProperties": False,
+            },
+        ],
+    }
+    schema_before = _canonical_bytes(nested_schema)
+    nested_validator = Draft202012Validator(nested_schema)
+    nested_document = {
+        "type": "qcm",
+        "validationIndependenceClaimId": "atlas-claim-sha256:" + "a" * 64,
+    }
+    nested_actual, nested_proof = _classify_schema_rejection(
+        "claim-attached-as-absolute-target-property",
+        "UNEVALUATED_PROPERTY",
+        list(nested_validator.iter_errors(nested_document)),
+    )
+    if nested_actual != "UNEVALUATED_PROPERTY":
+        raise GateError("nested unknown property was not classified")
+    if not nested_proof["errors"] or nested_proof["errors"][0]["validator"] != "oneOf":
+        raise GateError("nested classifier test did not exercise a composition error")
+    if "unevaluatedProperties" not in nested_proof["flattenedValidators"]:
+        raise GateError("nested classifier test did not retain the rejecting child")
+
+    try:
+        _classify_schema_rejection(
+            "accepted-document-must-fail-harness",
+            "UNEVALUATED_PROPERTY",
+            list(nested_validator.iter_errors({"type": "qcm"})),
+        )
+    except GateError as error:
+        if "was accepted by JSON Schema" not in str(error):
+            raise
+    else:
+        raise GateError("accepted JSON document passed the rejection harness")
+
+    enum_schema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "oneOf": [
+            {
+                "type": "object",
+                "required": ["basisCode"],
+                "properties": {
+                    "basisCode": {"enum": ["new-instance", "new-context"]}
+                },
+                "additionalProperties": False,
+            }
+        ],
+    }
+    enum_actual, enum_proof = _classify_schema_rejection(
+        "unknown-independence-basis",
+        "ENUM_CLOSED",
+        list(
+            Draft202012Validator(enum_schema).iter_errors(
+                {"basisCode": "cosmetic-rewording"}
+            )
+        ),
+    )
+    if enum_actual != "ENUM_CLOSED" or "enum" not in enum_proof["flattenedValidators"]:
+        raise GateError("nested enum was not classified")
+    if schema_before != _canonical_bytes(nested_schema):
+        raise GateError("schema classifier mutated its schema")
+
+    return {
+        "claimCaseRejected": True,
+        "nestedUnknownPropertyClassified": True,
+        "acceptedDocumentFailsHarness": True,
+        "enumClosedDetected": True,
+        "schemaMutation": False,
+        "validationRulesUnchanged": True,
+    }
+
+
 def _validate_case(
     case: dict[str, Any],
     valid: dict[str, Any],
     schema_validator: Any,
+    validation_evidence: dict[str, Any] | None = None,
 ) -> str:
     if "baseRef" in case:
         base = copy.deepcopy(_pointer_get(valid, case["baseRef"]))
@@ -472,16 +609,14 @@ def _validate_case(
     expected = case["expectError"]
 
     if validator == "JSON_SCHEMA":
-        errors = list(schema_validator.iter_errors(payload))
-        if not errors:
-            raise GateError(f"{case['caseId']} was accepted by JSON Schema")
-        if expected == "ENUM_CLOSED" and not any(error.validator == "enum" for error in errors):
-            raise GateError(f"{case['caseId']} did not fail a closed enum")
-        if expected == "UNEVALUATED_PROPERTY" and not any(
-            error.validator in {"unevaluatedProperties", "additionalProperties"} for error in errors
-        ):
-            raise GateError(f"{case['caseId']} did not fail an unknown property")
-        return expected
+        actual, proof = _classify_schema_rejection(
+            case["caseId"],
+            expected,
+            list(schema_validator.iter_errors(payload)),
+        )
+        if validation_evidence is not None:
+            validation_evidence["draft202012Validator"] = proof
+        return actual
 
     if validator == "ATLAS_CONTENT_GATE":
         try:
@@ -796,6 +931,7 @@ def run_atlas_contracts(branch: str, base_ref: str) -> tuple[dict[str, Any], lis
     with _network_blocked():
         positive = _positive_contract_matrix(valid, schema)
         identity = _canonical_identity_matrix(valid)
+        classifier_tests = _schema_error_classification_self_test()
         from jsonschema import Draft202012Validator
 
         schema_validator = Draft202012Validator(schema)
@@ -803,20 +939,26 @@ def run_atlas_contracts(branch: str, base_ref: str) -> tuple[dict[str, Any], lis
         for run_number in (1, 2):
             case_results = []
             for case in invalid["cases"]:
-                actual = _validate_case(case, valid, schema_validator)
+                validation_evidence: dict[str, Any] = {}
+                actual = _validate_case(
+                    case,
+                    valid,
+                    schema_validator,
+                    validation_evidence,
+                )
                 if actual != case["expectError"]:
                     raise GateError(
                         f"{case['caseId']} rejected with {actual}, expected {case['expectError']}"
                     )
-                case_results.append(
-                    {
-                        "caseId": case["caseId"],
-                        "validator": case["validator"],
-                        "expectedError": case["expectError"],
-                        "actualError": actual,
-                        "result": "PASS_REJECTED",
-                    }
-                )
+                case_result = {
+                    "caseId": case["caseId"],
+                    "validator": case["validator"],
+                    "expectedError": case["expectError"],
+                    "actualError": actual,
+                    "result": "PASS_REJECTED",
+                }
+                case_result.update(validation_evidence)
+                case_results.append(case_result)
             runs.append({"run": run_number, "cases": case_results})
 
     canonical_first = _canonical_bytes(runs[0]["cases"])
@@ -874,7 +1016,10 @@ def run_atlas_contracts(branch: str, base_ref: str) -> tuple[dict[str, Any], lis
         "COMMANDS_AND_EXIT_CODES": [
             {"command": item["command"], "exit_code": item["exit_code"]} for item in commands
         ],
-        "FULL_TEST_RESULTS": positive,
+        "FULL_TEST_RESULTS": {
+            **positive,
+            "schemaErrorClassificationHarness": classifier_tests,
+        },
         "ADVERSARIAL_21_CASE_MATRIX": {
             "caseCount": 21,
             "executions": 2,
