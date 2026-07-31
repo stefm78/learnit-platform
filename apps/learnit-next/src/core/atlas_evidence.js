@@ -18,6 +18,13 @@ const LABEL_BY_REWARD = Object.freeze({
   'independent-success':'reward.independent_success',
   'resumed-after-interruption':'reward.resumed_after_interruption'
 });
+const ACTION_EXECUTION_CLASS = Object.freeze({
+  'start-practice':'practice',
+  'continue-practice':'practice',
+  'correct-practice':'correction',
+  'attempt-validation':'validation',
+  'maintain-recent-validation':'validation'
+});
 const TS_RX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const DIGEST_RX = /^sha256:[0-9a-f]{64}$/;
 const CLAIM_ID_RX = /^atlas-claim-sha256:[0-9a-f]{64}$/;
@@ -59,9 +66,18 @@ function canonicalize(value, stack=new WeakSet()) {
   if (Array.isArray(value)) out=value.map(item=>canonicalize(item,stack));
   else {
     out={};
-    for (const key of Object.keys(value).sort(compareCodePoints)) {
-      if (value[key] === undefined) fail('NON_CANONICAL_VALUE');
-      out[key.normalize('NFC')]=canonicalize(value[key],stack);
+    const normalizedKeys=[];
+    const seenKeys=new Set();
+    for (const originalKey of Object.keys(value)) {
+      const normalizedKey=originalKey.normalize('NFC');
+      if(seenKeys.has(normalizedKey))fail('CANONICAL_KEY_COLLISION',normalizedKey);
+      seenKeys.add(normalizedKey);
+      normalizedKeys.push({normalizedKey,originalKey});
+    }
+    normalizedKeys.sort((a,b)=>compareCodePoints(a.normalizedKey,b.normalizedKey));
+    for (const {normalizedKey,originalKey} of normalizedKeys) {
+      if (value[originalKey] === undefined) fail('NON_CANONICAL_VALUE');
+      out[normalizedKey]=canonicalize(value[originalKey],stack);
     }
   }
   stack.delete(value);
@@ -88,6 +104,11 @@ function canonicalRefKey(ref) {
 }
 function sameRef(a,b) { return canonicalRefKey(a) === canonicalRefKey(b); }
 function sameRevision(a,b){return canonicalJson(a)===canonicalJson(b);}
+function executionClassForAction(action){
+  const executionClass=ACTION_EXECUTION_CLASS[action];
+  if(!executionClass)fail('UNKNOWN_ACTION');
+  return executionClass;
+}
 function assertContentRevisionRef(ref){
   assertClosed(ref,['packageLineageId','packageRevisionId','packageDigest']);
   assertNonEmptyString(ref.packageLineageId,'INVALID_CONTENT_REVISION_REF');
@@ -136,8 +157,7 @@ function indexActivities(activities, links) {
   return Object.freeze({byActivity, byObjective});
 }
 function eligibleActivities(index, objectiveRef, action) {
-  const desired = ({'start-practice':'practice','continue-practice':'practice','correct-practice':'correction','attempt-validation':'validation','maintain-recent-validation':'validation'})[action];
-  if (!desired) fail('UNKNOWN_ACTION');
+  const desired=executionClassForAction(action);
   return Object.freeze((index.byObjective.get(canonicalRefKey(objectiveRef)) || []).filter(a=>a.executionClass===desired));
 }
 function assertClaim(claim){
@@ -172,19 +192,12 @@ function claimIsAccepted({claim, acceptedClaimSet, contentRevisionRef, artifactD
     return acceptedClaimSet.acceptedClaimIds.includes(claim.claimId);
   } catch (_) { return false; }
 }
-function maintenanceEligibility({now, evidence, basisExecution, targetActivity, claim, acceptedClaimSet, contentRevisionRef, artifactDigest, oracleVersion}) {
-  assertCanonicalTimestamp(now);
-  if (!evidence || evidence.state !== 'validated-recently' || !basisExecution || basisExecution.outcome !== 'correct' || basisExecution.assistance !== 'none') return {eligible:false, reason:'NO_INDEPENDENT_VALIDATION'};
-  assertCanonicalTimestamp(basisExecution.scoredAt);
-  const elapsed = Date.parse(now)-Date.parse(basisExecution.scoredAt);
-  if (!Number.isFinite(elapsed) || elapsed < 24*60*60*1000) return {eligible:false, reason:'RECENTLY_VALIDATED'};
-  const accepted = claimIsAccepted({claim,acceptedClaimSet,contentRevisionRef,artifactDigest,oracleVersion,sourceActivityRef:basisExecution.activityRef,targetActivityRef:targetActivity.activityRef,objectiveRef:evidence.objectiveRef});
-  return accepted ? {eligible:true, claimId:claim.claimId, validationBasisEventId:basisExecution.eventId} : {eligible:false, reason:'NO_INDEPENDENT_VALIDATION'};
-}
 function assertExecution(execution){
   assertClosed(execution,['executionVersion','executionId','sessionRef','courseRef','contentRevisionRef','planDigest','itemPosition','submissionOrdinal','objectiveRef','activityRef','action','executionClass','responseDigest','scoringRuleId','scoringRuleDigest','outcome','assistance','assistanceUseIds','submittedAt','scoredAt']);
   if(execution.executionVersion!=='atlas.scored-execution.v1'||!EXECUTION_ID_RX.test(execution.executionId))fail('INVALID_EXECUTION');
   if(!['practice','correction','validation','transfer','diagnostic'].includes(execution.executionClass)||!['correct','incorrect'].includes(execution.outcome)||!['none','used','unknown'].includes(execution.assistance))fail('INVALID_EXECUTION');
+  const expectedExecutionClass=executionClassForAction(execution.action);
+  if(execution.executionClass!==expectedExecutionClass)fail('ACTION_EXECUTION_CLASS_MISMATCH');
   assertCanonicalTimestamp(execution.submittedAt);assertCanonicalTimestamp(execution.scoredAt);canonicalRefKey(execution.objectiveRef);canonicalRefKey(execution.activityRef);
   return execution;
 }
@@ -202,13 +215,32 @@ function assertRewardEvent(event){
   if(event.eventVersion!=='atlas.learning-event.v1'||!EVENT_ID_RX.test(event.eventId))fail('INVALID_REWARD_EVENT');
   assertCanonicalTimestamp(event.occurredAt);return event;
 }
+function maintenanceEligibility({now, evidence, basisExecution, basisEvent, targetActivity, claim, acceptedClaimSet, contentRevisionRef, artifactDigest, oracleVersion}) {
+  assertCanonicalTimestamp(now);
+  if (!evidence || evidence.state !== 'validated-recently' || !basisExecution || !basisEvent) return {eligible:false, reason:'NO_INDEPENDENT_VALIDATION'};
+  assertExecution(basisExecution);
+  assertRewardEvent(basisEvent);
+  if (basisExecution.executionClass !== 'validation' || basisExecution.outcome !== 'correct' || basisExecution.assistance !== 'none') return {eligible:false, reason:'NO_INDEPENDENT_VALIDATION'};
+  if (basisEvent.kind !== 'activity-attempt') fail('INVALID_MAINTENANCE_BASIS_EVENT');
+  if (basisEvent.executionId !== basisExecution.executionId) fail('MAINTENANCE_BASIS_EXECUTION_MISMATCH');
+  if (!sameRef(basisEvent.objectiveRef,basisExecution.objectiveRef) || !sameRef(evidence.objectiveRef,basisExecution.objectiveRef)) fail('MAINTENANCE_BASIS_OBJECTIVE_MISMATCH');
+  if (basisEvent.occurredAt !== basisExecution.scoredAt) fail('MAINTENANCE_BASIS_TIME_MISMATCH');
+  const elapsed = Date.parse(now)-Date.parse(basisExecution.scoredAt);
+  if (!Number.isFinite(elapsed) || elapsed < 24*60*60*1000) return {eligible:false, reason:'RECENTLY_VALIDATED'};
+  const accepted = claimIsAccepted({claim,acceptedClaimSet,contentRevisionRef,artifactDigest,oracleVersion,sourceActivityRef:basisExecution.activityRef,targetActivityRef:targetActivity.activityRef,objectiveRef:evidence.objectiveRef});
+  return accepted ? {eligible:true, claimId:claim.claimId, validationBasisEventId:basisEvent.eventId} : {eligible:false, reason:'NO_INDEPENDENT_VALIDATION'};
+}
 function projectRewards({learningEvents,scoredExecutions}, ruleVersion='atlas.learning.reward.v1') {
   if (!Array.isArray(learningEvents)||!Array.isArray(scoredExecutions)||typeof ruleVersion!=='string'||!ruleVersion) fail('INVALID_FACTS');
   const executions=new Map();
   for(const execution of scoredExecutions){assertExecution(execution);if(executions.has(execution.executionId))fail('DUPLICATE_EXECUTION_ID');executions.set(execution.executionId,execution);}
   const candidates=[];
+  const eventIds=new Set();
   for(const event of learningEvents){
-    assertRewardEvent(event);let kind=null,objectiveRef=null;
+    assertRewardEvent(event);
+    if(eventIds.has(event.eventId))fail('DUPLICATE_EVENT_ID');
+    eventIds.add(event.eventId);
+    let kind=null,objectiveRef=null;
     if(event.kind==='session-resumed')kind='resumed-after-interruption';
     else {
       const execution=executions.get(event.executionId);if(!execution)fail('MISSING_EXECUTION');
@@ -224,9 +256,8 @@ function projectRewards({learningEvents,scoredExecutions}, ruleVersion='atlas.le
     if(kind)candidates.push({event,kind,objectiveRef,priority:REWARD_PRIORITY.indexOf(kind)});
   }
   candidates.sort((a,b)=>a.priority-b.priority||compareCodePoints(a.event.occurredAt,b.event.occurredAt)||compareCodePoints(a.event.eventId,b.event.eventId));
-  const allocated=new Set(),output=[];
+  const output=[];
   for(const {event,kind,objectiveRef} of candidates){
-    if(allocated.has(event.eventId))continue;allocated.add(event.eventId);
     const payload={ruleVersion,kind,labelCode:LABEL_BY_REWARD[kind],objectiveRef:objectiveRef||null,evidenceEventIds:[event.eventId],occurredAt:event.occurredAt};
     const rewardId=`atlas-reward-sha256:${atlasHash('learnit.atlas.m1.v0.3/reward-id',payload)}`;
     output.push(Object.freeze({ruleVersion,rewardId,...payload}));
@@ -234,4 +265,4 @@ function projectRewards({learningEvents,scoredExecutions}, ruleVersion='atlas.le
   return Object.freeze(output);
 }
 
-module.exports = Object.freeze({REASON_CODES,REWARD_PRIORITY,canonicalize,canonicalJson,atlasHash,canonicalRefKey,sameRef,executionClassOf,indexActivities,eligibleActivities,assertClaim,assertAcceptedClaimSet,claimIsAccepted,maintenanceEligibility,projectRewards});
+module.exports = Object.freeze({REASON_CODES,REWARD_PRIORITY,ACTION_EXECUTION_CLASS,canonicalize,canonicalJson,atlasHash,canonicalRefKey,sameRef,executionClassForAction,executionClassOf,indexActivities,eligibleActivities,assertClaim,assertAcceptedClaimSet,claimIsAccepted,maintenanceEligibility,projectRewards});
