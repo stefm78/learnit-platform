@@ -12,7 +12,7 @@ class Content(unittest.TestCase):
   technical=copy.deepcopy(f);technical['segments'][1]['slotId']='replacement-slot';technical['answers'][0]['slotId']='replacement-slot';self.assertEqual(v.stimulus(f),v.stimulus(technical))
   nfd=copy.deepcopy(q);nfd['prompt']=q['prompt'].replace('é','e\u0301');self.assertEqual(v.stimulus(q),v.stimulus(nfd))
  def test_claim_relations_and_global_uniqueness(self):
-  kits=self.kits();bad=copy.deepcopy(kits);claim=bad[0]['courses'][0]['atlasValidationIndependenceClaims'][0];claim['objectiveId']=bad[0]['courses'][0]['objectives'][1]['objectiveId']
+  kits=self.kits();bad=copy.deepcopy(kits);course=bad[0]['courses'][0];claim=course['atlasValidationIndependenceClaims'][0];other_objective=course['objectives'][1]['objectiveId'];claim['sourceActivityLineageId']=next(a['activityLineageId'] for a in course['activities'] if other_objective in a['objectiveIds'])
   with self.assertRaisesRegex(Exception,'CLAIM_OBJECTIVE_ACTIVITY_MISMATCH'):v.validate_packages(bad)
   duplicate=copy.deepcopy(kits);duplicate[1]['courses'][0]['atlasValidationIndependenceClaims'][0]['claimId']=duplicate[0]['courses'][0]['atlasValidationIndependenceClaims'][0]['claimId']
   with self.assertRaises(Exception):v.validate_packages(duplicate)
