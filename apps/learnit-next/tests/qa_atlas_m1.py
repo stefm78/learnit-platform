@@ -386,7 +386,7 @@ class OracleTests(unittest.TestCase):
  def test_v3_01_maintenance_24h_boundaries_and_fail_closed(self):
   for target,expected in (('2026-01-01T23:59:59.999Z',False),('2026-01-02T00:00:00.000Z',True),('2026-01-02T00:00:00.001Z',True)):
    with self.subTest(target=target): self.assertEqual(self.maintenance_fixture(target)['state']=='validated-recently',expected)
-  invalid=('2026-01-01T23:00:00.000Z','2026-01-02T00:00:00.000+00:00','2026-01-02 00:00:00.000Z','2026-02-30T00:00:00.000Z','2026-01-02T00:00:00Z','not-a-date')
+  invalid=('2025-12-31T23:59:59.999Z','2026-01-01T23:00:00.000Z','2026-01-02T00:00:00.000+00:00','2026-01-02 00:00:00.000Z','2026-02-30T00:00:00.000Z','2026-01-02T00:00:00Z','not-a-date')
   for target in invalid:
    with self.subTest(invalid=target): self.assertNotEqual(self.maintenance_fixture(target)['state'],'validated-recently')
  def test_v3_02_network_interception_survives_reopen(self):
