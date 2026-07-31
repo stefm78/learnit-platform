@@ -6,7 +6,7 @@ candidate checkout, exact accepted heads/artifact/content claims, and drives the
 real browser/IndexedDB flow without trusting any candidate self-attestation.
 """
 from __future__ import annotations
-import argparse, hashlib, json, pathlib, re, subprocess, sys, tempfile, textwrap, unittest, unicodedata
+import argparse, datetime, hashlib, json, pathlib, re, subprocess, sys, tempfile, textwrap, unittest, unicodedata
 
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 FIXTURES={
@@ -19,6 +19,8 @@ LANES={
  'content':('authoring/v2/atlas/README.md','authoring/v2/atlas/nombres_complexes_atlas.json','authoring/v2/atlas/signaux_electriques_atlas.json','authoring/v2/atlas/validate_atlas_content.py','apps/learnit-next/tests/atlas_m1_content.py')}
 PACKAGES=tuple(p for p in LANES['content'] if p.endswith('_atlas.json'))
 SHA40=re.compile(r'^[0-9a-f]{40}$'); DIGEST=re.compile(r'^sha256:[0-9a-f]{64}$'); CLAIM=re.compile(r'^atlas-claim-sha256:[0-9a-f]{64}$')
+UTC_TIMESTAMP=re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$')
+DAY_MS=24*60*60*1000
 CLAIM_DOMAIN='learnit.atlas.m1.v0.3/validation-claim-id'; STIMULUS_DOMAIN='learnit.atlas.m1.v0.3/stimulus-digest/atlas.stimulus.v1'
 REWARDS=('validation-reconfirmed','validation-completed','correction-completed','independent-success','resumed-after-interruption')
 REASONS={'NEW_OBJECTIVE','PRACTICE_IN_PROGRESS','RECENT_ERROR','REVIEW_REQUIRED','CORRECTION_COMPLETED','NO_INDEPENDENT_VALIDATION','VALIDATION_AVAILABLE','RECENTLY_VALIDATED','SESSION_TIME_LIMIT'}
@@ -54,6 +56,31 @@ def closed(obj,required,optional=()):
  req=set(required); allowed=req|set(optional)
  if not isinstance(obj,dict) or not req<=set(obj) or set(obj)-allowed: raise AssertionError('OBJECT_NOT_CLOSED')
 def same(a,b): return cjson(a)==cjson(b)
+
+def utc_millis(value):
+ if not isinstance(value,str) or not UTC_TIMESTAMP.fullmatch(value): raise AssertionError('NONCANONICAL_UTC_TIMESTAMP')
+ try: parsed=datetime.datetime.strptime(value,'%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=datetime.timezone.utc)
+ except ValueError as e: raise AssertionError('INVALID_UTC_TIMESTAMP') from e
+ roundtrip=parsed.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]+'Z'
+ if roundtrip!=value: raise AssertionError('NONCANONICAL_UTC_TIMESTAMP')
+ delta=parsed-datetime.datetime(1970,1,1,tzinfo=datetime.timezone.utc)
+ return delta.days*DAY_MS+delta.seconds*1000+delta.microseconds//1000
+
+def maintenance_due(basis_event,event):
+ try: return utc_millis(event.get('occurredAt'))-utc_millis(basis_event.get('occurredAt'))>=DAY_MS
+ except AssertionError: return False
+
+def verify_focus_trace(expected,forward,reverse,forward_boundary,reverse_boundary):
+ if not isinstance(expected,list) or not expected or any(not isinstance(x,str) or not x for x in expected) or len(expected)!=len(set(expected)): raise AssertionError('FOCUS_EXPECTED_INVALID')
+ if forward!=expected: raise AssertionError('FOCUS_FORWARD_ORDER_INVALID')
+ if reverse!=list(reversed(expected)): raise AssertionError('FOCUS_REVERSE_ORDER_INVALID')
+ if forward_boundary!=expected[0]: raise AssertionError('FOCUS_FORWARD_BOUNDARY_INVALID')
+ if reverse_boundary!=expected[-1]: raise AssertionError('FOCUS_REVERSE_BOUNDARY_INVALID')
+ return True
+
+def require_network_clean(blocked,phase):
+ if blocked: raise AssertionError('NETWORK_EGRESS_BLOCKED_'+phase+':'+json.dumps(blocked,sort_keys=True))
+ return True
 
 def stimulus(activity):
  base={'type':activity.get('type'),'prompt':norm(activity.get('prompt'))}
@@ -190,7 +217,8 @@ def admissible(execution,event,plan,events,executions,claims,accepted,content_re
  if claim_id not in accepted or not claim or not isinstance(basis_id,str): return False
  basis_event=events.get(basis_id); basis_exec=executions.get((basis_event or {}).get('executionId'))
  if not basis_event or not basis_exec or basis_exec.get('outcome')!='correct' or basis_exec.get('assistance')!='none': return False
- if item.get('action')=='maintain-recent-validation' and basis_exec.get('executionClass')!='validation': return False
+ if item.get('action')=='maintain-recent-validation':
+  if basis_exec.get('executionClass')!='validation' or not maintenance_due(basis_event,event): return False
  return (claim['objectiveRef']==item.get('objectiveRef') and claim['sourceActivityRef']==basis_exec.get('activityRef') and claim['targetActivityRef']==item.get('activityRef') and basis_exec.get('objectiveRef')==item.get('objectiveRef') and basis_exec.get('courseRef')==execution.get('courseRef') and basis_exec.get('contentRevisionRef')==content_revision)
 
 def project(events,executions,claims,accepted,content_revision):
@@ -268,13 +296,16 @@ def browser_script(artifact):
  def snap(page):
   return page.evaluate("""async()=>{{const out={{}};for(const d of await indexedDB.databases()){{if(!d.name)continue;const db=await new Promise((ok,no)=>{{const r=indexedDB.open(d.name);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}});out[d.name]={{}};for(const n of db.objectStoreNames)out[d.name][n]=await new Promise((ok,no)=>{{const tx=db.transaction(n,'readonly'),r=tx.objectStore(n).getAll();r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}});db.close()}}return out}}""")
  def rows(s,n): return [x for db in s.values() for k,v in db.items() if k==n for x in v]
- def controls(page): return page.locator('.atlas-m1 button:not([disabled]),.atlas-m1 [href],.atlas-m1 input:not([disabled]),.atlas-m1 [tabindex]:not([tabindex="-1"])')
+ def guard(context,blocked):
+  context.route('**/*',lambda r:(r.continue_() if r.request.url.startswith('file:') else (blocked.append(r.request.url),r.abort())[1]))
+ def focus_keys(page):
+  return page.evaluate("""()=>{{const root=document.querySelector('.atlas-m1');if(!root)throw Error('ATLAS_SURFACE_MISSING');const selector='button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';const rows=[...root.querySelectorAll(selector)].filter(e=>{{const s=getComputedStyle(e);return s.visibility!=='hidden'&&s.display!=='none'&&!e.hidden}});rows.forEach((e,i)=>e.setAttribute('data-qa-focus-order',String(i)));return rows.map((e,i)=>String(i))}}""")
+ def active_key(page): return page.evaluate("document.activeElement&&document.activeElement.getAttribute('data-qa-focus-order')")
  with sync_playwright() as p:
   browser=p.chromium.launch()
   evidence=[]
   for width,height in ((1440,900),(390,844)):
-   context=browser.new_context(viewport={{'width':width,'height':height}}); page=context.new_page(); blocked=[]
-   page.route('**/*',lambda r:(r.continue_() if r.request.url.startswith('file:') else (blocked.append(r.request.url),r.abort())[1]))
+   blocked=[]; context=browser.new_context(viewport={{'width':width,'height':height}}); guard(context,blocked); page=context.new_page()
    page.goto(uri); page.wait_for_load_state('domcontentloaded')
    assert page.locator('[data-atlas-action="start"]').count()==1
    before=snap(page); page.locator('[data-atlas-action="start"]').click(); page.locator('[data-atlas-help]').wait_for()
@@ -285,18 +316,25 @@ def browser_script(artifact):
    aborted=page.evaluate("""async(name)=>{{const db=await new Promise((ok,no)=>{{const r=indexedDB.open(name);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}});const names=[...db.objectStoreNames].slice(0,2);if(names.length<2)throw Error('ATLAS_STORES_MISSING');const tx=db.transaction(names,'readwrite');for(const n of names)tx.objectStore(n).put({{eventId:'qa-abort',executionId:'qa-abort',sessionRef:{{sessionId:'qa-abort'}},key:'qa-abort'}});tx.abort();await new Promise(ok=>{{tx.onabort=ok;tx.onerror=ok}});db.close();return true}}""",dbname); assert aborted and 'qa-abort' not in json.dumps(snap(page))
    page.locator('[data-atlas-submit]').click(); page.wait_for_timeout(30); committed=snap(page)
    executions=rows(committed,'scoredExecutions'); assert executions and executions[-1].get('assistance')=='used' and executions[-1].get('assistanceUseIds')
-   c=controls(page); count=c.count(); assert count
-   c.nth(0).focus(); order=[]
-   for _ in range(count): order.append(page.evaluate('document.activeElement.outerHTML')); page.keyboard.press('Tab')
-   assert len(order)==len(set(order))
+   expected=focus_keys(page); assert expected and len(expected)==len(set(expected))
+   page.locator('[data-qa-focus-order="0"]').focus(); forward=[]
+   for key in expected: forward.append(active_key(page)); assert forward[-1]==key; page.keyboard.press('Tab')
+   forward_boundary=active_key(page); assert forward_boundary==expected[0]
+   page.locator(f'[data-qa-focus-order="{{expected[-1]}}"]' ).focus(); reverse=[]
+   for key in reversed(expected): reverse.append(active_key(page)); assert reverse[-1]==key; page.keyboard.press('Shift+Tab')
+   reverse_boundary=active_key(page); assert reverse_boundary==expected[-1]
+   assert forward==expected and reverse==list(reversed(expected))
    overflow=page.evaluate("""()=>[...document.querySelectorAll('.atlas-m1,.atlas-m1 *')].filter(e=>e.scrollWidth>e.clientWidth+1||e.scrollHeight>e.clientHeight+1).map(e=>e.outerHTML.slice(0,120))"""); assert not overflow
-   long=page.evaluate("""()=>{{const b=document.createElement('button');b.textContent='Libellé très long '.repeat(30);b.style.maxWidth='280px';b.style.overflowWrap='anywhere';document.querySelector('.atlas-m1').appendChild(b);const ok=b.scrollWidth<=b.clientWidth+1;b.remove();return ok}}"""); assert long and not blocked
+   long=page.evaluate("""()=>{{const b=document.createElement('button');b.textContent='Libellé très long '.repeat(30);b.style.maxWidth='280px';b.style.overflowWrap='anywhere';document.querySelector('.atlas-m1').appendChild(b);const ok=b.scrollWidth<=b.clientWidth+1;b.remove();return ok}}"""); assert long
+   assert not blocked,'NETWORK_EGRESS_BLOCKED_BEFORE_REOPEN:'+json.dumps(blocked)
    context.close()
-   context=browser.new_context(viewport={{'width':width,'height':height}}); page=context.new_page(); page.goto(uri); page.wait_for_load_state('domcontentloaded')
+   context=browser.new_context(viewport={{'width':width,'height':height}}); guard(context,blocked); page=context.new_page()
+   page.goto(uri); page.wait_for_load_state('domcontentloaded')
    assert snap(page)==committed; resume=page.locator('[data-atlas-action="resume"]'); assert resume.count()==1; resume.click(); page.wait_for_timeout(20)
    focus=page.evaluate('document.activeElement && document.activeElement.id'); states=rows(committed,'resumeStates'); target=states[-1].get('focusTarget') if states else None
    assert not target or focus==target
-   evidence.append({{'viewport':[width,height],'snapshot':committed,'focusTarget':target}}); context.close()
+   assert not blocked,'NETWORK_EGRESS_BLOCKED_AFTER_REOPEN:'+json.dumps(blocked)
+   evidence.append({{'viewport':[width,height],'snapshot':committed,'focusTarget':target,'focusOrder':expected}}); context.close()
   browser.close(); print(json.dumps(evidence))
  ''')
 
@@ -313,6 +351,14 @@ class OracleTests(unittest.TestCase):
  def claim_fixture(self):
   obj={'courseRef':{'packageLineageId':'p','courseLineageId':'c'},'objectiveId':'o'}; src={'courseRef':obj['courseRef'],'activityLineageId':'src'}; dst={'courseRef':obj['courseRef'],'activityLineageId':'dst'}
   payload={'claimVersion':'atlas.independence.v1','objectiveRef':obj,'sourceActivityRef':src,'targetActivityRef':dst,'basisCode':'new-instance','sourceStimulusDigest':'sha256:'+'1'*64,'targetStimulusDigest':'sha256:'+'2'*64}; cid='atlas-claim-sha256:'+ahash(CLAIM_DOMAIN,payload); return cid,{'claimId':cid,**payload}
+ def maintenance_fixture(self,target_at):
+  cid,claim=self.claim_fixture(); rev={'packageLineageId':'p','packageRevisionId':'r','packageDigest':'sha256:'+'1'*64}; session={'sessionId':'s','planId':'p'}; basis_at='2026-01-01T00:00:00.000Z'
+  basis={'executionId':'xb','sessionRef':session,'courseRef':claim['objectiveRef']['courseRef'],'contentRevisionRef':rev,'objectiveRef':claim['objectiveRef'],'activityRef':claim['sourceActivityRef'],'executionClass':'validation','action':'attempt-validation','outcome':'correct','assistance':'none','scoredAt':basis_at}
+  execution={'executionId':'xv','sessionRef':session,'courseRef':claim['objectiveRef']['courseRef'],'contentRevisionRef':rev,'planDigest':'sha256:'+'3'*64,'itemPosition':0,'objectiveRef':claim['objectiveRef'],'activityRef':claim['targetActivityRef'],'action':'maintain-recent-validation','executionClass':'validation','outcome':'correct','assistance':'none','scoredAt':target_at}
+  item={'position':0,'objectiveRef':claim['objectiveRef'],'activityRef':claim['targetActivityRef'],'action':'maintain-recent-validation','executionClass':'validation','estimatedMinutes':5,'validationBasisEventId':'eb','independenceClaimId':cid}
+  start={'eventId':'es','kind':'session-started','sessionRef':session,'courseRef':claim['objectiveRef']['courseRef'],'contentRevisionRef':rev,'planDigest':execution['planDigest'],'selectedItems':[item],'occurredAt':basis_at}
+  events=[start,{'eventId':'eb','kind':'activity-attempt','objectiveRef':claim['objectiveRef'],'executionId':'xb','occurredAt':basis_at},{'eventId':'ev','kind':'activity-attempt','objectiveRef':claim['objectiveRef'],'executionId':'xv','occurredAt':target_at}]
+  return next(iter(project(events,[basis,execution],{cid:claim},frozenset({cid}),rev).values()))
  def test_v2_01_browser_is_independent(self):
   s=browser_script(pathlib.Path('/tmp/a.html')); self.assertNotIn('qaScenario',s)
   for x in ('[data-atlas-action="start"]','[data-atlas-help]','[data-atlas-submit]','indexedDB.databases()','tx.abort()','context.close()'): self.assertIn(x,s)
@@ -336,7 +382,25 @@ class OracleTests(unittest.TestCase):
    with self.assertRaisesRegex(AssertionError,'EXPECTED_SOURCE_FILE_MISSING'): bind_source(root,head)
  def test_v2_05_keyboard_focus_component_overflow(self):
   s=browser_script(pathlib.Path('/tmp/a.html'))
-  for x in ('document.activeElement.outerHTML','len(set(order))','scrollWidth>e.clientWidth','scrollHeight>e.clientHeight','focus==target','Libellé très long'): self.assertIn(x,s)
+  for x in ('data-qa-focus-order','forward==expected','reverse==list(reversed(expected))','ATLAS_SURFACE_MISSING','scrollWidth>e.clientWidth','scrollHeight>e.clientHeight','focus==target','Libellé très long'): self.assertIn(x,s)
+ def test_v3_01_maintenance_24h_boundaries_and_fail_closed(self):
+  for target,expected in (('2026-01-01T23:59:59.999Z',False),('2026-01-02T00:00:00.000Z',True),('2026-01-02T00:00:00.001Z',True)):
+   with self.subTest(target=target): self.assertEqual(self.maintenance_fixture(target)['state']=='validated-recently',expected)
+  invalid=('2026-01-01T23:00:00.000Z','2026-01-02T00:00:00.000+00:00','2026-01-02 00:00:00.000Z','2026-02-30T00:00:00.000Z','2026-01-02T00:00:00Z','not-a-date')
+  for target in invalid:
+   with self.subTest(invalid=target): self.assertNotEqual(self.maintenance_fixture(target)['state'],'validated-recently')
+ def test_v3_02_network_interception_survives_reopen(self):
+  s=browser_script(pathlib.Path('/tmp/a.html')); contexts=[m.start() for m in re.finditer('context=browser.new_context',s)]; routes=[m.start() for m in re.finditer(r'; guard\(context,blocked\); page=context.new_page\(\)',s)]; pages=[m.start() for m in re.finditer(r'page=context.new_page\(\)',s)]
+  self.assertEqual(len(contexts),2); self.assertEqual(len(routes),2); self.assertEqual(len(pages),2)
+  for context,route,page in zip(contexts,routes,pages): self.assertLess(context,route); self.assertLess(route,page)
+  self.assertIn('NETWORK_EGRESS_BLOCKED_AFTER_REOPEN',s)
+  with self.assertRaisesRegex(AssertionError,'AFTER_REOPEN'): require_network_clean(['https://example.invalid/only-after-reopen'],'AFTER_REOPEN')
+ def test_v3_03_exact_forward_reverse_focus_order_and_boundaries(self):
+  expected=['0','1','2']; self.assertTrue(verify_focus_trace(expected,expected,['2','1','0'],'0','2'))
+  bad=(('jump',['0','2','1'],['2','1','0'],'0','2'),('inversion',['2','1','0'],['2','1','0'],'0','2'),('duplicate',['0','1','1'],['2','1','0'],'0','2'),('outside',['0','outside','2'],['2','1','0'],'0','2'),('omitted',['0','1'],['2','1','0'],'0','2'),('reverse',['0','1','2'],['2','0','1'],'0','2'),('forward-boundary',['0','1','2'],['2','1','0'],'outside','2'),('reverse-boundary',['0','1','2'],['2','1','0'],'0','outside'))
+  for name,forward,reverse,fb,rb in bad:
+   with self.subTest(name=name):
+    with self.assertRaisesRegex(AssertionError,'FOCUS_'): verify_focus_trace(expected,forward,reverse,fb,rb)
  def test_fill_max_uses_is_semantic_and_fail_closed(self):
   a={'type':'fill','prompt':'P','segments':[{'slotId':'a'},{'slotId':'b'}],'tokens':[{'tokenId':'t','label':'x','maxUses':2}],'answers':[{'slotId':'a','tokenId':'t'},{'slotId':'b','tokenId':'t'}]}; d=stimulus(a); a['tokens'][0]['maxUses']=3; self.assertNotEqual(d,stimulus(a)); a['tokens'][0]['maxUses']=1
   with self.assertRaisesRegex(AssertionError,'MAX_USES'): stimulus(a)
