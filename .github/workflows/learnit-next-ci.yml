@@ -11,7 +11,7 @@ on:
         description: Exact verification topology
         required: true
         type: choice
-        options: [integration-head, post-merge]
+        options: [integration-head, post-merge, atlas-contracts]
       verification_ref:
         description: Exact 40-character commit SHA
         required: true
@@ -83,11 +83,19 @@ jobs:
               profile="post-merge-auto"
               ;;
             workflow_dispatch)
-              target="${DISPATCH_SHA}"
-              mode="${DISPATCH_MODE}"
-              accepted="${DISPATCH_ACCEPTED}"
-              branch_ref=""
-              profile="wave-a"
+              if [[ "${DISPATCH_MODE}" == "atlas-contracts" ]]; then
+                target="${DISPATCH_SHA}"
+                mode="integration-head"
+                accepted=""
+                branch_ref="agent/ATLAS-WP-001-contracts-0-3"
+                profile="atlas-contracts"
+              else
+                target="${DISPATCH_SHA}"
+                mode="${DISPATCH_MODE}"
+                accepted="${DISPATCH_ACCEPTED}"
+                branch_ref=""
+                profile="wave-a"
+              fi
               ;;
             *)
               echo "Unsupported event: ${EVENT_NAME}" >&2
@@ -135,9 +143,23 @@ jobs:
               apps/learnit-next/dev/run_checks.py
               governance/governor-state.json
             )
-            mapfile -t expected < <(printf '%s\n' "${support_paths[@]}" | sort)
-            mapfile -t actual < <(printf '%s\n' "${changed[@]}" | sort)
-            if [[ "$(printf '%s\n' "${actual[@]}")" == "$(printf '%s\n' "${expected[@]}")" ]]; then
+            mapfile -t actual < <(printf '%s\n' "${changed[@]}" | sed '/^$/d' | sort -u)
+            support_only=true
+            [[ ${#actual[@]} -gt 0 ]] || support_only=false
+            for path in "${actual[@]}"; do
+              known=false
+              for support_path in "${support_paths[@]}"; do
+                if [[ "${path}" == "${support_path}" ]]; then
+                  known=true
+                  break
+                fi
+              done
+              [[ "${known}" == true ]] || {
+                support_only=false
+                break
+              }
+            done
+            if [[ "${support_only}" == true ]]; then
               profile="atlas-support"
               branch_ref="agent/ATLAS-WP-001-support-governance-ci"
             else
