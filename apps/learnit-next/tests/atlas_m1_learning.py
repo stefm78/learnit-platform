@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import pathlib, subprocess, textwrap, unittest
+import os, pathlib, subprocess, textwrap, unittest
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 class AtlasLearningTests(unittest.TestCase):
   def test_node_contract_matrix(self):
@@ -183,6 +183,121 @@ class AtlasLearningTests(unittest.TestCase):
     cp=subprocess.run(['node','-e',script,str(ROOT)],capture_output=True,text=True)
     self.assertEqual(cp.returncode,0,cp.stderr)
     self.assertRegex(cp.stdout,r'ATLAS_LEARNING_V3_NODE_PASS \d+/\d+')
+
+  def test_v4_unicode_code_point_tiebreak(self):
+    script=textwrap.dedent(r'''
+      const assert=require('assert');
+      const E=require(process.argv[1]+'/src/core/atlas_evidence.js');
+      const R=require(process.argv[1]+'/src/core/atlas_recommendation.js');
+      const P=require(process.argv[1]+'/src/core/atlas_planner.js');
+      let checks=0;
+      const check=fn=>{fn();checks+=1;};
+      const rejects=(fn,rx)=>{assert.throws(fn,rx);checks+=1;};
+      const courseRef={packageLineageId:'pkg',courseLineageId:'course'};
+      const contentRevisionRef={packageLineageId:'pkg',packageRevisionId:'rev',packageDigest:'sha256:'+'2'.repeat(64)};
+      const objective=id=>E.canonicalize({courseRef,objectiveId:id});
+      const row=objectiveRef=>({objectiveRef,evidence:{objectiveRef,state:'review-needed'}});
+      const sessionEvent=(digit,objectiveRef)=>({
+        kind:'session-started',
+        eventId:'atlas-event-sha256:'+digit.repeat(64),
+        occurredAt:'2026-08-04T06:00:00.000Z',
+        selectedItems:[{objectiveRef}]
+      });
+      const pairSnapshot=(leftId,rightId)=>{
+        const left=objective(leftId),right=objective(rightId);
+        const activities=[left,right].map((objectiveRef,index)=>({
+          activityRef:{courseRef,activityLineageId:`correction-${index}`},
+          objectiveRef,
+          learningPhase:'consolidation',
+          assessmentRole:'practice',
+          estimatedMinutes:3
+        }));
+        const links=activities.map(activity=>({objectiveRef:activity.objectiveRef,activityRef:activity.activityRef,authorIndex:0}));
+        const index=E.indexActivities(activities,links);
+        const rows=[row(left),row(right)];
+        const journal=[sessionEvent('1',left),sessionEvent('2',right)];
+        const snapshot=(inputRows,events)=>{
+          const ranked=R.rankRecommendations(inputRows,events);
+          const recommendations=ranked.map(item=>R.buildRecommendation({objectiveRef:item.objectiveRef,evidence:item.evidence,index}));
+          const itemProvenance=ranked.map((_,position)=>({correctsEventId:'atlas-event-sha256:'+(position===0?'a':'b').repeat(64)}));
+          const plan=P.buildPlan({engineVersion:'v1',courseRef,contentRevisionRef,durationMinutes:5,recommendations,itemProvenance});
+          const lastSelectionStats=[left,right].map(ref=>R.lastSelectionStats(ref,events));
+          const ranking=ranked.map(item=>item.objectiveRef.objectiveId);
+          const reasonCodes=recommendations.map(item=>item.reasonCodes);
+          const selectedActivities=plan.payload.items.map(item=>item.activityRef.activityLineageId);
+          return {
+            lastSelectionStats,
+            ranking,
+            recommendations:P.canonicalJson(recommendations),
+            reasonCodes,
+            selectedActivities,
+            sessionPlan:P.canonicalJson(plan),
+            planId:plan.planId,
+            canonicalSerialization:P.canonicalJson({lastSelectionStats,ranking,recommendations,reasonCodes,selectedActivities,sessionPlan:plan,planId:plan.planId})
+          };
+        };
+        const expected=snapshot(rows,journal);
+        for(const inputRows of [rows,[...rows].reverse()]){
+          for(const events of [journal,[...journal].reverse()])check(()=>assert.deepStrictEqual(snapshot(inputRows,events),expected));
+        }
+        return expected;
+      };
+
+      const zKey=E.canonicalRefKey(objective('z'));
+      const diaeresisKey=E.canonicalRefKey(objective('ä'));
+      if(process.env.ATLAS_CHECK_LEGACY==='1'){
+        check(()=>assert.notDeepStrictEqual([zKey,diaeresisKey].sort((a,b)=>a.localeCompare(b)),[zKey,diaeresisKey]));
+      }
+
+      const originalLocaleCompare=String.prototype.localeCompare;
+      String.prototype.localeCompare=function(){throw new Error('localeCompare forbidden');};
+      let result;
+      try{
+        const zDiaeresis=pairSnapshot('z','ä');
+        check(()=>assert.deepStrictEqual(zDiaeresis.ranking,['z','ä']));
+        const caseOrder=pairSnapshot('a','A');
+        check(()=>assert.deepStrictEqual(caseOrder.ranking,['A','a']));
+        const supplementary=pairSnapshot('\uE000','\u{10000}');
+        check(()=>assert.deepStrictEqual(supplementary.ranking,['\uE000','\u{10000}']));
+        const prefix=pairSnapshot('prefix','prefix-more');
+        check(()=>assert.deepStrictEqual(prefix.ranking,['prefix','prefix-more']));
+        const ascii=pairSnapshot('obj-a','obj-b');
+        check(()=>assert.deepStrictEqual(ascii.ranking,['obj-a','obj-b']));
+
+        const composed=objective('é'),decomposed=objective('e\u0301');
+        check(()=>assert.equal(E.canonicalRefKey(composed),E.canonicalRefKey(decomposed)));
+        check(()=>assert.equal(P.canonicalJson(composed),P.canonicalJson(decomposed)));
+
+        const rawComposed={courseRef,objectiveId:'é'};
+        const rawDecomposed={courseRef,objectiveId:'e\u0301'};
+        rejects(()=>R.rankRecommendations([row(rawComposed),row(rawDecomposed)]),/NON_CANONICAL_STRING/);
+        rejects(()=>R.rankRecommendations([row(objective('ok')),row({courseRef,objectiveId:''})]),/INVALID_OBJECTIVE_REF/);
+        rejects(()=>R.rankRecommendations([row(objective('ok')),row({courseRef,objectiveId:'bad',unexpected:true})]),/UNKNOWN_FIELD/);
+        rejects(()=>R.rankRecommendations([row(objective('ok')),row({courseRef,objectiveId:'bad',activityLineageId:'also-bad'})]),/UNQUALIFIED_REFERENCE/);
+
+        result={zDiaeresis,caseOrder,supplementary,prefix,ascii,nfcKey:E.canonicalRefKey(composed)};
+      }finally{
+        String.prototype.localeCompare=originalLocaleCompare;
+      }
+      console.log('ATLAS_LEARNING_V4_NODE_PASS '+P.canonicalJson(result));
+    ''')
+    outputs=[]
+    for index, locale in enumerate(('C','C.UTF-8','en_US.UTF-8','de_DE.UTF-8')):
+      env=os.environ.copy()
+      env.update({'LANG':locale,'LC_ALL':locale,'ATLAS_CHECK_LEGACY':'1' if index==0 else '0'})
+      cp=subprocess.run(['node','-e',script,str(ROOT)],capture_output=True,text=True,env=env)
+      self.assertEqual(cp.returncode,0,f'{locale}: {cp.stderr}')
+      self.assertRegex(cp.stdout,r'^ATLAS_LEARNING_V4_NODE_PASS ')
+      outputs.append(cp.stdout.strip())
+    self.assertTrue(all(output==outputs[0] for output in outputs),outputs)
+
+  def test_v4_static_and_syntax_controls(self):
+    path=ROOT/'src/core/atlas_recommendation.js'
+    text=path.read_text()
+    self.assertNotIn('localeCompare',text)
+    self.assertNotIn('Intl.Collator',text)
+    cp=subprocess.run(['node','--check',str(path)],capture_output=True,text=True)
+    self.assertEqual(cp.returncode,0,cp.stderr)
 
   def test_no_network_llm_or_ambient_randomness(self):
     text='\n'.join(p.read_text() for p in (ROOT/'src/core').glob('atlas_*.js'))
