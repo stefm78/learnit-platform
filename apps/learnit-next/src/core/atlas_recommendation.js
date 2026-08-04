@@ -1,9 +1,19 @@
 'use strict';
 const E = require('./atlas_evidence.js');
 function fail(code){const e=new Error(code);e.code=code;throw e;}
+function compareCanonicalCodePoints(a,b){
+  if(typeof a!=='string'||typeof b!=='string')fail('INVALID_CANONICAL_STRING');
+  if(a.normalize('NFC')!==a||b.normalize('NFC')!==b)fail('NON_CANONICAL_STRING');
+  const aa=Array.from(a),bb=Array.from(b),n=Math.min(aa.length,bb.length);
+  for(let i=0;i<n;i++){
+    const ac=aa[i].codePointAt(0),bc=bb[i].codePointAt(0);
+    if(ac!==bc)return ac<bc?-1:1;
+  }
+  return aa.length===bb.length?0:(aa.length<bb.length?-1:1);
+}
 function compareStartedEvents(a,b){
-  const byTime=a.occurredAt.localeCompare(b.occurredAt);
-  return byTime || a.eventId.localeCompare(b.eventId);
+  const byTime=compareCanonicalCodePoints(a.occurredAt,b.occurredAt);
+  return byTime || compareCanonicalCodePoints(a.eventId,b.eventId);
 }
 function lastSelectionStats(objectiveRef, startedEvents) {
   const key=E.canonicalRefKey(objectiveRef);
@@ -22,9 +32,9 @@ function rankRecommendations(rows, startedEvents=[]) {
     const unresolvedA=a.evidence.state==='review-needed'?0:1, unresolvedB=b.evidence.state==='review-needed'?0:1;
     if(unresolvedA!==unresolvedB)return unresolvedA-unresolvedB;
     const A=lastSelectionStats(a.objectiveRef,startedEvents),B=lastSelectionStats(b.objectiveRef,startedEvents);
-    if(A.lastSelectedAt!==B.lastSelectedAt)return (A.lastSelectedAt||'').localeCompare(B.lastSelectedAt||'');
+    if(A.lastSelectedAt!==B.lastSelectedAt)return compareCanonicalCodePoints(A.lastSelectedAt||'',B.lastSelectedAt||'');
     if(A.recentCount!==B.recentCount)return A.recentCount-B.recentCount;
-    return A.key.localeCompare(B.key);
+    return compareCanonicalCodePoints(A.key,B.key);
   });
 }
 function actionForEvidence(evidence, context={}) {
