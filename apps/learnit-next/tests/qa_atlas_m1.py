@@ -23,9 +23,17 @@ STORES=("learningEvents","resumeStates","scoredExecutions")
 KEYS={"learningEvents":"eventId","resumeStates":"sessionRef.sessionId","scoredExecutions":"executionId"}
 LIFECYCLE=("session-interrupted","session-resumed","session-completed")
 REWARDS=("validation-reconfirmed","validation-completed","correction-completed","independent-success","resumed-after-interruption")
+REWARD_LABELS={
+ "correction-completed":"reward.correction_completed",
+ "independent-success":"reward.independent_success",
+ "validation-completed":"reward.validation_completed",
+ "validation-reconfirmed":"reward.validation_reconfirmed",
+ "resumed-after-interruption":"reward.resumed_after_interruption"}
+REWARD_FIELDS=("ruleVersion","rewardId","kind","labelCode","objectiveRef","evidenceEventIds","occurredAt")
+REWARD_COMPARE_FIELDS=("rewardId","kind","labelCode","objectiveRef","evidenceEventIds","occurredAt")
 REASONS={"NEW_OBJECTIVE","PRACTICE_IN_PROGRESS","RECENT_ERROR","REVIEW_REQUIRED","CORRECTION_COMPLETED","NO_INDEPENDENT_VALIDATION","VALIDATION_AVAILABLE","RECENTLY_VALIDATED","SESSION_TIME_LIMIT"}
 SHA40=re.compile(r"^[0-9a-f]{40}$"); HEX64=re.compile(r"^[0-9a-f]{64}$"); DIGEST=re.compile(r"^sha256:[0-9a-f]{64}$")
-EVENT_ID=re.compile(r"^atlas-event-sha256:[0-9a-f]{64}$"); EXEC_ID=re.compile(r"^atlas-execution-sha256:[0-9a-f]{64}$"); CLAIM_ID=re.compile(r"^atlas-claim-sha256:[0-9a-f]{64}$")
+EVENT_ID=re.compile(r"^atlas-event-sha256:[0-9a-f]{64}$"); EXEC_ID=re.compile(r"^atlas-execution-sha256:[0-9a-f]{64}$"); CLAIM_ID=re.compile(r"^atlas-claim-sha256:[0-9a-f]{64}$"); REWARD_ID=re.compile(r"^atlas-reward-sha256:[0-9a-f]{64}$")
 UTC=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$"); DAY=86400000
 EVENT_DOMAIN="learnit.atlas.m1.v0.3/event-id"; CLAIM_DOMAIN="learnit.atlas.m1.v0.3/validation-claim-id"
 
@@ -193,9 +201,56 @@ def walk(v:Any):
  elif isinstance(v,list):
   for x in v: yield from walk(x)
 
+def objective_ref(v:Any)->dict[str,Any]:
+ closed(v,("courseRef","objectiveId")); closed(v["courseRef"],("packageLineageId","courseLineageId"))
+ for x in (v["courseRef"]["packageLineageId"],v["courseRef"]["courseLineageId"],v["objectiveId"]):
+  if not isinstance(x,str) or not x: raise AssertionError("REWARD_OBJECTIVE_REF_INVALID")
+ return canon(v)
+
+def reward_like(v:Any)->bool:
+ return isinstance(v,dict) and (v.get("ruleVersion")=="atlas.learning.reward.v1" or isinstance(v.get("rewardId"),str) and v["rewardId"].startswith("atlas-reward-"))
+
+def reward_signal(v:Any)->dict[str,Any]:
+ closed(v,REWARD_FIELDS)
+ if v["ruleVersion"]!="atlas.learning.reward.v1": raise AssertionError("REWARD_RULE_VERSION_INVALID")
+ if not isinstance(v["rewardId"],str) or not REWARD_ID.fullmatch(v["rewardId"]): raise AssertionError("REWARD_ID_INVALID")
+ kind=v["kind"]
+ if not isinstance(kind,str) or kind not in REWARDS: raise AssertionError("REWARD_KIND_INVALID")
+ if v["labelCode"]!=REWARD_LABELS[kind]: raise AssertionError("REWARD_LABEL_CODE_INVALID")
+ if kind=="resumed-after-interruption":
+  if v["objectiveRef"] is not None: raise AssertionError("REWARD_OBJECTIVE_REF_FORBIDDEN")
+  obj=None
+ else:
+  if v["objectiveRef"] is None: raise AssertionError("REWARD_OBJECTIVE_REF_REQUIRED")
+  obj=objective_ref(v["objectiveRef"])
+ ids=v["evidenceEventIds"]
+ if not isinstance(ids,list) or not ids: raise AssertionError("REWARD_EVIDENCE_EVENT_IDS_REQUIRED")
+ if any(not isinstance(x,str) or not EVENT_ID.fullmatch(x) for x in ids): raise AssertionError("REWARD_EVIDENCE_EVENT_ID_INVALID")
+ ordered=sorted(set(ids),key=lambda x:[ord(c) for c in x])
+ if ids!=ordered: raise AssertionError("REWARD_EVIDENCE_EVENT_IDS_NOT_SORTED_UNIQUE")
+ utc_ms(v["occurredAt"])
+ return {"ruleVersion":v["ruleVersion"],"rewardId":v["rewardId"],"kind":kind,"labelCode":v["labelCode"],"objectiveRef":obj,"evidenceEventIds":ids[:],"occurredAt":v["occurredAt"]}
+
+def reward_collection(objects:list[Any])->list[dict[str,Any]]:
+ rows=[reward_signal(x) for x in objects if reward_like(x)]
+ ids=[x["rewardId"] for x in rows]
+ if len(ids)!=len(set(ids)): raise AssertionError("REWARD_IDENTITY_DUPLICATE")
+ return sorted(rows,key=lambda x:[ord(c) for c in x["rewardId"]])
+
 def pedagogical(exact:Any,all_data:Any|None=None)->dict[str,Any]:
  s=norm_snap(exact); objects=list(walk(all_data)) if all_data is not None else [x for rows in s.values() for x in rows]
- return {"executions":s["scoredExecutions"],"events":[x for x in s["learningEvents"] if x.get("kind") not in LIFECYCLE],"evidence":sorted([x for x in objects if x.get("evidenceVersion")=="atlas.objective-evidence.v1"],key=cj),"rewards":sorted([x for x in objects if x.get("rewardKind") in REWARDS],key=cj)}
+ return {"executions":s["scoredExecutions"],"events":[x for x in s["learningEvents"] if x.get("kind") not in LIFECYCLE],"evidence":sorted([x for x in objects if x.get("evidenceVersion")=="atlas.objective-evidence.v1"],key=cj),"rewards":reward_collection(objects)}
+
+def pedagogical_equal(a:dict[str,Any],b:dict[str,Any])->bool:
+ for field in ("executions","events","evidence"):
+  if not same(a[field],b[field]): return False
+ ar,br=a["rewards"],b["rewards"]
+ if len(ar)!=len(br): return False
+ if [x["rewardId"] for x in ar]!=[x["rewardId"] for x in br]: return False
+ for x,y in zip(ar,br):
+  for field in REWARD_COMPARE_FIELDS:
+   if not same(x[field],y[field]): return False
+ return cj(ar)==cj(br)
 
 def lifecycle_trace(t:dict[str,Any])->bool:
  closed(t,("observerInstalledBeforeCandidate","triggerInterruption","triggerResume","startedEvent","beforeInterruption","afterInterruption","afterFirstReopen","afterResume","afterSecondReopen"),("viewport","focusEvidence","allBefore","allAfterInterruption","allAfterFirstReopen","allAfterResume","allAfterSecondReopen"))
@@ -225,7 +280,7 @@ def lifecycle_trace(t:dict[str,Any])->bool:
  pairs=(("afterInterruption",interrupted,"allAfterInterruption"),("afterFirstReopen",reopened,"allAfterFirstReopen"),("afterResume",resumed,"allAfterResume"),("afterSecondReopen",twice,"allAfterSecondReopen"))
  baseline=pedagogical(before,t.get("allBefore"))
  for name,snap,all_key in pairs:
-  if not same(pedagogical(snap,t.get(all_key)),baseline): raise AssertionError("LIFECYCLE_CHANGED_PEDAGOGICAL_EVIDENCE:"+name)
+  if not pedagogical_equal(pedagogical(snap,t.get(all_key)),baseline): raise AssertionError("LIFECYCLE_CHANGED_PEDAGOGICAL_EVIDENCE:"+name)
  return True
 
 def fixture_report()->tuple[list[dict[str,Any]],bool]:
@@ -426,6 +481,9 @@ def good_positive():
 def good_life():
  _,_,r,start=sample_rows();r={**r,"nextItemPosition":0,"lastCommittedEventId":None,"lifecycleOrdinal":0};r.pop("lastCommittedEventId")
  ip={"eventVersion":"atlas.learning-event.v1","kind":"session-interrupted","sessionRef":start["sessionRef"],"eventOrdinal":1,"occurredAt":"2026-01-01T00:00:01.000Z"};i={**ip,"eventId":event_id(ip)};rp={"eventVersion":"atlas.learning-event.v1","kind":"session-resumed","sessionRef":start["sessionRef"],"eventOrdinal":2,"occurredAt":"2026-01-01T00:00:02.000Z"};re={**rp,"eventId":event_id(rp)};b={"learningEvents":[start],"resumeStates":[r],"scoredExecutions":[]};a={"learningEvents":[start,i],"resumeStates":[{**r,"lifecycleOrdinal":1}],"scoredExecutions":[]};z={"learningEvents":[start,i,re],"resumeStates":[{**r,"lifecycleOrdinal":2}],"scoredExecutions":[]};return {"observerInstalledBeforeCandidate":True,"triggerInterruption":"product-interruption-action","triggerResume":"product-resume-action","startedEvent":start,"beforeInterruption":b,"afterInterruption":a,"afterFirstReopen":copy.deepcopy(a),"afterResume":z,"afterSecondReopen":copy.deepcopy(z)}
+def canonical_reward(id_char:str="a",event_char:str="b",kind:str="resumed-after-interruption",occurred_at:str="2026-08-04T07:00:00.000Z")->dict[str,Any]:
+ obj=None if kind=="resumed-after-interruption" else {"courseRef":{"packageLineageId":"pkg","courseLineageId":"course"},"objectiveId":"objective"}
+ return {"ruleVersion":"atlas.learning.reward.v1","rewardId":"atlas-reward-sha256:"+id_char*64,"kind":kind,"labelCode":REWARD_LABELS[kind],"objectiveRef":obj,"evidenceEventIds":["atlas-event-sha256:"+event_char*64],"occurredAt":occurred_at}
 
 class Tests(unittest.TestCase):
  def test_atomic_positive_and_fault(self): self.assertTrue(fault_trace(good_fault()));self.assertEqual(positive_trace(good_positive())["execution"]["executionClass"],"practice")
@@ -453,6 +511,39 @@ class Tests(unittest.TestCase):
   for ts in ("2026-01-01T00:00:02Z","2026-01-01 00:00:02.000Z","2026-01-01T00:00:02.000+00:00","not-a-date","2025-12-31T23:59:59.999Z"):
    y=copy.deepcopy(ev);y["occurredAt"]=ts;y["eventId"]=event_id(without(y,"eventId"))
    with self.assertRaises(AssertionError):life_event(y,"session-resumed",x["startedEvent"],r,1,"2026-01-01T00:00:01.000Z")
+ def test_reward_canonical_kind_closes_v5_false_positive(self):
+  reward=canonical_reward();projection=pedagogical(empty(),{"observedRewards":[reward]})
+  self.assertEqual(projection["rewards"],[reward]);self.assertEqual(projection["rewards"][0]["kind"],"resumed-after-interruption")
+  x=good_life();x["allBefore"]={};x["allAfterInterruption"]={};x["allAfterFirstReopen"]={};x["allAfterResume"]={"observedRewards":[reward]};x["allAfterSecondReopen"]=copy.deepcopy(x["allAfterResume"])
+  with self.assertRaisesRegex(AssertionError,"LIFECYCLE_CHANGED_PEDAGOGICAL_EVIDENCE:afterResume"):lifecycle_trace(x)
+ def test_reward_closed_negative_matrix(self):
+  base=canonical_reward();cases=[]
+  cases.append(({"rewardKind":"resumed-after-interruption"},"OBJECT_NOT_CLOSED"))
+  for value in ("unknown-kind","",7):
+   x=copy.deepcopy(base);x["kind"]=value;cases.append((x,"REWARD_KIND_INVALID"))
+  x=copy.deepcopy(base);x["ruleVersion"]="atlas.learning.reward.v2";cases.append((x,"REWARD_RULE_VERSION_INVALID"))
+  x=copy.deepcopy(base);x["rewardId"]="reward-a";cases.append((x,"REWARD_ID_INVALID"))
+  x=copy.deepcopy(base);x["labelCode"]="reward.validation_completed";cases.append((x,"REWARD_LABEL_CODE_INVALID"))
+  x=copy.deepcopy(base);x["evidenceEventIds"]=[];cases.append((x,"REWARD_EVIDENCE_EVENT_IDS_REQUIRED"))
+  x=copy.deepcopy(base);x["evidenceEventIds"]=["event-b"];cases.append((x,"REWARD_EVIDENCE_EVENT_ID_INVALID"))
+  x=copy.deepcopy(base);x["occurredAt"]="2026-08-04T07:00:00Z";cases.append((x,"NONCANONICAL_UTC_TIMESTAMP"))
+  x=copy.deepcopy(base);x["unknownField"]=True;cases.append((x,"OBJECT_NOT_CLOSED"))
+  x=copy.deepcopy(base);x["objectiveRef"]={"courseRef":{"packageLineageId":"pkg","courseLineageId":"course"},"objectiveId":"objective"};cases.append((x,"REWARD_OBJECTIVE_REF_FORBIDDEN"))
+  x={"rewardId":base["rewardId"],"kind":base["kind"],"labelCode":base["labelCode"],"evidenceEventIds":base["evidenceEventIds"],"occurredAt":base["occurredAt"],"openPayload":True};cases.append((x,"OBJECT_NOT_CLOSED"))
+  x=canonical_reward(kind="validation-completed");x["objectiveRef"]=None;cases.append((x,"REWARD_OBJECTIVE_REF_REQUIRED"))
+  x=copy.deepcopy(base);x["evidenceEventIds"]=["atlas-event-sha256:"+"c"*64,"atlas-event-sha256:"+"b"*64];cases.append((x,"NOT_SORTED_UNIQUE"))
+  for row,msg in cases:
+   with self.subTest(msg=msg),self.assertRaisesRegex(AssertionError,msg):reward_signal(row)
+ def test_reward_order_serialization_and_same_cardinality_replacement(self):
+  a=canonical_reward("a","b");b=canonical_reward("c","d",occurred_at="2026-08-04T07:00:01.000Z")
+  p1=pedagogical(empty(),{"rewards":[b,a]});p2=pedagogical(empty(),{"rewards":[a,b]})
+  self.assertTrue(pedagogical_equal(p1,p2));self.assertEqual([x["rewardId"] for x in p1["rewards"]],[a["rewardId"],b["rewardId"]]);self.assertEqual(cj(p1["rewards"]),cj(p2["rewards"]))
+  x=good_life();x["allBefore"]={"rewards":[a]};x["allAfterInterruption"]={"rewards":[a]};x["allAfterFirstReopen"]={"rewards":[a]};x["allAfterResume"]={"rewards":[b]};x["allAfterSecondReopen"]={"rewards":[b]}
+  with self.assertRaisesRegex(AssertionError,"LIFECYCLE_CHANGED_PEDAGOGICAL_EVIDENCE:afterResume"):lifecycle_trace(x)
+ def test_lifecycle_positive_without_reward_and_identical_snapshots(self):
+  x=good_life()
+  for k in ("allBefore","allAfterInterruption","allAfterFirstReopen","allAfterResume","allAfterSecondReopen"):x[k]={"observedRewards":[]}
+  self.assertTrue(lifecycle_trace(x));self.assertTrue(pedagogical_equal(pedagogical(x["beforeInterruption"],x["allBefore"]),pedagogical(x["afterResume"],x["allAfterResume"])))
  def test_v3_regressions(self):
   b={"occurredAt":"2026-01-01T00:00:00.000Z"}
   self.assertFalse(maintenance_due(b,{"occurredAt":"2026-01-01T23:59:59.999Z"}));self.assertTrue(maintenance_due(b,{"occurredAt":"2026-01-02T00:00:00.000Z"}));self.assertTrue(maintenance_due(b,{"occurredAt":"2026-01-02T00:00:00.001Z"}))
