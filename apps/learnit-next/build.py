@@ -115,7 +115,7 @@ def validate_manifest() -> tuple[dict[str, Any], list[str], dict[str, bytes]]:
     manifest = load_json(MANIFEST_PATH)
     if manifest.get("schema") != "learnit.next.source-manifest.v2":
         raise BuildError("unsupported source manifest schema")
-    if manifest.get("workPackage") != "PROG-WP-001":
+    if manifest.get("workPackage") != "ATLAS-WP-001":
         raise BuildError("source manifest work package differs")
 
     items = manifest.get("workingFiles")
@@ -139,6 +139,19 @@ def validate_manifest() -> tuple[dict[str, Any], list[str], dict[str, bytes]]:
         raise BuildError("canonical template, stylesheet or main module is absent")
     if not set(ordered).issubset(set(paths)):
         raise BuildError("ordered build source is absent from workingFiles")
+
+    commonjs = manifest.get("build", {}).get("commonJsSources", [])
+    styles = manifest.get("build", {}).get("orderedStyles", ["apps/learnit-next/src/styles.css"])
+
+    if not isinstance(commonjs, list) or len(set(commonjs)) != len(commonjs):
+        raise BuildError("build.commonJsSources must be a unique list")
+    if not isinstance(styles, list) or not styles or len(set(styles)) != len(styles):
+        raise BuildError("build.orderedStyles must be a unique non-empty list")
+    if not set(commonjs).issubset(set(ordered)):
+        raise BuildError("CommonJS source is absent from orderedSources")
+    if not set(styles).issubset(set(paths)):
+        raise BuildError("ordered style is absent from workingFiles")
+
     if manifest.get("artifact", {}).get("path") != ARTIFACT_REL:
         raise BuildError("manifest artifact path is not canonical")
 
@@ -193,9 +206,16 @@ def resolve_import(current: str, specifier: str, known: set[str]) -> str:
 
 
 def prepare_modules(
-    ordered: list[str], data_by_path: dict[str, bytes]
+    ordered: list[str],
+    data_by_path: dict[str, bytes],
+    commonjs_paths: set[str] | None = None,
 ) -> tuple[dict[str, str], dict[str, list[tuple[str, str]]], list[str]]:
-    module_paths = [path for path in ordered if path.endswith(".js")]
+    commonjs = commonjs_paths or set()
+    module_paths = [
+        path
+        for path in ordered
+        if path.endswith(".js") and path not in commonjs
+    ]
     known = set(module_paths)
     sources: dict[str, str] = {}
     dependencies: dict[str, list[tuple[str, str]]] = {}
@@ -248,22 +268,300 @@ def safe_json(value: Any) -> str:
     )
 
 
-def render_artifact(ordered: list[str], data_by_path: dict[str, bytes]) -> bytes:
+def render_commonjs_runtime(
+    commonjs_paths: list[str],
+    data_by_path: dict[str, bytes],
+) -> str:
+    sources: dict[str, str] = {}
+    for path in commonjs_paths:
+        try:
+            sources[path] = data_by_path[path].decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise BuildError(f"CommonJS source is not UTF-8: {path}") from exc
+
+    return (
+        "const __atlasCjsSources=Object.freeze("
+        + safe_json(sources)
+        + ");\n"
+        + r"""
+const __atlasCjsCache=Object.create(null);
+const __atlasShaK=new Uint32Array([
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+]);
+
+function __atlasRotr(value,bits){
+  return (value>>>bits)|(value<<(32-bits));
+}
+
+function __atlasSha256(bytes){
+  const bitLength=bytes.length*8;
+  const totalLength=Math.ceil((bytes.length+9)/64)*64;
+  const message=new Uint8Array(totalLength);
+  message.set(bytes);
+  message[bytes.length]=0x80;
+
+  const high=Math.floor(bitLength/0x100000000);
+  const low=bitLength>>>0;
+  const view=new DataView(message.buffer);
+  view.setUint32(totalLength-8,high);
+  view.setUint32(totalLength-4,low);
+
+  const state=new Uint32Array([
+    0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,
+    0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19
+  ]);
+  const words=new Uint32Array(64);
+
+  for(let offset=0;offset<message.length;offset+=64){
+    for(let index=0;index<16;index+=1){
+      const base=offset+index*4;
+      words[index]=(
+        (message[base]<<24)|
+        (message[base+1]<<16)|
+        (message[base+2]<<8)|
+        message[base+3]
+      )>>>0;
+    }
+
+    for(let index=16;index<64;index+=1){
+      const x=words[index-15];
+      const y=words[index-2];
+      const s0=__atlasRotr(x,7)^__atlasRotr(x,18)^(x>>>3);
+      const s1=__atlasRotr(y,17)^__atlasRotr(y,19)^(y>>>10);
+      words[index]=(words[index-16]+s0+words[index-7]+s1)>>>0;
+    }
+
+    let a=state[0],b=state[1],c=state[2],d=state[3];
+    let e=state[4],f=state[5],g=state[6],h=state[7];
+
+    for(let index=0;index<64;index+=1){
+      const sum1=(
+        __atlasRotr(e,6)^__atlasRotr(e,11)^__atlasRotr(e,25)
+      )>>>0;
+      const choice=((e&f)^((~e)&g))>>>0;
+      const temp1=(h+sum1+choice+__atlasShaK[index]+words[index])>>>0;
+      const sum0=(
+        __atlasRotr(a,2)^__atlasRotr(a,13)^__atlasRotr(a,22)
+      )>>>0;
+      const majority=((a&b)^(a&c)^(b&c))>>>0;
+      const temp2=(sum0+majority)>>>0;
+
+      h=g;
+      g=f;
+      f=e;
+      e=(d+temp1)>>>0;
+      d=c;
+      c=b;
+      b=a;
+      a=(temp1+temp2)>>>0;
+    }
+
+    state[0]=(state[0]+a)>>>0;
+    state[1]=(state[1]+b)>>>0;
+    state[2]=(state[2]+c)>>>0;
+    state[3]=(state[3]+d)>>>0;
+    state[4]=(state[4]+e)>>>0;
+    state[5]=(state[5]+f)>>>0;
+    state[6]=(state[6]+g)>>>0;
+    state[7]=(state[7]+h)>>>0;
+  }
+
+  return Array.from(state)
+    .map(value=>value.toString(16).padStart(8,'0'))
+    .join('');
+}
+
+function __atlasBytes(value,encoding='utf8'){
+  if(value instanceof Uint8Array)return new Uint8Array(value);
+  if(value instanceof ArrayBuffer)return new Uint8Array(value.slice(0));
+  if(Array.isArray(value))return Uint8Array.from(value);
+  if(typeof value==='string'){
+    if(encoding==='hex'){
+      if(value.length%2!==0||!/^[0-9a-f]*$/i.test(value)){
+        throw new Error('ATLAS_INVALID_HEX_BUFFER');
+      }
+      const output=new Uint8Array(value.length/2);
+      for(let index=0;index<output.length;index+=1){
+        output[index]=Number.parseInt(value.slice(index*2,index*2+2),16);
+      }
+      return output;
+    }
+    if(encoding!=='utf8'&&encoding!=='utf-8'){
+      throw new Error(`ATLAS_UNSUPPORTED_BUFFER_ENCODING: ${encoding}`);
+    }
+    return new TextEncoder().encode(value);
+  }
+  throw new TypeError('ATLAS_UNSUPPORTED_BUFFER_INPUT');
+}
+
+const __atlasBuffer=Object.freeze({
+  from(value,encoding='utf8'){
+    return __atlasBytes(value,encoding);
+  },
+  concat(chunks){
+    if(!Array.isArray(chunks))throw new TypeError('ATLAS_BUFFER_LIST_REQUIRED');
+    const normalized=chunks.map(chunk=>__atlasBytes(chunk));
+    const length=normalized.reduce((sum,chunk)=>sum+chunk.length,0);
+    const output=new Uint8Array(length);
+    let offset=0;
+    for(const chunk of normalized){
+      output.set(chunk,offset);
+      offset+=chunk.length;
+    }
+    return output;
+  },
+  isBuffer(value){
+    return value instanceof Uint8Array;
+  }
+});
+
+const __atlasCrypto=Object.freeze({
+  createHash(algorithm){
+    if(algorithm!=='sha256')throw new Error(`ATLAS_UNSUPPORTED_HASH: ${algorithm}`);
+    const chunks=[];
+    return {
+      update(value,encoding='utf8'){
+        chunks.push(__atlasBytes(value,encoding));
+        return this;
+      },
+      digest(encoding){
+        const bytes=__atlasBuffer.concat(chunks);
+        const hexadecimal=__atlasSha256(bytes);
+        if(encoding===undefined)return __atlasBytes(hexadecimal,'hex');
+        if(encoding==='hex')return hexadecimal;
+        throw new Error(`ATLAS_UNSUPPORTED_DIGEST_ENCODING: ${encoding}`);
+      }
+    };
+  }
+});
+
+function __atlasNormalize(parts){
+  const output=[];
+  for(const part of parts){
+    if(!part||part==='.')continue;
+    if(part==='..'){
+      if(!output.length)throw new Error('ATLAS_MODULE_PATH_ESCAPE');
+      output.pop();
+      continue;
+    }
+    output.push(part);
+  }
+  return output.join('/');
+}
+
+function __atlasResolve(from,specifier){
+  if(specifier==='crypto')return 'crypto';
+  if(typeof specifier!=='string'||!specifier.startsWith('.')){
+    throw new Error(`ATLAS_EXTERNAL_MODULE_FORBIDDEN: ${specifier}`);
+  }
+  const slash=from.lastIndexOf('/');
+  const directory=slash>=0?from.slice(0,slash):'';
+  let resolved=__atlasNormalize(
+    `${directory}/${specifier}`.split('/')
+  );
+  if(!resolved.endsWith('.js'))resolved+='.js';
+  if(!Object.prototype.hasOwnProperty.call(__atlasCjsSources,resolved)){
+    throw new Error(`ATLAS_MODULE_NOT_DECLARED: ${from} -> ${specifier}`);
+  }
+  return resolved;
+}
+
+function __atlasRequire(specifier,from=null){
+  const resolved=from?__atlasResolve(from,specifier):specifier;
+  if(resolved==='crypto')return __atlasCrypto;
+
+  if(!Object.prototype.hasOwnProperty.call(__atlasCjsSources,resolved)){
+    throw new Error(`ATLAS_MODULE_NOT_DECLARED: ${resolved}`);
+  }
+
+  if(__atlasCjsCache[resolved])return __atlasCjsCache[resolved].exports;
+
+  const module={exports:{}};
+  __atlasCjsCache[resolved]=module;
+
+  try{
+    const source=__atlasCjsSources[resolved];
+    const factory=new Function(
+      'require',
+      'module',
+      'exports',
+      'Buffer',
+      `${source}\n//# sourceURL=${resolved}`
+    );
+    factory(
+      requested=>__atlasRequire(requested,resolved),
+      module,
+      module.exports,
+      __atlasBuffer
+    );
+    return module.exports;
+  }catch(error){
+    delete __atlasCjsCache[resolved];
+    throw error;
+  }
+}
+
+Object.defineProperty(globalThis,'__LEARNIT_ATLAS_CJS__',{
+  configurable:false,
+  enumerable:false,
+  writable:false,
+  value:Object.freeze({
+    require(modulePath){
+      return __atlasRequire(modulePath,null);
+    },
+    modulePaths:Object.freeze(Object.keys(__atlasCjsSources).sort())
+  })
+});
+"""
+    )
+
+
+
+def render_artifact(
+    manifest: dict[str, Any],
+    ordered: list[str],
+    data_by_path: dict[str, bytes],
+) -> bytes:
     template_path = "apps/learnit-next/index.template.html"
     css_path = "apps/learnit-next/src/styles.css"
     main_path = "apps/learnit-next/src/main.js"
     try:
         template = data_by_path[template_path].decode("utf-8")
-        css = data_by_path[css_path].decode("utf-8").rstrip()
+        style_paths = manifest.get("build", {}).get(
+            "orderedStyles",
+            [css_path],
+        )
+        css = "\n\n".join(
+            data_by_path[path].decode("utf-8").rstrip()
+            for path in style_paths
+        )
     except UnicodeDecodeError as exc:
         raise BuildError("template or stylesheet is not UTF-8") from exc
 
-    sources, dependencies, module_order = prepare_modules(ordered, data_by_path)
+    commonjs_paths = manifest.get("build", {}).get("commonJsSources", [])
+    sources, dependencies, module_order = prepare_modules(
+        ordered,
+        data_by_path,
+        set(commonjs_paths),
+    )
+    commonjs_runtime = render_commonjs_runtime(
+        commonjs_paths,
+        data_by_path,
+    )
     if main_path not in sources:
         raise BuildError("main.js is absent from the module graph")
 
     bootstrap = (
-        "const __sources=Object.freeze(" + safe_json(sources) + ");\n"
+        commonjs_runtime
+        + "\n"
+        + "const __sources=Object.freeze(" + safe_json(sources) + ");\n"
         "const __dependencies=Object.freeze(" + safe_json(dependencies) + ");\n"
         "const __order=Object.freeze(" + safe_json(module_order) + ");\n"
         "const __urls=Object.create(null);\n"
@@ -295,14 +593,18 @@ def main() -> int:
     args = parser.parse_args()
     output = args.output if args.output.is_absolute() else ROOT / args.output
     try:
-        _, ordered, data_by_path = validate_manifest()
-        artifact = render_artifact(ordered, data_by_path)
+        manifest, ordered, data_by_path = validate_manifest()
+        artifact = render_artifact(manifest, ordered, data_by_path)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_bytes(artifact)
         print(
             json.dumps(
                 {
-                    "artifact": output.relative_to(ROOT).as_posix(),
+                    "artifact": (
+                        output.relative_to(ROOT).as_posix()
+                        if output.is_relative_to(ROOT)
+                        else output.as_posix()
+                    ),
                     "bytes": len(artifact),
                     "sha256": sha256(artifact),
                 },
