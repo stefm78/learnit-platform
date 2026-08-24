@@ -11,7 +11,7 @@ on:
         description: Exact verification topology
         required: true
         type: choice
-        options: [integration-head, post-merge, atlas-contracts, atlas-learning, atlas-core, atlas-experience, atlas-content, atlas-qa]
+        options: [integration-head, post-merge, atlas-contracts, atlas-learning, atlas-core, atlas-experience, atlas-content, atlas-int, atlas-qa]
       verification_ref:
         description: Exact 40-character commit SHA
         required: true
@@ -63,6 +63,7 @@ jobs:
               agent/ATLAS-WP-001-core-corrective-0-3) echo 'atlas-core corrective' ;;
               agent/ATLAS-WP-001-experience-corrective-0-3) echo 'atlas-experience corrective' ;;
               agent/ATLAS-WP-001-content-corrective-0-3) echo 'atlas-content corrective' ;;
+              agent/ATLAS-WP-001-m1-0-3-int) echo 'atlas-int corrective' ;;
               agent/ATLAS-WP-001-qa-0-3) echo 'atlas-qa corrective' ;;
               agent/ATLAS-WP-001-learning) echo 'atlas-learning contract' ;;
               agent/ATLAS-WP-001-core) echo 'atlas-core contract' ;;
@@ -104,6 +105,7 @@ jobs:
                 atlas-core) branch=agent/ATLAS-WP-001-core-corrective-0-3; pr=141; accepted='' ;;
                 atlas-experience) branch=agent/ATLAS-WP-001-experience-corrective-0-3; pr=142; accepted='' ;;
                 atlas-content) branch=agent/ATLAS-WP-001-content-corrective-0-3; pr=143; accepted='' ;;
+                atlas-int) branch=agent/ATLAS-WP-001-m1-0-3-int; pr=147; accepted='' ;;
                 atlas-qa) branch=agent/ATLAS-WP-001-qa-0-3; pr=144; accepted='' ;;
                 integration-head|post-merge) profile=wave-a; family=wave ;;
                 *) echo "Unsupported dispatch mode: ${DISPATCH_MODE}" >&2; exit 2 ;;
@@ -231,6 +233,7 @@ jobs:
             materialize_branch_or_pr agent/ATLAS-WP-001-experience-corrective-0-3 142
             materialize_branch_or_pr agent/ATLAS-WP-001-content-corrective-0-3 143
             materialize_branch_or_pr agent/ATLAS-WP-001-qa-0-3 144
+            materialize_branch_or_pr agent/ATLAS-WP-001-m1-0-3-int 147
           fi
 
           [[ "$(git merge-base "${BASE}" HEAD)" == "${BASE}" ]] || {
@@ -242,7 +245,7 @@ jobs:
             [[ "${TARGET}" == f41de5043a22f8559a3b6a0d71654fbd542b5ec6 ]]
           elif [[ "${PROFILE}" == atlas-support ]]; then
             [[ "${BASE}" == "${REVISION_SAFE_SUPPORT_BASE}" ]]
-          elif [[ "${PROFILE}" == atlas-learning || "${PROFILE}" == atlas-core || "${PROFILE}" == atlas-experience || "${PROFILE}" == atlas-content || "${PROFILE}" == atlas-qa ]]; then
+          elif [[ "${PROFILE}" == atlas-learning || "${PROFILE}" == atlas-core || "${PROFILE}" == atlas-experience || "${PROFILE}" == atlas-content || "${PROFILE}" == atlas-int || "${PROFILE}" == atlas-qa ]]; then
             case "${BRANCH}" in
               *-corrective-0-3|agent/ATLAS-WP-001-qa-0-3) [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]] ;;
               *) [[ "${BASE}" == "${CONTRACT_EVIDENCE_BASE}" ]] ;;
