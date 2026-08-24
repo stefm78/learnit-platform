@@ -19,6 +19,14 @@ const ACTION_CLASS = Object.freeze({
   'attempt-validation': 'validation',
   'maintain-recent-validation': 'validation'
 });
+const ACTION_LABELS = Object.freeze({
+  'start-practice': 'Entraînement — je m’exerce',
+  'continue-practice': 'Entraînement — je m’exerce',
+  'correct-practice': 'Correction — je corrige une erreur',
+  'attempt-validation': 'Validation — je vérifie sans aide',
+  'maintain-recent-validation': 'Entretien — je garde un acquis récent actif'
+});
+
 
 const SHA = /^sha256:[0-9a-f]{64}$/;
 const TS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
@@ -351,12 +359,12 @@ function renderToday({ recommendation, plan, resumeState }) {
     resume = '<button type="button" data-atlas-action="resume">Reprendre la séance</button>';
   }
   const reasons = recommendation.reasonCodes.map(code => `<li>${esc(REASON_LABELS[code])}</li>`).join('');
-  const items = plan.payload.items.map(item => `<li><span>${esc(item.action)}</span><strong>${item.estimatedMinutes} min</strong></li>`).join('');
+  const items = plan.payload.items.map(item => `<li><span>${esc(ACTION_LABELS[item.action])}</span><strong>${item.estimatedMinutes} min</strong></li>`).join('');
   return `<section class="atlas-m1 atlas-today" aria-labelledby="atlas-today-title"><h1 id="atlas-today-title">Aujourd’hui</h1><p class="atlas-duration">${plan.payload.durationMinutes} minutes · ${plan.payload.totalEstimatedMinutes} prévues</p><ul class="atlas-reasons">${reasons}</ul><ol class="atlas-plan-preview">${items}</ol><div class="atlas-actions">${resume}<button class="atlas-primary" type="button" data-atlas-action="start">Commencer</button></div></section>`;
 }
 
 module.exports = Object.freeze({
-  REASON_LABELS, ACTION_CLASS, SHA, TS, IDS,
+  REASON_LABELS, ACTION_CLASS, ACTION_LABELS, SHA, TS, IDS,
   fail, esc, isObject, assertClosed, nonEmpty,
   canonicalJson, hashHex, typedHash, without, assertCanonicalTimestamp,
   assertCourseRef, assertContentRevisionRef, assertObjectiveRef, assertActivityRef, assertSessionRef,

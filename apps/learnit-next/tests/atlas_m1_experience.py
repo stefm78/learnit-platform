@@ -76,6 +76,145 @@ class Experience(unittest.TestCase):
           const correctedItem = {executionClass:'correction',objectiveRef,correctsEventId:correctionTarget};
         '''
 
+    def test_today_renders_human_action_labels(self):
+     script=r"""
+const today=require(process.argv[1]);
+
+const courseRef={
+  packageLineageId:'package-lineage',
+  courseLineageId:'course-lineage'
+};
+
+const contentRevisionRef={
+  packageLineageId:'package-lineage',
+  packageRevisionId:'package-revision',
+  packageDigest:'sha256:'+'0'.repeat(64)
+};
+
+const objectiveRef={
+  courseRef,
+  objectiveId:'objective-1'
+};
+
+const activityRef={
+  courseRef,
+  activityLineageId:'activity-1'
+};
+
+const actions=[
+  'start-practice',
+  'continue-practice',
+  'correct-practice',
+  'attempt-validation',
+  'maintain-recent-validation'
+];
+
+const html=actions.map(action=>{
+  const item={
+    position:0,
+    objectiveRef,
+    activityRef,
+    action,
+    executionClass:today.ACTION_CLASS[action],
+    estimatedMinutes:4
+  };
+
+  if(action==='correct-practice'){
+    item.correctsEventId=
+      'atlas-event-sha256:'+'1'.repeat(64);
+  }
+
+  if(
+    action==='attempt-validation'
+    || action==='maintain-recent-validation'
+  ){
+    item.validationBasisEventId=
+      'atlas-event-sha256:'+'2'.repeat(64);
+    item.independenceClaimId=
+      'atlas-claim-sha256:'+'3'.repeat(64);
+  }
+
+  const recommendation={
+    recommendationVersion:'atlas.recommendation.v1',
+    objectiveRef,
+    action,
+    eligibleActivityRefs:[activityRef],
+    preferredActivityRef:activityRef,
+    estimatedMinutes:4,
+    reasonCodes:['NEW_OBJECTIVE']
+  };
+
+  const payload={
+    schemaVersion:'atlas.session-plan.v1',
+    engineVersion:'atlas.m1.v0.3',
+    courseRef,
+    contentRevisionRef,
+    durationMinutes:5,
+    items:[item],
+    totalEstimatedMinutes:4,
+    unusedMinutes:1
+  };
+
+  const hex=today.hashHex(
+    'learnit.atlas.m1.v0.3/plan-digest',
+    payload
+  );
+
+  const plan={
+    planId:'atlas-plan-sha256:'+hex,
+    planDigest:'sha256:'+hex,
+    payload
+  };
+
+  return today.renderToday({
+    recommendation,
+    plan
+  });
+});
+
+process.stdout.write(JSON.stringify(html));
+"""
+
+     result=__import__('subprocess').run(
+      [
+       'node',
+       '-e',
+       script,
+       str(
+     __import__('pathlib').Path(__file__).resolve().parents[3]
+     /'apps/learnit-next/src/ui/atlas_today.js'
+    )
+      ],
+      check=True,
+      capture_output=True,
+      text=True
+     )
+
+     rendered=__import__('json').loads(result.stdout)
+
+     technical=[
+      'start-practice',
+      'continue-practice',
+      'correct-practice',
+      'attempt-validation',
+      'maintain-recent-validation'
+     ]
+
+     expected=[
+      'Entraînement — je m’exerce',
+      'Entraînement — je m’exerce',
+      'Correction — je corrige une erreur',
+      'Validation — je vérifie sans aide',
+      'Entretien — je garde un acquis récent actif'
+     ]
+
+     self.assertEqual(len(rendered),5)
+
+     for html,label in zip(rendered,expected):
+      self.assertIn(label,html)
+      for token in technical:
+       self.assertNotIn(token,html)
+
     def test_node_positive_and_v2_regression_matrix(self):
         script = r'''
           const assert = require('assert');
