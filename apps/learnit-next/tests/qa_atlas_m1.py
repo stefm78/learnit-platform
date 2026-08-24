@@ -3,8 +3,12 @@
 
 This revision deliberately does not rewrite the pre-candidate oracle. It loads the
 exact preserved QA oracle at eef4b7e3bfb6211e08104b838a7ff4bcf35df5fc,
-verifies its exact Git blob identity, and adds one bounded capability only:
-real-product setup actions before the already frozen browser start action.
+verifies its exact Git blob identity, and applies two bounded corrections only:
+
+1. real-product setup actions before the already frozen browser start action;
+2. `atlas.stimulus.v1` fill-token hashing aligned to the frozen 0.3 contract,
+   which includes visible token values needed to answer and excludes non-visible
+   token metadata such as technical IDs and `maxUses`.
 
 The setup adapter exists because the exact integrated candidate starts from an
 empty local library in every fresh browser profile. Strict QA therefore has to
@@ -13,7 +17,8 @@ exercise the frozen start/submit/interruption/resume observations.
 
 No candidate self-attestation is accepted. The frozen atomicity, lifecycle,
 reward, claim, provenance, no-network, focus and viewport assertions remain the
-authority and execute unchanged.
+authority and execute unchanged except for the contract-aligned stimulus digest
+payload described above.
 """
 from __future__ import annotations
 
@@ -68,6 +73,135 @@ def _load_frozen_oracle() -> dict[str, Any]:
 FROZEN = _load_frozen_oracle()
 _ORIGINAL_VALIDATE_DRIVER = FROZEN["validate_driver"]
 _ORIGINAL_BROWSER_SCRIPT = FROZEN["browser_script"]
+
+
+def stimulus(activity: dict[str, Any]) -> str:
+    """Contract-aligned atlas.stimulus.v1 digest.
+
+    The frozen contract includes visible choices/tokens needed to answer and
+    excludes technical/non-visible metadata. We still validate token IDs and
+    maxUses because they constrain a well-formed fill activity, but neither is
+    serialized into the stimulus payload.
+    """
+
+    visible = FROZEN["visible"]
+    closed = FROZEN["closed"]
+    cj = FROZEN["cj"]
+    dh = FROZEN["dh"]
+
+    base: dict[str, Any] = {
+        "type": activity.get("type"),
+        "prompt": visible(activity.get("prompt")),
+    }
+
+    if activity.get("type") == "qcm":
+        choices = activity.get("choices")
+        by: dict[str, str] = {}
+        if not isinstance(choices, list) or not choices:
+            raise AssertionError("QCM_CHOICES_REQUIRED")
+        for choice in choices:
+            closed(choice, ("choiceId", "label"))
+            choice_id = choice["choiceId"]
+            if (
+                not isinstance(choice_id, str)
+                or not choice_id
+                or choice_id in by
+            ):
+                raise AssertionError("QCM_CHOICE_COLLISION")
+            by[choice_id] = visible(choice["label"])
+
+        if activity.get("correctChoiceId") not in by:
+            raise AssertionError("QCM_OPERATION_INVALID")
+        labels = sorted(by.values())
+        if len(labels) != len(set(labels)):
+            raise AssertionError("QCM_VISIBLE_CHOICE_COLLISION")
+        base.update(
+            choices=labels,
+            answerOperation={
+                "kind": "select-one",
+                "correctValue": by[activity["correctChoiceId"]],
+            },
+        )
+
+    elif activity.get("type") == "fill":
+        tokens = activity.get("tokens")
+        token_by_id: dict[str, dict[str, Any]] = {}
+        if not isinstance(tokens, list) or not tokens:
+            raise AssertionError("FILL_TOKENS_REQUIRED")
+        for token in tokens:
+            closed(token, ("tokenId", "label", "maxUses"))
+            token_id = token["tokenId"]
+            max_uses = token["maxUses"]
+            if (
+                not isinstance(token_id, str)
+                or not token_id
+                or token_id in token_by_id
+                or not isinstance(max_uses, int)
+                or isinstance(max_uses, bool)
+                or max_uses < 1
+            ):
+                raise AssertionError("FILL_TOKEN_INVALID")
+            token_by_id[token_id] = {
+                "label": visible(token["label"]),
+                "maxUses": max_uses,
+            }
+
+        slots: list[str] = []
+        segments: list[dict[str, Any]] = []
+        for segment in activity.get("segments", []):
+            if set(segment) == {"text"}:
+                segments.append({"text": visible(segment["text"])})
+            elif (
+                set(segment) == {"slotId"}
+                and isinstance(segment["slotId"], str)
+                and segment["slotId"]
+                and segment["slotId"] not in slots
+            ):
+                slots.append(segment["slotId"])
+                segments.append({"blank": len(slots) - 1})
+            else:
+                raise AssertionError("FILL_SEGMENT_INVALID")
+
+        answers: dict[str, str] = {}
+        for answer in activity.get("answers", []):
+            closed(answer, ("slotId", "tokenId"))
+            if answer["slotId"] in answers:
+                raise AssertionError("FILL_ANSWER_MAPPING_INVALID")
+            answers[answer["slotId"]] = answer["tokenId"]
+        if set(answers) != set(slots):
+            raise AssertionError("FILL_ANSWER_MAPPING_INVALID")
+
+        used = {key: 0 for key in token_by_id}
+        correct_values: list[str] = []
+        for slot in slots:
+            token_id = answers[slot]
+            if token_id not in token_by_id:
+                raise AssertionError("FILL_ANSWER_TOKEN_UNKNOWN")
+            used[token_id] += 1
+            if used[token_id] > token_by_id[token_id]["maxUses"]:
+                raise AssertionError("FILL_MAX_USES_EXCEEDED")
+            correct_values.append(token_by_id[token_id]["label"])
+
+        # Frozen contract 0.3: visible tokens needed to answer are hashed;
+        # technical IDs and non-visible authoring constraints are excluded.
+        visible_tokens = sorted(
+            row["label"] for row in token_by_id.values()
+        )
+        base.update(
+            segments=segments,
+            tokens=visible_tokens,
+            answerOperation={
+                "kind": "fill-blanks",
+                "correctValues": correct_values,
+            },
+        )
+    else:
+        raise AssertionError("ATLAS_ACTIVITY_TYPE_UNSUPPORTED")
+
+    return "sha256:" + dh(
+        "learnit.atlas.m1.v0.3/stimulus-digest/atlas.stimulus.v1",
+        base,
+    )
 
 
 def _validate_setup_step(step: Any) -> dict[str, Any]:
@@ -161,6 +295,27 @@ class AdapterTests(unittest.TestCase):
             "waitAfterActionMs": 1,
         }
 
+    def test_contract_visible_fill_token_digest(self) -> None:
+        activity = {
+            "type": "fill",
+            "prompt": "Complète le conjugué de −1 − 4i.",
+            "segments": [
+                {"text": "Le conjugué vaut "},
+                {"slotId": "slot"},
+                {"text": "."},
+            ],
+            "tokens": [
+                {"tokenId": "a", "label": "−1 + 4i", "maxUses": 1},
+                {"tokenId": "b", "label": "1 − 4i", "maxUses": 1},
+                {"tokenId": "c", "label": "−1 − 4i", "maxUses": 1},
+            ],
+            "answers": [{"slotId": "slot", "tokenId": "a"}],
+        }
+        expected = "sha256:bd24eff3e978c4d59e4e40747fd3a65024517e172f8be3f19b7f7d5d6e0ff1d8"
+        self.assertEqual(stimulus(activity), expected)
+        activity["tokens"][0]["maxUses"] = 2
+        self.assertEqual(stimulus(activity), expected)
+
     def test_real_product_setup_adapter(self) -> None:
         driver = {
             **self._base(),
@@ -210,6 +365,7 @@ def run_tests():
     return unittest.TextTestRunner(verbosity=2).run(suite)
 
 
+FROZEN["stimulus"] = stimulus
 FROZEN["validate_driver"] = validate_driver
 FROZEN["browser_script"] = browser_script
 FROZEN["run_tests"] = run_tests
