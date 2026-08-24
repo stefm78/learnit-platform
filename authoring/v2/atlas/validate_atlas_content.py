@@ -28,6 +28,36 @@ def norm(s):
     if not isinstance(s,str):raise ValueError('INVALID_VISIBLE_STRING')
     return re.sub(r'\s+',' ',unicodedata.normalize('NFC',s).strip())
 
+
+def revision_digest(value,field):
+    material={k:v for k,v in value.items() if k!=field}
+    raw=json.dumps(
+        canonical(material),
+        ensure_ascii=False,
+        separators=(',',':')
+    ).encode('utf-8')
+    return 'sha256:'+hashlib.sha256(raw).hexdigest()
+
+def validate_revision_digests(package):
+    for course in package['courses']:
+        for activity in course['activities']:
+            if activity.get('activityRevisionDigest') != revision_digest(
+                activity,'activityRevisionDigest'
+            ):
+                raise ValueError('ACTIVITY_REVISION_DIGEST_INVALID')
+
+        if course.get('courseRevisionDigest') != revision_digest(
+            course,'courseRevisionDigest'
+        ):
+            raise ValueError('COURSE_REVISION_DIGEST_INVALID')
+
+    if package.get('packageRevisionDigest') != revision_digest(
+        package,'packageRevisionDigest'
+    ):
+        raise ValueError('PACKAGE_REVISION_DIGEST_INVALID')
+
+    return True
+
 def stimulus_payload(a):
     base={'type':a['type'],'prompt':norm(a['prompt'])}
     if a['type']=='qcm':
@@ -135,6 +165,7 @@ def validate_packages(packages):
                 if c.get('claimId')!=expected:raise ValueError('CLAIM_ID_INVALID')
                 if expected in global_claims:raise ValueError('DUPLICATE_CLAIM_ID')
                 global_claims.add(expected)
+        validate_revision_digests(p)
     return True
 
 def validate_package(p):return validate_packages([p])

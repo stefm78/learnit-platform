@@ -5,6 +5,19 @@ spec=importlib.util.spec_from_file_location('atlas_validator',VAL);v=importlib.u
 class Content(unittest.TestCase):
  def raw_kits(self):return [json.loads(p.read_text(encoding='utf-8')) for p in v.FILES]
  def kits(self):return [v.rewrite_claims(copy.deepcopy(p)) for p in self.raw_kits()]
+ def refresh_revision_digests(self,p):
+  for course in p['courses']:
+   for activity in course['activities']:
+    activity['activityRevisionDigest']=v.revision_digest(
+     activity,'activityRevisionDigest'
+    )
+   course['courseRevisionDigest']=v.revision_digest(
+    course,'courseRevisionDigest'
+   )
+  p['packageRevisionDigest']=v.revision_digest(
+   p,'packageRevisionDigest'
+  )
+  return p
  def repeated_fill(self,max_uses):
   p=self.kits()[0];f=next(a for a in p['courses'][0]['activities'] if a['type']=='fill');token_id=f['answers'][0]['tokenId'];slot_id='11111111-1111-4111-8111-111111111111'
   f['segments'][-1:-1]=[{'text':' puis '},{'slotId':slot_id}];f['answers'].append({'slotId':slot_id,'tokenId':token_id});next(t for t in f['tokens'] if t['tokenId']==token_id)['maxUses']=max_uses
@@ -12,6 +25,28 @@ class Content(unittest.TestCase):
  def test_disk_claims_are_current(self):
   raw=self.raw_kits();rewritten=[v.rewrite_claims(copy.deepcopy(p)) for p in raw];self.assertEqual(raw,rewritten)
  def test_positive(self):self.assertTrue(v.validate_packages(self.kits()))
+
+ def test_revision_digests_current_and_fail_closed(self):
+  for package in self.kits():
+   self.assertTrue(v.validate_revision_digests(package))
+
+  package=self.kits()[0]
+
+  broken=copy.deepcopy(package)
+  broken['courses'][0]['activities'][0]['explanation']+='!'
+  with self.assertRaisesRegex(Exception,'ACTIVITY_REVISION_DIGEST_INVALID'):
+   v.validate_package(broken)
+
+  broken=copy.deepcopy(package)
+  broken['courses'][0]['title']+='!'
+  with self.assertRaisesRegex(Exception,'COURSE_REVISION_DIGEST_INVALID'):
+   v.validate_package(broken)
+
+  broken=copy.deepcopy(package)
+  broken['title']+='!'
+  with self.assertRaisesRegex(Exception,'PACKAGE_REVISION_DIGEST_INVALID'):
+   v.validate_package(broken)
+
  def test_digest_semantics(self):
   kits=self.kits();q=next(a for a in kits[0]['courses'][0]['activities'] if a['type']=='qcm');f=next(a for a in kits[0]['courses'][0]['activities'] if a['type']=='fill')
   changed=copy.deepcopy(q);changed['correctChoiceId']=next(x['choiceId'] for x in changed['choices'] if x['choiceId']!=changed['correctChoiceId']);self.assertNotEqual(v.stimulus(q),v.stimulus(changed))
@@ -23,7 +58,7 @@ class Content(unittest.TestCase):
   original=next(a for a in self.kits()[0]['courses'][0]['activities'] if a['type']=='fill');changed=copy.deepcopy(original);changed['tokens'][0]['maxUses']=2;self.assertNotEqual(v.stimulus(original),v.stimulus(changed))
   invalid,_=self.repeated_fill(1)
   with self.assertRaisesRegex(Exception,'FILL_TOKEN_MAX_USES_EXCEEDED'):v.validate_package(invalid)
-  valid,_=self.repeated_fill(2);v.rewrite_claims(valid);self.assertTrue(v.validate_package(valid))
+  valid,_=self.repeated_fill(2);v.rewrite_claims(valid);self.refresh_revision_digests(valid);self.assertTrue(v.validate_package(valid))
  def test_fill_max_uses_fail_closed(self):
   f=next(a for a in self.kits()[0]['courses'][0]['activities'] if a['type']=='fill');missing=copy.deepcopy(f);del missing['tokens'][0]['maxUses']
   with self.assertRaisesRegex(Exception,'FILL_TOKEN_MAX_USES_INVALID'):v.stimulus(missing)
