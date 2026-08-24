@@ -247,7 +247,7 @@ jobs:
             [[ "${BASE}" == "${REVISION_SAFE_SUPPORT_BASE}" ]]
           elif [[ "${PROFILE}" == atlas-learning || "${PROFILE}" == atlas-core || "${PROFILE}" == atlas-experience || "${PROFILE}" == atlas-content || "${PROFILE}" == atlas-int || "${PROFILE}" == atlas-qa ]]; then
             case "${BRANCH}" in
-              *-corrective-0-3|agent/ATLAS-WP-001-qa-0-3) [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]] ;;
+              *-corrective-0-3|agent/ATLAS-WP-001-qa-0-3|agent/ATLAS-WP-001-m1-0-3-int) [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]] ;;
               *) [[ "${BASE}" == "${CONTRACT_EVIDENCE_BASE}" ]] ;;
             esac
           fi
