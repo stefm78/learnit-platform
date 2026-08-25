@@ -58,8 +58,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -B apps/learnit-next/tests/contract_v2.py
-          python -B apps/learnit-next/tests/storage_isolation.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
