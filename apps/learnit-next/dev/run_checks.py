@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """Evidence-only strict-QA wrapper for the refreshed exact Atlas M1 candidate.
 
-The reviewed evidence adapter is loaded byte-for-byte from the previously green
-evidence commit. This wrapper changes only the exact candidate binding and the
-human-artifact filename. Product, QA-oracle and normal CI semantics remain owned
-by their existing refs.
+The reviewed evidence adapter is loaded byte-for-byte from an exact snapshot ref
+whose head is independently checked. This wrapper changes only the exact candidate
+binding and the human-artifact filename. Product, QA-oracle and normal CI semantics
+remain owned by their existing refs.
 """
 from __future__ import annotations
 
 import os
 from pathlib import Path
 import subprocess
-import sys
 
 HERE = Path(__file__).resolve()
 ROOT = HERE.parents[3]
 RUNNER_PATH = "apps/learnit-next/dev/run_checks.py"
+EVIDENCE_SOURCE_BRANCH = "agent/ATLAS-WP-001-qa-evidence-v2-snapshot"
 EVIDENCE_SOURCE_COMMIT = "14698568c28107a2e25fd4c17c6fda0c9e16f00e"
 EXPECTED_INT_HEAD = "e2c10c8eb5a3e1c4dff5e45b210f327942bafce8"
 EXPECTED_ARTIFACT_SHA256 = "6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f"
@@ -35,37 +35,29 @@ def _run_git(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _materialize_evidence_source() -> None:
-    completed = _run_git(
-        "fetch",
-        "--force",
-        "--no-tags",
-        "origin",
-        EVIDENCE_SOURCE_COMMIT,
+def _git(*args: str) -> str:
+    completed = _run_git(*args)
+    if completed.returncode:
+        raise RuntimeError(
+            "ATLAS_QA_EVIDENCE_GIT_FAILED:"
+            + " ".join(args)
+            + "\n"
+            + completed.stderr
+        )
+    return completed.stdout.strip()
+
+
+snapshot_ref = f"refs/remotes/origin/{EVIDENCE_SOURCE_BRANCH}"
+snapshot_head = _git("rev-parse", f"{snapshot_ref}^{{commit}}")
+if snapshot_head != EVIDENCE_SOURCE_COMMIT:
+    raise RuntimeError(
+        "ATLAS_QA_EVIDENCE_SNAPSHOT_MOVED:"
+        + snapshot_head
+        + "!="
+        + EVIDENCE_SOURCE_COMMIT
     )
-    if completed.returncode:
-        raise RuntimeError(
-            "ATLAS_QA_EVIDENCE_COMMIT_UNAVAILABLE:"
-            + EVIDENCE_SOURCE_COMMIT
-            + "\n"
-            + completed.stderr
-        )
 
-
-def _git_show(spec: str) -> str:
-    completed = _run_git("show", spec)
-    if completed.returncode:
-        raise RuntimeError(
-            "ATLAS_QA_EVIDENCE_SOURCE_UNAVAILABLE:"
-            + spec
-            + "\n"
-            + completed.stderr
-        )
-    return completed.stdout
-
-
-_materialize_evidence_source()
-source = _git_show(f"{EVIDENCE_SOURCE_COMMIT}:{RUNNER_PATH}")
+source = _git("show", f"{snapshot_ref}:{RUNNER_PATH}")
 namespace = {
     "__file__": str(HERE),
     "__name__": "atlas_m1_prior_green_evidence_adapter",
