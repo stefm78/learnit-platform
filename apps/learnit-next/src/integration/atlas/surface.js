@@ -517,4 +517,5 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   return Object.freeze({ready: true, durations: DURATIONS, memoryPolicy: 'atlas.memory-policy.v1'});
 }
 
+// ATLAS_SESSION_START_WIRED
 // ATLAS_M2_MEMORY_PROOF_LOOP_WIRED
