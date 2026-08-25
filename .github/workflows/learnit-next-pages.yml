@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.PROMOTED_HEAD }}
-          fetch-depth: 1
+          fetch-depth: 0
           clean: true
 
       - name: Set up Python
