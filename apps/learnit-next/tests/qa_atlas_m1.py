@@ -3,14 +3,17 @@
 
 This revision deliberately does not rewrite the pre-candidate oracle. It loads the
 exact preserved QA oracle at eef4b7e3bfb6211e08104b838a7ff4bcf35df5fc,
-verifies its exact Git blob identity, and applies three bounded corrections only:
+verifies its exact Git blob identity, and applies four bounded corrections only:
 
 1. real-product setup actions before the already frozen browser start action;
 2. `atlas.stimulus.v1` fill-token hashing aligned to the frozen 0.3 contract,
    which includes visible token values needed to answer and excludes non-visible
    token metadata such as technical IDs and `maxUses`;
 3. the static no-network gate scans the complete candidate runtime source rather
-   than QA/lane test harnesses that intentionally name forbidden APIs.
+   than QA/lane test harnesses that intentionally name forbidden APIs;
+4. the frozen browser-script driver is normalized from its historical double-JSON
+   serialization into the already validated closed driver object before any
+   product action is executed.
 
 The setup adapter exists because the exact integrated candidate starts from an
 empty local library in every fresh browser profile. Strict QA therefore has to
@@ -320,12 +323,17 @@ def browser_script(artifact: pathlib.Path, driver: dict[str, Any]) -> str:
     if script.count(anchor) != 1:
         raise AssertionError("QA_SETUP_ACT_ANCHOR_MISMATCH")
 
-    # setupSteps has already been closed and validated to string-only fields.
-    # Embed it as a Python literal instead of a second JSON decoding layer.
+    # The preserved oracle double-JSON-serializes the closed driver before the
+    # browser subprocess. Normalize that historical representation exactly once
+    # before any selector or timing field is consumed.
     adapter = (
+        "if isinstance(driver,str): driver=json.loads(driver)\n"
+        "assert isinstance(driver,dict),'DRIVER_RUNTIME_OBJECT_REQUIRED'\n"
         f"setup_steps={setup_steps!r}\n"
+        "assert isinstance(setup_steps,list),'SETUP_STEPS_RUNTIME_LIST_REQUIRED'\n"
         "def setup(q):\n"
         " for a in setup_steps:\n"
+        "  assert isinstance(a,dict),'SETUP_STEP_RUNTIME_OBJECT_REQUIRED:'+type(a).__name__\n"
         "  s=a['selector'];x=q.locator(s)\n"
         "  if a['action']=='wait':\n"
         "   x.wait_for(state='visible');assert x.count()==1,'SETUP_ACTION_PATH_NOT_EXACT:'+s\n"
@@ -413,8 +421,9 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(validate_driver(driver), driver)
         script = browser_script(pathlib.Path("/tmp/a.html"), driver)
         self.assertIn("set_input_files", script)
+        self.assertIn("if isinstance(driver,str): driver=json.loads(driver)", script)
+        self.assertIn("DRIVER_RUNTIME_OBJECT_REQUIRED", script)
         self.assertIn("setup_steps=[", script)
-        self.assertNotIn("setup_steps=json.loads", script)
         self.assertEqual(
             script.count("setup(q);act(q,driver['startSelector'])"),
             3,
