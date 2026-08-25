@@ -320,9 +320,10 @@ def browser_script(artifact: pathlib.Path, driver: dict[str, Any]) -> str:
     if script.count(anchor) != 1:
         raise AssertionError("QA_SETUP_ACT_ANCHOR_MISMATCH")
 
-    encoded_setup = repr(json.dumps(setup_steps, ensure_ascii=False))
+    # setupSteps has already been closed and validated to string-only fields.
+    # Embed it as a Python literal instead of a second JSON decoding layer.
     adapter = (
-        f"setup_steps=json.loads({encoded_setup})\n"
+        f"setup_steps={setup_steps!r}\n"
         "def setup(q):\n"
         " for a in setup_steps:\n"
         "  s=a['selector'];x=q.locator(s)\n"
@@ -412,6 +413,8 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(validate_driver(driver), driver)
         script = browser_script(pathlib.Path("/tmp/a.html"), driver)
         self.assertIn("set_input_files", script)
+        self.assertIn("setup_steps=[", script)
+        self.assertNotIn("setup_steps=json.loads", script)
         self.assertEqual(
             script.count("setup(q);act(q,driver['startSelector'])"),
             3,
