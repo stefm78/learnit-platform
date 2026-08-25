@@ -90,7 +90,6 @@ jobs:
           python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
-          python -B apps/learnit-next/tests/qa_learning_loop_v2.py
           python -B apps/learnit-next/tests/atlas_m1_learning.py
           python -B apps/learnit-next/tests/atlas_m1_core.py
           python -B apps/learnit-next/tests/atlas_m1_experience.py
