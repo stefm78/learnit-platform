@@ -49,6 +49,20 @@
     "Deployment build proves exact artifact SHA-256 and byte length before upload.",
     "GitHub Pages returns a deployment URL and deployment evidence identifies the promoted head and digest."
   ],
+  "adversarialTests": [
+    "Reject deployment if checkout HEAD differs from the pinned promoted product merge.",
+    "Reject deployment if the deterministic build SHA-256 differs from the accepted M1 artifact digest.",
+    "Reject deployment if the deterministic build byte length differs from the accepted M1 artifact length.",
+    "Reject any implementation delta outside the Pages workflow and canonical work-package record.",
+    "Verify index.html and learnit-next.html are byte-identical before upload.",
+    "Verify no service worker, backend or runtime API dependency is added by the hosting layer."
+  ],
+  "independentReview": [
+    "Repository governance validates the canonical package structure and repository invariants.",
+    "PR scope independently checks that the implementation remains inside the exact ATLAS-WP-002 allowlist.",
+    "The existing M1 exact-head CI router is not extended for this post-M1 distribution package and its branch-routing rejection is classified as not applicable.",
+    "The deployment itself must fail closed on promotion-head, artifact digest or artifact length drift."
+  ],
   "nonGoals": [
     "Product changes",
     "PWA or service worker",
