@@ -9,6 +9,11 @@ const STORE_KEY_PATHS = Object.freeze({
   atlasMeta: 'key',
 });
 const STORES = Object.freeze(Object.keys(STORE_KEY_PATHS));
+const SUBMISSION_STORES = Object.freeze([
+  'scoredExecutions',
+  'learningEvents',
+  'resumeStates',
+]);
 
 function indexedDbError(code, detail = '') {
   const error = new Error(detail ? `${code}: ${detail}` : code);
@@ -104,14 +109,42 @@ async function replaceAtlasState(database, state, options = {}) {
   return true;
 }
 
-async function atomicWrite(database, writes) {
+async function atomicWrite(database, writes, options = {}) {
   if (!Array.isArray(writes) || !writes.length) throw indexedDbError('EMPTY_ATLAS_WRITE');
   const names = [...new Set(writes.map((write) => write.store))];
   for (const name of names) if (!STORES.includes(name)) throw indexedDbError('UNKNOWN_ATLAS_STORE');
   const transaction = database.transaction(names, 'readwrite');
   const done = transactionResult(transaction);
-  for (const write of writes) transaction.objectStore(write.store).put(structuredClone(write.value));
+  for (const write of writes) {
+    transaction.objectStore(write.store).put(structuredClone(write.value));
+    if (options.abortAfterStore === write.store) {
+      transaction.abort();
+      break;
+    }
+  }
   await done;
+  return true;
+}
+
+function sameStateValue(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function validateSubmissionDelta(before, after, result) {
+  if (!sameStateValue(before.atlasMeta, after.atlasMeta)) {
+    throw indexedDbError('ATLAS_SUBMISSION_META_MUTATION_FORBIDDEN');
+  }
+  if (after.learningEvents.length !== before.learningEvents.length + 1
+      || after.scoredExecutions.length !== before.scoredExecutions.length + 1
+      || after.resumeStates.length !== before.resumeStates.length) {
+    throw indexedDbError('ATLAS_SUBMISSION_DELTA_INVALID');
+  }
+  const checkpoint = after.resumeStates.find(entry => (
+    entry.sessionRef.sessionId === result.resumeState.sessionRef.sessionId
+  ));
+  if (!checkpoint || !sameStateValue(checkpoint, result.resumeState)) {
+    throw indexedDbError('ATLAS_SUBMISSION_RESUME_DELTA_INVALID');
+  }
   return true;
 }
 
@@ -191,9 +224,33 @@ class IndexedDbAtlasCoreService {
   requestAssistance(sessionId, itemPosition, assistanceKind) {
     return this.mutate('requestAssistance', [sessionId, itemPosition, assistanceKind]);
   }
-  commitActivitySubmission(sessionId, itemPosition, rawResponse) {
-    return this.mutate('commitActivitySubmission', [sessionId, itemPosition, rawResponse]);
+
+  async commitActivitySubmission(sessionId, itemPosition, rawResponse) {
+    const before = this.storage.snapshot();
+    const { memoryStorage, service } = this.createMemoryService();
+    const result = service.commitActivitySubmission(sessionId, itemPosition, rawResponse);
+    const after = memoryStorage.snapshot();
+    validateSubmissionDelta(before, after, result);
+
+    const abortAfterStore = this.storage.abortAfterStore;
+    this.storage.abortAfterStore = null;
+    await atomicWrite(
+      this.storage.database,
+      [
+        { store: 'scoredExecutions', value: result.execution },
+        { store: 'learningEvents', value: result.event },
+        { store: 'resumeStates', value: result.resumeState },
+      ],
+      { abortAfterStore },
+    );
+
+    this.storage.learningEvents = structuredClone(after.learningEvents);
+    this.storage.scoredExecutions = structuredClone(after.scoredExecutions);
+    this.storage.resumeStates = structuredClone(after.resumeStates);
+    this.storage.atlasMeta = structuredClone(after.atlasMeta);
+    return result;
   }
+
   lifecycle(sessionId, kind) { return this.mutate('lifecycle', [sessionId, kind]); }
   importState(payload) { return this.mutate('importState', [payload]); }
 
@@ -210,11 +267,13 @@ module.exports = Object.freeze({
   DATABASE,
   VERSION,
   STORES,
+  SUBMISSION_STORES,
   STORE_KEY_PATHS,
   openAtlasIndexedDb,
   atomicWrite,
   readAtlasState,
   replaceAtlasState,
+  validateSubmissionDelta,
   IndexedDbAtlasStorage,
   IndexedDbAtlasCoreService,
 });
