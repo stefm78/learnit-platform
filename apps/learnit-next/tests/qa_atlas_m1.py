@@ -3,12 +3,14 @@
 
 This revision deliberately does not rewrite the pre-candidate oracle. It loads the
 exact preserved QA oracle at eef4b7e3bfb6211e08104b838a7ff4bcf35df5fc,
-verifies its exact Git blob identity, and applies two bounded corrections only:
+verifies its exact Git blob identity, and applies three bounded corrections only:
 
 1. real-product setup actions before the already frozen browser start action;
 2. `atlas.stimulus.v1` fill-token hashing aligned to the frozen 0.3 contract,
    which includes visible token values needed to answer and excludes non-visible
-   token metadata such as technical IDs and `maxUses`.
+   token metadata such as technical IDs and `maxUses`;
+3. the static no-network gate scans the complete candidate runtime source rather
+   than QA/lane test harnesses that intentionally name forbidden APIs.
 
 The setup adapter exists because the exact integrated candidate starts from an
 empty local library in every fresh browser profile. Strict QA therefore has to
@@ -17,8 +19,9 @@ exercise the frozen start/submit/interruption/resume observations.
 
 No candidate self-attestation is accepted. The frozen atomicity, lifecycle,
 reward, claim, provenance, no-network, focus and viewport assertions remain the
-authority and execute unchanged except for the contract-aligned stimulus digest
-payload described above.
+authority. The static gate is strengthened to cover all candidate runtime JS/CSS
+plus the HTML template, including INT composition source, while excluding test
+files whose negative tests merely spell forbidden network tokens.
 """
 from __future__ import annotations
 
@@ -86,7 +89,6 @@ def stimulus(activity: dict[str, Any]) -> str:
 
     visible = FROZEN["visible"]
     closed = FROZEN["closed"]
-    cj = FROZEN["cj"]
     dh = FROZEN["dh"]
 
     base: dict[str, Any] = {
@@ -182,8 +184,6 @@ def stimulus(activity: dict[str, Any]) -> str:
                 raise AssertionError("FILL_MAX_USES_EXCEEDED")
             correct_values.append(token_by_id[token_id]["label"])
 
-        # Frozen contract 0.3: visible tokens needed to answer are hashed;
-        # technical IDs and non-visible authoring constraints are excluded.
         visible_tokens = sorted(
             row["label"] for row in token_by_id.values()
         )
@@ -202,6 +202,69 @@ def stimulus(activity: dict[str, Any]) -> str:
         "learnit.atlas.m1.v0.3/stimulus-digest/atlas.stimulus.v1",
         base,
     )
+
+
+def _candidate_runtime_paths(paths: list[pathlib.Path]) -> list[pathlib.Path]:
+    if not paths:
+        raise AssertionError("STATIC_NETWORK_SOURCE_REQUIRED")
+
+    roots: set[pathlib.Path] = set()
+    for raw in paths:
+        path = pathlib.Path(raw).resolve()
+        for parent in path.parents:
+            runtime = parent / "apps" / "learnit-next" / "src"
+            if runtime.is_dir():
+                roots.add(parent)
+                break
+
+    if len(roots) != 1:
+        raise AssertionError("STATIC_NETWORK_SOURCE_ROOT_AMBIGUOUS")
+
+    root = next(iter(roots))
+    runtime = root / "apps" / "learnit-next" / "src"
+    out = [
+        path.resolve()
+        for path in runtime.rglob("*")
+        if path.is_file()
+        and not path.is_symlink()
+        and path.suffix in {".js", ".css"}
+    ]
+
+    template = root / "apps" / "learnit-next" / "index.template.html"
+    if template.is_file() and not template.is_symlink():
+        out.append(template.resolve())
+
+    if not out:
+        raise AssertionError("STATIC_NETWORK_RUNTIME_SOURCE_REQUIRED")
+    return sorted(set(out), key=lambda path: str(path))
+
+
+def network(paths: list[pathlib.Path]) -> list[tuple[str, str]]:
+    """Static runtime-only no-network gate.
+
+    Lane QA tests intentionally spell forbidden APIs to verify the absence of
+    those APIs from product source. Scanning those harnesses makes the oracle
+    self-trigger. Strict QA instead scans every runtime JS/CSS file in the exact
+    candidate checkout plus the HTML template. This also covers INT composition
+    files that were absent from the frozen lane-only source list.
+    """
+
+    tokens = (
+        "fetch(",
+        "XMLHttpRequest",
+        "WebSocket",
+        "openai",
+        "anthropic",
+        "http://",
+        "https://",
+    )
+    findings: list[tuple[str, str]] = []
+    for path in _candidate_runtime_paths(paths):
+        text = path.read_text()
+        for token in tokens:
+            if token in text:
+                findings.append((str(path), token))
+    return findings
 
 
 def _validate_setup_step(step: Any) -> dict[str, Any]:
@@ -316,6 +379,27 @@ class AdapterTests(unittest.TestCase):
         activity["tokens"][0]["maxUses"] = 2
         self.assertEqual(stimulus(activity), expected)
 
+    def test_static_network_gate_scans_runtime_not_test_harness(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            runtime = root / "apps" / "learnit-next" / "src"
+            tests = root / "apps" / "learnit-next" / "tests"
+            runtime.mkdir(parents=True)
+            tests.mkdir(parents=True)
+
+            safe = runtime / "safe.js"
+            safe.write_text("const localOnly = true;\n")
+            harness = tests / "atlas_m1_learning.py"
+            harness.write_text("for token in ('fetch(', 'XMLHttpRequest', 'WebSocket'): pass\n")
+
+            self.assertEqual(network([harness]), [])
+
+            unsafe = runtime / "unsafe.js"
+            unsafe.write_text("fetch('/remote');\n")
+            self.assertEqual(network([harness]), [(str(unsafe.resolve()), "fetch(")])
+
     def test_real_product_setup_adapter(self) -> None:
         driver = {
             **self._base(),
@@ -366,6 +450,7 @@ def run_tests():
 
 
 FROZEN["stimulus"] = stimulus
+FROZEN["network"] = network
 FROZEN["validate_driver"] = validate_driver
 FROZEN["browser_script"] = browser_script
 FROZEN["run_tests"] = run_tests
