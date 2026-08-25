@@ -2,6 +2,10 @@ name: Learn-it Next Pages
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/learnit-next-pages.yml'
 
 permissions:
   contents: read
