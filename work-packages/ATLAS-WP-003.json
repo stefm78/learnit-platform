@@ -27,6 +27,7 @@
   "scope": {
     "allowedPaths": [
       ".github/workflows/atlas-m2-ci.yml",
+      ".github/workflows/atlas-m2-qa.yml",
       ".github/workflows/learnit-next-ci.yml",
       "apps/learnit-next/build.py",
       "apps/learnit-next/source_manifest.json",
