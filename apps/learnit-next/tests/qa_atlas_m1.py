@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""Atlas M1 strict-QA focus-semantics adapter.
+"""Atlas M1 strict-QA focus-semantics and diagnostic adapter.
 
 This revision composes the previously reviewed QA adapter at exact head
-658375ce72615dde25edb102b3547e911aa8ecad and changes only the browser focus
-observation model. Native radio groups expose one sequential Tab stop per named
-group (the checked radio, or the first radio when none is checked); the previous
-oracle incorrectly counted every enabled radio as an independent Tab stop.
+658375ce72615dde25edb102b3547e911aa8ecad. It preserves all strict gates while:
 
-No product attestation is introduced and all previous strict atomicity,
-lifecycle, provenance, claim, network, viewport and overflow checks remain
-unchanged.
+1. modelling native radio groups as one sequential Tab stop per named group;
+2. preserving the frozen focus acceptance rules but surfacing the exact expected,
+   forward, reverse and boundary traces on failure.
+
+The diagnostic detail changes no acceptance condition and introduces no product
+self-attestation.
 """
 from __future__ import annotations
 
+import json
 import pathlib
 import subprocess
 import unittest
@@ -76,9 +77,40 @@ def browser_script(artifact: pathlib.Path, driver: dict[str, Any]) -> str:
     return script.replace(OLD_FOCUS, NEW_FOCUS, 1)
 
 
+def focus_trace(
+    expected: list[str],
+    forward: list[str | None],
+    reverse: list[str | None],
+    forward_boundary: str | None,
+    reverse_boundary: str | None,
+) -> bool:
+    detail = json.dumps(
+        {
+            "expected": expected,
+            "forward": forward,
+            "reverse": reverse,
+            "forwardBoundary": forward_boundary,
+            "reverseBoundary": reverse_boundary,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    if not expected or len(expected) != len(set(expected)):
+        raise AssertionError("FOCUS_EXPECTED_INVALID:" + detail)
+    if forward != expected:
+        raise AssertionError("FOCUS_FORWARD_ORDER_INVALID:" + detail)
+    if reverse != list(reversed(expected)):
+        raise AssertionError("FOCUS_REVERSE_ORDER_INVALID:" + detail)
+    if forward_boundary != expected[0]:
+        raise AssertionError("FOCUS_FORWARD_BOUNDARY_INVALID:" + detail)
+    if reverse_boundary != expected[-1]:
+        raise AssertionError("FOCUS_REVERSE_BOUNDARY_INVALID:" + detail)
+    return True
+
+
 class FocusAdapterTests(unittest.TestCase):
-    def test_radio_groups_are_one_native_tab_stop(self) -> None:
-        driver = {
+    def _driver(self) -> dict[str, Any]:
+        return {
             "startSelector": "#start",
             "submitSelector": "#submit",
             "interruptSelector": "#pause",
@@ -86,12 +118,25 @@ class FocusAdapterTests(unittest.TestCase):
             "responseSteps": [{"action": "click", "selector": "#answer"}],
             "waitAfterActionMs": 1,
         }
-        script = browser_script(pathlib.Path("/tmp/a.html"), driver)
+
+    def test_radio_groups_are_one_native_tab_stop(self) -> None:
+        script = browser_script(pathlib.Path("/tmp/a.html"), self._driver())
         self.assertIn("x.type!=='radio'", script)
         self.assertIn("checked=g.find(y=>y.checked)", script)
         self.assertNotIn(OLD_FOCUS, script)
         for forbidden in ("candidateAtomic", "lifecyclePass", "qaScenario"):
             self.assertNotIn(forbidden, script)
+
+    def test_diagnostic_focus_trace_preserves_frozen_semantics(self) -> None:
+        expected = ["0", "1", "2"]
+        self.assertTrue(
+            focus_trace(expected, expected, ["2", "1", "0"], "0", "2")
+        )
+        with self.assertRaisesRegex(
+            AssertionError,
+            r'FOCUS_FORWARD_ORDER_INVALID:.*"forward":\["0",null,"2"\]',
+        ):
+            focus_trace(expected, ["0", None, "2"], ["2", "1", "0"], "0", "2")
 
 
 def run_tests():
@@ -102,6 +147,7 @@ def run_tests():
 
     class Combined:
         testsRun = previous.testsRun + own.testsRun
+
         def wasSuccessful(self) -> bool:
             return previous.wasSuccessful() and own.wasSuccessful()
 
@@ -110,8 +156,10 @@ def run_tests():
 
 PREVIOUS["browser_script"] = browser_script
 PREVIOUS["run_tests"] = run_tests
+PREVIOUS["focus_trace"] = focus_trace
 FROZEN["browser_script"] = browser_script
 FROZEN["run_tests"] = run_tests
+FROZEN["focus_trace"] = focus_trace
 
 if __name__ == "__main__":
     raise SystemExit(FROZEN["main"]())
