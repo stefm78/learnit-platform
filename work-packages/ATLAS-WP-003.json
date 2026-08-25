@@ -34,6 +34,7 @@
       "apps/learnit-next/src/core/atlas_claim_authority.js",
       "apps/learnit-next/src/core/atlas_evidence.js",
       "apps/learnit-next/src/core/atlas_memory.js",
+      "apps/learnit-next/src/core/atlas_projection.js",
       "apps/learnit-next/src/core/atlas_recommendation.js",
       "apps/learnit-next/src/integration/atlas/bootstrap.js",
       "apps/learnit-next/src/integration/atlas/session.js",
