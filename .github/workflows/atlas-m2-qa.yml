@@ -1,0 +1,177 @@
+name: Atlas M2 Independent QA
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-m2-qa-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  PRODUCT_BRANCH: agent/ATLAS-WP-003-m2-memory-proof-loop
+  QA_BRANCH: agent/ATLAS-WP-003-m2-qa
+  PRODUCT_HEAD: 445685363d431549fd7addfc2cf3e2f4083d339e
+  PRODUCT_ARTIFACT_SHA256: 7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091
+
+jobs:
+  contradictory-qa:
+    name: Exact M2 contradictory QA
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ATLAS-WP-003-m2-qa'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind exact product and QA heads
+        shell: bash
+        env:
+          QA_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "${QA_HEAD}" ]]
+          git fetch --force --no-tags origin "${PRODUCT_BRANCH}:refs/remotes/origin/${PRODUCT_BRANCH}"
+          actual_product="$(git rev-parse "refs/remotes/origin/${PRODUCT_BRANCH}^{commit}")"
+          [[ "${actual_product}" == "${PRODUCT_HEAD}" ]] || {
+            echo "PRODUCT_HEAD_MOVED:${actual_product}!=${PRODUCT_HEAD}" >&2
+            exit 2
+          }
+          [[ "$(git merge-base "${PRODUCT_HEAD}" HEAD)" == "${PRODUCT_HEAD}" ]]
+          mapfile -t changed < <(git diff --name-only "${PRODUCT_HEAD}" HEAD | sed '/^$/d' | sort -u)
+          expected=(.github/workflows/atlas-m2-qa.yml apps/learnit-next/tests/qa_atlas_m2.py)
+          actual="$(printf '%s\n' "${changed[@]}")"
+          want="$(printf '%s\n' "${expected[@]}" | sort -u)"
+          [[ "${actual}" == "${want}" ]] || {
+            echo 'QA_PATH_SET_INVALID' >&2
+            diff -u <(printf '%s\n' "${want}") <(printf '%s\n' "${actual}") || true
+            exit 2
+          }
+          echo "ATLAS_M2_QA_PATH_SET=PASS"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install exact test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Materialize declared manifest blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          count=0
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fp=item.get('fingerprint',{})
+              if fp.get('kind')!='git-blob-sha1':
+                  continue
+              data=subprocess.run(['git','cat-file','blob',fp['value']],check=True,stdout=subprocess.PIPE).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data); count+=1
+          print(f'ATLAS_M2_QA_MATERIALIZED={count}')
+          PY
+
+      - name: Rebuild frozen product and prove QA byte identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          product_tree="${RUNNER_TEMP}/atlas-m2-product"
+          git worktree add --detach "${product_tree}" "${PRODUCT_HEAD}"
+          trap 'git worktree remove --force "${product_tree}" >/dev/null 2>&1 || true' EXIT
+          python - <<'PY' "${product_tree}"
+          import json,subprocess,sys
+          from pathlib import Path
+          root=Path(sys.argv[1])
+          manifest=json.loads((root/'apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          for item in manifest['workingFiles']:
+              path=root/item['path']
+              if path.is_file(): continue
+              fp=item.get('fingerprint',{})
+              if fp.get('kind')!='git-blob-sha1': continue
+              data=subprocess.run(['git','-C',str(root),'cat-file','blob',fp['value']],check=True,stdout=subprocess.PIPE).stdout
+              path.parent.mkdir(parents=True,exist_ok=True); path.write_bytes(data)
+          PY
+          python -B "${product_tree}/apps/learnit-next/build.py" --output "${RUNNER_TEMP}/product.html"
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/qa.html"
+          cmp "${RUNNER_TEMP}/product.html" "${RUNNER_TEMP}/qa.html"
+          sha="$(sha256sum "${RUNNER_TEMP}/qa.html" | awk '{print $1}')"
+          bytes="$(wc -c < "${RUNNER_TEMP}/qa.html" | tr -d ' ')"
+          [[ "${sha}" == "${PRODUCT_ARTIFACT_SHA256}" ]]
+          mkdir -p apps/learnit-next/dist
+          cp "${RUNNER_TEMP}/qa.html" apps/learnit-next/dist/learnit-next.html
+          echo "ATLAS_M2_QA_ARTIFACT_SHA256=${sha}" >> "${GITHUB_ENV}"
+          echo "ATLAS_M2_QA_ARTIFACT_BYTES=${bytes}" >> "${GITHUB_ENV}"
+          echo "ATLAS_M2_QA_PRODUCT_BYTE_IDENTITY=PASS"
+
+      - name: Run independent adversarial QA
+        env:
+          ATLAS_M2_PRODUCT_HEAD: ${{ env.PRODUCT_HEAD }}
+          ATLAS_M2_ARTIFACT: apps/learnit-next/dist/learnit-next.html
+        run: python -B apps/learnit-next/tests/qa_atlas_m2.py
+
+      - name: Write exact QA evidence
+        shell: bash
+        env:
+          QA_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          proof={
+            'schema':'learnit.atlas.m2.qa-evidence.v1',
+            'result':'PASS',
+            'verdict':'PASS_TO_HUMAN_GATE',
+            'workPackage':'ATLAS-WP-003',
+            'authorityIssue':157,
+            'productHead':os.environ['PRODUCT_HEAD'],
+            'qaHead':os.environ['QA_HEAD'],
+            'artifactSha256':os.environ['ATLAS_M2_QA_ARTIFACT_SHA256'],
+            'artifactBytes':int(os.environ['ATLAS_M2_QA_ARTIFACT_BYTES']),
+            'productArtifactByteIdentity':'PASS',
+            'independentClaimAuthority':'PASS',
+            'memoryBoundaries':'PASS_1_3_7_21',
+            'desktopBrowser':'PASS',
+            'mobileViewport':'PASS_390x844',
+            'keyboard':'PASS',
+            'networkRequired':False,
+            'storageMigration':False,
+          }
+          out=Path('apps/learnit-next/.agent-result'); out.mkdir(parents=True,exist_ok=True)
+          (out/'atlas_m2_qa.json').write_text(json.dumps(proof,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+          print(json.dumps(proof,indent=2,sort_keys=True))
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check "${PRODUCT_HEAD}"...HEAD
+
+      - name: Upload exact M2 QA proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m2-qa-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            apps/learnit-next/tests/qa_atlas_m2.py
+            apps/learnit-next/.agent-result/atlas_m2_qa.json
+            apps/learnit-next/dist/learnit-next.html
