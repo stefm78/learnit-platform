@@ -150,6 +150,7 @@ class AtlasM2MemoryTests(unittest.TestCase):
           const E = require(root + '/src/core/atlas_events.js');
           const P = require(root + '/src/core/atlas_projection.js');
           const M = require(root + '/src/core/atlas_memory.js');
+          const SAME = {sameRef: E.sameCanonical};
 
           const courseRef = {packageLineageId:'pkg', courseLineageId:'course'};
           const objectiveRef = {courseRef, objectiveId:'objective'};
@@ -238,7 +239,7 @@ class AtlasM2MemoryTests(unittest.TestCase):
             executions:[initial, failedMaintenance, recoveryPractice],
             objectiveRef,
             admissibleExecutionIds:new Set([initial.executionId, failedMaintenance.executionId]),
-            evidenceModule:E,
+            evidenceModule:SAME,
           });
           assert.equal(historyBeforeFreshValidation.hasIndependentValidation, true);
           assert.equal(historyBeforeFreshValidation.basisExecution.executionId, initial.executionId);
@@ -263,7 +264,7 @@ class AtlasM2MemoryTests(unittest.TestCase):
               failedMaintenance.executionId,
               freshValidation.executionId,
             ]),
-            evidenceModule:E,
+            evidenceModule:SAME,
           });
           assert.equal(restarted.reconfirmationCount, 0);
           assert.equal(restarted.intervalDays, 1);
