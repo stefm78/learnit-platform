@@ -354,7 +354,7 @@ def run_int_candidate(a:argparse.Namespace)->int:
     indent=2,
     sort_keys=True,
     ensure_ascii=False,
-   )+'\\n',
+   )+'\n',
    encoding='utf-8',
   )
 
