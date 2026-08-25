@@ -7,25 +7,21 @@ const DURATIONS = Object.freeze([5, 15, 30]);
 
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
-
   for (const [name, value] of Object.entries(attributes)) {
     if (name === 'className') element.className = value;
     else if (name === 'text') element.textContent = String(value);
     else if (name === 'disabled') element.disabled = Boolean(value);
     else element.setAttribute(name, String(value));
   }
-
   for (const child of Array.isArray(children) ? children : [children]) {
     if (child == null) continue;
     element.append(child instanceof Node ? child : document.createTextNode(String(child)));
   }
-
   return element;
 }
 
 function compatibleAtlasCourse(context) {
   const course = context?.course;
-
   return Boolean(
     course
     && Array.isArray(course.objectives)
@@ -62,18 +58,15 @@ function emptyEvidence(objectiveRef) {
 function buildContentIndex(context, modules) {
   const E = modules.evidence;
   const course = context.course;
-
   const courseRef = Object.freeze({
     packageLineageId: context.packageLineageId,
     courseLineageId: course.courseLineageId,
   });
-
   const contentRevisionRef = Object.freeze({
     packageLineageId: context.packageLineageId,
     packageRevisionId: context.packageRevisionId,
     packageDigest: context.packageDigest,
   });
-
   const authorIndexes = new Map();
   const activities = [];
   const links = [];
@@ -82,17 +75,8 @@ function buildContentIndex(context, modules) {
     if (source.objectiveIds.length !== 1) {
       throw new Error('ATLAS_INT_REQUIRES_SINGLE_OBJECTIVE_ACTIVITY');
     }
-
-    const objectiveRef = Object.freeze({
-      courseRef,
-      objectiveId: source.objectiveIds[0],
-    });
-
-    const activityRef = Object.freeze({
-      courseRef,
-      activityLineageId: source.activityLineageId,
-    });
-
+    const objectiveRef = Object.freeze({courseRef, objectiveId: source.objectiveIds[0]});
+    const activityRef = Object.freeze({courseRef, activityLineageId: source.activityLineageId});
     activities.push(Object.freeze({
       activityRef,
       objectiveRef,
@@ -100,34 +84,25 @@ function buildContentIndex(context, modules) {
       assessmentRole: source.assessmentRole,
       estimatedMinutes: source.estimatedMinutes,
     }));
-
     const objectiveKey = E.canonicalRefKey(objectiveRef);
     const authorIndex = authorIndexes.get(objectiveKey) ?? 0;
     authorIndexes.set(objectiveKey, authorIndex + 1);
-
-    links.push(Object.freeze({
-      objectiveRef,
-      activityRef,
-      authorIndex,
-    }));
+    links.push(Object.freeze({objectiveRef, activityRef, authorIndex}));
   }
-
-  const objectiveRefs = course.objectives.map(objective => Object.freeze({
-    courseRef,
-    objectiveId: objective.objectiveId,
-  }));
 
   return Object.freeze({
     courseRef,
     contentRevisionRef,
-    objectiveRefs,
+    objectiveRefs: course.objectives.map(objective => Object.freeze({
+      courseRef,
+      objectiveId: objective.objectiveId,
+    })),
     index: E.indexActivities(activities, links),
   });
 }
 
 async function atlasState(modules) {
   const storage = await modules.indexedDb.IndexedDbAtlasStorage.open();
-
   try {
     return storage.snapshot();
   } finally {
@@ -135,18 +110,56 @@ async function atlasState(modules) {
   }
 }
 
+function eventForExecution(state, executionId) {
+  return state.learningEvents.find(event => (
+    event.kind === 'activity-attempt'
+    && event.executionId === executionId
+  )) ?? null;
+}
+
+function claimDetailsForExecution(state, execution, modules) {
+  const session = state.atlasMeta.sessions[execution.sessionRef.sessionId];
+  const planItem = session?.plan?.payload?.items?.[execution.itemPosition];
+  if (!planItem || !['attempt-validation', 'maintain-recent-validation'].includes(planItem.action)) {
+    return null;
+  }
+  const sourceEvent = state.learningEvents.find(event => event.eventId === planItem.validationBasisEventId);
+  const sourceExecution = sourceEvent
+    ? state.scoredExecutions.find(item => item.executionId === sourceEvent.executionId)
+    : null;
+  if (!sourceEvent || !sourceExecution) return null;
+  const details = {
+    objectiveRef: execution.objectiveRef,
+    sourceActivityRef: sourceExecution.activityRef,
+    targetActivityRef: execution.activityRef,
+    sourceEvent,
+    sourceExecution,
+    targetExecution: execution,
+    contentRevisionRef: execution.contentRevisionRef,
+    independenceClaimId: planItem.independenceClaimId,
+  };
+  return modules.claimAuthority.validateRuntimeClaim(planItem, details)
+    ? Object.freeze({planItem, sourceEvent, sourceExecution})
+    : null;
+}
+
+function admissibleValidationIds(state, modules) {
+  const result = new Set();
+  for (const execution of state.scoredExecutions) {
+    if (execution.executionClass !== 'validation') continue;
+    if (claimDetailsForExecution(state, execution, modules)) result.add(execution.executionId);
+  }
+  return result;
+}
+
 function correctionProvenance(state, objectiveRef, modules) {
   const E = modules.evidence;
-  const executions = new Map(
-    state.scoredExecutions.map(record => [record.executionId, record]),
-  );
-
+  const executions = new Map(state.scoredExecutions.map(record => [record.executionId, record]));
   const corrected = new Set(
     state.learningEvents
       .filter(event => event.kind === 'activity-corrected')
       .map(event => event.correctsEventId),
   );
-
   const candidates = state.learningEvents
     .filter(event => event.kind === 'activity-attempt')
     .filter(event => E.sameRef(event.objectiveRef, objectiveRef))
@@ -157,83 +170,174 @@ function correctionProvenance(state, objectiveRef, modules) {
         && execution.outcome === 'incorrect'
         && !corrected.has(event.eventId);
     })
-    .sort((left, right) => (
-      left.occurredAt.localeCompare(right.occurredAt)
-      || left.eventId.localeCompare(right.eventId)
-    ));
-
+    .sort((left, right) => left.occurredAt.localeCompare(right.occurredAt) || left.eventId.localeCompare(right.eventId));
   const target = candidates.at(-1);
-
   if (!target) throw new Error('ATLAS_CORRECTION_TARGET_NOT_FOUND');
+  return Object.freeze({correctsEventId: target.eventId});
+}
 
+function acceptedBasisCandidates(state, objectiveRef, modules, executionClass) {
+  const E = modules.evidence;
+  return state.scoredExecutions
+    .filter(execution => (
+      execution.executionClass === executionClass
+      && execution.outcome === 'correct'
+      && E.sameRef(execution.objectiveRef, objectiveRef)
+    ))
+    .filter(execution => executionClass !== 'validation' || execution.assistance === 'none')
+    .slice()
+    .sort((left, right) => (
+      right.scoredAt.localeCompare(left.scoredAt)
+      || right.executionId.localeCompare(left.executionId)
+    ));
+}
+
+function acceptedTargets(context, objectiveRef, basisExecution, modules) {
+  const targets = modules.claimAuthority.targetsForBasis({
+    context,
+    objectiveRef,
+    sourceActivityRef: basisExecution.activityRef,
+  });
+  return targets.filter(target => {
+    const activity = context.course.activities.find(item => (
+      item.activityLineageId === target.targetActivityRef.activityLineageId
+    ));
+    return activity?.learningPhase === 'validation'
+      && activity?.assessmentRole === 'validation';
+  });
+}
+
+function firstValidationOpportunity(context, state, objectiveRef, modules) {
+  for (const basisExecution of acceptedBasisCandidates(state, objectiveRef, modules, 'practice')) {
+    const sourceEvent = eventForExecution(state, basisExecution.executionId);
+    if (!sourceEvent) continue;
+    const targets = acceptedTargets(context, objectiveRef, basisExecution, modules);
+    if (targets.length) return Object.freeze({basisExecution, sourceEvent, targets});
+  }
+  return null;
+}
+
+function maintenanceOpportunity(context, state, objectiveRef, admissibleIds, now, modules) {
+  const memory = modules.memory.status({
+    now,
+    executions: state.scoredExecutions,
+    objectiveRef,
+    admissibleExecutionIds: admissibleIds,
+    evidenceModule: modules.evidence,
+  });
+  if (!memory.hasIndependentValidation || !memory.due || !memory.basisExecution) {
+    return Object.freeze({memory, opportunity: null});
+  }
+  const sourceEvent = eventForExecution(state, memory.basisExecution.executionId);
+  if (!sourceEvent) return Object.freeze({memory, opportunity: null});
+  const targets = acceptedTargets(context, objectiveRef, memory.basisExecution, modules);
+  if (!targets.length) return Object.freeze({memory, opportunity: null});
   return Object.freeze({
-    correctsEventId: target.eventId,
+    memory,
+    opportunity: Object.freeze({
+      basisExecution: memory.basisExecution,
+      sourceEvent,
+      targets,
+    }),
+  });
+}
+
+function recommendationContext(context, state, row, admissibleIds, now, modules) {
+  if (row.evidence.state === 'ready-for-validation') {
+    const opportunity = firstValidationOpportunity(context, state, row.objectiveRef, modules);
+    if (!opportunity) return Object.freeze({hasAcceptedValidation: false, maintenanceEligible: false});
+    return Object.freeze({
+      hasAcceptedValidation: true,
+      maintenanceEligible: false,
+      acceptedTargetActivityRefs: Object.freeze(opportunity.targets.map(target => target.targetActivityRef)),
+      opportunity,
+    });
+  }
+  if (row.evidence.state === 'validated-recently') {
+    const maintenance = maintenanceOpportunity(context, state, row.objectiveRef, admissibleIds, now, modules);
+    if (!maintenance.opportunity) {
+      return Object.freeze({
+        hasAcceptedValidation: true,
+        maintenanceEligible: false,
+        memory: maintenance.memory,
+      });
+    }
+    return Object.freeze({
+      hasAcceptedValidation: true,
+      maintenanceEligible: true,
+      acceptedTargetActivityRefs: Object.freeze(
+        maintenance.opportunity.targets.map(target => target.targetActivityRef),
+      ),
+      opportunity: maintenance.opportunity,
+      memory: maintenance.memory,
+    });
+  }
+  return Object.freeze({hasAcceptedValidation: false, maintenanceEligible: false});
+}
+
+function validationProvenance(recommendation, context, modules) {
+  const opportunity = context.opportunity;
+  if (!opportunity) throw new Error('ATLAS_VALIDATION_OPPORTUNITY_MISSING');
+  const accepted = opportunity.targets.find(target => (
+    modules.evidence.sameRef(target.targetActivityRef, recommendation.preferredActivityRef)
+  ));
+  if (!accepted) throw new Error('ATLAS_VALIDATION_TARGET_NOT_ACCEPTED');
+  return Object.freeze({
+    validationBasisEventId: opportunity.sourceEvent.eventId,
+    independenceClaimId: accepted.claimId,
   });
 }
 
 async function buildPreview(context, durationMinutes, atlasRuntime) {
   const modules = atlasRuntime.modules;
   const E = modules.evidence;
-
   const content = buildContentIndex(context, modules);
   const state = await atlasState(modules);
+  const admissibleIds = admissibleValidationIds(state, modules);
 
-  /*
-   * Pre-QA candidate rule:
-   * validation claims are NOT declared accepted by INT.
-   * Existing practice/correction evidence remains observable.
-   */
   const projected = modules.projection.projectObjectiveEvidence(
     state.learningEvents,
     state.scoredExecutions,
-    () => false,
+    execution => admissibleIds.has(execution.executionId),
   );
-
   const evidenceByObjective = new Map(
-    projected.map(evidence => [
-      E.canonicalRefKey(evidence.objectiveRef),
-      evidence,
-    ]),
+    projected.map(evidence => [E.canonicalRefKey(evidence.objectiveRef), evidence]),
   );
-
-  const recommendationRows = content.objectiveRefs.map(objectiveRef => ({
+  const rows = content.objectiveRefs.map(objectiveRef => ({
     objectiveRef,
-    evidence:
-      evidenceByObjective.get(E.canonicalRefKey(objectiveRef))
-      ?? emptyEvidence(objectiveRef),
+    evidence: evidenceByObjective.get(E.canonicalRefKey(objectiveRef)) ?? emptyEvidence(objectiveRef),
   }));
+  const ranked = modules.recommendation.rankRecommendations(rows, state.learningEvents);
+  const now = new Date().toISOString();
+  const contexts = new Map();
 
-  const ranked = modules.recommendation.rankRecommendations(
-    recommendationRows,
-    state.learningEvents,
-  );
-
-  const recommendations = ranked.map(row =>
-    modules.recommendation.buildRecommendation({
+  const recommendations = ranked.map(row => {
+    const detail = recommendationContext(context, state, row, admissibleIds, now, modules);
+    contexts.set(E.canonicalRefKey(row.objectiveRef), detail);
+    return modules.recommendation.buildRecommendation({
       objectiveRef: row.objectiveRef,
       evidence: row.evidence,
       index: content.index,
-      context: {
-        hasAcceptedValidation: false,
-        maintenanceEligible: false,
-      },
-    }),
-  );
+      context: detail,
+    });
+  });
 
   const itemProvenance = recommendations.map(recommendation => {
     if (recommendation.action === 'correct-practice') {
-      return correctionProvenance(
-        state,
-        recommendation.objectiveRef,
+      return correctionProvenance(state, recommendation.objectiveRef, modules);
+    }
+    if (['attempt-validation', 'maintain-recent-validation'].includes(recommendation.action)) {
+      return validationProvenance(
+        recommendation,
+        contexts.get(E.canonicalRefKey(recommendation.objectiveRef)),
         modules,
       );
     }
-
     return {};
   });
 
   const plan = modules.planner.buildPlan({
-    engineVersion: 'atlas.m1.v0.3',
+    engineVersion: 'atlas.m2.memory.v1',
     courseRef: content.courseRef,
     contentRevisionRef: content.contentRevisionRef,
     durationMinutes,
@@ -244,156 +348,90 @@ async function buildPreview(context, durationMinutes, atlasRuntime) {
   return Object.freeze({
     recommendation: recommendations[0],
     plan,
+    memory: contexts.get(E.canonicalRefKey(recommendations[0].objectiveRef))?.memory ?? null,
   });
 }
 
 function renderError(container, error) {
   container.replaceChildren(
-    node('div', { className: 'notice notice-error', role: 'alert' }, [
-      node('strong', { text: 'Atlas ne peut pas construire cette séance.' }),
-      node('p', { text: error?.code ?? error?.message ?? String(error) }),
+    node('div', {className: 'notice notice-error', role: 'alert'}, [
+      node('strong', {text: 'Atlas ne peut pas construire cette séance.'}),
+      node('p', {text: error?.code ?? error?.message ?? String(error)}),
     ]),
   );
 }
 
-export async function attachAtlasPreviewSurface({
-  root,
-  runtime,
-  atlasRuntime,
-}) {
-  if (!root || !runtime || !atlasRuntime?.ready) {
-    throw new Error('ATLAS_SURFACE_DEPENDENCY_MISSING');
-  }
-
+export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
+  if (!root || !runtime || !atlasRuntime?.ready) throw new Error('ATLAS_SURFACE_DEPENDENCY_MISSING');
   const previous = root.querySelector('[data-atlas-int-surface]');
   if (previous) previous.remove();
 
-  const title = node('h2', {
-    id: 'atlas-int-title',
-    text: 'Aujourd’hui',
-  });
-
-  const content = node('div', {
-    'data-atlas-int-content': 'true',
-  });
-
+  const content = node('div', {'data-atlas-int-content': 'true'});
   const surface = node('section', {
     className: 'atlas-m1 atlas-int-surface',
     'aria-labelledby': 'atlas-int-title',
     'data-atlas-int-surface': 'ready',
   }, [
-    node('div', { className: 'section-heading' }, [
+    node('div', {className: 'section-heading'}, [
       node('div', {}, [
-        node('p', { className: 'eyebrow', text: 'Atlas M1' }),
-        title,
-        node('p', {
-          text: 'Choisissez le temps dont vous disposez. Atlas prépare la séance utile maintenant.',
-        }),
+        node('p', {className: 'eyebrow', text: 'Atlas M2'}),
+        node('h2', {id: 'atlas-int-title', text: 'Aujourd’hui'}),
+        node('p', {text: 'Choisissez votre temps. Atlas privilégie les erreurs à reprendre puis les acquis à valider ou reconfirmer quand cela devient utile.'}),
       ]),
     ]),
     content,
   ]);
-
   const header = root.querySelector('.app-header') ?? root.firstElementChild;
-
   if (header?.parentNode === root) header.after(surface);
   else root.prepend(surface);
 
   async function refresh() {
     const courses = await runtime.listCourses();
     const atlasCourses = [];
-
     for (const course of courses) {
       try {
-        const context = await runtime.getAtlasCourseContext(
-          course.courseInstallId,
-        );
-
-        if (compatibleAtlasCourse(context)) {
-          atlasCourses.push(context);
-        }
+        const context = await runtime.getAtlasCourseContext(course.courseInstallId);
+        if (compatibleAtlasCourse(context)) atlasCourses.push(context);
       } catch {
-        // Non-Atlas or incomplete local course: leave it to the classic UI.
+        // Non-Atlas or incomplete local course remains handled by the classic UI.
       }
     }
 
-    if (atlasCourses.length === 0) {
-      content.replaceChildren(
-        node('div', { className: 'empty-state' }, [
-          node('h3', { text: 'Aucun parcours Atlas installé' }),
-          node('p', {
-            text: 'Importez un kit Atlas M1 dans la bibliothèque Learn-it pour préparer une séance de 5, 15 ou 30 minutes.',
-          }),
-        ]),
-      );
+    if (!atlasCourses.length) {
+      content.replaceChildren(node('div', {className: 'empty-state'}, [
+        node('h3', {text: 'Aucun parcours Atlas installé'}),
+        node('p', {text: 'Importez un kit Atlas dans la bibliothèque Learn-it pour préparer une séance de 5, 15 ou 30 minutes.'}),
+      ]));
       return;
     }
 
     const cards = [];
-
     for (const context of atlasCourses) {
-      const preview = node('div', {
-        className: 'atlas-int-preview',
-        'aria-live': 'polite',
-      });
-
+      const preview = node('div', {className: 'atlas-int-preview', 'aria-live': 'polite'});
       const actions = node('div', {
         className: 'atlas-actions',
         role: 'group',
         'aria-label': `Durée pour ${context.title}`,
         'data-atlas-planner-actions': 'true',
       });
-
-      const resumable =
-        await findResumableAtlasSession(
-          context,
-          atlasRuntime,
-        );
-
+      const resumable = await findResumableAtlasSession(context, atlasRuntime);
       if (resumable) {
-        const resumeButton = node(
-          'button',
-          {
-            type: 'button',
-            className: 'atlas-primary',
-            text: 'Reprendre la séance',
-            'data-atlas-resume-session': 'true',
-          },
-        );
-
-        resumeButton.addEventListener(
-          'click',
-          async () => {
-            resumeButton.disabled = true;
-
-            preview.replaceChildren(
-              node('p', {
-                role: 'status',
-                text: 'Reprise de la séance…',
-              }),
-            );
-
-            try {
-              await runAtlasSession({
-                container: preview,
-                context,
-                plan: resumable.plan,
-                existing: resumable,
-                atlasRuntime,
-                onReturn: refresh,
-              });
-            } catch (error) {
-              renderError(
-                preview,
-                error,
-              );
-
-              resumeButton.disabled =
-                false;
-            }
-          },
-        );
-
+        const resumeButton = node('button', {
+          type: 'button',
+          className: 'atlas-primary',
+          text: 'Reprendre la séance',
+          'data-atlas-resume-session': 'true',
+        });
+        resumeButton.addEventListener('click', async () => {
+          resumeButton.disabled = true;
+          preview.replaceChildren(node('p', {role: 'status', text: 'Reprise de la séance…'}));
+          try {
+            await runAtlasSession({container: preview, context, plan: resumable.plan, existing: resumable, atlasRuntime, onReturn: refresh});
+          } catch (error) {
+            renderError(preview, error);
+            resumeButton.disabled = false;
+          }
+        });
         actions.append(resumeButton);
       }
 
@@ -404,122 +442,64 @@ export async function attachAtlasPreviewSurface({
           text: `${duration} min`,
           'data-atlas-duration': duration,
         });
-
         button.addEventListener('click', async () => {
-          actions.querySelectorAll('button').forEach(item => {
-            item.disabled = true;
-          });
-
-          preview.replaceChildren(
-            node('p', {
-              role: 'status',
-              text: `Préparation de la séance de ${duration} minutes…`,
-            }),
-          );
-
+          actions.querySelectorAll('button').forEach(item => { item.disabled = true; });
+          preview.replaceChildren(node('p', {role: 'status', text: `Préparation de la séance de ${duration} minutes…`}));
           try {
-            const result = await buildPreview(
-              context,
-              duration,
-              atlasRuntime,
-            );
-
+            const result = await buildPreview(context, duration, atlasRuntime);
             const wrapper = node('div');
             wrapper.innerHTML = atlasRuntime.modules.today.renderToday({
               recommendation: result.recommendation,
               plan: result.plan,
             });
-
-            const start = wrapper.querySelector(
-              '[data-atlas-action="start"]',
-            );
-
-            if (!start) {
-              throw new Error(
-                'ATLAS_START_CONTROL_MISSING',
-              );
-            }
-
-            start.addEventListener(
-              'click',
-              async () => {
-                start.disabled = true;
-                start.textContent = 'Démarrage…';
-
-                try {
-                  await runAtlasSession({
-                    container: preview,
-                    context,
-                    plan: result.plan,
-                    atlasRuntime,
-                    onReturn: refresh,
-                  });
-                } catch (error) {
-                  renderError(
-                    preview,
-                    error,
-                  );
-
-                  start.disabled = false;
-                }
-              },
-            );
-
-            wrapper.append(
-              node('p', {
+            if (result.memory?.dueAt) {
+              wrapper.append(node('p', {
                 className: 'help',
-                text: 'Plan Atlas calculé localement. Commencez lorsque vous êtes prêt.',
-              }),
-            );
-
+                'data-atlas-memory-due': result.memory.dueAt,
+                text: result.memory.due
+                  ? `Reconfirmation due selon ${result.memory.policyVersion}.`
+                  : `Prochaine reconfirmation au plus tôt le ${result.memory.dueAt}.`,
+              }));
+            }
+            const start = wrapper.querySelector('[data-atlas-action="start"]');
+            if (!start) throw new Error('ATLAS_START_CONTROL_MISSING');
+            start.addEventListener('click', async () => {
+              start.disabled = true;
+              start.textContent = 'Démarrage…';
+              try {
+                await runAtlasSession({container: preview, context, plan: result.plan, atlasRuntime, onReturn: refresh});
+              } catch (error) {
+                renderError(preview, error);
+                start.disabled = false;
+              }
+            });
+            wrapper.append(node('p', {className: 'help', text: 'Plan Atlas calculé localement. Commencez lorsque vous êtes prêt.'}));
             preview.replaceChildren(wrapper);
           } catch (error) {
             renderError(preview, error);
           } finally {
-            actions.querySelectorAll('button').forEach(item => {
-              item.disabled = false;
-            });
+            actions.querySelectorAll('button').forEach(item => { item.disabled = false; });
           }
         });
-
         actions.append(button);
       }
 
-      cards.push(
-        node('article', { className: 'course-card atlas-course-card' }, [
-          node('h3', { text: context.title }),
-          node('p', {
-            className: 'course-meta',
-            text: `${context.course.objectives.length} objectif(s) · ${context.course.activities.length} activité(s)`,
-          }),
-          actions,
-          preview,
-        ]),
-      );
+      cards.push(node('article', {className: 'course-card atlas-course-card'}, [
+        node('h3', {text: context.title}),
+        node('p', {className: 'course-meta', text: `${context.course.objectives.length} objectif(s) · ${context.course.activities.length} activité(s)`}),
+        actions,
+        preview,
+      ]));
     }
-
-    content.replaceChildren(
-      node('div', { className: 'course-grid' }, cards),
-    );
+    content.replaceChildren(node('div', {className: 'course-grid'}, cards));
   }
 
   let refreshQueued = false;
-
   function queueRefresh() {
-    if (
-      root.querySelector(
-        '[data-atlas-session-active="true"]',
-      )
-    ) {
-      return;
-    }
-
-    if (refreshQueued) return;
+    if (root.querySelector('[data-atlas-session-active="true"]') || refreshQueued) return;
     refreshQueued = true;
-
     queueMicrotask(async () => {
       refreshQueued = false;
-
       try {
         await refresh();
       } catch (error) {
@@ -529,21 +509,12 @@ export async function attachAtlasPreviewSurface({
   }
 
   await refresh();
-
   const appMain = root.querySelector('.app-main');
-
   if (appMain) {
     const observer = new MutationObserver(queueRefresh);
-    observer.observe(appMain, {
-      childList: true,
-      subtree: true,
-    });
+    observer.observe(appMain, {childList: true, subtree: true});
   }
-
-  return Object.freeze({
-    ready: true,
-    durations: DURATIONS,
-  });
+  return Object.freeze({ready: true, durations: DURATIONS, memoryPolicy: 'atlas.memory-policy.v1'});
 }
 
-// ATLAS_SESSION_START_WIRED
+// ATLAS_M2_MEMORY_PROOF_LOOP_WIRED
