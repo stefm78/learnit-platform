@@ -29,6 +29,36 @@ env:
   CORRECTIVE_COMMON_BASELINE: 6dae2f4f754431ed97c535a3a78fa71067bcd1de
   REVISION_SAFE_SUPPORT_BASE: 247325c61d990731a24efdcff6e4f0b2e5d4b9c2
   WAVE_A_BASE: 8ebafee48cc5277b92776982639a0146ae7e76d0
+  ATLAS_M1_PROMOTION_PATHS: |
+    apps/learnit-next/build.py
+    apps/learnit-next/source_manifest.json
+    apps/learnit-next/src/adapters/atlas_indexeddb.js
+    apps/learnit-next/src/atlas.css
+    apps/learnit-next/src/core/atlas_clock.js
+    apps/learnit-next/src/core/atlas_events.js
+    apps/learnit-next/src/core/atlas_evidence.js
+    apps/learnit-next/src/core/atlas_planner.js
+    apps/learnit-next/src/core/atlas_projection.js
+    apps/learnit-next/src/core/atlas_recommendation.js
+    apps/learnit-next/src/integration/atlas/bootstrap.js
+    apps/learnit-next/src/integration/atlas/import_adapter.js
+    apps/learnit-next/src/integration/atlas/session.js
+    apps/learnit-next/src/integration/atlas/surface.js
+    apps/learnit-next/src/main.js
+    apps/learnit-next/src/ports/atlas_storage.js
+    apps/learnit-next/src/ui/atlas_rewards.js
+    apps/learnit-next/src/ui/atlas_session.js
+    apps/learnit-next/src/ui/atlas_summary.js
+    apps/learnit-next/src/ui/atlas_today.js
+    apps/learnit-next/tests/atlas_m1_content.py
+    apps/learnit-next/tests/atlas_m1_core.py
+    apps/learnit-next/tests/atlas_m1_experience.py
+    apps/learnit-next/tests/atlas_m1_int.py
+    apps/learnit-next/tests/atlas_m1_learning.py
+    authoring/v2/atlas/README.md
+    authoring/v2/atlas/nombres_complexes_atlas.json
+    authoring/v2/atlas/signaux_electriques_atlas.json
+    authoring/v2/atlas/validate_atlas_content.py
 
 concurrency:
   group: learnit-next-${{ github.workflow }}-${{ github.event.pull_request.number || inputs.verification_ref || github.sha }}
@@ -158,12 +188,28 @@ jobs:
               exit 2
             }
             mapfile -t changed < <(git diff --name-only "${parents[0]}" HEAD | sed '/^$/d' | sort -u)
-            expected=$'.github/workflows/learnit-next-ci.yml\napps/learnit-next/dev/run_checks.py'
             actual="$(printf '%s\n' "${changed[@]}")"
-            if [[ "${actual}" == "${expected}" ]]; then
+
+            support_only=true
+            for path in "${changed[@]}"; do
+              case "${path}" in
+                .github/workflows/learnit-next-ci.yml|apps/learnit-next/dev/run_checks.py) ;;
+                *) support_only=false ;;
+              esac
+            done
+
+            expected_atlas="$(printf '%s\n' "${ATLAS_M1_PROMOTION_PATHS}" | sed '/^$/d' | sort -u)"
+
+            if [[ ${#changed[@]} -gt 0 && "${support_only}" == true ]]; then
               profile=atlas-support
               branch=agent/ATLAS-WP-001-support-governance-ci
               base="${REVISION_SAFE_SUPPORT_BASE}"
+              post_merge=true
+            elif [[ "${actual}" == "${expected_atlas}" ]]; then
+              profile=atlas-int-post-merge
+              branch=main
+              base="${CORRECTIVE_COMMON_BASELINE}"
+              post_merge=true
             else
               profile=wave-a
               branch=main
@@ -227,7 +273,7 @@ jobs:
             materialize_branch_or_pr "${BRANCH}" "${PR_NUMBER}" "${TARGET}"
           fi
 
-          if [[ "${PROFILE}" == atlas-support ]]; then
+          if [[ "${PROFILE}" == atlas-support || "${PROFILE}" == atlas-int-post-merge ]]; then
             materialize_branch_or_pr agent/ATLAS-WP-001-learning-corrective-0-3 140
             materialize_branch_or_pr agent/ATLAS-WP-001-core-corrective-0-3 141
             materialize_branch_or_pr agent/ATLAS-WP-001-experience-corrective-0-3 142
@@ -245,6 +291,10 @@ jobs:
             [[ "${TARGET}" == f41de5043a22f8559a3b6a0d71654fbd542b5ec6 ]]
           elif [[ "${PROFILE}" == atlas-support ]]; then
             [[ "${BASE}" == "${REVISION_SAFE_SUPPORT_BASE}" ]]
+          elif [[ "${PROFILE}" == atlas-int-post-merge ]]; then
+            [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]]
+            [[ "${BRANCH}" == main ]]
+            [[ "${POST_MERGE}" == true ]]
           elif [[ "${PROFILE}" == atlas-learning || "${PROFILE}" == atlas-core || "${PROFILE}" == atlas-experience || "${PROFILE}" == atlas-content || "${PROFILE}" == atlas-int || "${PROFILE}" == atlas-qa ]]; then
             case "${BRANCH}" in
               *-corrective-0-3|agent/ATLAS-WP-001-qa-0-3|agent/ATLAS-WP-001-m1-0-3-int) [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]] ;;
@@ -256,6 +306,57 @@ jobs:
               git fetch --force --no-tags origin "${sha}"
             done
           fi
+
+      - name: Preflight exact Atlas M1 promotion merge
+        if: github.event_name == 'pull_request' && steps.profile.outputs.name == 'atlas-support'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          candidate="$(git rev-parse refs/remotes/origin/agent/ATLAS-WP-001-m1-0-3-int)"
+          [[ "${candidate}" =~ ^[0-9a-f]{40}$ ]]
+
+          merge_tree="${RUNNER_TEMP}/atlas-m1-promotion-preflight-merge"
+          candidate_tree="${RUNNER_TEMP}/atlas-m1-promotion-preflight-candidate"
+
+          cleanup() {
+            git worktree remove --force "${merge_tree}" >/dev/null 2>&1 || true
+            git worktree remove --force "${candidate_tree}" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          git worktree add --detach "${merge_tree}" HEAD
+          git worktree add --detach "${candidate_tree}" "${candidate}"
+
+          git -C "${merge_tree}" merge --no-commit --no-ff "${candidate}"
+
+          actual="$(git -C "${merge_tree}" diff --cached --name-only | sed '/^$/d' | sort -u)"
+          expected="$(printf '%s\n' "${ATLAS_M1_PROMOTION_PATHS}" | sed '/^$/d' | sort -u)"
+          [[ "${actual}" == "${expected}" ]] || {
+            echo "Atlas M1 synthetic merge path set differs." >&2
+            diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+            exit 2
+          }
+
+          merged_html="${RUNNER_TEMP}/atlas-m1-promotion-preflight-merged.html"
+          candidate_html="${RUNNER_TEMP}/atlas-m1-promotion-preflight-candidate.html"
+
+          python -B "${merge_tree}/apps/learnit-next/build.py" --output "${merged_html}"
+          python -B "${candidate_tree}/apps/learnit-next/build.py" --output "${candidate_html}"
+
+          cmp "${candidate_html}" "${merged_html}"
+          merged_sha="$(sha256sum "${merged_html}" | awk '{print $1}')"
+          candidate_sha="$(sha256sum "${candidate_html}" | awk '{print $1}')"
+          merged_bytes="$(wc -c < "${merged_html}" | tr -d ' ')"
+          candidate_bytes="$(wc -c < "${candidate_html}" | tr -d ' ')"
+
+          [[ "${merged_sha}" == "${candidate_sha}" ]]
+          [[ "${merged_bytes}" == "${candidate_bytes}" ]]
+
+          echo "ATLAS_POST_MERGE_PREFLIGHT=PASS"
+          echo "ATLAS_PREFLIGHT_ACCEPTED_INT=${candidate}"
+          echo "ATLAS_PREFLIGHT_ARTIFACT_SHA256=${candidate_sha}"
+          echo "ATLAS_PREFLIGHT_ARTIFACT_BYTES=${candidate_bytes}"
 
       - uses: actions/setup-python@v5
         with:
@@ -322,7 +423,90 @@ jobs:
             grep -q CORRECTIVE_BASE "${runner}"
             grep -q branch_current_head_equals_requested_target "${runner}"
           fi
-          if [[ "${PROFILE}" == wave-a ]]; then
+
+          if [[ "${PROFILE}" == atlas-int-post-merge ]]; then
+            parents=( $(git show -s --format=%P HEAD) )
+            [[ ${#parents[@]} -eq 2 ]] || {
+              echo 'Atlas M1 post-merge target must have exactly two parents.' >&2
+              exit 2
+            }
+            accepted="${parents[1]}"
+            remote_int="$(git rev-parse refs/remotes/origin/agent/ATLAS-WP-001-m1-0-3-int)"
+            [[ "${accepted}" == "${remote_int}" ]] || {
+              echo "Atlas M1 merge second parent differs from accepted INT ref: ${accepted} != ${remote_int}" >&2
+              exit 2
+            }
+
+            actual="$(git diff --name-only "${parents[0]}" HEAD | sed '/^$/d' | sort -u)"
+            expected="$(printf '%s\n' "${ATLAS_M1_PROMOTION_PATHS}" | sed '/^$/d' | sort -u)"
+            [[ "${actual}" == "${expected}" ]] || {
+              echo 'Atlas M1 post-merge path set differs.' >&2
+              diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+              exit 2
+            }
+
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              [[ "$(git rev-parse "HEAD:${path}")" == "$(git rev-parse "${accepted}:${path}")" ]] || {
+                echo "Atlas M1 post-merge blob differs from accepted candidate: ${path}" >&2
+                exit 2
+              }
+            done <<< "${expected}"
+
+            candidate_tree="${RUNNER_TEMP}/atlas-m1-post-merge-candidate"
+            git worktree add --detach "${candidate_tree}" "${accepted}"
+            trap 'git worktree remove --force "${candidate_tree}" >/dev/null 2>&1 || true' EXIT
+
+            LEARNIT_REPO_ROOT="${candidate_tree}" python "${runner}" \
+              --strict \
+              --profile atlas-int \
+              --base-ref "${CORRECTIVE_COMMON_BASELINE}" \
+              --branch-ref agent/ATLAS-WP-001-m1-0-3-int \
+              --target-ref "${accepted}"
+
+            candidate_result="${candidate_tree}/apps/learnit-next/.agent-result/run_checks.json"
+            candidate_html="${candidate_tree}/apps/learnit-next/dist/learnit-next.html"
+            [[ -f "${candidate_result}" && -f "${candidate_html}" ]]
+
+            python -B "${GITHUB_WORKSPACE}/apps/learnit-next/build.py"
+            head_html="${GITHUB_WORKSPACE}/apps/learnit-next/dist/learnit-next.html"
+            cmp "${candidate_html}" "${head_html}"
+
+            candidate_sha="$(sha256sum "${candidate_html}" | awk '{print $1}')"
+            head_sha="$(sha256sum "${head_html}" | awk '{print $1}')"
+            candidate_bytes="$(wc -c < "${candidate_html}" | tr -d ' ')"
+            head_bytes="$(wc -c < "${head_html}" | tr -d ' ')"
+            proof_sha="$(jq -r '.atlasIntCandidate.artifactSha256' "${candidate_result}")"
+            proof_bytes="$(jq -r '.atlasIntCandidate.artifactBytes' "${candidate_result}")"
+
+            [[ "${candidate_sha}" == "${head_sha}" ]]
+            [[ "${candidate_bytes}" == "${head_bytes}" ]]
+            [[ "${proof_sha}" == "${head_sha}" ]]
+            [[ "${proof_bytes}" == "${head_bytes}" ]]
+
+            result_dir="${GITHUB_WORKSPACE}/apps/learnit-next/.agent-result"
+            mkdir -p "${result_dir}"
+            jq \
+              --arg postMergeHead "${TARGET}" \
+              --arg acceptedIntegrationHead "${accepted}" \
+              --arg artifactSha256 "${head_sha}" \
+              --argjson artifactBytes "${head_bytes}" \
+              '{
+                result:"PASS",
+                verdict:"PASS_POST_MERGE_ATLAS_M1",
+                atlasIntPostMerge:{
+                  schema:"learnit.next.ci.atlas-int-post-merge.v1",
+                  postMergeHead:$postMergeHead,
+                  acceptedIntegrationHead:$acceptedIntegrationHead,
+                  artifactSha256:$artifactSha256,
+                  artifactBytes:$artifactBytes,
+                  candidateArtifactByteIdentity:"PASS",
+                  candidateProof:.atlasIntCandidate
+                }
+              }' "${candidate_result}" > "${result_dir}/run_checks.json"
+
+            cat "${result_dir}/run_checks.json"
+          elif [[ "${PROFILE}" == wave-a ]]; then
             args=(--strict --profile wave-a-ci --mode "${MODE}" --base-ref "${BASE}")
             [[ -z "${ACCEPTED}" ]] || args+=(--accepted-integration-head "${ACCEPTED}")
             LEARNIT_REPO_ROOT="${GITHUB_WORKSPACE}" python "${runner}" "${args[@]}"
@@ -364,8 +548,20 @@ jobs:
             apps/learnit-next/.agent-result/qa-exact.log
             apps/learnit-next/dist/learnit-next.html
 
+      - name: Upload exact Atlas M1 post-merge proof
+        if: always() && steps.profile.outputs.name == 'atlas-int-post-merge'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.profile.outputs.artifact }}
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
+          path: |
+            apps/learnit-next/.agent-result/run_checks.json
+            apps/learnit-next/dist/learnit-next.html
+
       - name: Upload Atlas routed proof
-        if: always() && startsWith(steps.profile.outputs.name, 'atlas-') && steps.profile.outputs.name != 'atlas-contracts'
+        if: always() && startsWith(steps.profile.outputs.name, 'atlas-') && steps.profile.outputs.name != 'atlas-contracts' && steps.profile.outputs.name != 'atlas-int-post-merge'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.profile.outputs.artifact }}
