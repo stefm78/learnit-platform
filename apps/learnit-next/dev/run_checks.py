@@ -297,11 +297,12 @@ def strict_candidate_qa():
             if proof.get("verdict") != "PASS_TO_HUMAN_GATE":
                 raise RuntimeError("RECOMPOSE_STRICT_QA_NOT_GREEN")
             return {
-                "schema": "learnit.atlas.m1.recomposition-evidence.v1",
+                "schema": "learnit.atlas.m1.recomposition-evidence.v2",
                 "compositionHead": COMPOSITION_HEAD,
                 "syntheticCandidateHead": candidate,
                 "acceptedCoreHead": accepted_core,
                 "manifestSelfSha256": self_digest,
+                "formalManifestUtf8": (candidate_tree / "apps/learnit-next/source_manifest.json").read_text(encoding="utf-8"),
                 "artifactSha256": artifact_sha,
                 "artifactBytes": artifact.stat().st_size,
                 "qaHead": qa_head,
@@ -317,7 +318,7 @@ def strict_candidate_qa():
 
 def capability():
     return {
-        "schema": "learnit.atlas.m1.support.recomposition-capability.v1",
+        "schema": "learnit.atlas.m1.support.recomposition-capability.v2",
         "purpose": "EVIDENCE_ONLY_DO_NOT_AUTONOMOUSLY_MERGE",
         "routingSelfTest": _matrix_without_old_int_binding(),
         "strictCandidateQa": strict_candidate_qa(),
