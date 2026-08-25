@@ -22,9 +22,9 @@ EXPECTED_ARTIFACT_SHA256 = "6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1
 EXPECTED_ARTIFACT_BYTES = 334194
 
 
-def _git_show(spec: str) -> str:
-    completed = subprocess.run(
-        ["git", "show", spec],
+def _run_git(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", *args],
         cwd=ROOT,
         env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
         text=True,
@@ -33,6 +33,27 @@ def _git_show(spec: str) -> str:
         timeout=1800,
         check=False,
     )
+
+
+def _materialize_evidence_source() -> None:
+    completed = _run_git(
+        "fetch",
+        "--force",
+        "--no-tags",
+        "origin",
+        EVIDENCE_SOURCE_COMMIT,
+    )
+    if completed.returncode:
+        raise RuntimeError(
+            "ATLAS_QA_EVIDENCE_COMMIT_UNAVAILABLE:"
+            + EVIDENCE_SOURCE_COMMIT
+            + "\n"
+            + completed.stderr
+        )
+
+
+def _git_show(spec: str) -> str:
+    completed = _run_git("show", spec)
     if completed.returncode:
         raise RuntimeError(
             "ATLAS_QA_EVIDENCE_SOURCE_UNAVAILABLE:"
@@ -43,6 +64,7 @@ def _git_show(spec: str) -> str:
     return completed.stdout
 
 
+_materialize_evidence_source()
 source = _git_show(f"{EVIDENCE_SOURCE_COMMIT}:{RUNNER_PATH}")
 namespace = {
     "__file__": str(HERE),
