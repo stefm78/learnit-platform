@@ -15,7 +15,7 @@ function compareStartedEvents(a,b){
   const byTime=compareCanonicalCodePoints(a.occurredAt,b.occurredAt);
   return byTime || compareCanonicalCodePoints(a.eventId,b.eventId);
 }
-function lastSelectionStats(objectiveRef, startedEvents) {
+function lastSelectionStats(objectiveRef, startedEvents=[]) {
   const key=E.canonicalRefKey(objectiveRef);
   const accepted=(startedEvents||[])
     .filter(event=>event.kind==='session-started')
@@ -47,11 +47,17 @@ function actionForEvidence(evidence, context={}) {
     default: fail('UNKNOWN_EVIDENCE_STATE');
   }
 }
+function filterAcceptedTargets(eligible, context) {
+  if (!Object.prototype.hasOwnProperty.call(context, 'acceptedTargetActivityRefs')) return eligible;
+  if (!Array.isArray(context.acceptedTargetActivityRefs)) fail('INVALID_ACCEPTED_TARGETS');
+  const acceptedKeys=new Set(context.acceptedTargetActivityRefs.map(ref=>E.canonicalRefKey(ref)));
+  return eligible.filter(activity=>acceptedKeys.has(E.canonicalRefKey(activity.activityRef)));
+}
 function buildRecommendation({objectiveRef,evidence,index,context={}}) {
   const [action,reasonCodes]=actionForEvidence(evidence,context);
-  const eligible=E.eligibleActivities(index,objectiveRef,action);
+  const eligible=filterAcceptedTargets(E.eligibleActivities(index,objectiveRef,action),context);
   if(!eligible.length) fail('NO_ELIGIBLE_ACTIVITY');
   const preferred=eligible[0];
   return Object.freeze({recommendationVersion:'atlas.recommendation.v1',objectiveRef,action,eligibleActivityRefs:Object.freeze(eligible.map(x=>x.activityRef)),preferredActivityRef:preferred.activityRef,estimatedMinutes:preferred.estimatedMinutes,reasonCodes:Object.freeze([...new Set(reasonCodes)])});
 }
-module.exports=Object.freeze({lastSelectionStats,rankRecommendations,actionForEvidence,buildRecommendation});
+module.exports=Object.freeze({lastSelectionStats,rankRecommendations,actionForEvidence,filterAcceptedTargets,buildRecommendation});
