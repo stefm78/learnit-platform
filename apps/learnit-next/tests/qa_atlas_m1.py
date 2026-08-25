@@ -1,42 +1,25 @@
 #!/usr/bin/env python3
-"""Candidate-execution adapter for the frozen independent Atlas M1 QA oracle.
+"""Atlas M1 strict-QA focus-semantics adapter.
 
-This revision deliberately does not rewrite the pre-candidate oracle. It loads the
-exact preserved QA oracle at eef4b7e3bfb6211e08104b838a7ff4bcf35df5fc,
-verifies its exact Git blob identity, and applies four bounded corrections only:
+This revision composes the previously reviewed QA adapter at exact head
+658375ce72615dde25edb102b3547e911aa8ecad and changes only the browser focus
+observation model. Native radio groups expose one sequential Tab stop per named
+group (the checked radio, or the first radio when none is checked); the previous
+oracle incorrectly counted every enabled radio as an independent Tab stop.
 
-1. real-product setup actions before the already frozen browser start action;
-2. `atlas.stimulus.v1` fill-token hashing aligned to the frozen 0.3 contract,
-   which includes visible token values needed to answer and excludes non-visible
-   token metadata such as technical IDs and `maxUses`;
-3. the static no-network gate scans the complete candidate runtime source rather
-   than QA/lane test harnesses that intentionally name forbidden APIs;
-4. the frozen browser-script driver is normalized from its historical double-JSON
-   serialization into the already validated closed driver object before any
-   product action is executed.
-
-The setup adapter exists because the exact integrated candidate starts from an
-empty local library in every fresh browser profile. Strict QA therefore has to
-import an Atlas kit and materialize a plan through the real UI before it can
-exercise the frozen start/submit/interruption/resume observations.
-
-No candidate self-attestation is accepted. The frozen atomicity, lifecycle,
-reward, claim, provenance, no-network, focus and viewport assertions remain the
-authority. The static gate is strengthened to cover all candidate runtime JS/CSS
-plus the HTML template, including INT composition source, while excluding test
-files whose negative tests merely spell forbidden network tokens.
+No product attestation is introduced and all previous strict atomicity,
+lifecycle, provenance, claim, network, viewport and overflow checks remain
+unchanged.
 """
 from __future__ import annotations
 
-import json
 import pathlib
 import subprocess
-import sys
 import unittest
 from typing import Any
 
-FROZEN_QA_HEAD = "eef4b7e3bfb6211e08104b838a7ff4bcf35df5fc"
-FROZEN_QA_BLOB = "f091313ffc0e2bd5d67c2fc50e224dc27f09a7cb"
+PREVIOUS_QA_HEAD = "658375ce72615dde25edb102b3547e911aa8ecad"
+PREVIOUS_QA_BLOB = "da262b105997d431194540a3ff248b8078f130ae"
 QA_PATH = "apps/learnit-next/tests/qa_atlas_m1.py"
 HERE = pathlib.Path(__file__).resolve()
 REPO_ROOT = HERE.parents[3]
@@ -52,7 +35,7 @@ def _git(*args: str) -> str:
     )
     if completed.returncode:
         raise RuntimeError(
-            "QA_FROZEN_SOURCE_GIT_FAILURE:"
+            "QA_PREVIOUS_SOURCE_GIT_FAILURE:"
             + " ".join(args)
             + ":"
             + (completed.stderr.strip() or completed.stdout.strip())
@@ -60,305 +43,42 @@ def _git(*args: str) -> str:
     return completed.stdout
 
 
-def _load_frozen_oracle() -> dict[str, Any]:
-    actual_blob = _git("rev-parse", f"{FROZEN_QA_HEAD}:{QA_PATH}").strip()
-    if actual_blob != FROZEN_QA_BLOB:
+def _load_previous() -> dict[str, Any]:
+    actual = _git("rev-parse", f"{PREVIOUS_QA_HEAD}:{QA_PATH}").strip()
+    if actual != PREVIOUS_QA_BLOB:
         raise RuntimeError(
-            f"QA_FROZEN_BLOB_MISMATCH:{actual_blob}!={FROZEN_QA_BLOB}"
+            f"QA_PREVIOUS_BLOB_MISMATCH:{actual}!={PREVIOUS_QA_BLOB}"
         )
-
-    source = _git("show", f"{FROZEN_QA_HEAD}:{QA_PATH}")
+    source = _git("show", f"{PREVIOUS_QA_HEAD}:{QA_PATH}")
     namespace: dict[str, Any] = {
         "__file__": str(HERE),
-        "__name__": "atlas_qa_frozen_pre_candidate",
+        "__name__": "atlas_qa_previous_adapter",
     }
     exec(compile(source, str(HERE), "exec"), namespace)
     return namespace
 
 
-FROZEN = _load_frozen_oracle()
-_ORIGINAL_VALIDATE_DRIVER = FROZEN["validate_driver"]
-_ORIGINAL_BROWSER_SCRIPT = FROZEN["browser_script"]
+PREVIOUS = _load_previous()
+FROZEN = PREVIOUS["FROZEN"]
+_ORIGINAL_BROWSER_SCRIPT = PREVIOUS["browser_script"]
+_ORIGINAL_RUN_TESTS = PREVIOUS["run_tests"]
 
+OLD_FOCUS = """const s='button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])',a=[...r.querySelectorAll(s)].filter(x=>{const z=getComputedStyle(x);return z.visibility!=='hidden'&&z.display!=='none'&&!x.hidden});a.forEach((x,i)=>x.setAttribute('data-qa-focus-order',String(i)));return a.map((_,i)=>String(i))"""
 
-def stimulus(activity: dict[str, Any]) -> str:
-    """Contract-aligned atlas.stimulus.v1 digest.
-
-    The frozen contract includes visible choices/tokens needed to answer and
-    excludes technical/non-visible metadata. We still validate token IDs and
-    maxUses because they constrain a well-formed fill activity, but neither is
-    serialized into the stimulus payload.
-    """
-
-    visible = FROZEN["visible"]
-    closed = FROZEN["closed"]
-    dh = FROZEN["dh"]
-
-    base: dict[str, Any] = {
-        "type": activity.get("type"),
-        "prompt": visible(activity.get("prompt")),
-    }
-
-    if activity.get("type") == "qcm":
-        choices = activity.get("choices")
-        by: dict[str, str] = {}
-        if not isinstance(choices, list) or not choices:
-            raise AssertionError("QCM_CHOICES_REQUIRED")
-        for choice in choices:
-            closed(choice, ("choiceId", "label"))
-            choice_id = choice["choiceId"]
-            if (
-                not isinstance(choice_id, str)
-                or not choice_id
-                or choice_id in by
-            ):
-                raise AssertionError("QCM_CHOICE_COLLISION")
-            by[choice_id] = visible(choice["label"])
-
-        if activity.get("correctChoiceId") not in by:
-            raise AssertionError("QCM_OPERATION_INVALID")
-        labels = sorted(by.values())
-        if len(labels) != len(set(labels)):
-            raise AssertionError("QCM_VISIBLE_CHOICE_COLLISION")
-        base.update(
-            choices=labels,
-            answerOperation={
-                "kind": "select-one",
-                "correctValue": by[activity["correctChoiceId"]],
-            },
-        )
-
-    elif activity.get("type") == "fill":
-        tokens = activity.get("tokens")
-        token_by_id: dict[str, dict[str, Any]] = {}
-        if not isinstance(tokens, list) or not tokens:
-            raise AssertionError("FILL_TOKENS_REQUIRED")
-        for token in tokens:
-            closed(token, ("tokenId", "label", "maxUses"))
-            token_id = token["tokenId"]
-            max_uses = token["maxUses"]
-            if (
-                not isinstance(token_id, str)
-                or not token_id
-                or token_id in token_by_id
-                or not isinstance(max_uses, int)
-                or isinstance(max_uses, bool)
-                or max_uses < 1
-            ):
-                raise AssertionError("FILL_TOKEN_INVALID")
-            token_by_id[token_id] = {
-                "label": visible(token["label"]),
-                "maxUses": max_uses,
-            }
-
-        slots: list[str] = []
-        segments: list[dict[str, Any]] = []
-        for segment in activity.get("segments", []):
-            if set(segment) == {"text"}:
-                segments.append({"text": visible(segment["text"])})
-            elif (
-                set(segment) == {"slotId"}
-                and isinstance(segment["slotId"], str)
-                and segment["slotId"]
-                and segment["slotId"] not in slots
-            ):
-                slots.append(segment["slotId"])
-                segments.append({"blank": len(slots) - 1})
-            else:
-                raise AssertionError("FILL_SEGMENT_INVALID")
-
-        answers: dict[str, str] = {}
-        for answer in activity.get("answers", []):
-            closed(answer, ("slotId", "tokenId"))
-            if answer["slotId"] in answers:
-                raise AssertionError("FILL_ANSWER_MAPPING_INVALID")
-            answers[answer["slotId"]] = answer["tokenId"]
-        if set(answers) != set(slots):
-            raise AssertionError("FILL_ANSWER_MAPPING_INVALID")
-
-        used = {key: 0 for key in token_by_id}
-        correct_values: list[str] = []
-        for slot in slots:
-            token_id = answers[slot]
-            if token_id not in token_by_id:
-                raise AssertionError("FILL_ANSWER_TOKEN_UNKNOWN")
-            used[token_id] += 1
-            if used[token_id] > token_by_id[token_id]["maxUses"]:
-                raise AssertionError("FILL_MAX_USES_EXCEEDED")
-            correct_values.append(token_by_id[token_id]["label"])
-
-        visible_tokens = sorted(
-            row["label"] for row in token_by_id.values()
-        )
-        base.update(
-            segments=segments,
-            tokens=visible_tokens,
-            answerOperation={
-                "kind": "fill-blanks",
-                "correctValues": correct_values,
-            },
-        )
-    else:
-        raise AssertionError("ATLAS_ACTIVITY_TYPE_UNSUPPORTED")
-
-    return "sha256:" + dh(
-        "learnit.atlas.m1.v0.3/stimulus-digest/atlas.stimulus.v1",
-        base,
-    )
-
-
-def _candidate_runtime_paths(paths: list[pathlib.Path]) -> list[pathlib.Path]:
-    if not paths:
-        raise AssertionError("STATIC_NETWORK_SOURCE_REQUIRED")
-
-    roots: set[pathlib.Path] = set()
-    for raw in paths:
-        path = pathlib.Path(raw).resolve()
-        for parent in path.parents:
-            runtime = parent / "apps" / "learnit-next" / "src"
-            if runtime.is_dir():
-                roots.add(parent)
-                break
-
-    if len(roots) != 1:
-        raise AssertionError("STATIC_NETWORK_SOURCE_ROOT_AMBIGUOUS")
-
-    root = next(iter(roots))
-    runtime = root / "apps" / "learnit-next" / "src"
-    out = [
-        path.resolve()
-        for path in runtime.rglob("*")
-        if path.is_file()
-        and not path.is_symlink()
-        and path.suffix in {".js", ".css"}
-    ]
-
-    template = root / "apps" / "learnit-next" / "index.template.html"
-    if template.is_file() and not template.is_symlink():
-        out.append(template.resolve())
-
-    if not out:
-        raise AssertionError("STATIC_NETWORK_RUNTIME_SOURCE_REQUIRED")
-    return sorted(set(out), key=lambda path: str(path))
-
-
-def network(paths: list[pathlib.Path]) -> list[tuple[str, str]]:
-    """Static runtime-only no-network gate.
-
-    Lane QA tests intentionally spell forbidden APIs to verify the absence of
-    those APIs from product source. Scanning those harnesses makes the oracle
-    self-trigger. Strict QA instead scans every runtime JS/CSS file in the exact
-    candidate checkout plus the HTML template. This also covers INT composition
-    files that were absent from the frozen lane-only source list.
-    """
-
-    tokens = (
-        "fetch(",
-        "XMLHttpRequest",
-        "WebSocket",
-        "openai",
-        "anthropic",
-        "http://",
-        "https://",
-    )
-    findings: list[tuple[str, str]] = []
-    for path in _candidate_runtime_paths(paths):
-        text = path.read_text()
-        for token in tokens:
-            if token in text:
-                findings.append((str(path), token))
-    return findings
-
-
-def _validate_setup_step(step: Any) -> dict[str, Any]:
-    if not isinstance(step, dict):
-        raise AssertionError("DRIVER_SETUP_STEP_INVALID")
-
-    action = step.get("action")
-    if action == "upload":
-        if set(step) != {"action", "selector", "value"}:
-            raise AssertionError("DRIVER_SETUP_STEP_NOT_CLOSED")
-        if not isinstance(step["selector"], str) or not step["selector"]:
-            raise AssertionError("DRIVER_SETUP_SELECTOR_REQUIRED")
-        if not isinstance(step["value"], str) or not step["value"]:
-            raise AssertionError("DRIVER_SETUP_FILE_REQUIRED")
-    elif action in {"click", "wait"}:
-        if set(step) != {"action", "selector"}:
-            raise AssertionError("DRIVER_SETUP_STEP_NOT_CLOSED")
-        if not isinstance(step["selector"], str) or not step["selector"]:
-            raise AssertionError("DRIVER_SETUP_SELECTOR_REQUIRED")
-    else:
-        raise AssertionError("DRIVER_SETUP_ACTION_INVALID")
-
-    return dict(step)
-
-
-def validate_driver(driver: Any) -> dict[str, Any]:
-    if not isinstance(driver, dict):
-        return _ORIGINAL_VALIDATE_DRIVER(driver)
-
-    has_setup = "setupSteps" in driver
-    setup = driver.get("setupSteps", [])
-    base = {key: value for key, value in driver.items() if key != "setupSteps"}
-    validated = _ORIGINAL_VALIDATE_DRIVER(base)
-
-    if not has_setup:
-        return validated
-    if not isinstance(setup, list) or not setup:
-        raise AssertionError("DRIVER_SETUP_REQUIRED")
-
-    checked = [_validate_setup_step(step) for step in setup]
-    return {**validated, "setupSteps": checked}
+NEW_FOCUS = """const s='button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])',all=[...r.querySelectorAll(s)].filter(x=>{const z=getComputedStyle(x);return z.visibility!=='hidden'&&z.display!=='none'&&!x.hidden}),a=all.filter((x,i)=>{if(!(x instanceof HTMLInputElement)||x.type!=='radio'||!x.name)return true;const g=all.filter(y=>y instanceof HTMLInputElement&&y.type==='radio'&&y.name===x.name),checked=g.find(y=>y.checked);return checked?x===checked:x===g[0]});a.forEach((x,i)=>x.setAttribute('data-qa-focus-order',String(i)));return a.map((_,i)=>String(i))"""
 
 
 def browser_script(artifact: pathlib.Path, driver: dict[str, Any]) -> str:
-    checked = validate_driver(driver)
-    setup_steps = checked.get("setupSteps", [])
-    base_driver = {
-        key: value for key, value in checked.items() if key != "setupSteps"
-    }
-    script = _ORIGINAL_BROWSER_SCRIPT(artifact, base_driver)
-
-    anchor = "def act(q,s):\n"
-    if script.count(anchor) != 1:
-        raise AssertionError("QA_SETUP_ACT_ANCHOR_MISMATCH")
-
-    # The preserved oracle double-JSON-serializes the closed driver before the
-    # browser subprocess. Normalize that historical representation exactly once
-    # before any selector or timing field is consumed.
-    adapter = (
-        "if isinstance(driver,str): driver=json.loads(driver)\n"
-        "assert isinstance(driver,dict),'DRIVER_RUNTIME_OBJECT_REQUIRED'\n"
-        f"setup_steps={setup_steps!r}\n"
-        "assert isinstance(setup_steps,list),'SETUP_STEPS_RUNTIME_LIST_REQUIRED'\n"
-        "def setup(q):\n"
-        " for a in setup_steps:\n"
-        "  assert isinstance(a,dict),'SETUP_STEP_RUNTIME_OBJECT_REQUIRED:'+type(a).__name__\n"
-        "  s=a['selector'];x=q.locator(s)\n"
-        "  if a['action']=='wait':\n"
-        "   x.wait_for(state='visible');assert x.count()==1,'SETUP_ACTION_PATH_NOT_EXACT:'+s\n"
-        "  else:\n"
-        "   assert x.count()==1,'SETUP_ACTION_PATH_NOT_EXACT:'+s\n"
-        "   x.set_input_files(a['value']) if a['action']=='upload' else x.click()\n"
-        "   q.wait_for_timeout(driver['waitAfterActionMs'])\n"
-    )
-    script = script.replace(anchor, adapter + anchor, 1)
-
-    start = "c,q=open_c(p,d,j,v);act(q,driver['startSelector'])"
-    if script.count(start) != 3:
-        raise AssertionError(
-            f"QA_SETUP_START_ANCHOR_MISMATCH:{script.count(start)}"
-        )
-    script = script.replace(
-        start,
-        "c,q=open_c(p,d,j,v);setup(q);act(q,driver['startSelector'])",
-    )
-    return script
+    script = _ORIGINAL_BROWSER_SCRIPT(artifact, driver)
+    count = script.count(OLD_FOCUS)
+    if count != 1:
+        raise AssertionError(f"QA_FOCUS_ANCHOR_MISMATCH:{count}")
+    return script.replace(OLD_FOCUS, NEW_FOCUS, 1)
 
 
-class AdapterTests(unittest.TestCase):
-    def _base(self) -> dict[str, Any]:
-        return {
+class FocusAdapterTests(unittest.TestCase):
+    def test_radio_groups_are_one_native_tab_stop(self) -> None:
+        driver = {
             "startSelector": "#start",
             "submitSelector": "#submit",
             "interruptSelector": "#pause",
@@ -366,104 +86,30 @@ class AdapterTests(unittest.TestCase):
             "responseSteps": [{"action": "click", "selector": "#answer"}],
             "waitAfterActionMs": 1,
         }
-
-    def test_contract_visible_fill_token_digest(self) -> None:
-        activity = {
-            "type": "fill",
-            "prompt": "Complète le conjugué de −1 − 4i.",
-            "segments": [
-                {"text": "Le conjugué vaut "},
-                {"slotId": "slot"},
-                {"text": "."},
-            ],
-            "tokens": [
-                {"tokenId": "a", "label": "−1 + 4i", "maxUses": 1},
-                {"tokenId": "b", "label": "1 − 4i", "maxUses": 1},
-                {"tokenId": "c", "label": "−1 − 4i", "maxUses": 1},
-            ],
-            "answers": [{"slotId": "slot", "tokenId": "a"}],
-        }
-        expected = "sha256:bd24eff3e978c4d59e4e40747fd3a65024517e172f8be3f19b7f7d5d6e0ff1d8"
-        self.assertEqual(stimulus(activity), expected)
-        activity["tokens"][0]["maxUses"] = 2
-        self.assertEqual(stimulus(activity), expected)
-
-    def test_static_network_gate_scans_runtime_not_test_harness(self) -> None:
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as directory:
-            root = pathlib.Path(directory)
-            runtime = root / "apps" / "learnit-next" / "src"
-            tests = root / "apps" / "learnit-next" / "tests"
-            runtime.mkdir(parents=True)
-            tests.mkdir(parents=True)
-
-            safe = runtime / "safe.js"
-            safe.write_text("const localOnly = true;\n")
-            harness = tests / "atlas_m1_learning.py"
-            harness.write_text("for token in ('fetch(', 'XMLHttpRequest', 'WebSocket'): pass\n")
-
-            self.assertEqual(network([harness]), [])
-
-            unsafe = runtime / "unsafe.js"
-            unsafe.write_text("fetch('/remote');\n")
-            self.assertEqual(network([harness]), [(str(unsafe.resolve()), "fetch(")])
-
-    def test_real_product_setup_adapter(self) -> None:
-        driver = {
-            **self._base(),
-            "setupSteps": [
-                {"action": "upload", "selector": "#kit-file", "value": "/tmp/kit.json"},
-                {"action": "wait", "selector": "button:not([disabled])"},
-                {"action": "click", "selector": "button:not([disabled])"},
-            ],
-        }
-        self.assertEqual(validate_driver(driver), driver)
         script = browser_script(pathlib.Path("/tmp/a.html"), driver)
-        self.assertIn("set_input_files", script)
-        self.assertIn("if isinstance(driver,str): driver=json.loads(driver)", script)
-        self.assertIn("DRIVER_RUNTIME_OBJECT_REQUIRED", script)
-        self.assertIn("setup_steps=[", script)
-        self.assertEqual(
-            script.count("setup(q);act(q,driver['startSelector'])"),
-            3,
-        )
+        self.assertIn("x.type!=='radio'", script)
+        self.assertIn("checked=g.find(y=>y.checked)", script)
+        self.assertNotIn(OLD_FOCUS, script)
         for forbidden in ("candidateAtomic", "lifecyclePass", "qaScenario"):
             self.assertNotIn(forbidden, script)
 
-    def test_setup_is_optional_for_frozen_preflight(self) -> None:
-        driver = self._base()
-        self.assertEqual(validate_driver(driver), driver)
-
-    def test_setup_actions_fail_closed(self) -> None:
-        base = self._base()
-        cases = [
-            ([{"action": "script", "selector": "#x"}], "ACTION_INVALID"),
-            ([{"action": "upload", "selector": "#x"}], "STEP_NOT_CLOSED"),
-            ([{"action": "click", "selector": "#x", "value": "bad"}], "STEP_NOT_CLOSED"),
-            ([{"action": "wait", "selector": ""}], "SELECTOR_REQUIRED"),
-        ]
-        for setup, message in cases:
-            with self.subTest(message=message), self.assertRaisesRegex(
-                AssertionError, message
-            ):
-                validate_driver({**base, "setupSteps": setup})
-
 
 def run_tests():
-    suite = unittest.TestSuite()
-    suite.addTests(
-        unittest.defaultTestLoader.loadTestsFromTestCase(FROZEN["Tests"])
+    previous = _ORIGINAL_RUN_TESTS()
+    own = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(FocusAdapterTests)
     )
-    suite.addTests(
-        unittest.defaultTestLoader.loadTestsFromTestCase(AdapterTests)
-    )
-    return unittest.TextTestRunner(verbosity=2).run(suite)
+
+    class Combined:
+        testsRun = previous.testsRun + own.testsRun
+        def wasSuccessful(self) -> bool:
+            return previous.wasSuccessful() and own.wasSuccessful()
+
+    return Combined()
 
 
-FROZEN["stimulus"] = stimulus
-FROZEN["network"] = network
-FROZEN["validate_driver"] = validate_driver
+PREVIOUS["browser_script"] = browser_script
+PREVIOUS["run_tests"] = run_tests
 FROZEN["browser_script"] = browser_script
 FROZEN["run_tests"] = run_tests
 
