@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-002",
+  "title": "Post-M1 exact-artifact GitHub Pages publication",
+  "status": "in-progress",
+  "changeClass": "distribution-pages",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 151,
+    "program": "PROJECT-ATLAS",
+    "milestone": "POST-M1-DISTRIBUTION"
+  },
+  "purpose": "Expose the exact promoted Learn-it M1 HTML artifact through one stable GitHub Pages URL without changing product semantics or adding any runtime service dependency.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "a8270fbb6443c92a537befc6b09faa141ba14611",
+    "promotedProductHead": "354a2cf27954de13435a08a2a4ec014b9e8a2e89",
+    "acceptedIntegrationHead": "e2c10c8eb5a3e1c4dff5e45b210f327942bafce8",
+    "acceptedQaHead": "67d70e7307402242dbc1939d6cabfd87af617d74",
+    "artifactBytes": 334194,
+    "artifactSha256": "6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-pages.yml",
+      "work-packages/ATLAS-WP-002.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/atlas/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "The Pages workflow checks out the exact promoted M1 product merge rather than moving main product semantics.",
+    "The canonical deterministic build must reproduce exactly 334194 bytes and the frozen SHA-256 before publication.",
+    "Published index.html and downloadable learnit-next.html are byte-identical copies of the verified artifact.",
+    "No backend, runtime API, LLM, account, synchronization, remote catalog or service worker is introduced.",
+    "No persistent hand-maintained gh-pages product fork is created.",
+    "A future product release must explicitly update the pinned promotion identity before Pages can publish different bytes."
+  ],
+  "requiredEvidence": [
+    "PR diff contains exactly this canonical work-package record and the Pages workflow.",
+    "Repository governance passes.",
+    "PR scope passes against ATLAS-WP-002.",
+    "Deployment build proves exact artifact SHA-256 and byte length before upload.",
+    "GitHub Pages returns a deployment URL and deployment evidence identifies the promoted head and digest."
+  ],
+  "adversarialTests": [
+    "Reject deployment if checkout HEAD differs from the pinned promoted product merge.",
+    "Reject deployment if the deterministic build SHA-256 differs from the accepted M1 artifact digest.",
+    "Reject deployment if the deterministic build byte length differs from the accepted M1 artifact length.",
+    "Reject any implementation delta outside the Pages workflow and canonical work-package record.",
+    "Verify index.html and learnit-next.html are byte-identical before upload.",
+    "Verify no service worker, backend or runtime API dependency is added by the hosting layer."
+  ],
+  "independentReview": [
+    "Repository governance validates the canonical package structure and repository invariants.",
+    "PR scope independently checks that the implementation remains inside the exact ATLAS-WP-002 allowlist.",
+    "The existing M1 exact-head CI router is not extended for this post-M1 distribution package and its branch-routing rejection is classified as not applicable.",
+    "The deployment itself must fail closed on promotion-head, artifact digest or artifact length drift."
+  ],
+  "nonGoals": [
+    "Product changes",
+    "PWA or service worker",
+    "Backend or accounts",
+    "Cloud synchronization",
+    "Remote catalog",
+    "Runtime LLM or API",
+    "Automatic publication of future product heads"
+  ],
+  "rollback": "Disable or remove the Pages workflow and Pages deployment. The promoted M1 product, learner state and downloadable canonical artifact remain unchanged."
+}

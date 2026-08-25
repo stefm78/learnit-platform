@@ -1,0 +1,90 @@
+name: Learn-it Next Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: learnit-next-pages
+  cancel-in-progress: false
+
+env:
+  PROMOTED_HEAD: 354a2cf27954de13435a08a2a4ec014b9e8a2e89
+  EXPECTED_SHA256: 6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f
+  EXPECTED_BYTES: '334194'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout exact promoted M1 source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PROMOTED_HEAD }}
+          fetch-depth: 1
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build and verify canonical artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "${PROMOTED_HEAD}" ]]
+
+          mkdir -p "${RUNNER_TEMP}/learnit-pages"
+          artifact="${RUNNER_TEMP}/learnit-pages/learnit-next.html"
+          python -B apps/learnit-next/build.py --output "${artifact}"
+
+          actual_sha="$(sha256sum "${artifact}" | awk '{print $1}')"
+          actual_bytes="$(wc -c < "${artifact}" | tr -d ' ')"
+          [[ "${actual_sha}" == "${EXPECTED_SHA256}" ]]
+          [[ "${actual_bytes}" == "${EXPECTED_BYTES}" ]]
+
+          site="${RUNNER_TEMP}/learnit-pages/site"
+          mkdir -p "${site}"
+          cp "${artifact}" "${site}/index.html"
+          cp "${artifact}" "${site}/learnit-next.html"
+          cmp "${site}/index.html" "${site}/learnit-next.html"
+
+          cat > "${site}/deployment-evidence.json" <<EOF
+          {
+            "schema": "learnit.next.pages.deployment.v1",
+            "promotedHead": "${PROMOTED_HEAD}",
+            "artifactBytes": ${EXPECTED_BYTES},
+            "artifactSha256": "${EXPECTED_SHA256}",
+            "indexByteIdentity": "PASS",
+            "runtimeBackendDependencyAdded": false
+          }
+          EOF
+
+          {
+            echo "## Learn-it Next Pages deployment"
+            echo ""
+            echo "- promoted head: \`${PROMOTED_HEAD}\`"
+            echo "- artifact bytes: \`${actual_bytes}\`"
+            echo "- artifact SHA-256: \`${actual_sha}\`"
+            echo "- index/download byte identity: \`PASS\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload exact Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/learnit-pages/site
+
+      - name: Deploy exact promoted artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
