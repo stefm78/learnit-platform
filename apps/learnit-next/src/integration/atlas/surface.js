@@ -152,7 +152,7 @@ function admissibleValidationIds(state, modules) {
   return result;
 }
 
-function correctionProvenance(state, objectiveRef, modules) {
+function correctionTarget(state, objectiveRef, modules) {
   const E = modules.evidence;
   const executions = new Map(state.scoredExecutions.map(record => [record.executionId, record]));
   const corrected = new Set(
@@ -171,7 +171,11 @@ function correctionProvenance(state, objectiveRef, modules) {
         && !corrected.has(event.eventId);
     })
     .sort((left, right) => left.occurredAt.localeCompare(right.occurredAt) || left.eventId.localeCompare(right.eventId));
-  const target = candidates.at(-1);
+  return candidates.at(-1) ?? null;
+}
+
+function correctionProvenance(state, objectiveRef, modules) {
+  const target = correctionTarget(state, objectiveRef, modules);
   if (!target) throw new Error('ATLAS_CORRECTION_TARGET_NOT_FOUND');
   return Object.freeze({correctsEventId: target.eventId});
 }
@@ -243,6 +247,13 @@ function maintenanceOpportunity(context, state, objectiveRef, admissibleIds, now
 }
 
 function recommendationContext(context, state, row, admissibleIds, now, modules) {
+  if (row.evidence.state === 'review-needed') {
+    return Object.freeze({
+      hasAcceptedValidation: false,
+      maintenanceEligible: false,
+      hasCorrectablePracticeError: Boolean(correctionTarget(state, row.objectiveRef, modules)),
+    });
+  }
   if (row.evidence.state === 'ready-for-validation') {
     const opportunity = firstValidationOpportunity(context, state, row.objectiveRef, modules);
     if (!opportunity) return Object.freeze({hasAcceptedValidation: false, maintenanceEligible: false});
