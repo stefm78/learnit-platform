@@ -58,10 +58,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python -B apps/learnit-next/tests/contract_v2.py
+          python -B apps/learnit-next/tests/storage_isolation.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/qa_learning_loop_v2.py
           python -B apps/learnit-next/tests/atlas_m1_learning.py
           python -B apps/learnit-next/tests/atlas_m1_core.py
           python -B apps/learnit-next/tests/atlas_m1_experience.py
           python -B apps/learnit-next/tests/atlas_m1_content.py
+          python -B apps/learnit-next/tests/atlas_m1_int.py
           python -B apps/learnit-next/tests/atlas_m2_memory.py
 
       - name: Enforce M2 local-only boundary
@@ -102,6 +110,15 @@ jobs:
               'apps/learnit-next/src/core/atlas_claim_authority.js',
               'apps/learnit-next/src/core/atlas_memory.js',
           ]
+          m2_owned={
+              'apps/learnit-next/src/adapters/atlas_indexeddb.js',
+              'apps/learnit-next/src/core/atlas_claim_authority.js',
+              'apps/learnit-next/src/core/atlas_memory.js',
+              'apps/learnit-next/src/core/atlas_recommendation.js',
+              'apps/learnit-next/src/integration/atlas/bootstrap.js',
+              'apps/learnit-next/src/integration/atlas/surface.js',
+              self_path,
+          }
 
           def blob_sha(data):
               return hashlib.sha1(f'blob {len(data)}\0'.encode('ascii')+data).hexdigest()
@@ -115,6 +132,9 @@ jobs:
               disk=root/item_path
               if disk.is_file():
                   item['fingerprint']={'kind':'git-blob-sha1','value':blob_sha(disk.read_bytes())}
+              if item_path in m2_owned:
+                  item['owner']='ATLAS-M2'
+                  item['provenance']='ATLAS-WP-003 product implementation'
 
           for item_path in additions:
               if item_path not in by_path:
@@ -138,6 +158,9 @@ jobs:
               if item_path not in common:
                   common.insert(common.index(anchor)+1,item_path)
           manifest['build']['integrationProjection']['commonJsModuleCount']=len(common)
+          manifest['build']['integrationProjection']['kind']='atlas-m2-browser-commonjs-composition-v1'
+          manifest['build']['integrationProjection']['scope']='promoted M1 source set plus exact ATLAS-WP-003 product modules'
+          manifest['successorWorkPackage']='ATLAS-WP-003'
           manifest['fileBudget']=len(items)
           manifest['artifact']={
               'bytes':0,
@@ -147,6 +170,8 @@ jobs:
           }
 
           self_item=by_path[self_path]
+          self_item['owner']='ATLAS-M2'
+          self_item['provenance']='ATLAS-WP-003 product implementation'
           self_item['fingerprint']['kind']='canonical-self-sha256'
           self_item['fingerprint']['value']=None
           clone=copy.deepcopy(manifest)
@@ -176,7 +201,17 @@ jobs:
           cmp "${RUNNER_TEMP}/m2-a.html" "${RUNNER_TEMP}/m2-b.html"
           sha256sum "${RUNNER_TEMP}/m2-a.html" | tee "${RUNNER_TEMP}/artifact.sha256"
           wc -c "${RUNNER_TEMP}/m2-a.html" | tee "${RUNNER_TEMP}/artifact.bytes"
+          mkdir -p apps/learnit-next/dist
+          cp "${RUNNER_TEMP}/m2-a.html" apps/learnit-next/dist/learnit-next.html
           cp "${RUNNER_TEMP}/m2-a.html" apps/learnit-next/m2-candidate.html
+
+      - name: Install Chromium for browser regression
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run strict visible browser non-regression
+        env:
+          LEARNIT_NEXT_STRICT_INTEGRATION: '1'
+        run: python -B apps/learnit-next/tests/browser_vertical_slice.py
 
       - name: Diff hygiene
         run: git diff --check d32f6ad7f32e213ec5a9d97c3fb9149f985ae491...HEAD
@@ -212,6 +247,7 @@ jobs:
             'storageVersion':1,
             'memoryPolicy':'atlas.memory-policy.v1',
             'intervalDays':[1,3,7,21],
+            'browserRegression':'PASS',
           }
           out=Path('apps/learnit-next/.agent-result')
           out.mkdir(parents=True,exist_ok=True)
