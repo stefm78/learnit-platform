@@ -4,8 +4,10 @@
 This revision composes the previously reviewed QA adapter at exact head
 658375ce72615dde25edb102b3547e911aa8ecad. It preserves all strict gates while:
 
-1. modelling native radio groups as one sequential Tab stop per named group;
-2. preserving the frozen focus acceptance rules but surfacing the exact expected,
+1. excluding controls that are not actually rendered/focusable because an
+   ancestor hides them, using client-rect presence in addition to CSS flags;
+2. modelling native radio groups as one sequential Tab stop per named group;
+3. preserving the frozen focus acceptance rules but surfacing the exact expected,
    forward, reverse and boundary traces on failure.
 
 The diagnostic detail changes no acceptance condition and introduces no product
@@ -66,7 +68,7 @@ _ORIGINAL_RUN_TESTS = PREVIOUS["run_tests"]
 
 OLD_FOCUS = """const s='button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])',a=[...r.querySelectorAll(s)].filter(x=>{const z=getComputedStyle(x);return z.visibility!=='hidden'&&z.display!=='none'&&!x.hidden});a.forEach((x,i)=>x.setAttribute('data-qa-focus-order',String(i)));return a.map((_,i)=>String(i))"""
 
-NEW_FOCUS = """const s='button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])',all=[...r.querySelectorAll(s)].filter(x=>{const z=getComputedStyle(x);return z.visibility!=='hidden'&&z.display!=='none'&&!x.hidden}),a=all.filter((x,i)=>{if(!(x instanceof HTMLInputElement)||x.type!=='radio'||!x.name)return true;const g=all.filter(y=>y instanceof HTMLInputElement&&y.type==='radio'&&y.name===x.name),checked=g.find(y=>y.checked);return checked?x===checked:x===g[0]});a.forEach((x,i)=>x.setAttribute('data-qa-focus-order',String(i)));return a.map((_,i)=>String(i))"""
+NEW_FOCUS = """const s='button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])',all=[...r.querySelectorAll(s)].filter(x=>{const z=getComputedStyle(x),b=x.getBoundingClientRect();return z.visibility!=='hidden'&&z.display!=='none'&&!x.hidden&&x.getClientRects().length>0&&b.width>0&&b.height>0}),a=all.filter((x,i)=>{if(!(x instanceof HTMLInputElement)||x.type!=='radio'||!x.name)return true;const g=all.filter(y=>y instanceof HTMLInputElement&&y.type==='radio'&&y.name===x.name),checked=g.find(y=>y.checked);return checked?x===checked:x===g[0]});a.forEach((x,i)=>x.setAttribute('data-qa-focus-order',String(i)));return a.map((_,i)=>String(i))"""
 
 
 def browser_script(artifact: pathlib.Path, driver: dict[str, Any]) -> str:
@@ -119,8 +121,10 @@ class FocusAdapterTests(unittest.TestCase):
             "waitAfterActionMs": 1,
         }
 
-    def test_radio_groups_are_one_native_tab_stop(self) -> None:
+    def test_browser_focus_set_is_rendered_and_native(self) -> None:
         script = browser_script(pathlib.Path("/tmp/a.html"), self._driver())
+        self.assertIn("x.getClientRects().length>0", script)
+        self.assertIn("b.width>0&&b.height>0", script)
         self.assertIn("x.type!=='radio'", script)
         self.assertIn("checked=g.find(y=>y.checked)", script)
         self.assertNotIn(OLD_FOCUS, script)
