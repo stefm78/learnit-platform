@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-"""Evidence-only strict QA adapter for the exact formal Atlas M1 INT candidate.
-
-Normal repository routing and policy are delegated to the current main runner.
-This support revision performs independent strict QA against the current official
-INT branch head without modifying, rebasing, merging, or promoting that branch.
-"""
+"""Evidence-only strict QA adapter for the exact formal Atlas M1 INT candidate."""
 from __future__ import annotations
 
+import base64
 import hashlib
 import importlib.util
 import json
@@ -150,13 +146,9 @@ def strict_official_candidate_qa():
             artifact_sha = _sha256(artifact)
             artifact_bytes = artifact.stat().st_size
             if artifact_sha != EXPECTED_ARTIFACT_SHA256:
-                raise RuntimeError(
-                    f"OFFICIAL_ARTIFACT_SHA_MISMATCH:{artifact_sha}!={EXPECTED_ARTIFACT_SHA256}"
-                )
+                raise RuntimeError(f"OFFICIAL_ARTIFACT_SHA_MISMATCH:{artifact_sha}!={EXPECTED_ARTIFACT_SHA256}")
             if artifact_bytes != EXPECTED_ARTIFACT_BYTES:
-                raise RuntimeError(
-                    f"OFFICIAL_ARTIFACT_BYTES_MISMATCH:{artifact_bytes}!={EXPECTED_ARTIFACT_BYTES}"
-                )
+                raise RuntimeError(f"OFFICIAL_ARTIFACT_BYTES_MISMATCH:{artifact_bytes}!={EXPECTED_ARTIFACT_BYTES}")
 
             package = json.loads((candidate_tree / PACKAGE_PATH).read_text(encoding="utf-8"))
             revision = {
@@ -217,37 +209,21 @@ def strict_official_candidate_qa():
             driver_path.write_text(json.dumps(driver, sort_keys=True) + "\n", encoding="utf-8")
 
             command = [
-                sys.executable,
-                str(qa_script),
-                "--strict",
-                "--candidate-head",
-                candidate,
-                "--artifact",
-                str(artifact),
-                "--artifact-sha256",
-                artifact_sha,
-                "--accepted-head",
-                f"learning={accepted['learning']}",
-                "--accepted-head",
-                f"core={accepted['core']}",
-                "--accepted-head",
-                f"experience={accepted['experience']}",
-                "--accepted-head",
-                f"content={accepted['content']}",
-                "--claim-set",
-                str(claims_path),
-                "--content-revision",
-                str(revision_path),
-                "--oracle-version",
-                oracle_version,
-                "--artifact-provenance",
-                str(provenance_path),
-                "--repo-root",
-                str(ROOT),
-                "--source-root",
-                str(candidate_tree),
-                "--driver-config",
-                str(driver_path),
+                sys.executable, str(qa_script), "--strict",
+                "--candidate-head", candidate,
+                "--artifact", str(artifact),
+                "--artifact-sha256", artifact_sha,
+                "--accepted-head", f"learning={accepted['learning']}",
+                "--accepted-head", f"core={accepted['core']}",
+                "--accepted-head", f"experience={accepted['experience']}",
+                "--accepted-head", f"content={accepted['content']}",
+                "--claim-set", str(claims_path),
+                "--content-revision", str(revision_path),
+                "--oracle-version", oracle_version,
+                "--artifact-provenance", str(provenance_path),
+                "--repo-root", str(ROOT),
+                "--source-root", str(candidate_tree),
+                "--driver-config", str(driver_path),
             ]
             done = _run(command, cwd=qa_tree, env=blocked, check=False)
             print("ATLAS_OFFICIAL_QA_STDOUT_BEGIN", flush=True)
@@ -261,11 +237,16 @@ def strict_official_candidate_qa():
                 raise RuntimeError("OFFICIAL_STRICT_QA_NOT_GREEN")
             if proof.get("candidateHead") != candidate:
                 raise RuntimeError("OFFICIAL_STRICT_QA_CANDIDATE_BINDING_MISMATCH")
+
+            artifact_b64 = base64.b64encode(artifact.read_bytes()).decode("ascii")
             return {
-                "schema": "learnit.atlas.m1.official-candidate-qa-evidence.v1",
+                "schema": "learnit.atlas.m1.official-candidate-qa-evidence.v2",
                 "candidateHead": candidate,
                 "artifactSha256": artifact_sha,
                 "artifactBytes": artifact_bytes,
+                "artifactEncoding": "base64",
+                "artifactFileName": "learnit-next-atlas-m1-74788fe041929393c317269423fbbda67637354e.html",
+                "artifactBase64": artifact_b64,
                 "acceptedProductHeads": accepted,
                 "qaExecutionHead": qa_head,
                 "strictProof": proof,
@@ -280,8 +261,8 @@ def strict_official_candidate_qa():
 
 def capability():
     return {
-        "schema": "learnit.atlas.m1.support.official-candidate-qa-capability.v1",
-        "purpose": "EVIDENCE_ONLY_DO_NOT_AUTONOMOUSLY_MERGE",
+        "schema": "learnit.atlas.m1.support.official-candidate-qa-capability.v2",
+        "purpose": "EVIDENCE_AND_EXACT_HUMAN_VALIDATION_ARTIFACT_ONLY_DO_NOT_AUTONOMOUSLY_MERGE",
         "routingSelfTest": _support_matrix(),
         "strictOfficialCandidateQa": strict_official_candidate_qa(),
         "failClosed": True,
