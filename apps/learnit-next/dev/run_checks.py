@@ -320,6 +320,10 @@ def strict_candidate_qa() -> dict[str, Any]:
                 check=False,
             )
             if completed.returncode:
+                print("ATLAS_QA_STRICT_DIAGNOSTIC_BEGIN", flush=True)
+                print(completed.stdout, flush=True)
+                print(completed.stderr, file=sys.stderr, flush=True)
+                print("ATLAS_QA_STRICT_DIAGNOSTIC_END", flush=True)
                 raise RuntimeError(
                     "ATLAS_QA_STRICT_FAILED"
                     + "\nSTDOUT:\n"
