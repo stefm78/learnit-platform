@@ -208,11 +208,7 @@ function runtimeRegistry(registry) {
       return registry.activity(reference);
     },
     validateClaim(planItem, details) {
-      if (CLAIM_AUTHORITY.sameContentRevision(details?.contentRevisionRef)) {
-        return CLAIM_AUTHORITY.validateRuntimeClaim(planItem, details);
-      }
-      return typeof registry.validateClaim === 'function'
-        && registry.validateClaim(planItem, details) === true;
+      return CLAIM_AUTHORITY.validateRuntimeClaim(planItem, details);
     },
   });
 }
