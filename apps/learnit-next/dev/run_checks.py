@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Ephemeral ATLAS M1 exact-candidate QA evidence adapter.
+"""Evidence-only strict QA adapter for the exact formal Atlas M1 INT candidate.
 
-This support revision delegates normal repository policy to the current main
-runner, but evaluates the next INT composition in an isolated temporary
-worktree. The synthetic candidate is never pushed or promoted: it is used only
-to discover whether the superseding accepted CORE head introduces any further
-strict-QA defect before the official INT branch is advanced.
+Normal repository routing and policy are delegated to the current main runner.
+This support revision performs independent strict QA against the current official
+INT branch head without modifying, rebasing, merging, or promoting that branch.
 """
 from __future__ import annotations
 
@@ -21,10 +19,10 @@ import tempfile
 HERE = Path(__file__).resolve()
 ROOT = HERE.parents[3]
 RUNNER_PATH = "apps/learnit-next/dev/run_checks.py"
-OLD_INT_HEAD = "6c9ab4a3386c698d6e6a8041df8aca338e68df6d"
-COMPOSITION_HEAD = "b36f3470d825de55b9864851c47b13ba8d8a7ffc"
-RECOMPOSE_BRANCH = "agent/ATLAS-WP-001-m1-0-3-int-recompose"
-OLD_ARTIFACT_SHA256 = "40757ff4c44a55d361768491d7117b5e3a783aa2b68d4f65b0fd9300eed2c82e"
+INT_BRANCH = "agent/ATLAS-WP-001-m1-0-3-int"
+EXPECTED_INT_HEAD = "74788fe041929393c317269423fbbda67637354e"
+EXPECTED_ARTIFACT_SHA256 = "6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f"
+EXPECTED_ARTIFACT_BYTES = 334194
 PACKAGE_PATH = "authoring/v2/atlas/nombres_complexes_atlas.json"
 CORRECT_FIRST_CHOICE = "ea613748-02df-4b7f-bcf0-ce7494de03db"
 
@@ -42,7 +40,7 @@ def _run(command, *, cwd=ROOT, env=None, check=True):
     )
     if check and completed.returncode:
         raise RuntimeError(
-            "ATLAS_QA_EVIDENCE_COMMAND_FAILED:"
+            "ATLAS_OFFICIAL_QA_COMMAND_FAILED:"
             + " ".join(command)
             + "\nSTDOUT:\n"
             + completed.stdout
@@ -66,69 +64,16 @@ def _load_main_runner():
 BASE = _load_main_runner()
 
 
-def _sha256(path):
+def _sha256(path: Path) -> str:
     h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
 
 
-def _git_blob_sha1(data: bytes) -> str:
-    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
-
-
-def _canonical_bytes(value):
-    return json.dumps(
-        value,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    ).encode("utf-8")
-
-
-def _manifest_self_digest(manifest):
-    clone = json.loads(json.dumps(manifest, ensure_ascii=False))
-    hit = [x for x in clone["workingFiles"] if x["path"] == "apps/learnit-next/source_manifest.json"]
-    if len(hit) != 1:
-        raise RuntimeError("MANIFEST_SELF_ENTRY_INVALID")
-    hit[0]["fingerprint"]["value"] = None
-    return hashlib.sha256(_canonical_bytes(clone)).hexdigest()
-
-
-def _refresh_manifest(candidate_tree: Path, accepted_core: str):
-    path = candidate_tree / "apps/learnit-next/source_manifest.json"
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["acceptedInputs"]["ATLAS-CORE"] = accepted_core
-
-    core_paths = set(BASE["frozen"]()["ATLAS"]["atlas-core"][1])
-    for item in manifest["workingFiles"]:
-        rel = item["path"]
-        if rel in core_paths:
-            data = (candidate_tree / rel).read_bytes()
-            item["fingerprint"] = {
-                "kind": "git-blob-sha1",
-                "value": _git_blob_sha1(data),
-            }
-            item["provenance"] = f"ATLAS-CORE:{accepted_core}"
-
-    for item in manifest["workingFiles"]:
-        if item["path"] == "apps/learnit-next/source_manifest.json":
-            item["fingerprint"]["value"] = None
-            break
-    digest = _manifest_self_digest(manifest)
-    for item in manifest["workingFiles"]:
-        if item["path"] == "apps/learnit-next/source_manifest.json":
-            item["fingerprint"]["value"] = digest
-            break
-
-    path.write_bytes(_canonical_bytes(manifest) + b"\n")
-    return digest
-
-
-def _load_qa_adapter(path):
-    spec = importlib.util.spec_from_file_location("atlas_qa_candidate_adapter", path)
+def _load_qa_adapter(path: Path):
+    spec = importlib.util.spec_from_file_location("atlas_qa_official_adapter", path)
     if spec is None or spec.loader is None:
         raise RuntimeError("QA_ADAPTER_IMPORT_SPEC_MISSING")
     module = importlib.util.module_from_spec(spec)
@@ -137,78 +82,81 @@ def _load_qa_adapter(path):
 
 
 def _install_chromium():
-    c = [sys.executable, "-m", "playwright", "install", "--with-deps", "chromium"]
-    r = _run(c)
-    return {"exitCode": r.returncode, "stdoutTail": r.stdout[-1000:]}
+    command = [sys.executable, "-m", "playwright", "install", "--with-deps", "chromium"]
+    result = _run(command)
+    return {"exitCode": result.returncode, "stdoutTail": result.stdout[-1000:]}
 
 
-def _materialize_candidate(temp: Path):
-    _run(["git", "fetch", "origin", f"{RECOMPOSE_BRANCH}:refs/remotes/origin/{RECOMPOSE_BRANCH}"])
-    head = _git("rev-parse", f"origin/{RECOMPOSE_BRANCH}")
-    if head != COMPOSITION_HEAD:
-        raise RuntimeError(f"RECOMPOSE_HEAD_MISMATCH:{head}!={COMPOSITION_HEAD}")
-    tree = temp / "candidate"
-    _run(["git", "worktree", "add", "--detach", str(tree), head])
-    accepted_core = BASE["remote"](BASE["CORRECTIVE"]["atlas-core"])
-    self_digest = _refresh_manifest(tree, accepted_core)
-    _run(["git", "add", "apps/learnit-next/source_manifest.json"], cwd=tree)
-    _run([
-        "git", "-c", "user.name=Atlas QA", "-c", "user.email=atlas-qa@localhost",
-        "commit", "-m", "chore(atlas-int): refresh manifest for strict QA evidence",
-    ], cwd=tree)
-    candidate = _git("rev-parse", "HEAD", cwd=tree)
-    if _git("status", "--porcelain=v1", "--untracked-files=all", cwd=tree):
-        raise RuntimeError("SYNTHETIC_CANDIDATE_DIRTY")
-    return tree, candidate, accepted_core, self_digest
+def _official_head() -> str:
+    _run(["git", "fetch", "--force", "--no-tags", "origin", f"refs/heads/{INT_BRANCH}:refs/remotes/origin/{INT_BRANCH}"])
+    actual = _git("rev-parse", f"refs/remotes/origin/{INT_BRANCH}^{{commit}}")
+    if actual != EXPECTED_INT_HEAD:
+        raise RuntimeError(f"OFFICIAL_INT_HEAD_MOVED:{actual}!={EXPECTED_INT_HEAD}")
+    return actual
 
 
-def _matrix_without_old_int_binding():
-    heads = {p: BASE["remote"](b) for p, b in BASE["CORRECTIVE"].items()}
-    for p, h in heads.items():
-        BASE["bind"](BASE["CORRECTIVE"][p], h)
+def _support_matrix():
+    official = _official_head()
+    heads = {profile: BASE["remote"](branch) for profile, branch in BASE["CORRECTIVE"].items()}
+    for profile, head in heads.items():
+        BASE["bind"](BASE["CORRECTIVE"][profile], head)
     return {
-        "schema": "learnit.atlas.m1.support.recomposition-routing.v1",
-        "officialIntHead": BASE["remote"](BASE["INT_BRANCH"]),
-        "expectedOldIntHead": OLD_INT_HEAD,
-        "recomposeHead": COMPOSITION_HEAD,
+        "schema": "learnit.atlas.m1.support.official-qa-routing.v1",
+        "officialIntBranch": INT_BRANCH,
+        "officialIntHead": official,
         "laneHeads": heads,
+        "candidateBinding": "PASS_EXACT_OFFICIAL_HEAD",
         "result": "PASS_FOR_EVIDENCE_ONLY",
     }
 
 
-def strict_candidate_qa():
+def strict_official_candidate_qa():
+    candidate = _official_head()
     qa_head = BASE["remote"](BASE["CORRECTIVE"]["atlas-qa"])
     accepted_atlas = {
-        p: BASE["remote"](BASE["CORRECTIVE"][p])
-        for p in BASE["PRODUCT_PROFILES"]
+        profile: BASE["remote"](BASE["CORRECTIVE"][profile])
+        for profile in BASE["PRODUCT_PROFILES"]
     }
-    accepted = {p.removeprefix("atlas-"): h for p, h in accepted_atlas.items()}
+    accepted = {profile.removeprefix("atlas-"): head for profile, head in accepted_atlas.items()}
     browser_install = _install_chromium()
 
-    with tempfile.TemporaryDirectory(prefix="atlas-m1-recompose-qa-") as raw:
+    with tempfile.TemporaryDirectory(prefix="atlas-m1-official-qa-") as raw:
         temp = Path(raw)
-        candidate_tree, candidate, accepted_core, self_digest = _materialize_candidate(temp)
+        candidate_tree = temp / "candidate"
         qa_tree = temp / "qa"
+        _run(["git", "worktree", "add", "--detach", str(candidate_tree), candidate])
         _run(["git", "worktree", "add", "--detach", str(qa_tree), qa_head])
         try:
+            if _git("status", "--porcelain=v1", "--untracked-files=all", cwd=candidate_tree):
+                raise RuntimeError("OFFICIAL_CANDIDATE_WORKTREE_DIRTY")
             for head in accepted_atlas.values():
                 _git("merge-base", "--is-ancestor", head, candidate)
 
-            artifact = temp / "learnit-next.html"
             blocked = {
                 "HTTP_PROXY": "http://127.0.0.1:9",
                 "HTTPS_PROXY": "http://127.0.0.1:9",
                 "ALL_PROXY": "http://127.0.0.1:9",
                 "NO_PROXY": "",
             }
+            artifact = temp / "learnit-next.html"
             build = [
-                sys.executable, "-B", str(candidate_tree / "apps/learnit-next/build.py"),
-                "--output", str(artifact),
+                sys.executable,
+                "-B",
+                str(candidate_tree / "apps/learnit-next/build.py"),
+                "--output",
+                str(artifact),
             ]
             _run(build, cwd=candidate_tree, env=blocked)
             artifact_sha = _sha256(artifact)
-            if artifact_sha == OLD_ARTIFACT_SHA256:
-                raise RuntimeError("RECOMPOSE_ARTIFACT_DID_NOT_CHANGE")
+            artifact_bytes = artifact.stat().st_size
+            if artifact_sha != EXPECTED_ARTIFACT_SHA256:
+                raise RuntimeError(
+                    f"OFFICIAL_ARTIFACT_SHA_MISMATCH:{artifact_sha}!={EXPECTED_ARTIFACT_SHA256}"
+                )
+            if artifact_bytes != EXPECTED_ARTIFACT_BYTES:
+                raise RuntimeError(
+                    f"OFFICIAL_ARTIFACT_BYTES_MISMATCH:{artifact_bytes}!={EXPECTED_ARTIFACT_BYTES}"
+                )
 
             package = json.loads((candidate_tree / PACKAGE_PATH).read_text(encoding="utf-8"))
             revision = {
@@ -217,12 +165,11 @@ def strict_candidate_qa():
                 "packageDigest": package["packageRevisionDigest"],
             }
             revision_path = temp / "revision.json"
-            revision_path.write_text(json.dumps(revision, sort_keys=True) + "\n")
+            revision_path.write_text(json.dumps(revision, sort_keys=True) + "\n", encoding="utf-8")
 
             qa_script = qa_tree / "apps/learnit-next/tests/qa_atlas_m1.py"
             qa = _load_qa_adapter(qa_script)
-            frozen = qa.FROZEN
-            claim_ids = sorted(frozen["claim_ids"](candidate_tree, revision))
+            claim_ids = sorted(qa.FROZEN["claim_ids"](candidate_tree, revision))
             oracle_version = f"git:{qa_head}"
 
             claims_path = temp / "claims.json"
@@ -232,7 +179,7 @@ def strict_candidate_qa():
                 "oracleVersion": oracle_version,
                 "artifactDigest": f"sha256:{artifact_sha}",
                 "acceptedClaimIds": claim_ids,
-            }, sort_keys=True) + "\n")
+            }, sort_keys=True) + "\n", encoding="utf-8")
 
             provenance_path = temp / "provenance.json"
             provenance_path.write_text(json.dumps({
@@ -243,7 +190,7 @@ def strict_candidate_qa():
                 "buildCommands": [build],
                 "cleanCheckout": True,
                 "networkBlocked": True,
-            }, sort_keys=True) + "\n")
+            }, sort_keys=True) + "\n", encoding="utf-8")
 
             package_file = str((candidate_tree / PACKAGE_PATH).resolve())
             driver = {
@@ -267,49 +214,64 @@ def strict_candidate_qa():
                 ],
             }
             driver_path = temp / "driver.json"
-            driver_path.write_text(json.dumps(driver, sort_keys=True) + "\n")
+            driver_path.write_text(json.dumps(driver, sort_keys=True) + "\n", encoding="utf-8")
 
             command = [
-                sys.executable, str(qa_script), "--strict",
-                "--candidate-head", candidate,
-                "--artifact", str(artifact),
-                "--artifact-sha256", artifact_sha,
-                "--accepted-head", f"learning={accepted['learning']}",
-                "--accepted-head", f"core={accepted['core']}",
-                "--accepted-head", f"experience={accepted['experience']}",
-                "--accepted-head", f"content={accepted['content']}",
-                "--claim-set", str(claims_path),
-                "--content-revision", str(revision_path),
-                "--oracle-version", oracle_version,
-                "--artifact-provenance", str(provenance_path),
-                "--repo-root", str(ROOT),
-                "--source-root", str(candidate_tree),
-                "--driver-config", str(driver_path),
+                sys.executable,
+                str(qa_script),
+                "--strict",
+                "--candidate-head",
+                candidate,
+                "--artifact",
+                str(artifact),
+                "--artifact-sha256",
+                artifact_sha,
+                "--accepted-head",
+                f"learning={accepted['learning']}",
+                "--accepted-head",
+                f"core={accepted['core']}",
+                "--accepted-head",
+                f"experience={accepted['experience']}",
+                "--accepted-head",
+                f"content={accepted['content']}",
+                "--claim-set",
+                str(claims_path),
+                "--content-revision",
+                str(revision_path),
+                "--oracle-version",
+                oracle_version,
+                "--artifact-provenance",
+                str(provenance_path),
+                "--repo-root",
+                str(ROOT),
+                "--source-root",
+                str(candidate_tree),
+                "--driver-config",
+                str(driver_path),
             ]
             done = _run(command, cwd=qa_tree, env=blocked, check=False)
-            print("ATLAS_RECOMPOSE_QA_STDOUT_BEGIN", flush=True)
+            print("ATLAS_OFFICIAL_QA_STDOUT_BEGIN", flush=True)
             print(done.stdout, flush=True)
             print(done.stderr, file=sys.stderr, flush=True)
-            print("ATLAS_RECOMPOSE_QA_STDOUT_END", flush=True)
+            print("ATLAS_OFFICIAL_QA_STDOUT_END", flush=True)
             if done.returncode:
-                raise RuntimeError(f"RECOMPOSE_STRICT_QA_FAILED:{done.returncode}")
+                raise RuntimeError(f"OFFICIAL_STRICT_QA_FAILED:{done.returncode}")
             proof = json.loads(done.stdout)
             if proof.get("verdict") != "PASS_TO_HUMAN_GATE":
-                raise RuntimeError("RECOMPOSE_STRICT_QA_NOT_GREEN")
+                raise RuntimeError("OFFICIAL_STRICT_QA_NOT_GREEN")
+            if proof.get("candidateHead") != candidate:
+                raise RuntimeError("OFFICIAL_STRICT_QA_CANDIDATE_BINDING_MISMATCH")
             return {
-                "schema": "learnit.atlas.m1.recomposition-evidence.v2",
-                "compositionHead": COMPOSITION_HEAD,
-                "syntheticCandidateHead": candidate,
-                "acceptedCoreHead": accepted_core,
-                "manifestSelfSha256": self_digest,
-                "formalManifestUtf8": (candidate_tree / "apps/learnit-next/source_manifest.json").read_text(encoding="utf-8"),
+                "schema": "learnit.atlas.m1.official-candidate-qa-evidence.v1",
+                "candidateHead": candidate,
                 "artifactSha256": artifact_sha,
-                "artifactBytes": artifact.stat().st_size,
-                "qaHead": qa_head,
+                "artifactBytes": artifact_bytes,
+                "acceptedProductHeads": accepted,
+                "qaExecutionHead": qa_head,
                 "strictProof": proof,
                 "browserInstall": browser_install,
                 "result": "PASS",
-                "verdict": "PASS_TO_FORMAL_INT_RECOMPOSITION",
+                "verdict": "PASS_TO_HUMAN_GATE",
             }
         finally:
             _run(["git", "worktree", "remove", "--force", str(qa_tree)], check=False)
@@ -318,15 +280,15 @@ def strict_candidate_qa():
 
 def capability():
     return {
-        "schema": "learnit.atlas.m1.support.recomposition-capability.v2",
+        "schema": "learnit.atlas.m1.support.official-candidate-qa-capability.v1",
         "purpose": "EVIDENCE_ONLY_DO_NOT_AUTONOMOUSLY_MERGE",
-        "routingSelfTest": _matrix_without_old_int_binding(),
-        "strictCandidateQa": strict_candidate_qa(),
+        "routingSelfTest": _support_matrix(),
+        "strictOfficialCandidateQa": strict_official_candidate_qa(),
         "failClosed": True,
     }
 
 
-BASE["matrix"] = _matrix_without_old_int_binding
+BASE["matrix"] = _support_matrix
 BASE["capability"] = capability
 
 if __name__ == "__main__":
