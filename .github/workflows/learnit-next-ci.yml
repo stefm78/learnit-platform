@@ -328,6 +328,8 @@ jobs:
           git worktree add --detach "${merge_tree}" HEAD
           git worktree add --detach "${candidate_tree}" "${candidate}"
 
+          git -C "${merge_tree}" config user.name "atlas-ci"
+          git -C "${merge_tree}" config user.email "atlas-ci@users.noreply.github.com"
           git -C "${merge_tree}" merge --no-commit --no-ff "${candidate}"
 
           actual="$(git -C "${merge_tree}" diff --cached --name-only | sed '/^$/d' | sort -u)"
