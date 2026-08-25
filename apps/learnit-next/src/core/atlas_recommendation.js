@@ -41,7 +41,10 @@ function actionForEvidence(evidence, context={}) {
   switch(evidence.state){
     case 'not-started': return ['start-practice',['NEW_OBJECTIVE']];
     case 'training': return ['continue-practice',['PRACTICE_IN_PROGRESS']];
-    case 'review-needed': return ['correct-practice',['RECENT_ERROR','REVIEW_REQUIRED']];
+    case 'review-needed':
+      return context.hasCorrectablePracticeError===false
+        ? ['continue-practice',['RECENT_ERROR','REVIEW_REQUIRED']]
+        : ['correct-practice',['RECENT_ERROR','REVIEW_REQUIRED']];
     case 'ready-for-validation': return context.hasAcceptedValidation ? ['attempt-validation',['VALIDATION_AVAILABLE']] : ['continue-practice',['NO_INDEPENDENT_VALIDATION']];
     case 'validated-recently': return context.maintenanceEligible ? ['maintain-recent-validation',['RECENTLY_VALIDATED','VALIDATION_AVAILABLE']] : ['continue-practice',['RECENTLY_VALIDATED']];
     default: fail('UNKNOWN_EVIDENCE_STATE');
