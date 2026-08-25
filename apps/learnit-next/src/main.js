@@ -1,4 +1,7 @@
 import { CONTRACT_VERSION } from './core/contract.js';
+import { installAtlasRuntime } from './integration/atlas/bootstrap.js';
+import { attachAtlasPreviewSurface } from './integration/atlas/surface.js';
+import { createAtlasCompatibleImportService } from './integration/atlas/import_adapter.js';
 import { createImportService } from './core/import.js';
 import { createLibraryService } from './core/library.js';
 import {
@@ -103,6 +106,8 @@ const defaultIntegrations = Object.freeze({
   objectiveUi: createObjectiveUiAdapter(objectiveUiModule),
 });
 
+const atlasRuntime = installAtlasRuntime();
+
 function resolveIntegrations(value = defaultIntegrations) {
   if (value == null) return Object.freeze({});
   if (typeof value !== 'object' || Array.isArray(value)) {
@@ -123,7 +128,10 @@ export function createLearnitRuntime(
   const resolvedIntegrations = resolveIntegrations(integrations);
   const progress = createProgressService(storage, resolvedIntegrations);
   const library = createLibraryService(storage, progress);
-  const imports = createImportService(storage);
+  const imports = createAtlasCompatibleImportService(
+    storage,
+    createImportService(storage),
+  );
   const sessions = createSessionService(storage, progress);
 
   const runtime = {
@@ -190,9 +198,37 @@ export function createLearnitRuntime(
       return storage.storageReport();
     },
     storageReport: () => storage.storageReport(),
+
+    async getAtlasCourseContext(courseInstallId) {
+      const courseRecord = await library.getCourse(courseInstallId);
+      if (!courseRecord) {
+        throw new Error(`Unknown courseInstallId ${courseInstallId}`);
+      }
+
+      const revisionDigests = await storage.getRevisionDigestIndex();
+      const packageDigest = revisionDigests.get(
+        courseRecord.packageRevisionId,
+      );
+
+      if (!packageDigest) {
+        throw new Error('ATLAS_PACKAGE_DIGEST_NOT_FOUND');
+      }
+
+      return Object.freeze({
+        courseInstallId,
+        title: courseRecord.displayLabel,
+        canonicalTitle: courseRecord.title,
+        packageLineageId: courseRecord.packageLineageId,
+        packageRevisionId: courseRecord.packageRevisionId,
+        packageDigest,
+        course: structuredClone(courseRecord.course),
+      });
+    },
+
     integrationStatus: () => ({
       learningLoopV2: progress.learningLoopV2Enabled,
       objectiveUi: typeof resolvedIntegrations.objectiveUi?.renderObjectiveProgress === 'function',
+      atlasM1: atlasRuntime.status(),
     }),
 
     // Visible UI helpers use the same domain services as the bounded diagnostic surface.
@@ -224,6 +260,13 @@ async function boot() {
   const runtime = createLearnitRuntime(createIndexedDbStorage(), integrations);
   renderApp(root, runtime, integrations.objectiveUi);
   await waitForInitialRender(root);
+
+  await attachAtlasPreviewSurface({
+    root,
+    runtime,
+    atlasRuntime,
+  });
+
   globalThis.__LEARNIT_NEXT_TEST__ = Object.freeze({
     contractVersion: runtime.contractVersion,
     validatePackage: runtime.validatePackage,
@@ -239,6 +282,7 @@ async function boot() {
     getReviewQueue: runtime.getReviewQueue,
     resetNextData: runtime.resetNextData,
     storageReport: runtime.storageReport,
+    getAtlasCourseContext: runtime.getAtlasCourseContext,
     integrationStatus: runtime.integrationStatus,
     resumeActiveCourse: runtime.resumeActiveCourse,
     getSession: runtime.getSession,
