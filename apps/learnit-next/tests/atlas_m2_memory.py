@@ -143,6 +143,135 @@ class AtlasM2MemoryTests(unittest.TestCase):
         ''')
         self.assertRegex(output, r"ATLAS_M2_MEMORY_NODE_PASS \d+/\d+")
 
+    def test_failed_validation_recovery_requires_fresh_validation(self):
+        output = self.run_node(r'''
+          const assert = require('assert');
+          const root = process.argv[1];
+          const E = require(root + '/src/core/atlas_events.js');
+          const P = require(root + '/src/core/atlas_projection.js');
+          const M = require(root + '/src/core/atlas_memory.js');
+
+          const courseRef = {packageLineageId:'pkg', courseLineageId:'course'};
+          const objectiveRef = {courseRef, objectiveId:'objective'};
+          const contentRevisionRef = {
+            packageLineageId:'pkg',
+            packageRevisionId:'revision',
+            packageDigest:'sha256:' + 'a'.repeat(64),
+          };
+          const sessionRef = {
+            sessionId:'atlas-session-sha256:' + 'b'.repeat(64),
+            planId:'atlas-plan-sha256:' + 'c'.repeat(64),
+          };
+
+          function execution(action, outcome, at, ordinal, activityLineageId) {
+            const executionClass = ['attempt-validation','maintain-recent-validation'].includes(action)
+              ? 'validation' : 'practice';
+            const base = {
+              executionVersion:'atlas.scored-execution.v1',
+              sessionRef,
+              courseRef,
+              contentRevisionRef,
+              planDigest:'sha256:' + 'd'.repeat(64),
+              itemPosition:0,
+              submissionOrdinal:ordinal,
+              objectiveRef,
+              activityRef:{courseRef,activityLineageId},
+              action,
+              executionClass,
+              responseDigest:'sha256:' + 'e'.repeat(64),
+              scoringRuleId:'qcm.v1',
+              scoringRuleDigest:'sha256:' + 'f'.repeat(64),
+              outcome,
+              assistance:'none',
+              assistanceUseIds:[],
+              submittedAt:at,
+              scoredAt:at,
+            };
+            return {...base, executionId:E.executionId(base)};
+          }
+
+          function event(execution) {
+            const identity = {
+              eventVersion:'atlas.learning-event.v1',
+              kind:'activity-attempt',
+              executionId:execution.executionId,
+            };
+            return {
+              ...identity,
+              eventId:E.eventId(identity),
+              objectiveRef,
+              occurredAt:execution.scoredAt,
+            };
+          }
+
+          const initial = execution(
+            'attempt-validation','correct','2026-08-01T10:00:00.000Z',1,'validation-a',
+          );
+          const failedMaintenance = execution(
+            'maintain-recent-validation','incorrect','2026-08-02T10:00:00.000Z',2,'validation-b',
+          );
+          const recoveryPractice = execution(
+            'continue-practice','correct','2026-08-02T10:01:00.000Z',3,'practice-a',
+          );
+
+          const first = P.projectObjectiveEvidence(
+            [event(initial), event(failedMaintenance)],
+            [initial, failedMaintenance],
+            execution => execution.executionId === initial.executionId,
+          )[0];
+          assert.equal(first.state, 'review-needed');
+          assert.equal(first.lastValidationAt, initial.scoredAt);
+          assert.equal(first.latestValidationCorrect, false);
+
+          const recovered = P.projectObjectiveEvidence(
+            [event(initial), event(failedMaintenance), event(recoveryPractice)],
+            [initial, failedMaintenance, recoveryPractice],
+            execution => execution.executionId === initial.executionId,
+          )[0];
+          assert.equal(recovered.state, 'ready-for-validation');
+          assert.equal(recovered.lastValidationAt, initial.scoredAt);
+          assert.equal(recovered.latestValidationCorrect, false);
+          assert.equal(recovered.latestPracticeCorrect, true);
+
+          const historyBeforeFreshValidation = M.status({
+            now:'2026-08-03T10:01:00.000Z',
+            executions:[initial, failedMaintenance, recoveryPractice],
+            objectiveRef,
+            admissibleExecutionIds:new Set([initial.executionId, failedMaintenance.executionId]),
+            evidenceModule:E,
+          });
+          assert.equal(historyBeforeFreshValidation.hasIndependentValidation, true);
+          assert.equal(historyBeforeFreshValidation.basisExecution.executionId, initial.executionId);
+
+          const freshValidation = execution(
+            'attempt-validation','correct','2026-08-03T10:02:00.000Z',4,'validation-c',
+          );
+          const fresh = P.projectObjectiveEvidence(
+            [event(initial), event(failedMaintenance), event(recoveryPractice), event(freshValidation)],
+            [initial, failedMaintenance, recoveryPractice, freshValidation],
+            execution => [initial.executionId, freshValidation.executionId].includes(execution.executionId),
+          )[0];
+          assert.equal(fresh.state, 'validated-recently');
+          assert.equal(fresh.lastValidationAt, freshValidation.scoredAt);
+
+          const restarted = M.status({
+            now:'2026-08-03T10:02:00.000Z',
+            executions:[initial, failedMaintenance, recoveryPractice, freshValidation],
+            objectiveRef,
+            admissibleExecutionIds:new Set([
+              initial.executionId,
+              failedMaintenance.executionId,
+              freshValidation.executionId,
+            ]),
+            evidenceModule:E,
+          });
+          assert.equal(restarted.reconfirmationCount, 0);
+          assert.equal(restarted.intervalDays, 1);
+          assert.equal(restarted.basisExecution.executionId, freshValidation.executionId);
+          console.log('ATLAS_M2_FAILED_VALIDATION_RECOVERY_PASS');
+        ''')
+        self.assertIn("ATLAS_M2_FAILED_VALIDATION_RECOVERY_PASS", output)
+
     def test_visible_surface_routes_review_by_actual_practice_error(self):
         surface = (ROOT / "src/integration/atlas/surface.js").read_text(encoding="utf-8")
         self.assertIn("function correctionTarget", surface)
