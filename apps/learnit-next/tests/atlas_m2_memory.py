@@ -127,6 +127,11 @@ class AtlasM2MemoryTests(unittest.TestCase):
           check(() => assert.equal(E.sameRef(rec.preferredActivityRef, target2), true));
           check(() => assert.equal(rec.eligibleActivityRefs.length, 1));
 
+          const review = {objectiveRef:objective, state:'review-needed'};
+          check(() => assert.equal(R.actionForEvidence(review, {hasCorrectablePracticeError:true})[0], 'correct-practice'));
+          check(() => assert.equal(R.actionForEvidence(review, {hasCorrectablePracticeError:false})[0], 'continue-practice'));
+          check(() => assert.deepStrictEqual(R.actionForEvidence(review, {hasCorrectablePracticeError:false})[1], ['RECENT_ERROR','REVIEW_REQUIRED']));
+
           const otherObjective = A.CLAIMS[2].objectiveRef;
           const ranked = R.rankRecommendations([
             {objectiveRef:objective, evidence:{objectiveRef:objective, state:'validated-recently'}},
@@ -137,6 +142,13 @@ class AtlasM2MemoryTests(unittest.TestCase):
           console.log(`ATLAS_M2_MEMORY_NODE_PASS ${checks}/${checks}`);
         ''')
         self.assertRegex(output, r"ATLAS_M2_MEMORY_NODE_PASS \d+/\d+")
+
+    def test_visible_surface_routes_review_by_actual_practice_error(self):
+        surface = (ROOT / "src/integration/atlas/surface.js").read_text(encoding="utf-8")
+        self.assertIn("function correctionTarget", surface)
+        self.assertIn("hasCorrectablePracticeError", surface)
+        self.assertIn("ATLAS_SESSION_START_WIRED", surface)
+        self.assertIn("ATLAS_M2_MEMORY_PROOF_LOOP_WIRED", surface)
 
 
 if __name__ == "__main__":
