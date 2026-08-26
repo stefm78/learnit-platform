@@ -1,8 +1,7 @@
-"""Gate 1 — GitHub-authoritative sequential multi-AI queue.
+"""Credential-free deterministic core for Gate 1 sequential coordination.
 
-This package is an operational coordinator above the accepted Gate 0 evidence
-bridge.  It deliberately does not expose repository writes, arbitrary commands,
-Codespace start/restart, merge, release, promotion, fan-in, or parallel execution.
+The package constants are data-only.  Privileged GitHub transport, credentials
+and Gate 0 effects live outside this core.
 """
 from __future__ import annotations
 
@@ -18,6 +17,16 @@ MAX_RECORDS_PER_GENERATION = 50_000
 MAX_GENERATION = 4_096
 MAX_CHUNK_BYTES = 1_048_576
 MAX_SNAPSHOT_BYTES = 16_777_216
+
+GLOBAL_BOUND_LIMITS = {
+    "generation": MAX_GENERATION,
+    "issue_count": MAX_ISSUES_PER_GENERATION,
+    "comment_count": MAX_COMMENTS_PER_ISSUE,
+    "ledger_count": MAX_LEDGERS_PER_GENERATION,
+    "record_count": MAX_RECORDS_PER_GENERATION,
+    "snapshot_size_bytes": MAX_SNAPSHOT_BYTES,
+    "max_chunk_size_bytes": MAX_CHUNK_BYTES,
+}
 
 GATE0_OPERATIONS = frozenset({
     "pr-snapshot",
