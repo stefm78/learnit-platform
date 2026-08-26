@@ -35,8 +35,8 @@ from tools.ai_jobs.parser import (
     queue_job_from_comment,
 )
 from tools.ai_jobs.queue import elect
-from tools.ai_jobs.session import project
-from tools.ai_jobs.snapshot import stable_double_scan
+from tools.ai_jobs.session import SessionProjection, project
+from tools.ai_jobs.snapshot import StableSnapshot, stable_double_scan
 
 
 def utc_now() -> str:
@@ -98,10 +98,101 @@ def _publish_record(
     return record
 
 
+def _enter_recovery(
+    gh: Gate1GitHub,
+    authority_issue: int,
+    *,
+    grant: Any,
+    current: SessionProjection,
+    reason: str,
+) -> None:
+    if current.state != "JOB_STARTED" or current.last_record is None:
+        raise ContractError("RECOVERY_REQUIRED can only be entered from durable JOB_STARTED")
+    digest = current.active_job_digest
+    if not isinstance(digest, str) or not digest:
+        raise ContractError("durable JOB_STARTED has no active request digest")
+    _publish_record(
+        gh,
+        authority_issue,
+        record_type="SESSION_RECOVERY_REQUIRED",
+        grant=grant,
+        previous=current.last_record,
+        payload={"request_digest": digest, "reason": reason},
+    )
+    raise ContractError(
+        "durable JOB_STARTED requires reconciliation; automatic replay is forbidden"
+    )
+
+
+def _selected_job(jobs: list[Any], record: LedgerRecord) -> Any:
+    payload = record.payload
+    if not isinstance(payload, dict):
+        raise ContractError("durable JOB_SELECTED payload is unavailable")
+    matches = [
+        job
+        for job in jobs
+        if job.job_id == payload.get("job_id")
+        and job.request_digest == payload.get("request_digest")
+        and job.request_comment_id == payload.get("request_comment_id")
+        and job.target_type == payload.get("target_type")
+        and job.target_number == payload.get("target_number")
+        and job.target_sha == payload.get("target_sha")
+    ]
+    if len(matches) != 1:
+        raise ContractError(
+            "durable JOB_SELECTED cannot be reconstructed exactly from the request snapshot"
+        )
+    return matches[0]
+
+
+def _finish_closing(
+    gh: Gate1GitHub,
+    authority_issue: int,
+    *,
+    grant: Any,
+    current: SessionProjection,
+    request_snapshot: StableSnapshot,
+) -> bool:
+    if current.state != "CLOSING" or current.last_record is None:
+        raise ContractError("closing recovery requires a durable close candidate")
+    payload = current.last_record.payload
+    expected_digest = payload.get("request_snapshot_sha256") if isinstance(payload, dict) else None
+    cutoff = payload.get("cutoff_comment_id") if isinstance(payload, dict) else None
+    if not isinstance(expected_digest, str) or not isinstance(cutoff, int):
+        raise ContractError("close candidate lacks its request snapshot binding")
+
+    changed = (
+        request_snapshot.digest_sha256 != expected_digest
+        or any(raw["id"] > cutoff for raw in request_snapshot.comments)
+    )
+    if changed:
+        _publish_record(
+            gh,
+            authority_issue,
+            record_type="SESSION_CLOSE_ABORTED",
+            grant=grant,
+            previous=current.last_record,
+            payload={"reason": "REQUEST_SNAPSHOT_CHANGED_DURING_CLOSE"},
+        )
+        return False
+
+    _publish_record(
+        gh,
+        authority_issue,
+        record_type="SESSION_CLOSED",
+        grant=grant,
+        previous=current.last_record,
+        payload={"final_request_snapshot_sha256": request_snapshot.digest_sha256},
+    )
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if isinstance(args.max_jobs, bool) or not 1 <= args.max_jobs <= 100:
         raise ContractError("--max-jobs must be an integer from 1 through 100")
+    if args.authority_issue == args.request_issue:
+        raise ContractError("authority issue and request issue must be distinct")
 
     runner = CommandRunner()
     root = discover_repository_root(runner, Path.cwd())
@@ -170,7 +261,10 @@ def main(argv: list[str] | None = None) -> int:
 
     current = project(ledger_records, grant)
     last = current.last_record
-    if current.state == "CLOSED" and last is None:
+    if current.state == "CLOSED":
+        if last is not None:
+            # A durable closed generation is immutable and cannot be reopened.
+            return 0
         last = _publish_record(
             gh, args.authority_issue,
             record_type="SESSION_GRANT",
@@ -178,13 +272,33 @@ def main(argv: list[str] | None = None) -> int:
             previous=None,
             payload={"grant_comment_id": grant.grant_comment_id, "grant_digest": grant.grant_digest},
         )
-        last = _publish_record(
+        _publish_record(
             gh, args.authority_issue,
             record_type="SESSION_ACTIVE",
             grant=grant,
             previous=last,
             payload={"codespace_name": grant.codespace_name},
         )
+    elif current.state == "GRANT_PENDING":
+        if last is None:
+            raise ContractError("GRANT_PENDING has no durable predecessor")
+        _publish_record(
+            gh, args.authority_issue,
+            record_type="SESSION_ACTIVE",
+            grant=grant,
+            previous=last,
+            payload={"codespace_name": grant.codespace_name},
+        )
+    elif current.state == "JOB_STARTED":
+        _enter_recovery(
+            gh,
+            args.authority_issue,
+            grant=grant,
+            current=current,
+            reason="RESTART_AFTER_DURABLE_JOB_STARTED",
+        )
+    elif current.state in {"RECOVERY_REQUIRED", "GLOBAL_HOLD"}:
+        raise ContractError(f"Gate 1 cannot autonomously advance state {current.state}")
 
     completed = 0
     while completed < args.max_jobs:
@@ -226,63 +340,122 @@ def main(argv: list[str] | None = None) -> int:
         ]
         current = project(records, grant)
         last = current.last_record
+
+        if current.state == "CLOSED":
+            return 0
         if current.state in {"RECOVERY_REQUIRED", "GLOBAL_HOLD"}:
             raise ContractError(f"Gate 1 cannot autonomously advance state {current.state}")
-
-        decision = elect(
-            jobs,
-            terminal_request_digests=current.terminal_request_digests,
-            started_request_digests=current.started_request_digests,
-        )
-        job = decision.selected
-        if job is None:
-            last = _publish_record(
+        if current.state == "JOB_STARTED":
+            _enter_recovery(
+                gh,
+                args.authority_issue,
+                grant=grant,
+                current=current,
+                reason="RECONSTRUCTION_FOUND_DURABLE_JOB_STARTED",
+            )
+        if current.state == "GRANT_PENDING":
+            if last is None:
+                raise ContractError("GRANT_PENDING has no durable predecessor")
+            _publish_record(
                 gh, args.authority_issue,
-                record_type="SESSION_CLOSE_CANDIDATE",
+                record_type="SESSION_ACTIVE",
+                grant=grant,
+                previous=last,
+                payload={"codespace_name": grant.codespace_name},
+            )
+            continue
+        if current.state == "CLOSING":
+            if _finish_closing(
+                gh,
+                args.authority_issue,
+                grant=grant,
+                current=current,
+                request_snapshot=request_snapshot,
+            ):
+                return 0
+            continue
+        if current.state not in {"ACTIVE_IDLE", "JOB_TERMINAL", "JOB_SELECTED"}:
+            raise ContractError(
+                f"Gate 1 reconstruction reached non-runnable state {current.state}"
+            )
+
+        if current.state == "JOB_SELECTED":
+            if last is None:
+                raise ContractError("JOB_SELECTED has no durable record")
+            job = _selected_job(jobs, last)
+            selected = last
+        else:
+            decision = elect(
+                jobs,
+                terminal_request_digests=current.terminal_request_digests,
+                started_request_digests=current.started_request_digests,
+            )
+            job = decision.selected
+            if job is None:
+                last = _publish_record(
+                    gh, args.authority_issue,
+                    record_type="SESSION_CLOSE_CANDIDATE",
+                    grant=grant,
+                    previous=last,
+                    payload={
+                        "request_snapshot_sha256": request_snapshot.digest_sha256,
+                        "cutoff_comment_id": request_snapshot.cutoff_comment_id,
+                    },
+                )
+                closing_scan = stable_double_scan(lambda: gh.comments(args.request_issue))
+                closing_projection = project([
+                    *records,
+                    ledger_from_comment(
+                        {
+                            "id": 1,
+                            "body": render_record(last),
+                            "user": {"login": grant.granted_by},
+                            "created_at": last.created_at,
+                            "updated_at": last.created_at,
+                        },
+                        repository=args.repository,
+                        authority_issue=args.authority_issue,
+                    ),
+                ], grant)
+                # The synthetic parse above exists only to reuse the same close
+                # transition helper with the already round-tripped local record.
+                # Replace it immediately with an explicit projection object so
+                # no synthetic GitHub identity participates in authority.
+                closing_projection = SessionProjection(
+                    state="CLOSING",
+                    last_record=last,
+                    started_request_digests=current.started_request_digests,
+                    terminal_request_digests=current.terminal_request_digests,
+                    active_job_digest=None,
+                )
+                if _finish_closing(
+                    gh,
+                    args.authority_issue,
+                    grant=grant,
+                    current=closing_projection,
+                    request_snapshot=closing_scan,
+                ):
+                    return 0
+                continue
+
+            selected = _publish_record(
+                gh, args.authority_issue,
+                record_type="JOB_SELECTED",
                 grant=grant,
                 previous=last,
                 payload={
-                    "request_snapshot_sha256": request_snapshot.digest_sha256,
-                    "cutoff_comment_id": request_snapshot.cutoff_comment_id,
+                    "job_id": job.job_id,
+                    "request_digest": job.request_digest,
+                    "request_comment_id": job.request_comment_id,
+                    "target_type": job.target_type,
+                    "target_number": job.target_number,
+                    "target_sha": job.target_sha,
                 },
             )
-            closing_scan = stable_double_scan(lambda: gh.comments(args.request_issue))
-            if any(raw["id"] > request_snapshot.cutoff_comment_id for raw in closing_scan.comments):
-                _publish_record(
-                    gh, args.authority_issue,
-                    record_type="SESSION_CLOSE_ABORTED",
-                    grant=grant,
-                    previous=last,
-                    payload={"reason": "REQUEST_ARRIVED_DURING_CLOSE"},
-                )
-                continue
-            _publish_record(
-                gh, args.authority_issue,
-                record_type="SESSION_CLOSED",
-                grant=grant,
-                previous=last,
-                payload={"final_request_snapshot_sha256": closing_scan.digest_sha256},
-            )
-            return 0
 
         permission = gh.permission(job.request_author)
         require_request_authority(permission)
         source_comment = gh.comment(job.request_comment_id)
-
-        selected = _publish_record(
-            gh, args.authority_issue,
-            record_type="JOB_SELECTED",
-            grant=grant,
-            previous=last,
-            payload={
-                "job_id": job.job_id,
-                "request_digest": job.request_digest,
-                "request_comment_id": job.request_comment_id,
-                "target_type": job.target_type,
-                "target_number": job.target_number,
-                "target_sha": job.target_sha,
-            },
-        )
 
         authority_now = stable_double_scan(lambda: gh.comments(args.authority_issue))
         suspended_now = any(
@@ -339,6 +512,21 @@ def main(argv: list[str] | None = None) -> int:
             )
             raise
 
+        if invocation.authoritative_comment_id is None:
+            _publish_record(
+                gh, args.authority_issue,
+                record_type="SESSION_RECOVERY_REQUIRED",
+                grant=grant,
+                previous=started,
+                payload={
+                    "request_digest": job.request_digest,
+                    "reason": "GATE0_AUTHORITATIVE_OUTCOME_NOT_FOUND",
+                },
+            )
+            raise ContractError(
+                "Gate 0 returned without a cryptographically authoritative final outcome"
+            )
+
         terminal_result = (
             "COMPLETED"
             if invocation.return_code == 0 and not invocation.timed_out
@@ -355,6 +543,7 @@ def main(argv: list[str] | None = None) -> int:
                 "result": terminal_result,
                 "gate0_return_code": invocation.return_code,
                 "gate0_timed_out": invocation.timed_out,
+                "gate0_authoritative_comment_id": invocation.authoritative_comment_id,
             },
         )
         completed += 1
