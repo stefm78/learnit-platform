@@ -67,8 +67,15 @@ def require_runtime_identity(
     login = preflight.get("authenticated_login")
     if not isinstance(login, str) or not login:
         raise ContractError("authenticated GitHub identity is unavailable")
-    observed_codespace = codespace_name or os.environ.get("CODESPACE_NAME")
-    if not isinstance(observed_codespace, str) or observed_codespace != grant.codespace_name:
+    if login != grant.granted_by:
+        raise ContractError("authenticated GitHub identity differs from the human session grant")
+
+    observed_codespace = os.environ.get("CODESPACE_NAME")
+    if not isinstance(observed_codespace, str) or not observed_codespace:
+        raise ContractError("Gate 1 must run inside the human-started GitHub Codespace")
+    if codespace_name is not None and codespace_name != observed_codespace:
+        raise ContractError("explicit Codespace assertion differs from the runtime environment")
+    if observed_codespace != grant.codespace_name:
         raise ContractError("Codespace identity differs from the human grant")
     return login
 
