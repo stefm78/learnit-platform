@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "OPS-WP-007",
   "title": "Gate 1 sequential multi-AI queue implementation",
-  "status": "implementing",
+  "status": "in-progress",
   "changeClass": "repository-operations-sequential-queue",
   "riskClass": "moderate",
   "purpose": "Implement the already accepted G1-DESIGN-V6 R5 as a GitHub-authoritative sequential queue above unchanged Gate 0, with human Codespace start/grant, deterministic election, fail-closed recovery and no repository-write jobs or parallel execution.",
@@ -126,6 +126,18 @@
     "Adversarial coverage for duplicate/conflict, stale target, edited request, pagination instability, crash after JOB_STARTED, suspension, credential/permission failure and close race.",
     "Proof that Gate 0 blobs and all product/Atlas/M2/Pages paths remain unchanged."
   ],
+  "adversarialTests": [
+    "Duplicate queue requests with the same immutable digest never create concurrent execution.",
+    "A different request reusing a logical job identity is fail-closed rather than silently replacing authority.",
+    "Edited or deleted source comments cannot survive the final effect guard.",
+    "Target movement before Gate 0 invocation prevents execution.",
+    "A durable JOB_STARTED followed by crash projects RECOVERY_REQUIRED and is never automatically replayed.",
+    "A suspension record or lost request-author permission blocks the next effect.",
+    "Unstable double-scan pagination fails closed instead of electing from a partial snapshot.",
+    "A request arriving during close aborts closure and returns to deterministic election.",
+    "Credential context never reaches the untrusted Gate 0 operation subprocess beyond the existing Gate 0 boundary.",
+    "Gate 0 remains byte-identical to the baseline and no forbidden product or workflow path is modified."
+  ],
   "nonGoals": [
     "Gate 2 composable outcomes or fan-in.",
     "Gate 3 repository write jobs.",
@@ -133,6 +145,13 @@
     "Automatic Codespace lifecycle startup/restart.",
     "Product, Atlas, authoring, kit, learner-state or Pages changes.",
     "Automatic merge, release, promotion or governor decision."
+  ],
+  "independentReview": [
+    "Independent contradictory QA owns only scope.independentQaAllowedPaths and must not repair implementation files.",
+    "QA must bind its verdict to one exact implementation head and rerun completely after any implementation correction.",
+    "Linus reviews the exact QA-covered head for concurrency, authority and fail-closed semantics before readiness.",
+    "Steve scope review confirms no product/Atlas/M2/Pages or later-gate semantic expansion before readiness.",
+    "Governor acceptance and merge remain separate explicit boundaries after evidence is complete."
   ],
   "execution": {
     "authorityIssue": 160,
