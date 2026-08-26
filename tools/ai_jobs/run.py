@@ -103,8 +103,8 @@ def main(argv: list[str] | None = None) -> int:
     if isinstance(args.max_jobs, bool) or not 1 <= args.max_jobs <= 100:
         raise ContractError("--max-jobs must be an integer from 1 through 100")
 
-    root = discover_repository_root(Path.cwd())
     runner = CommandRunner()
+    root = discover_repository_root(runner, Path.cwd())
     gh = Gate1GitHub(runner, root, args.repository)
     preflight = gh.preflight()
 
