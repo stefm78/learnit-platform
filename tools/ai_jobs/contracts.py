@@ -20,6 +20,12 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SESSION_ID_RE = re.compile(r"^G1S-[A-Z0-9][A-Z0-9._-]{2,63}$")
 CODESPACE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{1,79}$")
 REPOSITORY_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+UTC_SECONDS_RE = re.compile(
+    r"^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T"
+    r"(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})Z$"
+)
+TIME_MIN = datetime(2000, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+TIME_MAX = datetime(2100, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
 
 STATES = frozenset({
     "CLOSED",
@@ -142,14 +148,23 @@ def exact_int(value: Any, label: str, *, minimum: int = 0, maximum: int | None =
 
 
 def iso_utc(value: Any, label: str) -> str:
-    if not isinstance(value, str) or not value.endswith("Z"):
-        raise ContractError(f"{label} must be an ISO-8601 UTC timestamp ending in Z")
+    """Validate the exact V6 normative UTC-seconds domain.
+
+    Accepted values are real calendar instants from 2000-01-01T00:00:00Z
+    through 2100-12-31T23:59:59Z inclusive. Fractional seconds, leap seconds,
+    offsets other than literal Z, lowercase variants and expanded years are
+    rejected before semantic parsing.
+    """
+    if not isinstance(value, str) or UTC_SECONDS_RE.fullmatch(value) is None:
+        raise ContractError(
+            f"{label} must use exact YYYY-MM-DDTHH:MM:SSZ UTC-seconds syntax"
+        )
     try:
-        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+        parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     except ValueError as exc:
         raise ContractError(f"{label} is not a real calendar timestamp") from exc
-    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
-        raise ContractError(f"{label} must be UTC")
+    if not TIME_MIN <= parsed <= TIME_MAX:
+        raise ContractError(f"{label} is outside the canonical 2000-2100 time domain")
     return value
 
 
