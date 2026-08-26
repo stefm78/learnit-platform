@@ -58,6 +58,11 @@
     "Changing product or runtime behavior.",
     "Closing or promoting Atlas M2."
   ],
+  "independentReview": [
+    "Repository governance validates the work-package schema and exact factual closeout records.",
+    "PR scope validates that only the three authorized metadata paths changed.",
+    "No implementation or runtime review is required because no executable path changes."
+  ],
   "execution": {
     "issue": 176,
     "maximumChangedFiles": 3,
