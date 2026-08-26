@@ -14,22 +14,23 @@ from .contracts import ContractError, QueueJob, SessionGrant
 
 @dataclass
 class SessionProcessFence:
-    """Held file descriptor for same-Codespace single-process execution."""
+    """Held file descriptor for same-Codespace Gate 1 exclusivity."""
 
     handle: BinaryIO
     path: Path
 
     def close(self) -> None:
-        self.handle.close()
+        if not self.handle.closed:
+            self.handle.close()
 
 
 def acquire_session_process_fence(grant: SessionGrant) -> SessionProcessFence:
-    """Acquire a non-blocking process fence for the exact human grant.
+    """Acquire a non-blocking fence for the whole authority in this Codespace.
 
-    GitHub remains the durable authority across restart/host loss. This local
-    Linux fence only closes the same-Codespace race in which two coordinator
-    processes could otherwise publish competing non-terminal records before a
-    later GitHub reconstruction detects the conflict.
+    The fence key deliberately excludes session_id and generation: two distinct
+    grants under the same Gate 1 authority must not be able to run concurrently
+    merely because they would otherwise map to different local lock files.
+    GitHub remains the durable authority across restart and host loss.
     """
     if platform.system() != "Linux":
         raise ContractError("Gate 1 process fencing requires the Linux Codespace runtime")
@@ -39,18 +40,17 @@ def acquire_session_process_fence(grant: SessionGrant) -> SessionProcessFence:
         raise ContractError("Gate 1 process fencing requires fcntl") from exc
 
     material = (
-        f"{grant.repository}|{grant.authority_issue}|{grant.session_id}|"
-        f"{grant.generation}|{grant.codespace_name}"
+        f"{grant.repository}|{grant.authority_issue}|{grant.codespace_name}"
     ).encode("utf-8")
     digest = hashlib.sha256(material).hexdigest()
-    path = Path(tempfile.gettempdir()) / f"learnit-gate1-{digest}.lock"
+    path = Path(tempfile.gettempdir()) / f"learnit-gate1-authority-{digest}.lock"
     handle = path.open("a+b")
     try:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError as exc:
         handle.close()
         raise ContractError(
-            "another Gate 1 coordinator process already holds this session fence"
+            "another Gate 1 coordinator process already holds this authority fence"
         ) from exc
     except OSError as exc:
         handle.close()
