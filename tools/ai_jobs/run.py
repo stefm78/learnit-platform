@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Drain one Gate 1 session sequentially after a human has started a Codespace.
+"""Drain one Gate 1 session sequentially after a human starts its Codespace.
 
-This executable is intentionally conservative. It never creates/starts a
-Codespace, never performs repository writes, and never invokes more than one
-Gate 0 job without reconstructing GitHub-authoritative state.
+Gate 1 never creates/starts/restarts a Codespace, never exposes repository
+writes, and never invokes another Gate 0 job without reconstructing durable
+GitHub-authoritative state.
 """
 from __future__ import annotations
 
@@ -46,7 +46,8 @@ from tools.ai_jobs.snapshot import StableSnapshot, stable_double_scan
 
 
 def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    """Produce exact V6 UTC-seconds syntax without fractional seconds."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -63,10 +64,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def _parser_comment(raw: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": raw["id"],
+        "node_id": raw.get("node_id"),
         "body": raw["body"],
-        "user": {"login": raw["author"]},
+        "user": {
+            "login": raw["author"],
+            "id": raw.get("author_id"),
+            "node_id": raw.get("author_node_id"),
+        },
         "created_at": raw["created_at"],
         "updated_at": raw["updated_at"],
+        "html_url": raw.get("html_url"),
         "issue_url": raw.get("issue_url"),
     }
 
@@ -90,7 +97,7 @@ def _grants(
     repository: str,
     authority_issue: int,
 ) -> list[SessionGrant]:
-    grants: list[SessionGrant] = []
+    result: list[SessionGrant] = []
     for raw in snapshot.comments:
         item = grant_from_comment(
             _parser_comment(raw),
@@ -98,8 +105,8 @@ def _grants(
             authority_issue=authority_issue,
         )
         if item is not None:
-            grants.append(item)
-    return grants
+            result.append(item)
+    return result
 
 
 def _all_ledger_records(
@@ -108,7 +115,7 @@ def _all_ledger_records(
     repository: str,
     authority_issue: int,
 ) -> list[LedgerRecord]:
-    records: list[LedgerRecord] = []
+    result: list[LedgerRecord] = []
     for raw in snapshot.comments:
         item = ledger_from_comment(
             _parser_comment(raw),
@@ -116,8 +123,8 @@ def _all_ledger_records(
             authority_issue=authority_issue,
         )
         if item is not None:
-            records.append(item)
-    return records
+            result.append(item)
+    return result
 
 
 def _ledger_records(snapshot: StableSnapshot, grant: SessionGrant) -> list[LedgerRecord]:
@@ -160,7 +167,12 @@ def _validated_session_records(
     return records
 
 
-def _is_suspended(snapshot: StableSnapshot, *, repository: str, authority_issue: int) -> bool:
+def _is_suspended(
+    snapshot: StableSnapshot,
+    *,
+    repository: str,
+    authority_issue: int,
+) -> bool:
     return any(
         is_suspend_comment(
             _parser_comment(raw),
@@ -171,8 +183,13 @@ def _is_suspended(snapshot: StableSnapshot, *, repository: str, authority_issue:
     )
 
 
-def _jobs(snapshot: StableSnapshot, *, repository: str, request_issue: int) -> list[Any]:
-    jobs = []
+def _jobs(
+    snapshot: StableSnapshot,
+    *,
+    repository: str,
+    request_issue: int,
+) -> list[Any]:
+    result = []
     for raw in snapshot.comments:
         job = queue_job_from_comment(
             _parser_comment(raw),
@@ -181,8 +198,8 @@ def _jobs(snapshot: StableSnapshot, *, repository: str, request_issue: int) -> l
             origin_number=request_issue,
         )
         if job is not None:
-            jobs.append(job)
-    return jobs
+            result.append(job)
+    return result
 
 
 def _publish_record(
@@ -214,8 +231,8 @@ def _publish_record(
     if reread is None or reread.record_sha256 != record.record_sha256:
         raise ContractError("published ledger record did not round-trip exactly")
 
-    # The POST response is not authority. Reconstruct the exact generation from
-    # a stable GitHub reread and require the new record to be the unique tail.
+    # A successful POST is not authority. The newly published record must be
+    # the unique tail after a stable GitHub reconstruction.
     snapshot = stable_double_scan(lambda: gh.comments(issue))
     records = _ledger_records(snapshot, grant)
     current = project(records, grant)
@@ -313,44 +330,15 @@ def _finish_closing(
     return True
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
-    if isinstance(args.max_jobs, bool) or not 1 <= args.max_jobs <= 100:
-        raise ContractError("--max-jobs must be an integer from 1 through 100")
-    if args.authority_issue == args.request_issue:
-        raise ContractError("authority issue and request issue must be distinct")
-
-    runner = CommandRunner()
-    root = discover_repository_root(runner, Path.cwd())
-    gh = Gate1GitHub(runner, root, args.repository)
-    preflight = gh.preflight()
-
-    authority = gh.issue(args.authority_issue)
-    if authority.get("state") != "open":
-        raise ContractError("Gate 1 implementation authority issue is not open")
-
-    authority_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
-    all_grants = _grants(
-        authority_snapshot,
-        repository=args.repository,
-        authority_issue=args.authority_issue,
-    )
-    grants = [item for item in all_grants if item.session_id == args.session_id]
-    if len(grants) != 1:
-        raise ContractError("exactly one immutable human session grant is required")
-    grant = grants[0]
-
-    require_runtime_identity(
-        preflight=preflight,
-        grant=grant,
-        codespace_name=args.codespace_name,
-    )
-    require_request_authority(gh.permission(grant.granted_by))
-
-    # Retained for the entire function lifetime. Linux closes the descriptor and
-    # releases the fence on every return or process termination.
-    _process_fence = acquire_session_process_fence(grant)
-
+def _run_session(
+    *,
+    args: argparse.Namespace,
+    gh: Gate1GitHub,
+    runner: CommandRunner,
+    root: Path,
+    grant: SessionGrant,
+    authority_snapshot: StableSnapshot,
+) -> int:
     if _is_suspended(
         authority_snapshot,
         repository=args.repository,
@@ -365,6 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     current = project(records, grant)
     last = current.last_record
+
     if current.state == "CLOSED":
         if last is not None:
             return 0
@@ -564,13 +553,11 @@ def main(argv: list[str] | None = None) -> int:
         ):
             raise ContractError("session authority changed after JOB_SELECTED")
 
-        permission_now = gh.permission(job.request_author)
-        current_target = _target_sha(gh, job)
         final_effect_guard(
             job=job,
             request_comment=source_comment,
-            current_target_sha=current_target,
-            permission=permission_now,
+            current_target_sha=_target_sha(gh, job),
+            permission=gh.permission(job.request_author),
             suspended=suspended_now,
         )
 
@@ -589,11 +576,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
         try:
-            invocation = invoke_once(
-                runner=runner,
-                repository_root=root,
-                job=job,
-            )
+            invocation = invoke_once(runner=runner, repository_root=root, job=job)
         except Exception as exc:
             _publish_record(
                 gh,
@@ -621,10 +604,8 @@ def main(argv: list[str] | None = None) -> int:
                 "Gate 0 returned without a cryptographically authoritative final outcome"
             )
 
-        # Effects have already happened. Even if a suspension arrives now, the
-        # durable authoritative Gate 0 outcome must be terminalized rather than
-        # left ambiguous. Reconstruct GitHub state and require our JOB_STARTED to
-        # remain the unique active tail before recording terminal truth.
+        # The external effect is already resolved by Gate 0. Reconstruct GitHub
+        # and require the exact JOB_STARTED tail before writing terminal truth.
         after_effect_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
         after_effect_records = _validated_session_records(
             after_effect_snapshot,
@@ -662,9 +643,55 @@ def main(argv: list[str] | None = None) -> int:
         )
         completed += 1
 
-    # Keep the local fence live through the last durable write.
-    _process_fence.close()
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    if isinstance(args.max_jobs, bool) or not 1 <= args.max_jobs <= 100:
+        raise ContractError("--max-jobs must be an integer from 1 through 100")
+    if args.authority_issue == args.request_issue:
+        raise ContractError("authority issue and request issue must be distinct")
+
+    runner = CommandRunner()
+    root = discover_repository_root(runner, Path.cwd())
+    gh = Gate1GitHub(runner, root, args.repository)
+    preflight = gh.preflight()
+
+    authority = gh.issue(args.authority_issue)
+    if authority.get("state") != "open":
+        raise ContractError("Gate 1 implementation authority issue is not open")
+
+    authority_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
+    all_grants = _grants(
+        authority_snapshot,
+        repository=args.repository,
+        authority_issue=args.authority_issue,
+    )
+    grants = [item for item in all_grants if item.session_id == args.session_id]
+    if len(grants) != 1:
+        raise ContractError("exactly one immutable human session grant is required")
+    grant = grants[0]
+
+    require_runtime_identity(
+        preflight=preflight,
+        grant=grant,
+        codespace_name=args.codespace_name,
+    )
+    require_request_authority(gh.permission(grant.granted_by))
+
+    fence = acquire_session_process_fence(grant)
+    try:
+        return _run_session(
+            args=args,
+            gh=gh,
+            runner=runner,
+            root=root,
+            grant=grant,
+            authority_snapshot=authority_snapshot,
+        )
+    finally:
+        fence.close()
 
 
 if __name__ == "__main__":
