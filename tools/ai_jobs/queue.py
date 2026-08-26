@@ -21,7 +21,13 @@ def elect(
     terminal_request_digests: frozenset[str] = frozenset(),
     started_request_digests: frozenset[str] = frozenset(),
 ) -> QueueDecision:
-    """Elect exactly one oldest admissible request by immutable comment identity."""
+    """Elect one oldest admissible logical request deterministically.
+
+    Repeated observations of the same logical ``job_id`` with the same request
+    digest are idempotent duplicates: exactly the oldest immutable comment is
+    retained. Reusing a ``job_id`` with different request content, or reusing a
+    request digest under a different ``job_id``, remains a hard conflict.
+    """
     job_list = tuple(jobs)
 
     if not terminal_request_digests.issubset(started_request_digests):
@@ -36,37 +42,35 @@ def elect(
         )
 
     by_job: dict[str, list[QueueJob]] = {}
-    by_digest: dict[str, list[QueueJob]] = {}
+    digest_to_job_ids: dict[str, set[str]] = {}
     for job in job_list:
         by_job.setdefault(job.job_id, []).append(job)
-        by_digest.setdefault(job.request_digest, []).append(job)
+        digest_to_job_ids.setdefault(job.request_digest, set()).add(job.job_id)
 
     duplicate_ids: list[str] = []
     conflicts: list[str] = []
+    collapsed: list[QueueJob] = []
+
     for job_id, group in sorted(by_job.items()):
-        if len(group) <= 1:
-            continue
-        duplicate_ids.append(job_id)
         digests = {item.request_digest for item in group}
         if len(digests) > 1:
             conflicts.append(job_id)
-
-    reused_digests = sorted(
-        digest
-        for digest, group in by_digest.items()
-        if len(group) > 1
-    )
+            continue
+        if len(group) > 1:
+            duplicate_ids.append(job_id)
+        collapsed.append(min(group, key=lambda item: item.order_key))
 
     if conflicts:
         raise ContractError(
             "queue contains job_id conflicts with different digests: "
             + ",".join(conflicts)
         )
-    if duplicate_ids:
-        raise ContractError(
-            "queue contains duplicate/reused job_id identities: "
-            + ",".join(duplicate_ids)
-        )
+
+    reused_digests = sorted(
+        digest
+        for digest, job_ids in digest_to_job_ids.items()
+        if len(job_ids) > 1
+    )
     if reused_digests:
         raise ContractError(
             "queue contains reused request digest identities: "
@@ -76,7 +80,7 @@ def elect(
     pending = tuple(sorted(
         (
             item
-            for item in job_list
+            for item in collapsed
             if item.request_digest not in terminal_request_digests
             and item.request_digest not in started_request_digests
         ),
@@ -85,6 +89,6 @@ def elect(
     return QueueDecision(
         pending=pending,
         selected=pending[0] if pending else None,
-        duplicate_job_ids=(),
+        duplicate_job_ids=tuple(duplicate_ids),
         conflicts=(),
     )
