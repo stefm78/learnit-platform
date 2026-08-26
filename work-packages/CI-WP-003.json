@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-003",
+  "title": "Restore required main status-check contexts",
+  "status": "in-progress",
+  "changeClass": "ci-protection-contract-correction",
+  "riskClass": "moderate",
+  "purpose": "Restore the exact four-context main protection contract without weakening the ruleset by emitting compatibility check contexts for the two existing authoritative repository-validation jobs.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d32f6ad7f32e213ec5a9d97c3fb9149f985ae491",
+    "authorityIssue": 174,
+    "branch": "ci/CI-WP-003-required-check-contexts",
+    "rulesetId": 18924839,
+    "blockedPullRequest": 161,
+    "blockedHead": "e85233cbd5bdc122ba17b053d05ecc55f842a4ea"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/governance-validation.yml",
+      ".github/workflows/pr-scope.yml",
+      "work-packages/CI-WP-003.json"
+    ],
+    "forbiddenPaths": [
+      "tools/ai_jobs/**",
+      "tests/ai_jobs/**",
+      "tools/codespace_evidence/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "kits/**",
+      "governance/**",
+      "docs/product/**",
+      "docs/evidence/**"
+    ]
+  },
+  "invariants": [
+    "The main-protection ruleset is not edited or weakened.",
+    "The existing validate-repository and gate jobs remain the authoritative validations.",
+    "Repository governance compatibility context succeeds only when validate-repository succeeds.",
+    "PR scope compatibility context succeeds only when gate succeeds.",
+    "Only the three exact allowed paths may change.",
+    "No Gate 0, Gate 1, product, Atlas, authoring, kit, Pages, release or runtime behavior changes.",
+    "PR #161 head remains byte-for-byte untouched by this work package."
+  ],
+  "requiredEvidence": [
+    "Changed paths equal the three-path allowlist.",
+    "Repository governance workflow emits both validate-repository and Repository governance and both are green.",
+    "PR scope workflow emits both gate and PR scope and both are green.",
+    "The repository ruleset remains unchanged and still requires all four contexts.",
+    "PR scope validation passes on the exact maintenance head."
+  ],
+  "adversarialTests": [
+    "If validate-repository fails or is cancelled, Repository governance compatibility context must fail.",
+    "If gate fails or is cancelled, PR scope compatibility context must fail.",
+    "No compatibility job can bypass or replace its upstream authoritative job.",
+    "A fourth changed path fails scope validation."
+  ],
+  "nonGoals": [
+    "Changing main branch protection requirements.",
+    "Repairing the unrelated Learn-it Next CI branch router.",
+    "Changing Gate 1 implementation or QA.",
+    "Changing product behavior or release artifacts."
+  ],
+  "independentReview": [
+    "One exact-head scope and workflow semantics review is sufficient because the change adds no production behavior and does not weaken protection."
+  ],
+  "execution": {
+    "issue": 174,
+    "maximumChangedFiles": 3,
+    "newFilesAuthorized": [
+      "work-packages/CI-WP-003.json"
+    ],
+    "requiresContradictoryReviewBeforeMerge": false,
+    "requiresGovernorLinusReviewBeforeMerge": false,
+    "mergeStatus": "held"
+  },
+  "rollback": "Close the maintenance PR without merge, or revert only the two workflow compatibility jobs and CI-WP-003 metadata after merge."
+}
