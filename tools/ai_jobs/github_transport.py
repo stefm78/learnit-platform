@@ -1,14 +1,15 @@
 """Closed privileged GitHub transport for the Gate 1 EFFECT_GATEWAY.
 
 Only the fixed GitHub observations required by Gate 1 and same-authority issue
-comment publication are exposed.  The transport owns the authenticated ``gh``
+comment publication are exposed. The transport owns the authenticated ``gh``
 subprocess boundary, pins github.com, uses ``shell=False``, and never accepts a
 caller supplied argv, method, host, or arbitrary API route.
 
-Every normative GET is consumed as a raw HTTP envelope.  R5 lexical header
-checks are completed before JSON interpretation.  A publication is attempted
-once and is authoritative only after a durable exact read-back/reconciliation;
-an ambiguous effect hard-fences further mutation in the current gateway.
+Every normative GET is consumed as a raw HTTP envelope. R5 lexical header
+checks, including the #171 HTTP/2 no-content-length amendment, are completed
+before JSON interpretation. A publication is attempted once and is
+authoritative only after a durable exact read-back/reconciliation; an
+ambiguous effect hard-fences further mutation in the current gateway.
 """
 from __future__ import annotations
 
@@ -43,7 +44,10 @@ REQUEST_ID_RE = re.compile(
     re.ASCII,
 )
 CONTENT_LENGTH_RE = re.compile(r"^[0-9]+$", re.ASCII)
-HTTP_STATUS_RE = re.compile(r"^HTTP/[^ ]+ ([0-9]{3})(?: .*)?$", re.ASCII)
+HTTP_STATUS_RE = re.compile(
+    r"^(?P<protocol>HTTP/[^ ]+) (?P<status>[0-9]{3})(?: .*)?$",
+    re.ASCII,
+)
 GITHUB_LOGIN_RE = re.compile(
     r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38}[A-Za-z0-9])?(?:\[bot\])?$",
     re.ASCII,
@@ -52,6 +56,7 @@ GITHUB_LOGIN_RE = re.compile(
 _API_VERSION = "2022-11-28"
 _ACCEPT = "application/vnd.github+json"
 _GITHUB_HOST = "github.com"
+_HTTP2_PROTOCOLS = frozenset({"HTTP/2", "HTTP/2.0"})
 
 
 def validate_r5_readback_envelope(
@@ -59,14 +64,16 @@ def validate_r5_readback_envelope(
     status: Any,
     headers: Mapping[str, Any],
     body: bytes,
+    http_protocol: str | None = None,
     expected_body_sha256: str | None = None,
 ) -> dict[str, Any]:
-    """Validate the exact R5 lexical controls before body interpretation.
+    """Validate R5 plus the narrow #171 HTTP/2 body-length amendment.
 
-    R5 requires HTTP 200, a non-empty ASCII segmented
-    ``x-github-request-id`` and lexical decimal-ASCII ``content-length``.
-    Zero-padded decimal length is valid when its integer value equals the exact
-    decoded body length.
+    HTTP 200 and the segmented ASCII request id remain mandatory. If a
+    content-length is present it remains lexical decimal ASCII and must equal
+    the exact captured body length. Its absence is accepted only when the
+    observed status line explicitly identifies HTTP/2. No content-length is
+    ever synthesized or inferred; captured body bytes remain authoritative.
     """
     code = exact_int(status, "github.status", minimum=100, maximum=599)
     if code != 200:
@@ -75,6 +82,13 @@ def validate_r5_readback_envelope(
         raise ContractError("GitHub read-back headers are unavailable")
     if not isinstance(body, bytes):
         raise ContractError("GitHub read-back body must be exact bytes")
+    if http_protocol is not None:
+        if not isinstance(http_protocol, str):
+            raise ContractError("GitHub read-back HTTP protocol is invalid")
+        try:
+            http_protocol.encode("ascii")
+        except UnicodeEncodeError as exc:
+            raise ContractError("GitHub read-back HTTP protocol must be ASCII") from exc
 
     lowered: dict[str, str] = {}
     for raw_name, raw_value in headers.items():
@@ -95,19 +109,29 @@ def validate_r5_readback_envelope(
         raise ContractError("GITHUB_HEADER_INVALID: x-github-request-id")
 
     content_length = lowered.get("content-length")
-    if not isinstance(content_length, str) or CONTENT_LENGTH_RE.fullmatch(content_length) is None:
-        raise ContractError("GITHUB_HEADER_INVALID: content-length")
-    if int(content_length, 10) != len(body):
-        raise ContractError("GitHub content-length differs from exact decoded body length")
+    if content_length is None:
+        if http_protocol not in _HTTP2_PROTOCOLS:
+            raise ContractError(
+                "GITHUB_HEADER_INVALID: content-length absent outside explicit HTTP/2"
+            )
+    else:
+        if CONTENT_LENGTH_RE.fullmatch(content_length) is None:
+            raise ContractError("GITHUB_HEADER_INVALID: content-length")
+        if int(content_length, 10) != len(body):
+            raise ContractError("GitHub content-length differs from exact captured body length")
+
     if len(body) > MAX_CHUNK_BYTES:
         raise ContractError("GitHub read-back body exceeds the canonical chunk bound")
 
+    # The digest is computed over the exact captured body bytes before callers
+    # are allowed to perform UTF-8 decoding or JSON interpretation.
     body_sha256 = hashlib.sha256(body).hexdigest()
     if expected_body_sha256 is not None and body_sha256 != expected_body_sha256:
         raise ContractError("GitHub read-back body digest mismatch")
 
     return {
         "status": code,
+        "http_protocol": http_protocol,
         "x-github-request-id": request_id,
         "content-length": content_length,
         "body_sha256": body_sha256,
@@ -115,7 +139,7 @@ def validate_r5_readback_envelope(
     }
 
 
-def _split_http_envelope(raw: bytes) -> tuple[int, dict[str, str], bytes]:
+def _split_http_envelope(raw: bytes) -> tuple[str, int, dict[str, str], bytes]:
     """Split one ``gh api --include`` response without normalizing body bytes."""
     if not isinstance(raw, bytes) or not raw:
         raise ContractError("GitHub raw read-back is empty")
@@ -138,11 +162,11 @@ def _split_http_envelope(raw: bytes) -> tuple[int, dict[str, str], bytes]:
         raise ContractError("GitHub raw read-back headers are not ASCII") from exc
 
     lines = header_text.replace("\r\n", "\n").split("\n")
-    if not lines or HTTP_STATUS_RE.fullmatch(lines[0]) is None:
+    status_match = HTTP_STATUS_RE.fullmatch(lines[0]) if lines else None
+    if status_match is None:
         raise ContractError("GitHub raw read-back status line is invalid")
-    status_match = HTTP_STATUS_RE.fullmatch(lines[0])
-    assert status_match is not None
-    status = int(status_match.group(1), 10)
+    protocol = status_match.group("protocol")
+    status = int(status_match.group("status"), 10)
 
     selected: dict[str, str] = {}
     for line in lines[1:]:
@@ -157,9 +181,6 @@ def _split_http_envelope(raw: bytes) -> tuple[int, dict[str, str], bytes]:
         except UnicodeEncodeError as exc:
             raise ContractError("GitHub raw read-back contains a non-ASCII header") from exc
         name = raw_name.lower()
-        # HTTP field syntax conventionally emits one SP after ':'.  Remove
-        # exactly that delimiter SP; any additional leading/trailing space is
-        # part of the selected lexical value and is rejected by the R5 grammar.
         value = raw_value[1:] if raw_value.startswith(" ") else raw_value
         if name in {"x-github-request-id", "content-length"}:
             if name in selected:
@@ -168,7 +189,7 @@ def _split_http_envelope(raw: bytes) -> tuple[int, dict[str, str], bytes]:
 
     if body.startswith(b"HTTP/"):
         raise ContractError("multiple HTTP envelopes are not accepted at the Gate 1 boundary")
-    return status, selected, body
+    return protocol, status, selected, body
 
 
 def _loads_api_json(body: bytes, label: str) -> Any:
@@ -248,8 +269,6 @@ def _comment_object(
     if not isinstance(user_node_id, str) or not user_node_id:
         raise ContractError("GitHub comment user node_id is unavailable")
 
-    # Do not leak the broad GitHub object into core/reconciler code.  Only the
-    # exact normalized fields used by Gate 1 cross the EFFECT_GATEWAY boundary.
     return {
         "id": comment_id,
         "node_id": node_id,
@@ -287,11 +306,7 @@ class _ClosedGhTransport:
         if host and host != _GITHUB_HOST:
             raise GitHubError("GH_HOST differs from canonical github.com")
         return safe_environment(
-            {
-                "GH_PAGER": "cat",
-                "PAGER": "cat",
-                "NO_COLOR": "1",
-            },
+            {"GH_PAGER": "cat", "PAGER": "cat", "NO_COLOR": "1"},
             include_github_auth=True,
         )
 
@@ -304,17 +319,10 @@ class _ClosedGhTransport:
         ):
             raise ContractError("GitHub GET endpoint is outside the closed route form")
         argv = [
-            str(self.gh_executable),
-            "api",
-            "--hostname",
-            _GITHUB_HOST,
-            "--include",
-            "--method",
-            "GET",
-            "-H",
-            f"Accept: {_ACCEPT}",
-            "-H",
-            f"X-GitHub-Api-Version: {_API_VERSION}",
+            str(self.gh_executable), "api", "--hostname", _GITHUB_HOST,
+            "--include", "--method", "GET",
+            "-H", f"Accept: {_ACCEPT}",
+            "-H", f"X-GitHub-Api-Version: {_API_VERSION}",
             endpoint,
         ]
         try:
@@ -336,8 +344,13 @@ class _ClosedGhTransport:
         if completed.returncode != 0:
             detail = redact_text(completed.stderr.decode("utf-8", "replace"))[:1024]
             raise GitHubError(f"GitHub GET failed: {detail}")
-        status, headers, body = _split_http_envelope(completed.stdout)
-        validate_r5_readback_envelope(status=status, headers=headers, body=body)
+        protocol, status, headers, body = _split_http_envelope(completed.stdout)
+        validate_r5_readback_envelope(
+            status=status,
+            headers=headers,
+            body=body,
+            http_protocol=protocol,
+        )
         return body
 
     def get_json(self, endpoint: str, *, timeout: int = 120) -> Any:
@@ -356,30 +369,19 @@ class _ClosedGhTransport:
         payload_path: Path | None = None
         try:
             with tempfile.NamedTemporaryFile(
-                "w",
-                encoding="utf-8",
-                suffix=".json",
-                prefix="learnit-gate1-effect-",
-                delete=False,
+                "w", encoding="utf-8", suffix=".json",
+                prefix="learnit-gate1-effect-", delete=False,
             ) as handle:
                 os.chmod(handle.name, 0o600)
                 json.dump({"body": body}, handle, ensure_ascii=False, separators=(",", ":"))
                 handle.write("\n")
                 payload_path = Path(handle.name)
             argv = [
-                str(self.gh_executable),
-                "api",
-                "--hostname",
-                _GITHUB_HOST,
-                "--method",
-                "POST",
-                "-H",
-                f"Accept: {_ACCEPT}",
-                "-H",
-                f"X-GitHub-Api-Version: {_API_VERSION}",
-                endpoint,
-                "--input",
-                str(payload_path),
+                str(self.gh_executable), "api", "--hostname", _GITHUB_HOST,
+                "--method", "POST",
+                "-H", f"Accept: {_ACCEPT}",
+                "-H", f"X-GitHub-Api-Version: {_API_VERSION}",
+                endpoint, "--input", str(payload_path),
             ]
             try:
                 completed = subprocess.run(
@@ -398,8 +400,6 @@ class _ClosedGhTransport:
             except OSError:
                 return None, "POST_START_FAILURE_EFFECT_UNKNOWN"
             if completed.returncode != 0:
-                # Conservatively classify as unknown: the remote effect may
-                # have committed before the local CLI observed its failure.
                 return None, "POST_NONZERO_EFFECT_UNKNOWN"
             try:
                 value = _loads_api_json(completed.stdout, "GitHub comment POST response")
@@ -414,14 +414,9 @@ class _ClosedGhTransport:
         try:
             completed = subprocess.run(
                 [str(self.gh_executable), "--version"],
-                cwd=str(self.repository_root),
-                env=self._environment(),
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=False,
-                check=False,
-                timeout=30,
+                cwd=str(self.repository_root), env=self._environment(),
+                stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, shell=False, check=False, timeout=30,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise GitHubError("gh version probe failed") from exc
@@ -444,21 +439,12 @@ def _checkout_repository(repository_root: Path) -> str:
         raise GitHubError("refusing a workspace-provided git executable")
 
     with tempfile.TemporaryDirectory(prefix="learnit-gate1-git-") as tmp:
-        env = safe_environment(
-            {},
-            include_github_auth=False,
-            isolated_config_root=Path(tmp),
-        )
+        env = safe_environment({}, include_github_auth=False, isolated_config_root=Path(tmp))
         completed = subprocess.run(
             [str(git_executable), "remote", "get-url", "origin"],
-            cwd=str(repository_root),
-            env=env,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=False,
-            check=False,
-            timeout=30,
+            cwd=str(repository_root), env=env, stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
+            check=False, timeout=30,
         )
     if completed.returncode != 0:
         raise GitHubError("checkout origin remote could not be established")
@@ -479,14 +465,12 @@ class Gate1GitHub:
     """Privileged EFFECT_GATEWAY-side GitHub facade with a closed surface."""
 
     def __init__(self, runner: CommandRunner, repository_root: Path, repository: str) -> None:
-        # ``runner`` remains in the constructor for the parent integration API,
-        # but the gateway intentionally does not retain or expose it.  All
-        # privileged GitHub execution is owned by the fixed private carrier.
         _ = runner
         if not isinstance(repository, str) or repository.count("/") != 1:
             raise ContractError("Gate 1 repository must use owner/name")
         owner, name = repository.split("/", 1)
-        if not owner or not name or any(char not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-" for char in owner + name):
+        allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-"
+        if not owner or not name or any(char not in allowed for char in owner + name):
             raise ContractError("Gate 1 repository contains invalid characters")
         self.repository_root = repository_root.resolve()
         self.repository = repository
@@ -503,7 +487,6 @@ class Gate1GitHub:
             raise GitHubError(
                 f"requested repository {self.repository} differs from current checkout {checkout_repository}"
             )
-
         user = self._get_json("user", timeout=60)
         if not isinstance(user, dict):
             raise GitHubError("authenticated GitHub identity response is invalid")
@@ -511,7 +494,6 @@ class Gate1GitHub:
         exact_int(user.get("id"), "authenticated GitHub user id", minimum=1)
         if not isinstance(user.get("node_id"), str) or not user["node_id"]:
             raise GitHubError("authenticated GitHub user node_id is unavailable")
-
         repo = self._get_json(f"repos/{self.repository}", timeout=60)
         if not isinstance(repo, dict) or repo.get("full_name") != self.repository:
             raise GitHubError("authenticated GitHub context resolved a different repository")
@@ -527,7 +509,6 @@ class Gate1GitHub:
             raise GitHubError("GitHub repository canonical URL mismatch")
         if not isinstance(default_branch, str) or not default_branch:
             raise GitHubError("GitHub repository default branch is unavailable")
-
         self._authenticated_login = login
         return {
             "gh_version": self._transport.version(),
@@ -565,13 +546,7 @@ class Gate1GitHub:
             f"https://github.com/{self.repository}/pull/{issue_number}",
         }:
             raise ContractError("GitHub issue canonical URL mismatch")
-        return {
-            "id": issue_id,
-            "node_id": node_id,
-            "number": issue_number,
-            "state": state,
-            "html_url": html_url,
-        }
+        return {"id": issue_id, "node_id": node_id, "number": issue_number, "state": state, "html_url": html_url}
 
     def comments(self, issue_number: int) -> list[Any]:
         issue_number = exact_int(issue_number, "issue_number", minimum=1)
@@ -586,11 +561,7 @@ class Gate1GitHub:
             if not isinstance(value, list):
                 raise ContractError("paginated comment endpoint returned a non-list page")
             for item in value:
-                normalized = _comment_object(
-                    item,
-                    repository=self.repository,
-                    issue_number=issue_number,
-                )
+                normalized = _comment_object(item, repository=self.repository, issue_number=issue_number)
                 if normalized["id"] in seen:
                     raise ContractError("GitHub comment pagination repeated an id")
                 seen.add(normalized["id"])
@@ -658,30 +629,20 @@ class Gate1GitHub:
             raise ContractError("Gate 1 comment is empty or exceeds publication budget")
         if not isinstance(self._authenticated_login, str):
             raise ContractError("Gate 1 publication requires successful authenticated preflight")
-
         before = self._stable_comment_scan(issue_number)
         before_ids = {item["id"] for item in before}
         endpoint = f"repos/{self.repository}/issues/{issue_number}/comments"
-
-        posted_hint, post_error = self._transport.post_issue_comment_once(
-            endpoint=endpoint,
-            body=body,
-        )
+        posted_hint, post_error = self._transport.post_issue_comment_once(endpoint=endpoint, body=body)
         hinted_id = posted_hint.get("id") if isinstance(posted_hint, dict) else None
         if hinted_id is not None and (isinstance(hinted_id, bool) or not isinstance(hinted_id, int)):
             hinted_id = None
             post_error = post_error or "POST_RESPONSE_ID_INVALID_EFFECT_UNKNOWN"
-
-        # Direct read-back is attempted when an ID was returned, but the final
-        # decision always comes from a stable bounded scan so concurrent or
-        # duplicate effects cannot be hidden by the POST response.
         direct: dict[str, Any] | None = None
         if isinstance(hinted_id, int) and hinted_id > 0:
             try:
                 direct = self.comment(hinted_id)
             except Exception:
                 direct = None
-
         try:
             after = self._stable_comment_scan(issue_number)
         except Exception as exc:
@@ -689,18 +650,15 @@ class Gate1GitHub:
             raise GitHubError(
                 "G1_PUBLICATION_UNKNOWN_HOLD: durable reconciliation unavailable after one POST"
             ) from exc
-
         expected_issue_url = f"https://api.github.com/repos/{self.repository}/issues/{issue_number}"
         matches = [
-            item
-            for item in after
+            item for item in after
             if item["id"] not in before_ids
             and item.get("issue_url") == expected_issue_url
             and item.get("body") == body
             and isinstance(item.get("user"), dict)
             and item["user"].get("login") == self._authenticated_login
         ]
-
         if len(matches) != 1:
             self._ambiguous_effect = True
             raise GitHubError(
@@ -718,8 +676,6 @@ class Gate1GitHub:
                 "G1_PUBLICATION_UNKNOWN_HOLD: direct read-back differs from stable reconciliation"
             )
         if post_error is not None and authoritative["id"] in before_ids:
-            # Defensive unreachable guard: an ambiguous POST may only recover
-            # through a newly observed exact effect.
             self._ambiguous_effect = True
             raise GitHubError("G1_PUBLICATION_UNKNOWN_HOLD: no new durable effect observed")
         return authoritative
