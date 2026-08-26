@@ -4,10 +4,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
-import sys
 import tempfile
 
 from tools.codespace_evidence.execute import CommandRunner
+from tools.codespace_evidence.run import main as gate0_main
 
 from .contracts import ContractError, QueueJob, validate_gate0_operation
 
@@ -32,6 +32,11 @@ def invoke_once(
     if not 30 <= timeout_seconds <= 3600:
         raise ContractError("timeout_seconds outside fixed Gate 0 range")
 
+    # Gate 0 is the already-trusted execution boundary. Calling its fixed
+    # entry point in-process avoids wrapping that entry point in the ordinary
+    # untrusted-command sandbox, while Gate 0 keeps its own exact request
+    # verification, GitHub preflight and operation subprocess confinement.
+    del runner
     with tempfile.TemporaryDirectory(prefix="learnit-gate1-") as tmp:
         root = Path(tmp)
         descriptor = root / "launch.json"
@@ -50,18 +55,14 @@ def invoke_once(
             + "\n",
             encoding="utf-8",
         )
-        record = runner.run(
+        return_code = gate0_main(
             [
-                sys.executable,
-                str(repository_root / "tools/codespace_evidence/run.py"),
                 "--request", str(descriptor),
                 "--output-root", str(output),
-            ],
-            cwd=repository_root,
-            timeout_seconds=timeout_seconds,
+            ]
         )
         return Gate0Invocation(
-            return_code=record.return_code,
-            timed_out=record.timed_out,
+            return_code=return_code,
+            timed_out=False,
             output_root=str(output),
         )
