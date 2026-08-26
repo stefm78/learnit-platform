@@ -15,8 +15,11 @@ from . import GATE0_OPERATIONS
 from .contracts import (
     ContractError,
     QueueJob,
+    SHA256_RE,
     canonical_json_bytes,
     exact_int,
+    iso_utc,
+    sha256_canonical,
     validate_gate0_operation,
 )
 from .credential_boundary import EffectCapabilityExpectation, EffectCapabilityVerifier
@@ -33,6 +36,10 @@ EXPECTED_GATE0_OPERATIONS = frozenset(
     }
 )
 
+FULL_V6_SECURITY = "FULL_V6_SECURITY"
+PILOT_READ_ONLY = "GATE1_PILOT_READ_ONLY"
+_PILOT_PERMIT_SCHEMA = "learnit.gate1.pilot-read-only.effect-permit.v1"
+
 
 @dataclass(frozen=True)
 class Gate0Invocation:
@@ -40,6 +47,114 @@ class Gate0Invocation:
     timed_out: bool
     output_root: str
     authoritative_comment_id: int | None
+
+
+@dataclass(frozen=True)
+class PilotEffectPermit:
+    """Closed integrity handoff for the explicitly weaker read-only pilot.
+
+    This permit is deliberately *not* a cryptographic authorization primitive.
+    It binds one adapter call to the exact durable ``JOB_STARTED`` record and
+    selected job inside the already-trusted pilot coordinator domain. The
+    accepted #171 owner amendment requires callers and evidence to preserve
+    that distinction: this profile must never be represented as full V6 effect
+    isolation or compromised-broker resistance.
+    """
+
+    schema: str
+    profile: str
+    repository: str
+    authority_issue: int
+    session_id: str
+    generation: int
+    job_id: str
+    request_digest: str
+    request_comment_id: int
+    operation: str
+    target: Mapping[str, Any]
+    started_record_sha256: str
+    started_sequence: int
+    issued_at: str
+    permit_sha256: str
+
+    @classmethod
+    def build(
+        cls,
+        *,
+        repository: str,
+        authority_issue: int,
+        session_id: str,
+        generation: int,
+        job: QueueJob,
+        started_record_sha256: str,
+        started_sequence: int,
+        issued_at: str,
+    ) -> "PilotEffectPermit":
+        material = {
+            "schema": _PILOT_PERMIT_SCHEMA,
+            "profile": PILOT_READ_ONLY,
+            "repository": repository,
+            "authority_issue": authority_issue,
+            "session_id": session_id,
+            "generation": generation,
+            "job_id": job.job_id,
+            "request_digest": job.request_digest,
+            "request_comment_id": job.request_comment_id,
+            "operation": job.operation,
+            "target": _selected_target(job),
+            "started_record_sha256": started_record_sha256,
+            "started_sequence": started_sequence,
+            "issued_at": issued_at,
+        }
+        return cls(**material, permit_sha256=sha256_canonical(material))
+
+    def __post_init__(self) -> None:
+        if self.schema != _PILOT_PERMIT_SCHEMA or self.profile != PILOT_READ_ONLY:
+            raise ContractError("pilot effect permit profile/schema is invalid")
+        if not isinstance(self.repository, str) or "/" not in self.repository:
+            raise ContractError("pilot effect permit repository is invalid")
+        exact_int(self.authority_issue, "pilot permit authority_issue", minimum=1)
+        if not isinstance(self.session_id, str) or not self.session_id:
+            raise ContractError("pilot effect permit session_id is unavailable")
+        exact_int(self.generation, "pilot permit generation", minimum=1)
+        if not isinstance(self.job_id, str) or not self.job_id:
+            raise ContractError("pilot effect permit job_id is unavailable")
+        if not isinstance(self.request_digest, str) or SHA256_RE.fullmatch(self.request_digest) is None:
+            raise ContractError("pilot effect permit request digest is invalid")
+        exact_int(self.request_comment_id, "pilot permit request_comment_id", minimum=1)
+        validate_gate0_operation(self.operation)
+        if self.operation not in EXPECTED_GATE0_OPERATIONS:
+            raise ContractError("pilot permit operation is outside the fixed read-only surface")
+        if not isinstance(self.target, Mapping):
+            raise ContractError("pilot effect permit target is unavailable")
+        canonical_json_bytes(dict(self.target))
+        if (
+            not isinstance(self.started_record_sha256, str)
+            or SHA256_RE.fullmatch(self.started_record_sha256) is None
+        ):
+            raise ContractError("pilot effect permit JOB_STARTED digest is invalid")
+        exact_int(self.started_sequence, "pilot permit started_sequence", minimum=1)
+        iso_utc(self.issued_at, "pilot permit issued_at")
+        if not isinstance(self.permit_sha256, str) or SHA256_RE.fullmatch(self.permit_sha256) is None:
+            raise ContractError("pilot effect permit digest is invalid")
+        material = {
+            "schema": self.schema,
+            "profile": self.profile,
+            "repository": self.repository,
+            "authority_issue": self.authority_issue,
+            "session_id": self.session_id,
+            "generation": self.generation,
+            "job_id": self.job_id,
+            "request_digest": self.request_digest,
+            "request_comment_id": self.request_comment_id,
+            "operation": self.operation,
+            "target": dict(self.target),
+            "started_record_sha256": self.started_record_sha256,
+            "started_sequence": self.started_sequence,
+            "issued_at": self.issued_at,
+        }
+        if sha256_canonical(material) != self.permit_sha256:
+            raise ContractError("pilot effect permit self-digest mismatch")
 
 
 @dataclass(frozen=True)
@@ -174,15 +289,34 @@ def _verify_effect_capability(
     verifier.verify_and_consume(capability=capability, expected=expectation)
 
 
+def _verify_pilot_permit(*, job: QueueJob, permit: PilotEffectPermit | None) -> None:
+    if permit is None:
+        raise ContractError("read-only pilot effect permit is required")
+    if permit.profile != PILOT_READ_ONLY:
+        raise ContractError("pilot effect permit profile mismatch")
+    if permit.repository != job.repository:
+        raise ContractError("pilot effect permit repository mismatch")
+    if permit.job_id != job.job_id or permit.request_digest != job.request_digest:
+        raise ContractError("pilot effect permit job identity mismatch")
+    if permit.request_comment_id != job.request_comment_id:
+        raise ContractError("pilot effect permit source comment mismatch")
+    if permit.operation != job.operation:
+        raise ContractError("pilot effect permit operation mismatch")
+    if canonical_json_bytes(dict(permit.target)) != canonical_json_bytes(_selected_target(job)):
+        raise ContractError("pilot effect permit target mismatch")
+
+
 def invoke_once(
     *,
     runner: CommandRunner,
     repository_root: Path,
     job: QueueJob,
     timeout_seconds: int = 3600,
+    security_profile: str = FULL_V6_SECURITY,
     capability: Mapping[str, Any] | None = None,
     verifier: EffectCapabilityVerifier | None = None,
     expectation: EffectCapabilityExpectation | None = None,
+    pilot_permit: PilotEffectPermit | None = None,
 ) -> Gate0Invocation:
     _require_exact_gate0_surface()
     validate_gate0_operation(job.operation)
@@ -194,17 +328,13 @@ def invoke_once(
     # Re-read and bind the source via raw R5 EFFECT_GATEWAY immediately before
     # entering the accepted Gate 0 implementation. Gate 0 then repeats its own
     # request/target/publication checks; it remains byte-for-byte unchanged by
-    # this lane.
+    # this integration layer.
     _request_from_source(
         runner=runner,
         repository_root=repository_root,
         job=job,
     )
 
-    # Gate 0 is the already-trusted execution boundary. Calling its fixed entry
-    # point in-process avoids treating that entry point as an untrusted requested
-    # command. No requested argv, executable, shell fragment or profile can be
-    # substituted here.
     with tempfile.TemporaryDirectory(prefix="learnit-gate1-") as tmp:
         root = Path(tmp)
         descriptor = root / "launch.json"
@@ -224,16 +354,21 @@ def invoke_once(
             encoding="utf-8",
         )
 
-        # The signer and private key stay outside EFFECT_GATEWAY. The parent
-        # presents an already-issued capability plus the trusted verifier and
-        # exact expectation. Verification/nonce consumption is the final action
-        # owned by this lane before Gate 0 can create an external effect.
-        _verify_effect_capability(
-            job=job,
-            capability=capability,
-            verifier=verifier,
-            expectation=expectation,
-        )
+        if security_profile == FULL_V6_SECURITY:
+            if pilot_permit is not None:
+                raise ContractError("pilot permit cannot be mixed with FULL_V6_SECURITY")
+            _verify_effect_capability(
+                job=job,
+                capability=capability,
+                verifier=verifier,
+                expectation=expectation,
+            )
+        elif security_profile == PILOT_READ_ONLY:
+            if capability is not None or verifier is not None or expectation is not None:
+                raise ContractError("pilot profile cannot masquerade as signed V6 authority")
+            _verify_pilot_permit(job=job, permit=pilot_permit)
+        else:
+            raise ContractError("unknown Gate 1 security profile")
 
         return_code = gate0_main(
             [
