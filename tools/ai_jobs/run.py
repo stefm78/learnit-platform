@@ -26,7 +26,7 @@ from tools.ai_jobs.credential_boundary import (
     require_request_authority,
     require_runtime_identity,
 )
-from tools.ai_jobs.gate0_adapter import invoke_once
+from tools.ai_jobs.gate0_adapter import PILOT_READ_ONLY, PilotEffectPermit, invoke_once
 from tools.ai_jobs.github_transport import Gate1GitHub
 from tools.ai_jobs.ledger import render_record
 from tools.ai_jobs.parser import (
@@ -231,8 +231,6 @@ def _publish_record(
     if reread is None or reread.record_sha256 != record.record_sha256:
         raise ContractError("published ledger record did not round-trip exactly")
 
-    # A successful POST is not authority. The newly published record must be
-    # the unique tail after a stable GitHub reconstruction.
     snapshot = stable_double_scan(lambda: gh.comments(issue))
     records = _ledger_records(snapshot, grant)
     current = project(records, grant)
@@ -328,6 +326,43 @@ def _finish_closing(
         payload={"final_request_snapshot_sha256": request_snapshot.digest_sha256},
     )
     return True
+
+
+def _recover_post_started_if_authoritative(
+    gh: Gate1GitHub,
+    authority_issue: int,
+    *,
+    grant: SessionGrant,
+    request_issue: int,
+    job: Any,
+    started: LedgerRecord,
+    reason: str,
+) -> None:
+    """Append recovery only when the same JOB_STARTED is still the unique tail."""
+    snapshot = stable_double_scan(lambda: gh.comments(authority_issue))
+    records = _validated_session_records(
+        snapshot,
+        grant=grant,
+        request_issue=request_issue,
+    )
+    current = project(records, grant)
+    if (
+        current.state != "JOB_STARTED"
+        or current.last_record is None
+        or current.last_record.record_sha256 != started.record_sha256
+        or current.active_job_digest != job.request_digest
+    ):
+        raise ContractError(
+            "post-JOB_STARTED authority changed; refusing a recovery append on a stale tail"
+        )
+    _publish_record(
+        gh,
+        authority_issue,
+        record_type="SESSION_RECOVERY_REQUIRED",
+        grant=grant,
+        previous=started,
+        payload={"request_digest": job.request_digest, "reason": reason},
+    )
 
 
 def _run_session(
@@ -533,6 +568,8 @@ def _run_session(
                 },
             )
 
+        # Defense in depth before making JOB_STARTED durable. The owner-approved
+        # pilot also repeats every mutable check *after* JOB_STARTED below.
         source_comment = gh.comment(job.request_comment_id)
         authority_now = stable_double_scan(lambda: gh.comments(args.authority_issue))
         suspended_now = _is_suspended(
@@ -576,36 +613,85 @@ def _run_session(
         )
 
         try:
-            invocation = invoke_once(runner=runner, repository_root=root, job=job)
+            # #171 + owner GO PILOT READ ONLY: JOB_STARTED must first be
+            # reconstructed as the unique durable tail. Then every mutable
+            # authority is reread again immediately before the fixed Gate 0
+            # effect. The permit binds this exact durable state but is not
+            # represented as full V6 cryptographic isolation.
+            post_start_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
+            post_start_records = _validated_session_records(
+                post_start_snapshot,
+                grant=grant,
+                request_issue=args.request_issue,
+            )
+            post_start = project(post_start_records, grant)
+            if (
+                post_start.state != "JOB_STARTED"
+                or post_start.last_record is None
+                or post_start.last_record.record_sha256 != started.record_sha256
+                or post_start.active_job_digest != job.request_digest
+            ):
+                raise ContractError("JOB_STARTED is not the unique authoritative tail before effect")
+
+            suspended_post_start = _is_suspended(
+                post_start_snapshot,
+                repository=args.repository,
+                authority_issue=args.authority_issue,
+            )
+            source_post_start = gh.comment(job.request_comment_id)
+            permission_post_start = gh.permission(job.request_author)
+            target_post_start = _target_sha(gh, job)
+            final_effect_guard(
+                job=job,
+                request_comment=source_post_start,
+                current_target_sha=target_post_start,
+                permission=permission_post_start,
+                suspended=suspended_post_start,
+            )
+
+            pilot_permit = PilotEffectPermit.build(
+                repository=args.repository,
+                authority_issue=args.authority_issue,
+                session_id=grant.session_id,
+                generation=grant.generation,
+                job=job,
+                started_record_sha256=started.record_sha256,
+                started_sequence=started.sequence,
+                issued_at=utc_now(),
+            )
+            invocation = invoke_once(
+                runner=runner,
+                repository_root=root,
+                job=job,
+                security_profile=PILOT_READ_ONLY,
+                pilot_permit=pilot_permit,
+            )
         except Exception as exc:
-            _publish_record(
+            _recover_post_started_if_authoritative(
                 gh,
                 args.authority_issue,
-                record_type="SESSION_RECOVERY_REQUIRED",
                 grant=grant,
-                previous=started,
-                payload={"request_digest": job.request_digest, "reason": type(exc).__name__},
+                request_issue=args.request_issue,
+                job=job,
+                started=started,
+                reason=f"POST_START_{type(exc).__name__}",
             )
             raise
 
         if invocation.authoritative_comment_id is None:
-            _publish_record(
+            _recover_post_started_if_authoritative(
                 gh,
                 args.authority_issue,
-                record_type="SESSION_RECOVERY_REQUIRED",
                 grant=grant,
-                previous=started,
-                payload={
-                    "request_digest": job.request_digest,
-                    "reason": "GATE0_AUTHORITATIVE_OUTCOME_NOT_FOUND",
-                },
+                request_issue=args.request_issue,
+                job=job,
+                started=started,
+                reason="GATE0_AUTHORITATIVE_OUTCOME_NOT_FOUND",
             )
             raise ContractError(
                 "Gate 0 returned without a cryptographically authoritative final outcome"
             )
 
-        # The external effect is already resolved by Gate 0. Reconstruct GitHub
-        # and require the exact JOB_STARTED tail before writing terminal truth.
         after_effect_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
         after_effect_records = _validated_session_records(
             after_effect_snapshot,
