@@ -92,7 +92,8 @@ class GovernanceGuardTests(unittest.TestCase):
         self.assertIn("cryptographic authorization primitive", adapter_source)
         normalized_adapter = adapter_source.replace("*", "").lower()
         self.assertIn("not a cryptographic authorization primitive", normalized_adapter)
-        self.assertIn("not represented as full v6 cryptographic isolation", run_source.lower())
+        normalized_run = " ".join(run_source.lower().replace("#", " ").split())
+        self.assertIn("not represented as full v6 cryptographic isolation", normalized_run)
 
     def test_full_v6_verifier_path_remains_present_but_not_silently_selected_by_pilot(self) -> None:
         source = Path(adapter.__file__).read_text(encoding="utf-8")
