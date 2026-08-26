@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import hashlib
 from typing import Any, Callable
 
-from . import MAX_COMMENTS_PER_ISSUE, MAX_SNAPSHOT_BYTES
+from . import MAX_CHUNK_BYTES, MAX_COMMENTS_PER_ISSUE, MAX_SNAPSHOT_BYTES
 from .contracts import ContractError, canonical_json_bytes
 
 
@@ -33,6 +33,8 @@ def _normalize(comments: list[Any]) -> tuple[dict[str, Any], ...]:
             raise ContractError("GitHub comments contain invalid or duplicate ids")
         if not isinstance(body, str) or not isinstance(login, str) or not login:
             raise ContractError("GitHub comment is missing normative fields")
+        if len(body.encode("utf-8")) > MAX_CHUNK_BYTES:
+            raise ContractError("GitHub comment exceeds the canonical Gate 1 chunk bound")
         created_at = raw.get("created_at")
         updated_at = raw.get("updated_at")
         if not isinstance(created_at, str) or not isinstance(updated_at, str):
