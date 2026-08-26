@@ -1,93 +1,148 @@
 {
-  "schema_version": 1,
-  "work_package": "OPS-WP-007",
+  "schemaVersion": 1,
+  "id": "OPS-WP-007",
   "title": "Gate 1 sequential multi-AI queue implementation",
-  "status": "IMPLEMENTING",
-  "authority_issue": 160,
-  "accountable_owner_direction": "GO",
-  "baseline": "d32f6ad7f32e213ec5a9d97c3fb9149f985ae491",
-  "branch": "ops/OPS-WP-007-gate1-sequential-queue",
-  "canonical_design": {
-    "version": "G1-DESIGN-V6",
-    "package_revision": 5,
-    "release_tag": "gov-g1-design-v6-r5",
-    "package_sha256": "698c08c2df2dc5e8a36bde6277311dd1dc382fdb5856b96fe37703d1840891a5",
-    "manifest_sha256": "d041e63f758ef7f1d37467323b1f8101dd426d6e57011c0b863af737794e07a6",
-    "final_design_issue": 112,
-    "final_design_verdict": "G1_DESIGN_V6_ACCEPTED_FOR_GATE_1_CLOSURE"
+  "status": "implementing",
+  "changeClass": "repository-operations-sequential-queue",
+  "riskClass": "moderate",
+  "purpose": "Implement the already accepted G1-DESIGN-V6 R5 as a GitHub-authoritative sequential queue above unchanged Gate 0, with human Codespace start/grant, deterministic election, fail-closed recovery and no repository-write jobs or parallel execution.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "d32f6ad7f32e213ec5a9d97c3fb9149f985ae491",
+    "authorityIssue": 160,
+    "branch": "ops/OPS-WP-007-gate1-sequential-queue",
+    "canonicalDesign": "G1-DESIGN-V6",
+    "packageRevision": 5,
+    "releaseTag": "gov-g1-design-v6-r5",
+    "packageSha256": "698c08c2df2dc5e8a36bde6277311dd1dc382fdb5856b96fe37703d1840891a5",
+    "manifestSha256": "d041e63f758ef7f1d37467323b1f8101dd426d6e57011c0b863af737794e07a6",
+    "finalDesignIssue": 112,
+    "finalDesignVerdict": "G1_DESIGN_V6_ACCEPTED_FOR_GATE_1_CLOSURE"
+  },
+  "scope": {
+    "allowedPaths": [
+      "tools/ai_jobs/__init__.py",
+      "tools/ai_jobs/contracts.py",
+      "tools/ai_jobs/parser.py",
+      "tools/ai_jobs/github_transport.py",
+      "tools/ai_jobs/snapshot.py",
+      "tools/ai_jobs/ledger.py",
+      "tools/ai_jobs/session.py",
+      "tools/ai_jobs/queue.py",
+      "tools/ai_jobs/gate0_adapter.py",
+      "tools/ai_jobs/credential_boundary.py",
+      "tools/ai_jobs/stop.py",
+      "tools/ai_jobs/run.py",
+      "tests/ai_jobs/test_contracts.py",
+      "tests/ai_jobs/test_snapshot.py",
+      "tests/ai_jobs/test_session_exclusivity.py",
+      "tests/ai_jobs/test_queue_order.py",
+      "tests/ai_jobs/test_crash_recovery.py",
+      "tests/ai_jobs/test_publication_ambiguity.py",
+      "tests/ai_jobs/test_credential_boundary.py",
+      "tests/ai_jobs/test_gate0_integration.py",
+      "tests/ai_jobs/test_stop.py",
+      "tests/ai_jobs/test_governance_guards.py",
+      "docs/operations/GATE1_SEQUENTIAL_QUEUE.md",
+      "work-packages/OPS-WP-007.json"
+    ],
+    "ciOpsAllowedPaths": [
+      "tools/ai_jobs/__init__.py",
+      "tools/ai_jobs/contracts.py",
+      "tools/ai_jobs/parser.py",
+      "tools/ai_jobs/github_transport.py",
+      "tools/ai_jobs/snapshot.py",
+      "tools/ai_jobs/ledger.py",
+      "tools/ai_jobs/session.py",
+      "tools/ai_jobs/queue.py",
+      "tools/ai_jobs/gate0_adapter.py",
+      "tools/ai_jobs/credential_boundary.py",
+      "tools/ai_jobs/stop.py",
+      "tools/ai_jobs/run.py",
+      "docs/operations/GATE1_SEQUENTIAL_QUEUE.md",
+      "work-packages/OPS-WP-007.json"
+    ],
+    "independentQaAllowedPaths": [
+      "tests/ai_jobs/test_contracts.py",
+      "tests/ai_jobs/test_snapshot.py",
+      "tests/ai_jobs/test_session_exclusivity.py",
+      "tests/ai_jobs/test_queue_order.py",
+      "tests/ai_jobs/test_crash_recovery.py",
+      "tests/ai_jobs/test_publication_ambiguity.py",
+      "tests/ai_jobs/test_credential_boundary.py",
+      "tests/ai_jobs/test_gate0_integration.py",
+      "tests/ai_jobs/test_stop.py",
+      "tests/ai_jobs/test_governance_guards.py"
+    ],
+    "forbiddenPaths": [
+      ".devcontainer/**",
+      ".github/**",
+      "tools/codespace_evidence/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "kits/**",
+      "governance/**"
+    ]
+  },
+  "ownership": {
+    "ciOpsImplementation": "scope.ciOpsAllowedPaths",
+    "independentQa": "scope.independentQaAllowedPaths",
+    "rule": "CI/Ops must not author or weaken independent QA files. QA must not repair implementation files. Every implementation correction requires a complete QA rerun on the corrected exact head."
   },
   "arbitration": {
-    "linus_preflight_comment": 5421776307,
-    "linus_verdict": "READY_FOR_GATE_1_IMPLEMENTATION",
-    "steve_scope_comment": 5421778761,
-    "steve_verdict": "STEVE_GO_GATE_1_IMPLEMENTATION_WITHIN_EXACT_SCOPE",
-    "implementation_authorization_comment": 5421781276
-  },
-  "implementation_paths": [
-    "tools/ai_jobs/__init__.py",
-    "tools/ai_jobs/contracts.py",
-    "tools/ai_jobs/parser.py",
-    "tools/ai_jobs/github_transport.py",
-    "tools/ai_jobs/snapshot.py",
-    "tools/ai_jobs/ledger.py",
-    "tools/ai_jobs/session.py",
-    "tools/ai_jobs/queue.py",
-    "tools/ai_jobs/gate0_adapter.py",
-    "tools/ai_jobs/credential_boundary.py",
-    "tools/ai_jobs/stop.py",
-    "tools/ai_jobs/run.py"
-  ],
-  "qa_paths": [
-    "tests/ai_jobs/test_contracts.py",
-    "tests/ai_jobs/test_snapshot.py",
-    "tests/ai_jobs/test_session_exclusivity.py",
-    "tests/ai_jobs/test_queue_order.py",
-    "tests/ai_jobs/test_crash_recovery.py",
-    "tests/ai_jobs/test_publication_ambiguity.py",
-    "tests/ai_jobs/test_credential_boundary.py",
-    "tests/ai_jobs/test_gate0_integration.py",
-    "tests/ai_jobs/test_stop.py",
-    "tests/ai_jobs/test_governance_guards.py"
-  ],
-  "documentation_paths": [
-    "docs/operations/GATE1_SEQUENTIAL_QUEUE.md"
-  ],
-  "governance_paths": [
-    "work-packages/OPS-WP-007.json"
-  ],
-  "immutable_exclusions": [
-    ".devcontainer/",
-    ".github/",
-    "tools/codespace_evidence/",
-    "apps/",
-    "authoring/",
-    "contracts/",
-    "kits/",
-    "governance/"
-  ],
-  "runtime_boundary": {
-    "codespace_create_start_restart": false,
-    "arbitrary_shell": false,
-    "branch_commit_push": false,
-    "workflow_dispatch": false,
-    "merge": false,
-    "release": false,
-    "promotion": false,
-    "governor_decision": false,
-    "gate_2_fan_in": false,
-    "gate_3_write_jobs": false,
-    "gate_4_parallel_execution": false
+    "linusPreflightComment": 5421776307,
+    "linusVerdict": "READY_FOR_GATE_1_IMPLEMENTATION",
+    "steveScopeComment": 5421778761,
+    "steveVerdict": "STEVE_GO_GATE_1_IMPLEMENTATION_WITHIN_EXACT_SCOPE",
+    "implementationAuthorizationComment": 5421781276
   },
   "gate0": {
-    "status": "PRESENT_AND_UNCHANGED_FROM_DESIGN_BASELINE",
-    "allowed_operations": [
+    "status": "present-and-unchanged-from-design-baseline",
+    "allowedOperations": [
       "pr-snapshot",
       "pr-governor-evidence",
       "run-repository-validation",
       "run-test-profile"
     ]
   },
-  "merge_authorized": false,
-  "release_authorized": false,
-  "promotion_authorized": false
+  "invariants": [
+    "GitHub is authoritative for request discovery, session state, election, recovery and terminal state.",
+    "Every Gate 0 request is immutable and bound to its exact source comment, repository, origin and target SHA.",
+    "Exactly one non-terminal job may exist in a session; queue election is deterministic by immutable request identity.",
+    "A digest with durable JOB_STARTED is never automatically replayed after crash or ambiguity.",
+    "Request-author authority, source-comment immutability, suspension state and target SHA are reread immediately before Gate 0 invocation.",
+    "Gate 0 is invoked only through its four-operation allowlist and remains unchanged.",
+    "No arbitrary shell or request-supplied argv is exposed.",
+    "Codespace create/start/restart is never automatic.",
+    "Gate 2 fan-in, Gate 3 repository write jobs and Gate 4 parallel execution remain HOLD.",
+    "Merge, release, promotion and governor decisions remain human/governor boundaries."
+  ],
+  "requiredEvidence": [
+    "Exact baseline, merge base, implementation head and changed-path inventory.",
+    "Syntax/import checks for every tools/ai_jobs module.",
+    "Independent tests/ai_jobs suite with zero skips.",
+    "Existing tests/codespace_evidence Gate 0 suite unchanged and green.",
+    "Adversarial coverage for duplicate/conflict, stale target, edited request, pagination instability, crash after JOB_STARTED, suspension, credential/permission failure and close race.",
+    "Proof that Gate 0 blobs and all product/Atlas/M2/Pages paths remain unchanged."
+  ],
+  "nonGoals": [
+    "Gate 2 composable outcomes or fan-in.",
+    "Gate 3 repository write jobs.",
+    "Gate 4 parallel execution.",
+    "Automatic Codespace lifecycle startup/restart.",
+    "Product, Atlas, authoring, kit, learner-state or Pages changes.",
+    "Automatic merge, release, promotion or governor decision."
+  ],
+  "execution": {
+    "authorityIssue": 160,
+    "pullRequest": 161,
+    "requiresIndependentQaBeforeReadiness": true,
+    "requiresLinusReviewBeforeReadiness": true,
+    "requiresSteveScopeReviewBeforeReadiness": true,
+    "requiresGovernorReviewBeforeMerge": true,
+    "mergeStatus": "held",
+    "readyForReview": false
+  },
+  "rollback": "Close draft PR #161 without merge or revert/delete only the bounded OPS-WP-007 paths. Gate 0, product, Atlas, kits, Pages, workflows and learner state remain untouched. Durable GitHub evidence comments are append-only and are never rewritten or deleted."
 }
