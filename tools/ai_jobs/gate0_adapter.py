@@ -24,6 +24,9 @@ from .contracts import (
 )
 from .credential_boundary import EffectCapabilityExpectation, EffectCapabilityVerifier
 from .github_transport import Gate1GitHub
+from .parser import grant_from_comment, ledger_from_comment
+from .session import project, require_exclusive_session
+from .snapshot import stable_double_scan
 
 # This is intentionally duplicated as a drift sentinel, not as an extension of
 # Gate 0. Any change to the accepted Gate 0 operation surface fails closed.
@@ -289,7 +292,104 @@ def _verify_effect_capability(
     verifier.verify_and_consume(capability=capability, expected=expectation)
 
 
-def _verify_pilot_permit(*, job: QueueJob, permit: PilotEffectPermit | None) -> None:
+def _snapshot_comment_for_parser(raw: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "id": raw.get("id"),
+        "node_id": raw.get("node_id"),
+        "body": raw.get("body"),
+        "user": {
+            "login": raw.get("author"),
+            "id": raw.get("author_id"),
+            "node_id": raw.get("author_node_id"),
+        },
+        "created_at": raw.get("created_at"),
+        "updated_at": raw.get("updated_at"),
+        "html_url": raw.get("html_url"),
+        "issue_url": raw.get("issue_url"),
+    }
+
+
+def _verify_pilot_permit_authority(
+    *,
+    gateway: Gate1GitHub,
+    job: QueueJob,
+    permit: PilotEffectPermit,
+) -> None:
+    """Independently bind a pilot permit to the live authoritative JOB_STARTED.
+
+    The permit is not trusted to declare its own generation/start identity. The
+    effect boundary reconstructs the authority issue from GitHub, requires the
+    selected grant to be the unique highest active generation, validates every
+    ledger chain, and only then compares the permit to the unique durable
+    JOB_STARTED tail.
+    """
+    snapshot = stable_double_scan(lambda: gateway.comments(permit.authority_issue))
+    grants = []
+    records = []
+    for raw in snapshot.comments:
+        comment = _snapshot_comment_for_parser(raw)
+        grant = grant_from_comment(
+            comment,
+            repository=permit.repository,
+            authority_issue=permit.authority_issue,
+        )
+        if grant is not None:
+            grants.append(grant)
+        record = ledger_from_comment(
+            comment,
+            repository=permit.repository,
+            authority_issue=permit.authority_issue,
+        )
+        if record is not None:
+            records.append(record)
+
+    matching_grants = [
+        grant
+        for grant in grants
+        if grant.session_id == permit.session_id
+        and grant.generation == permit.generation
+    ]
+    if len(matching_grants) != 1:
+        raise ContractError("pilot permit does not bind exactly one immutable session grant")
+    selected_grant = matching_grants[0]
+
+    # This rejects a self-consistent permit for an older/wrong generation and
+    # also proves that all other granted generations are durably closed.
+    require_exclusive_session(grants, records, selected_grant)
+    scoped_records = [
+        record
+        for record in records
+        if record.session_id == selected_grant.session_id
+        and record.generation == selected_grant.generation
+    ]
+    projection = project(scoped_records, selected_grant)
+    tail = projection.last_record
+    if projection.state != "JOB_STARTED" or tail is None:
+        raise ContractError("pilot permit authority is not at durable JOB_STARTED")
+    if tail.record_sha256 != permit.started_record_sha256:
+        raise ContractError("pilot permit JOB_STARTED digest differs from authoritative tail")
+    if tail.sequence != permit.started_sequence:
+        raise ContractError("pilot permit JOB_STARTED sequence differs from authoritative tail")
+    if projection.active_job_digest != job.request_digest:
+        raise ContractError("pilot permit active job differs from authoritative JOB_STARTED")
+    if tail.record_type != "JOB_STARTED":
+        raise ContractError("pilot permit authoritative tail is not JOB_STARTED")
+    payload = tail.payload
+    if (
+        payload.get("job_id") != job.job_id
+        or payload.get("request_digest") != job.request_digest
+        or payload.get("request_comment_id") != job.request_comment_id
+        or payload.get("target_sha") != job.target_sha
+    ):
+        raise ContractError("authoritative JOB_STARTED differs from selected Gate 0 job")
+
+
+def _verify_pilot_permit(
+    *,
+    job: QueueJob,
+    permit: PilotEffectPermit | None,
+    gateway: Gate1GitHub | None = None,
+) -> None:
     if permit is None:
         raise ContractError("read-only pilot effect permit is required")
     if permit.profile != PILOT_READ_ONLY:
@@ -304,6 +404,9 @@ def _verify_pilot_permit(*, job: QueueJob, permit: PilotEffectPermit | None) -> 
         raise ContractError("pilot effect permit operation mismatch")
     if canonical_json_bytes(dict(permit.target)) != canonical_json_bytes(_selected_target(job)):
         raise ContractError("pilot effect permit target mismatch")
+    if gateway is None:
+        raise ContractError("pilot effect permit requires authoritative GitHub start binding")
+    _verify_pilot_permit_authority(gateway=gateway, job=job, permit=permit)
 
 
 def invoke_once(
@@ -366,7 +469,16 @@ def invoke_once(
         elif security_profile == PILOT_READ_ONLY:
             if capability is not None or verifier is not None or expectation is not None:
                 raise ContractError("pilot profile cannot masquerade as signed V6 authority")
-            _verify_pilot_permit(job=job, permit=pilot_permit)
+            pilot_gateway, _login = _gateway(
+                runner=runner,
+                repository_root=repository_root,
+                repository=job.repository,
+            )
+            _verify_pilot_permit(
+                job=job,
+                permit=pilot_permit,
+                gateway=pilot_gateway,
+            )
         else:
             raise ContractError("unknown Gate 1 security profile")
 
