@@ -288,7 +288,11 @@ class CredentialBoundaryTests(unittest.TestCase):
             patch.object(adapter, "stable_double_scan", return_value=SimpleNamespace(comments=(object(),))),
             patch.object(adapter, "_snapshot_comment_for_parser", return_value={}),
             patch.object(adapter, "grant_from_comment", return_value=g),
-            patch.object(adapter, "ledger_from_comment", return_value=object()),
+            patch.object(
+                adapter,
+                "ledger_from_comment",
+                return_value=SimpleNamespace(session_id=g.session_id, generation=g.generation),
+            ),
             patch.object(adapter, "require_exclusive_session", return_value=None),
             patch.object(adapter, "project", return_value=projection),
         )
