@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-003",
   "title": "Restore required main status-check contexts",
-  "status": "completed",
+  "status": "accepted",
   "changeClass": "ci-protection-contract-correction",
   "riskClass": "moderate",
   "purpose": "Restore the exact four-context main protection contract without weakening the ruleset by emitting compatibility check contexts for the two existing authoritative repository-validation jobs.",
