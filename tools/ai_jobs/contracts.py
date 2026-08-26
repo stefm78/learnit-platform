@@ -18,7 +18,7 @@ from . import (
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SESSION_ID_RE = re.compile(r"^G1S-[A-Z0-9][A-Z0-9._-]{2,63}$")
-CODESPACE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
+CODESPACE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{1,79}$")
 REPOSITORY_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 STATES = frozenset({
@@ -93,7 +93,7 @@ def canonical_json_bytes(value: Any) -> bytes:
     """Canonical bytes for Gate 1 digests.
 
     Gate 1 normative objects use only null, booleans, exact integers, strings,
-    arrays and objects.  Floats are rejected recursively.
+    arrays and objects. Floats are rejected recursively.
     """
     def check(item: Any) -> None:
         if isinstance(item, float):
