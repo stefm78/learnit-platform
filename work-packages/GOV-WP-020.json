@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-020",
+  "title": "Post-Gate1 work-package closeout metadata",
+  "status": "approved",
+  "changeClass": "governance-metadata-closeout",
+  "riskClass": "low",
+  "purpose": "Correct stale pre-merge status metadata for completed OPS-WP-007 and CI-WP-003 without changing repository behavior.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "002d5d10e53be2c3f57abdb71603ebb28b771621",
+    "authorityIssue": 176,
+    "branch": "gov/GOV-WP-020-post-gate1-closeout"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-007.json",
+      "work-packages/CI-WP-003.json",
+      "work-packages/GOV-WP-020.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "kits/**",
+      "docs/**"
+    ]
+  },
+  "invariants": [
+    "Only factual closeout metadata changes.",
+    "No implementation, test, workflow, product, Gate 0 or Gate 1 behavior changes.",
+    "Gate 2, Gate 3 and Gate 4 remain HOLD.",
+    "FULL_V6_SECURITY remains a future prerequisite before repository-write capability.",
+    "Historical GOV-WP-018 and GOV-WP-019 records are not overwritten or repurposed."
+  ],
+  "requiredEvidence": [
+    "Exactly three changed paths.",
+    "All three JSON files parse successfully.",
+    "OPS-WP-007 references exact validated head e85233cbd5bdc122ba17b053d05ecc55f842a4ea and merge 002d5d10e53be2c3f57abdb71603ebb28b771621.",
+    "CI-WP-003 references maintenance head b4038dc884ae467529197aabf4b217c6a83ea759 and merge 286fa0cbd487c25862a2826a4de54ca8eac9e7b6.",
+    "Repository governance and PR scope pass."
+  ],
+  "adversarialTests": [
+    "Fail if any non-work-package path changes.",
+    "Fail if Gate 2, Gate 3 or Gate 4 is represented as enabled.",
+    "Fail if OPS-WP-007 claims FULL_V6_SECURITY instead of GATE1_PILOT_READ_ONLY.",
+    "Fail if CI-WP-003 claims that the main ruleset was weakened or changed.",
+    "Fail if historical GOV-WP-018 or GOV-WP-019 is modified."
+  ],
+  "nonGoals": [
+    "Changing governance policy.",
+    "Changing main protection.",
+    "Changing CI routing.",
+    "Changing product or runtime behavior.",
+    "Closing or promoting Atlas M2."
+  ],
+  "independentReview": [
+    "Repository governance validates the work-package schema and exact factual closeout records.",
+    "PR scope validates that only the three authorized metadata paths changed.",
+    "No implementation or runtime review is required because no executable path changes."
+  ],
+  "execution": {
+    "issue": 176,
+    "maximumChangedFiles": 3,
+    "autonomousMergeAfterGreenChecks": true
+  },
+  "rollback": "Revert only the GOV-WP-020 metadata closeout merge. No source, runtime, test, workflow or product behavior is affected."
+}

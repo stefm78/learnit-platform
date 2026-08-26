@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-003",
   "title": "Restore required main status-check contexts",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "ci-protection-contract-correction",
   "riskClass": "moderate",
   "purpose": "Restore the exact four-context main protection contract without weakening the ruleset by emitting compatibility check contexts for the two existing authoritative repository-validation jobs.",
@@ -67,13 +67,27 @@
   ],
   "execution": {
     "issue": 174,
+    "pullRequest": 175,
     "maximumChangedFiles": 3,
     "newFilesAuthorized": [
       "work-packages/CI-WP-003.json"
     ],
     "requiresContradictoryReviewBeforeMerge": false,
     "requiresGovernorLinusReviewBeforeMerge": false,
-    "mergeStatus": "held"
+    "mergeStatus": "merged",
+    "validatedHead": "b4038dc884ae467529197aabf4b217c6a83ea759",
+    "mergedCommit": "286fa0cbd487c25862a2826a4de54ca8eac9e7b6"
   },
-  "rollback": "Close the maintenance PR without merge, or revert only the two workflow compatibility jobs and CI-WP-003 metadata after merge."
+  "result": {
+    "decision": "MERGED",
+    "requiredContexts": {
+      "Repository governance": "PASS",
+      "validate-repository": "PASS",
+      "PR scope": "PASS",
+      "gate": "PASS"
+    },
+    "rulesetChanged": false,
+    "protectionWeakened": false
+  },
+  "rollback": "Revert merge commit 286fa0cbd487c25862a2826a4de54ca8eac9e7b6 to remove the compatibility contexts. The main-protection ruleset itself was not modified."
 }

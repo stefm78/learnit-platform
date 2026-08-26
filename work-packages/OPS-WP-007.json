@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "OPS-WP-007",
   "title": "Gate 1 sequential multi-AI queue implementation",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "repository-operations-sequential-queue",
   "riskClass": "moderate",
   "purpose": "Implement the already accepted G1-DESIGN-V6 R5 as a GitHub-authoritative sequential queue above unchanged Gate 0, with human Codespace start/grant, deterministic election, fail-closed recovery and no repository-write jobs or parallel execution.",
@@ -160,8 +160,28 @@
     "requiresLinusReviewBeforeReadiness": true,
     "requiresSteveScopeReviewBeforeReadiness": true,
     "requiresGovernorReviewBeforeMerge": true,
-    "mergeStatus": "held",
-    "readyForReview": false
+    "mergeStatus": "merged",
+    "readyForReview": true,
+    "validatedHead": "e85233cbd5bdc122ba17b053d05ecc55f842a4ea",
+    "mergedCommit": "002d5d10e53be2c3f57abdb71603ebb28b771621"
   },
-  "rollback": "Close draft PR #161 without merge or revert/delete only the bounded OPS-WP-007 paths. Gate 0, product, Atlas, kits, Pages, workflows and learner state remain untouched. Durable GitHub evidence comments are append-only and are never rewritten or deleted."
+  "result": {
+    "decision": "MERGED",
+    "securityProfile": "GATE1_PILOT_READ_ONLY",
+    "gate1Runtime": {
+      "tests": 85,
+      "result": "PASS",
+      "skip": 0,
+      "xfail": 0
+    },
+    "gate0Regression": {
+      "tests": 80,
+      "result": "PASS"
+    },
+    "gate2": "HOLD",
+    "gate3": "HOLD",
+    "gate4": "HOLD",
+    "fullV6Security": "future-prerequisite-before-repository-write-capability"
+  },
+  "rollback": "Revert merge commit 002d5d10e53be2c3f57abdb71603ebb28b771621 if Gate 1 must be removed. Durable GitHub evidence comments are append-only and are never rewritten or deleted."
 }
