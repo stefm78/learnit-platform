@@ -54,6 +54,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _parser_comment(raw: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": raw["id"],
+        "body": raw["body"],
+        "user": {"login": raw["author"]},
+        "created_at": raw["created_at"],
+        "updated_at": raw["updated_at"],
+        "issue_url": raw.get("issue_url"),
+    }
+
+
 def _target_sha(gh: Gate1GitHub, job: Any) -> str:
     comment = gh.comment(job.request_comment_id)
     parsed = queue_job_from_comment(
@@ -96,6 +107,48 @@ def _publish_record(
     if reread is None or reread.record_sha256 != record.record_sha256:
         raise ContractError("published ledger record did not round-trip exactly")
     return record
+
+
+def _ledger_records(snapshot: StableSnapshot, grant: Any) -> list[LedgerRecord]:
+    records: list[LedgerRecord] = []
+    for raw in snapshot.comments:
+        item = ledger_from_comment(
+            _parser_comment(raw),
+            repository=grant.repository,
+            authority_issue=grant.authority_issue,
+        )
+        if (
+            item is not None
+            and item.session_id == grant.session_id
+            and item.generation == grant.generation
+        ):
+            records.append(item)
+    return records
+
+
+def _is_suspended(snapshot: StableSnapshot, *, repository: str, authority_issue: int) -> bool:
+    return any(
+        is_suspend_comment(
+            _parser_comment(raw),
+            repository=repository,
+            authority_issue=authority_issue,
+        )
+        for raw in snapshot.comments
+    )
+
+
+def _jobs(snapshot: StableSnapshot, *, repository: str, request_issue: int) -> list[Any]:
+    jobs = []
+    for raw in snapshot.comments:
+        job = queue_job_from_comment(
+            _parser_comment(raw),
+            repository=repository,
+            origin_type="issue",
+            origin_number=request_issue,
+        )
+        if job is not None:
+            jobs.append(job)
+    return jobs
 
 
 def _enter_recovery(
@@ -203,77 +256,49 @@ def main(argv: list[str] | None = None) -> int:
     if authority.get("state") != "open":
         raise ContractError("Gate 1 implementation authority issue is not open")
 
-    authority_snapshot = stable_double_scan(
-        lambda: gh.comments(args.authority_issue)
-    )
-    grants = [
-        item for raw in authority_snapshot.comments
-        if (item := grant_from_comment(
-            {
-                "id": raw["id"], "body": raw["body"],
-                "user": {"login": raw["author"]},
-                "created_at": raw["created_at"], "updated_at": raw["updated_at"],
-            },
+    authority_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
+    grants = []
+    for raw in authority_snapshot.comments:
+        item = grant_from_comment(
+            _parser_comment(raw),
             repository=args.repository,
             authority_issue=args.authority_issue,
-        )) is not None
-        and item.session_id == args.session_id
-    ]
+        )
+        if item is not None and item.session_id == args.session_id:
+            grants.append(item)
     if len(grants) != 1:
         raise ContractError("exactly one immutable human session grant is required")
     grant = grants[0]
+
     require_runtime_identity(
         preflight=preflight,
         grant=grant,
         codespace_name=args.codespace_name,
     )
     require_request_authority(gh.permission(grant.granted_by))
-
-    suspended = any(
-        is_suspend_comment(
-            {
-                "id": raw["id"], "body": raw["body"],
-                "user": {"login": raw["author"]},
-                "created_at": raw["created_at"], "updated_at": raw["updated_at"],
-            },
-            repository=args.repository,
-            authority_issue=args.authority_issue,
-        )
-        for raw in authority_snapshot.comments
-    )
-    if suspended:
+    if _is_suspended(
+        authority_snapshot,
+        repository=args.repository,
+        authority_issue=args.authority_issue,
+    ):
         raise ContractError("Gate 1 authority contains an active suspension record")
 
-    ledger_records = [
-        item for raw in authority_snapshot.comments
-        if (item := ledger_from_comment(
-            {
-                "id": raw["id"], "body": raw["body"],
-                "user": {"login": raw["author"]},
-                "created_at": raw["created_at"], "updated_at": raw["updated_at"],
-            },
-            repository=args.repository,
-            authority_issue=args.authority_issue,
-        )) is not None
-        and item.session_id == grant.session_id
-        and item.generation == grant.generation
-    ]
-
-    current = project(ledger_records, grant)
+    current = project(_ledger_records(authority_snapshot, grant), grant)
     last = current.last_record
     if current.state == "CLOSED":
         if last is not None:
-            # A durable closed generation is immutable and cannot be reopened.
             return 0
         last = _publish_record(
-            gh, args.authority_issue,
+            gh,
+            args.authority_issue,
             record_type="SESSION_GRANT",
             grant=grant,
             previous=None,
             payload={"grant_comment_id": grant.grant_comment_id, "grant_digest": grant.grant_digest},
         )
         _publish_record(
-            gh, args.authority_issue,
+            gh,
+            args.authority_issue,
             record_type="SESSION_ACTIVE",
             grant=grant,
             previous=last,
@@ -283,7 +308,8 @@ def main(argv: list[str] | None = None) -> int:
         if last is None:
             raise ContractError("GRANT_PENDING has no durable predecessor")
         _publish_record(
-            gh, args.authority_issue,
+            gh,
+            args.authority_issue,
             record_type="SESSION_ACTIVE",
             grant=grant,
             previous=last,
@@ -299,45 +325,27 @@ def main(argv: list[str] | None = None) -> int:
         )
     elif current.state in {"RECOVERY_REQUIRED", "GLOBAL_HOLD"}:
         raise ContractError(f"Gate 1 cannot autonomously advance state {current.state}")
+    elif current.state not in {"ACTIVE_IDLE", "JOB_TERMINAL", "JOB_SELECTED", "CLOSING"}:
+        raise ContractError(f"Gate 1 cannot resume state {current.state}")
 
     completed = 0
     while completed < args.max_jobs:
-        request_snapshot = stable_double_scan(
-            lambda: gh.comments(args.request_issue)
+        request_snapshot = stable_double_scan(lambda: gh.comments(args.request_issue))
+        jobs = _jobs(
+            request_snapshot,
+            repository=args.repository,
+            request_issue=args.request_issue,
         )
-        jobs = []
-        for raw in request_snapshot.comments:
-            job = queue_job_from_comment(
-                {
-                    "id": raw["id"], "body": raw["body"],
-                    "user": {"login": raw["author"]},
-                    "created_at": raw["created_at"], "updated_at": raw["updated_at"],
-                    "issue_url": raw["issue_url"],
-                },
-                repository=args.repository,
-                origin_type="issue",
-                origin_number=args.request_issue,
-            )
-            if job is not None:
-                jobs.append(job)
 
-        authority_snapshot = stable_double_scan(
-            lambda: gh.comments(args.authority_issue)
-        )
-        records = [
-            item for raw in authority_snapshot.comments
-            if (item := ledger_from_comment(
-                {
-                    "id": raw["id"], "body": raw["body"],
-                    "user": {"login": raw["author"]},
-                    "created_at": raw["created_at"], "updated_at": raw["updated_at"],
-                },
-                repository=args.repository,
-                authority_issue=args.authority_issue,
-            )) is not None
-            and item.session_id == grant.session_id
-            and item.generation == grant.generation
-        ]
+        authority_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
+        if _is_suspended(
+            authority_snapshot,
+            repository=args.repository,
+            authority_issue=args.authority_issue,
+        ):
+            raise ContractError("Gate 1 is suspended")
+
+        records = _ledger_records(authority_snapshot, grant)
         current = project(records, grant)
         last = current.last_record
 
@@ -357,7 +365,8 @@ def main(argv: list[str] | None = None) -> int:
             if last is None:
                 raise ContractError("GRANT_PENDING has no durable predecessor")
             _publish_record(
-                gh, args.authority_issue,
+                gh,
+                args.authority_issue,
                 record_type="SESSION_ACTIVE",
                 grant=grant,
                 previous=last,
@@ -375,9 +384,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             continue
         if current.state not in {"ACTIVE_IDLE", "JOB_TERMINAL", "JOB_SELECTED"}:
-            raise ContractError(
-                f"Gate 1 reconstruction reached non-runnable state {current.state}"
-            )
+            raise ContractError(f"Gate 1 reconstruction reached non-runnable state {current.state}")
 
         if current.state == "JOB_SELECTED":
             if last is None:
@@ -392,8 +399,9 @@ def main(argv: list[str] | None = None) -> int:
             )
             job = decision.selected
             if job is None:
-                last = _publish_record(
-                    gh, args.authority_issue,
+                candidate = _publish_record(
+                    gh,
+                    args.authority_issue,
                     record_type="SESSION_CLOSE_CANDIDATE",
                     grant=grant,
                     previous=last,
@@ -403,27 +411,9 @@ def main(argv: list[str] | None = None) -> int:
                     },
                 )
                 closing_scan = stable_double_scan(lambda: gh.comments(args.request_issue))
-                closing_projection = project([
-                    *records,
-                    ledger_from_comment(
-                        {
-                            "id": 1,
-                            "body": render_record(last),
-                            "user": {"login": grant.granted_by},
-                            "created_at": last.created_at,
-                            "updated_at": last.created_at,
-                        },
-                        repository=args.repository,
-                        authority_issue=args.authority_issue,
-                    ),
-                ], grant)
-                # The synthetic parse above exists only to reuse the same close
-                # transition helper with the already round-tripped local record.
-                # Replace it immediately with an explicit projection object so
-                # no synthetic GitHub identity participates in authority.
                 closing_projection = SessionProjection(
                     state="CLOSING",
-                    last_record=last,
+                    last_record=candidate,
                     started_request_digests=current.started_request_digests,
                     terminal_request_digests=current.terminal_request_digests,
                     active_job_digest=None,
@@ -438,8 +428,10 @@ def main(argv: list[str] | None = None) -> int:
                     return 0
                 continue
 
+            require_request_authority(gh.permission(job.request_author))
             selected = _publish_record(
-                gh, args.authority_issue,
+                gh,
+                args.authority_issue,
                 record_type="JOB_SELECTED",
                 grant=grant,
                 previous=last,
@@ -453,22 +445,12 @@ def main(argv: list[str] | None = None) -> int:
                 },
             )
 
-        permission = gh.permission(job.request_author)
-        require_request_authority(permission)
         source_comment = gh.comment(job.request_comment_id)
-
         authority_now = stable_double_scan(lambda: gh.comments(args.authority_issue))
-        suspended_now = any(
-            is_suspend_comment(
-                {
-                    "id": raw["id"], "body": raw["body"],
-                    "user": {"login": raw["author"]},
-                    "created_at": raw["created_at"], "updated_at": raw["updated_at"],
-                },
-                repository=args.repository,
-                authority_issue=args.authority_issue,
-            )
-            for raw in authority_now.comments
+        suspended_now = _is_suspended(
+            authority_now,
+            repository=args.repository,
+            authority_issue=args.authority_issue,
         )
         permission_now = gh.permission(job.request_author)
         current_target = _target_sha(gh, job)
@@ -481,7 +463,8 @@ def main(argv: list[str] | None = None) -> int:
         )
 
         started = _publish_record(
-            gh, args.authority_issue,
+            gh,
+            args.authority_issue,
             record_type="JOB_STARTED",
             grant=grant,
             previous=selected,
@@ -501,20 +484,19 @@ def main(argv: list[str] | None = None) -> int:
             )
         except Exception as exc:
             _publish_record(
-                gh, args.authority_issue,
+                gh,
+                args.authority_issue,
                 record_type="SESSION_RECOVERY_REQUIRED",
                 grant=grant,
                 previous=started,
-                payload={
-                    "request_digest": job.request_digest,
-                    "reason": type(exc).__name__,
-                },
+                payload={"request_digest": job.request_digest, "reason": type(exc).__name__},
             )
             raise
 
         if invocation.authoritative_comment_id is None:
             _publish_record(
-                gh, args.authority_issue,
+                gh,
+                args.authority_issue,
                 record_type="SESSION_RECOVERY_REQUIRED",
                 grant=grant,
                 previous=started,
@@ -533,7 +515,8 @@ def main(argv: list[str] | None = None) -> int:
             else "FAILED"
         )
         _publish_record(
-            gh, args.authority_issue,
+            gh,
+            args.authority_issue,
             record_type="JOB_TERMINAL",
             grant=grant,
             previous=started,
@@ -554,6 +537,6 @@ def main(argv: list[str] | None = None) -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except ContractError as exc:
-        print(f"GATE1_FAIL_CLOSED: {exc}", file=sys.stderr)
+    except Exception as exc:
+        print(f"GATE1_FAIL_CLOSED: {type(exc).__name__}: {exc}", file=sys.stderr)
         raise SystemExit(2)
