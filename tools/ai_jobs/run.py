@@ -19,8 +19,9 @@ if __package__ in {None, ""}:
 from tools.codespace_evidence.execute import CommandRunner
 from tools.codespace_evidence.workspace import discover_repository_root
 
-from tools.ai_jobs.contracts import ContractError, LedgerRecord
+from tools.ai_jobs.contracts import ContractError, LedgerRecord, SessionGrant
 from tools.ai_jobs.credential_boundary import (
+    acquire_session_process_fence,
     final_effect_guard,
     require_request_authority,
     require_runtime_identity,
@@ -35,7 +36,12 @@ from tools.ai_jobs.parser import (
     queue_job_from_comment,
 )
 from tools.ai_jobs.queue import elect
-from tools.ai_jobs.session import SessionProjection, project
+from tools.ai_jobs.session import (
+    SessionProjection,
+    bound_request_issue,
+    project,
+    require_exclusive_session,
+)
 from tools.ai_jobs.snapshot import StableSnapshot, stable_double_scan
 
 
@@ -78,51 +84,79 @@ def _target_sha(gh: Gate1GitHub, job: Any) -> str:
     return gh.resolve_target_sha(parsed)
 
 
-def _publish_record(
-    gh: Gate1GitHub,
-    issue: int,
+def _grants(
+    snapshot: StableSnapshot,
     *,
-    record_type: str,
-    grant: Any,
-    previous: LedgerRecord | None,
-    payload: dict[str, Any],
-) -> LedgerRecord:
-    record = LedgerRecord.build(
-        record_type=record_type,
-        repository=grant.repository,
-        authority_issue=grant.authority_issue,
-        session_id=grant.session_id,
-        generation=grant.generation,
-        sequence=1 if previous is None else previous.sequence + 1,
-        previous_record_sha256=None if previous is None else previous.record_sha256,
-        created_at=utc_now(),
-        payload=payload,
-    )
-    posted = gh.publish_authority_comment(issue, render_record(record))
-    reread = ledger_from_comment(
-        posted,
-        repository=grant.repository,
-        authority_issue=grant.authority_issue,
-    )
-    if reread is None or reread.record_sha256 != record.record_sha256:
-        raise ContractError("published ledger record did not round-trip exactly")
-    return record
+    repository: str,
+    authority_issue: int,
+) -> list[SessionGrant]:
+    grants: list[SessionGrant] = []
+    for raw in snapshot.comments:
+        item = grant_from_comment(
+            _parser_comment(raw),
+            repository=repository,
+            authority_issue=authority_issue,
+        )
+        if item is not None:
+            grants.append(item)
+    return grants
 
 
-def _ledger_records(snapshot: StableSnapshot, grant: Any) -> list[LedgerRecord]:
+def _all_ledger_records(
+    snapshot: StableSnapshot,
+    *,
+    repository: str,
+    authority_issue: int,
+) -> list[LedgerRecord]:
     records: list[LedgerRecord] = []
     for raw in snapshot.comments:
         item = ledger_from_comment(
             _parser_comment(raw),
+            repository=repository,
+            authority_issue=authority_issue,
+        )
+        if item is not None:
+            records.append(item)
+    return records
+
+
+def _ledger_records(snapshot: StableSnapshot, grant: SessionGrant) -> list[LedgerRecord]:
+    return [
+        record
+        for record in _all_ledger_records(
+            snapshot,
             repository=grant.repository,
             authority_issue=grant.authority_issue,
         )
-        if (
-            item is not None
-            and item.session_id == grant.session_id
-            and item.generation == grant.generation
-        ):
-            records.append(item)
+        if record.session_id == grant.session_id and record.generation == grant.generation
+    ]
+
+
+def _validated_session_records(
+    snapshot: StableSnapshot,
+    *,
+    grant: SessionGrant,
+    request_issue: int,
+) -> list[LedgerRecord]:
+    grants = _grants(
+        snapshot,
+        repository=grant.repository,
+        authority_issue=grant.authority_issue,
+    )
+    all_records = _all_ledger_records(
+        snapshot,
+        repository=grant.repository,
+        authority_issue=grant.authority_issue,
+    )
+    require_exclusive_session(grants, all_records, grant)
+    records = [
+        record
+        for record in all_records
+        if record.session_id == grant.session_id and record.generation == grant.generation
+    ]
+    binding = bound_request_issue(records)
+    if binding is not None and binding != request_issue:
+        raise ContractError("Gate 1 generation is already bound to another request issue")
     return records
 
 
@@ -151,11 +185,50 @@ def _jobs(snapshot: StableSnapshot, *, repository: str, request_issue: int) -> l
     return jobs
 
 
+def _publish_record(
+    gh: Gate1GitHub,
+    issue: int,
+    *,
+    record_type: str,
+    grant: SessionGrant,
+    previous: LedgerRecord | None,
+    payload: dict[str, Any],
+) -> LedgerRecord:
+    record = LedgerRecord.build(
+        record_type=record_type,
+        repository=grant.repository,
+        authority_issue=grant.authority_issue,
+        session_id=grant.session_id,
+        generation=grant.generation,
+        sequence=1 if previous is None else previous.sequence + 1,
+        previous_record_sha256=None if previous is None else previous.record_sha256,
+        created_at=utc_now(),
+        payload=payload,
+    )
+    posted = gh.publish_authority_comment(issue, render_record(record))
+    reread = ledger_from_comment(
+        posted,
+        repository=grant.repository,
+        authority_issue=grant.authority_issue,
+    )
+    if reread is None or reread.record_sha256 != record.record_sha256:
+        raise ContractError("published ledger record did not round-trip exactly")
+
+    # The POST response is not authority. Reconstruct the exact generation from
+    # a stable GitHub reread and require the new record to be the unique tail.
+    snapshot = stable_double_scan(lambda: gh.comments(issue))
+    records = _ledger_records(snapshot, grant)
+    current = project(records, grant)
+    if current.last_record is None or current.last_record.record_sha256 != record.record_sha256:
+        raise ContractError("published ledger record is not the authoritative generation tail")
+    return record
+
+
 def _enter_recovery(
     gh: Gate1GitHub,
     authority_issue: int,
     *,
-    grant: Any,
+    grant: SessionGrant,
     current: SessionProjection,
     reason: str,
 ) -> None:
@@ -202,7 +275,7 @@ def _finish_closing(
     gh: Gate1GitHub,
     authority_issue: int,
     *,
-    grant: Any,
+    grant: SessionGrant,
     current: SessionProjection,
     request_snapshot: StableSnapshot,
 ) -> bool:
@@ -257,15 +330,12 @@ def main(argv: list[str] | None = None) -> int:
         raise ContractError("Gate 1 implementation authority issue is not open")
 
     authority_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
-    grants = []
-    for raw in authority_snapshot.comments:
-        item = grant_from_comment(
-            _parser_comment(raw),
-            repository=args.repository,
-            authority_issue=args.authority_issue,
-        )
-        if item is not None and item.session_id == args.session_id:
-            grants.append(item)
+    all_grants = _grants(
+        authority_snapshot,
+        repository=args.repository,
+        authority_issue=args.authority_issue,
+    )
+    grants = [item for item in all_grants if item.session_id == args.session_id]
     if len(grants) != 1:
         raise ContractError("exactly one immutable human session grant is required")
     grant = grants[0]
@@ -276,6 +346,11 @@ def main(argv: list[str] | None = None) -> int:
         codespace_name=args.codespace_name,
     )
     require_request_authority(gh.permission(grant.granted_by))
+
+    # Retained for the entire function lifetime. Linux closes the descriptor and
+    # releases the fence on every return or process termination.
+    _process_fence = acquire_session_process_fence(grant)
+
     if _is_suspended(
         authority_snapshot,
         repository=args.repository,
@@ -283,7 +358,12 @@ def main(argv: list[str] | None = None) -> int:
     ):
         raise ContractError("Gate 1 authority contains an active suspension record")
 
-    current = project(_ledger_records(authority_snapshot, grant), grant)
+    records = _validated_session_records(
+        authority_snapshot,
+        grant=grant,
+        request_issue=args.request_issue,
+    )
+    current = project(records, grant)
     last = current.last_record
     if current.state == "CLOSED":
         if last is not None:
@@ -294,7 +374,11 @@ def main(argv: list[str] | None = None) -> int:
             record_type="SESSION_GRANT",
             grant=grant,
             previous=None,
-            payload={"grant_comment_id": grant.grant_comment_id, "grant_digest": grant.grant_digest},
+            payload={
+                "grant_comment_id": grant.grant_comment_id,
+                "grant_digest": grant.grant_digest,
+                "request_issue": args.request_issue,
+            },
         )
         _publish_record(
             gh,
@@ -302,18 +386,26 @@ def main(argv: list[str] | None = None) -> int:
             record_type="SESSION_ACTIVE",
             grant=grant,
             previous=last,
-            payload={"codespace_name": grant.codespace_name},
+            payload={
+                "codespace_name": grant.codespace_name,
+                "request_issue": args.request_issue,
+            },
         )
     elif current.state == "GRANT_PENDING":
         if last is None:
             raise ContractError("GRANT_PENDING has no durable predecessor")
+        if bound_request_issue(records) != args.request_issue:
+            raise ContractError("GRANT_PENDING is bound to another request issue")
         _publish_record(
             gh,
             args.authority_issue,
             record_type="SESSION_ACTIVE",
             grant=grant,
             previous=last,
-            payload={"codespace_name": grant.codespace_name},
+            payload={
+                "codespace_name": grant.codespace_name,
+                "request_issue": args.request_issue,
+            },
         )
     elif current.state == "JOB_STARTED":
         _enter_recovery(
@@ -345,7 +437,11 @@ def main(argv: list[str] | None = None) -> int:
         ):
             raise ContractError("Gate 1 is suspended")
 
-        records = _ledger_records(authority_snapshot, grant)
+        records = _validated_session_records(
+            authority_snapshot,
+            grant=grant,
+            request_issue=args.request_issue,
+        )
         current = project(records, grant)
         last = current.last_record
 
@@ -370,7 +466,10 @@ def main(argv: list[str] | None = None) -> int:
                 record_type="SESSION_ACTIVE",
                 grant=grant,
                 previous=last,
-                payload={"codespace_name": grant.codespace_name},
+                payload={
+                    "codespace_name": grant.codespace_name,
+                    "request_issue": args.request_issue,
+                },
             )
             continue
         if current.state == "CLOSING":
@@ -452,6 +551,19 @@ def main(argv: list[str] | None = None) -> int:
             repository=args.repository,
             authority_issue=args.authority_issue,
         )
+        before_effect_records = _validated_session_records(
+            authority_now,
+            grant=grant,
+            request_issue=args.request_issue,
+        )
+        before_effect = project(before_effect_records, grant)
+        if (
+            before_effect.state != "JOB_SELECTED"
+            or before_effect.last_record is None
+            or before_effect.last_record.record_sha256 != selected.record_sha256
+        ):
+            raise ContractError("session authority changed after JOB_SELECTED")
+
         permission_now = gh.permission(job.request_author)
         current_target = _target_sha(gh, job)
         final_effect_guard(
@@ -509,6 +621,25 @@ def main(argv: list[str] | None = None) -> int:
                 "Gate 0 returned without a cryptographically authoritative final outcome"
             )
 
+        # Effects have already happened. Even if a suspension arrives now, the
+        # durable authoritative Gate 0 outcome must be terminalized rather than
+        # left ambiguous. Reconstruct GitHub state and require our JOB_STARTED to
+        # remain the unique active tail before recording terminal truth.
+        after_effect_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
+        after_effect_records = _validated_session_records(
+            after_effect_snapshot,
+            grant=grant,
+            request_issue=args.request_issue,
+        )
+        after_effect = project(after_effect_records, grant)
+        if (
+            after_effect.state != "JOB_STARTED"
+            or after_effect.last_record is None
+            or after_effect.last_record.record_sha256 != started.record_sha256
+            or after_effect.active_job_digest != job.request_digest
+        ):
+            raise ContractError("session authority changed after Gate 0 effect")
+
         terminal_result = (
             "COMPLETED"
             if invocation.return_code == 0 and not invocation.timed_out
@@ -531,6 +662,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         completed += 1
 
+    # Keep the local fence live through the last durable write.
+    _process_fence.close()
     return 0
 
 
