@@ -5,14 +5,21 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 import tempfile
-from typing import Any
+from typing import Any, Mapping
 
 from tools.codespace_evidence.execute import CommandRunner
 from tools.codespace_evidence.request import EvidenceRequest, parse_request_envelope
 from tools.codespace_evidence.run import _discover_candidates, main as gate0_main
 
 from . import GATE0_OPERATIONS
-from .contracts import ContractError, QueueJob, exact_int, validate_gate0_operation
+from .contracts import (
+    ContractError,
+    QueueJob,
+    canonical_json_bytes,
+    exact_int,
+    validate_gate0_operation,
+)
+from .credential_boundary import EffectCapabilityExpectation, EffectCapabilityVerifier
 from .github_transport import Gate1GitHub
 
 # This is intentionally duplicated as a drift sentinel, not as an extension of
@@ -39,7 +46,7 @@ class Gate0Invocation:
 class _Gate0ElectionReadback:
     """Minimal read-only view consumed by the unchanged Gate 0 election code.
 
-    GitHub access remains inside ``Gate1GitHub``.  The accepted Gate 0 election
+    GitHub access remains inside ``Gate1GitHub``. The accepted Gate 0 election
     receives only the authenticated publisher identity and normalized origin
     comments; this adapter does not acquire, retain, forward or expose GitHub
     credentials.
@@ -144,12 +151,38 @@ def _authoritative_outcome(
     return exact_int(incumbent.comment_id, "Gate 0 authoritative comment id", minimum=1)
 
 
+def _selected_target(job: QueueJob) -> dict[str, Any]:
+    return {
+        "type": job.target_type,
+        "number": job.target_number,
+        "sha": job.target_sha,
+    }
+
+
+def _verify_effect_capability(
+    *,
+    job: QueueJob,
+    capability: Mapping[str, Any] | None,
+    verifier: EffectCapabilityVerifier | None,
+    expectation: EffectCapabilityExpectation | None,
+) -> None:
+    """Consume external signed authority at the last lane-owned pre-effect point."""
+    if capability is None or verifier is None or expectation is None:
+        raise ContractError("signed single-use effect capability is required")
+    if canonical_json_bytes(dict(expectation.target)) != canonical_json_bytes(_selected_target(job)):
+        raise ContractError("capability expectation target differs from selected Gate 0 job")
+    verifier.verify_and_consume(capability=capability, expected=expectation)
+
+
 def invoke_once(
     *,
     runner: CommandRunner,
     repository_root: Path,
     job: QueueJob,
     timeout_seconds: int = 3600,
+    capability: Mapping[str, Any] | None = None,
+    verifier: EffectCapabilityVerifier | None = None,
+    expectation: EffectCapabilityExpectation | None = None,
 ) -> Gate0Invocation:
     _require_exact_gate0_surface()
     validate_gate0_operation(job.operation)
@@ -190,6 +223,18 @@ def invoke_once(
             + "\n",
             encoding="utf-8",
         )
+
+        # The signer and private key stay outside EFFECT_GATEWAY. The parent
+        # presents an already-issued capability plus the trusted verifier and
+        # exact expectation. Verification/nonce consumption is the final action
+        # owned by this lane before Gate 0 can create an external effect.
+        _verify_effect_capability(
+            job=job,
+            capability=capability,
+            verifier=verifier,
+            expectation=expectation,
+        )
+
         return_code = gate0_main(
             [
                 "--request",
