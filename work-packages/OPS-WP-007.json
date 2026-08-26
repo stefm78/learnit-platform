@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "OPS-WP-007",
   "title": "Gate 1 sequential multi-AI queue implementation",
-  "status": "completed",
+  "status": "accepted",
   "changeClass": "repository-operations-sequential-queue",
   "riskClass": "moderate",
   "purpose": "Implement the already accepted G1-DESIGN-V6 R5 as a GitHub-authoritative sequential queue above unchanged Gate 0, with human Codespace start/grant, deterministic election, fail-closed recovery and no repository-write jobs or parallel execution.",
