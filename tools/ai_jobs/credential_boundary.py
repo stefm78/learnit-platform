@@ -1,10 +1,61 @@
 """Credential and effect-boundary checks immediately before Gate 0 invocation."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+import hashlib
 import os
-from typing import Any
+from pathlib import Path
+import platform
+import tempfile
+from typing import Any, BinaryIO
 
 from .contracts import ContractError, QueueJob, SessionGrant
+
+
+@dataclass
+class SessionProcessFence:
+    """Held file descriptor for same-Codespace single-process execution."""
+
+    handle: BinaryIO
+    path: Path
+
+    def close(self) -> None:
+        self.handle.close()
+
+
+def acquire_session_process_fence(grant: SessionGrant) -> SessionProcessFence:
+    """Acquire a non-blocking process fence for the exact human grant.
+
+    GitHub remains the durable authority across restart/host loss. This local
+    Linux fence only closes the same-Codespace race in which two coordinator
+    processes could otherwise publish competing non-terminal records before a
+    later GitHub reconstruction detects the conflict.
+    """
+    if platform.system() != "Linux":
+        raise ContractError("Gate 1 process fencing requires the Linux Codespace runtime")
+    try:
+        import fcntl
+    except ImportError as exc:  # pragma: no cover - Linux Codespaces provide fcntl
+        raise ContractError("Gate 1 process fencing requires fcntl") from exc
+
+    material = (
+        f"{grant.repository}|{grant.authority_issue}|{grant.session_id}|"
+        f"{grant.generation}|{grant.codespace_name}"
+    ).encode("utf-8")
+    digest = hashlib.sha256(material).hexdigest()
+    path = Path(tempfile.gettempdir()) / f"learnit-gate1-{digest}.lock"
+    handle = path.open("a+b")
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as exc:
+        handle.close()
+        raise ContractError(
+            "another Gate 1 coordinator process already holds this session fence"
+        ) from exc
+    except OSError as exc:
+        handle.close()
+        raise ContractError(f"Gate 1 process fence failed: {exc}") from exc
+    return SessionProcessFence(handle=handle, path=path)
 
 
 def require_runtime_identity(
