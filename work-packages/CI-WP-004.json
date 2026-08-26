@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-004",
+  "title": "Make Learn-it Next CI product-relevance aware",
+  "status": "in-progress",
+  "changeClass": "ci-routing-correction",
+  "riskClass": "moderate",
+  "purpose": "Run Learn-it Next product CI only for Learn-it Next or Atlas-relevant changes, preserve exact existing product routes and exact-head dispatch proofs, and avoid false-red product verification on unrelated infrastructure changes.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "002d5d10e53be2c3f57abdb71603ebb28b771621",
+    "authorityIssue": 177,
+    "branch": "ci/CI-WP-004-product-relevance-router"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-004.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "kits/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "Only the Learn-it Next CI workflow and this work-package file may change.",
+    "All existing Atlas branch routes remain exact and unchanged for product-relevant changes.",
+    "All existing Wave A branch routes remain exact and unchanged for product-relevant changes.",
+    "workflow_dispatch modes and exact-head proof semantics remain unchanged.",
+    "A product-relevant change on an unrecognized pull-request branch fails closed.",
+    "Relevant pushes to main retain existing post-merge product verification.",
+    "Infrastructure-only, governance-only and work-package-only changes do not trigger Learn-it Next product verification.",
+    "A change to .github/workflows/learnit-next-ci.yml remains executable as an auditable CI-router self-test.",
+    "Repository governance, PR scope, main protection, product sources, tests, manifests, run_checks.py and rulesets are not weakened or edited."
+  ],
+  "requiredEvidence": [
+    "Changed paths are exactly .github/workflows/learnit-next-ci.yml and work-packages/CI-WP-004.json.",
+    "Repository governance is green on the exact head.",
+    "PR scope is green on the exact head.",
+    "Learn-it Next CI executes the workflow-audit route successfully on this workflow-only product-irrelevant change.",
+    "Event path filters include Learn-it Next, authoring v2, contracts and this workflow, while excluding tools/ai_jobs, tests/ai_jobs, governance and work-package-only maintenance.",
+    "Known Atlas and Wave A product branch route tables are preserved byte-for-byte except for the unknown-branch fallback behavior.",
+    "Unknown branches are allowed to self-audit workflow-only changes but are rejected when any product-relevant path is present.",
+    "Main post-merge routing classifies a workflow-only non-product merge as ci-router rather than Wave A."
+  ],
+  "adversarialTests": [
+    "Known Atlas pull request plus apps/learnit-next path routes to its existing Atlas profile.",
+    "Known Wave A pull request plus apps/learnit-next or authoring/v2 path routes to wave-a.",
+    "Unknown pull-request branch plus apps/learnit-next, authoring/v2 or contracts path fails closed.",
+    "ops branch with only tools/ai_jobs or tests/ai_jobs paths does not trigger Learn-it Next CI.",
+    "ci branch, governance-only change or work-package-only change does not trigger Learn-it Next product verification.",
+    "Main merge containing Learn-it Next product paths retains the existing post-merge product classifier.",
+    "Main merge without product paths does not fall through to artificial Wave A verification.",
+    "Changing .github/workflows/learnit-next-ci.yml triggers ci-router self-test and does not bypass fail-closed product routing."
+  ],
+  "nonGoals": [
+    "Changing any Learn-it Next source or product test.",
+    "Changing apps/learnit-next/dev/run_checks.py or any source manifest.",
+    "Changing Repository governance or PR scope semantics.",
+    "Changing branch protection, rulesets or required global status checks.",
+    "Adding infrastructure branch-name allowlists to product verification.",
+    "Merging or releasing from this lane."
+  ],
+  "independentReview": [
+    "Independent exact-head CI review must verify event-path semantics, fail-closed unknown product routing, preserved Atlas and Wave A routes, and the eight-case matrix before merge."
+  ],
+  "execution": {
+    "issue": 177,
+    "maximumChangedFiles": 2,
+    "newFilesAuthorized": [
+      "work-packages/CI-WP-004.json"
+    ],
+    "requiresContradictoryReviewBeforeMerge": true,
+    "requiresGovernorLinusReviewBeforeMerge": false,
+    "mergeStatus": "held"
+  },
+  "rollback": "Close the draft pull request without merge, or revert only the Learn-it Next CI workflow relevance router and CI-WP-004 metadata after merge."
+}
