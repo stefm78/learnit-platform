@@ -229,8 +229,11 @@ def _comment_object(
         raise ContractError("GitHub comment body is unavailable")
     if len(body.encode("utf-8")) > MAX_CHUNK_BYTES:
         raise ContractError("GitHub comment body exceeds the canonical chunk bound")
-    expected_html_prefix = f"https://github.com/{repository}/issues/"
-    if not isinstance(html_url, str) or not html_url.startswith(expected_html_prefix):
+    expected_html_prefixes = (
+        f"https://github.com/{repository}/issues/",
+        f"https://github.com/{repository}/pull/",
+    )
+    if not isinstance(html_url, str) or not html_url.startswith(expected_html_prefixes):
         raise ContractError("GitHub comment html_url differs from the canonical repository")
     expected_issue_prefix = f"https://api.github.com/repos/{repository}/issues/"
     if not isinstance(issue_url, str) or not issue_url.startswith(expected_issue_prefix):
@@ -616,7 +619,9 @@ class Gate1GitHub:
         elif job.target_type == "pull_request" and isinstance(job.target_number, int):
             target_number = exact_int(job.target_number, "target_number", minimum=1)
             value = self._get_json(f"repos/{self.repository}/pulls/{target_number}")
-            if not isinstance(value, dict) or value.get("number") != target_number:
+            if not isinstance(value, dict) or exact_int(
+                value.get("number"), "github.pull.number", minimum=1
+            ) != target_number:
                 raise ContractError("pull request target identity mismatch")
             head = value.get("head")
             sha = head.get("sha") if isinstance(head, dict) else None
