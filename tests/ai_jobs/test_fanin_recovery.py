@@ -30,7 +30,9 @@ class RecoveryOracle(unittest.TestCase):
   for m in MUTATIONS:
    r=boundary("B",m);self.assertEqual((r["state"],r["gate0"],r["replay"]),("RECOVERY_REQUIRED",0,0))
  def test_cached_mutants_killed(self):
-  for x in ("cached RUNNABLE","cached predecessor truth","cached receipt","final_effect_guard only"):self.assertFalse(False,x)
+  for x in ("cached RUNNABLE","cached predecessor truth","cached receipt","final_effect_guard only"):
+   with self.subTest(mutant=x):self.assertFalse(privileged_authorized(fresh=True,shortcut=x))
+  self.assertFalse(privileged_authorized(fresh=False));self.assertTrue(privileged_authorized(fresh=True))
  def test_dependency_truth_strict_and(self):
   self.assertEqual(truth("COMPLETED",False),"BINDING_PENDING");self.assertEqual(truth("COMPLETED",True),"SATISFIED");self.assertFalse(all(x=="SATISFIED" for x in ["SATISFIED","BINDING_PENDING"]));self.assertTrue(all(x=="SATISFIED" for x in ["SATISFIED","SATISFIED"]))
   for t in ("FAILED","STALE","AMBIGUOUS"):self.assertNotEqual(truth(t,True),"SATISFIED")
