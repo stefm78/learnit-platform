@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-013",
+  "title": "Gate 2 contradictory fan-in oracle",
+  "status": "under-qa",
+  "changeClass": "independent-contradictory-gate2-design-qa",
+  "riskClass": "high",
+  "purpose": "Prepare an independent, fail-closed oracle for the future Gate 2 read-only dependency fan-in design without designing or repairing Gate 2, modifying Gate 1 or Gate 0 runtime, or authorizing later gates. Final QA is forbidden until this oracle is rebound to one frozen exact parent-design HEAD.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "33d4ffc5f8aa5289008a72de301f937137f119e7",
+    "authorityIssue": 182,
+    "parentDesignIssue": 181,
+    "branch": "qa/QA-WP-013-gate2-fanin-oracle",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-013.json",
+      "tests/ai_jobs/test_gate2_fanin_contract.py",
+      "tests/ai_jobs/fixtures/gate2_fanin_valid.json",
+      "tests/ai_jobs/fixtures/gate2_fanin_invalid.json"
+    ],
+    "forbiddenPaths": [
+      "tools/ai_jobs/**",
+      "tools/codespace_evidence/**",
+      ".github/**",
+      "governance/**",
+      "docs/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "kits/**"
+    ]
+  },
+  "invariants": [
+    "QA-WP-013 is an independent oracle lane and never repairs the parent Gate 2 design or runtime implementation.",
+    "No final PASS is permitted before one frozen exact parent-design HEAD is read and recorded as BOUND_EXACT.",
+    "Dependencies are fail-closed on cycles, missing or duplicate predecessors, identity conflicts, wrong repository/issue/session/generation, and outcome-binding ambiguity.",
+    "A descendant is runnable only after every predecessor has one unique immutable non-stale COMPLETED outcome whose exact comment identity and body digest match the dependency binding.",
+    "Blocked work is not an empty queue and cannot justify closure.",
+    "GitHub observation is insensitive to comment delivery order but fails closed on unstable pagination, membership or content across required scans.",
+    "Durable JOB_STARTED remains a replay fence; crash or authority ambiguity after that boundary requires recovery and never automatic replay.",
+    "Gate 2 remains read-only and sequential: no repository-write capability, arbitrary argv/shell channel or parallel execution is accepted.",
+    "Gate 0 remains byte-identical to the preparation baseline and Gate 1 runtime remains unchanged during design-oracle preparation.",
+    "Gate 3 repository-write jobs and Gate 4 parallel execution remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact QA baseline, merge-base, QA head and exactly four changed paths within scope.allowedPaths.",
+    "Independent fixtures cover direct, two-node and longer cycles; missing and duplicate dependencies; logical identity and digest conflicts; failure, stale, ambiguous, deleted, edited and digest-mismatched outcomes; partial and complete fan-in; scope isolation; closure; crash/recovery; bounds and deterministic election.",
+    "Comment-order permutation produces the same observation while pagination/content instability fails closed.",
+    "A blocked queue is explicitly non-empty/non-closable and a descendant cannot become runnable before complete dependency satisfaction.",
+    "No automatic replay occurs after durable JOB_STARTED and duplicate terminal or recovery ambiguity enters RECOVERY_REQUIRED.",
+    "Gate 0 implementation and regression-test trees are byte-identical to main@33d4ffc5f8aa5289008a72de301f937137f119e7.",
+    "Gate 1 runtime tree is unchanged from the preparation baseline while this work remains design QA only.",
+    "Gate 1 regression remains a mandatory clean-checkout 85/85 PASS with zero skip/xfail on the exact bound design review head.",
+    "Gate 0 regression remains a mandatory clean-checkout 80/80 PASS on the exact bound design review head.",
+    "No Gate 2 runtime module, repository-write API, arbitrary command/argv/shell surface or Gate 4 parallel execution capability is introduced.",
+    "Before any final verdict, QA records the exact frozen parent-design HEAD, rereads its two authorized files at that HEAD, and reruns the complete oracle against that exact binding.",
+    "QA branch synchronized to current main a66fa300557051dc73adc2a15a662c19f79c300b by merge commit feb39e4560eec11a716adb15abb7c7bed858085c; diff against current main remains exactly the four authorized QA paths.",
+    "Exact corrected design binding reviewed at f3a8fb588848f0d43cb6a3f39835b7b57ec40566 with design SHA-256 ef70b0bb2663eb545213d270336d53e12311a3a4dcfd780394b631f610e33e9f and work-package SHA-256 cc90d73b917102f13ee0e9805e41fbf6033d311ad825c57727b7bae9b3556119.",
+    "G2-QA-013-F01 Boundary A is proven across receipt deletion/edit, outcome deletion/body mutation under same comment_id, terminal ambiguity, unstable A!=B reads, descendant-source mutation, graph-binding mutation and graph-comment edit: no JOB_STARTED and zero Gate0 invocation.",
+    "G2-QA-013-F01 Boundary B is proven across the same mutation surface: RECOVERY_REQUIRED, zero Gate0 invocation and zero automatic replay.",
+    "Every privileged-boundary probe requires fresh reconstruction of graph, graph digest, session/generation, descendant source request, all direct predecessors, unique Gate1 terminal, Gate2 receipt, Gate0 outcome, internal Gate0 outcome validation and exact outcome-body SHA-256; cached RUNNABLE, final_effect_guard() alone and cached receipt truth are rejected."
+  ],
+  "adversarialTests": [
+    "Reject A->A, A->B->A and longer dependency cycles.",
+    "Reject missing and duplicate dependencies before runnable election.",
+    "Reject same job_id with a different request digest and the same digest under incompatible job identities.",
+    "Keep descendants non-runnable for FAILED, stale, ambiguous, deleted, edited or body-digest-mismatched predecessor outcomes.",
+    "Require all fan-in predecessors; partial satisfaction remains blocked and complete satisfaction becomes runnable.",
+    "Normalize immutable comment order but fail closed on unstable pagination or changed membership/content.",
+    "Reject cross-repository, cross-issue, cross-session and cross-generation dependencies.",
+    "Never treat blocked work as an empty queue or allow premature closure.",
+    "Crash before durable dependency observation cannot start a descendant; crash after JOB_STARTED requires recovery.",
+    "Automatic replay after JOB_STARTED is forbidden; duplicate terminal outcomes and recovery ambiguity require RECOVERY_REQUIRED.",
+    "Attack the declared maximum fan-in, graph depth and node-count boundaries at limit and limit+1.",
+    "Elect exactly one runnable node deterministically regardless of input ordering.",
+    "Reject any Gate 3 repository-write capability, arbitrary argv/shell channel or Gate 4 parallel-execution expansion.",
+    "Fail if Gate 0 bytes drift or if the mandatory Gate 1 85/85 and Gate 0 80/80 regressions are no longer required.",
+    "Invalidate a previously SATISFIED predecessor after descendant election but before JOB_STARTED and require the descendant not to start.",
+    "Invalidate a previously SATISFIED predecessor after durable descendant JOB_STARTED but before Gate 0 invocation and require RECOVERY_REQUIRED with zero Gate 0 invocation.",
+    "Probe receipt deletion and receipt edit separately at Boundary A and Boundary B.",
+    "Probe outcome deletion and same-comment-id outcome-body mutation separately at Boundary A and Boundary B.",
+    "Probe terminal ambiguity, stable-read A != B, descendant source-request mutation, graph-binding mutation and graph-comment edit separately at both privileged boundaries.",
+    "Reject cross-authority and cross-request-issue scope independently from repository/session/generation checks.",
+    "Require COMPLETE only when every node is SUCCEEDED, including durable receipt truth.",
+    "Reconcile terminal-COMPLETED-before-receipt without Gate0 replay and fail closed on divergent receipt candidates.",
+    "Reject predecessor output/dataflow injection that changes descendant request bytes."
+  ],
+  "nonGoals": [
+    "Designing the Gate 2 dependency contract for the parent lane.",
+    "Repairing or editing docs/operations/GATE2_FANIN_DESIGN.md or work-packages/OPS-WP-008.json.",
+    "Modifying tools/ai_jobs/** or tools/codespace_evidence/**.",
+    "Implementing Gate 2 runtime behavior.",
+    "Authorizing Gate 3 repository writes or Gate 4 parallel execution.",
+    "Changing Gate 0, Gate 1, workflows, product, Atlas, authoring, kits or governance state.",
+    "Issuing a final contradictory PASS against an unfrozen or moving parent-design branch."
+  ],
+  "independentReview": [
+    "The fixture corpus is QA-authored and must not be copied from parent-design examples.",
+    "The pre-candidate oracle may be reviewed and draft-published before the parent design exists, but its final verdict remains structurally unbound.",
+    "After the parent design publishes one frozen exact HEAD, QA rereads that exact design, adapts only this oracle if necessary, and records any design defect as HOLD rather than repairing the parent lane.",
+    "Any parent-design correction invalidates the prior binding and requires a full oracle rerun on the new exact HEAD.",
+    "Corrected exact design head f3a8fb588848f0d43cb6a3f39835b7b57ec40566 was independently rebound after the old rejected head and the complete oracle rerun is required on this binding.",
+    "No active design finding remains after F01 is resolved; PASS does not authorize Gate2 implementation, activation, merge, Gate3 or Gate4."
+  ],
+  "execution": {
+    "authorityIssue": 182,
+    "parentDesignIssue": 181,
+    "oracleState": "BOUND_EXACT_REVIEWED",
+    "verdict": "PASS_GATE2_DESIGN_CONTRADICTORY_QA",
+    "designBinding": {
+      "status": "BOUND_EXACT",
+      "designHead": "f3a8fb588848f0d43cb6a3f39835b7b57ec40566",
+      "designDocument": "docs/operations/GATE2_FANIN_DESIGN.md",
+      "designWorkPackage": "work-packages/OPS-WP-008.json",
+      "designDocumentBlobSha1": "7f728034a2bab1cf7e77f5e881c15326901f8b6a",
+      "designWorkPackageBlobSha1": "ccc3c67c20568678849e627c3fcb51ecf54df089",
+      "designDocumentSha256": "ef70b0bb2663eb545213d270336d53e12311a3a4dcfd780394b631f610e33e9f",
+      "designWorkPackageSha256": "cc90d73b917102f13ee0e9805e41fbf6033d311ad825c57727b7bae9b3556119"
+    },
+    "finalVerdict": "PASS_GATE2_DESIGN_CONTRADICTORY_QA",
+    "allowedFinalVerdicts": [
+      "PASS_GATE2_DESIGN_CONTRADICTORY_QA",
+      "HOLD_GATE2_QA_<concrete-finding>"
+    ],
+    "maximumChangedFiles": 4,
+    "requiresExactDesignHeadBinding": true,
+    "mergeAuthorized": false,
+    "stateHistory": [
+      {
+        "state": "PRE_CANDIDATE_ORACLE_READY",
+        "verdict": "PRE_CANDIDATE_GATE2_QA_READY",
+        "designHead": null
+      },
+      {
+        "state": "BOUND_EXACT_REVIEWED",
+        "verdict": "HOLD_GATE2_QA_PRE_EFFECT_DEPENDENCY_REVALIDATION_UNSPECIFIED",
+        "designHead": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3"
+      },
+      {
+        "state": "BOUND_EXACT_REVIEWED",
+        "verdict": "PASS_GATE2_DESIGN_CONTRADICTORY_QA",
+        "designHead": "f3a8fb588848f0d43cb6a3f39835b7b57ec40566"
+      }
+    ],
+    "findings": [],
+    "resolvedFindings": [
+      {
+        "id": "G2-QA-013-F01",
+        "severity": "blocking-resolved",
+        "title": "Dependency truth is normatively revalidated at both privileged boundaries",
+        "rejectedDesignHead": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3",
+        "correctedDesignHead": "f3a8fb588848f0d43cb6a3f39835b7b57ec40566",
+        "resolutionEvidence": [
+          "Design section 12.1 makes complete fresh Gate2 revalidation mandatory after durable JOB_SELECTED before JOB_STARTED.",
+          "Design section 12.1 makes the same complete fresh revalidation mandatory after durable JOB_STARTED immediately before Gate0.",
+          "The reconstruction explicitly includes graph/digest, scope/session/generation, descendant source, direct predecessors, unique Gate1 terminal, Gate2 receipt, authoritative Gate0 outcome, existing Gate0 internal validation and exact body SHA-256.",
+          "Prior RUNNABLE, final_effect_guard() alone and a previously observed receipt without reread are explicitly insufficient.",
+          "Boundary A forbids JOB_STARTED/Gate0 on invalidation; Boundary B requires RECOVERY_REQUIRED, zero Gate0 invocation and zero automatic replay."
+        ]
+      }
+    ],
+    "synchronization": {
+      "qaOldHead": "04b757824ffa0f64a0664e47ed4f8d74811bc279",
+      "syncMain": "a66fa300557051dc73adc2a15a662c19f79c300b",
+      "mergeCommit": "feb39e4560eec11a716adb15abb7c7bed858085c",
+      "mode": "merge-commit",
+      "rebase": false,
+      "forcePush": false
+    },
+    "regressionEvidence": {
+      "gate1": {
+        "required": "85/85 PASS; skip=0; xfail=0",
+        "lastRecordedSource": "work-packages/OPS-WP-007.json",
+        "rerunInThisReview": false
+      },
+      "gate0": {
+        "required": "80/80 PASS",
+        "lastRecordedSource": "work-packages/OPS-WP-007.json",
+        "rerunInThisReview": false
+      }
+    }
+  },
+  "rollback": "Discard or revert only the four QA-WP-013 paths. No Gate 0, Gate 1, Gate 2 runtime, parent-design, workflow, governance or product behavior is modified."
+}
