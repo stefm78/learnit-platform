@@ -1,0 +1,43 @@
+name: Atlas M2 Transfer Independent QA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PRODUCT_HEAD: PENDING_EXACT_ATLAS_WP_005_HEAD
+
+jobs:
+  prepared-oracle:
+    name: Pre-implementation transfer QA oracle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          clean: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prove QA-owned preparation only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile apps/learnit-next/tests/qa_atlas_m2_transfer.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/QA-WP-016.json').read_text())
+          assert wp['id']=='QA-WP-016'
+          assert wp['authority']['issue']==204
+          assert wp['baseline']['productHead'] is None
+          assert wp['execution']['phase']=='PRE_IMPLEMENTATION_ORACLE_PREPARATION'
+          print('PRE_IMPLEMENTATION_QA_ORACLE_READY')
+          PY
+      - name: Refuse final QA before exact product rebind
+        run: |
+          echo "Final execution is intentionally disabled until ATLAS-WP-005 product HEAD is frozen."
+          exit 2
