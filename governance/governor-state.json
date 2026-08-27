@@ -1,38 +1,43 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-07-29-030",
-  "effectiveFromCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
-  "reviewedBaselineCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
+  "stateId": "GOV-STATE-2026-08-27-POST-M2",
+  "effectiveFromCommit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
+  "reviewedBaselineCommit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m1-lanes-active",
-    "status": "active",
-    "description": "Project Atlas M1 bootstrap is merged. The four disjoint Atlas lanes and independent pre-candidate QA are published from the exact common baseline, while the shared governance and CI support repair remains subject to human review."
+    "id": "project-atlas-m2-promoted-stable",
+    "status": "complete",
+    "description": "Atlas M2 is promoted, independently QA-accepted, human-approved and published as the exact canonical GitHub Pages artifact. No next product increment is currently authorized."
   },
   "currentMain": {
-    "commit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
-    "sourcePullRequest": 131,
-    "description": "Project Atlas M1 bootstrap merge on top of the promoted Learning Loop V2 baseline."
+    "commit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
+    "sourcePullRequest": 200,
+    "description": "Post-M2 Pages promotion main: Atlas M2 product merge dd0c1911 plus exact-artifact Pages repin via ATLAS-WP-004."
   },
   "developmentBaseline": {
-    "status": "selected",
-    "workPackage": "ATLAS-WP-001",
-    "candidate": "Project Atlas M1 Daily Learning Loop",
-    "sourceCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
-    "authorityIssue": 130,
-    "bootstrap": "MERGED"
+    "status": "not-selected",
+    "workPackage": null,
+    "candidate": null,
+    "sourceCommit": null,
+    "authorityIssue": null,
+    "note": "No active product development baseline. A new authority issue/work package is required before the next product increment."
   },
   "promotedBaseline": {
     "status": "promoted",
-    "workPackage": "PROG-WP-001",
-    "candidate": "Learning Loop V2 Wave A promoted product",
-    "sourceCommit": "06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35",
-    "artifactSha256": "9780bf3763864fbd42804a7dee129ae16e999e7971c4fce9a0a6a240d52b20df",
-    "promotedAt": "2026-07-29",
-    "humanValidation": "PASS_30_OF_30",
-    "promotionAuthorityIssue": 129
+    "workPackage": "ATLAS-WP-003",
+    "candidate": "Project Atlas M2 Memory Proof Loop",
+    "sourceCommit": "dd0c191179f968d35742cb58f7d6bb9ccb53a852",
+    "acceptedProductHead": "ce7cf459902281c44557ae017f92c7667e0393df",
+    "acceptedQaHead": "4b0d80dd3b576a2300a4d1516481769b198d9637",
+    "artifactBytes": 352237,
+    "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091",
+    "promotedAt": "2026-08-27",
+    "humanValidation": "PASS M2 — GO PROMOTION",
+    "promotionAuthorityIssue": 157,
+    "pagesDeploymentRun": 33090509949,
+    "pagesUrl": "https://stefm78.github.io/learnit-platform/"
   },
   "acceptedControls": {
     "stageDOperatingModel": {
@@ -53,31 +58,44 @@
       "status": "accepted",
       "mergeCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
       "sourcePullRequest": 131
+    },
+    "projectAtlasM2": {
+      "workPackage": "ATLAS-WP-003",
+      "status": "promoted",
+      "mergeCommit": "dd0c191179f968d35742cb58f7d6bb9ccb53a852",
+      "acceptedProductHead": "ce7cf459902281c44557ae017f92c7667e0393df",
+      "acceptedQaHead": "4b0d80dd3b576a2300a4d1516481769b198d9637",
+      "artifactBytes": 352237,
+      "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091",
+      "humanGate": "PASS M2 — GO PROMOTION"
+    },
+    "projectAtlasM2Pages": {
+      "workPackage": "ATLAS-WP-004",
+      "status": "accepted",
+      "mergeCommit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
+      "deploymentRun": 33090509949,
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/",
+      "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091"
     }
   },
   "authorizedWork": [
-    "ATLAS-WP-001 support repair for exact governance and deterministic CI routing from baseline 58e39e8917006058fdf177a5daa37535f5e2c78d",
-    "four disjoint lanes ATLAS-LEARNING, ATLAS-EXPERIENCE, ATLAS-CORE and ATLAS-CONTENT as declared in ATLAS-WP-001",
-    "independent contradictory QA in its declared test and fixture paths",
-    "non-repairing integration of exact accepted lane heads",
-    "local offline deterministic explainable adaptive planning with no runtime LLM or network dependency",
-    "pedagogical rewards tied to correction, autonomy, validation, reprise and transfer"
+    "No product implementation is currently authorized. New product work requires a new explicit authority issue/work package and bounded scope.",
+    "Repository maintenance and evidence-preserving governance closeout may proceed only under dedicated bounded work packages."
   ],
   "heldWork": [
-    "semantic changes to LearningEvent, ObjectiveEvidence, LearningRecommendation or SessionPlan without an explicit ATLAS-WP-001 amendment",
-    "statistical or machine-learning planner until deterministic M1 evidence exists and an explicit amendment is approved",
-    "learnit.kit.v2 schema change during Atlas M1",
+    "Gate 3 repository-write capability remains HOLD unless separately authorized.",
+    "Gate 4 parallel runtime remains HOLD unless separately authorized.",
     "backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace",
-    "teacher, cohort and institutional features before their later milestone authority"
+    "teacher, cohort and institutional features before explicit later-milestone authority",
+    "new Atlas product semantics until a new authority issue/work package is approved"
   ],
   "prohibitedWork": [
-    "runtime LLM, remote AI API, embedded secret or network-required learning behavior",
-    "autonomous merge, release publication or direct write to main",
-    "silent product repair by the integrator in a lane-owned file",
+    "runtime LLM, remote AI API, embedded secret or network-required learning behavior without explicit future authority",
+    "direct write to main outside the repository's governed pull-request process",
+    "silent product repair by an integration or QA lane in a product-owner file",
     "destructive migration or reuse of protected RC718 storage",
     "claiming certification, durable mastery or retention beyond observed evidence",
-    "rewards based only on clicks, elapsed time, public rank, random loot or punitive streaks",
-    "publishing an artifact different from the exact artifact tested"
+    "publishing an artifact different from the exact artifact tested and promoted"
   ],
   "activeRisks": [
     {
@@ -85,30 +103,6 @@
       "severity": "high",
       "statement": "The main-protection ruleset is configured but not enforced on this private personal-account repository.",
       "closureGate": "Move the repository to an eligible topology and verify a negative bypass test."
-    },
-    {
-      "id": "RISK-ATLAS-CONTRACT-001",
-      "severity": "high",
-      "statement": "Parallel Atlas lanes can drift if the four shared data contracts are changed implicitly.",
-      "closureGate": "Bootstrap merge freezes CONTRACTS.md and QA rejects undeclared fields or semantic changes."
-    },
-    {
-      "id": "RISK-ATLAS-EVIDENCE-002",
-      "severity": "high",
-      "statement": "Event and projection defects could lose or overstate learner evidence.",
-      "closureGate": "Independent QA proves replay, interruption, export/import, invalid-event rejection and claim boundaries."
-    },
-    {
-      "id": "RISK-ATLAS-UX-003",
-      "severity": "moderate",
-      "statement": "Adaptive planning and gamification could make the visible product more complex or manipulative.",
-      "closureGate": "Steve review and human validation prove a simple Today-session-summary flow and non-punitive rewards."
-    },
-    {
-      "id": "RISK-COMPOSITION-011",
-      "severity": "moderate",
-      "statement": "Shared composition files can serialize parallel delivery or invite hidden repairs.",
-      "closureGate": "Only INT owns shared composition paths and the candidate proves exact lane heads with no undeclared overlap."
     }
   ],
   "activeExceptions": [
@@ -122,14 +116,14 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "ATLAS-WP-001",
-    "condition": "Human review and merge of the exact support governance and CI PR, followed by independent review of the published lane heads before any non-repairing integrated candidate is assembled."
+    "id": "GOV-WP-001",
+    "condition": "Permanent governor review must authorize and bind a new explicit product work package before any next product increment begins."
   },
   "review": {
-    "lastReviewedAt": "2026-07-29",
-    "lastReviewedBy": "Accountable owner with Linus and Steve arbitration",
-    "decision": "GO_WITH_CONDITIONS",
-    "authorityIssue": 130,
-    "nextReviewTrigger": "shared-contract or scope change, irreversible storage migration, failed integrated candidate, independent QA blocker, human product candidate or promotion request"
+    "lastReviewedAt": "2026-08-27",
+    "lastReviewedBy": "Accountable owner with completed independent QA and human M2 promotion gate",
+    "decision": "HOLD",
+    "authorityIssue": 157,
+    "nextReviewTrigger": "new product increment proposal, security/autonomy expansion, storage migration, accessibility reactivation trigger, or material governance/ruleset change"
   }
 }

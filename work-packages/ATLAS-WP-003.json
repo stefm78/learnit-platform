@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-003",
   "title": "Project Atlas M2 Memory Proof Loop",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "product-atlas-memory-proof-loop",
   "riskClass": "high",
   "authority": {
@@ -109,5 +109,23 @@
     "Marketplace or commerce",
     "Automatic publication to GitHub Pages"
   ],
-  "rollback": "Revert only the M2 candidate changes. Existing M1 state remains structurally valid because no storage migration or identity rewrite is performed, and public Pages remains pinned to the previously promoted M1 artifact."
+  "rollback": "Revert only the M2 candidate changes. Existing M1 state remains structurally valid because no storage migration or identity rewrite is performed, and public Pages remains pinned to the previously promoted M1 artifact.",
+  "execution": {
+    "productPullRequest": 158,
+    "acceptedProductHead": "ce7cf459902281c44557ae017f92c7667e0393df",
+    "acceptedQaHead": "4b0d80dd3b576a2300a4d1516481769b198d9637",
+    "productCiRun": 33087156483,
+    "independentQaRun": 33087664428,
+    "independentQaVerdict": "PASS_TO_HUMAN_GATE",
+    "humanDecision": "PASS M2 — GO PROMOTION",
+    "promotedMerge": "dd0c191179f968d35742cb58f7d6bb9ccb53a852",
+    "promotedTreeSha1": "abfaa3f4a18760d45b995855328d8680b5b23b56",
+    "candidateTreeSha1": "abfaa3f4a18760d45b995855328d8680b5b23b56",
+    "artifactBytes": 352237,
+    "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091",
+    "pagesWorkPackage": "ATLAS-WP-004",
+    "pagesDeploymentRun": 33090509949,
+    "pagesUrl": "https://stefm78.github.io/learnit-platform/",
+    "finalVerdict": "PROMOTED_AND_PUBLISHED"
+  }
 }

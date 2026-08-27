@@ -15,7 +15,7 @@ Current Atlas facts:
 - accepted M1 INT: `e2c10c8eb5a3e1c4dff5e45b210f327942bafce8`;
 - accepted M1 QA: `67d70e7307402242dbc1939d6cabfd87af617d74`;
 - promoted M1 artifact: `334194` bytes, SHA-256 `6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f`;
-- Atlas M2 is active under issue [#157](https://github.com/stefm78/learnit-platform/issues/157); product PR [#158](https://github.com/stefm78/learnit-platform/pull/158) and independent QA PR [#159](https://github.com/stefm78/learnit-platform/pull/159) remain draft and unmerged.
+- Atlas M2 is promoted: product merge `dd0c191179f968d35742cb58f7d6bb9ccb53a852`, accepted QA head `4b0d80dd3b576a2300a4d1516481769b198d9637`, canonical artifact `352237` bytes / SHA-256 `7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091`; the human promotion gate passed and GitHub Pages publishes that exact artifact at https://stefm78.github.io/learnit-platform/.
 
 The legacy baseline is:
 
@@ -30,9 +30,9 @@ The legacy baseline is:
 
 For current product work, read these sources in this order:
 
-1. [Atlas M2 authority #157](https://github.com/stefm78/learnit-platform/issues/157) and its exact active PRs [#158](https://github.com/stefm78/learnit-platform/pull/158) / [#159](https://github.com/stefm78/learnit-platform/pull/159);
-2. [`ATLAS-WP-001`](work-packages/ATLAS-WP-001.json) and [`ATLAS-WP-002`](work-packages/ATLAS-WP-002.json) for completed M1 and publication history;
-3. [`governance/governor-state.json`](governance/governor-state.json) for the repository's machine-readable governance record;
+1. [`governance/governor-state.json`](governance/governor-state.json) for the repository's machine-readable current state;
+2. [`ATLAS-WP-003`](work-packages/ATLAS-WP-003.json) and [`ATLAS-WP-004`](work-packages/ATLAS-WP-004.json) for the completed M2 product and Pages promotion evidence;
+3. [Atlas M2 authority #157](https://github.com/stefm78/learnit-platform/issues/157) for the completed M2 decision history;
 4. accepted architecture decisions under [`docs/architecture/decisions/`](docs/architecture/decisions/);
 5. [`GOVERNANCE.md`](GOVERNANCE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
@@ -61,6 +61,6 @@ Historical work packages, reviews, handovers and roadmap stages remain evidence;
 
 ## Active product gate
 
-Atlas M2 is the active product increment under issue #157. PR #158 has an exact product candidate and PR #159 carries independent contradictory QA, but both remain draft and unmerged.
+Atlas M2 is promoted and published. There is currently **no active product increment**.
 
-No M2 promotion, merge to `main`, or GitHub Pages repin is authorized until the exact M2 artifact passes the accountable human gate and an explicit promotion decision is recorded.
+The next product increment must begin with a new explicit authority issue/work package and bounded scope; completed M2 authority #157 does not implicitly authorize additional product changes.

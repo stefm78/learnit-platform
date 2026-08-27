@@ -6,7 +6,7 @@ RC718 remains the frozen legacy standalone product. The successor is a distinct 
 
 The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
-> **Historical status (post-Atlas M1):** the C1–C7 sequence below records the clean-generation path that led to Learn-it Next. It is retained as historical planning evidence, not as the active roadmap or current gate. Learning Loop V2 and Atlas M1 have since been promoted; Atlas M2 is active under issue `#157`. No new roadmap is defined here.
+> **Historical status (post-Atlas M2):** the C1–C7 sequence below records the clean-generation path that led to Learn-it Next. It is retained as historical planning evidence, not as the active roadmap or current gate. Learning Loop V2, Atlas M1 and Atlas M2 have been promoted; the exact M2 artifact is published through GitHub Pages. No next product increment is selected here.
 
 ## Completed foundation
 

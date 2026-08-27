@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-028",
+  "title": "Post-M2 promotion metadata and repository closeout",
+  "status": "approved",
+  "changeClass": "governance-metadata-closeout",
+  "riskClass": "low",
+  "purpose": "Reconcile current repository governance, product status and canonical documentation after exact Atlas M2 promotion and Pages publication, without changing runtime or product semantics.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
+    "authorityIssue": 201,
+    "promotedM2Merge": "dd0c191179f968d35742cb58f7d6bb9ccb53a852",
+    "pagesPromotionMerge": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
+    "pagesDeploymentRun": 33090509949
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-028.json",
+      "work-packages/ATLAS-WP-003.json",
+      "work-packages/ATLAS-WP-004.json",
+      "governance/governor-state.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "tools/**",
+      "tests/**",
+      "docs/atlas/**"
+    ]
+  },
+  "invariants": [
+    "Exactly seven authorized metadata/documentation paths may change.",
+    "No product runtime, tests, workflows, Pages pin, storage or Atlas semantic behavior changes.",
+    "ATLAS-WP-003 and ATLAS-WP-004 historical scope and design evidence remain preserved; only terminal execution/status metadata is added.",
+    "Current documentation must state that M2 is promoted and published and that no next product increment is active.",
+    "Gate3 and Gate4 remain held."
+  ],
+  "requiredEvidence": [
+    "M2 product PR #158 merged as dd0c191179f968d35742cb58f7d6bb9ccb53a852.",
+    "Independent QA exact head 4b0d80dd3b576a2300a4d1516481769b198d9637 returned PASS_TO_HUMAN_GATE.",
+    "Human decision PASS M2 — GO PROMOTION is recorded on #157.",
+    "Pages run 33090509949 succeeds with 352237 bytes and exact SHA-256 7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091.",
+    "Repository governance and PR scope pass on the exact closeout head."
+  ],
+  "adversarialTests": [
+    "Fail if any path outside the seven-path allowlist changes.",
+    "Fail if documentation still claims #157/#158/#159 are active or unmerged.",
+    "Fail if promoted M2 merge, QA head, artifact bytes/digest or Pages deployment identity differs from GitHub evidence.",
+    "Fail if this closeout authorizes a new product increment."
+  ],
+  "nonGoals": [
+    "Product changes",
+    "Test or workflow changes",
+    "Gate3 or Gate4 activation",
+    "New Atlas milestone selection",
+    "Deleting historical evidence branches"
+  ],
+  "independentReview": [
+    "Repository governance validates schema and terminal vocabulary.",
+    "PR scope validates the exact seven-path allowlist.",
+    "GitHub evidence for #157/#158/#159/#199/#200 and run 33090509949 is cross-checked."
+  ],
+  "execution": {
+    "issue": 201,
+    "maximumChangedFiles": 7,
+    "newFilesAuthorized": [
+      "work-packages/GOV-WP-028.json"
+    ],
+    "autonomousMergeAfterGreenChecks": true
+  },
+  "rollback": "Revert only GOV-WP-028 metadata/documentation closeout. The promoted M2 product and Pages deployment remain unchanged."
+}
