@@ -3,7 +3,12 @@
   "authority_issue": 182,
   "parent_design_issue": 181,
   "preparation_baseline": "33d4ffc5f8aa5289008a72de301f937137f119e7",
-  "design_binding": null,
+  "design_binding": {
+    "status": "BOUND_EXACT",
+    "head": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3",
+    "design_document_sha256": "7e8ea3b8abf2b44883cee786635cdf33e277c7197f155f2262a8d2cdc5ecb783",
+    "design_work_package_sha256": "1ab0af3b3f59e4581e6e68f7fdf3be12d128185a2edf11c27415d5a581f80215"
+  },
   "oracle_principles": [
     "Dependencies are bound to immutable logical identity plus exact predecessor outcome comment and body digest.",
     "Only a unique immutable COMPLETED predecessor outcome can satisfy a dependency.",
@@ -19,9 +24,9 @@
       "probe": "graph",
       "description": "Two immutable successful predecessors satisfy a descendant fan-in.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -194,9 +199,9 @@
       "probe": "graph",
       "description": "Several independent runnable roots elect exactly one by immutable request order, regardless of node input order.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -263,9 +268,9 @@
       "probe": "graph",
       "description": "A graph containing only terminal completed nodes has no pending work and may be considered empty.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -310,14 +315,20 @@
       "probe": "bounds",
       "description": "A bounded design must accept values exactly at its own declared limits.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32,
+        "max_edges": 64,
+        "max_fan_out": 16,
+        "max_payload_bytes": 65536
       },
       "observed": {
-        "fan_in": 3,
-        "depth": 4,
-        "nodes": 8
+        "fan_in": 8,
+        "depth": 8,
+        "nodes": 32,
+        "edges": 64,
+        "fan_out": 16,
+        "payload_bytes": 65536
       },
       "expected": {
         "queue_state": "BOUNDS_ACCEPTED",
@@ -341,6 +352,403 @@
         "requires_recovery": false,
         "reason": "DEPENDENCY_OBSERVATION_NOT_DURABLE"
       }
+    },
+    {
+      "id": "complete_fan_in_eight_predecessors",
+      "probe": "graph",
+      "description": "The exact declared fan-in bound of eight requires all eight successful predecessors before the descendant is runnable.",
+      "limits": {
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
+      },
+      "nodes": [
+        {
+          "id": "P1",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P1",
+            "request_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+            "request_comment_id": 201
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 601,
+              "body_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "observed_body_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "P2",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P2",
+            "request_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+            "request_comment_id": 202
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 602,
+              "body_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "observed_body_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "P3",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P3",
+            "request_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+            "request_comment_id": 203
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 603,
+              "body_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observed_body_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "P4",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P4",
+            "request_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+            "request_comment_id": 204
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 604,
+              "body_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observed_body_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "P5",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P5",
+            "request_digest": "5555555555555555555555555555555555555555555555555555555555555555",
+            "request_comment_id": 205
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 605,
+              "body_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "observed_body_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "P6",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P6",
+            "request_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+            "request_comment_id": 206
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 606,
+              "body_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "observed_body_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "P7",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P7",
+            "request_digest": "7777777777777777777777777777777777777777777777777777777777777777",
+            "request_comment_id": 207
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 607,
+              "body_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "observed_body_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "P8",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-P8",
+            "request_digest": "8888888888888888888888888888888888888888888888888888888888888888",
+            "request_comment_id": 208
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 608,
+              "body_sha256": "10101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010",
+              "observed_body_sha256": "10101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "Z",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-Z",
+            "request_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "request_comment_id": 400
+          },
+          "state": "PENDING",
+          "dependencies": [
+            {
+              "node": "P1",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P1",
+                "request_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+                "request_comment_id": 201
+              },
+              "outcome_binding": {
+                "comment_id": 601,
+                "body_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+              }
+            },
+            {
+              "node": "P2",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P2",
+                "request_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+                "request_comment_id": 202
+              },
+              "outcome_binding": {
+                "comment_id": 602,
+                "body_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              }
+            },
+            {
+              "node": "P3",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P3",
+                "request_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+                "request_comment_id": 203
+              },
+              "outcome_binding": {
+                "comment_id": 603,
+                "body_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            },
+            {
+              "node": "P4",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P4",
+                "request_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+                "request_comment_id": 204
+              },
+              "outcome_binding": {
+                "comment_id": 604,
+                "body_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            },
+            {
+              "node": "P5",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P5",
+                "request_digest": "5555555555555555555555555555555555555555555555555555555555555555",
+                "request_comment_id": 205
+              },
+              "outcome_binding": {
+                "comment_id": 605,
+                "body_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              }
+            },
+            {
+              "node": "P6",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P6",
+                "request_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+                "request_comment_id": 206
+              },
+              "outcome_binding": {
+                "comment_id": 606,
+                "body_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              }
+            },
+            {
+              "node": "P7",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P7",
+                "request_digest": "7777777777777777777777777777777777777777777777777777777777777777",
+                "request_comment_id": 207
+              },
+              "outcome_binding": {
+                "comment_id": 607,
+                "body_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              }
+            },
+            {
+              "node": "P8",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-P8",
+                "request_digest": "8888888888888888888888888888888888888888888888888888888888888888",
+                "request_comment_id": 208
+              },
+              "outcome_binding": {
+                "comment_id": 608,
+                "body_sha256": "10101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010"
+              }
+            }
+          ],
+          "outcomes": []
+        }
+      ],
+      "expected": {
+        "queue_state": "RUNNABLE",
+        "runnable": [
+          "Z"
+        ],
+        "selected": "Z",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "ALL_DEPENDENCIES_SATISFIED"
+      }
     }
-  ]
+  ],
+  "declared_design_contract": {
+    "max_payload_bytes": 65536,
+    "max_nodes": 32,
+    "max_edges": 64,
+    "max_fan_in": 8,
+    "max_fan_out": 16,
+    "max_depth": 8,
+    "runnable_order": [
+      "request_comment_id",
+      "job_id"
+    ],
+    "fan_in_semantics": "strict AND",
+    "gate3": "HOLD",
+    "gate4": "HOLD"
+  }
 }
