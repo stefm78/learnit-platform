@@ -64,7 +64,8 @@
     "maximumChangedFiles": 2,
     "autonomousMergeAfterGreenChecks": true,
     "successorRuntimeAuthority": 188,
-    "successorRuntimeQaAuthority": 189
+    "successorRuntimeQaAuthority": 189,
+    "pullRequest": 191
   },
   "rollback": "Revert only the two QA-WP-015 paths; no runtime or design artifact is affected."
 }
