@@ -17,9 +17,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PROMOTED_HEAD: 354a2cf27954de13435a08a2a4ec014b9e8a2e89
-  EXPECTED_SHA256: 6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f
-  EXPECTED_BYTES: '334194'
+  PROMOTED_HEAD: dd0c191179f968d35742cb58f7d6bb9ccb53a852
+  EXPECTED_SHA256: 7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091
+  EXPECTED_BYTES: '352237'
 
 jobs:
   publish:
@@ -28,7 +28,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout exact promoted M1 source
+      - name: Checkout exact promoted M2 source
         uses: actions/checkout@v4
         with:
           ref: ${{ env.PROMOTED_HEAD }}
