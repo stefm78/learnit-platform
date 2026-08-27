@@ -194,7 +194,31 @@ jobs:
               echo 'Post-merge target must have exactly two parents.' >&2
               exit 2
             }
-            mapfile -t changed < <(git diff --name-only "${parents[0]}" HEAD | sed '/^$/d' | sort -u)
+            parse_name_status_paths() {
+              local status path old_path new_path
+              local -a paths=()
+              while IFS= read -r -d '' status; do
+                case "${status}" in
+                  R*|C*)
+                    IFS= read -r -d '' old_path || return 2
+                    IFS= read -r -d '' new_path || return 2
+                    paths+=("${old_path}" "${new_path}")
+                    ;;
+                  *)
+                    IFS= read -r -d '' path || return 2
+                    paths+=("${path}")
+                    ;;
+                esac
+              done
+              printf '%s\n' "${paths[@]}" | sed '/^$/d' | sort -u
+            }
+
+            collect_changed_paths() {
+              git diff --name-status -z "$1" "$2" | parse_name_status_paths
+            }
+
+            changed_text="$(collect_changed_paths "${parents[0]}" HEAD)"
+            mapfile -t changed < <(printf '%s\n' "${changed_text}" | sed '/^$/d')
             actual="$(printf '%s\n' "${changed[@]}")"
 
             product_relevant=false
@@ -458,7 +482,31 @@ jobs:
                 ;;
             esac
 
-            mapfile -t changed < <(git diff --name-only "${compare_base}" "${TARGET}" | sed '/^$/d' | sort -u)
+            parse_name_status_paths() {
+              local status path old_path new_path
+              local -a paths=()
+              while IFS= read -r -d '' status; do
+                case "${status}" in
+                  R*|C*)
+                    IFS= read -r -d '' old_path || return 2
+                    IFS= read -r -d '' new_path || return 2
+                    paths+=("${old_path}" "${new_path}")
+                    ;;
+                  *)
+                    IFS= read -r -d '' path || return 2
+                    paths+=("${path}")
+                    ;;
+                esac
+              done
+              printf '%s\n' "${paths[@]}" | sed '/^$/d' | sort -u
+            }
+
+            collect_changed_paths() {
+              git diff --name-status -z "$1" "$2" | parse_name_status_paths
+            }
+
+            changed_text="$(collect_changed_paths "${compare_base}" "${TARGET}")"
+            mapfile -t changed < <(printf '%s\n' "${changed_text}" | sed '/^$/d')
             product_relevant=false
             workflow_changed=false
             for path in "${changed[@]}"; do
@@ -500,6 +548,40 @@ jobs:
               ! is_product_path "${sample}"
             done
 
+            status_stream_is_product_relevant() {
+              local stream="$1" parsed path
+              local -a paths=()
+              parsed="$(printf '%b' "${stream}" | parse_name_status_paths)"
+              mapfile -t paths < <(printf '%s\n' "${parsed}" | sed '/^$/d')
+              for path in "${paths[@]}"; do
+                if is_product_path "${path}"; then
+                  return 0
+                fi
+              done
+              return 1
+            }
+
+            assert_status_product_relevance() {
+              local label="$1" expected="$2" stream="$3" actual=false
+              if status_stream_is_product_relevant "${stream}"; then
+                actual=true
+              fi
+              [[ "${actual}" == "${expected}" ]] || {
+                echo "ci-router rename-aware self-test failed: ${label}: expected=${expected} actual=${actual}" >&2
+                exit 2
+              }
+            }
+
+            assert_status_product_relevance rename-out-learnit true 'R100\x00apps/learnit-next/src/foo.js\x00docs/foo.js\x00'
+            assert_status_product_relevance workflow-plus-rename-out true 'M\x00.github/workflows/learnit-next-ci.yml\x00R100\x00apps/learnit-next/src/foo.js\x00docs/foo.js\x00'
+            assert_status_product_relevance rename-out-authoring true 'R100\x00authoring/v2/foo.json\x00docs/foo.json\x00'
+            assert_status_product_relevance rename-out-contracts true 'R100\x00contracts/foo.json\x00docs/foo.json\x00'
+            assert_status_product_relevance delete-product true 'D\x00apps/learnit-next/src/foo.js\x00'
+            assert_status_product_relevance rename-infra false 'R100\x00docs/a.md\x00docs/b.md\x00'
+            assert_status_product_relevance rename-into-product true 'R100\x00docs/foo.js\x00apps/learnit-next/src/foo.js\x00'
+            assert_status_product_relevance copy-out-product true 'C100\x00contracts/source.json\x00docs/source.json\x00'
+
+            echo "CI_ROUTER_RENAME_MATRIX=PASS"
             echo "CI_ROUTER_SELF_TEST=PASS"
             echo "CI_ROUTER_CHANGED_PATHS=$(printf '%s,' "${changed[@]}")"
             exit 0
