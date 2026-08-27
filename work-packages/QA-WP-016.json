@@ -17,8 +17,10 @@
     "baseCommit": "e02bfc3eff3719673442303ce5a14d00cfe57ad5",
     "productWorkPackage": "ATLAS-WP-005",
     "productAuthorityIssue": 203,
-    "productHead": null,
-    "promotedM2ArtifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091"
+    "productHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+    "promotedM2ArtifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091",
+    "productArtifactBytes": 359010,
+    "productArtifactSha256": "86384803568478f846fed4dc0f05398a576aef1424e68e70ecbe1bdc8a1f9bc8"
   },
   "scope": {
     "allowedPaths": [
@@ -76,7 +78,12 @@
     "QA verdict is recorded on #204 and parent #203."
   ],
   "execution": {
-    "phase": "PRE_IMPLEMENTATION_ORACLE_PREPARATION",
+    "phase": "BOUND_TO_EXACT_PRODUCT_HEAD",
+    "productHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+    "productRun": 33095666924,
+    "productArtifactId": 9656310200,
+    "expectedArtifactBytes": 359010,
+    "expectedArtifactSha256": "86384803568478f846fed4dc0f05398a576aef1424e68e70ecbe1bdc8a1f9bc8",
     "finalVerdict": null
   },
   "rollback": "Drop QA-WP-016 branch/PR only. Product implementation remains independently reviewable."
