@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-001",
   "title": "Canonical CI topology modes and maintenance-pr governance",
-  "status": "in-progress",
+  "status": "superseded",
   "changeClass": "ci-harness-correction",
   "riskClass": "moderate",
   "purpose": "Canonicalize integration-head, post-merge and maintenance-pr modes while preserving released product bytes and separating harness topology defects from product evidence.",

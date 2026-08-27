@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-002",
   "title": "Rebase the validated CI maintenance correction and normalize inherited package metadata",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "ci-harness-correction",
   "riskClass": "moderate",
   "purpose": "Carry the already exercised explicit CI topology modes from PR #92 onto the current main baseline and normalize the inherited OPS-WP-003 metadata required by repository validation, with one bounded maintenance PR and no product change.",

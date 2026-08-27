@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-026",
+  "title": "Post-Gate1 historical metadata and repository hygiene",
+  "status": "approved",
+  "changeClass": "governance-repository-hygiene",
+  "riskClass": "low",
+  "purpose": "Close proven historical metadata debt, correct stale current-state documentation and remove one obsolete RC715-only manual workflow without changing product, runtime, active Atlas M2, CI-WP-004, Gate 0 or Gate 1 behavior.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "33d4ffc5f8aa5289008a72de301f937137f119e7",
+    "authorityIssue": 180,
+    "branch": "gov/GOV-WP-026-repository-hygiene"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-026.json",
+      "work-packages/CI-WP-001.json",
+      "work-packages/CI-WP-002.json",
+      "work-packages/PROG-WP-001.json",
+      "work-packages/ATLAS-WP-001.json",
+      "work-packages/ATLAS-WP-002.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      ".github/workflows/build-standalone-download.yml"
+    ],
+    "forbiddenPaths": [
+      "governance/**",
+      "docs/atlas/**",
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "Only the exact issue #180 allowlist may change.",
+    "Historical baselines, SHAs, evidence, rollback instructions and prior decisions in existing work packages remain unchanged.",
+    "CI-WP-001 is closed only as superseded; CI-WP-002, PROG-WP-001, ATLAS-WP-001 and ATLAS-WP-002 are closed only to the terminal state supported by merged repository facts.",
+    "Documentation changes correct stale current-state narration without rewriting historical architecture decisions or inventing a new roadmap.",
+    "The RC715 standalone-download workflow is removed rather than retargeted.",
+    "No product/runtime behavior, Atlas M2 implementation or QA, CI-WP-004 implementation, Gate 0, Gate 1 or main-protection rule changes."
+  ],
+  "requiredEvidence": [
+    "Repository visibility is public at the reviewed head.",
+    "Issue #85 is closed not-planned and CI-WP-001 implementation PR #92 was not merged; later CI-WP-002 replacement work was merged.",
+    "CI-WP-002 PR #114 merged as d443d895781ab6ee32fb91fbddb5521b45cb1541 and authority issue #113 is completed.",
+    "PROG-WP-001 technical candidate PR #124 merged as 06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35 and promotion authority #129 records BASELINE_PROMOTED.",
+    "ATLAS-WP-001 PR #147 merged as 354a2cf27954de13435a08a2a4ec014b9e8a2e89 with accepted INT and QA evidence; issue #130 is completed.",
+    "ATLAS-WP-002 PR #154 and its follow-up Pages fixes were merged; issue #151 is completed.",
+    "Atlas M2 authority #157 and draft PRs #158/#159 remain active and unmodified.",
+    "CI-WP-004 PR #179 remains draft and its two implementation paths are not touched.",
+    "Code search finds no repository consumer of build-standalone-download.yml and the RC715 artifact name appears only in that workflow; the workflow is workflow_dispatch-only and pinned to RC715.",
+    "Repository governance, validate-repository, PR scope and gate pass on the exact final head.",
+    "The final diff contains only the issue #180 allowlist and no collision with Atlas M2 or CI-WP-004."
+  ],
+  "adversarialTests": [
+    "Fail if any path outside the exact allowlist changes.",
+    "Fail if any historical baseline, SHA, evidence, rollback or prior decision text in the five historical work packages changes.",
+    "Fail if README still describes the repository as private, Learn-it Next as unimplemented, or ARC-WP-022 as the current next gate.",
+    "Fail if architecture status still describes Atlas M1 as bootstrap-pending or ADR-0003 as proposed.",
+    "Fail if the historical C1-C7 roadmap is presented as the active current gate.",
+    "Fail if the RC715 workflow is retargeted instead of deleted.",
+    "Fail if #158, #159, #179, governance/governor-state.json, learnit-next-ci.yml or any runtime path changes."
+  ],
+  "nonGoals": [
+    "Changing governance/governor-state.json.",
+    "Changing docs/atlas or Atlas M2 authority, implementation, QA or promotion state.",
+    "Changing CI-WP-004 or Learn-it Next CI routing.",
+    "Changing Gate 0 or Gate 1 runtime.",
+    "Changing the main ruleset or required checks.",
+    "Deleting historical releases, tags, evidence branches, source manifests or other preserved proof.",
+    "Creating a replacement roadmap or retargeting historical RC715 automation."
+  ],
+  "independentReview": [
+    "Repository governance validates canonical work-package structure and terminal status vocabulary.",
+    "PR scope validates the exact issue #180 allowlist.",
+    "Exact-head review verifies documentation claims against current GitHub repository, Atlas M1/M2 and CI-WP-004 facts.",
+    "Main protection remains unchanged and autonomous merge is permitted only after all four required checks are green."
+  ],
+  "execution": {
+    "issue": 180,
+    "maximumChangedFiles": 10,
+    "newFilesAuthorized": [
+      "work-packages/GOV-WP-026.json"
+    ],
+    "deletionsAuthorized": [
+      ".github/workflows/build-standalone-download.yml"
+    ],
+    "autonomousMergeAfterGreenChecks": true
+  },
+  "rollback": "Revert only the GOV-WP-026 hygiene merge. Historical source, runtime, releases, tags, evidence and active Atlas M2 / CI-WP-004 work remain untouched."
+}
