@@ -73,14 +73,17 @@ class AtlasM2TransferTests(unittest.TestCase):
             return Object.freeze({...record, executionId:V.executionId(record)});
           }
           function event(execution) {
-            const payload = {
+            const identity = {
               eventVersion:'atlas.learning-event.v1',
               kind:'activity-attempt',
-              objectiveRef,
               executionId:execution.executionId,
-              occurredAt:execution.scoredAt,
             };
-            return Object.freeze({...payload, eventId:V.eventId(payload)});
+            return Object.freeze({
+              ...identity,
+              eventId:V.eventId(identity),
+              objectiveRef,
+              occurredAt:execution.scoredAt,
+            });
           }
 
           const initial = execution(
