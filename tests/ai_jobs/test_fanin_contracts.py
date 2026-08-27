@@ -1,10 +1,17 @@
-"""QA-WP-014 phase-1 contract oracle. No OPS-WP-009 runtime import by design."""
+"""QA-WP-014 runtime-bound contract oracle for the frozen OPS-WP-009 head."""
 from __future__ import annotations
 import hashlib,json,re,unicodedata,unittest
 from typing import Any
+from tools.ai_jobs.fanin import Gate2Error, Gate2Ref
 GRAPH_MARKER="AI_GATE2_FANIN_V1"; GRAPH_SCHEMA="learnit.gate2.fanin.v1"
 SHA40=re.compile(r"^[0-9a-f]{40}$"); SHA64=re.compile(r"^[0-9a-f]{64}$")
 SCOPE={"repository":"stefm78/learnit-platform","authority_issue":189,"request_issue":188,"session_id":"G1S-QA-GATE2","generation":1,"session_grant_comment_id":7001,"session_grant_digest":"a"*64}
+def authority_ok(payload,scope,target,expected_target,graph_author,grantor):
+ for field in ("repository","authority_issue","request_issue","session_id","generation","session_grant_comment_id","session_grant_digest"):
+  if payload.get(field)!=scope[field]: raise ValueError(field)
+ if target!=expected_target: raise ValueError("target")
+ if graph_author!=grantor: raise ValueError("author")
+ return True
 SCENARIOS=("malformed_envelope","malformed_json","duplicate_json_key","float_forbidden","nan_forbidden","non_nfc_string","noncanonical_json","payload_digest_mismatch","edited_graph_comment","wrong_graph_author","wrong_repository","wrong_authority_issue","wrong_request_issue","wrong_session","wrong_generation","wrong_grant_comment","wrong_grant_digest","weak_job_id_only_identity","weak_missing_request_comment","weak_missing_request_digest","weak_missing_target_sha","receipt_comment_edited","receipt_author_mismatch","receipt_wrong_body_digest","receipt_invalid_gate0_outcome","receipt_terminal_mismatch","source_request_mutation")
 def _pairs(pairs):
  d={}
@@ -62,6 +69,12 @@ class ContractOracle(unittest.TestCase):
    with self.subTest(f=f),self.assertRaises(ValueError):authority_ok(q,SCOPE,"t","t","grantor","grantor")
   with self.assertRaises(ValueError):authority_ok(p,SCOPE,"t","u","grantor","grantor")
   with self.assertRaises(ValueError):authority_ok(p,SCOPE,"t","t","attacker","grantor")
+ def test_runtime_strong_identity(self):
+  r={"job_id":"JOB-A","request_comment_id":1,"request_sha256":"b"*64,"target_sha":"c"*40}
+  got=Gate2Ref.from_value(r,"node.ref");self.assertEqual(got.as_dict(),r)
+  for f in tuple(r):
+   q=dict(r);del q[f]
+   with self.subTest(f=f),self.assertRaises(Gate2Error):Gate2Ref.from_value(q,"node.ref")
  def test_strong_identity(self):
   r={"job_id":"JOB-A","request_comment_id":1,"request_sha256":"b"*64,"target_sha":"c"*40}; self.assertEqual(len(node_ref(r)),4)
   for f in tuple(r):

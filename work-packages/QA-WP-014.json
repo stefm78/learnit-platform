@@ -90,12 +90,12 @@
   "execution": {
     "authorityIssue": 189,
     "parentImplementationIssue": 188,
-    "oracleState": "PRE_IMPLEMENTATION_READY",
+    "oracleState": "BOUND_RUNTIME_REVIEW",
     "implementationBinding": {
-      "status": "UNBOUND",
-      "implementationHead": null,
-      "mergeCommit": null,
-      "qaDraftPr": null
+      "status": "BOUND",
+      "implementationHead": "991b844e25364b6059aed34d6d1dd52deb7f28d5",
+      "mergeCommit": "e2a4e39bc6a41862a392005be0627e2398ca5f5c",
+      "qaDraftPr": 195
     },
     "finalVerdict": null,
     "allowedFinalVerdicts": [
@@ -109,6 +109,18 @@
       "pureOracleSyntaxAndExecution": "REQUIRED",
       "runtimeDependentChecks": "DEFERRED_UNTIL_FROZEN_IMPLEMENTATION_HEAD",
       "finalPassAuthorized": false
+    },
+    "currentExactQaHead": "6b23177d63c4217199fecd95971448313c71c258",
+    "currentExecutionEvidence": {
+      "gate1": "PASS_85_OF_85",
+      "gate0": "PASS_80_OF_80",
+      "gate0ByteIdentity": "PASS",
+      "compileImport": "PASS",
+      "fullAiJobs": "HOLD_QA_CORPUS_HELPERS_UNDEFINED",
+      "aiJobsTestsRun": 142,
+      "aiJobsErrors": 8,
+      "skip": 0,
+      "xfail": 0
     }
   },
   "rollback": "Discard or revert only the six QA-WP-014 paths. No Gate0, Gate1, Gate2 runtime, parent implementation, design, workflow, governance or product behavior is modified.",
@@ -127,7 +139,8 @@
     "Reconcile terminal-COMPLETED-before-receipt without Gate0 replay and fail closed on divergent receipt candidates or unstable double scans.",
     "Preserve deterministic Gate1 election order among simultaneously runnable nodes and exactly one runtime job at a time.",
     "Reject repository write, generic shell/argv, branch/commit/push/workflow-dispatch/merge/release/promotion, automatic Codespace lifecycle, dynamic requests, predecessor-output dataflow, cross-session/generation/authority delegation, Gate3/Gate4 expansion and FULL_V6_SECURITY claims.",
-    "Require exact four Gate0 operations, explicit Gate2 opt-in, unchanged default Gate1 behavior, Gate1 85/85, Gate0 80/80, zero skip/xfail and byte-identical Gate0 before any final PASS."
+    "Require exact four Gate0 operations, explicit Gate2 opt-in, unchanged default Gate1 behavior, Gate1 85/85, Gate0 80/80, zero skip/xfail and byte-identical Gate0 before any final PASS.",
+    "Phase-2 QA must import and exercise the frozen runtime boundary/contract/profile code; a self-contained phase-1 model alone is insufficient for final runtime PASS."
   ],
   "independentReview": [
     "Phase 1 oracle was prepared from the accepted Gate2 design, owner constraints and existing Gate1 runtime before inspection of OPS-WP-009 implementation internals.",
@@ -135,6 +148,7 @@
     "QA review PR #195 is DRAFT and targets ops/OPS-WP-009-gate2-pilot-runtime at the frozen implementation head; QA may not merge directly to main.",
     "Any implementation-head change invalidates the current binding and requires a new exact-head merge binding plus complete rerun.",
     "A final PASS is permitted only from fresh executable evidence on the exact combined QA head; historical Gate1/Gate0 results may not substitute for exact-head execution.",
-    "Any runtime defect discovered by this oracle must be reported as HOLD; QA-WP-014 never repairs OPS-WP-009."
+    "Any runtime defect discovered by this oracle must be reported as HOLD; QA-WP-014 never repairs OPS-WP-009.",
+    "Exact-head Codespace execution on QA head 6b23177d63c4217199fecd95971448313c71c258 proved compile/import PASS, Gate1 85/85 PASS, Gate0 80/80 PASS and Gate0 byte identity; the only failures were undefined QA-oracle helpers, so the runtime implementation remains frozen while QA-owned tests are corrected."
   ]
 }
