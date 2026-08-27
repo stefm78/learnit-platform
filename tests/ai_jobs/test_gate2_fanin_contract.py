@@ -15,10 +15,18 @@ import unittest
 from typing import Any
 
 BASELINE = "33d4ffc5f8aa5289008a72de301f937137f119e7"
-BOUND_DESIGN_HEAD = "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3"
-BOUND_DESIGN_DOCUMENT_SHA256 = "7e8ea3b8abf2b44883cee786635cdf33e277c7197f155f2262a8d2cdc5ecb783"
-BOUND_DESIGN_WORK_PACKAGE_SHA256 = "1ab0af3b3f59e4581e6e68f7fdf3be12d128185a2edf11c27415d5a581f80215"
-BOUND_HOLD = "HOLD_GATE2_QA_PRE_EFFECT_DEPENDENCY_REVALIDATION_UNSPECIFIED"
+CURRENT_MAIN = "a66fa300557051dc73adc2a15a662c19f79c300b"
+BOUND_DESIGN_HEAD = "f3a8fb588848f0d43cb6a3f39835b7b57ec40566"
+BOUND_DESIGN_DOCUMENT_BLOB_SHA1 = "7f728034a2bab1cf7e77f5e881c15326901f8b6a"
+BOUND_DESIGN_WORK_PACKAGE_BLOB_SHA1 = "ccc3c67c20568678849e627c3fcb51ecf54df089"
+BOUND_DESIGN_DOCUMENT_SHA256 = "ef70b0bb2663eb545213d270336d53e12311a3a4dcfd780394b631f610e33e9f"
+BOUND_DESIGN_WORK_PACKAGE_SHA256 = "cc90d73b917102f13ee0e9805e41fbf6033d311ad825c57727b7bae9b3556119"
+BOUND_VERDICT = "PASS_GATE2_DESIGN_CONTRADICTORY_QA"
+REQUIRED_BOUNDARY_COMPONENTS = {
+    "graph", "graph_digest", "session_generation", "descendant_source_request",
+    "direct_predecessors", "gate1_terminal", "gate2_receipt", "gate0_outcome",
+    "gate0_outcome_internal_validation", "gate0_outcome_body_sha256",
+}
 EXPECTED_REPOSITORY = "stefm78/learnit-platform"
 EXPECTED_GATE0_OPERATIONS = {
     "pr-snapshot", "pr-governor-evidence",
@@ -33,24 +41,76 @@ IDENTITY_FIELDS = {
     "job_id", "request_digest", "request_comment_id",
 }
 REQUIRED_ATTACK_IDS = {
-    "cycle_self_A_to_A", "cycle_A_B_A", "cycle_long_A_B_C_A",
-    "missing_predecessor", "duplicate_dependency",
-    "same_job_id_wrong_digest", "same_digest_incompatible_identity",
-    "predecessor_failed", "predecessor_stale", "predecessor_ambiguous",
-    "outcome_deleted", "outcome_edited_same_comment_id",
-    "outcome_body_digest_mismatch", "partial_fan_in", "complete_fan_in",
-    "comment_reorder_is_semantically_stable", "pagination_instability",
-    "cross_issue", "cross_session", "cross_generation", "wrong_repository",
-    "descendant_runnable_too_early", "blocked_queue_not_empty",
-    "premature_closure", "crash_before_durable_dependency_observation",
-    "crash_after_job_started", "automatic_replay_after_job_started",
-    "duplicate_terminal", "recovery_ambiguity", "bounds_at_declared_limit",
-    "max_fan_in_exceeded", "max_depth_exceeded", "max_nodes_exceeded",
+    "cycle_self_A_to_A",
+    "cycle_A_B_A",
+    "cycle_long_A_B_C_A",
+    "missing_predecessor",
+    "duplicate_dependency",
+    "duplicate_node_id",
+    "same_job_id_wrong_digest",
+    "same_digest_incompatible_identity",
+    "predecessor_failed",
+    "predecessor_stale",
+    "predecessor_ambiguous",
+    "outcome_deleted",
+    "outcome_edited_same_comment_id",
+    "outcome_body_digest_mismatch",
+    "partial_fan_in",
+    "complete_fan_in",
+    "comment_reorder_is_semantically_stable",
+    "pagination_instability",
+    "cross_issue",
+    "cross_authority",
+    "cross_request_issue",
+    "cross_session",
+    "cross_generation",
+    "wrong_repository",
+    "descendant_runnable_too_early",
+    "blocked_queue_not_empty",
+    "premature_closure",
+    "crash_before_durable_dependency_observation",
+    "crash_after_job_started",
+    "automatic_replay_after_job_started",
+    "duplicate_terminal",
+    "recovery_ambiguity",
+    "bounds_at_declared_limit",
+    "max_fan_in_exceeded",
+    "max_depth_exceeded",
+    "max_nodes_exceeded",
+    "max_edges_exceeded",
+    "max_fan_out_exceeded",
+    "max_payload_bytes_exceeded",
     "deterministic_election_multiple_runnable",
     "complete_fan_in_eight_predecessors",
-    "max_edges_exceeded", "max_fan_out_exceeded", "max_payload_bytes_exceeded",
-    "dependency_invalidated_after_election_before_effect",
-    "dependency_invalidated_after_job_started_before_effect",
+    "terminal_completed_before_receipt_reconciliation",
+    "ambiguous_receipt_reconciliation",
+    "complete_only_all_succeeded",
+    "terminal_completed_without_receipt_not_complete",
+    "no_dataflow_request_bytes_unchanged",
+    "predecessor_output_dataflow_injection",
+    "cached_runnable_only_rejected",
+    "final_effect_guard_only_rejected",
+    "cached_receipt_without_reread_rejected",
+    "boundary_a_receipt_deleted",
+    "boundary_b_receipt_deleted",
+    "boundary_a_receipt_edited",
+    "boundary_b_receipt_edited",
+    "boundary_a_outcome_deleted",
+    "boundary_b_outcome_deleted",
+    "boundary_a_outcome_body_modified_same_comment_id",
+    "boundary_b_outcome_body_modified_same_comment_id",
+    "boundary_a_terminal_ambiguous",
+    "boundary_b_terminal_ambiguous",
+    "boundary_a_stable_read_a_ne_b",
+    "boundary_b_stable_read_a_ne_b",
+    "boundary_a_descendant_source_request_modified",
+    "boundary_b_descendant_source_request_modified",
+    "boundary_a_graph_binding_modified",
+    "boundary_b_graph_binding_modified",
+    "boundary_a_graph_comment_edited",
+    "boundary_b_graph_comment_edited",
+    "boundary_a_fresh_truth_unchanged",
+    "boundary_b_fresh_truth_unchanged",
 }
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -281,10 +341,111 @@ def timing_oracle(case: dict[str, Any]) -> dict[str, Any]:
             "gate0_invoked":False,"closable":False,
             "requires_recovery":False,"reason":"DEPENDENCY_INVALIDATED_BEFORE_JOB_STARTED"}
 
+
+def boundary_oracle(case: dict[str, Any]) -> dict[str, Any]:
+    shortcut = case.get("shortcut")
+    if shortcut == "RUNNABLE_ONLY":
+        return {"queue_state":"INVALID","job_started":bool(case.get("descendant_job_started")),
+                "gate0_invoked":False,"automatic_replay":False,"closable":False,
+                "requires_recovery":False,"reason":"CACHED_RUNNABLE_INSUFFICIENT"}
+    if shortcut == "FINAL_EFFECT_GUARD_ONLY":
+        return {"queue_state":"INVALID","job_started":bool(case.get("descendant_job_started")),
+                "gate0_invoked":False,"automatic_replay":False,"closable":False,
+                "requires_recovery":False,"reason":"FINAL_EFFECT_GUARD_INSUFFICIENT"}
+    if shortcut == "CACHED_RECEIPT_ONLY":
+        return {"queue_state":"INVALID","job_started":bool(case.get("descendant_job_started")),
+                "gate0_invoked":False,"automatic_replay":False,"closable":False,
+                "requires_recovery":False,"reason":"CACHED_RECEIPT_INSUFFICIENT"}
+    observed = set(case.get("fresh_reconstruction", []))
+    if observed != REQUIRED_BOUNDARY_COMPONENTS:
+        return {"queue_state":"INVALID","job_started":bool(case.get("descendant_job_started")),
+                "gate0_invoked":False,"automatic_replay":False,"closable":False,
+                "requires_recovery":False,"reason":"FRESH_RECONSTRUCTION_INCOMPLETE"}
+    if case.get("readiness_dependency_truth") != "SATISFIED" or not case.get("descendant_selected"):
+        return {"queue_state":"INVALID","job_started":bool(case.get("descendant_job_started")),
+                "gate0_invoked":False,"automatic_replay":False,"closable":False,
+                "requires_recovery":False,"reason":"BOUNDARY_PRECONDITION_INVALID"}
+    mutation = case.get("mutation")
+    started = bool(case.get("descendant_job_started"))
+    if mutation == "none":
+        return {"queue_state":"READY_FOR_EFFECT" if started else "READY_TO_START",
+                "job_started":started,"gate0_invoked":False,"automatic_replay":False,
+                "closable":False,"requires_recovery":False,
+                "reason":"FRESH_DEPENDENCY_TRUTH_CONFIRMED"}
+    if started:
+        return {"queue_state":"RECOVERY_REQUIRED","job_started":True,
+                "gate0_invoked":False,"automatic_replay":False,"closable":False,
+                "requires_recovery":True,
+                "reason":f"DEPENDENCY_INVALIDATED_{str(mutation).upper()}_POST_START_PRE_EFFECT"}
+    state = "BLOCKED" if mutation == "terminal_ambiguous" else "GLOBAL_HOLD"
+    return {"queue_state":state,"job_started":False,
+            "gate0_invoked":False,"automatic_replay":False,"closable":False,
+            "requires_recovery":False,
+            "reason":f"DEPENDENCY_INVALIDATED_{str(mutation).upper()}_BEFORE_JOB_STARTED"}
+
+def scope_oracle(case: dict[str, Any]) -> dict[str, Any]:
+    expected, observed = case["expected_scope"], case["observed_scope"]
+    for field, reason in (
+        ("repository","CROSS_REPOSITORY_DEPENDENCY"),
+        ("authority_issue","CROSS_AUTHORITY_DEPENDENCY"),
+        ("request_issue","CROSS_REQUEST_ISSUE_DEPENDENCY"),
+        ("session_id","CROSS_SESSION_DEPENDENCY"),
+        ("generation","CROSS_GENERATION_DEPENDENCY"),
+    ):
+        if observed.get(field) != expected.get(field):
+            return {"queue_state":"INVALID","closable":False,
+                    "requires_recovery":False,"reason":reason}
+    return {"queue_state":"SCOPE_ACCEPTED","closable":False,
+            "requires_recovery":False,"reason":"SAME_BOUNDARY_SCOPE"}
+
+def receipt_oracle(case: dict[str, Any]) -> dict[str, Any]:
+    if case.get("gate0_invoked") or case.get("automatic_replay_attempted"):
+        return {"queue_state":"INVALID","closable":False,"requires_recovery":False,
+                "gate0_invoked":bool(case.get("gate0_invoked")),
+                "automatic_replay":bool(case.get("automatic_replay_attempted")),
+                "reason":"RECEIPT_RECONCILIATION_REPLAY_FORBIDDEN"}
+    candidates = case.get("receipt_candidates", [])
+    if candidates:
+        digests = {c.get("payload_sha256") for c in candidates}
+        if len(digests) != 1:
+            return {"queue_state":"GLOBAL_HOLD","closable":False,"requires_recovery":False,
+                    "gate0_invoked":False,"automatic_replay":False,
+                    "reason":"G2_RECEIPT_AMBIGUOUS"}
+        incumbent = min(int(c["comment_id"]) for c in candidates)
+        return {"queue_state":"RECONCILED","closable":False,"requires_recovery":False,
+                "gate0_invoked":False,"automatic_replay":False,
+                "selected_receipt_comment_id":incumbent,
+                "reason":"IDENTICAL_RECEIPT_INCUMBENT"}
+    if case.get("terminal_result") == "COMPLETED" and case.get("gate0_outcome_present"):
+        return {"queue_state":"RECONCILING","closable":False,"requires_recovery":False,
+                "gate0_invoked":False,"automatic_replay":False,
+                "reason":"TERMINAL_BEFORE_RECEIPT_RECONCILE"}
+    return {"queue_state":"INVALID","closable":False,"requires_recovery":False,
+            "gate0_invoked":False,"automatic_replay":False,
+            "reason":"RECEIPT_RECONCILIATION_INPUT_INVALID"}
+
+def completion_oracle(case: dict[str, Any]) -> dict[str, Any]:
+    states = case.get("node_states", [])
+    if states and all(state == "SUCCEEDED" for state in states):
+        return {"queue_state":"COMPLETE","closable":True,
+                "requires_recovery":False,"reason":"ALL_NODES_SUCCEEDED"}
+    return {"queue_state":"BLOCKED","closable":False,
+            "requires_recovery":False,"reason":"NOT_ALL_NODES_SUCCEEDED"}
+
+def dataflow_oracle(case: dict[str, Any]) -> dict[str, Any]:
+    if (case.get("descendant_request_sha256_before") != case.get("descendant_request_sha256_after")
+            or case.get("injected_predecessor_fields")):
+        return {"queue_state":"INVALID","closable":False,
+                "requires_recovery":False,"reason":"DATAFLOW_FORBIDDEN"}
+    return {"queue_state":"DATAFLOW_FREE","closable":False,
+            "requires_recovery":False,"reason":"DESCENDANT_REQUEST_IMMUTABLE"}
+
 def evaluate(case: dict[str, Any]) -> dict[str, Any]:
     return {
         "graph": graph_oracle, "snapshot": snapshot_oracle,
-        "bounds": bounds_oracle, "crash": crash_oracle, "closure": closure_oracle, "timing": timing_oracle,
+        "bounds": bounds_oracle, "crash": crash_oracle, "closure": closure_oracle,
+        "timing": timing_oracle, "boundary": boundary_oracle, "scope": scope_oracle,
+        "receipt": receipt_oracle, "completion": completion_oracle, "dataflow": dataflow_oracle,
     }[case["probe"]](case)
 
 class FixtureOracleTests(unittest.TestCase):
@@ -335,28 +496,96 @@ class FixtureOracleTests(unittest.TestCase):
             self.assertTrue(got["requires_recovery"])
             self.assertEqual(got["queue_state"], "RECOVERY_REQUIRED")
 
+
+    def test_each_privileged_boundary_reconstructs_complete_fresh_truth(self) -> None:
+        boundary_cases = [c for c in cases() if c["id"].startswith("boundary_a_")
+                          or c["id"].startswith("boundary_b_")]
+        for case in boundary_cases:
+            if case.get("shortcut"):
+                continue
+            with self.subTest(case=case["id"]):
+                self.assertEqual(set(case.get("fresh_reconstruction", [])), REQUIRED_BOUNDARY_COMPONENTS)
+
+    def test_f01_window_a_never_starts_or_invokes_gate0(self) -> None:
+        for case in cases():
+            if not case["id"].startswith("boundary_a_") or case.get("mutation") == "none":
+                continue
+            got = evaluate(case)
+            with self.subTest(case=case["id"]):
+                self.assertFalse(got["job_started"])
+                self.assertFalse(got["gate0_invoked"])
+                self.assertIn(got["queue_state"], {"BLOCKED","GLOBAL_HOLD"})
+
+    def test_f01_window_b_requires_recovery_zero_effect_zero_replay(self) -> None:
+        for case in cases():
+            if not case["id"].startswith("boundary_b_") or case.get("mutation") == "none":
+                continue
+            got = evaluate(case)
+            with self.subTest(case=case["id"]):
+                self.assertTrue(got["job_started"])
+                self.assertEqual(got["queue_state"], "RECOVERY_REQUIRED")
+                self.assertTrue(got["requires_recovery"])
+                self.assertFalse(got["gate0_invoked"])
+                self.assertFalse(got["automatic_replay"])
+
+    def test_cache_shortcuts_are_insufficient(self) -> None:
+        for cid in ("cached_runnable_only_rejected","final_effect_guard_only_rejected",
+                    "cached_receipt_without_reread_rejected"):
+            got = evaluate(next(c for c in cases() if c["id"] == cid))
+            self.assertEqual(got["queue_state"], "INVALID")
+            self.assertFalse(got["gate0_invoked"])
+
+    def test_full_closed_design_contract_surface_is_preserved(self) -> None:
+        for name in ("gate2_fanin_valid.json", "gate2_fanin_invalid.json"):
+            contract = load_json(FIXTURES / name)["declared_design_contract"]
+            self.assertEqual(contract["fan_in_semantics"], "strict AND")
+            self.assertEqual(contract["runnable_order"], ["request_comment_id","job_id"])
+            self.assertEqual(contract["complete_semantics"], "COMPLETE only when every node is SUCCEEDED")
+            self.assertEqual(contract["dataflow"], "forbidden")
+            self.assertIn("SHA-256(exact UTF-8 body)", contract["outcome_binding"])
+            self.assertEqual(set(contract["required_fresh_reconstruction"]), REQUIRED_BOUNDARY_COMPONENTS)
+            self.assertEqual(contract["gate3"], "HOLD")
+            self.assertEqual(contract["gate4"], "HOLD")
+            self.assertEqual(
+                [contract[k] for k in ("max_nodes","max_edges","max_fan_in","max_fan_out","max_depth","max_payload_bytes")],
+                [32,64,8,16,8,65536],
+            )
+
+    def test_completion_and_receipt_reconciliation_are_fail_closed(self) -> None:
+        self.assertEqual(evaluate(next(c for c in cases() if c["id"] == "complete_only_all_succeeded"))["queue_state"], "COMPLETE")
+        self.assertNotEqual(evaluate(next(c for c in cases() if c["id"] == "terminal_completed_without_receipt_not_complete"))["queue_state"], "COMPLETE")
+        for cid in ("terminal_completed_before_receipt_reconciliation","ambiguous_receipt_reconciliation"):
+            got = evaluate(next(c for c in cases() if c["id"] == cid))
+            self.assertFalse(got["gate0_invoked"])
+            self.assertFalse(got["automatic_replay"])
+
+
 class ExactDesignBindingTests(unittest.TestCase):
-    def test_work_package_records_pre_candidate_then_exact_bound_hold(self) -> None:
+    def test_work_package_records_corrected_exact_binding_and_pass(self) -> None:
         wp = load_json(WORK_PACKAGE)
         ex = wp["execution"]
         self.assertEqual(ex["stateHistory"][0]["state"], "PRE_CANDIDATE_ORACLE_READY")
         self.assertEqual(ex["stateHistory"][0]["verdict"], "PRE_CANDIDATE_GATE2_QA_READY")
         self.assertEqual(ex["designBinding"]["status"], "BOUND_EXACT")
         self.assertEqual(ex["designBinding"]["designHead"], BOUND_DESIGN_HEAD)
+        self.assertEqual(ex["designBinding"]["designDocumentBlobSha1"], BOUND_DESIGN_DOCUMENT_BLOB_SHA1)
+        self.assertEqual(ex["designBinding"]["designWorkPackageBlobSha1"], BOUND_DESIGN_WORK_PACKAGE_BLOB_SHA1)
         self.assertEqual(ex["designBinding"]["designDocumentSha256"], BOUND_DESIGN_DOCUMENT_SHA256)
         self.assertEqual(ex["designBinding"]["designWorkPackageSha256"], BOUND_DESIGN_WORK_PACKAGE_SHA256)
-        self.assertEqual(ex["verdict"], BOUND_HOLD)
-        self.assertEqual(ex["finalVerdict"], BOUND_HOLD)
+        self.assertEqual(ex["verdict"], BOUND_VERDICT)
+        self.assertEqual(ex["finalVerdict"], BOUND_VERDICT)
+        self.assertEqual(ex["synchronization"]["syncMain"], CURRENT_MAIN)
         self.assertFalse(ex["mergeAuthorized"])
 
-    def test_blocking_finding_prevents_pass_on_bound_head(self) -> None:
+    def test_f01_is_resolved_on_corrected_head_without_active_findings(self) -> None:
         ex = load_json(WORK_PACKAGE)["execution"]
-        findings = ex.get("findings", [])
-        self.assertTrue(findings)
-        self.assertEqual(findings[0]["id"], "G2-QA-013-F01")
-        self.assertEqual(findings[0]["severity"], "blocking")
-        self.assertEqual(findings[0]["designHead"], BOUND_DESIGN_HEAD)
-        self.assertNotEqual(ex["finalVerdict"], "PASS_GATE2_DESIGN_CONTRADICTORY_QA")
+        self.assertEqual(ex.get("findings"), [])
+        resolved = ex.get("resolvedFindings", [])
+        self.assertEqual([item["id"] for item in resolved], ["G2-QA-013-F01"])
+        self.assertEqual(resolved[0]["correctedDesignHead"], BOUND_DESIGN_HEAD)
+        self.assertEqual(ex["finalVerdict"], "PASS_GATE2_DESIGN_CONTRADICTORY_QA")
+        self.assertFalse(ex["regressionEvidence"]["gate1"]["rerunInThisReview"])
+        self.assertFalse(ex["regressionEvidence"]["gate0"]["rerunInThisReview"])
 
 def git(*args: str) -> str:
     return subprocess.run(

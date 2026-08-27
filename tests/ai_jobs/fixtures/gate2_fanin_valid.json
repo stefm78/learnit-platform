@@ -5,9 +5,9 @@
   "preparation_baseline": "33d4ffc5f8aa5289008a72de301f937137f119e7",
   "design_binding": {
     "status": "BOUND_EXACT",
-    "head": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3",
-    "design_document_sha256": "7e8ea3b8abf2b44883cee786635cdf33e277c7197f155f2262a8d2cdc5ecb783",
-    "design_work_package_sha256": "1ab0af3b3f59e4581e6e68f7fdf3be12d128185a2edf11c27415d5a581f80215"
+    "head": "f3a8fb588848f0d43cb6a3f39835b7b57ec40566",
+    "design_document_sha256": "ef70b0bb2663eb545213d270336d53e12311a3a4dcfd780394b631f610e33e9f",
+    "design_work_package_sha256": "cc90d73b917102f13ee0e9805e41fbf6033d311ad825c57727b7bae9b3556119"
   },
   "oracle_principles": [
     "Dependencies are bound to immutable logical identity plus exact predecessor outcome comment and body digest.",
@@ -734,6 +734,154 @@
         "requires_recovery": false,
         "reason": "ALL_DEPENDENCIES_SATISFIED"
       }
+    },
+    {
+      "id": "boundary_a_fresh_truth_unchanged",
+      "probe": "boundary",
+      "description": "Boundary A reconstructs all dependency truth freshly and unchanged truth may proceed to start.",
+      "readiness_dependency_truth": "SATISFIED",
+      "descendant_selected": true,
+      "descendant_job_started": false,
+      "mutation": "none",
+      "stable_read_equal": true,
+      "fresh_reconstruction": [
+        "graph",
+        "graph_digest",
+        "session_generation",
+        "descendant_source_request",
+        "direct_predecessors",
+        "gate1_terminal",
+        "gate2_receipt",
+        "gate0_outcome",
+        "gate0_outcome_internal_validation",
+        "gate0_outcome_body_sha256"
+      ],
+      "prior_runnable_projection_authorizes": false,
+      "final_effect_guard_alone_authorizes": false,
+      "cached_receipt_authorizes": false,
+      "gate0_invoked": false,
+      "automatic_replay_attempted": false,
+      "expected": {
+        "queue_state": "READY_TO_START",
+        "job_started": false,
+        "gate0_invoked": false,
+        "automatic_replay": false,
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "FRESH_DEPENDENCY_TRUTH_CONFIRMED"
+      }
+    },
+    {
+      "id": "boundary_b_fresh_truth_unchanged",
+      "probe": "boundary",
+      "description": "Boundary B reconstructs all dependency truth freshly and unchanged truth may proceed to the normal Gate1 effect guard.",
+      "readiness_dependency_truth": "SATISFIED",
+      "descendant_selected": true,
+      "descendant_job_started": true,
+      "mutation": "none",
+      "stable_read_equal": true,
+      "fresh_reconstruction": [
+        "graph",
+        "graph_digest",
+        "session_generation",
+        "descendant_source_request",
+        "direct_predecessors",
+        "gate1_terminal",
+        "gate2_receipt",
+        "gate0_outcome",
+        "gate0_outcome_internal_validation",
+        "gate0_outcome_body_sha256"
+      ],
+      "prior_runnable_projection_authorizes": false,
+      "final_effect_guard_alone_authorizes": false,
+      "cached_receipt_authorizes": false,
+      "gate0_invoked": false,
+      "automatic_replay_attempted": false,
+      "expected": {
+        "queue_state": "READY_FOR_EFFECT",
+        "job_started": true,
+        "gate0_invoked": false,
+        "automatic_replay": false,
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "FRESH_DEPENDENCY_TRUTH_CONFIRMED"
+      }
+    },
+    {
+      "id": "terminal_completed_before_receipt_reconciliation",
+      "probe": "receipt",
+      "description": "A COMPLETED terminal without a Gate2 receipt is reconciled from the existing authoritative Gate0 outcome without replay.",
+      "terminal_result": "COMPLETED",
+      "receipt_candidates": [],
+      "gate0_outcome_present": true,
+      "gate0_invoked": false,
+      "automatic_replay_attempted": false,
+      "expected": {
+        "queue_state": "RECONCILING",
+        "closable": false,
+        "requires_recovery": false,
+        "gate0_invoked": false,
+        "automatic_replay": false,
+        "reason": "TERMINAL_BEFORE_RECEIPT_RECONCILE"
+      }
+    },
+    {
+      "id": "identical_retry_receipts_deterministic",
+      "probe": "receipt",
+      "description": "Byte-identical valid retry receipts elect the smallest immutable comment id without Gate0 replay.",
+      "terminal_result": "COMPLETED",
+      "gate0_outcome_present": true,
+      "receipt_candidates": [
+        {
+          "comment_id": 901,
+          "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "comment_id": 902,
+          "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "gate0_invoked": false,
+      "automatic_replay_attempted": false,
+      "expected": {
+        "queue_state": "RECONCILED",
+        "closable": false,
+        "requires_recovery": false,
+        "gate0_invoked": false,
+        "automatic_replay": false,
+        "selected_receipt_comment_id": 901,
+        "reason": "IDENTICAL_RECEIPT_INCUMBENT"
+      }
+    },
+    {
+      "id": "complete_only_all_succeeded",
+      "probe": "completion",
+      "description": "COMPLETE is projected only when every graph node is SUCCEEDED.",
+      "node_states": [
+        "SUCCEEDED",
+        "SUCCEEDED",
+        "SUCCEEDED"
+      ],
+      "expected": {
+        "queue_state": "COMPLETE",
+        "closable": true,
+        "requires_recovery": false,
+        "reason": "ALL_NODES_SUCCEEDED"
+      }
+    },
+    {
+      "id": "no_dataflow_request_bytes_unchanged",
+      "probe": "dataflow",
+      "description": "Predecessor completion cannot alter descendant Gate0 request bytes or add predecessor output fields.",
+      "descendant_request_sha256_before": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "descendant_request_sha256_after": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "injected_predecessor_fields": [],
+      "expected": {
+        "queue_state": "DATAFLOW_FREE",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "DESCENDANT_REQUEST_IMMUTABLE"
+      }
     }
   ],
   "declared_design_contract": {
@@ -749,6 +897,28 @@
     ],
     "fan_in_semantics": "strict AND",
     "gate3": "HOLD",
-    "gate4": "HOLD"
+    "gate4": "HOLD",
+    "outcome_binding": "authoritative comment_id + SHA-256(exact UTF-8 body) + existing Gate0 internal validation",
+    "complete_semantics": "COMPLETE only when every node is SUCCEEDED",
+    "dataflow": "forbidden",
+    "boundary_a": "fresh complete revalidation after durable JOB_SELECTED and before JOB_STARTED",
+    "boundary_b": "fresh complete revalidation after durable JOB_STARTED immediately before Gate0",
+    "required_fresh_reconstruction": [
+      "graph",
+      "graph_digest",
+      "session_generation",
+      "descendant_source_request",
+      "direct_predecessors",
+      "gate1_terminal",
+      "gate2_receipt",
+      "gate0_outcome",
+      "gate0_outcome_internal_validation",
+      "gate0_outcome_body_sha256"
+    ],
+    "cache_shortcuts_forbidden": [
+      "prior RUNNABLE projection",
+      "Gate1 final_effect_guard() alone",
+      "previously observed receipt without terminal/outcome reread"
+    ]
   }
 }
