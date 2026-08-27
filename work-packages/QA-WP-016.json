@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-016",
+  "title": "Atlas M2.2 transfer contradictory QA",
+  "status": "under-qa",
+  "changeClass": "independent-qa-atlas-transfer",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 204,
+    "parentIssue": 203,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2.2-QA"
+  },
+  "purpose": "Provide an independent adversarial oracle for the bounded M2.2 transfer semantics and exact artifact without repairing product implementation.",
+  "baseline": {
+    "baseCommit": "e02bfc3eff3719673442303ce5a14d00cfe57ad5",
+    "productWorkPackage": "ATLAS-WP-005",
+    "productAuthorityIssue": 203,
+    "productHead": null,
+    "promotedM2ArtifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-016.json",
+      ".github/workflows/atlas-m2-transfer-qa.yml",
+      "apps/learnit-next/tests/qa_atlas_m2_transfer.py"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "docs/atlas/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-005.json"
+    ]
+  },
+  "invariants": [
+    "QA never repairs or authors product runtime files.",
+    "No final QA PASS before exact ATLAS-WP-005 product head is frozen and merged into this QA branch mechanically.",
+    "QA tests are independently authored from the issue contract and use adversarial scenarios distinct from product developer examples.",
+    "Final artifact must be byte-identical between product and QA builds.",
+    "Any semantic divergence yields HOLD with an explicit finding."
+  ],
+  "requiredEvidence": [
+    "No transfer before first successful admissible maintenance reconfirmation.",
+    "One transfer attempt per successful reconfirmation and later reconfirmation unlock behavior.",
+    "Review and due-maintenance priority over transfer.",
+    "Correct unassisted success versus assisted/incorrect non-credit.",
+    "Transfer does not mutate memory interval/dueAt or ObjectiveEvidence validation state.",
+    "No transfer activity fails closed.",
+    "Closed action/reason/provenance schemas reject unknown values.",
+    "Visible transfer wording remains truthful and avoids mastery/certification claims.",
+    "Exact product/QA artifact byte identity, browser regression, no network and no storage migration."
+  ],
+  "adversarialTests": [
+    "Transfer attempt before validation/reconfirmation.",
+    "Duplicate transfer attempt after one reconfirmation.",
+    "Assisted correct transfer and incorrect transfer.",
+    "Orphan/duplicate transfer event.",
+    "Transfer recommendation with no authored transfer activity.",
+    "Transfer item carrying forbidden validation provenance.",
+    "Unknown transfer-like action/reason and forbidden transfer-completed.",
+    "Memory status before/after transfer fact injection."
+  ],
+  "nonGoals": [
+    "Product repair",
+    "Content changes",
+    "Storage migration",
+    "M3 scope",
+    "Gate3/Gate4 activation"
+  ],
+  "independentReview": [
+    "QA branch is independent from product branch until exact-head mechanical rebind.",
+    "Final workflow binds exact product and exact QA heads and rebuilds the same artifact.",
+    "QA verdict is recorded on #204 and parent #203."
+  ],
+  "execution": {
+    "phase": "PRE_IMPLEMENTATION_ORACLE_PREPARATION",
+    "finalVerdict": null
+  },
+  "rollback": "Drop QA-WP-016 branch/PR only. Product implementation remains independently reviewable."
+}
