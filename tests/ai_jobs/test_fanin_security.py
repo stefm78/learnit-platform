@@ -22,7 +22,8 @@ class SecurityOracle(unittest.TestCase):
   e=("repo",188,189,"G1S-A",1,"grant")
   for i in range(1,6):
    q=list(e);q[i]=999 if i in {1,2,4} else "wrong";self.assertNotEqual(tuple(q),e)
- def test_one_job_gate3_gate4_no_full_v6(self):self.assertEqual(1,1);self.assertEqual(("HOLD","HOLD"),("HOLD","HOLD"));self.assertFalse(False)
+ def test_one_job_gate3_gate4_no_full_v6(self):
+  p=profile_contract();self.assertEqual(p["max_runtime_jobs"],1);self.assertEqual((p["gate3"],p["gate4"]),("HOLD","HOLD"));self.assertFalse(p["full_v6"]);self.assertTrue(p["explicit_opt_in"]);self.assertTrue(p["default_gate1_unchanged"])
  def test_gate0_tree_byte_identity(self):
   root=Path(__file__).resolve().parents[2];self.assertEqual(len(GATE0),9)
   for rel,expected in GATE0.items():
