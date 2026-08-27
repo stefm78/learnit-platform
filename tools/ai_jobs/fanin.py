@@ -92,11 +92,27 @@ class Gate2Ref:
 
     @classmethod
     def from_value(cls, value: Mapping[str, Any], label: str) -> "Gate2Ref":
-        exact_fields(value, _REF_FIELDS, label)
+        try:
+            exact_fields(value, _REF_FIELDS, label)
+        except ContractError as exc:
+            raise Gate2Error(
+                "G2_GRAPH_SCHEMA_INVALID",
+                f"{label} strong identity schema is invalid: {exc}",
+            ) from exc
         job_id = value.get("job_id")
         if not isinstance(job_id, str) or JOB_ID_RE.fullmatch(job_id) is None:
             raise Gate2Error("G2_GRAPH_SCHEMA_INVALID", f"{label}.job_id is invalid")
-        comment_id = exact_int(value.get("request_comment_id"), f"{label}.request_comment_id", minimum=1)
+        try:
+            comment_id = exact_int(
+                value.get("request_comment_id"),
+                f"{label}.request_comment_id",
+                minimum=1,
+            )
+        except ContractError as exc:
+            raise Gate2Error(
+                "G2_GRAPH_SCHEMA_INVALID",
+                f"{label}.request_comment_id is invalid: {exc}",
+            ) from exc
         request_sha = value.get("request_sha256")
         target_sha = value.get("target_sha")
         if not isinstance(request_sha, str) or SHA256_RE.fullmatch(request_sha) is None:
@@ -256,7 +272,13 @@ def _immutable_author(raw: Mapping[str, Any], *, label: str, edited_code: str) -
 
 
 def _parse_node(value: Mapping[str, Any], index: int) -> Gate2Node:
-    exact_fields(value, _NODE_FIELDS, f"nodes[{index}]")
+    try:
+        exact_fields(value, _NODE_FIELDS, f"nodes[{index}]")
+    except ContractError as exc:
+        raise Gate2Error(
+            "G2_GRAPH_SCHEMA_INVALID",
+            f"nodes[{index}] schema is invalid: {exc}",
+        ) from exc
     ref = Gate2Ref.from_value({key: value[key] for key in _REF_FIELDS}, f"nodes[{index}]")
     deps_value = value.get("depends_on")
     if not isinstance(deps_value, (tuple, list)):
@@ -367,20 +389,32 @@ def parse_graph(
         if not isinstance(body, str) or GATE2_GRAPH_MARKER not in body:
             continue
         payload, digest, canonical = _parse_envelope(body, GATE2_GRAPH_MARKER, "graph")
-        exact_fields(payload, _GRAPH_FIELDS, "Gate 2 graph")
+        try:
+            exact_fields(payload, _GRAPH_FIELDS, "Gate 2 graph")
+        except ContractError as exc:
+            raise Gate2Error(
+                "G2_GRAPH_SCHEMA_INVALID",
+                f"Gate 2 graph schema is invalid: {exc}",
+            ) from exc
         if payload.get("schema_version") != GATE2_GRAPH_SCHEMA_VERSION:
             raise Gate2Error("G2_GRAPH_SCHEMA_INVALID", "unsupported Gate 2 graph schema")
         session_id = payload.get("session_id")
         if not isinstance(session_id, str) or not session_id:
             raise Gate2Error("G2_GRAPH_SCHEMA_INVALID", "graph.session_id is invalid")
-        generation = exact_int(payload.get("generation"), "graph.generation", minimum=1)
-        exact_int(payload.get("authority_issue"), "graph.authority_issue", minimum=1)
-        exact_int(payload.get("request_issue"), "graph.request_issue", minimum=1)
-        exact_int(
-            payload.get("session_grant_comment_id"),
-            "graph.session_grant_comment_id",
-            minimum=1,
-        )
+        try:
+            generation = exact_int(payload.get("generation"), "graph.generation", minimum=1)
+            exact_int(payload.get("authority_issue"), "graph.authority_issue", minimum=1)
+            exact_int(payload.get("request_issue"), "graph.request_issue", minimum=1)
+            exact_int(
+                payload.get("session_grant_comment_id"),
+                "graph.session_grant_comment_id",
+                minimum=1,
+            )
+        except ContractError as exc:
+            raise Gate2Error(
+                "G2_GRAPH_SCHEMA_INVALID",
+                f"Gate 2 graph integer field is invalid: {exc}",
+            ) from exc
         graph_repository = payload.get("repository")
         if not isinstance(graph_repository, str) or not graph_repository:
             raise Gate2Error("G2_GRAPH_SCHEMA_INVALID", "graph.repository is invalid")
@@ -510,14 +544,26 @@ def _validated_outcome(
 
 def _parse_receipt_payload(raw: Mapping[str, Any]) -> tuple[dict[str, Any], str]:
     payload, digest, _canonical = _parse_envelope(raw.get("body"), GATE2_RECEIPT_MARKER, "receipt")
-    exact_fields(payload, _RECEIPT_FIELDS, "Gate 2 receipt")
+    try:
+        exact_fields(payload, _RECEIPT_FIELDS, "Gate 2 receipt")
+    except ContractError as exc:
+        raise Gate2Error(
+            "G2_RECEIPT_INVALID",
+            f"Gate 2 receipt schema is invalid: {exc}",
+        ) from exc
     if payload.get("schema_version") != GATE2_RECEIPT_SCHEMA_VERSION:
         raise Gate2Error("G2_RECEIPT_INVALID", "unsupported Gate 2 receipt schema")
-    for field in (
-        "authority_issue", "request_issue", "generation", "graph_comment_id",
-        "gate1_terminal_sequence", "gate0_authoritative_comment_id",
-    ):
-        exact_int(payload.get(field), f"receipt.{field}", minimum=1)
+    try:
+        for field in (
+            "authority_issue", "request_issue", "generation", "graph_comment_id",
+            "gate1_terminal_sequence", "gate0_authoritative_comment_id",
+        ):
+            exact_int(payload.get(field), f"receipt.{field}", minimum=1)
+    except ContractError as exc:
+        raise Gate2Error(
+            "G2_RECEIPT_INVALID",
+            f"Gate 2 receipt integer field is invalid: {exc}",
+        ) from exc
     for field in (
         "graph_payload_sha256", "gate1_terminal_record_sha256", "gate0_outcome_body_sha256",
     ):
@@ -527,7 +573,15 @@ def _parse_receipt_payload(raw: Mapping[str, Any]) -> tuple[dict[str, Any], str]
     predecessor = payload.get("predecessor")
     if not isinstance(predecessor, Mapping):
         raise Gate2Error("G2_RECEIPT_INVALID", "receipt predecessor must be an object")
-    Gate2Ref.from_value(predecessor, "receipt.predecessor")
+    try:
+        Gate2Ref.from_value(predecessor, "receipt.predecessor")
+    except Gate2Error as exc:
+        if exc.code != "G2_GRAPH_SCHEMA_INVALID":
+            raise
+        raise Gate2Error(
+            "G2_RECEIPT_INVALID",
+            f"receipt predecessor schema is invalid: {exc.detail}",
+        ) from exc
     return payload, digest
 
 
