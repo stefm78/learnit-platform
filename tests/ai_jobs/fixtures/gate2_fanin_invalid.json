@@ -3,7 +3,12 @@
   "authority_issue": 182,
   "parent_design_issue": 181,
   "preparation_baseline": "33d4ffc5f8aa5289008a72de301f937137f119e7",
-  "design_binding": null,
+  "design_binding": {
+    "status": "BOUND_EXACT",
+    "head": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3",
+    "design_document_sha256": "7e8ea3b8abf2b44883cee786635cdf33e277c7197f155f2262a8d2cdc5ecb783",
+    "design_work_package_sha256": "1ab0af3b3f59e4581e6e68f7fdf3be12d128185a2edf11c27415d5a581f80215"
+  },
   "oracle_principles": [
     "Dependencies are bound to immutable logical identity plus exact predecessor outcome comment and body digest.",
     "Only a unique immutable COMPLETED predecessor outcome can satisfy a dependency.",
@@ -19,9 +24,9 @@
       "probe": "graph",
       "description": "Direct A -> A cycle must be rejected.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -71,9 +76,9 @@
       "probe": "graph",
       "description": "Two-node A -> B -> A cycle must be rejected.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -155,9 +160,9 @@
       "probe": "graph",
       "description": "Longer cycle must be rejected.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -271,9 +276,9 @@
       "probe": "graph",
       "description": "Dependency references a node absent from the graph.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -323,9 +328,9 @@
       "probe": "graph",
       "description": "The same predecessor cannot be listed twice in one fan-in.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -418,9 +423,9 @@
       "probe": "graph",
       "description": "Same logical job_id with a different request digest is a hard identity conflict.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -468,9 +473,9 @@
       "probe": "graph",
       "description": "Same request digest cannot appear under incompatible logical job identities.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -518,9 +523,9 @@
       "probe": "graph",
       "description": "predecessor failed.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -597,9 +602,9 @@
       "probe": "graph",
       "description": "predecessor stale.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -676,9 +681,9 @@
       "probe": "graph",
       "description": "predecessor ambiguous.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -755,9 +760,9 @@
       "probe": "graph",
       "description": "outcome deleted.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -834,9 +839,9 @@
       "probe": "graph",
       "description": "outcome edited same comment id.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -913,9 +918,9 @@
       "probe": "graph",
       "description": "Observed durable comment body digest differs from the bound outcome digest.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -992,9 +997,9 @@
       "probe": "graph",
       "description": "One satisfied and one unsatisfied predecessor keeps descendant blocked.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1104,9 +1109,9 @@
       "probe": "graph",
       "description": "cross issue.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1183,9 +1188,9 @@
       "probe": "graph",
       "description": "cross session.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1262,9 +1267,9 @@
       "probe": "graph",
       "description": "cross generation.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1341,9 +1346,9 @@
       "probe": "graph",
       "description": "wrong repository.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1420,9 +1425,9 @@
       "probe": "graph",
       "description": "A descendant cannot run before its predecessor is terminally satisfied.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1489,9 +1494,9 @@
       "probe": "graph",
       "description": "A blocked descendant is pending work and must not be interpreted as an empty queue.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1682,9 +1687,9 @@
       "probe": "graph",
       "description": "More than one terminal outcome for one predecessor is ambiguous and cannot satisfy fan-in.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32
       },
       "nodes": [
         {
@@ -1772,14 +1777,20 @@
       "probe": "bounds",
       "description": "max fan in exceeded.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32,
+        "max_edges": 64,
+        "max_fan_out": 16,
+        "max_payload_bytes": 65536
       },
       "observed": {
-        "fan_in": 4,
+        "fan_in": 9,
         "depth": 2,
-        "nodes": 5
+        "nodes": 10,
+        "edges": 9,
+        "fan_out": 1,
+        "payload_bytes": 4096
       },
       "expected": {
         "queue_state": "INVALID",
@@ -1793,14 +1804,20 @@
       "probe": "bounds",
       "description": "max depth exceeded.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32,
+        "max_edges": 64,
+        "max_fan_out": 16,
+        "max_payload_bytes": 65536
       },
       "observed": {
-        "fan_in": 2,
-        "depth": 5,
-        "nodes": 6
+        "fan_in": 1,
+        "depth": 9,
+        "nodes": 10,
+        "edges": 9,
+        "fan_out": 1,
+        "payload_bytes": 4096
       },
       "expected": {
         "queue_state": "INVALID",
@@ -1814,14 +1831,20 @@
       "probe": "bounds",
       "description": "max nodes exceeded.",
       "limits": {
-        "max_fan_in": 3,
-        "max_depth": 4,
-        "max_nodes": 8
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32,
+        "max_edges": 64,
+        "max_fan_out": 16,
+        "max_payload_bytes": 65536
       },
       "observed": {
         "fan_in": 2,
         "depth": 3,
-        "nodes": 9
+        "nodes": 33,
+        "edges": 32,
+        "fan_out": 2,
+        "payload_bytes": 12000
       },
       "expected": {
         "queue_state": "INVALID",
@@ -1829,6 +1852,138 @@
         "requires_recovery": false,
         "reason": "MAX_NODES_EXCEEDED"
       }
+    },
+    {
+      "id": "max_edges_exceeded",
+      "probe": "bounds",
+      "description": "max edges exceeded.",
+      "limits": {
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32,
+        "max_edges": 64,
+        "max_fan_out": 16,
+        "max_payload_bytes": 65536
+      },
+      "observed": {
+        "fan_in": 8,
+        "depth": 8,
+        "nodes": 32,
+        "edges": 65,
+        "fan_out": 16,
+        "payload_bytes": 65536
+      },
+      "expected": {
+        "queue_state": "INVALID",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "MAX_EDGES_EXCEEDED"
+      }
+    },
+    {
+      "id": "max_fan_out_exceeded",
+      "probe": "bounds",
+      "description": "max fan out exceeded.",
+      "limits": {
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32,
+        "max_edges": 64,
+        "max_fan_out": 16,
+        "max_payload_bytes": 65536
+      },
+      "observed": {
+        "fan_in": 8,
+        "depth": 8,
+        "nodes": 32,
+        "edges": 64,
+        "fan_out": 17,
+        "payload_bytes": 65536
+      },
+      "expected": {
+        "queue_state": "INVALID",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "MAX_FAN_OUT_EXCEEDED"
+      }
+    },
+    {
+      "id": "max_payload_bytes_exceeded",
+      "probe": "bounds",
+      "description": "max payload bytes exceeded.",
+      "limits": {
+        "max_fan_in": 8,
+        "max_depth": 8,
+        "max_nodes": 32,
+        "max_edges": 64,
+        "max_fan_out": 16,
+        "max_payload_bytes": 65536
+      },
+      "observed": {
+        "fan_in": 8,
+        "depth": 8,
+        "nodes": 32,
+        "edges": 64,
+        "fan_out": 16,
+        "payload_bytes": 65537
+      },
+      "expected": {
+        "queue_state": "INVALID",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "MAX_PAYLOAD_BYTES_EXCEEDED"
+      }
+    },
+    {
+      "id": "dependency_invalidated_after_election_before_effect",
+      "probe": "timing",
+      "description": "A predecessor is satisfied at readiness, then its authoritative bound outcome is invalidated after descendant election but before descendant JOB_STARTED.",
+      "readiness_dependency_truth": "SATISFIED",
+      "descendant_selected": true,
+      "descendant_job_started": false,
+      "predecessor_invalidated_after_selection": true,
+      "gate0_invoked": false,
+      "expected": {
+        "queue_state": "GLOBAL_HOLD",
+        "job_started": false,
+        "gate0_invoked": false,
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "DEPENDENCY_INVALIDATED_BEFORE_JOB_STARTED"
+      }
+    },
+    {
+      "id": "dependency_invalidated_after_job_started_before_effect",
+      "probe": "timing",
+      "description": "A predecessor is satisfied at readiness, then invalidated after durable descendant JOB_STARTED but before the descendant Gate 0 effect.",
+      "readiness_dependency_truth": "SATISFIED",
+      "descendant_selected": true,
+      "descendant_job_started": true,
+      "predecessor_invalidated_after_selection": true,
+      "gate0_invoked": false,
+      "expected": {
+        "queue_state": "RECOVERY_REQUIRED",
+        "job_started": true,
+        "gate0_invoked": false,
+        "closable": false,
+        "requires_recovery": true,
+        "reason": "DEPENDENCY_INVALIDATED_POST_START_PRE_EFFECT"
+      }
     }
-  ]
+  ],
+  "declared_design_contract": {
+    "max_payload_bytes": 65536,
+    "max_nodes": 32,
+    "max_edges": 64,
+    "max_fan_in": 8,
+    "max_fan_out": 16,
+    "max_depth": 8,
+    "runnable_order": [
+      "request_comment_id",
+      "job_id"
+    ],
+    "fan_in_semantics": "strict AND",
+    "gate3": "HOLD",
+    "gate4": "HOLD"
+  }
 }
