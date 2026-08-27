@@ -1089,11 +1089,11 @@
         }
       ],
       "expected": {
-        "queue_state": "BLOCKED",
+        "queue_state": "RUNNABLE",
         "runnable": [
           "B"
         ],
-        "selected": null,
+        "selected": "B",
         "closable": false,
         "requires_recovery": false,
         "reason": "PARTIAL_FAN_IN"
@@ -1474,11 +1474,11 @@
         }
       ],
       "expected": {
-        "queue_state": "BLOCKED",
+        "queue_state": "RUNNABLE",
         "runnable": [
           "A"
         ],
-        "selected": null,
+        "selected": "A",
         "closable": false,
         "requires_recovery": false,
         "reason": "PREDECESSOR_NOT_TERMINAL"
