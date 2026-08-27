@@ -111,5 +111,30 @@
       "finalPassAuthorized": false
     }
   },
-  "rollback": "Discard or revert only the six QA-WP-014 paths. No Gate0, Gate1, Gate2 runtime, parent implementation, design, workflow, governance or product behavior is modified."
+  "rollback": "Discard or revert only the six QA-WP-014 paths. No Gate0, Gate1, Gate2 runtime, parent implementation, design, workflow, governance or product behavior is modified.",
+  "adversarialTests": [
+    "Reject malformed or non-canonical Gate2 graph envelopes, duplicate JSON keys, forbidden numeric forms, edited graph comments, wrong graph author and graph payload digest mismatch.",
+    "Reject wrong repository, authority issue, request issue, session, generation, grant comment/digest and any dependency identity weaker than job_id + request_comment_id + request_sha256 + target_sha.",
+    "Reject duplicate node identities, duplicate dependency edges, missing dependencies, direct cycles, indirect cycles and non-canonical node/depends_on ordering.",
+    "Exercise payload, node, edge, fan-in, fan-out and depth bounds at the exact limit and at limit+1.",
+    "Require strict AND dependency truth: partial fan-in is never runnable; COMPLETED without a valid receipt remains BINDING_PENDING/RECONCILING.",
+    "Prove FAILED, STALE and AMBIGUOUS predecessors never satisfy descendants.",
+    "Invalidate dependency truth for deleted/edited/divergent receipts, deleted/edited outcomes, same-comment-id outcome body mutation, wrong body digest, failed Gate0 inner outcome validation, terminal mismatch/non-uniqueness and source-request mutation.",
+    "At Boundary A, mutate receipt, outcome, terminal authority, stable-read result, descendant request and graph after JOB_SELECTED but before JOB_STARTED; require no JOB_STARTED and Gate0 invocation count zero.",
+    "At Boundary B, repeat the same mutation surface after durable JOB_STARTED but before Gate0; require RECOVERY_REQUIRED, Gate0 invocation count zero and automatic replay zero.",
+    "Kill cached RUNNABLE, cached predecessor-truth, cached-receipt and final_effect_guard-only authorization shortcuts.",
+    "Prove BLOCKED, RECONCILING, GLOBAL_HOLD and RECOVERY_REQUIRED are not EMPTY and COMPLETE is exact only when every node is SUCCEEDED with durable receipt truth.",
+    "Reconcile terminal-COMPLETED-before-receipt without Gate0 replay and fail closed on divergent receipt candidates or unstable double scans.",
+    "Preserve deterministic Gate1 election order among simultaneously runnable nodes and exactly one runtime job at a time.",
+    "Reject repository write, generic shell/argv, branch/commit/push/workflow-dispatch/merge/release/promotion, automatic Codespace lifecycle, dynamic requests, predecessor-output dataflow, cross-session/generation/authority delegation, Gate3/Gate4 expansion and FULL_V6_SECURITY claims.",
+    "Require exact four Gate0 operations, explicit Gate2 opt-in, unchanged default Gate1 behavior, Gate1 85/85, Gate0 80/80, zero skip/xfail and byte-identical Gate0 before any final PASS."
+  ],
+  "independentReview": [
+    "Phase 1 oracle was prepared from the accepted Gate2 design, owner constraints and existing Gate1 runtime before inspection of OPS-WP-009 implementation internals.",
+    "The phase-1 QA head was mechanically rebound by merge commit to frozen OPS-WP-009 implementation head 991b844e25364b6059aed34d6d1dd52deb7f28d5; implementation files remain read-only to QA.",
+    "QA review PR #195 is DRAFT and targets ops/OPS-WP-009-gate2-pilot-runtime at the frozen implementation head; QA may not merge directly to main.",
+    "Any implementation-head change invalidates the current binding and requires a new exact-head merge binding plus complete rerun.",
+    "A final PASS is permitted only from fresh executable evidence on the exact combined QA head; historical Gate1/Gate0 results may not substitute for exact-head execution.",
+    "Any runtime defect discovered by this oracle must be reported as HOLD; QA-WP-014 never repairs OPS-WP-009."
+  ]
 }
