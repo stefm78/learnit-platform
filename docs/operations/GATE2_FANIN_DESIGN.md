@@ -79,6 +79,14 @@ workflow language.
 17. Gate 4 parallel execution remains HOLD.
 18. Any malformed, oversized, ambiguous, conflicting, or non-closed contract
     fails closed before a new Gate 0 invocation.
+19. Gate 2 dependency truth is a privileged mutable-authority input and MUST be
+    freshly reconstructed from stable GitHub reads at both timing boundaries:
+    after durable Gate 1 \`JOB_SELECTED\` and before durable \`JOB_STARTED\`, then
+    again after durable \`JOB_STARTED\` and immediately before any Gate 0
+    invocation.
+20. A prior \`RUNNABLE\` projection, Gate 1 \`final_effect_guard()\` by itself, or
+    a previously observed Gate 2 receipt/outcome is never sufficient evidence at
+    either privileged boundary.
 
 ## 4. Identity model
 
@@ -368,6 +376,11 @@ the smallest immutable comment ID is the deterministic incumbent. Two valid
 receipts for the same predecessor with different payload digests are
 \`G2_RECEIPT_AMBIGUOUS\` and fail closed.
 
+At either privileged pre-effect revalidation boundary defined in section 12.1,
+a receipt has no authority merely because it was valid or observed earlier.
+The receipt, its bound terminal record, and its bound Gate 0 outcome comment
+MUST all be reread and revalidated from stable GitHub state at that boundary.
+
 ## 9. Predecessor failure, stale, ambiguity, deletion, and edit semantics
 
 - \`FAILED\`: descendants are permanently \`BLOCKED_FAILED\` in this graph.
@@ -386,10 +399,17 @@ receipts for the same predecessor with different payload digests are
 - A target SHA that moves before a descendant effect remains subject to the
   existing Gate 1 final effect guard and cannot execute.
 
-If invalidation is discovered after any descendant already reached durable
-\`JOB_STARTED\`, the existing \`RECOVERY_REQUIRED\`/no-replay boundary dominates
-for that active job. If discovered after downstream terminal work exists, Gate 2
-does not roll it back or replay it; the graph is held and requires human
+If invalidation is discovered after durable \`JOB_SELECTED\` but before durable
+\`JOB_STARTED\`, the descendant MUST NOT publish \`JOB_STARTED\` and MUST NOT
+invoke Gate 0. A terminal predecessor blocker projects the existing blocked
+state; source/graph/receipt/outcome deletion, edit, ambiguity, or binding
+failure projects fail-closed \`GLOBAL_HOLD\` according to the state model.
+
+If invalidation is discovered after the descendant already reached durable
+\`JOB_STARTED\` but before Gate 0 invocation, the active generation MUST enter
+\`RECOVERY_REQUIRED\`; Gate 0 MUST NOT be invoked and automatic replay remains
+forbidden. If discovered after downstream terminal work exists, Gate 2 does
+not roll it back or replay it; the graph is held and requires human
 disposition.
 
 A new session/generation and a new graph are required to change dependencies or
@@ -479,6 +499,83 @@ After one node is selected, no second node may be selected until Gate 1 has
 reconstructed a terminal/recovery state and Gate 2 has reconstructed all
 required predecessor receipts. Gate 4 parallel execution remains absent.
 
+### 12.1 Mandatory dependency-truth revalidation at both privileged boundaries
+
+The readiness projection that produced \`RUNNABLE\` is advisory only for
+election. It does not authorize either \`JOB_STARTED\` or a Gate 0 effect. For
+the selected descendant \`D\`, a future Gate 2 runtime MUST perform a complete
+fresh Gate 2 revalidation at BOTH of these boundaries:
+
+A. after durable Gate 1 \`JOB_SELECTED\` has been reread as the unique
+   authoritative tail and before publishing durable \`JOB_STARTED\`;
+B. after durable Gate 1 \`JOB_STARTED\` has been reread as the unique
+   authoritative tail and immediately before any call that can invoke Gate 0.
+
+Each boundary revalidation MUST reconstruct dependency truth from stable GitHub
+reads. Cached objects, an earlier graph projection, and an earlier receipt
+validation are not inputs to the decision. The stable read set MUST reconstruct
+and verify all of the following as one coherent authority snapshot:
+
+1. the unique unedited Gate 2 graph declaration, its exact canonical payload,
+   \`graph_comment_id\`, and \`graph_payload_sha256\`;
+2. the graph scope and binding: repository, authority issue, request issue,
+   \`session_id\`, \`generation\`, session-grant comment ID and grant digest;
+3. the selected descendant source request comment, including its immutable
+   request bytes, \`request_comment_id\`, \`request_sha256\`, \`target_sha\`,
+   origin, author, creation/edit status, and exact reproduction as the same
+   Gate 1 job;
+4. the complete direct-predecessor set for \`D\` reconstructed from that exact
+   graph, not from a cached predecessor list;
+5. for every direct predecessor, the unique Gate 1 terminal truth in the same
+   repository/authority/session/generation, with result exactly \`COMPLETED\`;
+6. for every direct predecessor, a currently valid Gate 2 dependency-binding
+   receipt under section 8.2, including deterministic incumbent election only
+   for byte-identical valid receipts and fail-closed rejection of divergent or
+   otherwise ambiguous receipt truth;
+7. for every direct predecessor, the currently authoritative Gate 0 outcome
+   comment named by that terminal/receipt binding, including trusted publisher,
+   unedited existence, full existing Gate 0 cryptographic/schema validation,
+   and exact predecessor request identity;
+8. \`SHA-256(UTF8(exact current outcome comment body))\` equal to the receipt's
+   \`gate0_outcome_body_sha256\` for every predecessor; and
+9. absence of deletion, edit, replacement, non-unique election, inconsistent
+   stable-read result, or any other ambiguity across the graph, descendant
+   request, predecessor terminal, receipt, or outcome evidence.
+
+A root node has an empty direct-predecessor set, but the graph, scope/session,
+and descendant-source checks above still apply.
+
+The boundary result is valid only if the stable reconstruction proves the same
+selected descendant and every direct predecessor projects \`SATISFIED\`. Any
+unstable, incomplete, non-unique, or ambiguous read fails closed; a partial
+revalidation is equivalent to failure.
+
+The following substitutions are explicitly forbidden:
+
+- relying on a previously computed \`RUNNABLE\` projection;
+- treating Gate 1 \`final_effect_guard()\` as sufficient Gate 2 validation;
+- trusting a Gate 2 receipt because it was valid in an earlier scan without
+  rereading the receipt, terminal, authoritative outcome, and exact outcome
+  body;
+- reusing a cached predecessor-truth object across either privileged boundary.
+
+Boundary A safety semantics are normative: if the fresh reconstruction no
+longer proves \`D\` eligible, no \`JOB_STARTED\` may be published and Gate 0
+may not be invoked. The graph projects \`BLOCKED\` for an ordinary terminal
+blocker or \`GLOBAL_HOLD\` for invalidated/ambiguous authority as defined
+elsewhere in this design.
+
+Boundary B safety semantics are normative: if durable \`JOB_STARTED\` exists
+but the second fresh reconstruction fails or no longer proves every direct
+predecessor \`SATISFIED\`, the generation becomes \`RECOVERY_REQUIRED\`, Gate 0
+is not invoked, and there is zero automatic replay. An unstable or ambiguous
+read at this boundary has the same fail-closed recovery result.
+
+Only when the full Gate 2 reconstruction remains valid may the normal accepted
+Gate 1 effect-boundary checks continue. \`final_effect_guard()\` remains
+required for Gate 1's own mutable authorities and target binding; it
+complements rather than replaces this Gate 2 revalidation.
+
 ## 13. No dataflow contract
 
 A Gate 2 edge means only "eligible after durable predecessor success."
@@ -504,13 +601,18 @@ The accepted Gate 1 crash boundary is preserved without exception.
 
 ### Crash before JOB_STARTED
 
-Reconstruct from GitHub. A still-valid selected/runnable job may continue
-according to existing Gate 1 rules.
+Reconstruct from GitHub. A durable selected job may continue only after the
+mandatory section 12.1 Boundary A revalidation freshly proves the exact graph,
+descendant request, and every direct predecessor still valid. A stale prior
+\`RUNNABLE\` projection never authorizes \`JOB_STARTED\`.
 
 ### Crash after durable JOB_STARTED
 
 The generation becomes \`RECOVERY_REQUIRED\`. The request digest is never
-automatically replayed, even if no Gate 0 outcome can be found.
+automatically replayed, even if no Gate 0 outcome can be found. On the normal
+non-crash path, section 12.1 Boundary B is still mandatory after durable
+\`JOB_STARTED\` and immediately before Gate 0; it is not optional recovery
+logic.
 
 ### Crash after JOB_TERMINAL COMPLETED but before Gate 2 receipt
 
@@ -541,7 +643,9 @@ The following mechanisms do not by themselves add a new privileged effect:
 - continue to invoke only the exact four accepted Gate 0 read-only operations;
 - retain manual Codespace start/session grant;
 - retain same-Codespace process fencing;
-- retain post-\`JOB_STARTED\` authority rereads and zero automatic replay;
+- retain fresh Gate 2 dependency-truth rereads both before \`JOB_STARTED\`
+  and after durable \`JOB_STARTED\` immediately before Gate 0, while also
+  retaining Gate 1 \`final_effect_guard()\` and zero automatic replay;
 - retain exactly one non-terminal sequential job.
 
 These mechanics can be implemented inside the same trust assumptions as the
