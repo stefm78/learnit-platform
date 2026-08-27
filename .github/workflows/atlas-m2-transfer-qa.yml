@@ -1,43 +1,191 @@
 name: Atlas M2 Transfer Independent QA
 
 on:
+  pull_request:
+    branches:
+      - 'agent/ATLAS-WP-005-m2-transfer'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 env:
-  PRODUCT_HEAD: PENDING_EXACT_ATLAS_WP_005_HEAD
+  PRODUCT_HEAD: 8e152ed2d3980b78ea1612cb9068c24e6828d15b
+  PRODUCT_ARTIFACT_SHA256: 86384803568478f846fed4dc0f05398a576aef1424e68e70ecbe1bdc8a1f9bc8
+  PRODUCT_ARTIFACT_BYTES: '359010'
+
+concurrency:
+  group: atlas-m2-transfer-qa-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
-  prepared-oracle:
-    name: Pre-implementation transfer QA oracle
+  qa:
+    name: Exact M2.2 contradictory QA
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           clean: true
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Prove QA-owned preparation only
+
+      - name: Bind exact product and QA heads
         shell: bash
+        env:
+          QA_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          python -m py_compile apps/learnit-next/tests/qa_atlas_m2_transfer.py
+          [[ "$(git rev-parse HEAD)" == "${QA_HEAD}" ]]
+          git cat-file -e "${PRODUCT_HEAD}^{commit}"
+          git merge-base --is-ancestor "${PRODUCT_HEAD}" HEAD
+          [[ "$(git merge-base "${PRODUCT_HEAD}" HEAD)" == "${PRODUCT_HEAD}" ]]
+          mapfile -t changed < <(git diff --name-only "${PRODUCT_HEAD}"...HEAD | sort)
+          expected=(
+            .github/workflows/atlas-m2-transfer-qa.yml
+            apps/learnit-next/tests/qa_atlas_m2_transfer.py
+            work-packages/QA-WP-016.json
+          )
+          mapfile -t expected_sorted < <(printf '%s\n' "${expected[@]}" | sort)
+          [[ "${#changed[@]}" -eq "${#expected_sorted[@]}" ]]
+          diff <(printf '%s\n' "${expected_sorted[@]}") <(printf '%s\n' "${changed[@]}")
           python - <<'PY'
-          import json
+          import json, os
           from pathlib import Path
           wp=json.loads(Path('work-packages/QA-WP-016.json').read_text())
           assert wp['id']=='QA-WP-016'
           assert wp['authority']['issue']==204
-          assert wp['baseline']['productHead'] is None
-          assert wp['execution']['phase']=='PRE_IMPLEMENTATION_ORACLE_PREPARATION'
-          print('PRE_IMPLEMENTATION_QA_ORACLE_READY')
+          assert wp['baseline']['productHead']==os.environ['PRODUCT_HEAD']
+          assert wp['execution']['phase']=='BOUND_TO_EXACT_PRODUCT_HEAD'
+          assert wp['execution']['expectedArtifactBytes']==int(os.environ['PRODUCT_ARTIFACT_BYTES'])
+          assert wp['execution']['expectedArtifactSha256']==os.environ['PRODUCT_ARTIFACT_SHA256']
           PY
-      - name: Refuse final QA before exact product rebind
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install declared Python test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Materialize declared source-manifest blobs
+        shell: bash
         run: |
-          echo "Final execution is intentionally disabled until ATLAS-WP-005 product HEAD is frozen."
-          exit 2
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fp=item.get('fingerprint',{})
+              if fp.get('kind')!='git-blob-sha1':
+                  continue
+              data=subprocess.run(
+                  ['git','cat-file','blob',fp['value']],
+                  check=True,stdout=subprocess.PIPE
+              ).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+          PY
+
+      - name: Run independent adversarial oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/atlas_m2_transfer.py
+          python -B apps/learnit-next/tests/qa_atlas_m2_transfer.py
+          python -B apps/learnit-next/tests/atlas_m2_memory.py
+
+      - name: Rebuild product twice and prove exact byte identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/qa-transfer-a.html"
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/qa-transfer-b.html"
+          cmp "${RUNNER_TEMP}/qa-transfer-a.html" "${RUNNER_TEMP}/qa-transfer-b.html"
+          actual_sha="$(sha256sum "${RUNNER_TEMP}/qa-transfer-a.html" | awk '{print $1}')"
+          actual_bytes="$(wc -c < "${RUNNER_TEMP}/qa-transfer-a.html" | tr -d ' ')"
+          [[ "${actual_sha}" == "${PRODUCT_ARTIFACT_SHA256}" ]]
+          [[ "${actual_bytes}" == "${PRODUCT_ARTIFACT_BYTES}" ]]
+          mkdir -p apps/learnit-next/dist
+          cp "${RUNNER_TEMP}/qa-transfer-a.html" apps/learnit-next/dist/learnit-next.html
+          cp "${RUNNER_TEMP}/qa-transfer-a.html" apps/learnit-next/m2-transfer-qa-candidate.html
+          echo "ATLAS_M2_TRANSFER_QA_ARTIFACT_SHA256=${actual_sha}" >> "${GITHUB_ENV}"
+          echo "ATLAS_M2_TRANSFER_QA_ARTIFACT_BYTES=${actual_bytes}" >> "${GITHUB_ENV}"
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run strict visible browser regression
+        env:
+          LEARNIT_NEXT_STRICT_INTEGRATION: '1'
+        run: python -B apps/learnit-next/tests/browser_vertical_slice.py
+
+      - name: Reprove local-only and storage boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -REn 'fetch\(|XMLHttpRequest|WebSocket|EventSource|https?://'             apps/learnit-next/src/core/atlas_transfer.js             apps/learnit-next/src/core/atlas_recommendation.js             apps/learnit-next/src/integration/atlas/surface.js
+          grep -q "const DATABASE = 'learnit_atlas_m1_v2'" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          grep -q "const VERSION = 1" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          ! grep -R "transfer-completed" apps/learnit-next/src
+
+      - name: Write exact independent QA evidence
+        shell: bash
+        env:
+          QA_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          proof={
+            'schema':'learnit.atlas.m2.transfer.qa-evidence.v1',
+            'result':'PASS',
+            'verdict':'PASS_ATLAS_M2_TRANSFER_TO_HUMAN_GATE',
+            'workPackage':'QA-WP-016',
+            'authorityIssue':204,
+            'productHead':os.environ['PRODUCT_HEAD'],
+            'qaHead':os.environ['QA_HEAD'],
+            'artifactBytes':int(os.environ['ATLAS_M2_TRANSFER_QA_ARTIFACT_BYTES']),
+            'artifactSha256':os.environ['ATLAS_M2_TRANSFER_QA_ARTIFACT_SHA256'],
+            'productArtifactByteIdentity':'PASS',
+            'transferOracle':'PASS',
+            'memoryScheduleInvariant':'PASS',
+            'desktopBrowser':'PASS',
+            'mobileViewport':'PASS_390x844',
+            'keyboard':'PASS',
+            'networkRequired':False,
+            'storageMigration':False,
+          }
+          out=Path('apps/learnit-next/.agent-result')
+          out.mkdir(parents=True,exist_ok=True)
+          (out/'atlas_m2_transfer_qa.json').write_text(
+              json.dumps(proof,sort_keys=True,separators=(',',':'))+'\n',
+              encoding='utf-8'
+          )
+          print(json.dumps(proof,indent=2,sort_keys=True))
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check "${PRODUCT_HEAD}"...HEAD
+
+      - name: Upload exact QA proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m2-transfer-qa-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          include-hidden-files: true
+          path: |
+            apps/learnit-next/tests/qa_atlas_m2_transfer.py
+            apps/learnit-next/.agent-result/atlas_m2_transfer_qa.json
+            apps/learnit-next/m2-transfer-qa-candidate.html
