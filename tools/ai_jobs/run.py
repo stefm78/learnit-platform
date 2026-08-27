@@ -19,12 +19,22 @@ if __package__ in {None, ""}:
 from tools.codespace_evidence.execute import CommandRunner
 from tools.codespace_evidence.workspace import discover_repository_root
 
+from tools.ai_jobs import GATE2_PILOT_READ_ONLY
 from tools.ai_jobs.contracts import ContractError, LedgerRecord, SessionGrant
 from tools.ai_jobs.credential_boundary import (
     acquire_session_process_fence,
     final_effect_guard,
     require_request_authority,
     require_runtime_identity,
+)
+from tools.ai_jobs.fanin import (
+    Gate2Error,
+    Gate2Projection,
+    ReceiptPlan,
+    reconstruct_gate2,
+    render_dependency_receipt,
+    require_boundary_eligible,
+    runnable_jobs,
 )
 from tools.ai_jobs.gate0_adapter import PILOT_READ_ONLY, PilotEffectPermit, invoke_once
 from tools.ai_jobs.github_transport import Gate1GitHub
@@ -57,6 +67,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--request-issue", required=True, type=int)
     parser.add_argument("--session-id", required=True)
     parser.add_argument("--codespace-name")
+    parser.add_argument(
+        "--runtime-profile",
+        choices=(PILOT_READ_ONLY, GATE2_PILOT_READ_ONLY),
+        default=PILOT_READ_ONLY,
+        help="Gate 1 remains the default; Gate 2 requires explicit GATE2_PILOT_READ_ONLY opt-in.",
+    )
     parser.add_argument("--max-jobs", type=int, default=1)
     return parser.parse_args(argv)
 
@@ -200,6 +216,123 @@ def _jobs(
         if job is not None:
             result.append(job)
     return result
+
+
+
+def _gate2_projection_from_snapshots(
+    *,
+    args: argparse.Namespace,
+    grant: SessionGrant,
+    authority_snapshot: StableSnapshot,
+    request_snapshot: StableSnapshot,
+    records: list[LedgerRecord],
+    authenticated_login: str,
+) -> Gate2Projection:
+    return reconstruct_gate2(
+        authority_snapshot=authority_snapshot,
+        request_snapshot=request_snapshot,
+        repository=args.repository,
+        authority_issue=args.authority_issue,
+        request_issue=args.request_issue,
+        grant=grant,
+        gate1_records=records,
+        authenticated_login=authenticated_login,
+    )
+
+
+def _gate2_fresh_projection(
+    *,
+    args: argparse.Namespace,
+    gh: Gate1GitHub,
+    grant: SessionGrant,
+    authenticated_login: str,
+) -> tuple[Gate2Projection, SessionProjection]:
+    # Every call performs new stable double-scans.  No prior RUNNABLE,
+    # predecessor projection or receipt object is accepted as an input.
+    request_snapshot = stable_double_scan(lambda: gh.comments(args.request_issue))
+    authority_snapshot = stable_double_scan(lambda: gh.comments(args.authority_issue))
+    if _is_suspended(
+        authority_snapshot,
+        repository=args.repository,
+        authority_issue=args.authority_issue,
+    ):
+        raise Gate2Error("G2_BOUNDARY_AUTHORITY_CHANGED", "Gate 1 suspension is active")
+    require_request_authority(gh.permission(grant.granted_by))
+    records = _validated_session_records(
+        authority_snapshot,
+        grant=grant,
+        request_issue=args.request_issue,
+    )
+    current = project(records, grant)
+    projection = _gate2_projection_from_snapshots(
+        args=args,
+        grant=grant,
+        authority_snapshot=authority_snapshot,
+        request_snapshot=request_snapshot,
+        records=records,
+        authenticated_login=authenticated_login,
+    )
+    return projection, current
+
+
+def _gate2_publish_receipt(
+    *,
+    args: argparse.Namespace,
+    gh: Gate1GitHub,
+    grant: SessionGrant,
+    authenticated_login: str,
+    plan: ReceiptPlan,
+) -> None:
+    # Receipt reconciliation is control-plane publication only.  It never calls
+    # Gate 0 and therefore cannot replay a completed predecessor.
+    gh.publish_authority_comment(
+        args.authority_issue,
+        render_dependency_receipt(plan.payload),
+    )
+    projection, _current = _gate2_fresh_projection(
+        args=args,
+        gh=gh,
+        grant=grant,
+        authenticated_login=authenticated_login,
+    )
+    if projection.truth(plan.predecessor) != "SATISFIED":
+        raise Gate2Error(
+            "G2_RECEIPT_INVALID",
+            "published dependency receipt did not reconcile to SATISFIED",
+        )
+
+
+def _gate2_boundary(
+    *,
+    args: argparse.Namespace,
+    gh: Gate1GitHub,
+    grant: SessionGrant,
+    authenticated_login: str,
+    job: Any,
+    expected_state: str,
+    expected_tail: LedgerRecord,
+) -> None:
+    projection, current = _gate2_fresh_projection(
+        args=args,
+        gh=gh,
+        grant=grant,
+        authenticated_login=authenticated_login,
+    )
+    if (
+        current.state != expected_state
+        or current.last_record is None
+        or current.last_record.record_sha256 != expected_tail.record_sha256
+    ):
+        raise Gate2Error(
+            "G2_BOUNDARY_AUTHORITY_CHANGED",
+            "Gate 1 authoritative tail changed during fresh Gate 2 reconstruction",
+        )
+    require_boundary_eligible(
+        projection,
+        job=job,
+        expected_gate1_state=expected_state,
+        gate1_tail=current.last_record,
+    )
 
 
 def _publish_record(
@@ -373,6 +506,7 @@ def _run_session(
     root: Path,
     grant: SessionGrant,
     authority_snapshot: StableSnapshot,
+    authenticated_login: str,
 ) -> int:
     if _is_suspended(
         authority_snapshot,
@@ -509,19 +643,65 @@ def _run_session(
         if current.state not in {"ACTIVE_IDLE", "JOB_TERMINAL", "JOB_SELECTED"}:
             raise ContractError(f"Gate 1 reconstruction reached non-runnable state {current.state}")
 
+        gate2_projection: Gate2Projection | None = None
+        if args.runtime_profile == GATE2_PILOT_READ_ONLY:
+            # Graph admission is authorized only while the immutable grantor
+            # still has Gate 1 request authority.
+            require_request_authority(gh.permission(grant.granted_by))
+            gate2_projection = _gate2_projection_from_snapshots(
+                args=args,
+                grant=grant,
+                authority_snapshot=authority_snapshot,
+                request_snapshot=request_snapshot,
+                records=records,
+                authenticated_login=authenticated_login,
+            )
+            if current.state != "JOB_SELECTED" and gate2_projection.receipt_plans:
+                _gate2_publish_receipt(
+                    args=args,
+                    gh=gh,
+                    grant=grant,
+                    authenticated_login=authenticated_login,
+                    plan=gate2_projection.receipt_plans[0],
+                )
+                continue
+            if (
+                current.state != "JOB_SELECTED"
+                and gate2_projection.graph_state
+                in {"BLOCKED", "RECONCILING", "RECOVERY_REQUIRED", "GLOBAL_HOLD"}
+            ):
+                raise ContractError(
+                    "Gate 2 graph is "
+                    + gate2_projection.graph_state
+                    + "; unfinished Gate 2 work is not an empty queue"
+                )
+
         if current.state == "JOB_SELECTED":
             if last is None:
                 raise ContractError("JOB_SELECTED has no durable record")
             job = _selected_job(jobs, last)
             selected = last
         else:
+            election_jobs = (
+                runnable_jobs(gate2_projection, jobs)
+                if gate2_projection is not None
+                else jobs
+            )
             decision = elect(
-                jobs,
+                election_jobs,
                 terminal_request_digests=current.terminal_request_digests,
                 started_request_digests=current.started_request_digests,
             )
             job = decision.selected
             if job is None:
+                if (
+                    gate2_projection is not None
+                    and gate2_projection.graph_state != "COMPLETE"
+                ):
+                    raise ContractError(
+                        "Gate 2 graph has no runnable node but is not COMPLETE; "
+                        "refusing Gate 1 empty-queue closure"
+                    )
                 candidate = _publish_record(
                     gh,
                     args.authority_issue,
@@ -590,6 +770,31 @@ def _run_session(
         ):
             raise ContractError("session authority changed after JOB_SELECTED")
 
+        if args.runtime_profile == GATE2_PILOT_READ_ONLY:
+            # Boundary A: after durable JOB_SELECTED and before JOB_STARTED,
+            # reconstruct graph/scope/source/direct predecessors/terminal/
+            # receipt/Gate0 outcome/body digest from new stable reads.
+            _gate2_boundary(
+                args=args,
+                gh=gh,
+                grant=grant,
+                authenticated_login=authenticated_login,
+                job=job,
+                expected_state="JOB_SELECTED",
+                expected_tail=selected,
+            )
+
+        if args.runtime_profile == GATE2_PILOT_READ_ONLY:
+            # Gate 1's own final guard follows Boundary A with fresh mutable
+            # authority reads; the pre-boundary values above are not reused.
+            source_comment = gh.comment(job.request_comment_id)
+            authority_now = stable_double_scan(lambda: gh.comments(args.authority_issue))
+            suspended_now = _is_suspended(
+                authority_now,
+                repository=args.repository,
+                authority_issue=args.authority_issue,
+            )
+
         final_effect_guard(
             job=job,
             request_comment=source_comment,
@@ -633,6 +838,26 @@ def _run_session(
             ):
                 raise ContractError("JOB_STARTED is not the unique authoritative tail before effect")
 
+            if args.runtime_profile == GATE2_PILOT_READ_ONLY:
+                # Boundary B: after durable JOB_STARTED and immediately before
+                # the unchanged Gate 1 final guard / fixed Gate 0 invocation,
+                # rebuild all Gate 2 dependency truth from new stable reads.
+                _gate2_boundary(
+                    args=args,
+                    gh=gh,
+                    grant=grant,
+                    authenticated_login=authenticated_login,
+                    job=job,
+                    expected_state="JOB_STARTED",
+                    expected_tail=started,
+                )
+
+            if args.runtime_profile == GATE2_PILOT_READ_ONLY:
+                # Do not reuse the pre-Boundary-B Gate 1 authority snapshot for
+                # the final Gate 1 guard.
+                post_start_snapshot = stable_double_scan(
+                    lambda: gh.comments(args.authority_issue)
+                )
             suspended_post_start = _is_suspended(
                 post_start_snapshot,
                 repository=args.repository,
@@ -727,6 +952,39 @@ def _run_session(
                 "gate0_authoritative_comment_id": invocation.authoritative_comment_id,
             },
         )
+        if args.runtime_profile == GATE2_PILOT_READ_ONLY and terminal_result == "COMPLETED":
+            # Reconcile the deterministic receipt after terminal success without
+            # any Gate 0 replay, including when max-jobs is about to stop.
+            completed_projection, _terminal_session = _gate2_fresh_projection(
+                args=args,
+                gh=gh,
+                grant=grant,
+                authenticated_login=authenticated_login,
+            )
+            ref = completed_projection.ref_for_job(job)
+            if completed_projection.truth(ref) == "BINDING_PENDING":
+                plans = [
+                    plan
+                    for plan in completed_projection.receipt_plans
+                    if plan.predecessor == ref
+                ]
+                if len(plans) != 1:
+                    raise Gate2Error(
+                        "G2_INTERNAL_PROJECTION_INCONSISTENT",
+                        "completed predecessor has no unique deterministic receipt plan",
+                    )
+                _gate2_publish_receipt(
+                    args=args,
+                    gh=gh,
+                    grant=grant,
+                    authenticated_login=authenticated_login,
+                    plan=plans[0],
+                )
+            elif completed_projection.truth(ref) != "SATISFIED":
+                raise Gate2Error(
+                    "G2_OUTCOME_INVALIDATED",
+                    "completed predecessor cannot be durably bound",
+                )
         completed += 1
 
     return 0
@@ -759,7 +1017,7 @@ def main(argv: list[str] | None = None) -> int:
         raise ContractError("exactly one immutable human session grant is required")
     grant = grants[0]
 
-    require_runtime_identity(
+    authenticated_login = require_runtime_identity(
         preflight=preflight,
         grant=grant,
         codespace_name=args.codespace_name,
@@ -775,6 +1033,7 @@ def main(argv: list[str] | None = None) -> int:
             root=root,
             grant=grant,
             authority_snapshot=authority_snapshot,
+            authenticated_login=authenticated_login,
         )
     finally:
         fence.close()
