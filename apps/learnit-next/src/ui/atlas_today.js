@@ -9,6 +9,7 @@ const REASON_LABELS = Object.freeze({
   NO_INDEPENDENT_VALIDATION: 'Aucune validation indépendante admissible.',
   VALIDATION_AVAILABLE: 'Une validation autonome est disponible.',
   RECENTLY_VALIDATED: 'Une validation récente est enregistrée.',
+  TRANSFER_AVAILABLE: 'Une reconfirmation récente ouvre un défi dans un autre contexte.',
   SESSION_TIME_LIMIT: 'Cette activité ne tient pas dans la durée choisie.'
 });
 
@@ -17,14 +18,16 @@ const ACTION_CLASS = Object.freeze({
   'continue-practice': 'practice',
   'correct-practice': 'correction',
   'attempt-validation': 'validation',
-  'maintain-recent-validation': 'validation'
+  'maintain-recent-validation': 'validation',
+  'attempt-transfer': 'transfer'
 });
 const ACTION_LABELS = Object.freeze({
   'start-practice': 'Entraînement — je m’exerce',
   'continue-practice': 'Entraînement — je m’exerce',
   'correct-practice': 'Correction — je corrige une erreur',
   'attempt-validation': 'Validation — je vérifie sans aide',
-  'maintain-recent-validation': 'Entretien — je garde un acquis récent actif'
+  'maintain-recent-validation': 'Entretien — je garde un acquis récent actif',
+  'attempt-transfer': 'Défi de transfert — j’applique dans un autre contexte'
 });
 
 
