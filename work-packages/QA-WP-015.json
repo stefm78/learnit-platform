@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-015",
+  "title": "Retire Gate2 preparation-only runtime absence sentinels",
+  "status": "approved",
+  "changeClass": "independent-qa-corpus-correction",
+  "riskClass": "low",
+  "purpose": "Preserve QA-WP-013 historical design evidence while preventing preparation-only runtime-absence assertions from blocking the owner-authorized GATE2_PILOT_READ_ONLY runtime phase.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "5ff235ad8582c17cb3e1979c6582e9950f9c6d48",
+    "authorityIssue": 190,
+    "branch": "qa/QA-WP-015-retire-preparation-sentinels",
+    "parentQaWorkPackage": "QA-WP-013",
+    "boundDesignHead": "f3a8fb588848f0d43cb6a3f39835b7b57ec40566"
+  },
+  "scope": {
+    "allowedPaths": [
+      "tests/ai_jobs/test_gate2_fanin_contract.py",
+      "work-packages/QA-WP-015.json"
+    ],
+    "forbiddenPaths": [
+      "tools/**",
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "Only two preparation-only assertions are semantically retargeted from moving HEAD to the exact historical bound design head.",
+    "QA-WP-013 design evidence remains preserved: the bound design head did not modify Gate1 runtime and introduced no Gate2 runtime module.",
+    "The current checkout may contain an owner-authorized Gate2 pilot runtime without invalidating historical design QA.",
+    "Gate0 byte-identity, exact four-operation surface, no arbitrary shell/argv, no repository write, Gate3 HOLD and Gate4 HOLD assertions remain unchanged.",
+    "No runtime implementation file is modified."
+  ],
+  "requiredEvidence": [
+    "tests/ai_jobs/test_gate2_fanin_contract.py compares BASELINE:tools/ai_jobs to BOUND_DESIGN_HEAD:tools/ai_jobs rather than HEAD:tools/ai_jobs.",
+    "The no-Gate2-runtime preparation assertion inspects BOUND_DESIGN_HEAD:tools/ai_jobs and its __init__.py rather than the moving checkout.",
+    "All other QA-WP-013 oracle assertions are byte-equivalent except for the two targeted test functions.",
+    "Repository governance and PR scope are green on the exact correction head."
+  ],
+  "adversarialTests": [
+    "Fail if current HEAD is still required to have no fanin.py.",
+    "Fail if current HEAD:tools/ai_jobs is still compared to the preparation baseline.",
+    "Fail if the historical bound design head is no longer proven runtime-free.",
+    "Fail if any path outside the two-file allowlist changes."
+  ],
+  "nonGoals": [
+    "Implementing or repairing Gate2 runtime.",
+    "Changing QA-WP-014 runtime oracle.",
+    "Changing the Gate2 design.",
+    "Changing Gate0, Gate1 runtime, workflows, product, rulesets or governance state."
+  ],
+  "independentReview": [
+    "The correction must preserve historical design-phase claims while removing only moving-HEAD assumptions.",
+    "Repository scope validation must confirm exactly two changed paths.",
+    "No OPS-WP-009 implementation choice is reviewed or repaired by this lane."
+  ],
+  "execution": {
+    "authorityIssue": 190,
+    "maximumChangedFiles": 2,
+    "autonomousMergeAfterGreenChecks": true,
+    "successorRuntimeAuthority": 188,
+    "successorRuntimeQaAuthority": 189
+  },
+  "rollback": "Revert only the two QA-WP-015 paths; no runtime or design artifact is affected."
+}
