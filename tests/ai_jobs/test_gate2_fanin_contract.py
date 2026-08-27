@@ -305,19 +305,14 @@ def bounds_oracle(case: dict[str, Any]) -> dict[str, Any]:
 def crash_oracle(case: dict[str, Any]) -> dict[str, Any]:
     if case.get("job_started"):
         if case.get("automatic_replay_attempted"):
-            return {"queue_state":"RECOVERY_REQUIRED","closable":False,
-                    "requires_recovery":True,"reason":"AUTOMATIC_REPLAY_FORBIDDEN"}
+            return result("RECOVERY_REQUIRED", "AUTOMATIC_REPLAY_FORBIDDEN", recovery=True)
         if case.get("authority_ambiguous"):
-            return {"queue_state":"RECOVERY_REQUIRED","closable":False,
-                    "requires_recovery":True,"reason":"RECOVERY_AMBIGUITY"}
+            return result("RECOVERY_REQUIRED", "RECOVERY_AMBIGUITY", recovery=True)
         if not case.get("terminal_outcome_observed"):
-            return {"queue_state":"RECOVERY_REQUIRED","closable":False,
-                    "requires_recovery":True,"reason":"CRASH_AFTER_JOB_STARTED"}
+            return result("RECOVERY_REQUIRED", "CRASH_AFTER_JOB_STARTED", recovery=True)
     if not case.get("durable_dependency_observation"):
-        return {"queue_state":"BLOCKED","closable":False,
-                "requires_recovery":False,"reason":"DEPENDENCY_OBSERVATION_NOT_DURABLE"}
-    return {"queue_state":"INVALID","closable":False,
-            "requires_recovery":False,"reason":"UNEXPECTED_CRASH_PROBE"}
+        return result("BLOCKED", "DEPENDENCY_OBSERVATION_NOT_DURABLE")
+    return result("INVALID", "UNEXPECTED_CRASH_PROBE")
 
 def closure_oracle(case: dict[str, Any]) -> dict[str, Any]:
     if case.get("close_attempted") and (
