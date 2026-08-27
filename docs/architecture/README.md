@@ -19,7 +19,7 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - Its exact promoted HTML SHA-256 is `9780bf3763864fbd42804a7dee129ae16e999e7971c4fce9a0a6a240d52b20df`.
 - Project Atlas M1 is promoted on product merge `354a2cf27954de13435a08a2a4ec014b9e8a2e89`, with accepted INT `e2c10c8eb5a3e1c4dff5e45b210f327942bafce8` and accepted QA `67d70e7307402242dbc1939d6cabfd87af617d74`.
 - The promoted M1 artifact is `334194` bytes with SHA-256 `6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f`.
-- Atlas M2 is active under issue `#157`; product PR `#158` and independent QA PR `#159` remain draft and unmerged.
+- Atlas M2 is promoted on product merge `dd0c191179f968d35742cb58f7d6bb9ccb53a852`, with accepted QA head `4b0d80dd3b576a2300a4d1516481769b198d9637`; its canonical artifact is `352237` bytes with SHA-256 `7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091` and is published through GitHub Pages.
 - Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
 ## Current decisions
@@ -42,12 +42,12 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 
 ## Atlas reading order
 
-1. active Atlas authority issue `#157`;
-2. `../atlas/README.md`;
-3. `../atlas/CONTRACTS.md`;
-4. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
-5. `../../work-packages/ATLAS-WP-001.json` and `../../work-packages/ATLAS-WP-002.json` for completed M1 history;
-6. `../../governance/governor-state.json`;
+1. `../../governance/governor-state.json`;
+2. `../../work-packages/ATLAS-WP-003.json` and `../../work-packages/ATLAS-WP-004.json` for completed M2 product and publication evidence;
+3. completed Atlas authority issue `#157`;
+4. `../atlas/README.md`;
+5. `../atlas/CONTRACTS.md`;
+6. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
 7. `../../GOVERNANCE.md`.
 
 Historical `reference-v1/` material remains non-canonical.
@@ -56,4 +56,6 @@ Historical `reference-v1/` material remains non-canonical.
 
 Atlas M1 bootstrap, lane execution, integration, independent QA, human validation, promotion and post-merge verification are historical completed steps.
 
-The active product increment is Atlas M2 under issue `#157`. Its exact product and contradictory-QA heads remain on draft PRs `#158` and `#159`; promotion and publication remain held until the accountable human gate and an explicit promotion decision.
+Atlas M2 product implementation, independent QA, accountable-human validation, promotion and exact-artifact Pages publication are completed historical steps.
+
+There is no active Atlas product increment. Any next Atlas increment requires a new explicit authority and bounded work package.
