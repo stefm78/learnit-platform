@@ -56,7 +56,9 @@
     "Gate 1 regression remains a mandatory clean-checkout 85/85 PASS with zero skip/xfail on the exact bound design review head.",
     "Gate 0 regression remains a mandatory clean-checkout 80/80 PASS on the exact bound design review head.",
     "No Gate 2 runtime module, repository-write API, arbitrary command/argv/shell surface or Gate 4 parallel execution capability is introduced.",
-    "Before any final verdict, QA records the exact frozen parent-design HEAD, rereads its two authorized files at that HEAD, and reruns the complete oracle against that exact binding."
+    "Before any final verdict, QA records the exact frozen parent-design HEAD, rereads its two authorized files at that HEAD, and reruns the complete oracle against that exact binding.",
+    "Exact design binding reviewed at 5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3 with design SHA-256 7e8ea3b8abf2b44883cee786635cdf33e277c7197f155f2262a8d2cdc5ecb783 and work-package SHA-256 1ab0af3b3f59e4581e6e68f7fdf3be12d128185a2edf11c27415d5a581f80215.",
+    "Blocking timing oracle proves dependency truth must be revalidated after election and at the post-JOB_STARTED pre-effect boundary; the bound design does not currently make those checks normative."
   ],
   "adversarialTests": [
     "Reject A->A, A->B->A and longer dependency cycles.",
@@ -72,7 +74,9 @@
     "Attack the declared maximum fan-in, graph depth and node-count boundaries at limit and limit+1.",
     "Elect exactly one runnable node deterministically regardless of input ordering.",
     "Reject any Gate 3 repository-write capability, arbitrary argv/shell channel or Gate 4 parallel-execution expansion.",
-    "Fail if Gate 0 bytes drift or if the mandatory Gate 1 85/85 and Gate 0 80/80 regressions are no longer required."
+    "Fail if Gate 0 bytes drift or if the mandatory Gate 1 85/85 and Gate 0 80/80 regressions are no longer required.",
+    "Invalidate a previously SATISFIED predecessor after descendant election but before JOB_STARTED and require the descendant not to start.",
+    "Invalidate a previously SATISFIED predecessor after durable descendant JOB_STARTED but before Gate 0 invocation and require RECOVERY_REQUIRED with zero Gate 0 invocation."
   ],
   "nonGoals": [
     "Designing the Gate 2 dependency contract for the parent lane.",
@@ -92,24 +96,55 @@
   "execution": {
     "authorityIssue": 182,
     "parentDesignIssue": 181,
-    "oracleState": "PRE_CANDIDATE_ORACLE_READY",
-    "verdict": "PRE_CANDIDATE_GATE2_QA_READY",
+    "oracleState": "BOUND_EXACT_REVIEWED",
+    "verdict": "HOLD_GATE2_QA_PRE_EFFECT_DEPENDENCY_REVALIDATION_UNSPECIFIED",
     "designBinding": {
-      "status": "UNBOUND",
-      "designHead": null,
+      "status": "BOUND_EXACT",
+      "designHead": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3",
       "designDocument": "docs/operations/GATE2_FANIN_DESIGN.md",
       "designWorkPackage": "work-packages/OPS-WP-008.json",
-      "designDocumentSha256": null,
-      "designWorkPackageSha256": null
+      "designDocumentBlobSha1": "d5cbc66dbce4a272205a4fe7cd467412a05147f2",
+      "designWorkPackageBlobSha1": "eac114735dace4c1cb482ae9a1d182e26d8ceb6d",
+      "designDocumentSha256": "7e8ea3b8abf2b44883cee786635cdf33e277c7197f155f2262a8d2cdc5ecb783",
+      "designWorkPackageSha256": "1ab0af3b3f59e4581e6e68f7fdf3be12d128185a2edf11c27415d5a581f80215"
     },
-    "finalVerdict": null,
+    "finalVerdict": "HOLD_GATE2_QA_PRE_EFFECT_DEPENDENCY_REVALIDATION_UNSPECIFIED",
     "allowedFinalVerdicts": [
       "PASS_GATE2_DESIGN_CONTRADICTORY_QA",
       "HOLD_GATE2_QA_<concrete-finding>"
     ],
     "maximumChangedFiles": 4,
     "requiresExactDesignHeadBinding": true,
-    "mergeAuthorized": false
+    "mergeAuthorized": false,
+    "stateHistory": [
+      {
+        "state": "PRE_CANDIDATE_ORACLE_READY",
+        "verdict": "PRE_CANDIDATE_GATE2_QA_READY",
+        "designHead": null
+      },
+      {
+        "state": "BOUND_EXACT_REVIEWED",
+        "verdict": "HOLD_GATE2_QA_PRE_EFFECT_DEPENDENCY_REVALIDATION_UNSPECIFIED",
+        "designHead": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3"
+      }
+    ],
+    "findings": [
+      {
+        "id": "G2-QA-013-F01",
+        "severity": "blocking",
+        "title": "Dependency truth is not normatively revalidated at the last pre-effect boundary",
+        "designHead": "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3",
+        "evidence": [
+          "Section 12 computes the runnable subset before delegating election to the existing Gate 1 queue.",
+          "Section 13 requires source-request digest stability during readiness projection, but does not define a Gate 2 dependency-truth check after durable JOB_SELECTED.",
+          "Sections 14 and 15 preserve existing Gate 1 post-JOB_STARTED rereads, but the accepted Gate 1 final effect guard is unaware of Gate 2 graph receipts and predecessor outcome validity.",
+          "Section 9 defines fail-closed behavior when invalidation is discovered, including after descendant JOB_STARTED, but does not require a fresh Gate 2 graph/receipt/outcome projection immediately before JOB_STARTED and again before the Gate 0 effect."
+        ],
+        "adversarialWindow": "A predecessor is SATISFIED at readiness projection, then its bound outcome or receipt is edited/deleted after descendant election but before descendant JOB_STARTED or Gate 0 invocation.",
+        "requiredSafetyProperty": "No descendant Gate 0 invocation may occur from stale dependency truth. Invalidation before JOB_STARTED must prevent start; invalidation after durable JOB_STARTED but before effect must enter RECOVERY_REQUIRED without invoking Gate 0.",
+        "disposition": "QA does not repair the parent design. A new frozen design HEAD requires exact re-binding and a full oracle rerun."
+      }
+    ]
   },
   "rollback": "Discard or revert only the four QA-WP-013 paths. No Gate 0, Gate 1, Gate 2 runtime, parent-design, workflow, governance or product behavior is modified."
 }
