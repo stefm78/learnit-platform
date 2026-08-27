@@ -26,7 +26,13 @@
       "tools/ai_jobs/fanin.py",
       "tools/ai_jobs/run.py",
       "tools/ai_jobs/__init__.py",
-      "work-packages/OPS-WP-009.json"
+      "work-packages/OPS-WP-009.json",
+      "work-packages/QA-WP-014.json",
+      "tests/ai_jobs/test_fanin_contracts.py",
+      "tests/ai_jobs/test_fanin_graph.py",
+      "tests/ai_jobs/test_fanin_recovery.py",
+      "tests/ai_jobs/test_fanin_security.py",
+      "tests/ai_jobs/test_fanin_integration.py"
     ],
     "forbiddenPaths": [
       "tools/ai_jobs/gate0_adapter.py",
@@ -35,7 +41,6 @@
       "tools/ai_jobs/github_transport.py",
       "tools/ai_jobs/credential_boundary.py",
       "tools/codespace_evidence/**",
-      "tests/**",
       ".github/**",
       ".devcontainer/**",
       "apps/**",
@@ -43,6 +48,20 @@
       "contracts/**",
       "kits/**",
       "governance/**"
+    ],
+    "ciOpsAllowedPaths": [
+      "tools/ai_jobs/fanin.py",
+      "tools/ai_jobs/run.py",
+      "tools/ai_jobs/__init__.py",
+      "work-packages/OPS-WP-009.json"
+    ],
+    "independentQaAllowedPaths": [
+      "work-packages/QA-WP-014.json",
+      "tests/ai_jobs/test_fanin_contracts.py",
+      "tests/ai_jobs/test_fanin_graph.py",
+      "tests/ai_jobs/test_fanin_recovery.py",
+      "tests/ai_jobs/test_fanin_security.py",
+      "tests/ai_jobs/test_fanin_integration.py"
     ]
   },
   "ownerAuthorization": {
@@ -92,7 +111,7 @@
     "Gate 1 regression is exactly 85/85 PASS with skip=0 and xfail=0.",
     "Gate 0 regression is exactly 80/80 PASS.",
     "Gate 0 tools/codespace_evidence implementation tree is byte-identical to baseline 5ff235ad8582c17cb3e1979c6582e9950f9c6d48.",
-    "Exact implementation diff contains only the four OPS-WP-009 allowed paths.",
+    "Final parent diff contains exactly the four OPS-WP-009 implementation paths plus the six independently authorized QA-WP-014 paths; implementation-owner changes remain restricted to ciOpsAllowedPaths.",
     "Repository governance and tools/validate_repository.py pass on the frozen implementation head.",
     "PR scope and gate pass on the draft pull request.",
     "Independent QA-WP-014 binds to the frozen exact implementation head and runs its full contradictory runtime oracle before readiness."
@@ -127,7 +146,8 @@
     "QA-WP-014 owns independent contradictory runtime tests and must not repair tools/ai_jobs implementation files.",
     "QA-WP-014 may PASS only after binding by merge commit to one frozen exact OPS-WP-009 implementation head.",
     "Any OPS-WP-009 implementation-head change invalidates prior QA evidence and requires a complete QA rerun.",
-    "The parent implementation may not be merged until the owner/governor final gate in issues 188 and 189 is satisfied."
+    "The parent implementation may not be merged until the owner/governor final gate in issues 188 and 189 is satisfied.",
+    "The final parent scope is the union of four implementation-owner paths and six independently reviewed QA paths; QA paths enter only through the passed child fan-in."
   ],
   "execution": {
     "authorityIssue": 188,
@@ -139,7 +159,11 @@
     "gate3Activated": false,
     "gate4Activated": false,
     "fullV6SecurityClaimed": false,
-    "implementationEvidenceStatus": "PENDING_FROZEN_HEAD_AND_VALIDATION"
+    "implementationEvidenceStatus": "PENDING_FROZEN_HEAD_AND_VALIDATION",
+    "independentQaFinalVerdict": "PASS_GATE2_PILOT_RUNTIME_CONTRADICTORY_QA",
+    "independentQaExactHead": "e4cc9d3caeb1c06dccb7c31f5134f6d072378f9e",
+    "qaFanInMergeCommit": "c212f4c07494687aac8847e767f4c9c734f58388",
+    "finalParentValidationStatus": "PENDING_EXACT_PARENT_RERUN"
   },
   "rollback": "Revert only the OPS-WP-009 implementation commit/merge affecting tools/ai_jobs/fanin.py, tools/ai_jobs/run.py, tools/ai_jobs/__init__.py and work-packages/OPS-WP-009.json. Gate 0 and all durable GitHub evidence comments remain unchanged."
 }
