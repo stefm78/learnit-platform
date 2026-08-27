@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-014",
+  "title": "Gate 2 pilot runtime contradictory QA",
+  "status": "under-qa",
+  "changeClass": "independent-contradictory-gate2-runtime-qa",
+  "riskClass": "high",
+  "purpose": "Prepare an implementation-independent executable runtime oracle for the owner-authorized GATE2_PILOT_READ_ONLY profile, then bind and rerun it only against one frozen exact OPS-WP-009 implementation head. QA never implements or repairs Gate 2 runtime.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "5ff235ad8582c17cb3e1979c6582e9950f9c6d48",
+    "authorityIssue": 189,
+    "parentImplementationIssue": 188,
+    "parentDesignIssue": 181,
+    "designOracleIssue": 182,
+    "reviewedDesignHead": "f3a8fb588848f0d43cb6a3f39835b7b57ec40566",
+    "branch": "qa/QA-WP-014-gate2-pilot-runtime",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-014.json",
+      "tests/ai_jobs/test_fanin_contracts.py",
+      "tests/ai_jobs/test_fanin_graph.py",
+      "tests/ai_jobs/test_fanin_recovery.py",
+      "tests/ai_jobs/test_fanin_security.py",
+      "tests/ai_jobs/test_fanin_integration.py"
+    ],
+    "forbiddenPaths": [
+      "tools/ai_jobs/**",
+      "tools/codespace_evidence/**",
+      ".github/**",
+      "governance/**",
+      "docs/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "kits/**"
+    ]
+  },
+  "invariants": [
+    "Phase 1 is implementation-independent: no OPS-WP-009 internal implementation choices are inspected or encoded before a frozen exact implementation head is published.",
+    "No final PASS is permitted before the QA branch is synchronized by merge commit to one frozen exact OPS-WP-009 implementation head and the full oracle is rerun.",
+    "Gate 2 is explicit opt-in only; default Gate 1 behavior remains unchanged.",
+    "Dependency identity is never job_id-only and is bound by job_id, request_comment_id, request_sha256 and target_sha inside one repository/authority/request/session/generation/grant scope.",
+    "Fan-in is strict AND and every privileged authorization boundary reconstructs current dependency truth from stable GitHub evidence instead of cached RUNNABLE, cached predecessor truth, cached receipt truth or final_effect_guard alone.",
+    "After JOB_SELECTED but before JOB_STARTED, dependency invalidation yields no JOB_STARTED and zero Gate0 invocation.",
+    "After durable JOB_STARTED but before Gate0, dependency invalidation yields RECOVERY_REQUIRED, zero Gate0 invocation and zero automatic replay.",
+    "BLOCKED, RECONCILING, GLOBAL_HOLD and RECOVERY_REQUIRED are never equivalent to EMPTY; COMPLETE requires every node SUCCEEDED with durable receipt truth.",
+    "Gate 2 remains one-job-at-a-time, read-only, static, no-dataflow and no-dynamic-request; Gate3 and Gate4 remain HOLD and no FULL_V6_SECURITY claim is accepted.",
+    "Gate0 remains exactly the four accepted operations and byte-identical to the preparation baseline.",
+    "Final regression gate requires Gate1 85/85 PASS, Gate0 80/80 PASS and full tests/ai_jobs with zero skip and zero xfail."
+  ],
+  "phase1Oracle": {
+    "state": "PRE_IMPLEMENTATION_READY",
+    "verdict": "PRE_IMPLEMENTATION_GATE2_RUNTIME_QA_READY",
+    "implementationHead": null,
+    "runtimeBinding": "UNBOUND",
+    "testModules": 5,
+    "unittestMethodsPrepared": 36,
+    "adversarialScenariosPrepared": 128,
+    "scenarioBreakdown": {
+      "contract": 27,
+      "graph": 25,
+      "recoveryTimingQueue": 37,
+      "securityProfile": 25,
+      "integrationRegression": 14
+    }
+  },
+  "requiredEvidence": [
+    "Exact QA baseline, merge-base, QA head and exactly six changed paths within scope.allowedPaths.",
+    "Malformed/canonical graph envelope, graph edit, wrong author/grant/scope/session/generation and weak identity references are rejected fail-closed.",
+    "Duplicate node/edge, missing dependency, direct/indirect cycles, canonical ordering and every closed bound are attacked at limit and limit+1.",
+    "FAILED, STALE, AMBIGUOUS, missing/edited/divergent receipt, deleted/edited outcome, wrong body digest, invalid Gate0 outcome, terminal mismatch and source mutation never satisfy dependency truth.",
+    "Boundary A probes receipt delete/edit, outcome delete/body mutation, wrong digest, failed inner Gate0 validation, terminal ambiguity, unstable read, descendant request mutation and graph mutation; all require JOB_STARTED absent and Gate0 invocation count zero.",
+    "Boundary B repeats the same mutation classes after durable JOB_STARTED and requires RECOVERY_REQUIRED, Gate0 invocation count zero and automatic replay zero.",
+    "Cached RUNNABLE, cached predecessor truth, cached receipt and final_effect_guard-only authorization mutants are explicitly killed.",
+    "BLOCKED, RECONCILING and GLOBAL_HOLD are non-empty; receipt reconciliation never replays Gate0; COMPLETE is exact; unstable double-scan fails closed.",
+    "Gate2 explicit opt-in, exact four Gate0 operations, one runtime job, no generic shell/argv, no repository write, no branch/commit/push/workflow-dispatch/merge/release/promotion, no automatic Codespace lifecycle, no dataflow/dynamic request/cross-boundary delegation, Gate3 HOLD, Gate4 HOLD and no FULL_V6 claim are enforced.",
+    "After frozen implementation publication, QA records the exact SHA, merges that SHA into this branch by merge commit only, opens a DRAFT QA PR targeting the implementation branch, and ensures the PR diff is exactly the six QA paths.",
+    "Final exact-head run includes full tests/ai_jobs, Gate1 85/85, Gate0 80/80, zero skip/xfail and Gate0 byte identity."
+  ],
+  "nonGoals": [
+    "Implementing or repairing tools/ai_jobs/fanin.py, run.py, __init__.py or any OPS-WP-009 path.",
+    "Modifying Gate0, Gate1 read-only files, workflows, governance, design, QA-WP-013 or its fixtures.",
+    "Inspecting implementation internals before a frozen exact OPS-WP-009 head exists.",
+    "Authorizing repository writes, automatic Codespace lifecycle, parallel execution, dynamic request generation, predecessor-output dataflow, Gate3, Gate4 or FULL_V6_SECURITY.",
+    "Merging directly to main."
+  ],
+  "execution": {
+    "authorityIssue": 189,
+    "parentImplementationIssue": 188,
+    "oracleState": "PRE_IMPLEMENTATION_READY",
+    "implementationBinding": {
+      "status": "UNBOUND",
+      "implementationHead": null,
+      "mergeCommit": null,
+      "qaDraftPr": null
+    },
+    "finalVerdict": null,
+    "allowedFinalVerdicts": [
+      "PASS_GATE2_PILOT_RUNTIME_CONTRADICTORY_QA",
+      "HOLD_GATE2_PILOT_RUNTIME_QA_<finding concret>"
+    ],
+    "maximumChangedFiles": 6,
+    "requiresExactImplementationHeadBinding": true,
+    "mergeToMainAuthorized": false,
+    "phase1Checks": {
+      "pureOracleSyntaxAndExecution": "REQUIRED",
+      "runtimeDependentChecks": "DEFERRED_UNTIL_FROZEN_IMPLEMENTATION_HEAD",
+      "finalPassAuthorized": false
+    }
+  },
+  "rollback": "Discard or revert only the six QA-WP-014 paths. No Gate0, Gate1, Gate2 runtime, parent implementation, design, workflow, governance or product behavior is modified."
+}
