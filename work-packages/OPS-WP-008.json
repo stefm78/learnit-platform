@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-008",
+  "title": "Gate 2 read-only dependency fan-in design",
+  "status": "under-qa",
+  "changeClass": "repository-operations-gate2-design",
+  "riskClass": "moderate",
+  "purpose": "Freeze the minimal canonical bounded design for Gate 2 read-only dependency fan-in above the accepted Gate 1 sequential queue, without activating Gate 2, changing Gate 0/Gate 1 runtime, enabling repository-write jobs, or enabling parallel execution.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "33d4ffc5f8aa5289008a72de301f937137f119e7",
+    "authorityIssue": 181,
+    "branch": "ops/OPS-WP-008-gate2-fanin-design",
+    "gate1CanonicalDesign": "G1-DESIGN-V6 R5",
+    "gate1CanonicalPackageSha256": "698c08c2df2dc5e8a36bde6277311dd1dc382fdb5856b96fe37703d1840891a5",
+    "gate1CanonicalManifestSha256": "d041e63f758ef7f1d37467323b1f8101dd426d6e57011c0b863af737794e07a6",
+    "gate1ValidatedHead": "e85233cbd5bdc122ba17b053d05ecc55f842a4ea",
+    "gate1MergedCommit": "002d5d10e53be2c3f57abdb71603ebb28b771621",
+    "gate1SecurityProfile": "GATE1_PILOT_READ_ONLY"
+  },
+  "statusBoundary": [
+    "GATE2_PREPARATION_ONLY",
+    "GATE2_NOT_ACTIVATED",
+    "GATE3_HOLD",
+    "GATE4_HOLD",
+    "NO_RUNTIME_IMPLEMENTATION_AUTHORIZED"
+  ],
+  "scope": {
+    "allowedPaths": [
+      "docs/operations/GATE2_FANIN_DESIGN.md",
+      "work-packages/OPS-WP-008.json"
+    ],
+    "forbiddenPaths": [
+      "tools/ai_jobs/**",
+      "tools/codespace_evidence/**",
+      "tests/**",
+      ".github/**",
+      ".devcontainer/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "kits/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "This work package is design-only and does not authorize Gate 2 runtime implementation or activation.",
+    "Gate 0 and all tools/ai_jobs runtime implementation remain read-only for OPS-WP-008.",
+    "A Gate 2 dependency is bound by job_id, immutable request_comment_id, request_sha256 and target_sha under one exact graph scope; job_id alone is never sufficient.",
+    "Gate 2 V1 fan-in is strict AND: every direct predecessor must have durable valid success evidence before a descendant becomes runnable.",
+    "Only a Gate 1 COMPLETED terminal plus a durable Gate 2 binding to the exact authoritative Gate 0 outcome comment body satisfies a dependency.",
+    "Outcome comment_id alone is insufficient; the exact UTF-8 outcome body SHA-256 is mandatory and the existing Gate 0 inner cryptographic/schema validation must still pass.",
+    "FAILED, stale, ambiguous, deleted, edited or invalidated predecessors never satisfy descendants.",
+    "A blocked or receipt-reconciling graph is not an empty queue and must not be automatically closed as empty.",
+    "The V1 graph is static and bounded to one repository, one authority issue, one request issue, one session and one generation; cross-session and cross-generation references are forbidden.",
+    "Among multiple runnable nodes, existing Gate 1 deterministic order by request_comment_id then job_id remains authoritative.",
+    "Gate 2 edges carry eligibility only and never predecessor stdout, artifacts, generated code or outcome data into descendant request parameters.",
+    "The accepted Gate 1 JOB_STARTED to RECOVERY_REQUIRED boundary and zero automatic replay are preserved.",
+    "Gate 3 repository-write jobs remain HOLD.",
+    "Gate 4 parallel execution remains HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact baseline and merge-base equal 33d4ffc5f8aa5289008a72de301f937137f119e7.",
+    "Exact changed-path inventory contains only docs/operations/GATE2_FANIN_DESIGN.md and work-packages/OPS-WP-008.json.",
+    "OPS-WP-008.json passes tools/validate_repository.py on the exact design head.",
+    "Independent contradictory review covers dependency identity, strict AND fan-in, durable outcome-body binding, BLOCKED versus EMPTY, bounded DAG rejection, recovery and security-profile separation.",
+    "Independent review confirms no runtime, Gate 0, workflow, product, Gate 3 or Gate 4 path changed.",
+    "Any future runtime implementation must rerun the full existing Gate 1 tests with zero skip/xfail camouflage and the unchanged Gate 0 regression suite."
+  ],
+  "adversarialTests": [
+    "Reject a dependency that supplies only job_id.",
+    "Reject duplicate node job_id, request_comment_id or request_sha256 identities.",
+    "Reject duplicate dependency edges.",
+    "Reject direct self-cycles and indirect cycles deterministically.",
+    "Reject missing references and every cross-repository, cross-authority, cross-request-issue, cross-session or cross-generation reference.",
+    "Reject graphs exceeding 65536 canonical payload bytes, 32 nodes, 64 edges, fan-in 8, fan-out 16 or depth 8.",
+    "Prove a descendant is runnable only when every direct predecessor is SATISFIED.",
+    "Prove FAILED, STALE_BEFORE_EXECUTION, STALE_AFTER_EXECUTION and AMBIGUOUS_HOLD never satisfy an edge.",
+    "Prove COMPLETED without a durable outcome-binding receipt remains BINDING_PENDING.",
+    "Mutate an authoritative outcome body while retaining its comment_id and prove the body-digest binding fails closed.",
+    "Delete or edit a predecessor request, outcome, graph or receipt and prove no descendant execution is authorized.",
+    "Prove a graph containing only blocked descendants is not automatically closed as empty.",
+    "Prove simultaneously runnable nodes preserve Gate 1 request_comment_id then job_id election order.",
+    "Prove no predecessor stdout, artifact, code, summary or outcome field can alter descendant Gate 0 request bytes.",
+    "Crash after durable JOB_STARTED and prove RECOVERY_REQUIRED with zero automatic replay.",
+    "Crash after terminal COMPLETED before receipt and prove receipt reconciliation occurs without re-executing Gate 0.",
+    "Create divergent receipt candidates for one predecessor and prove ambiguity causes hold rather than election by convenience.",
+    "Kill mutants that weaken AND to OR, remove body SHA binding, accept blocked as empty, ignore a cycle edge, allow cross-generation references or order by graph position."
+  ],
+  "nonGoals": [
+    "Implementing or activating Gate 2 runtime behavior.",
+    "Changing the accepted Gate 0 request, execution, outcome or publication implementation.",
+    "Redesigning the accepted Gate 1 session, ledger, election, crash-recovery or effect-boundary semantics.",
+    "Adding repository-write jobs, branch/commit/push/workflow-dispatch/merge/release/promotion capability or any Gate 3 behavior.",
+    "Adding runtime parallelism or any Gate 4 behavior.",
+    "Adding dataflow, templating, dynamic request generation, output substitution, optional dependencies, OR fan-in, quorum fan-in or a generic workflow language.",
+    "Allowing cross-session, cross-generation, cross-authority or cross-repository dependency graphs in V1.",
+    "Claiming FULL_V6_SECURITY for the current GATE1_PILOT_READ_ONLY trust profile."
+  ],
+  "independentReview": [
+    "Independent QA must review the exact design head and must not repair the two design-author paths while acting as reviewer.",
+    "Review must challenge all closed contract fields, bounds and deterministic rejection order rather than accepting narrative intent.",
+    "Review must explicitly attack outcome comment mutation because comment_id alone is not an immutable content binding.",
+    "Review must prove that blocked-only and binding-pending states cannot fall through to the current Gate 1 empty-close path.",
+    "Review must challenge cross-session and cross-generation aliasing, duplicate identities, direct/indirect cycles and no-dataflow enforcement.",
+    "Review must keep OWNER-G2-SEC-01 open and must not silently decide whether Gate 2 read-only continuation requires FULL_V6_SECURITY.",
+    "A passing design review does not authorize implementation, activation, merge, Gate 3 or Gate 4."
+  ],
+  "designDecisions": {
+    "dependencyIdentity": "job_id + request_comment_id + request_sha256 + target_sha under the exact repository/authority/request-issue/session/generation graph scope",
+    "fanIn": "strict AND",
+    "satisfyingPredecessor": "Gate 1 terminal COMPLETED plus durable valid Gate 2 outcome-binding receipt",
+    "outcomeBinding": "authoritative Gate 0 comment_id plus SHA-256 of exact UTF-8 comment body, with existing Gate 0 inner validation",
+    "blockedVsEmpty": "BLOCKED, RECONCILING, RECOVERY_REQUIRED and GLOBAL_HOLD are not empty; only COMPLETE is autonomously exhaustible",
+    "graphModel": "static bounded DAG fixed before first execution",
+    "graphBounds": {
+      "maxCanonicalPayloadBytes": 65536,
+      "maxNodes": 32,
+      "maxEdges": 64,
+      "maxFanIn": 8,
+      "maxFanOut": 16,
+      "maxDepthEdges": 8
+    },
+    "boundary": "same repository, authority issue, request issue, session and generation only",
+    "runnableOrder": "existing Gate 1 order by (request_comment_id, job_id)",
+    "dataflow": "forbidden",
+    "crashRecovery": "preserve Gate 1 JOB_STARTED -> RECOVERY_REQUIRED and zero automatic replay",
+    "gate3": "HOLD",
+    "gate4": "HOLD"
+  },
+  "ownerDecisionsOpen": [
+    "OWNER-G2-SEC-01: decide under a separate runtime authority whether dependency-triggered autonomous continuation may use an explicitly limited GATE2_PILOT_READ_ONLY profile or whether FULL_V6_SECURITY is required before Gate 2 activation."
+  ],
+  "futureImplementationAllowlistRecommended": [
+    "tools/ai_jobs/fanin.py",
+    "tools/ai_jobs/run.py",
+    "tools/ai_jobs/__init__.py",
+    "tests/ai_jobs/test_fanin_contracts.py",
+    "tests/ai_jobs/test_fanin_graph.py",
+    "tests/ai_jobs/test_fanin_recovery.py",
+    "tests/ai_jobs/test_fanin_security.py",
+    "tests/ai_jobs/test_fanin_integration.py"
+  ],
+  "futureImplementationAllowlistStatus": "RECOMMENDED_NOT_AUTHORIZED",
+  "execution": {
+    "authorityIssue": 181,
+    "draftPullRequestRequired": true,
+    "mergeAuthorized": false,
+    "runtimeImplementationAuthorized": false,
+    "gate2Activated": false,
+    "gate3Activated": false,
+    "gate4Activated": false
+  },
+  "rollback": "Close the draft design PR without merge, or revert only docs/operations/GATE2_FANIN_DESIGN.md and work-packages/OPS-WP-008.json if this design is withdrawn. Gate 0, Gate 1 runtime and all durable GitHub evidence remain unchanged."
+}
