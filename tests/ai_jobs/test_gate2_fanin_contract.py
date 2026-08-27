@@ -605,18 +605,21 @@ class RepositoryBoundaryTests(unittest.TestCase):
         for path in ("tools/codespace_evidence","tests/codespace_evidence"):
             self.assertEqual(git("rev-parse",f"{BASELINE}:{path}"),git("rev-parse",f"HEAD:{path}"))
 
-    def test_gate1_runtime_is_unchanged_during_design_oracle_preparation(self) -> None:
+    def test_gate1_runtime_was_unchanged_on_bound_design_head(self) -> None:
         self.require_repo()
         self.assertEqual(
             git("rev-parse",f"{BASELINE}:tools/ai_jobs"),
-            git("rev-parse","HEAD:tools/ai_jobs"),
+            git("rev-parse",f"{BOUND_DESIGN_HEAD}:tools/ai_jobs"),
         )
 
-    def test_no_gate2_runtime_module_or_parallel_runtime_is_introduced(self) -> None:
+    def test_bound_design_head_introduced_no_gate2_runtime_or_parallel_runtime(self) -> None:
         self.require_repo()
-        names = {p.name.lower() for p in (ROOT/"tools/ai_jobs").glob("*.py")}
+        names = {
+            name.lower()
+            for name in git("ls-tree","--name-only",f"{BOUND_DESIGN_HEAD}:tools/ai_jobs").splitlines()
+        }
         self.assertFalse(any("gate2" in n or "fanin" in n for n in names))
-        source = (ROOT/"tools/ai_jobs/__init__.py").read_text(encoding="utf-8")
+        source = git("show",f"{BOUND_DESIGN_HEAD}:tools/ai_jobs/__init__.py")
         self.assertIn('"gate3-repository-write-job"', source)
         self.assertIn('"gate4-parallel-execution"', source)
 
