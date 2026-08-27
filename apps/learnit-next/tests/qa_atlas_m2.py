@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""M2 independent-QA head adapter for the refreshed exact product head.
+"""M2 independent-QA adapter for the product head resynchronized onto current main.
 
-This adapter reuses the already-passing contradictory QA oracle from exact QA
-head cfcc3854bd4b18e93a9f8627a89e46d5cc87c3f6, verifies its blob identity,
-and changes only the frozen product-head binding from 104b80f... to 4456853....
-The M2 artifact bytes are unchanged by the product governance-only commit.
+This adapter reuses the exact previously-passing QA file from
+ac84bbfc6fbe788b7f43b5f3edcdd0a016be8699, verifies its blob identity, and changes only the frozen
+product-head binding from 44568536... to ce7cf459....
+The M2 product artifact is independently required to remain byte-identical.
 """
 from __future__ import annotations
 
 import pathlib
 import subprocess
 
-PREVIOUS_QA_HEAD = "cfcc3854bd4b18e93a9f8627a89e46d5cc87c3f6"
-PREVIOUS_QA_BLOB = "a22176b2dfcf65a4195958c17344ca3a2d3e9a69"
+PREVIOUS_QA_HEAD = "ac84bbfc6fbe788b7f43b5f3edcdd0a016be8699"
+PREVIOUS_QA_BLOB = "318280de74367677b70283441e4de8d890298173"
 QA_PATH = "apps/learnit-next/tests/qa_atlas_m2.py"
-OLD_PRODUCT_HEAD = "104b80f2392c9a7593cf8aad8ed1f154487623f0"
-NEW_PRODUCT_HEAD = "445685363d431549fd7addfc2cf3e2f4083d339e"
+OLD_PRODUCT_HEAD = "445685363d431549fd7addfc2cf3e2f4083d339e"
+NEW_PRODUCT_HEAD = "ce7cf459902281c44557ae017f92c7667e0393df"
 HERE = pathlib.Path(__file__).resolve()
 ROOT = HERE.parents[3]
 
