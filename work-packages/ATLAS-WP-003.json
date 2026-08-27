@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-003",
+  "title": "Project Atlas M2 Memory Proof Loop",
+  "status": "in-progress",
+  "changeClass": "product-atlas-memory-proof-loop",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 157,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2"
+  },
+  "purpose": "Activate independently accepted validation in the visible Atlas runtime and add a deterministic local reconfirmation schedule derived only from immutable learning evidence, without claiming durable mastery or adding any runtime service dependency.",
+  "baseline": {
+    "baseCommit": "d32f6ad7f32e213ec5a9d97c3fb9149f985ae491",
+    "m1PromotedProductHead": "354a2cf27954de13435a08a2a4ec014b9e8a2e89",
+    "m1AcceptedQaHead": "67d70e7307402242dbc1939d6cabfd87af617d74",
+    "m1ArtifactBytes": 334194,
+    "m1ArtifactSha256": "6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f",
+    "claimEvidenceRevision": {
+      "packageLineageId": "d20ee1da-a436-43a6-9494-fa6c6ce6d0fe",
+      "packageRevisionId": "c79cdca8-feec-477f-87d4-c88143cbb6a5",
+      "packageDigest": "sha256:598ae3c56f68cbf7940334456194e08537b0f912561dbb536ec80144dfeab962"
+    }
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-m2-ci.yml",
+      ".github/workflows/atlas-m2-qa.yml",
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/adapters/atlas_indexeddb.js",
+      "apps/learnit-next/src/core/atlas_claim_authority.js",
+      "apps/learnit-next/src/core/atlas_evidence.js",
+      "apps/learnit-next/src/core/atlas_memory.js",
+      "apps/learnit-next/src/core/atlas_projection.js",
+      "apps/learnit-next/src/core/atlas_recommendation.js",
+      "apps/learnit-next/src/integration/atlas/bootstrap.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/ui/atlas_summary.js",
+      "apps/learnit-next/src/ui/atlas_today.js",
+      "apps/learnit-next/tests/atlas_m2_memory.py",
+      "apps/learnit-next/tests/qa_atlas_m2.py",
+      "docs/atlas/CONTRACTS.md",
+      "docs/atlas/README.md",
+      "governance/governor-state.json",
+      "work-packages/ATLAS-WP-003.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "backend/**",
+      "accounts/**",
+      "sync/**",
+      "marketplace/**",
+      "commerce/**"
+    ]
+  },
+  "invariants": [
+    "M1 learning events, scored executions, identities, database and namespace remain unchanged and readable.",
+    "No backend, runtime LLM, remote API, account, synchronization or network-required learning behavior is introduced.",
+    "Validation credit requires exact independently accepted claim evidence for the exact unchanged content revision and unassisted execution.",
+    "The M2 runtime never declares a claim accepted merely because content declares it.",
+    "Unknown revision, oracle, evidence artifact or claim identifier fails closed to non-validation behavior.",
+    "Memory scheduling is derived from immutable validation history; no scheduling cursor or new persistent store is introduced.",
+    "The schedule policy is versioned and deterministic: 1 day, 3 days, 7 days, then 21 days for subsequent successful reconfirmations.",
+    "Unresolved errors outrank maintenance recommendations.",
+    "Transfer activities remain non-planifiable in this work package.",
+    "Current public GitHub Pages remains pinned to the promoted M1 artifact until explicit M2 promotion."
+  ],
+  "requiredEvidence": [
+    "Exact product diff remains inside the ATLAS-WP-003 product allowlist and does not modify qa_atlas_m2.py.",
+    "Developer tests prove exact claim binding, forged-claim rejection and all memory schedule boundaries.",
+    "Existing M1 tests remain green with zero silent skip or weakening.",
+    "Two clean deterministic M2 builds are byte-identical.",
+    "Independent QA is authored on a separate head after the product head is fixed.",
+    "Independent QA binds the exact M2 candidate artifact, runs real desktop/mobile browser checks and emits an explicit pass/fail verdict.",
+    "The exact candidate artifact is downloadable for the final human gate."
+  ],
+  "adversarialTests": [
+    "Reject a declared content claim that is absent from the frozen accepted-claim evidence set.",
+    "Reject accepted claim evidence under a different content revision, oracle head or evidence artifact digest.",
+    "Reject validation provenance whose basis event, source activity, target activity or claim ID does not match.",
+    "Reject validation credit after assistance used or unknown.",
+    "Do not schedule the first maintenance before exactly 24 hours have elapsed.",
+    "Prove schedule boundaries 1d, 3d, 7d and 21d and the stable 21d tail.",
+    "A failed maintenance submission produces review-needed without deleting prior successful validation history.",
+    "An unresolved practice error ranks before an otherwise due maintenance opportunity.",
+    "No transfer execution appears in any M2.0/M2.1 plan.",
+    "No database, store, storage namespace or migration is added.",
+    "Network access remains unnecessary for the learning flow."
+  ],
+  "independentReview": [
+    "Dream Team challenge and Steve/Linus arbitration are recorded in issue #157 before implementation.",
+    "Product implementation and independent QA use different heads and QA does not repair product files.",
+    "Integration/candidate assembly may compose accepted heads but may not create missing learning semantics.",
+    "Final M2 promotion and Pages repinning remain human-gated on the exact independently tested artifact."
+  ],
+  "nonGoals": [
+    "Transfer planning or transfer completion claims",
+    "Mastery percentage or durable-retention certification",
+    "Statistical or machine-learning scheduler",
+    "New activity types",
+    "Authoring Studio",
+    "Backend, accounts, cloud synchronization or remote catalog",
+    "Teacher/cohort features",
+    "Marketplace or commerce",
+    "Automatic publication to GitHub Pages"
+  ],
+  "rollback": "Revert only the M2 candidate changes. Existing M1 state remains structurally valid because no storage migration or identity rewrite is performed, and public Pages remains pinned to the previously promoted M1 artifact."
+}

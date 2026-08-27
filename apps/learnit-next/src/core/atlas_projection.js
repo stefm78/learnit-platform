@@ -52,7 +52,18 @@ function projectObjectiveEvidence(learningEvents, scoredExecutions, isValidation
     } else if (execution.executionClass === 'practice') {
       row.practiceAttempts += 1;
       row.latestPracticeCorrect = execution.outcome === 'correct';
-      if (execution.outcome === 'incorrect') latestIncorrect.set(objectiveKey, event.eventId);
+      if (execution.outcome === 'incorrect') {
+        latestIncorrect.set(objectiveKey, event.eventId);
+      } else if (row.state === 'review-needed' && row.latestValidationCorrect === false) {
+        /*
+         * A failed independent validation/reconfirmation means the objective
+         * must be reviewed, not permanently trapped in review-needed. A later
+         * successful practice is fresh evidence that permits a new validation
+         * attempt. The previous validation timestamp/history is preserved; the
+         * next successful attempt-validation starts a new memory cycle.
+         */
+        row.state = 'ready-for-validation';
+      }
     } else if (execution.executionClass === 'validation') {
       row.validationAttempts += 1;
       row.latestValidationCorrect = execution.outcome === 'correct';

@@ -2,6 +2,8 @@ const MODULE_PATHS = Object.freeze({
   clock: 'apps/learnit-next/src/core/atlas_clock.js',
   events: 'apps/learnit-next/src/core/atlas_events.js',
   evidence: 'apps/learnit-next/src/core/atlas_evidence.js',
+  claimAuthority: 'apps/learnit-next/src/core/atlas_claim_authority.js',
+  memory: 'apps/learnit-next/src/core/atlas_memory.js',
   planner: 'apps/learnit-next/src/core/atlas_planner.js',
   projection: 'apps/learnit-next/src/core/atlas_projection.js',
   recommendation: 'apps/learnit-next/src/core/atlas_recommendation.js',

@@ -1,0 +1,269 @@
+name: Atlas M2 CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-m2-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  m2-product:
+    name: M2 exact product evidence
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ATLAS-WP-003-m2-memory-proof-loop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind authority and exact head
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
+          git cat-file -e d32f6ad7f32e213ec5a9d97c3fb9149f985ae491^{commit}
+          [[ "$(git merge-base d32f6ad7f32e213ec5a9d97c3fb9149f985ae491 HEAD)" == d32f6ad7f32e213ec5a9d97c3fb9149f985ae491 ]]
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/ATLAS-WP-003.json').read_text())
+          assert wp['id']=='ATLAS-WP-003'
+          assert wp['authority']['issue']==157
+          assert wp['baseline']['baseCommit']=='d32f6ad7f32e213ec5a9d97c3fb9149f985ae491'
+          assert wp['status']=='in-progress'
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install declared Python test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Materialize exact declared baseline projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          materialized=[]
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fingerprint=item.get('fingerprint',{})
+              if fingerprint.get('kind')!='git-blob-sha1':
+                  continue
+              blob=fingerprint.get('value','')
+              data=subprocess.run(['git','cat-file','blob',blob],check=True,stdout=subprocess.PIPE).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+              materialized.append(str(path))
+          print('ATLAS_M2_MATERIALIZED_DECLARED_FILES='+str(len(materialized)))
+          for path in materialized:
+              print(path)
+          PY
+
+      - name: Run promoted baseline, M1 and M2 developer suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/contract_v2.py
+          python -B apps/learnit-next/tests/storage_isolation.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/atlas_m1_learning.py
+          python -B apps/learnit-next/tests/atlas_m1_core.py
+          python -B apps/learnit-next/tests/atlas_m1_experience.py
+          python -B apps/learnit-next/tests/atlas_m1_content.py
+          python -B apps/learnit-next/tests/atlas_m1_int.py
+          python -B apps/learnit-next/tests/atlas_m2_memory.py
+
+      - name: Enforce M2 local-only boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            apps/learnit-next/src/core/atlas_claim_authority.js
+            apps/learnit-next/src/core/atlas_memory.js
+            apps/learnit-next/src/core/atlas_projection.js
+            apps/learnit-next/src/core/atlas_recommendation.js
+            apps/learnit-next/src/integration/atlas/surface.js
+            apps/learnit-next/src/adapters/atlas_indexeddb.js
+          )
+          ! grep -En 'fetch\(|XMLHttpRequest|WebSocket|EventSource|https?://' "${files[@]}"
+          grep -q "const DATABASE = 'learnit_atlas_m1_v2'" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          grep -q "const VERSION = 1" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          grep -q "'learningEvents'" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          grep -q "'scoredExecutions'" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          grep -q "'resumeStates'" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          grep -q "'atlasMeta'" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          ! grep -R "transfer-completed" apps/learnit-next/src/core/atlas_memory.js apps/learnit-next/src/core/atlas_recommendation.js apps/learnit-next/src/integration/atlas/surface.js
+
+      - name: Generate deterministic M2 manifest preview
+        id: manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp apps/learnit-next/source_manifest.json "${RUNNER_TEMP}/source_manifest.before.json"
+          python - <<'PY'
+          import copy,hashlib,json
+          from pathlib import Path
+          root=Path('.')
+          path=Path('apps/learnit-next/source_manifest.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          self_path='apps/learnit-next/source_manifest.json'
+          additions=['apps/learnit-next/src/core/atlas_claim_authority.js','apps/learnit-next/src/core/atlas_memory.js']
+          m2_owned={
+              'apps/learnit-next/src/adapters/atlas_indexeddb.js',
+              'apps/learnit-next/src/core/atlas_claim_authority.js',
+              'apps/learnit-next/src/core/atlas_memory.js',
+              'apps/learnit-next/src/core/atlas_projection.js',
+              'apps/learnit-next/src/core/atlas_recommendation.js',
+              'apps/learnit-next/src/integration/atlas/bootstrap.js',
+              'apps/learnit-next/src/integration/atlas/surface.js',
+              self_path,
+          }
+          def blob_sha(data):
+              return hashlib.sha1(f'blob {len(data)}\0'.encode('ascii')+data).hexdigest()
+          items=manifest['workingFiles']
+          by_path={item['path']:item for item in items}
+          for item in items:
+              item_path=item['path']
+              if item_path==self_path:
+                  continue
+              disk=root/item_path
+              if disk.is_file():
+                  item['fingerprint']={'kind':'git-blob-sha1','value':blob_sha(disk.read_bytes())}
+              if item_path in m2_owned:
+                  item['owner']='ATLAS-M2'
+                  item['provenance']='ATLAS-WP-003 product implementation'
+          for item_path in additions:
+              if item_path not in by_path:
+                  data=(root/item_path).read_bytes()
+                  item={'fingerprint':{'kind':'git-blob-sha1','value':blob_sha(data)},'owner':'ATLAS-M2','path':item_path,'provenance':'ATLAS-WP-003 product implementation'}
+                  items.append(item)
+                  by_path[item_path]=item
+          ordered=manifest['build']['orderedSources']
+          common=manifest['build']['commonJsSources']
+          anchor='apps/learnit-next/src/core/atlas_evidence.js'
+          for item_path in reversed(additions):
+              if item_path not in ordered:
+                  ordered.insert(ordered.index(anchor)+1,item_path)
+              if item_path not in common:
+                  common.insert(common.index(anchor)+1,item_path)
+          manifest['build']['integrationProjection']['commonJsModuleCount']=len(common)
+          manifest['build']['integrationProjection']['kind']='atlas-m2-browser-commonjs-composition-v1'
+          manifest['build']['integrationProjection']['scope']='promoted M1 source set plus exact ATLAS-WP-003 product modules'
+          manifest['successorWorkPackage']='ATLAS-WP-003'
+          manifest['fileBudget']=len(items)
+          manifest['artifact']={'bytes':0,'finalized':False,'path':'apps/learnit-next/dist/learnit-next.html','sha256':None}
+          self_item=by_path[self_path]
+          self_item['owner']='ATLAS-M2'
+          self_item['provenance']='ATLAS-WP-003 product implementation'
+          self_item['fingerprint']['kind']='canonical-self-sha256'
+          self_item['fingerprint']['value']=None
+          clone=copy.deepcopy(manifest)
+          digest=hashlib.sha256(json.dumps(clone,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf-8')).hexdigest()
+          self_item['fingerprint']['value']=digest
+          path.write_text(json.dumps(manifest,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n',encoding='utf-8')
+          print('ATLAS_M2_MANIFEST_PREVIEW_SHA256='+hashlib.sha256(path.read_bytes()).hexdigest())
+          print('ATLAS_M2_MANIFEST_SELF_SHA256='+digest)
+          print('ATLAS_M2_MANIFEST_FILE_BUDGET='+str(len(items)))
+          print('ATLAS_M2_COMMONJS_COUNT='+str(len(common)))
+          PY
+          if cmp -s "${RUNNER_TEMP}/source_manifest.before.json" apps/learnit-next/source_manifest.json; then echo 'changed=false' >> "${GITHUB_OUTPUT}"; else echo 'changed=true' >> "${GITHUB_OUTPUT}"; fi
+          cp apps/learnit-next/source_manifest.json "${RUNNER_TEMP}/source_manifest.generated.json"
+
+      - name: Build twice deterministically
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/m2-a.html"
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/m2-b.html"
+          cmp "${RUNNER_TEMP}/m2-a.html" "${RUNNER_TEMP}/m2-b.html"
+          sha256sum "${RUNNER_TEMP}/m2-a.html" | tee "${RUNNER_TEMP}/artifact.sha256"
+          wc -c "${RUNNER_TEMP}/m2-a.html" | tee "${RUNNER_TEMP}/artifact.bytes"
+          mkdir -p apps/learnit-next/dist
+          cp "${RUNNER_TEMP}/m2-a.html" apps/learnit-next/dist/learnit-next.html
+          cp "${RUNNER_TEMP}/m2-a.html" apps/learnit-next/m2-candidate.html
+
+      - name: Install Chromium for browser regression
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run strict visible browser non-regression
+        env:
+          LEARNIT_NEXT_STRICT_INTEGRATION: '1'
+        run: python -B apps/learnit-next/tests/browser_vertical_slice.py
+
+      - name: Diff hygiene
+        run: git diff --check d32f6ad7f32e213ec5a9d97c3fb9149f985ae491...HEAD
+
+      - name: Refuse product PASS while manifest preview differs from head
+        if: steps.manifest.outputs.changed == 'true'
+        run: |
+          echo 'ATLAS_M2_MANIFEST_REQUIRES_COMMIT'
+          exit 2
+
+      - name: Write machine-readable product evidence
+        if: success()
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          artifact=Path('apps/learnit-next/m2-candidate.html')
+          data=artifact.read_bytes()
+          proof={'schema':'learnit.atlas.m2.product-evidence.v1','result':'PASS','verdict':'PASS_ATLAS_M2_PRODUCT_HEAD','workPackage':'ATLAS-WP-003','authorityIssue':157,'head':os.environ['TARGET'],'artifactBytes':len(data),'artifactSha256':hashlib.sha256(data).hexdigest(),'networkRequired':False,'database':'learnit_atlas_m1_v2','storageVersion':1,'memoryPolicy':'atlas.memory-policy.v1','intervalDays':[1,3,7,21],'browserRegression':'PASS'}
+          out=Path('apps/learnit-next/.agent-result'); out.mkdir(parents=True,exist_ok=True)
+          (out/'atlas_m2_product.json').write_text(json.dumps(proof,sort_keys=True,separators=(',',':'))+'\n')
+          print(json.dumps(proof,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload M2 diagnostic manifest preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m2-diagnostic-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            ${{ runner.temp }}/source_manifest.generated.json
+            ${{ runner.temp }}/artifact.sha256
+            ${{ runner.temp }}/artifact.bytes
+            apps/learnit-next/m2-candidate.html
+
+      - name: Upload exact M2 product evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m2-product-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          include-hidden-files: true
+          path: |
+            apps/learnit-next/m2-candidate.html
+            apps/learnit-next/.agent-result/atlas_m2_product.json

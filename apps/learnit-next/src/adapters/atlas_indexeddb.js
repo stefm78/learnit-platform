@@ -1,5 +1,7 @@
 'use strict';
 
+const CLAIM_AUTHORITY = require('../core/atlas_claim_authority.js');
+
 const DATABASE = 'learnit_atlas_m1_v2';
 const VERSION = 1;
 const STORE_KEY_PATHS = Object.freeze({
@@ -197,12 +199,26 @@ class IndexedDbAtlasStorage {
   }
 }
 
+function runtimeRegistry(registry) {
+  if (!registry || typeof registry.activity !== 'function') {
+    throw indexedDbError('INVALID_ATLAS_REGISTRY');
+  }
+  return Object.freeze({
+    activity(reference) {
+      return registry.activity(reference);
+    },
+    validateClaim(planItem, details) {
+      return CLAIM_AUTHORITY.validateRuntimeClaim(planItem, details);
+    },
+  });
+}
+
 class IndexedDbAtlasCoreService {
   constructor({ storage, clock, registry }) {
     if (!(storage instanceof IndexedDbAtlasStorage)) throw indexedDbError('INVALID_INDEXEDDB_STORAGE');
     this.storage = storage;
     this.clock = clock;
-    this.registry = registry;
+    this.registry = runtimeRegistry(registry);
   }
 
   createMemoryService() {
@@ -274,6 +290,7 @@ module.exports = Object.freeze({
   readAtlasState,
   replaceAtlasState,
   validateSubmissionDelta,
+  runtimeRegistry,
   IndexedDbAtlasStorage,
   IndexedDbAtlasCoreService,
 });
