@@ -211,6 +211,8 @@ jobs:
           cmp "${RUNNER_TEMP}/transfer-a.html" "${RUNNER_TEMP}/transfer-b.html"
           sha256sum "${RUNNER_TEMP}/transfer-a.html" | tee "${RUNNER_TEMP}/artifact.sha256"
           wc -c "${RUNNER_TEMP}/transfer-a.html" | tee "${RUNNER_TEMP}/artifact.bytes"
+          mkdir -p apps/learnit-next/dist
+          cp "${RUNNER_TEMP}/transfer-a.html" apps/learnit-next/dist/learnit-next.html
           cp "${RUNNER_TEMP}/transfer-a.html" apps/learnit-next/m2-transfer-candidate.html
 
       - name: Install Chromium for browser regression
