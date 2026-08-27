@@ -56,10 +56,12 @@ class ContractOracle(unittest.TestCase):
   for bad in ("junk\n"+good,good.replace("payload_sha256: ","payload_sha256: "+"0"*64,1),good.replace(canon(p).decode(),'{"z":0,"a":1}')):
    with self.subTest(),self.assertRaises(ValueError): parse_envelope(bad)
  def test_scope_author_grant(self):
-  p=self.payload()
+  p=self.payload();self.assertTrue(authority_ok(p,SCOPE,"t","t","grantor","grantor"))
   for f,w in (("repository","x/y"),("authority_issue",1),("request_issue",1),("session_id","G1S-X"),("generation",2),("session_grant_comment_id",2),("session_grant_digest","b"*64)):
-   q=dict(p);q[f]=w;self.assertNotEqual(q[f],SCOPE[f])
-  self.assertNotEqual("attacker","grantor")
+   q=dict(p);q[f]=w
+   with self.subTest(f=f),self.assertRaises(ValueError):authority_ok(q,SCOPE,"t","t","grantor","grantor")
+  with self.assertRaises(ValueError):authority_ok(p,SCOPE,"t","u","grantor","grantor")
+  with self.assertRaises(ValueError):authority_ok(p,SCOPE,"t","t","attacker","grantor")
  def test_strong_identity(self):
   r={"job_id":"JOB-A","request_comment_id":1,"request_sha256":"b"*64,"target_sha":"c"*40}; self.assertEqual(len(node_ref(r)),4)
   for f in tuple(r):
