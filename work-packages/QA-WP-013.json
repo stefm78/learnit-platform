@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-013",
+  "title": "Gate 2 contradictory fan-in oracle",
+  "status": "under-qa",
+  "changeClass": "independent-contradictory-gate2-design-qa",
+  "riskClass": "high",
+  "purpose": "Prepare an independent, fail-closed oracle for the future Gate 2 read-only dependency fan-in design without designing or repairing Gate 2, modifying Gate 1 or Gate 0 runtime, or authorizing later gates. Final QA is forbidden until this oracle is rebound to one frozen exact parent-design HEAD.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "33d4ffc5f8aa5289008a72de301f937137f119e7",
+    "authorityIssue": 182,
+    "parentDesignIssue": 181,
+    "branch": "qa/QA-WP-013-gate2-fanin-oracle",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-013.json",
+      "tests/ai_jobs/test_gate2_fanin_contract.py",
+      "tests/ai_jobs/fixtures/gate2_fanin_valid.json",
+      "tests/ai_jobs/fixtures/gate2_fanin_invalid.json"
+    ],
+    "forbiddenPaths": [
+      "tools/ai_jobs/**",
+      "tools/codespace_evidence/**",
+      ".github/**",
+      "governance/**",
+      "docs/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "kits/**"
+    ]
+  },
+  "invariants": [
+    "QA-WP-013 is an independent oracle lane and never repairs the parent Gate 2 design or runtime implementation.",
+    "No final PASS is permitted before one frozen exact parent-design HEAD is read and recorded as BOUND_EXACT.",
+    "Dependencies are fail-closed on cycles, missing or duplicate predecessors, identity conflicts, wrong repository/issue/session/generation, and outcome-binding ambiguity.",
+    "A descendant is runnable only after every predecessor has one unique immutable non-stale COMPLETED outcome whose exact comment identity and body digest match the dependency binding.",
+    "Blocked work is not an empty queue and cannot justify closure.",
+    "GitHub observation is insensitive to comment delivery order but fails closed on unstable pagination, membership or content across required scans.",
+    "Durable JOB_STARTED remains a replay fence; crash or authority ambiguity after that boundary requires recovery and never automatic replay.",
+    "Gate 2 remains read-only and sequential: no repository-write capability, arbitrary argv/shell channel or parallel execution is accepted.",
+    "Gate 0 remains byte-identical to the preparation baseline and Gate 1 runtime remains unchanged during design-oracle preparation.",
+    "Gate 3 repository-write jobs and Gate 4 parallel execution remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact QA baseline, merge-base, QA head and exactly four changed paths within scope.allowedPaths.",
+    "Independent fixtures cover direct, two-node and longer cycles; missing and duplicate dependencies; logical identity and digest conflicts; failure, stale, ambiguous, deleted, edited and digest-mismatched outcomes; partial and complete fan-in; scope isolation; closure; crash/recovery; bounds and deterministic election.",
+    "Comment-order permutation produces the same observation while pagination/content instability fails closed.",
+    "A blocked queue is explicitly non-empty/non-closable and a descendant cannot become runnable before complete dependency satisfaction.",
+    "No automatic replay occurs after durable JOB_STARTED and duplicate terminal or recovery ambiguity enters RECOVERY_REQUIRED.",
+    "Gate 0 implementation and regression-test trees are byte-identical to main@33d4ffc5f8aa5289008a72de301f937137f119e7.",
+    "Gate 1 runtime tree is unchanged from the preparation baseline while this work remains design QA only.",
+    "Gate 1 regression remains a mandatory clean-checkout 85/85 PASS with zero skip/xfail on the exact bound design review head.",
+    "Gate 0 regression remains a mandatory clean-checkout 80/80 PASS on the exact bound design review head.",
+    "No Gate 2 runtime module, repository-write API, arbitrary command/argv/shell surface or Gate 4 parallel execution capability is introduced.",
+    "Before any final verdict, QA records the exact frozen parent-design HEAD, rereads its two authorized files at that HEAD, and reruns the complete oracle against that exact binding."
+  ],
+  "adversarialTests": [
+    "Reject A->A, A->B->A and longer dependency cycles.",
+    "Reject missing and duplicate dependencies before runnable election.",
+    "Reject same job_id with a different request digest and the same digest under incompatible job identities.",
+    "Keep descendants non-runnable for FAILED, stale, ambiguous, deleted, edited or body-digest-mismatched predecessor outcomes.",
+    "Require all fan-in predecessors; partial satisfaction remains blocked and complete satisfaction becomes runnable.",
+    "Normalize immutable comment order but fail closed on unstable pagination or changed membership/content.",
+    "Reject cross-repository, cross-issue, cross-session and cross-generation dependencies.",
+    "Never treat blocked work as an empty queue or allow premature closure.",
+    "Crash before durable dependency observation cannot start a descendant; crash after JOB_STARTED requires recovery.",
+    "Automatic replay after JOB_STARTED is forbidden; duplicate terminal outcomes and recovery ambiguity require RECOVERY_REQUIRED.",
+    "Attack the declared maximum fan-in, graph depth and node-count boundaries at limit and limit+1.",
+    "Elect exactly one runnable node deterministically regardless of input ordering.",
+    "Reject any Gate 3 repository-write capability, arbitrary argv/shell channel or Gate 4 parallel-execution expansion.",
+    "Fail if Gate 0 bytes drift or if the mandatory Gate 1 85/85 and Gate 0 80/80 regressions are no longer required."
+  ],
+  "nonGoals": [
+    "Designing the Gate 2 dependency contract for the parent lane.",
+    "Repairing or editing docs/operations/GATE2_FANIN_DESIGN.md or work-packages/OPS-WP-008.json.",
+    "Modifying tools/ai_jobs/** or tools/codespace_evidence/**.",
+    "Implementing Gate 2 runtime behavior.",
+    "Authorizing Gate 3 repository writes or Gate 4 parallel execution.",
+    "Changing Gate 0, Gate 1, workflows, product, Atlas, authoring, kits or governance state.",
+    "Issuing a final contradictory PASS against an unfrozen or moving parent-design branch."
+  ],
+  "independentReview": [
+    "The fixture corpus is QA-authored and must not be copied from parent-design examples.",
+    "The pre-candidate oracle may be reviewed and draft-published before the parent design exists, but its final verdict remains structurally unbound.",
+    "After the parent design publishes one frozen exact HEAD, QA rereads that exact design, adapts only this oracle if necessary, and records any design defect as HOLD rather than repairing the parent lane.",
+    "Any parent-design correction invalidates the prior binding and requires a full oracle rerun on the new exact HEAD."
+  ],
+  "execution": {
+    "authorityIssue": 182,
+    "parentDesignIssue": 181,
+    "oracleState": "PRE_CANDIDATE_ORACLE_READY",
+    "verdict": "PRE_CANDIDATE_GATE2_QA_READY",
+    "designBinding": {
+      "status": "UNBOUND",
+      "designHead": null,
+      "designDocument": "docs/operations/GATE2_FANIN_DESIGN.md",
+      "designWorkPackage": "work-packages/OPS-WP-008.json",
+      "designDocumentSha256": null,
+      "designWorkPackageSha256": null
+    },
+    "finalVerdict": null,
+    "allowedFinalVerdicts": [
+      "PASS_GATE2_DESIGN_CONTRADICTORY_QA",
+      "HOLD_GATE2_QA_<concrete-finding>"
+    ],
+    "maximumChangedFiles": 4,
+    "requiresExactDesignHeadBinding": true,
+    "mergeAuthorized": false
+  },
+  "rollback": "Discard or revert only the four QA-WP-013 paths. No Gate 0, Gate 1, Gate 2 runtime, parent-design, workflow, governance or product behavior is modified."
+}

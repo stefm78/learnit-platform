@@ -1,0 +1,346 @@
+{
+  "schema": "learnit.gate2.qa-oracle.v1",
+  "authority_issue": 182,
+  "parent_design_issue": 181,
+  "preparation_baseline": "33d4ffc5f8aa5289008a72de301f937137f119e7",
+  "design_binding": null,
+  "oracle_principles": [
+    "Dependencies are bound to immutable logical identity plus exact predecessor outcome comment and body digest.",
+    "Only a unique immutable COMPLETED predecessor outcome can satisfy a dependency.",
+    "Blocked is not empty and is never closable.",
+    "GitHub observation must be stable under order permutation and fail closed on membership/content instability.",
+    "Exactly one runnable node is elected; parallel execution is outside Gate 2.",
+    "Durable JOB_STARTED is a replay fence and ambiguous recovery remains human-governed."
+  ],
+  "fixture_kind": "valid",
+  "scenarios": [
+    {
+      "id": "complete_fan_in",
+      "probe": "graph",
+      "description": "Two immutable successful predecessors satisfy a descendant fan-in.",
+      "limits": {
+        "max_fan_in": 3,
+        "max_depth": 4,
+        "max_nodes": 8
+      },
+      "nodes": [
+        {
+          "id": "A",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-A",
+            "request_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "request_comment_id": 101
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 501,
+              "body_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "observed_body_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-B",
+            "request_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "request_comment_id": 102
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 502,
+              "body_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+              "observed_body_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "id": "C",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-C",
+            "request_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "request_comment_id": 103
+          },
+          "state": "PENDING",
+          "dependencies": [
+            {
+              "node": "A",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-A",
+                "request_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "request_comment_id": 101
+              },
+              "outcome_binding": {
+                "comment_id": 501,
+                "body_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            },
+            {
+              "node": "B",
+              "identity": {
+                "repository": "stefm78/learnit-platform",
+                "issue": 190,
+                "session_id": "G1S-QA-G2",
+                "generation": 1,
+                "job_id": "J-B",
+                "request_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "request_comment_id": 102
+              },
+              "outcome_binding": {
+                "comment_id": 502,
+                "body_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+              }
+            }
+          ],
+          "outcomes": []
+        }
+      ],
+      "expected": {
+        "queue_state": "RUNNABLE",
+        "runnable": [
+          "C"
+        ],
+        "selected": "C",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "ALL_DEPENDENCIES_SATISFIED"
+      }
+    },
+    {
+      "id": "comment_reorder_is_semantically_stable",
+      "probe": "snapshot",
+      "description": "The same immutable GitHub comments in a different delivery order remain one stable observation.",
+      "scan_a": [
+        {
+          "id": 501,
+          "body_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "created_at": "2026-08-27T05:35:00Z",
+          "updated_at": "2026-08-27T05:35:00Z"
+        },
+        {
+          "id": 502,
+          "body_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "created_at": "2026-08-27T05:35:00Z",
+          "updated_at": "2026-08-27T05:35:00Z"
+        },
+        {
+          "id": 503,
+          "body_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "created_at": "2026-08-27T05:35:00Z",
+          "updated_at": "2026-08-27T05:35:00Z"
+        }
+      ],
+      "scan_b": [
+        {
+          "id": 503,
+          "body_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "created_at": "2026-08-27T05:35:00Z",
+          "updated_at": "2026-08-27T05:35:00Z"
+        },
+        {
+          "id": 501,
+          "body_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "created_at": "2026-08-27T05:35:00Z",
+          "updated_at": "2026-08-27T05:35:00Z"
+        },
+        {
+          "id": 502,
+          "body_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "created_at": "2026-08-27T05:35:00Z",
+          "updated_at": "2026-08-27T05:35:00Z"
+        }
+      ],
+      "expected": {
+        "queue_state": "SNAPSHOT_STABLE",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "ORDER_NORMALIZED_BY_IMMUTABLE_COMMENT_ID"
+      }
+    },
+    {
+      "id": "deterministic_election_multiple_runnable",
+      "probe": "graph",
+      "description": "Several independent runnable roots elect exactly one by immutable request order, regardless of node input order.",
+      "limits": {
+        "max_fan_in": 3,
+        "max_depth": 4,
+        "max_nodes": 8
+      },
+      "nodes": [
+        {
+          "id": "C",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-C",
+            "request_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "request_comment_id": 103
+          },
+          "state": "PENDING",
+          "dependencies": [],
+          "outcomes": []
+        },
+        {
+          "id": "A",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-A",
+            "request_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "request_comment_id": 101
+          },
+          "state": "PENDING",
+          "dependencies": [],
+          "outcomes": []
+        },
+        {
+          "id": "B",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-B",
+            "request_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "request_comment_id": 102
+          },
+          "state": "PENDING",
+          "dependencies": [],
+          "outcomes": []
+        }
+      ],
+      "expected": {
+        "queue_state": "RUNNABLE",
+        "runnable": [
+          "A",
+          "B",
+          "C"
+        ],
+        "selected": "A",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "DETERMINISTIC_SINGLE_ELECTION"
+      }
+    },
+    {
+      "id": "truly_empty_queue_is_closable",
+      "probe": "graph",
+      "description": "A graph containing only terminal completed nodes has no pending work and may be considered empty.",
+      "limits": {
+        "max_fan_in": 3,
+        "max_depth": 4,
+        "max_nodes": 8
+      },
+      "nodes": [
+        {
+          "id": "A",
+          "identity": {
+            "repository": "stefm78/learnit-platform",
+            "issue": 190,
+            "session_id": "G1S-QA-G2",
+            "generation": 1,
+            "job_id": "J-A",
+            "request_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "request_comment_id": 101
+          },
+          "state": "TERMINAL",
+          "dependencies": [],
+          "outcomes": [
+            {
+              "comment_id": 501,
+              "body_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "observed_body_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "created_at": "2026-08-27T05:35:00Z",
+              "updated_at": "2026-08-27T05:35:00Z",
+              "deleted": false,
+              "ambiguous": false,
+              "stale": false,
+              "result": "COMPLETED"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "queue_state": "EMPTY",
+        "runnable": [],
+        "selected": null,
+        "closable": true,
+        "requires_recovery": false,
+        "reason": "NO_PENDING_OR_BLOCKED_NODES"
+      }
+    },
+    {
+      "id": "bounds_at_declared_limit",
+      "probe": "bounds",
+      "description": "A bounded design must accept values exactly at its own declared limits.",
+      "limits": {
+        "max_fan_in": 3,
+        "max_depth": 4,
+        "max_nodes": 8
+      },
+      "observed": {
+        "fan_in": 3,
+        "depth": 4,
+        "nodes": 8
+      },
+      "expected": {
+        "queue_state": "BOUNDS_ACCEPTED",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "AT_DECLARED_LIMIT"
+      }
+    },
+    {
+      "id": "crash_before_durable_dependency_observation",
+      "probe": "crash",
+      "description": "A crash before durable dependency observation never makes the descendant runnable or started.",
+      "durable_dependency_observation": false,
+      "job_started": false,
+      "terminal_outcome_observed": false,
+      "automatic_replay_attempted": false,
+      "authority_ambiguous": false,
+      "expected": {
+        "queue_state": "BLOCKED",
+        "closable": false,
+        "requires_recovery": false,
+        "reason": "DEPENDENCY_OBSERVATION_NOT_DURABLE"
+      }
+    }
+  ]
+}
