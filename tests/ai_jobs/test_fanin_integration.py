@@ -16,6 +16,9 @@ class IntegrationOracle(unittest.TestCase):
  def test_receipt_pending_not_complete(self):self.assertEqual(project([],"COMPLETED",False),"BINDING_PENDING");self.assertEqual(project([],"COMPLETED",True),"SUCCEEDED")
  def test_failed_not_empty(self):self.assertEqual(project(["SATISFIED","FAILED"]),"BLOCKED");self.assertNotEqual(project(["SATISFIED","FAILED"]),"EMPTY")
  def test_complete_only_all_succeeded(self):self.assertFalse(all(x=="SUCCEEDED" for x in ["SUCCEEDED","BINDING_PENDING"]));self.assertTrue(all(x=="SUCCEEDED" for x in ["SUCCEEDED","SUCCEEDED"]))
- def test_final_gate_counts(self):self.assertEqual((85,80,0,0),(85,80,0,0));self.assertTrue(True)
+ def test_final_gate_counts(self):
+  self.assertTrue(final_gate(85,80,0,0,True))
+  for args in ((84,80,0,0,True),(85,79,0,0,True),(85,80,1,0,True),(85,80,0,1,True),(85,80,0,0,False)):
+   with self.subTest(args=args):self.assertFalse(final_gate(*args))
  def test_phase1_unbound_no_final_pass(self):self.assertIsNone(BOUND_IMPLEMENTATION_HEAD);self.assertIsNone(FINAL_VERDICT);self.assertEqual("PRE_IMPLEMENTATION_GATE2_RUNTIME_QA_READY","PRE_IMPLEMENTATION_GATE2_RUNTIME_QA_READY")
 if __name__=="__main__":unittest.main()
