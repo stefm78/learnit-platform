@@ -6,6 +6,8 @@ RC718 remains the frozen legacy standalone product. The successor is a distinct 
 
 The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
+> **Historical status (post-Atlas M1):** the C1–C7 sequence below records the clean-generation path that led to Learn-it Next. It is retained as historical planning evidence, not as the active roadmap or current gate. Learning Loop V2 and Atlas M1 have since been promoted; Atlas M2 is active under issue `#157`. No new roadmap is defined here.
+
 ## Completed foundation
 
 ### L0 — frozen legacy product
@@ -21,7 +23,7 @@ The roadmap is evidence-gated. Repository state, accepted ADRs and work packages
 - `ARC-WP-021` selected trajectory C.
 - RC718 compatibility resolver, overlay, dual-read and learner-state migration are cancelled.
 
-## Current gate
+## Historical gate
 
 ### C1 — clean-generation foundation design (`ARC-WP-022`)
 
@@ -40,7 +42,7 @@ Freeze before implementation:
 
 Exit gate: the foundation can be implemented without two agents editing the same file or inventing missing contract semantics.
 
-## First implementation cycle
+## Historical first implementation cycle
 
 After C1 is accepted, four AI streams may run in parallel from the same exact baseline.
 
@@ -99,7 +101,7 @@ A separate integrator:
 
 Exit gate: one deterministic shell imports and validates both golden kits while RC718 storage remains byte-for-byte unchanged.
 
-## Minimal vertical product slice
+## Historical minimal vertical product slice
 
 ### C3 — learn one activity end to end
 
@@ -127,7 +129,7 @@ Exit gate:
 - RC718 data is untouched;
 - tested artifact equals proposed artifact.
 
-## Capability recovery
+## Historical capability recovery
 
 ### C4 — justified learning core
 
@@ -154,7 +156,7 @@ Prove the intended learning loop:
 
 Exit gate: the two golden kits are pedagogically complete and pass human learning review.
 
-## Later local capabilities
+## Historical later local capabilities
 
 ### C6 — structured transactional storage
 
