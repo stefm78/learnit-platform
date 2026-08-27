@@ -71,7 +71,7 @@ Every other pair is rejected. Correction is never inferred from title, position,
 ```text
 LearningAction =
   start-practice | continue-practice | correct-practice |
-  attempt-validation | maintain-recent-validation
+  attempt-validation | maintain-recent-validation | attempt-transfer
 
 ExecutionClass = practice | correction | validation | transfer | diagnostic
 Outcome = correct | incorrect
@@ -97,10 +97,42 @@ ReasonCode =
   NEW_OBJECTIVE | PRACTICE_IN_PROGRESS | RECENT_ERROR |
   REVIEW_REQUIRED | CORRECTION_COMPLETED |
   NO_INDEPENDENT_VALIDATION | VALIDATION_AVAILABLE |
-  RECENTLY_VALIDATED | SESSION_TIME_LIMIT
+  RECENTLY_VALIDATED | TRANSFER_AVAILABLE | SESSION_TIME_LIMIT
 ```
 
 `transfer-completed` and all free-form alternatives are forbidden.
+
+### M2.2 transfer evidence
+
+Transfer remains a distinct observed evidence category, not a mastery state.
+
+```text
+TransferEvidence {
+  transferEvidenceVersion: "atlas.transfer-evidence.v1",
+  objectiveRef,
+  attempts >= 0,
+  independentSuccesses >= 0,
+  lastAttemptAt: canonicalTimestamp|null,
+  lastIndependentSuccessAt: canonicalTimestamp|null
+}
+```
+
+`attempt-transfer` maps only to existing `ExecutionClass=transfer` and only authored
+`learningPhase=transfer / assessmentRole=practice` activities are eligible.
+
+Transfer is planifiable only after at least one successful admissible
+`maintain-recent-validation` in the current validation cycle. Each successful
+maintenance reconfirmation unlocks at most one later transfer attempt. A later
+successful maintenance reconfirmation may unlock one new attempt.
+
+Priority is fail-closed and deterministic: unresolved review/correction first,
+then due maintenance, then an unlocked transfer challenge. Transfer never resets
+or extends the 1/3/7/21 memory schedule. Correct + unassisted transfer increments
+independent transfer success; incorrect or assisted transfer remains observed
+without independent success and without erasing prior validation.
+
+`ObjectiveEvidence v1` remains unchanged. Transfer evidence is a pure projection
+from accepted activity-attempt events plus scored executions.
 
 ## Recommendation, plans, maintenance, fairness
 

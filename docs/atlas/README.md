@@ -72,6 +72,8 @@ M1 n’inclut pas de backend, compte, synchronisation, catalogue distant, market
 
 Révision espacée, validation différée, reconfirmation, erreurs récurrentes et défis de transfert.
 
+M2.0/M2.1 (mémoire et reconfirmation) sont promus. M2.2 ajoute de façon bornée un défi de transfert déterministe après reconfirmation : une reconfirmation réussie ouvre au plus une tentative de transfert ultérieure, sans modifier l’horloge mémoire ni produire de claim de maîtrise.
+
 ### M3 — Authoring Studio
 
 Édition visuelle, aperçu, validation en direct, import de documents, assistance LLM hors runtime et publication de kits canoniques.

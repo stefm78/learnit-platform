@@ -246,6 +246,16 @@ function maintenanceOpportunity(context, state, objectiveRef, admissibleIds, now
   });
 }
 
+function hasTransferActivity(context, objectiveRef) {
+  return context.course.activities.some(activity => (
+    Array.isArray(activity.objectiveIds)
+    && activity.objectiveIds.length === 1
+    && activity.objectiveIds[0] === objectiveRef.objectiveId
+    && activity.learningPhase === 'transfer'
+    && activity.assessmentRole === 'practice'
+  ));
+}
+
 function recommendationContext(context, state, row, admissibleIds, now, modules) {
   if (row.evidence.state === 'review-needed') {
     return Object.freeze({
@@ -266,21 +276,31 @@ function recommendationContext(context, state, row, admissibleIds, now, modules)
   }
   if (row.evidence.state === 'validated-recently') {
     const maintenance = maintenanceOpportunity(context, state, row.objectiveRef, admissibleIds, now, modules);
-    if (!maintenance.opportunity) {
+    if (maintenance.opportunity) {
       return Object.freeze({
         hasAcceptedValidation: true,
-        maintenanceEligible: false,
+        maintenanceEligible: true,
+        transferEligible: false,
+        acceptedTargetActivityRefs: Object.freeze(
+          maintenance.opportunity.targets.map(target => target.targetActivityRef),
+        ),
+        opportunity: maintenance.opportunity,
         memory: maintenance.memory,
       });
     }
+    const transfer = modules.transfer.status({
+      learningEvents: state.learningEvents,
+      scoredExecutions: state.scoredExecutions,
+      objectiveRef: row.objectiveRef,
+      admissibleExecutionIds: admissibleIds,
+      evidenceModule: modules.evidence,
+    });
     return Object.freeze({
       hasAcceptedValidation: true,
-      maintenanceEligible: true,
-      acceptedTargetActivityRefs: Object.freeze(
-        maintenance.opportunity.targets.map(target => target.targetActivityRef),
-      ),
-      opportunity: maintenance.opportunity,
+      maintenanceEligible: false,
+      transferEligible: transfer.eligible && hasTransferActivity(context, row.objectiveRef),
       memory: maintenance.memory,
+      transfer,
     });
   }
   return Object.freeze({hasAcceptedValidation: false, maintenanceEligible: false});
@@ -348,7 +368,7 @@ async function buildPreview(context, durationMinutes, atlasRuntime) {
   });
 
   const plan = modules.planner.buildPlan({
-    engineVersion: 'atlas.m2.memory.v1',
+    engineVersion: 'atlas.m2.transfer.v1',
     courseRef: content.courseRef,
     contentRevisionRef: content.contentRevisionRef,
     durationMinutes,

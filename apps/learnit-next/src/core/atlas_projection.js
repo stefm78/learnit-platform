@@ -76,6 +76,15 @@ function projectObjectiveEvidence(learningEvents, scoredExecutions, isValidation
       } else if (execution.outcome === 'incorrect') {
         row.state = 'review-needed';
       }
+    } else if (execution.executionClass === 'transfer') {
+      if (execution.action !== 'attempt-transfer' || row.state !== 'validated-recently') {
+        E.fail('TRANSFER_WITHOUT_CURRENT_VALIDATION');
+      }
+      /*
+       * Transfer is additive observed evidence. Correct, incorrect or assisted
+       * transfer never rewrites ObjectiveEvidence v1 and never resets the
+       * independent validation/reconfirmation clock.
+       */
     } else {
       E.fail('EVENT_EXECUTION_CLASS_MISMATCH');
     }
