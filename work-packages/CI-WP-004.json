@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-004",
   "title": "Make Learn-it Next CI product-relevance aware",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "ci-routing-correction",
   "riskClass": "moderate",
   "purpose": "Run Learn-it Next product CI only for Learn-it Next or Atlas-relevant changes, preserve exact existing product routes and exact-head dispatch proofs, and avoid false-red product verification on unrelated infrastructure changes.",
@@ -81,7 +81,8 @@
     "Merging or releasing from this lane."
   ],
   "independentReview": [
-    "Independent exact-head CI review must verify event-path semantics, fail-closed unknown product routing, preserved Atlas and Wave A routes, and the eight-case matrix before merge."
+    "Independent exact-head CI review must verify event-path semantics, fail-closed unknown product routing, preserved Atlas and Wave A routes, and the eight-case matrix before merge.",
+    "Independent contradictory QA PASS on exact head 656d1658dfeb77c1f3e5e4d8c55ab6c02465a19f with verdict PASS_CI_WP_004_INDEPENDENT_QA."
   ],
   "execution": {
     "issue": 177,
@@ -91,11 +92,15 @@
     ],
     "requiresContradictoryReviewBeforeMerge": true,
     "requiresGovernorLinusReviewBeforeMerge": false,
-    "mergeStatus": "held",
+    "mergeStatus": "merged",
     "qaRejectedHead": "14403e303e6476cb9be3a940d2373d939d842f57",
     "qaHold": "HOLD_CI_WP_004_QA_RENAME_OUT_PRODUCT_SIGNAL_LOSS",
     "synchronizationParent": "a66fa300557051dc73adc2a15a662c19f79c300b",
-    "synchronizationMode": "merge-commit"
+    "synchronizationMode": "merge-commit",
+    "acceptedHead": "656d1658dfeb77c1f3e5e4d8c55ab6c02465a19f",
+    "mergeCommit": "91b443c742487b9d3f528d3afb14aa8ae38c876b",
+    "mergedPullRequest": 179,
+    "qaVerdict": "PASS_CI_WP_004_INDEPENDENT_QA"
   },
   "rollback": "Close the draft pull request without merge, or revert only the Learn-it Next CI workflow relevance router and CI-WP-004 metadata after merge."
 }
