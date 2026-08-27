@@ -8,7 +8,7 @@
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "project-atlas-m2-promoted-stable",
-    "status": "stable",
+    "status": "complete",
     "description": "Atlas M2 is promoted, independently QA-accepted, human-approved and published as the exact canonical GitHub Pages artifact. No next product increment is currently authorized."
   },
   "currentMain": {
@@ -17,7 +17,7 @@
     "description": "Post-M2 Pages promotion main: Atlas M2 product merge dd0c1911 plus exact-artifact Pages repin via ATLAS-WP-004."
   },
   "developmentBaseline": {
-    "status": "unselected",
+    "status": "not-selected",
     "workPackage": null,
     "candidate": null,
     "sourceCommit": null,
@@ -116,13 +116,13 @@
     }
   ],
   "nextMandatoryGate": {
-    "id": "NEW_PRODUCT_AUTHORITY_REQUIRED",
-    "condition": "Before any new product increment, create an explicit authority issue/work package that selects the next bounded scope, baseline, independent QA boundary and human decision rights."
+    "id": "GOV-WP-001",
+    "condition": "Permanent governor review must authorize and bind a new explicit product work package before any next product increment begins."
   },
   "review": {
     "lastReviewedAt": "2026-08-27",
     "lastReviewedBy": "Accountable owner with completed independent QA and human M2 promotion gate",
-    "decision": "M2_PROMOTED_STABLE_NO_ACTIVE_NEXT_INCREMENT",
+    "decision": "HOLD",
     "authorityIssue": 157,
     "nextReviewTrigger": "new product increment proposal, security/autonomy expansion, storage migration, accessibility reactivation trigger, or material governance/ruleset change"
   }
