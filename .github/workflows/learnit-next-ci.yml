@@ -3,8 +3,18 @@ name: Learn-it Next CI
 on:
   pull_request:
     branches: [main]
+    paths:
+      - '.github/workflows/learnit-next-ci.yml'
+      - 'apps/learnit-next/**'
+      - 'authoring/v2/**'
+      - 'contracts/**'
   push:
     branches: [main]
+    paths:
+      - '.github/workflows/learnit-next-ci.yml'
+      - 'apps/learnit-next/**'
+      - 'authoring/v2/**'
+      - 'contracts/**'
   workflow_dispatch:
     inputs:
       verification_mode:
@@ -101,7 +111,7 @@ jobs:
               agent/ATLAS-WP-001-content) echo 'atlas-content contract' ;;
               agent/ATLAS-WP-001-qa) echo 'atlas-qa contract' ;;
               agent/PROG-WP-001-wave-a-learning|agent/PROG-WP-001-wave-a-ux|agent/PROG-WP-001-wave-a-authoring|agent/PROG-WP-001-wave-a-platform|agent/PROG-WP-001-wave-a-qa|agent/PROG-WP-001-wave-a-int) echo 'wave-a wave' ;;
-              *) return 2 ;;
+              *) echo 'ci-router wave' ;;
             esac
           }
 
@@ -112,10 +122,7 @@ jobs:
               branch="${PR_REF}"
               pr="${PR_NUMBER}"
               mode=integration-head
-              read -r profile family < <(route_branch "${branch}") || {
-                echo "Unrecognized pull-request branch: ${branch}" >&2
-                exit 2
-              }
+              read -r profile family < <(route_branch "${branch}")
               ;;
             push)
               target="${PUSH_SHA}"
@@ -187,11 +194,43 @@ jobs:
               echo 'Post-merge target must have exactly two parents.' >&2
               exit 2
             }
-            mapfile -t changed < <(git diff --name-only "${parents[0]}" HEAD | sed '/^$/d' | sort -u)
+            parse_name_status_paths() {
+              local status path old_path new_path
+              local -a paths=()
+              while IFS= read -r -d '' status; do
+                case "${status}" in
+                  R*|C*)
+                    IFS= read -r -d '' old_path || return 2
+                    IFS= read -r -d '' new_path || return 2
+                    paths+=("${old_path}" "${new_path}")
+                    ;;
+                  *)
+                    IFS= read -r -d '' path || return 2
+                    paths+=("${path}")
+                    ;;
+                esac
+              done
+              printf '%s\n' "${paths[@]}" | sed '/^$/d' | sort -u
+            }
+
+            collect_changed_paths() {
+              git diff --name-status -z "$1" "$2" | parse_name_status_paths
+            }
+
+            changed_text="$(collect_changed_paths "${parents[0]}" HEAD)"
+            mapfile -t changed < <(printf '%s\n' "${changed_text}" | sed '/^$/d')
             actual="$(printf '%s\n' "${changed[@]}")"
 
+            product_relevant=false
+            workflow_changed=false
             support_only=true
             for path in "${changed[@]}"; do
+              case "${path}" in
+                apps/learnit-next/**|authoring/v2/**|contracts/**) product_relevant=true ;;
+              esac
+              case "${path}" in
+                .github/workflows/learnit-next-ci.yml) workflow_changed=true ;;
+              esac
               case "${path}" in
                 .github/workflows/learnit-next-ci.yml|apps/learnit-next/dev/run_checks.py) ;;
                 *) support_only=false ;;
@@ -200,7 +239,12 @@ jobs:
 
             expected_atlas="$(printf '%s\n' "${ATLAS_M1_PROMOTION_PATHS}" | sed '/^$/d' | sort -u)"
 
-            if [[ ${#changed[@]} -gt 0 && "${support_only}" == true ]]; then
+            if [[ "${workflow_changed}" == true && "${product_relevant}" == false ]]; then
+              profile=ci-router
+              branch=main
+              base="${WAVE_A_BASE}"
+              post_merge=false
+            elif [[ ${#changed[@]} -gt 0 && "${support_only}" == true ]]; then
               profile=atlas-support
               branch=agent/ATLAS-WP-001-support-governance-ci
               base="${REVISION_SAFE_SUPPORT_BASE}"
@@ -404,6 +448,7 @@ jobs:
       - name: Run exact routed profile
         shell: bash
         env:
+          EVENT: ${{ github.event_name }}
           PROFILE: ${{ steps.profile.outputs.name }}
           BRANCH: ${{ steps.profile.outputs.branch }}
           BASE: ${{ steps.profile.outputs.base }}
@@ -411,12 +456,137 @@ jobs:
           MODE: ${{ steps.target.outputs.mode }}
           ACCEPTED: ${{ steps.target.outputs.accepted }}
           POST_MERGE: ${{ steps.profile.outputs.post_merge }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HTTP_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           HTTPS_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           ALL_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           ATLAS_NETWORK_BLOCKED: ${{ steps.profile.outputs.name == 'atlas-contracts' && '1' || '0' }}
         run: |
           set -euo pipefail
+
+          if [[ "${PROFILE}" == ci-router ]]; then
+            case "${EVENT}" in
+              pull_request)
+                [[ "${PR_BASE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+                git fetch --force --no-tags origin "${PR_BASE_SHA}"
+                compare_base="$(git merge-base "${PR_BASE_SHA}" "${TARGET}")"
+                ;;
+              push)
+                parents=( $(git show -s --format=%P HEAD) )
+                [[ ${#parents[@]} -eq 2 ]]
+                compare_base="${parents[0]}"
+                ;;
+              *)
+                echo "ci-router is only valid for automatic PR/push events." >&2
+                exit 2
+                ;;
+            esac
+
+            parse_name_status_paths() {
+              local status path old_path new_path
+              local -a paths=()
+              while IFS= read -r -d '' status; do
+                case "${status}" in
+                  R*|C*)
+                    IFS= read -r -d '' old_path || return 2
+                    IFS= read -r -d '' new_path || return 2
+                    paths+=("${old_path}" "${new_path}")
+                    ;;
+                  *)
+                    IFS= read -r -d '' path || return 2
+                    paths+=("${path}")
+                    ;;
+                esac
+              done
+              printf '%s\n' "${paths[@]}" | sed '/^$/d' | sort -u
+            }
+
+            collect_changed_paths() {
+              git diff --name-status -z "$1" "$2" | parse_name_status_paths
+            }
+
+            changed_text="$(collect_changed_paths "${compare_base}" "${TARGET}")"
+            mapfile -t changed < <(printf '%s\n' "${changed_text}" | sed '/^$/d')
+            product_relevant=false
+            workflow_changed=false
+            for path in "${changed[@]}"; do
+              case "${path}" in
+                apps/learnit-next/**|authoring/v2/**|contracts/**) product_relevant=true ;;
+              esac
+              case "${path}" in
+                .github/workflows/learnit-next-ci.yml) workflow_changed=true ;;
+              esac
+            done
+
+            [[ "${workflow_changed}" == true ]] || {
+              echo "Unknown branch reached Learn-it Next CI without a workflow audit change." >&2
+              exit 2
+            }
+            [[ "${product_relevant}" == false ]] || {
+              echo "Unrecognized pull-request branch with product-relevant changes: ${BRANCH}" >&2
+              exit 2
+            }
+
+            is_product_path() {
+              case "$1" in
+                apps/learnit-next/**|authoring/v2/**|contracts/**) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            for sample in \
+              apps/learnit-next/src/main.js \
+              authoring/v2/validate_kit.py \
+              contracts/learnit-kit-v2.schema.json; do
+              is_product_path "${sample}"
+            done
+            for sample in \
+              tools/ai_jobs/example.py \
+              tests/ai_jobs/example.py \
+              governance/governor-state.json \
+              work-packages/CI-WP-004.json \
+              .github/workflows/pr-scope.yml; do
+              ! is_product_path "${sample}"
+            done
+
+            status_stream_is_product_relevant() {
+              local stream="$1" parsed path
+              local -a paths=()
+              parsed="$(printf '%b' "${stream}" | parse_name_status_paths)"
+              mapfile -t paths < <(printf '%s\n' "${parsed}" | sed '/^$/d')
+              for path in "${paths[@]}"; do
+                if is_product_path "${path}"; then
+                  return 0
+                fi
+              done
+              return 1
+            }
+
+            assert_status_product_relevance() {
+              local label="$1" expected="$2" stream="$3" actual=false
+              if status_stream_is_product_relevant "${stream}"; then
+                actual=true
+              fi
+              [[ "${actual}" == "${expected}" ]] || {
+                echo "ci-router rename-aware self-test failed: ${label}: expected=${expected} actual=${actual}" >&2
+                exit 2
+              }
+            }
+
+            assert_status_product_relevance rename-out-learnit true 'R100\x00apps/learnit-next/src/foo.js\x00docs/foo.js\x00'
+            assert_status_product_relevance workflow-plus-rename-out true 'M\x00.github/workflows/learnit-next-ci.yml\x00R100\x00apps/learnit-next/src/foo.js\x00docs/foo.js\x00'
+            assert_status_product_relevance rename-out-authoring true 'R100\x00authoring/v2/foo.json\x00docs/foo.json\x00'
+            assert_status_product_relevance rename-out-contracts true 'R100\x00contracts/foo.json\x00docs/foo.json\x00'
+            assert_status_product_relevance delete-product true 'D\x00apps/learnit-next/src/foo.js\x00'
+            assert_status_product_relevance rename-infra false 'R100\x00docs/a.md\x00docs/b.md\x00'
+            assert_status_product_relevance rename-into-product true 'R100\x00docs/foo.js\x00apps/learnit-next/src/foo.js\x00'
+            assert_status_product_relevance copy-out-product true 'C100\x00contracts/source.json\x00docs/source.json\x00'
+
+            echo "CI_ROUTER_RENAME_MATRIX=PASS"
+            echo "CI_ROUTER_SELF_TEST=PASS"
+            echo "CI_ROUTER_CHANGED_PATHS=$(printf '%s,' "${changed[@]}")"
+            exit 0
+          fi
+
           runner="${GITHUB_WORKSPACE}/apps/learnit-next/dev/run_checks.py"
           if [[ "${PROFILE}" != atlas-support ]]; then
             runner="${RUNNER_TEMP}/atlas-m1-run-checks.py"

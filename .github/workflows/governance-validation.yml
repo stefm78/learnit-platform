@@ -26,3 +26,15 @@ jobs:
 
       - name: Validate repository governance
         run: python tools/validate_repository.py
+
+  repository-governance-context:
+    name: Repository governance
+    needs: validate-repository
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Mirror authoritative validation result
+        env:
+          UPSTREAM_RESULT: ${{ needs.validate-repository.result }}
+        run: test "${UPSTREAM_RESULT}" = "success"

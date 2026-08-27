@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-027",
+  "title": "CI-WP-004 post-merge metadata closeout",
+  "status": "approved",
+  "changeClass": "governance-metadata-closeout",
+  "riskClass": "low",
+  "purpose": "Reconcile the factual terminal metadata of merged CI-WP-004 without changing workflows, product, runtime, governance rules or historical provenance.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "91b443c742487b9d3f528d3afb14aa8ae38c876b",
+    "authorityIssue": 186,
+    "branch": "gov/GOV-WP-027-ci-wp-004-closeout"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/CI-WP-004.json",
+      "work-packages/GOV-WP-027.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "docs/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "Exactly two work-package JSON paths may change.",
+    "CI-WP-004 historical baseline, scope, invariants, adversarial evidence, rejected head, QA hold and rollback remain preserved.",
+    "Only factual post-merge terminal metadata is added to CI-WP-004.",
+    "No workflow, product, runtime, Gate 0, Gate 1, Gate 2, Atlas M2 or ruleset behavior changes."
+  ],
+  "requiredEvidence": [
+    "PR #179 is merged with exact accepted implementation head 656d1658dfeb77c1f3e5e4d8c55ab6c02465a19f.",
+    "Merge commit is exactly 91b443c742487b9d3f528d3afb14aa8ae38c876b.",
+    "Independent QA verdict is PASS_CI_WP_004_INDEPENDENT_QA.",
+    "CI-WP-004 status is accepted and execution metadata records the factual merge.",
+    "Repository governance and PR scope are green on the exact closeout head."
+  ],
+  "adversarialTests": [
+    "Fail if any path outside the two JSON files changes.",
+    "Fail if any CI-WP-004 implementation or historical evidence field is removed.",
+    "Fail if merge SHA, accepted head, PR number or QA verdict differs from GitHub facts."
+  ],
+  "nonGoals": [
+    "Changing Learn-it Next CI.",
+    "Changing product or tests.",
+    "Changing Gate 2 design or QA.",
+    "Changing rulesets or branch protection."
+  ],
+  "independentReview": [
+    "Repository governance validates schema and terminal vocabulary.",
+    "PR scope validates the exact two-path allowlist.",
+    "GitHub facts for PR #179, accepted head and merge SHA are cross-checked."
+  ],
+  "execution": {
+    "issue": 186,
+    "maximumChangedFiles": 2,
+    "newFilesAuthorized": [
+      "work-packages/GOV-WP-027.json"
+    ],
+    "autonomousMergeAfterGreenChecks": true,
+    "pullRequest": 187
+  },
+  "rollback": "Revert only the GOV-WP-027 metadata closeout; CI-WP-004 implementation remains merged and unchanged."
+}

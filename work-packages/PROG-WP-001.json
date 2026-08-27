@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "PROG-WP-001",
   "title": "Learning Loop V2 program authority and controlled parallel execution",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "product-learning-loop-v2",
   "riskClass": "high",
   "authority": {
