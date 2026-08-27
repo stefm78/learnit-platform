@@ -63,7 +63,8 @@
     "newFilesAuthorized": [
       "work-packages/GOV-WP-027.json"
     ],
-    "autonomousMergeAfterGreenChecks": true
+    "autonomousMergeAfterGreenChecks": true,
+    "pullRequest": 187
   },
   "rollback": "Revert only the GOV-WP-027 metadata closeout; CI-WP-004 implementation remains merged and unchanged."
 }
