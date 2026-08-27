@@ -15,6 +15,10 @@ import unittest
 from typing import Any
 
 BASELINE = "33d4ffc5f8aa5289008a72de301f937137f119e7"
+BOUND_DESIGN_HEAD = "5a8c542c675d72f11a7f250ab58c5a2c3cbbf4f3"
+BOUND_DESIGN_DOCUMENT_SHA256 = "7e8ea3b8abf2b44883cee786635cdf33e277c7197f155f2262a8d2cdc5ecb783"
+BOUND_DESIGN_WORK_PACKAGE_SHA256 = "1ab0af3b3f59e4581e6e68f7fdf3be12d128185a2edf11c27415d5a581f80215"
+BOUND_HOLD = "HOLD_GATE2_QA_PRE_EFFECT_DEPENDENCY_REVALIDATION_UNSPECIFIED"
 EXPECTED_REPOSITORY = "stefm78/learnit-platform"
 EXPECTED_GATE0_OPERATIONS = {
     "pr-snapshot", "pr-governor-evidence",
@@ -43,6 +47,10 @@ REQUIRED_ATTACK_IDS = {
     "duplicate_terminal", "recovery_ambiguity", "bounds_at_declared_limit",
     "max_fan_in_exceeded", "max_depth_exceeded", "max_nodes_exceeded",
     "deterministic_election_multiple_runnable",
+    "complete_fan_in_eight_predecessors",
+    "max_edges_exceeded", "max_fan_out_exceeded", "max_payload_bytes_exceeded",
+    "dependency_invalidated_after_election_before_effect",
+    "dependency_invalidated_after_job_started_before_effect",
 }
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -224,6 +232,9 @@ def bounds_oracle(case: dict[str, Any]) -> dict[str, Any]:
         ("fan_in","MAX_FAN_IN_EXCEEDED"),
         ("depth","MAX_DEPTH_EXCEEDED"),
         ("nodes","MAX_NODES_EXCEEDED"),
+        ("edges","MAX_EDGES_EXCEEDED"),
+        ("fan_out","MAX_FAN_OUT_EXCEEDED"),
+        ("payload_bytes","MAX_PAYLOAD_BYTES_EXCEEDED"),
     ):
         if obs[key] > lim["max_" + key]:
             return {"queue_state":"INVALID","closable":False,
@@ -257,10 +268,23 @@ def closure_oracle(case: dict[str, Any]) -> dict[str, Any]:
     return {"queue_state":"EMPTY","closable":True,
             "requires_recovery":False,"reason":"NO_PENDING_OR_BLOCKED_NODES"}
 
+def timing_oracle(case: dict[str, Any]) -> dict[str, Any]:
+    if not case.get("predecessor_invalidated_after_selection"):
+        return {"queue_state":"INVALID","job_started":bool(case.get("descendant_job_started")),
+                "gate0_invoked":bool(case.get("gate0_invoked")),"closable":False,
+                "requires_recovery":False,"reason":"TIMING_PROBE_MISSING_INVALIDATION"}
+    if case.get("descendant_job_started"):
+        return {"queue_state":"RECOVERY_REQUIRED","job_started":True,
+                "gate0_invoked":False,"closable":False,
+                "requires_recovery":True,"reason":"DEPENDENCY_INVALIDATED_POST_START_PRE_EFFECT"}
+    return {"queue_state":"GLOBAL_HOLD","job_started":False,
+            "gate0_invoked":False,"closable":False,
+            "requires_recovery":False,"reason":"DEPENDENCY_INVALIDATED_BEFORE_JOB_STARTED"}
+
 def evaluate(case: dict[str, Any]) -> dict[str, Any]:
     return {
         "graph": graph_oracle, "snapshot": snapshot_oracle,
-        "bounds": bounds_oracle, "crash": crash_oracle, "closure": closure_oracle,
+        "bounds": bounds_oracle, "crash": crash_oracle, "closure": closure_oracle, "timing": timing_oracle,
     }[case["probe"]](case)
 
 class FixtureOracleTests(unittest.TestCase):
@@ -269,7 +293,10 @@ class FixtureOracleTests(unittest.TestCase):
             doc = load_json(FIXTURES / name)
             self.assertEqual(doc["schema"], FIXTURE_SCHEMA)
             self.assertEqual(doc["preparation_baseline"], BASELINE)
-            self.assertIsNone(doc["design_binding"])
+            self.assertEqual(doc["design_binding"]["status"], "BOUND_EXACT")
+            self.assertEqual(doc["design_binding"]["head"], BOUND_DESIGN_HEAD)
+            self.assertEqual(doc["design_binding"]["design_document_sha256"], BOUND_DESIGN_DOCUMENT_SHA256)
+            self.assertEqual(doc["design_binding"]["design_work_package_sha256"], BOUND_DESIGN_WORK_PACKAGE_SHA256)
             self.assertEqual(doc["authority_issue"], 182)
             self.assertEqual(doc["parent_design_issue"], 181)
             self.assertTrue(doc["oracle_principles"])
@@ -308,25 +335,28 @@ class FixtureOracleTests(unittest.TestCase):
             self.assertTrue(got["requires_recovery"])
             self.assertEqual(got["queue_state"], "RECOVERY_REQUIRED")
 
-class PreCandidateBindingTests(unittest.TestCase):
-    def test_work_package_is_explicitly_pre_candidate_and_unbound(self) -> None:
+class ExactDesignBindingTests(unittest.TestCase):
+    def test_work_package_records_pre_candidate_then_exact_bound_hold(self) -> None:
         wp = load_json(WORK_PACKAGE)
         ex = wp["execution"]
-        self.assertEqual(ex["oracleState"], "PRE_CANDIDATE_ORACLE_READY")
-        self.assertEqual(ex["verdict"], "PRE_CANDIDATE_GATE2_QA_READY")
-        self.assertEqual(ex["designBinding"]["status"], "UNBOUND")
-        self.assertIsNone(ex["designBinding"]["designHead"])
-        self.assertIsNone(ex["finalVerdict"])
+        self.assertEqual(ex["stateHistory"][0]["state"], "PRE_CANDIDATE_ORACLE_READY")
+        self.assertEqual(ex["stateHistory"][0]["verdict"], "PRE_CANDIDATE_GATE2_QA_READY")
+        self.assertEqual(ex["designBinding"]["status"], "BOUND_EXACT")
+        self.assertEqual(ex["designBinding"]["designHead"], BOUND_DESIGN_HEAD)
+        self.assertEqual(ex["designBinding"]["designDocumentSha256"], BOUND_DESIGN_DOCUMENT_SHA256)
+        self.assertEqual(ex["designBinding"]["designWorkPackageSha256"], BOUND_DESIGN_WORK_PACKAGE_SHA256)
+        self.assertEqual(ex["verdict"], BOUND_HOLD)
+        self.assertEqual(ex["finalVerdict"], BOUND_HOLD)
         self.assertFalse(ex["mergeAuthorized"])
 
-    def test_final_pass_is_structurally_forbidden_while_unbound(self) -> None:
-        wp = load_json(WORK_PACKAGE)
-        binding = wp["execution"]["designBinding"]
-        self.assertFalse(
-            binding["status"] == "BOUND_EXACT"
-            and binding["designHead"]
-            and wp["execution"]["finalVerdict"] == "PASS_GATE2_DESIGN_CONTRADICTORY_QA"
-        )
+    def test_blocking_finding_prevents_pass_on_bound_head(self) -> None:
+        ex = load_json(WORK_PACKAGE)["execution"]
+        findings = ex.get("findings", [])
+        self.assertTrue(findings)
+        self.assertEqual(findings[0]["id"], "G2-QA-013-F01")
+        self.assertEqual(findings[0]["severity"], "blocking")
+        self.assertEqual(findings[0]["designHead"], BOUND_DESIGN_HEAD)
+        self.assertNotEqual(ex["finalVerdict"], "PASS_GATE2_DESIGN_CONTRADICTORY_QA")
 
 def git(*args: str) -> str:
     return subprocess.run(
