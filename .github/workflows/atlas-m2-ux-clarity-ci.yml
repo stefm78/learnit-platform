@@ -166,6 +166,8 @@ jobs:
           cmp "${RUNNER_TEMP}/ux-a.html" "${RUNNER_TEMP}/ux-b.html"
           sha256sum "${RUNNER_TEMP}/ux-a.html" | tee "${RUNNER_TEMP}/artifact.sha256"
           wc -c "${RUNNER_TEMP}/ux-a.html" | tee "${RUNNER_TEMP}/artifact.bytes"
+          mkdir -p apps/learnit-next/dist
+          cp "${RUNNER_TEMP}/ux-a.html" apps/learnit-next/dist/learnit-next.html
           cp "${RUNNER_TEMP}/ux-a.html" apps/learnit-next/m2-ux-clarity-candidate.html
 
       - name: Install Chromium
