@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-005",
   "title": "Atlas M2.2 deterministic transfer challenge",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "product-atlas-transfer-challenge",
   "riskClass": "high",
   "authority": {
@@ -108,7 +108,16 @@
     "productBranch": "agent/ATLAS-WP-005-m2-transfer",
     "independentQaWorkPackage": "QA-WP-016",
     "independentQaIssue": 204,
-    "finalStatus": "PENDING_IMPLEMENTATION"
+    "initialFrozenProductHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+    "initialProductArtifactBytes": 359010,
+    "initialProductArtifactSha256": "86384803568478f846fed4dc0f05398a576aef1424e68e70ecbe1bdc8a1f9bc8",
+    "initialQaHead": "4b3a5960f54c1f2855cebe417f989ba4abfaa5f7",
+    "promotedCorrectedProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "promotedMainIntegration": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "pagesPromotionWorkPackage": "ATLAS-WP-007",
+    "pagesPromotionMerge": "790af51f251292a7600f2b95a0e7f8e7ad486350",
+    "deployedUrl": "https://stefm78.github.io/learnit-platform/",
+    "finalStatus": "PROMOTED_M2_2"
   },
   "rollback": "Revert ATLAS-WP-005 product changes. Promoted M2 state remains structurally valid because no storage migration, content revision or identity rewrite occurs."
 }
