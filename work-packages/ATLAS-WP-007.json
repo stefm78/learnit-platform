@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-007",
   "title": "Post-M2.2 exact-artifact GitHub Pages promotion",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "distribution-pages",
   "riskClass": "low",
   "authority": {
@@ -83,16 +83,16 @@
   ],
   "rollback": "Repin the Pages workflow to the previously promoted exact artifact or disable the deployment. Product main and learner state remain unchanged.",
   "execution": {
-    "pullRequest": null,
-    "implementationHead": null,
-    "mergeCommit": null,
-    "deploymentRun": null,
-    "deploymentJob": null,
-    "deploymentArtifactId": null,
-    "deploymentArtifactArchiveDigest": null,
-    "deployedUrl": null,
-    "exactBuildBytes": null,
-    "exactBuildSha256": null,
-    "deploymentVerdict": null
+    "pullRequest": 218,
+    "implementationHead": "5ee0b06d7e28283ed0609d304b6f953699c9b49d",
+    "mergeCommit": "790af51f251292a7600f2b95a0e7f8e7ad486350",
+    "deploymentRun": 33269665324,
+    "deploymentJob": 99145768574,
+    "deploymentArtifactId": 9719709285,
+    "deploymentArtifactArchiveDigest": "sha256:981466ff8f140d73bdf47c23c85651e84294ff194ce0eea57a91645c8643bd45",
+    "deployedUrl": "https://stefm78.github.io/learnit-platform/",
+    "exactBuildBytes": 366412,
+    "exactBuildSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "deploymentVerdict": "PASS_ATLAS_WP_007_M2_2_PAGES_DEPLOYMENT"
   }
 }
