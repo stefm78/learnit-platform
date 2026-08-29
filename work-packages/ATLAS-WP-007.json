@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-007",
+  "title": "Post-M2.2 exact-artifact GitHub Pages promotion",
+  "status": "in-progress",
+  "changeClass": "distribution-pages",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 217,
+    "parentProductIssue": 203,
+    "clarityIssue": 208,
+    "qaIssue": 209,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2.2-PROMOTION"
+  },
+  "purpose": "Repin the existing Learn-it GitHub Pages distribution to the exact human-promoted Atlas M2.2 artifact without changing product semantics or introducing runtime services.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "promotedProductMerge": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "acceptedProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "acceptedQaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+    "humanDecision": "PASS M2.2 — GO PROMOTION",
+    "artifactBytes": 366412,
+    "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "promotedTreeSha1": "1179c60dcdf8c2cfecc9e4f26a1f75da41801cb5",
+    "candidateTreeSha1": "1179c60dcdf8c2cfecc9e4f26a1f75da41801cb5"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-pages.yml",
+      "work-packages/ATLAS-WP-007.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/atlas/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-005.json",
+      "work-packages/ATLAS-WP-006.json"
+    ]
+  },
+  "invariants": [
+    "Pages checks out the exact promoted M2.2 main integration rather than following moving main semantics.",
+    "The canonical deterministic build must reproduce exactly 366412 bytes and the frozen M2.2 SHA-256 before publication.",
+    "Published index.html and learnit-next.html are byte-identical copies of the verified artifact.",
+    "No product runtime, source manifest, QA oracle, storage, contract or learner-state file changes under this work package.",
+    "No backend, runtime API, LLM, account, synchronization, remote catalog or service worker is introduced.",
+    "No persistent hand-maintained gh-pages product fork is created."
+  ],
+  "requiredEvidence": [
+    "PR diff contains exactly the Pages workflow and ATLAS-WP-007.json.",
+    "Repository governance passes.",
+    "PR scope passes against ATLAS-WP-007.",
+    "Deployment build proves exact promoted merge, artifact SHA-256 and byte length.",
+    "GitHub Pages deployment succeeds and records the stable URL."
+  ],
+  "adversarialTests": [
+    "Reject deployment if checkout HEAD differs from the pinned promoted M2.2 main integration.",
+    "Reject deployment if build SHA-256 differs from the accepted M2.2 digest.",
+    "Reject deployment if build byte length differs from 366412.",
+    "Verify index.html and learnit-next.html are byte-identical before upload.",
+    "Reject any implementation delta outside the two authorized paths."
+  ],
+  "independentReview": [
+    "Repository governance validates canonical package structure and repository invariants.",
+    "PR scope checks the exact two-path allowlist.",
+    "The deployment workflow fails closed on promotion-head, digest or byte-length drift."
+  ],
+  "nonGoals": [
+    "Product changes",
+    "M2.2 QA changes",
+    "Controlled-time navigator",
+    "PWA or service worker",
+    "Backend or accounts",
+    "Cloud synchronization",
+    "Remote catalog",
+    "Runtime LLM or API",
+    "Automatic publication of future product heads",
+    "M3, Gate3 or Gate4 activation"
+  ],
+  "rollback": "Repin the Pages workflow to the previously promoted exact artifact or disable the deployment. Product main and learner state remain unchanged.",
+  "execution": {
+    "pullRequest": null,
+    "implementationHead": null,
+    "mergeCommit": null,
+    "deploymentRun": null,
+    "deploymentJob": null,
+    "deploymentArtifactId": null,
+    "deploymentArtifactArchiveDigest": null,
+    "deployedUrl": null,
+    "exactBuildBytes": null,
+    "exactBuildSha256": null,
+    "deploymentVerdict": null
+  }
+}
