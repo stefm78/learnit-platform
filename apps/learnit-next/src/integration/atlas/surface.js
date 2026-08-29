@@ -40,6 +40,30 @@ function compatibleAtlasCourse(context) {
   );
 }
 
+function learnerObjectiveLabels(context) {
+  return Object.freeze(Object.fromEntries(
+    (context.course.objectives || [])
+      .filter(objective => (
+        typeof objective.objectiveId === 'string'
+        && typeof objective.label === 'string'
+        && objective.label.trim()
+      ))
+      .map(objective => [
+        objective.objectiveId,
+        objective.label.trim(),
+      ]),
+  ));
+}
+
+function learnerDateTime(timestamp) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+}
+
 function emptyEvidence(objectiveRef) {
   return Object.freeze({
     evidenceVersion: 'atlas.objective-evidence.v1',
@@ -407,14 +431,48 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       node('div', {}, [
         node('p', {className: 'eyebrow', text: 'Atlas M2'}),
         node('h2', {id: 'atlas-int-title', text: 'Aujourd’hui'}),
-        node('p', {text: 'Choisissez votre temps. Atlas privilégie les erreurs à reprendre puis les acquis à valider ou reconfirmer quand cela devient utile.'}),
+        node('p', {text: 'Choisissez votre temps. Atlas privilégie ce qui mérite votre attention maintenant.'}),
       ]),
+      node('button', {
+        type: 'button',
+        className: 'secondary',
+        text: 'Afficher la bibliothèque',
+        'data-atlas-library-toggle': 'true',
+      }),
     ]),
     content,
   ]);
   const header = root.querySelector('.app-header') ?? root.firstElementChild;
   if (header?.parentNode === root) header.after(surface);
   else root.prepend(surface);
+
+  const appMain = root.querySelector('.app-main');
+  const classicDisplay = appMain?.style.display ?? '';
+  const classicWasInert = appMain?.hasAttribute('inert') ?? false;
+  const libraryToggle = surface.querySelector('[data-atlas-library-toggle="true"]');
+  let libraryVisible = false;
+
+  function setClassicVisible(visible) {
+    libraryVisible = Boolean(visible);
+    if (!appMain || !libraryToggle) return;
+
+    if (libraryVisible) {
+      appMain.style.display = classicDisplay;
+      if (!classicWasInert) appMain.removeAttribute('inert');
+      libraryToggle.textContent = 'Masquer la bibliothèque';
+      libraryToggle.setAttribute('aria-expanded', 'true');
+      return;
+    }
+
+    appMain.style.display = 'none';
+    appMain.setAttribute('inert', '');
+    libraryToggle.textContent = 'Afficher la bibliothèque';
+    libraryToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  libraryToggle?.addEventListener('click', () => {
+    setClassicVisible(!libraryVisible);
+  });
 
   async function refresh() {
     const courses = await runtime.listCourses();
@@ -429,12 +487,20 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     }
 
     if (!atlasCourses.length) {
+      if (appMain) {
+        appMain.style.display = classicDisplay;
+        if (!classicWasInert) appMain.removeAttribute('inert');
+      }
+      if (libraryToggle) libraryToggle.style.display = 'none';
       content.replaceChildren(node('div', {className: 'empty-state'}, [
         node('h3', {text: 'Aucun parcours Atlas installé'}),
         node('p', {text: 'Importez un kit Atlas dans la bibliothèque Learn-it pour préparer une séance de 5, 15 ou 30 minutes.'}),
       ]));
       return;
     }
+
+    if (libraryToggle) libraryToggle.style.display = '';
+    setClassicVisible(libraryVisible);
 
     const cards = [];
     for (const context of atlasCourses) {
@@ -482,14 +548,18 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
             wrapper.innerHTML = atlasRuntime.modules.today.renderToday({
               recommendation: result.recommendation,
               plan: result.plan,
+              objectiveLabels: learnerObjectiveLabels(context),
             });
             if (result.memory?.dueAt) {
+              const readableDueAt = learnerDateTime(result.memory.dueAt);
               wrapper.append(node('p', {
                 className: 'help',
                 'data-atlas-memory-due': result.memory.dueAt,
                 text: result.memory.due
-                  ? `Reconfirmation due selon ${result.memory.policyVersion}.`
-                  : `Prochaine reconfirmation au plus tôt le ${result.memory.dueAt}.`,
+                  ? 'Une reconfirmation est disponible.'
+                  : readableDueAt
+                    ? `Prochaine reconfirmation à partir du ${readableDueAt}.`
+                    : 'Une prochaine reconfirmation sera proposée au bon moment.',
               }));
             }
             const start = wrapper.querySelector('[data-atlas-action="start"]');
@@ -504,7 +574,6 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
                 start.disabled = false;
               }
             });
-            wrapper.append(node('p', {className: 'help', text: 'Plan Atlas calculé localement. Commencez lorsque vous êtes prêt.'}));
             preview.replaceChildren(wrapper);
           } catch (error) {
             renderError(preview, error);
@@ -540,7 +609,6 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   }
 
   await refresh();
-  const appMain = root.querySelector('.app-main');
   if (appMain) {
     const observer = new MutationObserver(queueRefresh);
     observer.observe(appMain, {childList: true, subtree: true});
