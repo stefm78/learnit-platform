@@ -71,6 +71,7 @@ const html = T.renderToday({
 });
 assert.match(html,/Objectif : Conjugué/);
 assert.match(html,/Objectif : Module/);
+assert.match(html,/<br><small class="atlas-plan-objective">Objectif : Conjugué<\/small>/);
 assert.doesNotMatch(html,/objective-a|objective-b/);
 console.log(JSON.stringify({ok:true}));
 """)
@@ -132,6 +133,14 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Prochaine reconfirmation au plus tôt le", surface)
         self.assertIn("Une reconfirmation est disponible.", surface)
         self.assertIn("Prochaine reconfirmation à partir du", surface)
+
+    def test_feedback_is_consumed_before_next_activity(self):
+        session = SESSION.read_text(encoding="utf-8")
+        self.assertIn("data-atlas-feedback-transition", session)
+        self.assertIn("Activité suivante", session)
+        self.assertIn("await showFeedbackTransition(", session)
+        self.assertIn("await renderCurrent();", session)
+        self.assertNotIn("await renderCurrent(\n              feedbackHtml(", session)
 
     def test_session_keeps_transfer_semantics_and_classic_surface_hidden_while_active(self):
         session = SESSION.read_text(encoding="utf-8")
