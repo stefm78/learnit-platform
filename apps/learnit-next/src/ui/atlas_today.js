@@ -371,7 +371,7 @@ function renderToday({ recommendation, plan, resumeState, objectiveLabels = {} }
   const items = plan.payload.items.map(item => {
     const objectiveLabel = learnerObjectiveLabel(objectiveLabels, item.objectiveRef);
     const objective = objectiveLabel
-      ? `<small class="atlas-plan-objective">Objectif : ${esc(objectiveLabel)}</small>`
+      ? `<br><small class="atlas-plan-objective">Objectif : ${esc(objectiveLabel)}</small>`
       : '';
     return `<li><span><span>${esc(ACTION_LABELS[item.action])}</span>${objective}</span><strong>${item.estimatedMinutes} min</strong></li>`;
   }).join('');
