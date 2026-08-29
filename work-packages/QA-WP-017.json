@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-017",
+  "title": "Atlas M2.2 UX clarity contradictory QA",
+  "status": "under-qa",
+  "changeClass": "independent-qa-atlas-ux-clarity",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 209,
+    "parentIssue": 208,
+    "parentProductIssue": 203,
+    "governorIssue": 4,
+    "governorComment": 5463268686,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2.2-CLARITY-QA"
+  },
+  "purpose": "Provide an independent adversarial oracle for the bounded post-M2.2 learner-facing clarity correction without repairing product implementation.",
+  "baseline": {
+    "productWorkPackage": "ATLAS-WP-006",
+    "productAuthorityIssue": 208,
+    "parentTransferWorkPackage": "ATLAS-WP-005",
+    "parentTransferHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+    "productHead": "17e04f7716db331d0712fd8406e2552742d25c07",
+    "productRun": 33262850243,
+    "productJob": 99127656492,
+    "productArtifactId": 9717757906,
+    "productArtifactBytes": 363925,
+    "productArtifactSha256": "09307bef69889feb14c660f39a8109dcebd0c89dcce8e500a4a6ea941dbf7b36"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-017.json",
+      ".github/workflows/atlas-m2-ux-clarity-qa.yml",
+      "apps/learnit-next/tests/qa_atlas_m2_ux_clarity.py"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "work-packages/ATLAS-WP-006.json",
+      ".github/workflows/atlas-m2-ux-clarity-ci.yml",
+      "authoring/**",
+      "contracts/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "QA never repairs or authors product runtime files.",
+    "Final QA is bound to exact product HEAD 17e04f7716db331d0712fd8406e2552742d25c07.",
+    "QA delta from product HEAD is exactly the three QA-owned paths.",
+    "QA oracle is independently authored and distinct from product developer examples.",
+    "Rebuilt QA artifact must be byte-identical to the frozen product artifact.",
+    "Any semantic, artifact, scope or browser divergence yields HOLD."
+  ],
+  "requiredEvidence": [
+    "Atlas default continuation hides the competing classic learning surface while retaining explicit intentional library access.",
+    "Two same-action plan rows remain distinguishable by learner-facing objective labels without internal IDs.",
+    "Two same-state summary cards remain distinguishable by learner-facing objective labels.",
+    "Learner-facing due and summary time copy does not expose raw ISO timestamps.",
+    "M2.2 transfer, correction and 1/3/7/21 memory suites remain green with no core/adapters/ports changes.",
+    "No storage migration or runtime network dependency.",
+    "Desktop/browser, mobile viewport and keyboard regression remain green.",
+    "Double build is deterministic and exactly 363925 bytes / expected SHA-256."
+  ],
+  "adversarialTests": [
+    "Duplicate generic plan actions for distinct objectives.",
+    "Duplicate evidence states for distinct objectives.",
+    "Opaque/internal objective identifiers with canonical labels present.",
+    "Classic surface visibility when Atlas is compatible versus no compatible Atlas course.",
+    "Raw canonical ISO timestamp leakage in summary/due copy.",
+    "Transfer-completed or semantic core drift.",
+    "QA path leakage into product source.",
+    "Artifact mismatch despite green source-level tests."
+  ],
+  "nonGoals": [
+    "Product repair",
+    "Controlled-time navigator implementation",
+    "Content changes",
+    "Storage migration",
+    "M3 scope",
+    "Gate3/Gate4 activation"
+  ],
+  "independentReview": [
+    "Product implementation and QA remain on separate branches/PRs.",
+    "Final workflow verifies exact product head, exact three-path QA delta and exact artifact identity.",
+    "Human recheck remains required after QA PASS."
+  ],
+  "execution": {
+    "phase": "BOUND_TO_EXACT_PRODUCT_HEAD",
+    "productHead": "17e04f7716db331d0712fd8406e2552742d25c07",
+    "productRun": 33262850243,
+    "productArtifactId": 9717757906,
+    "expectedArtifactBytes": 363925,
+    "expectedArtifactSha256": "09307bef69889feb14c660f39a8109dcebd0c89dcce8e500a4a6ea941dbf7b36",
+    "finalVerdict": null
+  },
+  "rollback": "Drop QA-WP-017 branch/PR only. Product candidate remains independently reviewable."
+}
