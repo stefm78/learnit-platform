@@ -306,10 +306,33 @@ function nextAtlasPaint() {
 
 async function showFeedbackTransition(
   container,
+  activityWrapper,
+  sessionActions,
   feedbackMarkup,
   onContinue,
 ) {
-  const wrapper = node(
+  /*
+   * Keep activity N visible while its own feedback is read.
+   * The scored response becomes read-only and activity N+1
+   * is not rendered until the learner explicitly continues.
+   */
+  container.querySelector(
+    '[data-atlas-session-error]',
+  )?.remove();
+
+  activityWrapper
+    .querySelectorAll('input, select')
+    .forEach(control => {
+      control.disabled = true;
+    });
+
+  activityWrapper.querySelector(
+    '[data-atlas-help-status]',
+  )?.remove();
+
+  sessionActions.remove();
+
+  const transition = node(
     'div',
     {
       className: 'atlas-feedback-transition',
@@ -319,7 +342,7 @@ async function showFeedbackTransition(
 
   const feedback = node('div');
   feedback.innerHTML = feedbackMarkup;
-  wrapper.append(...feedback.childNodes);
+  transition.append(...feedback.childNodes);
 
   const next = node(
     'button',
@@ -345,7 +368,7 @@ async function showFeedbackTransition(
     },
   );
 
-  wrapper.append(
+  transition.append(
     node(
       'div',
       { className: 'atlas-actions' },
@@ -353,7 +376,7 @@ async function showFeedbackTransition(
     ),
   );
 
-  container.replaceChildren(wrapper);
+  activityWrapper.append(transition);
 
   await nextAtlasPaint();
   assertAtlasControlVisible(
@@ -1013,6 +1036,8 @@ export async function runAtlasSession({
             } else {
               await showFeedbackTransition(
                 container,
+                wrapper,
+                sessionActions,
                 outcomeFeedback,
                 async () => {
                   await renderCurrent();
