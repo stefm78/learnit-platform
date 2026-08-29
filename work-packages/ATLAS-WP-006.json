@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-006",
   "title": "Atlas M2.2 learner-facing clarity correction",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "product-atlas-ux-clarity",
   "riskClass": "medium",
   "authority": {
@@ -103,9 +103,20 @@
   "execution": {
     "productBranch": "atlas/ATLAS-WP-006-m2-ux-clarity",
     "parentPr": 205,
+    "correctionPr": 210,
     "independentQaWorkPackage": "QA-WP-017",
     "independentQaIssue": 209,
-    "finalStatus": "PENDING_PRODUCT_GATE"
+    "finalProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "finalQaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+    "finalQaRun": 33268606741,
+    "exactArtifactBytes": 366412,
+    "exactArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "humanDecision": "PASS M2.2 — GO PROMOTION",
+    "promotedMainIntegration": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "pagesPromotionWorkPackage": "ATLAS-WP-007",
+    "pagesPromotionMerge": "790af51f251292a7600f2b95a0e7f8e7ad486350",
+    "deployedUrl": "https://stefm78.github.io/learnit-platform/",
+    "finalStatus": "PROMOTED_M2_2_CLARITY"
   },
   "rollback": "Discard or revert the stacked ATLAS-WP-006 branch. The frozen ATLAS-WP-005 candidate remains intact because this correction changes no persistence or learning semantics."
 }
