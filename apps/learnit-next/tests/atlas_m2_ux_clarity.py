@@ -134,11 +134,22 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertIn("Une reconfirmation est disponible.", surface)
         self.assertIn("Prochaine reconfirmation à partir du", surface)
 
-    def test_feedback_is_consumed_before_next_activity(self):
+    def test_feedback_keeps_completed_activity_visible_before_next_activity(self):
         session = SESSION.read_text(encoding="utf-8")
-        self.assertIn("data-atlas-feedback-transition", session)
-        self.assertIn("Activité suivante", session)
+        start = session.index("async function showFeedbackTransition")
+        end = session.index("function assertAtlasControlVisible", start)
+        transition = session[start:end]
+
+        self.assertIn("data-atlas-feedback-transition", transition)
+        self.assertIn("Activité suivante", transition)
+        self.assertIn("activityWrapper.querySelectorAll('input, select')", transition)
+        self.assertIn("control.disabled = true", transition)
+        self.assertIn("sessionActions.remove()", transition)
+        self.assertIn("activityWrapper.append(transition)", transition)
+        self.assertNotIn("container.replaceChildren", transition)
+
         self.assertIn("await showFeedbackTransition(", session)
+        self.assertIn("wrapper,\n                sessionActions,", session)
         self.assertIn("await renderCurrent();", session)
         self.assertNotIn("await renderCurrent(\n              feedbackHtml(", session)
 
