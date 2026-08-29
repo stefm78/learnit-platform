@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-006",
+  "title": "Atlas M2.2 learner-facing clarity correction",
+  "status": "in-progress",
+  "changeClass": "product-atlas-ux-clarity",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 208,
+    "governorIssue": 4,
+    "governorComment": 5463268686,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2.2-clarity"
+  },
+  "purpose": "Correct only the human-observed Atlas continuation and clarity defects on top of the exact frozen M2.2 transfer candidate, without changing transfer, correction, memory, storage, content or network semantics.",
+  "baseline": {
+    "parentWorkPackage": "ATLAS-WP-005",
+    "parentIssue": 203,
+    "baseCommit": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+    "parentArtifactBytes": 359010,
+    "parentArtifactSha256": "86384803568478f846fed4dc0f05398a576aef1424e68e70ecbe1bdc8a1f9bc8",
+    "parentIndependentQaIssue": 204,
+    "parentIndependentQaHead": "4b3a5960f54c1f2855cebe417f989ba4abfaa5f7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-006.json",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/ui/atlas_today.js",
+      "apps/learnit-next/src/ui/atlas_summary.js",
+      "apps/learnit-next/tests/atlas_m2_ux_clarity.py",
+      "apps/learnit-next/source_manifest.json",
+      ".github/workflows/atlas-m2-ux-clarity-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/**",
+      "apps/learnit-next/src/adapters/**",
+      "apps/learnit-next/src/ports/**",
+      "authoring/**",
+      "contracts/**",
+      "backend/**",
+      "accounts/**",
+      "sync/**",
+      "governance/**",
+      "apps/learnit-next/tests/qa_atlas_m2_ux_clarity.py",
+      ".github/workflows/atlas-m2-ux-clarity-qa.yml",
+      "work-packages/QA-WP-017.json"
+    ]
+  },
+  "invariants": [
+    "Transfer eligibility, one-transfer-per-successful-reconfirmation, action codes, reason codes and transfer evidence semantics remain unchanged.",
+    "Review-needed continues to outrank maintenance and maintenance continues to outrank transfer.",
+    "The 1/3/7/21 atlas.memory-policy.v1 schedule remains unchanged.",
+    "Correction and validation semantics remain unchanged.",
+    "No database, store, namespace, storage version or migration change.",
+    "No authored kit/content revision or activity type change.",
+    "No backend, account, synchronization, runtime AI/API or network-required learner behavior.",
+    "Atlas owns the default continuation when a compatible Atlas course is present; classic Learn-it remains intentionally accessible through an explicit library control.",
+    "Plan and summary UI use learner-facing objective labels and do not expose internal objective identifiers.",
+    "Canonical timestamps remain unchanged data; only learner-facing rendering is localized/readable.",
+    "No mastery percentage, certification, durable-retention promise, XP, streak, rank, dashboard or new portal."
+  ],
+  "requiredEvidence": [
+    "Exact diff remains within the ATLAS-WP-006 writable allowlist and contains no independent-QA files.",
+    "Developer clarity tests prove objective identity in plan and summary, intentional library access and readable date rendering.",
+    "All promoted baseline, M1, M2 and M2.2 transfer suites remain green.",
+    "Browser regression proves Atlas ownership, desktop, mobile 390x844, keyboard operation and visible controls.",
+    "No raw canonical ISO timestamp is exposed by Atlas learner-facing due/summary copy.",
+    "No storage migration and no runtime network dependency.",
+    "Two clean builds are byte-identical.",
+    "Exact product artifact is uploaded and bound to the frozen product HEAD.",
+    "Independent QA-WP-017 rebinds to the exact frozen product HEAD before final PASS."
+  ],
+  "adversarialTests": [
+    "Two same-action plan items for different objectives must remain visibly distinguishable.",
+    "Two same-state summary cards for different objectives must remain visibly distinguishable.",
+    "A compatible Atlas course must not leave the classic active-learning surface looking like the default continuation.",
+    "With no compatible Atlas course, classic Learn-it remains available.",
+    "Explicit library access must restore classic Learn-it intentionally without mutating Atlas evidence.",
+    "Raw ISO timestamps must not appear in learner-facing Atlas due/summary text.",
+    "Incorrect transfer must retain prior validation and remain framed as À reprendre.",
+    "Transfer, memory and correction suites must remain byte-semantically unchanged.",
+    "Unknown or internal objective identifiers must not be rendered as learner-facing labels when a canonical label exists."
+  ],
+  "independentReview": [
+    "Linus proportionality review and Steve product review are recorded in governor comment 5463268686.",
+    "QA-WP-017 is independently owned under issue 209 and may not repair product files.",
+    "Final QA PASS is forbidden until rebound to the exact frozen ATLAS-WP-006 product head.",
+    "Promotion remains accountable-human gated after exact-head independent QA."
+  ],
+  "nonGoals": [
+    "Controlled-time navigator or clock injection",
+    "M3 Authoring Studio",
+    "New learning actions, reason codes, recommendation policy or activity types",
+    "Storage migration or content revision",
+    "Backend, accounts, synchronization or remote catalog",
+    "Reward economy, mastery score, XP, rank, streak or dashboard",
+    "Safari/VoiceOver claim without physical Apple evidence",
+    "Gate3 or Gate4 activation"
+  ],
+  "execution": {
+    "productBranch": "atlas/ATLAS-WP-006-m2-ux-clarity",
+    "parentPr": 205,
+    "independentQaWorkPackage": "QA-WP-017",
+    "independentQaIssue": 209,
+    "finalStatus": "PENDING_PRODUCT_GATE"
+  },
+  "rollback": "Discard or revert the stacked ATLAS-WP-006 branch. The frozen ATLAS-WP-005 candidate remains intact because this correction changes no persistence or learning semantics."
+}
