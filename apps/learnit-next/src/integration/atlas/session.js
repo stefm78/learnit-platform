@@ -37,6 +37,21 @@ function contentRevisionRef(context) {
   });
 }
 
+function learnerObjectiveLabels(context) {
+  return Object.freeze(Object.fromEntries(
+    (context.course.objectives || [])
+      .filter(objective => (
+        typeof objective.objectiveId === 'string'
+        && typeof objective.label === 'string'
+        && objective.label.trim()
+      ))
+      .map(objective => [
+        objective.objectiveId,
+        objective.label.trim(),
+      ]),
+  ));
+}
+
 function sourceActivity(context, reference) {
   const activity = context.course.activities.find(
     item => (
@@ -694,6 +709,8 @@ export async function runAtlasSession({
           modules.summary.renderSummary({
             evidence,
             completed: true,
+            objectiveLabels:
+              learnerObjectiveLabels(context),
           });
 
         if (previousFeedback) {
