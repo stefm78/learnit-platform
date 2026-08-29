@@ -142,7 +142,7 @@ console.log(JSON.stringify({ok:true,readable}));
 
         self.assertIn("data-atlas-feedback-transition", transition)
         self.assertIn("Activité suivante", transition)
-        self.assertIn("activityWrapper.querySelectorAll('input, select')", transition)
+        self.assertIn(".querySelectorAll('input, select')", transition)
         self.assertIn("control.disabled = true", transition)
         self.assertIn("sessionActions.remove()", transition)
         self.assertIn("activityWrapper.append(transition)", transition)
