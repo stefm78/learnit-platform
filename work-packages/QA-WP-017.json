@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-017",
+  "title": "Atlas M2.2 UX clarity contradictory QA",
+  "status": "under-qa",
+  "changeClass": "independent-qa-atlas-ux-clarity",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 209,
+    "parentIssue": 208,
+    "parentProductIssue": 203,
+    "governorIssue": 4,
+    "governorComment": 5464051757,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2.2-CLARITY-QA"
+  },
+  "purpose": "Provide an independent adversarial oracle for the bounded post-M2.2 learner-facing clarity correction and its human-gate F01/F02 repair without repairing product implementation.",
+  "baseline": {
+    "productWorkPackage": "ATLAS-WP-006",
+    "productAuthorityIssue": 208,
+    "parentTransferWorkPackage": "ATLAS-WP-005",
+    "parentTransferHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+    "previousRejectedProductHead": "17e04f7716db331d0712fd8406e2552742d25c07",
+    "productHead": "a72917cae93e30040d39a2dbc6601c15155f31b9",
+    "productRun": 33267764722,
+    "productJob": 99140774329,
+    "productArtifactId": 9719167799,
+    "productArtifactBytes": 365782,
+    "productArtifactSha256": "df5c827eddb551f726219184ef5a289a58114931d2af7dbbfd5cf05f1e997621",
+    "baseCommit": "a72917cae93e30040d39a2dbc6601c15155f31b9"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-017.json",
+      ".github/workflows/atlas-m2-ux-clarity-qa.yml",
+      "apps/learnit-next/tests/qa_atlas_m2_ux_clarity.py"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "work-packages/ATLAS-WP-006.json",
+      ".github/workflows/atlas-m2-ux-clarity-ci.yml",
+      "authoring/**",
+      "contracts/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "QA never repairs or authors product runtime files.",
+    "Final QA is bound to exact repaired product HEAD a72917cae93e30040d39a2dbc6601c15155f31b9.",
+    "QA delta from product HEAD is exactly the three QA-owned paths.",
+    "QA oracle is independently authored and distinct from product developer examples.",
+    "Rebuilt QA artifact must be byte-identical to the frozen repaired product artifact.",
+    "Previous-activity feedback must not be rendered as if it explains the next activity.",
+    "Plan objective identity must be visually/textually separated from the action label.",
+    "Any semantic, artifact, scope or browser divergence yields HOLD."
+  ],
+  "requiredEvidence": [
+    "Atlas default continuation hides the competing classic learning surface while retaining explicit intentional library access.",
+    "Two same-action plan rows remain distinguishable by separated learner-facing objective labels without internal IDs.",
+    "Two same-state summary cards remain distinguishable by learner-facing objective labels.",
+    "Learner-facing due and summary time copy does not expose raw ISO timestamps.",
+    "A submitted activity with a following item presents its feedback in a dedicated transition before the next question.",
+    "The next activity renders without previous activity feedback.",
+    "M2.2 transfer, correction and 1/3/7/21 memory suites remain green with no core/adapters/ports changes.",
+    "No storage migration or runtime network dependency.",
+    "Desktop/browser, mobile viewport and keyboard regression remain green.",
+    "Double build is deterministic and exactly 365782 bytes / expected SHA-256."
+  ],
+  "adversarialTests": [
+    "Duplicate generic plan actions for distinct objectives.",
+    "Duplicate evidence states for distinct objectives.",
+    "Opaque/internal objective identifiers with canonical labels present.",
+    "Previous activity feedback leaking into a different next question.",
+    "Action text and objective label concatenation without separator.",
+    "Classic surface visibility when Atlas is compatible versus no compatible Atlas course.",
+    "Raw canonical ISO timestamp leakage in summary/due copy.",
+    "Transfer-completed or semantic core drift.",
+    "QA path leakage into product source.",
+    "Artifact mismatch despite green source-level tests."
+  ],
+  "nonGoals": [
+    "Product repair",
+    "Controlled-time navigator implementation",
+    "Content changes",
+    "Storage migration",
+    "M3 scope",
+    "Gate3/Gate4 activation"
+  ],
+  "independentReview": [
+    "Previous QA head remains historical evidence for the rejected pre-repair product head.",
+    "This r2 QA branch is freshly based on the repaired exact product head.",
+    "Final workflow verifies exact repaired product head, exact three-path QA delta and exact artifact identity.",
+    "Human recheck remains required after QA PASS."
+  ],
+  "execution": {
+    "phase": "BOUND_TO_EXACT_PRODUCT_HEAD_R2",
+    "productHead": "a72917cae93e30040d39a2dbc6601c15155f31b9",
+    "productRun": 33267764722,
+    "productArtifactId": 9719167799,
+    "expectedArtifactBytes": 365782,
+    "expectedArtifactSha256": "df5c827eddb551f726219184ef5a289a58114931d2af7dbbfd5cf05f1e997621",
+    "finalVerdict": null
+  },
+  "rollback": "Drop QA-WP-017 r2 branch/PR only. Product candidate remains independently reviewable."
+}
