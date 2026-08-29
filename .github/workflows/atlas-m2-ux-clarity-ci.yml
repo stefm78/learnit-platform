@@ -1,0 +1,228 @@
+name: Atlas M2 UX Clarity CI
+
+on:
+  pull_request:
+    branches:
+      - agent/ATLAS-WP-005-m2-transfer
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-m2-ux-clarity-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  product:
+    name: M2.2 bounded UX clarity evidence
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'atlas/ATLAS-WP-006-m2-ux-clarity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind authority, base and scope
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=8e152ed2d3980b78ea1612cb9068c24e6828d15b
+          [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
+          git cat-file -e "${BASE}^{commit}"
+          [[ "$(git merge-base "${BASE}" HEAD)" == "${BASE}" ]]
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/ATLAS-WP-006.json').read_text())
+          assert wp['id']=='ATLAS-WP-006'
+          assert wp['authority']['issue']==208
+          assert wp['baseline']['baseCommit']=='8e152ed2d3980b78ea1612cb9068c24e6828d15b'
+          assert wp['execution']['independentQaIssue']==209
+          assert wp['status']=='in-progress'
+          allowed=set(wp['scope']['allowedPaths'])
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only','8e152ed2d3980b78ea1612cb9068c24e6828d15b...HEAD'],
+              text=True,
+          ).splitlines())
+          unexpected=changed-allowed
+          assert not unexpected, f'OUT_OF_SCOPE:{sorted(unexpected)}'
+          assert 'apps/learnit-next/tests/qa_atlas_m2_ux_clarity.py' not in changed
+          assert '.github/workflows/atlas-m2-ux-clarity-qa.yml' not in changed
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install declared browser test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Materialize declared baseline projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          materialized=[]
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fingerprint=item.get('fingerprint',{})
+              if fingerprint.get('kind')!='git-blob-sha1':
+                  continue
+              blob=fingerprint.get('value','')
+              data=subprocess.run(['git','cat-file','blob',blob],check=True,stdout=subprocess.PIPE).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+              materialized.append(str(path))
+          print('ATLAS_M2_UX_MATERIALIZED='+str(len(materialized)))
+          PY
+
+      - name: Run promoted baseline and Atlas semantic suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/contract_v2.py
+          python -B apps/learnit-next/tests/storage_isolation.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/atlas_m1_learning.py
+          python -B apps/learnit-next/tests/atlas_m1_core.py
+          python -B apps/learnit-next/tests/atlas_m1_experience.py
+          python -B apps/learnit-next/tests/atlas_m1_content.py
+          python -B apps/learnit-next/tests/atlas_m1_int.py
+          python -B apps/learnit-next/tests/atlas_m2_memory.py
+          python -B apps/learnit-next/tests/atlas_m2_transfer.py
+          python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py
+
+      - name: Enforce semantic and storage boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code 8e152ed2d3980b78ea1612cb9068c24e6828d15b...HEAD --             apps/learnit-next/src/core             apps/learnit-next/src/adapters             apps/learnit-next/src/ports             authoring contracts
+          grep -q "const DATABASE = 'learnit_atlas_m1_v2'" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          grep -q "const VERSION = 1" apps/learnit-next/src/adapters/atlas_indexeddb.js
+          ! grep -R "transfer-completed" apps/learnit-next/src
+          ! grep -En 'fetch\(|XMLHttpRequest|WebSocket|EventSource|https?://'             apps/learnit-next/src/integration/atlas/surface.js             apps/learnit-next/src/integration/atlas/session.js             apps/learnit-next/src/ui/atlas_today.js             apps/learnit-next/src/ui/atlas_summary.js
+
+      - name: Verify source manifest fingerprints
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          assert manifest['successorWorkPackage']=='ATLAS-WP-006'
+          assert manifest['fileBudget']==57
+          expected={
+            'apps/learnit-next/src/integration/atlas/surface.js',
+            'apps/learnit-next/src/integration/atlas/session.js',
+            'apps/learnit-next/src/ui/atlas_today.js',
+            'apps/learnit-next/src/ui/atlas_summary.js',
+            'apps/learnit-next/tests/atlas_m2_ux_clarity.py',
+          }
+          by_path={item['path']:item for item in manifest['workingFiles']}
+          for path in expected:
+              item=by_path[path]
+              assert item['owner']=='ATLAS-M2-UX-CLARITY'
+              data=Path(path).read_bytes()
+              blob=hashlib.sha1(f'blob {len(data)}\0'.encode('ascii')+data).hexdigest()
+              assert item['fingerprint']=={'kind':'git-blob-sha1','value':blob}, (path,item['fingerprint'],blob)
+          self_path='apps/learnit-next/source_manifest.json'
+          self_item=by_path[self_path]
+          assert self_item['fingerprint']['kind']=='canonical-self-sha256'
+          expected_digest=self_item['fingerprint']['value']
+          clone=json.loads(json.dumps(manifest))
+          next(item for item in clone['workingFiles'] if item['path']==self_path)['fingerprint']['value']=None
+          actual=hashlib.sha256(json.dumps(
+              clone,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False
+          ).encode('utf-8')).hexdigest()
+          assert actual==expected_digest, (actual,expected_digest)
+          PY
+
+      - name: Build twice deterministically
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/ux-a.html"
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/ux-b.html"
+          cmp "${RUNNER_TEMP}/ux-a.html" "${RUNNER_TEMP}/ux-b.html"
+          sha256sum "${RUNNER_TEMP}/ux-a.html" | tee "${RUNNER_TEMP}/artifact.sha256"
+          wc -c "${RUNNER_TEMP}/ux-a.html" | tee "${RUNNER_TEMP}/artifact.bytes"
+          cp "${RUNNER_TEMP}/ux-a.html" apps/learnit-next/m2-ux-clarity-candidate.html
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run strict visible browser regression
+        env:
+          LEARNIT_NEXT_STRICT_INTEGRATION: '1'
+        run: python -B apps/learnit-next/tests/browser_vertical_slice.py
+
+      - name: Diff hygiene
+        run: git diff --check 8e152ed2d3980b78ea1612cb9068c24e6828d15b...HEAD
+
+      - name: Write exact product evidence
+        if: success()
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          artifact=Path('apps/learnit-next/m2-ux-clarity-candidate.html')
+          data=artifact.read_bytes()
+          proof={
+            'schema':'learnit.atlas.m2.ux-clarity.product-evidence.v1',
+            'result':'PASS',
+            'verdict':'PASS_ATLAS_M2_UX_CLARITY_PRODUCT_HEAD',
+            'workPackage':'ATLAS-WP-006',
+            'authorityIssue':208,
+            'head':os.environ['TARGET'],
+            'parentHead':'8e152ed2d3980b78ea1612cb9068c24e6828d15b',
+            'artifactBytes':len(data),
+            'artifactSha256':hashlib.sha256(data).hexdigest(),
+            'networkRequired':False,
+            'database':'learnit_atlas_m1_v2',
+            'storageVersion':1,
+            'semanticChange':False,
+            'browserRegression':'PASS',
+          }
+          out=Path('apps/learnit-next/.agent-result')
+          out.mkdir(parents=True,exist_ok=True)
+          (out/'atlas_m2_ux_clarity_product.json').write_text(
+            json.dumps(proof,sort_keys=True,separators=(',',':'))+'\n',
+            encoding='utf-8',
+          )
+          print(json.dumps(proof,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload exact product evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m2-ux-clarity-product-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          include-hidden-files: true
+          path: |
+            apps/learnit-next/m2-ux-clarity-candidate.html
+            apps/learnit-next/.agent-result/atlas_m2_ux_clarity_product.json
