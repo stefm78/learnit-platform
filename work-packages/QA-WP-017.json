@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-017",
+  "title": "Atlas M2.2 UX clarity contradictory QA",
+  "status": "under-qa",
+  "changeClass": "independent-qa-atlas-ux-clarity",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 209,
+    "parentIssue": 208,
+    "parentProductIssue": 203,
+    "governorIssue": 4,
+    "governorComment": 5464120626,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2.2-CLARITY-QA"
+  },
+  "purpose": "Independent adversarial QA for the bounded M2.2 UX clarity correction including human-gate contextual-feedback repair F03.",
+  "baseline": {
+    "productWorkPackage": "ATLAS-WP-006",
+    "productAuthorityIssue": 208,
+    "parentTransferWorkPackage": "ATLAS-WP-005",
+    "parentTransferHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+    "previousRejectedProductHead": "a72917cae93e30040d39a2dbc6601c15155f31b9",
+    "productHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "productRun": 33268521505,
+    "productJob": 99142737750,
+    "productArtifactId": 9719382716,
+    "productArtifactBytes": 366412,
+    "productArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "baseCommit": "abaa0af0dcbd5338be2221587c1e871c4f939c52"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-017.json",
+      ".github/workflows/atlas-m2-ux-clarity-qa.yml",
+      "apps/learnit-next/tests/qa_atlas_m2_ux_clarity.py"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "work-packages/ATLAS-WP-006.json",
+      ".github/workflows/atlas-m2-ux-clarity-ci.yml",
+      "authoring/**",
+      "contracts/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "QA never repairs or authors product runtime files.",
+    "Final QA is bound to exact product HEAD abaa0af0dcbd5338be2221587c1e871c4f939c52.",
+    "QA delta from product HEAD is exactly the three QA-owned paths.",
+    "Rebuilt QA artifact must be byte-identical to the frozen product artifact.",
+    "Completed activity N remains visible while its own feedback is read.",
+    "The scored response is frozen before continuation.",
+    "Activity N+1 is not rendered until explicit Activité suivante.",
+    "Activity N+1 contains no stale feedback from N.",
+    "Any semantic, artifact, scope or browser divergence yields HOLD."
+  ],
+  "requiredEvidence": [
+    "Atlas default continuation ownership and explicit library access remain correct.",
+    "Plan action/objective labels remain separated.",
+    "Summary objective labels and readable timestamps remain correct.",
+    "Completed activity remains visible during feedback transition with answer controls disabled.",
+    "Transient answer-required error is removed after a successful submission.",
+    "Next activity appears only after explicit continuation and without stale prior feedback.",
+    "M2.2 transfer, correction and 1/3/7/21 memory suites remain green.",
+    "No storage migration or runtime network dependency.",
+    "Strict browser regression remains green.",
+    "Double build is deterministic and exactly 366412 bytes / expected SHA-256."
+  ],
+  "adversarialTests": [
+    "Previous activity disappears while feedback is shown.",
+    "Previous feedback leaks into next question.",
+    "Scored answer remains editable during feedback.",
+    "Action/objective label concatenation.",
+    "Duplicate generic actions for distinct objectives.",
+    "Raw ISO timestamp leakage.",
+    "Transfer-completed or semantic core drift.",
+    "Artifact mismatch despite source-level green tests."
+  ],
+  "nonGoals": [
+    "Product repair",
+    "Controlled-time navigator implementation",
+    "Content changes",
+    "Storage migration",
+    "M3 scope",
+    "Gate3/Gate4 activation"
+  ],
+  "independentReview": [
+    "Previous QA heads remain historical evidence for their rejected product heads.",
+    "This r3 QA branch is freshly based on the exact repaired product head.",
+    "Final workflow verifies exact repaired product head, three-path QA delta and exact artifact identity.",
+    "Human recheck remains required after QA PASS."
+  ],
+  "execution": {
+    "phase": "BOUND_TO_EXACT_PRODUCT_HEAD_R3",
+    "productHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "productRun": 33268521505,
+    "productArtifactId": 9719382716,
+    "expectedArtifactBytes": 366412,
+    "expectedArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "finalVerdict": null
+  },
+  "rollback": "Drop QA-WP-017 r3 branch/PR only. Product candidate remains independently reviewable."
+}
