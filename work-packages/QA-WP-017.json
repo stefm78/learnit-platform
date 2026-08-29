@@ -26,7 +26,8 @@
     "productJob": 99127656492,
     "productArtifactId": 9717757906,
     "productArtifactBytes": 363925,
-    "productArtifactSha256": "09307bef69889feb14c660f39a8109dcebd0c89dcce8e500a4a6ea941dbf7b36"
+    "productArtifactSha256": "09307bef69889feb14c660f39a8109dcebd0c89dcce8e500a4a6ea941dbf7b36",
+    "baseCommit": "17e04f7716db331d0712fd8406e2552742d25c07"
   },
   "scope": {
     "allowedPaths": [
