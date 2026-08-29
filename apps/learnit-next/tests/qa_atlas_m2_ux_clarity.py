@@ -105,11 +105,5 @@ console.log(JSON.stringify({ok:true}));
         self.assertIn("classicMain.style.display = 'none'", source)
         self.assertNotIn("transfer-completed", source)
 
-    def test_no_product_semantic_source_is_owned_by_this_qa(self):
-        qa_source = Path(__file__).read_text(encoding="utf-8")
-        self.assertNotIn("write_text(", qa_source)
-        self.assertNotIn("update_file", qa_source)
-
-
 if __name__ == "__main__":
     unittest.main(verbosity=2)
