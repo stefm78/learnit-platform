@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-005",
+  "title": "Atlas M2.2 deterministic transfer challenge",
+  "status": "in-progress",
+  "changeClass": "product-atlas-transfer-challenge",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 203,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M2.2"
+  },
+  "purpose": "Add one deterministic, local transfer challenge after successful maintenance reconfirmation, using existing authored transfer activities while preserving the promoted M2 memory schedule and all local/offline boundaries.",
+  "baseline": {
+    "baseCommit": "e02bfc3eff3719673442303ce5a14d00cfe57ad5",
+    "promotedM2Merge": "dd0c191179f968d35742cb58f7d6bb9ccb53a852",
+    "promotedM2ArtifactBytes": 352237,
+    "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091",
+    "acceptedM2QaHead": "4b0d80dd3b576a2300a4d1516481769b198d9637"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-005.json",
+      "docs/atlas/CONTRACTS.md",
+      "docs/atlas/README.md",
+      "apps/learnit-next/src/core/atlas_events.js",
+      "apps/learnit-next/src/core/atlas_evidence.js",
+      "apps/learnit-next/src/core/atlas_transfer.js",
+      "apps/learnit-next/src/core/atlas_projection.js",
+      "apps/learnit-next/src/core/atlas_recommendation.js",
+      "apps/learnit-next/src/integration/atlas/bootstrap.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/ui/atlas_today.js",
+      "apps/learnit-next/src/ui/atlas_summary.js",
+      "apps/learnit-next/tests/atlas_m2_transfer.py",
+      "apps/learnit-next/source_manifest.json",
+      ".github/workflows/atlas-m2-transfer-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "backend/**",
+      "accounts/**",
+      "sync/**",
+      "marketplace/**",
+      "commerce/**",
+      ".github/workflows/atlas-m2-qa.yml",
+      "apps/learnit-next/tests/qa_atlas_m2_transfer.py"
+    ]
+  },
+  "invariants": [
+    "No database, store, storage namespace, state version or migration changes.",
+    "No content revision change; existing transfer|practice activities are consumed as authored.",
+    "LearningAction adds only attempt-transfer and ReasonCode adds only TRANSFER_AVAILABLE.",
+    "Transfer eligibility requires at least one successful admissible maintenance reconfirmation in the current validation cycle.",
+    "Each successful maintenance reconfirmation unlocks at most one subsequent transfer attempt.",
+    "Maintenance due outranks transfer and review-needed outranks both.",
+    "Transfer evidence is additive and never resets or extends the 1/3/7/21 memory schedule.",
+    "Incorrect or assisted transfer never erases prior independent validation.",
+    "Independent transfer success requires correct outcome and assistance none.",
+    "transfer-completed remains forbidden and no mastery/certification claim is introduced.",
+    "ObjectiveEvidence v1 remains unchanged; transfer uses a separate pure derived TransferEvidence v1 projection.",
+    "No backend, account, synchronization, runtime LLM/API, secret or network-required learning behavior."
+  ],
+  "requiredEvidence": [
+    "Exact product diff stays within ATLAS-WP-005 allowed paths and contains no independent-QA files.",
+    "Existing promoted baseline, M1 and M2 developer suites remain green.",
+    "Developer tests prove transfer eligibility, one-attempt-per-reconfirmation, maintenance priority and review priority.",
+    "Developer tests prove correct unassisted success, assisted/incorrect non-credit and memory-schedule invariance.",
+    "No transfer recommendation exists without an authored transfer|practice activity.",
+    "Closed contracts reject unknown action/reason/fields and transfer-completed.",
+    "No storage migration and no runtime network dependency.",
+    "Two clean deterministic builds are byte-identical.",
+    "Strict visible desktop/mobile/keyboard regression remains green.",
+    "Exact product artifact is published for independent QA binding."
+  ],
+  "adversarialTests": [
+    "Attempt transfer before first reconfirmation and require rejection/non-eligibility.",
+    "Attempt two transfers after one reconfirmation and require only the first opportunity.",
+    "Add a later successful reconfirmation and require exactly one new transfer opportunity.",
+    "Make maintenance due and require maintenance action instead of transfer.",
+    "Set review-needed and require correction/review instead of transfer.",
+    "Use assistance used or unknown and require no independent transfer success.",
+    "Use incorrect transfer and require prior validation/memory dueAt to remain intact.",
+    "Remove transfer activity and require no attempt-transfer recommendation.",
+    "Inject transfer-completed or unknown fields and require fail-closed behavior."
+  ],
+  "independentReview": [
+    "Governor selection and frozen semantics are recorded on issue #203 before implementation.",
+    "QA-WP-016 is independently owned on a separate branch and may not repair product files.",
+    "Final QA PASS is forbidden until the exact product head and exact artifact are frozen and rebound.",
+    "Promotion and Pages repin remain accountable-human gated on the exact independently tested artifact."
+  ],
+  "nonGoals": [
+    "M3 Authoring Studio",
+    "New activity types or content revision changes",
+    "Transfer mastery or certification claims",
+    "New reward economy, XP, rank, streak or dashboard",
+    "Backend, accounts, cloud synchronization or remote catalog",
+    "Teacher/cohort/institution features",
+    "Gate3 repository-write activation",
+    "Gate4 parallel runtime activation"
+  ],
+  "execution": {
+    "productBranch": "agent/ATLAS-WP-005-m2-transfer",
+    "independentQaWorkPackage": "QA-WP-016",
+    "independentQaIssue": 204,
+    "finalStatus": "PENDING_IMPLEMENTATION"
+  },
+  "rollback": "Revert ATLAS-WP-005 product changes. Promoted M2 state remains structurally valid because no storage migration, content revision or identity rewrite occurs."
+}

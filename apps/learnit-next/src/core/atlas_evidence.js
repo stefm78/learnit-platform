@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const REASON_CODES = Object.freeze([
   'NEW_OBJECTIVE','PRACTICE_IN_PROGRESS','RECENT_ERROR','REVIEW_REQUIRED',
   'CORRECTION_COMPLETED','NO_INDEPENDENT_VALIDATION','VALIDATION_AVAILABLE',
-  'RECENTLY_VALIDATED','SESSION_TIME_LIMIT'
+  'RECENTLY_VALIDATED','TRANSFER_AVAILABLE','SESSION_TIME_LIMIT'
 ]);
 const REWARD_PRIORITY = Object.freeze([
   'validation-reconfirmed','validation-completed','correction-completed',
@@ -23,7 +23,8 @@ const ACTION_EXECUTION_CLASS = Object.freeze({
   'continue-practice':'practice',
   'correct-practice':'correction',
   'attempt-validation':'validation',
-  'maintain-recent-validation':'validation'
+  'maintain-recent-validation':'validation',
+  'attempt-transfer':'transfer'
 });
 const TS_RX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const DIGEST_RX = /^sha256:[0-9a-f]{64}$/;

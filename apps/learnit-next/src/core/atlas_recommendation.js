@@ -46,7 +46,10 @@ function actionForEvidence(evidence, context={}) {
         ? ['continue-practice',['RECENT_ERROR','REVIEW_REQUIRED']]
         : ['correct-practice',['RECENT_ERROR','REVIEW_REQUIRED']];
     case 'ready-for-validation': return context.hasAcceptedValidation ? ['attempt-validation',['VALIDATION_AVAILABLE']] : ['continue-practice',['NO_INDEPENDENT_VALIDATION']];
-    case 'validated-recently': return context.maintenanceEligible ? ['maintain-recent-validation',['RECENTLY_VALIDATED','VALIDATION_AVAILABLE']] : ['continue-practice',['RECENTLY_VALIDATED']];
+    case 'validated-recently':
+      if (context.maintenanceEligible) return ['maintain-recent-validation',['RECENTLY_VALIDATED','VALIDATION_AVAILABLE']];
+      if (context.transferEligible) return ['attempt-transfer',['TRANSFER_AVAILABLE']];
+      return ['continue-practice',['RECENTLY_VALIDATED']];
     default: fail('UNKNOWN_EVIDENCE_STATE');
   }
 }

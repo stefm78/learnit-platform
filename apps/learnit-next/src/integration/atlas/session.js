@@ -37,6 +37,21 @@ function contentRevisionRef(context) {
   });
 }
 
+function learnerObjectiveLabels(context) {
+  return Object.freeze(Object.fromEntries(
+    (context.course.objectives || [])
+      .filter(objective => (
+        typeof objective.objectiveId === 'string'
+        && typeof objective.label === 'string'
+        && objective.label.trim()
+      ))
+      .map(objective => [
+        objective.objectiveId,
+        objective.label.trim(),
+      ]),
+  ));
+}
+
 function sourceActivity(context, reference) {
   const activity = context.course.activities.find(
     item => (
@@ -287,6 +302,88 @@ function nextAtlasPaint() {
       requestAnimationFrame(resolve);
     });
   });
+}
+
+async function showFeedbackTransition(
+  container,
+  activityWrapper,
+  sessionActions,
+  feedbackMarkup,
+  onContinue,
+) {
+  /*
+   * Keep activity N visible while its own feedback is read.
+   * The scored response becomes read-only and activity N+1
+   * is not rendered until the learner explicitly continues.
+   */
+  container.querySelector(
+    '[data-atlas-session-error]',
+  )?.remove();
+
+  activityWrapper
+    .querySelectorAll('input, select')
+    .forEach(control => {
+      control.disabled = true;
+    });
+
+  activityWrapper.querySelector(
+    '[data-atlas-help-status]',
+  )?.remove();
+
+  sessionActions.remove();
+
+  const transition = node(
+    'div',
+    {
+      className: 'atlas-feedback-transition',
+      'data-atlas-feedback-transition': 'true',
+    },
+  );
+
+  const feedback = node('div');
+  feedback.innerHTML = feedbackMarkup;
+  transition.append(...feedback.childNodes);
+
+  const next = node(
+    'button',
+    {
+      type: 'button',
+      className: 'atlas-primary',
+      text: 'Activité suivante',
+      'data-atlas-feedback-next': 'true',
+    },
+  );
+
+  next.addEventListener(
+    'click',
+    async () => {
+      next.disabled = true;
+
+      try {
+        await onContinue();
+      } catch (error) {
+        showError(container, error);
+        next.disabled = false;
+      }
+    },
+  );
+
+  transition.append(
+    node(
+      'div',
+      { className: 'atlas-actions' },
+      [next],
+    ),
+  );
+
+  activityWrapper.append(transition);
+
+  await nextAtlasPaint();
+  assertAtlasControlVisible(
+    next,
+    'feedback-next',
+  );
+  next.focus();
 }
 
 function assertAtlasControlVisible(control, name) {
@@ -694,6 +791,8 @@ export async function runAtlasSession({
           modules.summary.renderSummary({
             evidence,
             completed: true,
+            objectiveLabels:
+              learnerObjectiveLabels(context),
           });
 
         if (previousFeedback) {
@@ -908,13 +1007,43 @@ export async function runAtlasSession({
                 rawResponse,
               );
 
-            await renderCurrent(
+            const outcomeFeedback =
               feedbackHtml(
                 result,
                 activity,
                 modules,
-              ),
-            );
+              );
+
+            const nextCheckpoint =
+              resumeState(
+                storage,
+                sessionRef.sessionId,
+              );
+
+            if (!nextCheckpoint) {
+              throw new Error(
+                'ATLAS_RESUME_STATE_NOT_FOUND',
+              );
+            }
+
+            if (
+              nextCheckpoint.nextItemPosition
+              >= activePlan.payload.items.length
+            ) {
+              await renderCurrent(
+                outcomeFeedback,
+              );
+            } else {
+              await showFeedbackTransition(
+                container,
+                wrapper,
+                sessionActions,
+                outcomeFeedback,
+                async () => {
+                  await renderCurrent();
+                },
+              );
+            }
           } catch (error) {
             showError(
               container,

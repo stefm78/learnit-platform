@@ -9,6 +9,7 @@ const REASON_LABELS = Object.freeze({
   NO_INDEPENDENT_VALIDATION: 'Aucune validation indépendante admissible.',
   VALIDATION_AVAILABLE: 'Une validation autonome est disponible.',
   RECENTLY_VALIDATED: 'Une validation récente est enregistrée.',
+  TRANSFER_AVAILABLE: 'Une reconfirmation récente ouvre un défi dans un autre contexte.',
   SESSION_TIME_LIMIT: 'Cette activité ne tient pas dans la durée choisie.'
 });
 
@@ -17,14 +18,16 @@ const ACTION_CLASS = Object.freeze({
   'continue-practice': 'practice',
   'correct-practice': 'correction',
   'attempt-validation': 'validation',
-  'maintain-recent-validation': 'validation'
+  'maintain-recent-validation': 'validation',
+  'attempt-transfer': 'transfer'
 });
 const ACTION_LABELS = Object.freeze({
   'start-practice': 'Entraînement — je m’exerce',
   'continue-practice': 'Entraînement — je m’exerce',
   'correct-practice': 'Correction — je corrige une erreur',
   'attempt-validation': 'Validation — je vérifie sans aide',
-  'maintain-recent-validation': 'Entretien — je garde un acquis récent actif'
+  'maintain-recent-validation': 'Entretien — je garde un acquis récent actif',
+  'attempt-transfer': 'Défi de transfert — j’applique dans un autre contexte'
 });
 
 
@@ -350,7 +353,13 @@ function validateResumeState(resumeState, itemCount, context = {}) {
   return resumeState;
 }
 
-function renderToday({ recommendation, plan, resumeState }) {
+function learnerObjectiveLabel(objectiveLabels, objectiveRef) {
+  if (!objectiveLabels || typeof objectiveLabels !== 'object' || Array.isArray(objectiveLabels)) return null;
+  const value = objectiveLabels[objectiveRef.objectiveId];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function renderToday({ recommendation, plan, resumeState, objectiveLabels = {} }) {
   if (!recommendation || !plan) return '<section class="atlas-m1 atlas-today" aria-labelledby="atlas-today-title"><h1 id="atlas-today-title">Aujourd’hui</h1><p>Aucune séance admissible pour le moment.</p></section>';
   validateRecommendationPlan(recommendation, plan);
   let resume = '';
@@ -359,7 +368,13 @@ function renderToday({ recommendation, plan, resumeState }) {
     resume = '<button type="button" data-atlas-action="resume">Reprendre la séance</button>';
   }
   const reasons = recommendation.reasonCodes.map(code => `<li>${esc(REASON_LABELS[code])}</li>`).join('');
-  const items = plan.payload.items.map(item => `<li><span>${esc(ACTION_LABELS[item.action])}</span><strong>${item.estimatedMinutes} min</strong></li>`).join('');
+  const items = plan.payload.items.map(item => {
+    const objectiveLabel = learnerObjectiveLabel(objectiveLabels, item.objectiveRef);
+    const objective = objectiveLabel
+      ? `<br><small class="atlas-plan-objective">Objectif : ${esc(objectiveLabel)}</small>`
+      : '';
+    return `<li><span><span>${esc(ACTION_LABELS[item.action])}</span>${objective}</span><strong>${item.estimatedMinutes} min</strong></li>`;
+  }).join('');
   return `<section class="atlas-m1 atlas-today" aria-labelledby="atlas-today-title"><h1 id="atlas-today-title">Aujourd’hui</h1><p class="atlas-duration">${plan.payload.durationMinutes} minutes · ${plan.payload.totalEstimatedMinutes} prévues</p><ul class="atlas-reasons">${reasons}</ul><ol class="atlas-plan-preview">${items}</ol><div class="atlas-actions">${resume}<button class="atlas-primary" type="button" data-atlas-action="start">Commencer</button></div></section>`;
 }
 
@@ -370,5 +385,5 @@ module.exports = Object.freeze({
   assertCourseRef, assertContentRevisionRef, assertObjectiveRef, assertActivityRef, assertSessionRef,
   courseKey, objectiveKey, activityKey, sameCanonical,
   validateRecommendation, validatePlanItem, validatePlan, validateRecommendationPlan,
-  validateResumeItemState, validateResumeState, renderToday
+  validateResumeItemState, validateResumeState, learnerObjectiveLabel, renderToday
 });

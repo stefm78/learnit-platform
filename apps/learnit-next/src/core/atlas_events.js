@@ -158,6 +158,7 @@ function actionClass(action) {
     'correct-practice': 'correction',
     'attempt-validation': 'validation',
     'maintain-recent-validation': 'validation',
+    'attempt-transfer': 'transfer',
   })[action] || fail('UNKNOWN_ACTION');
 }
 

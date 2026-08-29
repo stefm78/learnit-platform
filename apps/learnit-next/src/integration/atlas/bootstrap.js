@@ -4,6 +4,7 @@ const MODULE_PATHS = Object.freeze({
   evidence: 'apps/learnit-next/src/core/atlas_evidence.js',
   claimAuthority: 'apps/learnit-next/src/core/atlas_claim_authority.js',
   memory: 'apps/learnit-next/src/core/atlas_memory.js',
+  transfer: 'apps/learnit-next/src/core/atlas_transfer.js',
   planner: 'apps/learnit-next/src/core/atlas_planner.js',
   projection: 'apps/learnit-next/src/core/atlas_projection.js',
   recommendation: 'apps/learnit-next/src/core/atlas_recommendation.js',
