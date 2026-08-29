@@ -304,6 +304,65 @@ function nextAtlasPaint() {
   });
 }
 
+async function showFeedbackTransition(
+  container,
+  feedbackMarkup,
+  onContinue,
+) {
+  const wrapper = node(
+    'div',
+    {
+      className: 'atlas-feedback-transition',
+      'data-atlas-feedback-transition': 'true',
+    },
+  );
+
+  const feedback = node('div');
+  feedback.innerHTML = feedbackMarkup;
+  wrapper.append(...feedback.childNodes);
+
+  const next = node(
+    'button',
+    {
+      type: 'button',
+      className: 'atlas-primary',
+      text: 'Activité suivante',
+      'data-atlas-feedback-next': 'true',
+    },
+  );
+
+  next.addEventListener(
+    'click',
+    async () => {
+      next.disabled = true;
+
+      try {
+        await onContinue();
+      } catch (error) {
+        showError(container, error);
+        next.disabled = false;
+      }
+    },
+  );
+
+  wrapper.append(
+    node(
+      'div',
+      { className: 'atlas-actions' },
+      [next],
+    ),
+  );
+
+  container.replaceChildren(wrapper);
+
+  await nextAtlasPaint();
+  assertAtlasControlVisible(
+    next,
+    'feedback-next',
+  );
+  next.focus();
+}
+
 function assertAtlasControlVisible(control, name) {
   if (!(control instanceof HTMLElement)) {
     throw new Error(
@@ -925,13 +984,41 @@ export async function runAtlasSession({
                 rawResponse,
               );
 
-            await renderCurrent(
+            const outcomeFeedback =
               feedbackHtml(
                 result,
                 activity,
                 modules,
-              ),
-            );
+              );
+
+            const nextCheckpoint =
+              resumeState(
+                storage,
+                sessionRef.sessionId,
+              );
+
+            if (!nextCheckpoint) {
+              throw new Error(
+                'ATLAS_RESUME_STATE_NOT_FOUND',
+              );
+            }
+
+            if (
+              nextCheckpoint.nextItemPosition
+              >= activePlan.payload.items.length
+            ) {
+              await renderCurrent(
+                outcomeFeedback,
+              );
+            } else {
+              await showFeedbackTransition(
+                container,
+                outcomeFeedback,
+                async () => {
+                  await renderCurrent();
+                },
+              );
+            }
           } catch (error) {
             showError(
               container,
