@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-006",
+  "title": "Route M3.1 promotion lane to promotion verifier",
+  "status": "in-progress",
+  "changeClass": "ci-routing-extension",
+  "riskClass": "moderate",
+  "purpose": "Recognize the exact governed M3.1 promotion branch in the legacy Learn-it Next router and delegate semantic verification to the dedicated M3.1 promotion rebind workflow while preserving fail-closed behavior for every other unknown product branch.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "63d35c2f9f0998ad07459f282e0cf0422c8747a9",
+    "authorityIssue": 275,
+    "productIssue": 261,
+    "promotionVerifierIssue": 273,
+    "branch": "ci/CI-WP-006-m3-1-promotion-route"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-006.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      ".github/workflows/atlas-m3-1-promotion-rebind.yml",
+      "work-packages/ATLAS-WP-012.json"
+    ]
+  },
+  "invariants": [
+    "Only the legacy Learn-it Next CI router and this work-package file may change.",
+    "The existing M3.1 implementation delegated route remains unchanged.",
+    "The exact M3.1 promotion branch is the only new recognized branch.",
+    "The new route is delegation-only and never claims to execute promotion semantics.",
+    "Delegation requires the frozen product work package and workflow in the promotion delta, an authoring/v2 product change, and the dedicated promotion verifier already present on the PR base.",
+    "Every other unknown product-relevant branch remains fail-closed.",
+    "Rename/copy-aware product relevance logic remains unchanged.",
+    "Repository governance, PR scope, product code, product tests and promotion verifier semantics are untouched."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Learn-it Next CI self-audit PASS on the CI-WP-006 branch.",
+    "Existing M3.1 implementation route string remains unchanged.",
+    "Unknown branch fallback remains ci-router.",
+    "Unknown-product fail-closed logic remains unchanged.",
+    "Promotion delegated block requires exact branch, canonical work package, frozen product workflow, authoring/v2 change and verifier presence on PR base."
+  ],
+  "adversarialTests": [
+    "Exact M3.1 promotion branch with required conditions delegates successfully.",
+    "Promotion branch missing frozen product workflow fails.",
+    "Promotion branch missing canonical product work package fails.",
+    "Promotion branch without authoring/v2 product change fails.",
+    "Promotion branch whose base lacks the dedicated verifier fails.",
+    "Any other unknown product branch remains fail-closed.",
+    "Existing M3.1 implementation route still delegates exactly as before."
+  ],
+  "nonGoals": [
+    "Executing or accepting M3.1 promotion semantics in the legacy router.",
+    "Changing product sources/tests.",
+    "Changing branch protection.",
+    "M3.2/M3.3/Gate3/Gate4/M4+."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope provide independent repository-level review.",
+    "The workflow executes its existing ci-router self-test on this workflow-only change."
+  ],
+  "execution": {
+    "issue": 275,
+    "maximumChangedFiles": 2,
+    "branch": "ci/CI-WP-006-m3-1-promotion-route",
+    "pullRequest": null,
+    "requiresContradictoryReviewBeforeMerge": false,
+    "mergeStatus": "not-merged",
+    "phase": "READY_FOR_FINAL_CI"
+  },
+  "rollback": "Revert the single promotion delegated route block and CI-WP-006 metadata; the promotion branch returns to fail-closed behavior."
+}
