@@ -108,12 +108,13 @@
   "execution": {
     "branch": "atlas/ATLAS-WP-009-m3-authoring-foundation",
     "phase": "READY_NOT_STARTED",
-    "productPullRequest": null,
+    "productPullRequest": 235,
     "independentQaWorkPackage": "QA-WP-018",
     "independentQaIssue": 233,
     "maximumChangedFiles": 9,
     "humanGateRequired": true,
-    "finalVerdict": null
+    "finalVerdict": null,
+    "preparedForHandover": true
   },
   "rollback": "Revert or drop the isolated authoring/studio implementation, dedicated workflow and package metadata. No learner runtime, learner storage, canonical kit or schema migration is involved."
 }
