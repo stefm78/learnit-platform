@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-013",
+  "title": "M3.2 AI Kit Factory design",
+  "status": "in-progress",
+  "changeClass": "product-design-ai-kit-factory",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 282,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.2-DESIGN"
+  },
+  "purpose": "Replace the previously contemplated Source-to-Draft pipeline with a minimal AI Kit Factory contract: strong AI authors directly from source material, deterministic code gates canonical/structural quality, and an independent AI reviewer gates semantic/source fidelity.",
+  "baseline": {
+    "baseCommit": "bd83f9fc3af32fc10b127b4dd059d5f10495d1ab",
+    "m3_1PromotedMain": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749",
+    "canonicalStateMain": "bd83f9fc3af32fc10b127b4dd059d5f10495d1ab",
+    "m3_1FrozenProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+    "m3_1QaHead": "6ff592af68e6cc95bd479911a09388293c5528f5",
+    "humanUxDebtIssue": 272,
+    "accountableOwnerDecision": "GO_M3_2_AI_KIT_FACTORY"
+  },
+  "scope": {
+    "allowedPaths": [
+      "docs/atlas/M3_2_AI_KIT_FACTORY_DESIGN.md",
+      "work-packages/ATLAS-WP-013.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      ".github/**",
+      "work-packages/ATLAS-WP-014.json",
+      "work-packages/QA-WP-022.json"
+    ]
+  },
+  "invariants": [
+    "M3.2 is AI Kit Factory, not Source-to-Draft.",
+    "No generic source-ingestion or intermediate-draft subsystem is introduced.",
+    "A capable author AI reads source files directly.",
+    "Canonical validity and M3.1 pedagogical quality remain deterministic upstream authorities.",
+    "Factory structural PASS requires M3.1 STRONG or EXCELLENT_BY_PROFILE; COMPLETE is HOLD.",
+    "Semantic/source-fidelity quality is reviewed by a logically independent AI context under a stable structured review contract.",
+    "A deterministic gate verifies review shape, source/brief/kit binding, independence declarations and final PASS/HOLD consistency; it does not claim to prove semantic truth itself.",
+    "Provenance/evidence stays outside learnit.kit.v2.",
+    "No model provider, network API, backend, learner-runtime or Studio document-ingestion dependency is added.",
+    "Human UX debt #272 remains separate and deferred.",
+    "M3.3, M3.4, Gate3, Gate4 and M4+ remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact two-file design diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Source-to-Draft explicitly rejected for M3.2.",
+    "Factory context, semantic-review and final evidence contracts frozen.",
+    "Author/reviewer independence boundary frozen.",
+    "Final gate requires deterministic structure plus semantic reviewer PASS; no scalar score can independently release a kit.",
+    "Exact ATLAS-WP-014 implementation and QA-WP-022 path sets frozen and disjoint.",
+    "Qualification-run boundary frozen."
+  ],
+  "adversarialTests": [
+    "Reject design that inserts source/provenance fields into learnit.kit.v2.",
+    "Reject any model/vendor API integration.",
+    "Reject same active author context as semantic reviewer.",
+    "Reject factory PASS on M3.1 COMPLETE.",
+    "Reject semantic PASS without exact source/brief/kit hash binding.",
+    "Reject semantic PASS with a blocking or major finding.",
+    "Reject generic extraction/source-to-draft subsystem.",
+    "Reject implementation/QA path overlap.",
+    "Reject hidden activation of M3.3/M3.4/Gate3/Gate4/M4+."
+  ],
+  "nonGoals": [
+    "M3.2 implementation",
+    "generic PDF/OCR/document ingestion",
+    "intermediate draft schema",
+    "embedded AI model/API",
+    "Studio document upload",
+    "human UX debt #272",
+    "automatic publishing",
+    "M3.3/M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Linus architecture challenge recorded on authority issue #282.",
+    "Steve product challenge recorded on authority issue #282.",
+    "Pedagogical semantic-quality challenge recorded on authority issue #282.",
+    "Repository governance and PR scope gate the design PR.",
+    "Implementation requires separate ATLAS-WP-014 authority."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-013-m3-2-ai-kit-factory-design",
+    "phase": "DESIGN_FROZEN_FOR_REVIEW",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert only the two design files. Promoted M3.1 product, stable Pages and learner runtime remain unchanged."
+}
