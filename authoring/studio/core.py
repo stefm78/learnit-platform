@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = ROOT / "contracts/learnit-kit-v2.schema.json"
 V2_VALIDATOR_PATH = ROOT / "authoring/v2/validate_kit.py"
 ATLAS_VALIDATOR_PATH = ROOT / "authoring/v2/atlas/validate_atlas_content.py"
+PEDAGOGICAL_QUALITY_PATH = ROOT / "authoring/v2/atlas/pedagogical_quality.py"
 NAMESPACE = "learnit.authoring.m3.v1"
 DRAFT_SCHEMA = "learnit.authoring.m3.draft.v1"
 ZERO_DIGEST = "sha256:" + "0" * 64
