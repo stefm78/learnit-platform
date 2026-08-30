@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-030",
+  "title": "Record accepted M3.0 design and implementation HOLD",
+  "status": "in-progress",
+  "changeClass": "governance-canonical-state-alignment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 228,
+    "governorIssue": 4,
+    "program": "PROJECT-ATLAS",
+    "milestone": "POST-M3.0-DESIGN"
+  },
+  "purpose": "Realign canonical repository state after M3.0 design acceptance while keeping implementation and platform expansion explicitly held.",
+  "baseline": {
+    "baseCommit": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+    "acceptedDesignWorkPackage": "ATLAS-WP-008",
+    "acceptedDesignIssue": 223,
+    "acceptedDesignHead": "f75bbebe580aba56df389a9851b4c55016d0b231",
+    "acceptedDesignMerge": "eb38312bb22ac854b5d57ddab98e2eb9c85a3ae5",
+    "acceptedDesignCloseoutMerge": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+    "designVerdict": "PASS_M3_0_AUTHORING_FOUNDATION_DESIGN_TO_IMPLEMENTATION_GATE"
+  },
+  "scope": {
+    "allowedPaths": [
+      "governance/governor-state.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "docs/atlas/README.md",
+      "work-packages/GOV-WP-030.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "work-packages/ATLAS-WP-009.json",
+      "work-packages/QA-WP-018.json"
+    ]
+  },
+  "invariants": [
+    "No M3.0 implementation is authorized by this work package.",
+    "Accepted M3.0 design remains the sole implementation blueprint.",
+    "Next mandatory gate is a fresh bounded M3.0 implementation package.",
+    "Controlled-time QA tooling remains separate and optional.",
+    "Gate3, Gate4, M4+, backend, accounts, sync, remote catalog and runtime AI remain HOLD.",
+    "No product/runtime/authoring/contract/workflow changes."
+  ],
+  "requiredEvidence": [
+    "Exact six-path metadata/documentation diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Canonical docs agree that design is accepted but implementation is not active.",
+    "No runtime or build artifact changes."
+  ],
+  "adversarialTests": [
+    "Reject wording that treats design acceptance as implementation authorization.",
+    "Reject implicit activation of Gate3, Gate4, M4+ or runtime AI.",
+    "Reject any authoring implementation path in the diff.",
+    "Reject stale statement that the M3.0 design gate is still pending."
+  ],
+  "independentReview": [
+    "Permanent governor records accepted design and implementation HOLD.",
+    "Repository governance and PR scope validate metadata-only scope."
+  ],
+  "nonGoals": [
+    "M3.0 implementation",
+    "Controlled-time tooling implementation",
+    "Accessibility evidence work",
+    "M4+",
+    "Backend/accounts/sync/runtime AI"
+  ],
+  "execution": {
+    "branch": "gov/GOV-WP-030-post-m3-design-state",
+    "pullRequest": null,
+    "mergeCommit": null,
+    "finalStatus": "PENDING_ALIGNMENT"
+  },
+  "rollback": "Revert only this canonical-state alignment. Accepted design evidence remains intact."
+}
