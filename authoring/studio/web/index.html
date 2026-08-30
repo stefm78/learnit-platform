@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Learn-it — Studio auteur Atlas M3.0</title>
+  <title>Learn-it — Studio auteur Atlas M3.1</title>
   <link rel="stylesheet" href="studio.css">
 </head>
 <body>
   <header class="topbar">
     <div>
       <p class="eyebrow">Learn-it · Project Atlas</p>
-      <h1>Studio auteur M3.0</h1>
-      <p class="subtitle">Modifier un kit Atlas existant sans éditer le JSON à la main.</p>
+      <h1>Studio auteur M3.1</h1>
+      <p class="subtitle">Modifier un kit Atlas existant, vérifier sa validité et comprendre sa qualité pédagogique.</p>
     </div>
     <div class="top-actions">
       <label class="file-button" for="kit-file">Ouvrir un kit JSON</label>
@@ -24,7 +24,7 @@
     <section id="empty-state" class="panel empty-state">
       <h2>Commencez avec un kit Atlas canonique</h2>
       <p>Le studio travaille localement. Aucun document n’est envoyé vers un service distant.</p>
-      <p>Les types et la structure du kit restent gelés en M3.0 : on modifie seulement les champs existants.</p>
+      <p>Les types et la structure du kit restent gelés : M3.1 ajoute un diagnostic pédagogique sans modifier le contrat.</p>
     </section>
 
     <div id="workspace" class="workspace" hidden>
@@ -77,11 +77,25 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">Validation canonique en direct</p>
-            <h2 id="diagnostics-title">Diagnostics</h2>
+            <h2 id="diagnostics-title">Validité du kit</h2>
           </div>
           <span id="validation-badge" class="badge" aria-live="polite">À vérifier</span>
         </div>
         <div id="diagnostic-list" aria-live="polite"></div>
+
+        <div class="quality-zone" aria-labelledby="quality-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Qualité pédagogique Atlas</p>
+              <h3 id="quality-title">Complétude et solidité</h3>
+            </div>
+            <span id="quality-badge" class="badge" aria-live="polite">À analyser</span>
+          </div>
+          <p id="quality-summary" class="muted" aria-live="polite">Le diagnostic pédagogique est calculé après validation canonique.</p>
+          <div id="quality-list" aria-live="polite"></div>
+          <p class="quality-disclaimer">Le niveau de qualité décrit le kit statique selon le profil Atlas. Il ne prouve ni maîtrise, ni rétention, ni efficacité d’apprentissage.</p>
+        </div>
+
         <div class="export-box">
           <button id="export" type="button" disabled>Exporter le kit validé</button>
           <p id="export-status" class="muted" aria-live="polite">L’export reste bloqué tant qu’une erreur canonique subsiste.</p>
