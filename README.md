@@ -12,10 +12,13 @@ Learn-it now has two explicitly separated generations:
 Current Atlas facts:
 
 - Atlas M1 is promoted: product merge `354a2cf27954de13435a08a2a4ec014b9e8a2e89`;
-- accepted M1 INT: `e2c10c8eb5a3e1c4dff5e45b210f327942bafce8`;
-- accepted M1 QA: `67d70e7307402242dbc1939d6cabfd87af617d74`;
-- promoted M1 artifact: `334194` bytes, SHA-256 `6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f`;
-- Atlas M2 is promoted: product merge `dd0c191179f968d35742cb58f7d6bb9ccb53a852`, accepted QA head `4b0d80dd3b576a2300a4d1516481769b198d9637`, canonical artifact `352237` bytes / SHA-256 `7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091`; the human promotion gate passed and GitHub Pages publishes that exact artifact at https://stefm78.github.io/learnit-platform/.
+- Atlas M2 memory/reconfirmation is promoted: product merge `dd0c191179f968d35742cb58f7d6bb9ccb53a852`;
+- Atlas M2.2 transfer plus bounded learner-facing clarity is promoted and published;
+- accepted final M2.2 product HEAD: `abaa0af0dcbd5338be2221587c1e871c4f939c52`;
+- accepted final M2.2 QA HEAD: `0e529f8b4f684a7c9aa900742efe94b2a012abc0`;
+- exact promoted M2.2 artifact: `366412` bytes, SHA-256 `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7`;
+- accountable-human gate: `PASS M2.2 — GO PROMOTION`;
+- GitHub Pages publishes that exact artifact at https://stefm78.github.io/learnit-platform/.
 
 The legacy baseline is:
 
@@ -31,8 +34,8 @@ The legacy baseline is:
 For current product work, read these sources in this order:
 
 1. [`governance/governor-state.json`](governance/governor-state.json) for the repository's machine-readable current state;
-2. [`ATLAS-WP-003`](work-packages/ATLAS-WP-003.json) and [`ATLAS-WP-004`](work-packages/ATLAS-WP-004.json) for the completed M2 product and Pages promotion evidence;
-3. [Atlas M2 authority #157](https://github.com/stefm78/learnit-platform/issues/157) for the completed M2 decision history;
+2. [`ATLAS-WP-005`](work-packages/ATLAS-WP-005.json), [`ATLAS-WP-006`](work-packages/ATLAS-WP-006.json) and [`ATLAS-WP-007`](work-packages/ATLAS-WP-007.json) for the completed M2.2 product, clarity and Pages evidence;
+3. [M3.0 design authority #223](https://github.com/stefm78/learnit-platform/issues/223) for the selected next design gate;
 4. accepted architecture decisions under [`docs/architecture/decisions/`](docs/architecture/decisions/);
 5. [`GOVERNANCE.md`](GOVERNANCE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
@@ -61,6 +64,8 @@ Historical work packages, reviews, handovers and roadmap stages remain evidence;
 
 ## Active product gate
 
-Atlas M2 is promoted and published. There is currently **no active product increment**.
+Atlas M2.2 is promoted and published.
 
-The next product increment must begin with a new explicit authority issue/work package and bounded scope; completed M2 authority #157 does not implicitly authorize additional product changes.
+The next selected increment is **M3.0 Authoring Foundation design** under issue #223. It is design-only: no M3.0 product implementation is authorized until the bounded design gate freezes exact implementation paths, shared contracts, deterministic export/re-import evidence, independent QA and rollback.
+
+Gate3, Gate4, M4+, backend, accounts, synchronization, remote catalog and runtime AI remain HOLD.
