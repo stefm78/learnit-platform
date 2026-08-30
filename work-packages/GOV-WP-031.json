@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-031",
+  "title": "Align canonical state after M3.1 promotion",
+  "status": "in-progress",
+  "changeClass": "governance-canonical-state-alignment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 280,
+    "governorIssue": 4,
+    "program": "PROJECT-ATLAS",
+    "milestone": "POST-M3.1-PROMOTION"
+  },
+  "purpose": "Realign the repository's machine-readable state and canonical top-level documentation with the completed M3.0/M3.1 authoring promotions, stable Pages publication and preserved human-review UX debt, without changing any product, runtime, contract or workflow.",
+  "baseline": {
+    "baseCommit": "601cade1376e6f87e71351fe3f201833a9356697",
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "m3_0AuthoringPromotionMerge": "cdd232f163f5c6ae86e54fbe145b3cda1d6b4803",
+    "m3_0PagesPromotionMerge": "936e574c7e6306d645c6b7eba12881556eaa0e90",
+    "m3_1FrozenProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+    "m3_1QaHead": "6ff592af68e6cc95bd479911a09388293c5528f5",
+    "m3_1PromotionHead": "cad5cc98d50cfe937629a1cc120a64c032b474a4",
+    "m3_1PromotionMerge": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749",
+    "stablePagesMerge": "601cade1376e6f87e71351fe3f201833a9356697",
+    "stablePagesRun": 33334141865,
+    "humanGate": "PASS_M3_1_AI_AUTHORING_WITH_NON_BLOCKING_HUMAN_UX_DEBT",
+    "humanUxDebtIssue": 272
+  },
+  "scope": {
+    "allowedPaths": [
+      "governance/governor-state.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "docs/atlas/README.md",
+      "work-packages/GOV-WP-031.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-012.json",
+      "work-packages/QA-WP-021.json"
+    ]
+  },
+  "invariants": [
+    "This work package changes metadata/documentation only; no product, runtime, authoring source, contract, test or workflow may change.",
+    "The promoted learner runtime remains the exact M2.2 artifact: 366412 bytes with the frozen SHA-256.",
+    "M3.0 Authoring Foundation and M3.0 Pages packaging are recorded as promoted/completed.",
+    "M3.1 Pedagogical Quality is recorded as promoted/completed with exact product, QA, promotion and stable-publication evidence.",
+    "M3.1 authoring remains separate from the learner runtime and introduces no runtime AI/network dependency.",
+    "Human graphical/contextual sequence-review debt remains open as issue #272 and explicitly non-blocking.",
+    "M3.2 Source to Draft is recorded only as the next possible increment and remains HOLD until a fresh accountable-owner arbitration and bounded authority.",
+    "M3.3, M3.4, Gate3, Gate4 and M4+ remain HOLD.",
+    "No historical evidence is rewritten to claim an earlier gate had a different result."
+  ],
+  "requiredEvidence": [
+    "Exact six-path metadata/documentation diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Governor state, root README, architecture README, Atlas README and active roadmap agree on promoted M3.1 state.",
+    "All canonical sources agree learner runtime identity remains M2.2 unchanged.",
+    "All canonical sources preserve debt #272 and the M3.2 HOLD boundary.",
+    "No forbidden product/runtime/workflow path changed."
+  ],
+  "adversarialTests": [
+    "Reject stale wording that M3.0 implementation is still unauthorized or pending.",
+    "Reject wording that M3.1 modifies the promoted learner artifact.",
+    "Reject wording that M3.2 is automatically authorized by M3.1 completion.",
+    "Reject silent closure or omission of human-context UX debt #272.",
+    "Reject implicit activation of M3.3, M3.4, Gate3, Gate4 or M4+.",
+    "Reject any diff outside the exact six allowed paths."
+  ],
+  "independentReview": [
+    "Permanent governor state is updated under issue #280.",
+    "Repository governance and PR scope independently verify this exact metadata-only change."
+  ],
+  "nonGoals": [
+    "M3.2 design or implementation",
+    "Implementing human UX debt #272",
+    "Changing M3.1 product semantics",
+    "Changing learner runtime or artifact",
+    "Changing contracts or workflows",
+    "Gate3, Gate4 or M4+ activation"
+  ],
+  "execution": {
+    "branch": "gov/GOV-WP-031-post-m3-1-state",
+    "pullRequest": null,
+    "maximumChangedFiles": 6,
+    "phase": "CANONICAL_STATE_ALIGNMENT_PREPARED",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert only the six metadata/documentation paths. Promoted product, QA, learner and Pages evidence remain intact."
+}
