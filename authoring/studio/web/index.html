@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Learn-it — Studio auteur Atlas M3.0</title>
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Learn-it · Project Atlas</p>
+      <h1>Studio auteur M3.0</h1>
+      <p class="subtitle">Modifier un kit Atlas existant sans éditer le JSON à la main.</p>
+    </div>
+    <div class="top-actions">
+      <label class="file-button" for="kit-file">Ouvrir un kit JSON</label>
+      <input id="kit-file" type="file" accept="application/json,.json">
+      <button id="discard" class="secondary" type="button" disabled>Abandonner le brouillon</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="empty-state" class="panel empty-state">
+      <h2>Commencez avec un kit Atlas canonique</h2>
+      <p>Le studio travaille localement. Aucun document n’est envoyé vers un service distant.</p>
+      <p>Les types et la structure du kit restent gelés en M3.0 : on modifie seulement les champs existants.</p>
+    </section>
+
+    <div id="workspace" class="workspace" hidden>
+      <aside class="panel navigation" aria-label="Navigation du kit">
+        <h2>Contenu</h2>
+        <label>Parcours
+          <select id="course-select"></select>
+        </label>
+        <label>Objectif
+          <select id="objective-select"></select>
+        </label>
+        <label>Activité
+          <select id="activity-select"></select>
+        </label>
+        <dl class="provenance">
+          <div><dt>Source</dt><dd id="source-name"></dd></div>
+          <div><dt>SHA-256 import</dt><dd id="source-sha" class="mono"></dd></div>
+        </dl>
+      </aside>
+
+      <section class="panel editor" aria-labelledby="editor-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Édition visuelle</p>
+            <h2 id="editor-title">Champs du kit</h2>
+          </div>
+          <span id="dirty-badge" class="badge">Source inchangée</span>
+        </div>
+
+        <details open>
+          <summary>Package</summary>
+          <div id="package-fields" class="form-grid"></div>
+        </details>
+        <details open>
+          <summary>Parcours sélectionné</summary>
+          <div id="course-fields" class="form-grid"></div>
+        </details>
+        <details open>
+          <summary>Objectif sélectionné</summary>
+          <div id="objective-fields" class="form-grid"></div>
+        </details>
+        <details open>
+          <summary>Activité sélectionnée</summary>
+          <div id="activity-fields" class="form-grid"></div>
+          <div id="type-fields"></div>
+        </details>
+      </section>
+
+      <section class="panel diagnostics" aria-labelledby="diagnostics-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Validation canonique en direct</p>
+            <h2 id="diagnostics-title">Diagnostics</h2>
+          </div>
+          <span id="validation-badge" class="badge" aria-live="polite">À vérifier</span>
+        </div>
+        <div id="diagnostic-list" aria-live="polite"></div>
+        <div class="export-box">
+          <button id="export" type="button" disabled>Exporter le kit validé</button>
+          <p id="export-status" class="muted" aria-live="polite">L’export reste bloqué tant qu’une erreur canonique subsiste.</p>
+        </div>
+      </section>
+
+      <section class="panel preview" aria-labelledby="preview-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Aperçu auteur</p>
+            <h2 id="preview-title">Activité</h2>
+          </div>
+          <button id="refresh-preview" class="secondary" type="button">Actualiser</button>
+        </div>
+        <div class="notice">Aperçu auteur uniquement — ce panneau ne prouve ni recommandation, ni mémoire, ni transfert, ni maîtrise apprenant.</div>
+        <div id="preview-content"></div>
+      </section>
+    </div>
+  </main>
+
+  <template id="field-template">
+    <label class="field"><span></span><input></label>
+  </template>
+
+  <script src="studio.js"></script>
+</body>
+</html>
