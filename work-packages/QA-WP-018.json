@@ -97,7 +97,9 @@
     "productWorkPackage": "ATLAS-WP-009",
     "productIssue": 232,
     "productHead": null,
-    "finalVerdict": null
+    "finalVerdict": null,
+    "preparationPullRequest": 236,
+    "preparedForHandover": true
   },
   "rollback": "Drop the QA branch/PR only. No product file is changed or repaired by this package."
 }
