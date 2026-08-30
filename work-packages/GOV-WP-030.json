@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-030",
   "title": "Record accepted M3.0 design and implementation HOLD",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "governance-canonical-state-alignment",
   "riskClass": "low",
   "authority": {
@@ -74,9 +74,12 @@
   ],
   "execution": {
     "branch": "gov/GOV-WP-030-post-m3-design-state",
-    "pullRequest": null,
-    "mergeCommit": null,
-    "finalStatus": "PENDING_ALIGNMENT"
+    "pullRequest": 229,
+    "implementationHead": "dbe44789c37c47da7b8b0903ec7b202db4c04903",
+    "mergeCommit": "41ce1f154c5cd7081bf2c1a6c3e84a809642c260",
+    "repositoryGovernanceRun": 33297926214,
+    "prScopeRun": 33297926201,
+    "finalStatus": "PASS_POST_M3_0_DESIGN_STATE_ALIGNMENT"
   },
   "rollback": "Revert only this canonical-state alignment. Accepted design evidence remains intact."
 }
