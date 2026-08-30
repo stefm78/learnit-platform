@@ -14,6 +14,9 @@ const validationBadge = $('#validation-badge');
 const exportButton = $('#export');
 const discardButton = $('#discard');
 const previewContent = $('#preview-content');
+const qualityList = $('#quality-list');
+const qualityBadge = $('#quality-badge');
+const qualitySummary = $('#quality-summary');
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
@@ -167,6 +170,46 @@ async function onEdit(event) {
   }
 }
 
+function renderPedagogicalQuality(report) {
+  qualityList.innerHTML = '';
+  if (!report) {
+    qualityBadge.textContent = 'À analyser';
+    qualityBadge.className = 'badge';
+    qualitySummary.textContent = 'Le diagnostic pédagogique est calculé après validation canonique.';
+    return;
+  }
+
+  const labels = {
+    BLOCKED: 'Bloqué',
+    COMPLETE: 'Complet · à renforcer',
+    STRONG: 'Solide',
+    EXCELLENT_BY_PROFILE: 'Excellent selon le profil',
+  };
+  qualityBadge.textContent = labels[report.qualityBand] || report.qualityBand || 'Indisponible';
+  qualityBadge.className = report.qualityBand === 'EXCELLENT_BY_PROFILE' || report.qualityBand === 'STRONG'
+    ? 'badge ok'
+    : (report.qualityBand === 'BLOCKED' ? 'badge bad' : 'badge');
+
+  const counts = report.counts || {blocking: 0, warning: 0, advice: 0};
+  qualitySummary.textContent = report.canonicalValid
+    ? `${counts.warning} avertissement(s) · ${counts.advice} conseil(s) · profil ${report.profile || 'Atlas'}`
+    : 'La qualité pédagogique ne peut pas être validée tant que le kit canonique est invalide.';
+
+  if (!report.diagnostics?.length) {
+    qualityList.innerHTML = '<p class="muted">Aucun avertissement ni conseil du profil pédagogique déterministe.</p>';
+    return;
+  }
+
+  for (const item of report.diagnostics) {
+    const node = document.createElement('div');
+    const severityClass = item.severity === 'advice' ? ' advice' : (item.severity === 'warning' ? ' warning' : '');
+    const severityLabel = item.severity === 'advice' ? 'Conseil' : (item.severity === 'warning' ? 'Avertissement' : 'Blocage');
+    node.className = `diagnostic-item${severityClass}`;
+    node.innerHTML = `<strong>${severityLabel} · ${escapeHtml(item.code)}</strong><code>${escapeHtml(item.path || '$')}</code><div>${escapeHtml(item.cause)}</div><div class="quality-detail"><b>Impact :</b> ${escapeHtml(item.impact || '')}</div><div class="quality-detail"><b>Correction :</b> ${escapeHtml(item.fix || '')}</div>`;
+    qualityList.appendChild(node);
+  }
+}
+
 function renderDiagnostics() {
   const result = state.validation;
   diagnostics.innerHTML = '';
@@ -174,6 +217,7 @@ function renderDiagnostics() {
     validationBadge.textContent = 'À vérifier';
     validationBadge.className = 'badge';
     exportButton.disabled = true;
+    renderPedagogicalQuality(null);
     return;
   }
   if (result.diagnostics.length === 0) {
@@ -190,8 +234,8 @@ function renderDiagnostics() {
   validationBadge.className = result.ok ? 'badge ok' : 'badge bad';
   exportButton.disabled = !result.exportAvailable;
   $('#export-status').textContent = result.ok ? 'Le même validateur canonique sera rejoué au moment de l’export.' : 'Corrigez les erreurs bloquantes avant export.';
+  renderPedagogicalQuality(result.pedagogicalQuality || null);
 }
-
 async function refreshPreview() {
   if (!state.draft) return;
   try {
@@ -233,6 +277,7 @@ function showStandaloneError(error) {
   validationBadge.className = 'badge bad';
   diagnostics.innerHTML = `<div class="diagnostic-item"><strong>Erreur</strong><div>${escapeHtml(error.message)}</div></div>`;
   exportButton.disabled = true;
+  renderPedagogicalQuality(null);
 }
 
 $('#kit-file').addEventListener('change', async event => {

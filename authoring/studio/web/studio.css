@@ -63,8 +63,15 @@ summary { cursor: pointer; font-weight: 800; margin-bottom: 12px; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; }
 .diagnostic-item { border-left: 4px solid var(--danger); background: var(--danger-soft); border-radius: 8px; padding: 10px 12px; margin: 9px 0; }
 .diagnostic-item.warning { border-left-color: #c7961b; background: var(--warning-soft); color: var(--warning); }
+.diagnostic-item.advice { border-left-color: #6d78a0; background: #f3f5fb; color: #44506d; }
 .diagnostic-item strong { display: block; }
 .diagnostic-item code { overflow-wrap: anywhere; }
+.quality-zone { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 18px; }
+.quality-zone h3 { margin: 3px 0; }
+.quality-zone .section-heading { margin-bottom: 8px; }
+.quality-detail { margin-top: 7px; font-size: .92rem; }
+.quality-detail b { color: var(--ink); }
+.quality-disclaimer { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #f5f7fb; color: var(--muted); font-size: .88rem; }
 .export-box { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 16px; }
 .muted { color: var(--muted); }
 .notice { background: var(--accent-soft); border: 1px solid #cbd8ff; border-radius: 10px; padding: 10px 12px; color: #24417d; margin-bottom: 14px; }

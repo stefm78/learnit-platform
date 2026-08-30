@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a static GitHub Pages surface for the frozen M3.0 authoring core."""
+"""Build a static GitHub Pages surface for the M3.1 authoring core."""
 from __future__ import annotations
 
 import argparse
@@ -16,6 +16,7 @@ AUTHORITY = {
     "authoring/studio/core.py": ROOT / "authoring" / "studio" / "core.py",
     "authoring/v2/validate_kit.py": ROOT / "authoring" / "v2" / "validate_kit.py",
     "authoring/v2/atlas/validate_atlas_content.py": ROOT / "authoring" / "v2" / "atlas" / "validate_atlas_content.py",
+    "authoring/v2/atlas/pedagogical_quality.py": ROOT / "authoring" / "v2" / "atlas" / "pedagogical_quality.py",
     "contracts/learnit-kit-v2.schema.json": ROOT / "contracts" / "learnit-kit-v2.schema.json",
 }
 
@@ -61,12 +62,13 @@ def build(output: Path) -> dict:
         shutil.copy2(source, target)
 
     evidence = {
-        "schema": "learnit.atlas.m3.pages.bundle.v1",
-        "mode": "STATIC_BROWSER_PYTHON_AUTHORITY",
+        "schema": "learnit.atlas.m3.pages.bundle.v2",
+        "mode": "STATIC_BROWSER_PYTHON_AUTHORITY_M3_1",
         "pyodideVersion": "0.29.4",
         "pyodideBaseUrl": "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/",
         "authoringStorageNamespace": "learnit.authoring.m3.v1",
         "externalAuthoringDataTransfer": False,
+        "pedagogicalQualityProfile": "atlas.pedagogy.v1",
         "authority": {relative: {"sha256": sha256(source), "bytes": source.stat().st_size}
                       for relative, source in sorted(AUTHORITY.items())},
         "frozenUi": {name: {"sha256": sha256(WEB / name), "bytes": (WEB / name).stat().st_size}
