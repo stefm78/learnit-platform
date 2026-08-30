@@ -23,7 +23,7 @@ You must **not** receive:
 - author hidden reasoning/scratchpad;
 - the author's active conversation/context.
 
-If either has been provided, set the corresponding independence field to `true` and return semantic HOLD.
+If either has been provided, set the corresponding independence field to `true` and return semantic HOLD. The exact fields are `authorScratchpadSeen` and `authorActiveContextReused`; both must be `false` for a semantic PASS.
 
 Using a different model is desirable but not mandatory. A clean context is mandatory.
 
