@@ -104,15 +104,17 @@ def _browser_dispatch(operation, payload_json, raw_b64, source_name):
     pyodide = await window.loadPyodide({indexURL: PYODIDE_BASE});
     await pyodide.loadPackage('jsonschema');
 
-    const [core, v2, atlas, schema] = await Promise.all([
+    const [core, v2, atlas, quality, schema] = await Promise.all([
       fetchAuthority('authoring/studio/core.py'),
       fetchAuthority('authoring/v2/validate_kit.py'),
       fetchAuthority('authoring/v2/atlas/validate_atlas_content.py'),
+      fetchAuthority('authoring/v2/atlas/pedagogical_quality.py'),
       fetchAuthority('contracts/learnit-kit-v2.schema.json'),
     ]);
     writeText('/repo/authoring/studio/core.py', core);
     writeText('/repo/authoring/v2/validate_kit.py', v2);
     writeText('/repo/authoring/v2/atlas/validate_atlas_content.py', atlas);
+    writeText('/repo/authoring/v2/atlas/pedagogical_quality.py', quality);
     writeText('/repo/contracts/learnit-kit-v2.schema.json', schema);
     pyodide.runPython(PYTHON_BRIDGE);
     window.__learnitPagesReady = true;
