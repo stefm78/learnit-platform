@@ -76,11 +76,15 @@ M2.0/M2.1 (mémoire et reconfirmation) sont promus. M2.2 (transfert déterminist
 
 ### M3 — Authoring Studio
 
-Le design M3.0 **Authoring Foundation** est accepté sous l’issue #223. Son vertical slice minimal gelé est : kit canonique existant → édition visuelle → validation live → aperçu → export canonique déterministe → réimport sans dérive sémantique.
+M3.0 **Authoring Foundation** est promu et publié. Son vertical slice reste : kit canonique existant → édition visuelle → validation live → aperçu → export canonique déterministe → réimport sans dérive sémantique.
 
-Le studio d’authoring reste une application locale/statique séparée du runtime apprenant. M3.0 n’autorise ni nouveau type d’activité, ni changement de contrat implicite, ni backend, ni compte, ni synchronisation, ni LLM runtime.
+M3.1 **Pedagogical Quality Engine** est également promu. Il ajoute un moteur Python déterministe, local et sans réseau, partagé par CLI/CI/Studio, ainsi qu’un skill Atlas d’authoring permettant à une IA de produire un kit, lire des diagnostics machine-readable, corriger et réitérer sans modifier le contrat `learnit.kit.v2`. La publication stable est disponible sous `/authoring/`.
 
-Les incréments ultérieurs de M3 couvriront séparément diagnostics pédagogiques, import de documents, assistance LLM hors runtime et passage à l’échelle/publication.
+Le studio reste séparé du runtime apprenant. Le learner publié reste exactement l’artefact M2.2 ; M3 n’ajoute ni backend, ni compte, ni synchronisation, ni LLM runtime.
+
+Le gate humain M3.1 a validé l’approche AI-authoring. La faiblesse de compréhension globale pour un reviewer humain — absence de vue graphique du cycle objectif → pratique → correction → validations → transfert — est conservée comme dette non bloquante sous l’issue #272.
+
+M3.2 **Source to Draft** est le prochain incrément possible, mais reste HOLD jusqu’à un nouvel arbitrage explicite. M3.3 assistance LLM et M3.4 passage à l’échelle/publication restent également des gates séparés.
 
 ### M4 — Learn-it Everywhere
 
@@ -126,7 +130,7 @@ Autorité historique M1 :
 - issue : `#130`
 - work package : `ATLAS-WP-001`
 
-Baseline promue actuelle M2.2 :
+Baseline runtime apprenant promue actuelle M2.2, inchangée par M3 :
 - product HEAD accepté : `abaa0af0dcbd5338be2221587c1e871c4f939c52`
 - QA HEAD accepté : `0e529f8b4f684a7c9aa900742efe94b2a012abc0`
 - artefact : `366412` octets
@@ -134,6 +138,9 @@ Baseline promue actuelle M2.2 :
 - publication : `https://stefm78.github.io/learnit-platform/`
 
 Gate courant :
-- design M3.0 accepté : `docs/atlas/M3_AUTHORING_FOUNDATION_DESIGN.md`
-- prochaine étape obligatoire : nouveau work package d’implémentation borné
-- aucune implémentation produit n’est active tant que cette autorité séparée n’est pas ouverte.
+- M3.0 Authoring Foundation : promu ;
+- M3.1 Pedagogical Quality Engine : promu, QA indépendante PASS, gate humain PASS pour l’approche AI-authoring ;
+- publication stable : `https://stefm78.github.io/learnit-platform/authoring/` ;
+- dette de vue pédagogique humaine : #272, différée et non bloquante ;
+- prochaine évolution possible : M3.2 Source to Draft, **HOLD** jusqu’à un nouvel arbitrage et une autorité bornée ;
+- M3.3, M3.4, Gate3, Gate4 et M4+ restent HOLD.

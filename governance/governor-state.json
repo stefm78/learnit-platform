@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-08-30-POST-M3-0-DESIGN",
-  "effectiveFromCommit": "12ed301344806d21f61972d69a9b12abcedbc0b7",
-  "reviewedBaselineCommit": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+  "stateId": "GOV-STATE-2026-08-30-POST-M3-1-PROMOTION",
+  "effectiveFromCommit": "601cade1376e6f87e71351fe3f201833a9356697",
+  "reviewedBaselineCommit": "601cade1376e6f87e71351fe3f201833a9356697",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m3-0-design-accepted",
+    "id": "project-atlas-m3-1-promoted",
     "status": "complete",
-    "description": "M3.0 Authoring Foundation design is accepted with a separate local/offline authoring architecture, frozen canonical validator reuse, deterministic export/re-import evidence, exact future implementation paths and independent-QA separation. No M3.0 product implementation is currently authorized."
+    "description": "M3.0 Authoring Foundation and browser packaging are promoted. M3.1 Pedagogical Quality Engine is independently QA-passed, human-approved for the AI-authoring scope, promoted and stably published under /authoring/. The learner runtime remains the exact promoted M2.2 artifact. Human sequence-level graphical review debt is tracked separately as issue #272."
   },
   "currentMain": {
-    "commit": "12ed301344806d21f61972d69a9b12abcedbc0b7",
-    "sourcePullRequest": 227,
-    "description": "Post-M3.0 design closeout main: accepted Authoring Foundation design metadata after design PR #226 and governed closeout #227."
+    "commit": "601cade1376e6f87e71351fe3f201833a9356697",
+    "sourcePullRequest": 279,
+    "description": "Post-M3.1 stable Pages main: exact promoted M3.1 authoring product is bound to the canonical stable Pages publisher while preserving the frozen learner artifact."
   },
   "developmentBaseline": {
     "status": "not-selected",
@@ -22,7 +22,7 @@
     "candidate": null,
     "sourceCommit": null,
     "authorityIssue": null,
-    "note": "M3.0 design is accepted. A fresh bounded implementation authority/work package is required before authoring product code may begin."
+    "note": "M3.1 is complete and promoted. M3.2 Source to Draft is only the next possible product increment and remains HOLD until a fresh accountable-owner arbitration and bounded authority are opened."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -37,7 +37,8 @@
     "humanValidation": "PASS M2.2 — GO PROMOTION",
     "promotionAuthorityIssue": 208,
     "pagesDeploymentRun": 33269665324,
-    "pagesUrl": "https://stefm78.github.io/learnit-platform/"
+    "pagesUrl": "https://stefm78.github.io/learnit-platform/",
+    "note": "Learner runtime baseline remains M2.2 unchanged by M3 authoring. M3.0/M3.1 authoring promotion is recorded separately under acceptedControls."
   },
   "acceptedControls": {
     "stageDOperatingModel": {
@@ -110,15 +111,58 @@
       "designMerge": "eb38312bb22ac854b5d57ddab98e2eb9c85a3ae5",
       "closeoutMerge": "12ed301344806d21f61972d69a9b12abcedbc0b7",
       "verdict": "PASS_M3_0_AUTHORING_FOUNDATION_DESIGN_TO_IMPLEMENTATION_GATE"
+    },
+    "projectAtlasM3_0AuthoringFoundation": {
+      "workPackage": "ATLAS-WP-009",
+      "status": "promoted",
+      "authorityIssue": 232,
+      "frozenProductHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+      "acceptedQaHead": "c6e53437600c76fe58890d8658f5827ad03a3484",
+      "promotionMerge": "cdd232f163f5c6ae86e54fbe145b3cda1d6b4803",
+      "humanGate": "PASS"
+    },
+    "projectAtlasM3_0Pages": {
+      "workPackage": "ATLAS-WP-010",
+      "status": "promoted",
+      "authorityIssue": 242,
+      "frozenProductHead": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+      "acceptedQaHead": "9694757789b9f9b17894b2f657c62ccc38796208",
+      "promotionMerge": "936e574c7e6306d645c6b7eba12881556eaa0e90",
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/authoring/"
+    },
+    "projectAtlasM3_1PedagogicalQuality": {
+      "workPackage": "ATLAS-WP-012",
+      "status": "promoted",
+      "authorityIssue": 261,
+      "frozenProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+      "productRun": 33327797651,
+      "acceptedQaHead": "6ff592af68e6cc95bd479911a09388293c5528f5",
+      "qaRun": 33332143078,
+      "promotionHead": "cad5cc98d50cfe937629a1cc120a64c032b474a4",
+      "promotionRun": 33333721017,
+      "promotionMerge": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749",
+      "humanGate": "PASS_M3_1_AI_AUTHORING_WITH_NON_BLOCKING_HUMAN_UX_DEBT",
+      "humanUxDebtIssue": 272
+    },
+    "projectAtlasM3_1StablePages": {
+      "workPackage": "OPS-WP-016",
+      "status": "promoted",
+      "authorityIssue": 278,
+      "mergeCommit": "601cade1376e6f87e71351fe3f201833a9356697",
+      "deploymentRun": 33334141865,
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/authoring/",
+      "learnerArtifactBytes": 366412,
+      "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
     }
   },
   "authorizedWork": [
-    "GOV-WP-030 may align canonical state after accepted M3.0 design only.",
+    "GOV-WP-031 may align canonical state after completed M3.1 promotion only.",
     "Repository maintenance and evidence-preserving closeout may proceed only under dedicated bounded work packages."
   ],
   "heldWork": [
-    "M3.0 Authoring Foundation implementation remains HOLD until a fresh explicit implementation authority and bounded work package are approved.",
-    "Controlled-time navigator tooling remains a separate optional dev/QA candidate and is not active.",
+    "M3.2 Source to Draft remains HOLD until a fresh accountable-owner product arbitration and bounded authority are accepted.",
+    "M3.3 assisted authoring and M3.4 scale/publishing remain HOLD until separately authorized.",
+    "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
     "Gate 3 repository-write capability remains HOLD unless separately authorized.",
     "Gate 4 parallel runtime remains HOLD unless separately authorized.",
     "M4 Learn-it Everywhere, backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace remain HOLD.",
@@ -133,17 +177,24 @@
     "publishing an artifact different from the exact artifact tested and promoted",
     "embedding M3 authoring or LLM assistance code into the learner runtime artifact"
   ],
-  "activeRisks": [],
+  "activeRisks": [
+    {
+      "id": "ATLAS-RISK-M3-1-HUMAN-CONTEXT-001",
+      "severity": "moderate",
+      "statement": "Human review of AI-authored kits lacks a sequence-level graphical/contextual overview; tracked as non-blocking debt #272.",
+      "closureGate": "Close or supersede issue #272 only after a separately authorized human-review workflow provides sequence-level context and passes its own evidence gate."
+    }
+  ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "ATLAS-WP-009",
-    "condition": "Create and explicitly authorize a bounded M3.0 Authoring Foundation implementation package conforming exactly to the accepted ATLAS-WP-008 design before any authoring product-code modification begins."
+    "id": "ATLAS-WP-013",
+    "condition": "ATLAS-WP-013 is reserved for the next bounded M3.2 Source-to-Draft authority and must not be created or activated until a fresh accountable-owner product arbitration explicitly authorizes M3.2."
   },
   "review": {
     "lastReviewedAt": "2026-08-30",
-    "lastReviewedBy": "Permanent Governor after accepted M3.0 Authoring Foundation design and governed closeout",
+    "lastReviewedBy": "Permanent Governor after M3.1 product promotion and stable Pages publication",
     "decision": "HOLD",
-    "authorityIssue": 228,
-    "nextReviewTrigger": "explicit M3.0 implementation proposal, any deviation from accepted design, contract change, document-ingestion/LLM expansion, storage migration, accessibility reactivation trigger, or security/autonomy expansion"
+    "authorityIssue": 280,
+    "nextReviewTrigger": "explicit M3.2 Source-to-Draft proposal, M3.3 assistance proposal, human UX debt #272 reactivation, contract change, storage migration, security/autonomy expansion, Gate3/Gate4 request or M4+ proposal"
   }
 }
