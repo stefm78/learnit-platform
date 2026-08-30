@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic M3.0 authoring core for existing canonical Atlas kits."""
+"""Deterministic M3.1 authoring core for existing canonical Atlas kits."""
 from __future__ import annotations
 
 import base64
@@ -67,6 +67,13 @@ def authorities():
     if _ATLAS is None:
         _ATLAS = _load_module("learnit_m3_atlas_authority", ATLAS_VALIDATOR_PATH)
     return _V2, _ATLAS
+
+
+def quality_authority():
+    global _QUALITY
+    if _QUALITY is None:
+        _QUALITY = _load_module("learnit_m3_1_quality_authority", PEDAGOGICAL_QUALITY_PATH)
+    return _QUALITY
 
 
 def _pairs(pairs: Iterable[tuple[str, Any]]) -> dict[str, Any]:
@@ -644,6 +651,7 @@ def apply_edit(
 
 
 def validate_draft(draft: dict[str, Any]) -> dict[str, Any]:
+    quality = None
     try:
         current = _validate_draft_shape(draft)
         diagnostics = _draft_integrity_diagnostics(current)
@@ -655,12 +663,38 @@ def validate_draft(draft: dict[str, Any]) -> dict[str, Any]:
                 "blockingCount": len(diagnostics),
                 "warningCount": 0,
                 "materializedSha256": None,
+                "pedagogicalQuality": None,
             }
         materialized = _materialize(current["package"])
         diagnostics = _authoritative_diagnostics(materialized)
     except AuthoringError as exc:
         diagnostics = [exc.diagnostic()]
         materialized = None
+
+    blocking = [item for item in diagnostics if item.get("severity") == "blocking"]
+    if materialized is not None and not blocking:
+        try:
+            quality = quality_authority().analyze_package(materialized)
+        except Exception as exc:
+            diagnostics.append(
+                {
+                    "severity": "blocking",
+                    "code": "PEDAGOGICAL_QUALITY_ENGINE_FAILURE",
+                    "path": "$",
+                    "cause": str(exc),
+                }
+            )
+        else:
+            if not quality.get("canonicalValid"):
+                diagnostics.append(
+                    {
+                        "severity": "blocking",
+                        "code": "PEDAGOGICAL_QUALITY_CANONICAL_DIVERGENCE",
+                        "path": "$",
+                        "cause": "Pedagogical quality authority rejected content already accepted by the Studio canonical validators",
+                    }
+                )
+
     blocking = [item for item in diagnostics if item.get("severity") == "blocking"]
     warnings = [item for item in diagnostics if item.get("severity") == "warning"]
     return {
@@ -670,6 +704,7 @@ def validate_draft(draft: dict[str, Any]) -> dict[str, Any]:
         "blockingCount": len(blocking),
         "warningCount": len(warnings),
         "materializedSha256": sha256_bytes(canonical_bytes(materialized)) if materialized is not None and not blocking else None,
+        "pedagogicalQuality": quality if not blocking else None,
     }
 
 
