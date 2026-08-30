@@ -21,7 +21,7 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - The promoted M1 artifact is `334194` bytes with SHA-256 `6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f`.
 - Atlas M2 memory/reconfirmation is promoted on product merge `dd0c191179f968d35742cb58f7d6bb9ccb53a852`.
 - Atlas M2.2 transfer plus learner-facing clarity is promoted with accepted product HEAD `abaa0af0dcbd5338be2221587c1e871c4f939c52` and accepted QA HEAD `0e529f8b4f684a7c9aa900742efe94b2a012abc0`; its exact canonical artifact is `366412` bytes with SHA-256 `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7` and is published through GitHub Pages.
-- The next selected Atlas increment is M3.0 Authoring Foundation **design only** under issue `#223`; learner-runtime implementation is not authorized by that selection.
+- M3.0 Authoring Foundation design is accepted under completed issue `#223`; it freezes a separate local/offline authoring application, canonical validator reuse, deterministic export/re-import evidence and exact future implementation/QA paths. Product implementation is not yet authorized.
 - Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
 ## Current decisions
@@ -62,6 +62,6 @@ Atlas M1 bootstrap, lane execution, integration, independent QA, human validatio
 
 Atlas M2 product implementation, M2.2 transfer and clarity correction, independent QA, accountable-human validation, promotion and exact-artifact Pages publication are completed historical steps.
 
-M3.0 Authoring Foundation is selected next as a **design-only** increment under issue #223. Product implementation remains HOLD until that design package is accepted with exact implementation paths, frozen shared contracts, QA evidence and rollback.
+M3.0 Authoring Foundation design is accepted. The next mandatory gate is a fresh bounded implementation package that conforms exactly to `../atlas/M3_AUTHORING_FOUNDATION_DESIGN.md`.
 
-Gate3, Gate4 and M4+ platform evolution remain separately held.
+Product implementation remains HOLD until that separate authority is explicitly opened. Gate3, Gate4 and M4+ platform evolution remain separately held.
