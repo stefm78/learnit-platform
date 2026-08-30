@@ -92,7 +92,9 @@
     "devWorkPackage": "DEV-WP-032",
     "devIssue": 231,
     "devHead": null,
-    "finalVerdict": null
+    "finalVerdict": null,
+    "preparationPullRequest": 238,
+    "preparedForHandover": true
   },
   "rollback": "Drop the QA branch/PR only. No dev-tool or learner product file is modified by this package."
 }
