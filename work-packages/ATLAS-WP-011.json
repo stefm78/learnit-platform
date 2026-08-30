@@ -82,7 +82,7 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-011-m3-1-quality-design",
-    "phase": "DESIGN_PREPARED",
+    "phase": "DESIGN_FROZEN_FOR_REVIEW",
     "pullRequest": null,
     "maximumChangedFiles": 2,
     "humanGateRequired": false,
