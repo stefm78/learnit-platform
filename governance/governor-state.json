@@ -204,7 +204,7 @@
   "review": {
     "lastReviewedAt": "2026-08-30",
     "lastReviewedBy": "Permanent Governor after accountable-owner M3.2 arbitration and accepted AI Kit Factory design",
-    "decision": "GO_BOUNDED",
+    "decision": "GO_WITH_CONDITIONS",
     "authorityIssue": 284,
     "nextReviewTrigger": "ATLAS-WP-014 candidate freeze, semantic-review contract change, source-ingestion proposal, model/vendor integration proposal, qualification failure, human UX debt #272 reactivation, Gate3/Gate4 request or M4+ proposal"
   }
