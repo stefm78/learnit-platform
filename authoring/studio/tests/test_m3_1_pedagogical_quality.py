@@ -124,16 +124,17 @@ class QualityEngineTests(unittest.TestCase):
     def test_duplicate_stimulus_warning(self):
         package = load(KITS[0])
         _, _, activities = first_objective(package)
-        source, correction = activities[0], activities[1]
-        correction["prompt"] = source["prompt"]
-        for left, right in zip(correction["choices"], source["choices"]):
+        source, duplicate = activities[0], activities[3]
+        self.assertEqual(len(source["choices"]), len(duplicate["choices"]))
+        duplicate["prompt"] = source["prompt"]
+        for left, right in zip(duplicate["choices"], source["choices"]):
             left["label"] = right["label"]
         correct_label = next(
             choice["label"] for choice in source["choices"]
             if choice["choiceId"] == source["correctChoiceId"]
         )
-        correction["correctChoiceId"] = next(
-            choice["choiceId"] for choice in correction["choices"]
+        duplicate["correctChoiceId"] = next(
+            choice["choiceId"] for choice in duplicate["choices"]
             if choice["label"] == correct_label
         )
         package = refresh(package)
@@ -248,8 +249,8 @@ class StudioIntegrationTests(unittest.TestCase):
         raw = KITS[0].read_bytes()
         draft = create_draft(raw, KITS[0].name)
         verdict = validate_draft(draft)
-        self.assertTrue(verdict["ok"])
-        self.assertTrue(verdict["exportAvailable"])
+        self.assertTrue(verdict["ok"], verdict)
+        self.assertTrue(verdict["exportAvailable"], verdict)
         self.assertIsNotNone(verdict["pedagogicalQuality"])
         self.assertTrue(verdict["pedagogicalQuality"]["canonicalValid"])
 
@@ -325,9 +326,11 @@ class PagesIntegrationTests(unittest.TestCase):
                     )
                     page.locator("#sample-complexes").click()
                     page.wait_for_function(
-                        "() => Boolean(localStorage.getItem('learnit.authoring.m3.v1'))",
+                        "() => Boolean(localStorage.getItem('learnit.authoring.m3.v1')) || Boolean(window.__learnitPagesSampleError)",
                         timeout=60000,
                     )
+                    sample_error = page.evaluate("() => window.__learnitPagesSampleError || null")
+                    self.assertIsNone(sample_error, sample_error)
                     draft = json.loads(
                         page.evaluate(
                             "() => localStorage.getItem('learnit.authoring.m3.v1')"
