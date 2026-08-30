@@ -6,21 +6,17 @@ RC718 remains the frozen legacy standalone product. The successor is a distinct 
 
 The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
-> **Current status (post-Atlas M2.2):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation and Atlas M2.2 transfer + bounded learner-facing clarity are promoted. The exact M2.2 artifact is published through GitHub Pages. The C1–C7 sequence below is retained as historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
+> **Current status (post-Atlas M3.1):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation and M3.1 Pedagogical Quality are promoted. The learner runtime remains the exact M2.2 artifact; the separate M3.1 authoring surface is stably published under `/authoring/`. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
 
-## Active post-M2.2 roadmap
+## Active post-M3.1 roadmap
 
 ### P0 — canonical state alignment
 
-Align the machine-readable governor state, architecture status, project README and roadmap with the promoted M2.2 facts and the currently enforced main-protection ruleset.
+Canonical state alignment is completed through GOV-WP-031: machine-readable governor state, architecture status, project README and roadmap describe the promoted M3.1 facts without changing product code.
 
-Exit gate: canonical repository sources no longer contradict the promoted M2.2 evidence or branch-protection reality.
+### M3.0 — Authoring Foundation — **PROMOTED**
 
-### M3.0 — Authoring Foundation
-
-**Design accepted** under completed issue #223. Product implementation remains HOLD pending a fresh bounded implementation authority.
-
-Accepted target vertical slice:
+The accepted vertical slice is implemented, independently tested, human-reviewed and promoted:
 
 ```text
 existing canonical kit
@@ -31,29 +27,41 @@ existing canonical kit
 → re-import without semantic drift
 ```
 
-Architecture boundary:
+The authoring application remains separate from the learner runtime and reuses the canonical kit contract and Python validation authorities. Its GitHub Pages browser packaging executes the same Python authorities in-browser.
 
-- authoring is a separate local/static application from the learner runtime;
-- existing canonical kit contracts and validators are reused where possible;
-- no new activity type, contract revision, backend, account, sync or runtime AI is implied;
-- document ingestion and LLM-assisted authoring belong to later M3 increments, not M3.0;
-- the accepted design now freezes exact paths, ownership, QA and rollback; implementation still requires a separate explicit authority.
+### M3.1 — Pedagogical Quality — **PROMOTED**
 
-### M3.1 — Pedagogical diagnostics
+A deterministic, read-only pedagogical-quality engine is promoted and available through CLI, CI and the Authoring Studio.
 
-After M3.0 is proven, add author-facing diagnostics for objective coverage, activity roles, durations, validation/transfer completeness and actionable errors.
+The AI-authoring loop is now:
 
-### M3.2 — Source to draft
+```text
+source material
+→ constrained AI authoring skill
+→ candidate learnit.kit.v2
+→ canonical validation
+→ pedagogical-quality report
+→ AI/human correction
+→ rerun
+```
 
-Later bounded ingestion of PDF/text/Markdown into a traceable author draft. Source provenance is mandatory and no imported suggestion is published automatically.
+Quality bands are non-numeric and do not claim learning effectiveness. The human gate accepted this AI-authoring orientation.
 
-### M3.3 — Assisted authoring
+Human sequence-level review remains weaker than desired because the Studio shows activities and diagnostics too locally. A future graphical overview of objective → practice → correction → validation 1 → validation 2 → transfer is tracked as non-blocking debt #272.
 
-Optional LLM assistance outside the learner runtime. Suggestions must be reviewed and converted into canonical static content before distribution.
+### M3.2 — Source to Draft — **HOLD / NEXT POSSIBLE**
 
-### M3.4 — Scale and publishing
+Potential later bounded ingestion of PDF/text/Markdown into a traceable author draft. Source provenance remains mandatory and nothing imported is automatically published.
 
-Batch validation, asset handling, collision diagnostics, rollback and 100/500-kit scale evidence before any broader publishing model.
+M3.2 is **not authorized by M3.1 completion**. It requires a new accountable-owner arbitration and bounded authority before design/implementation begins.
+
+### M3.3 — Assisted authoring — **HOLD**
+
+Optional LLM assistance outside the learner runtime. Suggestions must be reviewed and converted into canonical static content before distribution. Separate authority required.
+
+### M3.4 — Scale and publishing — **HOLD**
+
+Batch validation, asset handling, collision diagnostics, rollback and 100/500-kit scale evidence before any broader publishing model. Separate authority required.
 
 ### M4+ — platform evolution
 
@@ -61,7 +69,7 @@ Identity/synchronization, teacher/cohort and network/catalog capabilities remain
 
 ### Separate tooling candidate
 
-A controlled-time navigator is justified by M2.2 human-test cost and may be authorized as a small dev/QA-only work package. It must not alter the normal learner artifact or block M3.0 design.
+Controlled-time navigator tooling remains separate dev/QA capability and does not alter the normal learner artifact or authorize later product gates.
 
 ## Completed foundation
 
@@ -225,7 +233,7 @@ Introduce immutable learning events only when product use cases justify their co
 
 ## Held platform evolution
 
-The following remain separate future decisions, not assumed roadmap commitments. M3.0 does not authorize any of them:
+The following remain separate future decisions, not assumed roadmap commitments. M3.1 completion does not authorize any of them:
 
 1. synchronization simulator;
 2. accounts and learner profiles;
