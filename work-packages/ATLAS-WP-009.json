@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-009",
+  "title": "M3.0 Authoring Foundation implementation",
+  "status": "in-progress",
+  "changeClass": "product-implementation-authoring-foundation",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 232,
+    "parentDesignIssue": 223,
+    "parentDesignWorkPackage": "ATLAS-WP-008",
+    "governorIssue": 4,
+    "governorComment": 5467590273,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.0-IMPLEMENTATION"
+  },
+  "purpose": "Implement the accepted M3.0 Authoring Foundation as a separate local/offline author application for existing canonical Atlas kits: visual edit, authoritative live validation, author preview, deterministic canonical export and re-import without semantic drift.",
+  "baseline": {
+    "baseCommit": "c8e6e2a01a9a517f0aa7bdbfc2e01a600d2f30ba",
+    "acceptedDesignHead": "f75bbebe580aba56df389a9851b4c55016d0b231",
+    "acceptedDesignMerge": "eb38312bb22ac854b5d57ddab98e2eb9c85a3ae5",
+    "acceptedDesignCloseout": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+    "promotedM2_2ProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "promotedM2_2ArtifactBytes": 366412,
+    "promotedM2_2ArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-009.json",
+      "authoring/studio/README.md",
+      "authoring/studio/core.py",
+      "authoring/studio/server.py",
+      "authoring/studio/web/index.html",
+      "authoring/studio/web/studio.css",
+      "authoring/studio/web/studio.js",
+      "authoring/studio/tests/test_m3_authoring_foundation.py",
+      ".github/workflows/atlas-m3-authoring-foundation-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "contracts/**",
+      "authoring/v2/**",
+      "governance/**",
+      "docs/**",
+      "work-packages/QA-WP-018.json",
+      ".github/workflows/atlas-m3-authoring-foundation-qa.yml",
+      "authoring/studio/tests/qa_m3_authoring_foundation.py"
+    ]
+  },
+  "invariants": [
+    "The accepted ATLAS-WP-008 design is normative; implementation may not widen it silently.",
+    "Authoring Studio is a separate local/offline application and is not embedded in the learner artifact.",
+    "learnit.kit.v2 schema, existing v2/Atlas validators and canonical proof kits are read-only authorities.",
+    "M3.0 edits existing valid Atlas kits only; structural add/delete/reorder and new activity types are forbidden.",
+    "No-op import/export of each canonical Atlas proof kit is byte-identical.",
+    "Semantic edits preserve lineage IDs, allocate required revision IDs once per draft revision, and recompute Atlas claims plus activity/course/package digests.",
+    "Authoritative export is blocked until the existing canonical validator stack passes.",
+    "Draft persistence uses only the isolated learnit.authoring.m3.v1 namespace and never reads or mutates learner storage.",
+    "The local server binds loopback only, enables no permissive CORS and makes no outbound network call.",
+    "Preview is author-facing only and cannot claim learner recommendation, memory, transfer or mastery semantics.",
+    "No backend, accounts, synchronization, document ingestion, LLM assistance, Gate3, Gate4 or M4+ capability is introduced."
+  ],
+  "requiredEvidence": [
+    "Changed paths are exactly a subset of the nine authorized implementation paths.",
+    "Both canonical Atlas proof kits load and validate successfully.",
+    "No-op export is byte-identical for both canonical proof kits.",
+    "Representative QCM and fill semantic edits preserve lineage identities, rotate required revision IDs and produce valid canonical claims/digests.",
+    "Repeated export of an unchanged draft is byte-identical and has a stable SHA-256.",
+    "Blocking schema/editorial defects disable export and are shown as actionable diagnostics.",
+    "Reload restores only authoring draft state; discard clears only the authoring namespace.",
+    "Loopback-only server and no-outbound-network behavior are proven.",
+    "Edited exports pass the existing general v2 and Atlas editorial validators.",
+    "Edited exports are accepted by existing Learn-it import/browser regression without learner source changes.",
+    "M1/M2/M2.2 learner regressions remain green.",
+    "Product HEAD is frozen exactly before independent QA binding."
+  ],
+  "adversarialTests": [
+    "Stale revision IDs or digests after semantic edits.",
+    "Lineage-ID mutation on ordinary edits.",
+    "Stale Atlas claim IDs or stimulus digests.",
+    "Duplicate JSON keys, malformed UTF-8 or unsupported canonical values.",
+    "Unsupported activity type or phase/role combination.",
+    "Broken QCM correct-answer relation.",
+    "Broken fill slot/token/answer relation.",
+    "Export remains enabled despite a blocking canonical diagnostic.",
+    "Repeated export differs without a logical draft change.",
+    "Authoring persistence touches learner storage.",
+    "Server binds non-loopback, enables permissive CORS or attempts external network.",
+    "Preview is treated as learner-semantic authority.",
+    "Any changed path outside the exact implementation allowlist."
+  ],
+  "nonGoals": [
+    "Document/PDF/Markdown ingestion.",
+    "LLM-assisted authoring.",
+    "Structural add/delete/reorder of courses, objectives, activities, choices, slots or tokens.",
+    "New activity types or contract revision.",
+    "Learner-runtime changes.",
+    "Remote publishing, collaboration, accounts or synchronization.",
+    "Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "QA-WP-018 owns an independent contradictory oracle and never repairs ATLAS-WP-009 files.",
+    "Final QA must bind to one exact frozen ATLAS-WP-009 HEAD.",
+    "Repository governance and PR-scope checks must pass on the implementation PR.",
+    "A short desktop authoring human gate follows independent QA on the exact accepted candidate."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-009-m3-authoring-foundation",
+    "phase": "IMPLEMENTED_AWAITING_PRODUCT_CI",
+    "productPullRequest": 235,
+    "independentQaWorkPackage": "QA-WP-018",
+    "independentQaIssue": 233,
+    "maximumChangedFiles": 9,
+    "humanGateRequired": true,
+    "finalVerdict": null,
+    "preparedForHandover": false
+  },
+  "rollback": "Revert or drop the isolated authoring/studio implementation, dedicated workflow and package metadata. No learner runtime, learner storage, canonical kit or schema migration is involved."
+}
