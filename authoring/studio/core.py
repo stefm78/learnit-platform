@@ -58,6 +58,7 @@ def _load_module(name: str, path: Path):
 
 _V2 = None
 _ATLAS = None
+_QUALITY = None
 
 
 def authorities():
