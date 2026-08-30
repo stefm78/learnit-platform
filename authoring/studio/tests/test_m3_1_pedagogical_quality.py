@@ -107,6 +107,13 @@ class QualityEngineTests(unittest.TestCase):
         self.assertEqual("BLOCKED", report["qualityBand"])
         self.assertGreater(report["counts"]["blocking"], 0)
 
+    def test_malformed_canonical_input_is_hold_not_engine_error(self):
+        package = {"contract": "learnit.kit.v2"}
+        report = quality.analyze_package(package)
+        self.assertFalse(report["canonicalValid"])
+        self.assertEqual("HOLD_CANONICAL_INVALID", report["verdict"])
+        self.assertEqual("BLOCKED", report["qualityBand"])
+
     def test_duration_warning(self):
         package = load(KITS[0])
         package["courses"][0]["estimatedMinutes"] += 1
