@@ -59,6 +59,10 @@ class PackagingStaticTests(unittest.TestCase):
             for relative, record in evidence["authority"].items():
                 self.assertEqual(record["sha256"], sha(ROOT / relative))
                 self.assertEqual(record["sha256"], sha(out / "_authority" / relative))
+            atlas = ROOT / "authoring/v2/atlas"
+            for name, record in evidence["samples"].items():
+                self.assertEqual(record["sha256"], sha(atlas / name))
+                self.assertEqual(record["sha256"], sha(out / "samples" / name))
 
     def test_bootstrap_has_fail_closed_network_and_no_semantic_validator(self):
         text = (ROOT / "authoring/studio/pages/pages-bootstrap.js").read_text(encoding="utf-8")
@@ -107,11 +111,8 @@ class BrowserEquivalenceTests(unittest.TestCase):
                     page.goto(f"http://127.0.0.1:{port}/", wait_until="domcontentloaded", timeout=120000)
                     page.wait_for_function("window.__learnitPagesReady === true", timeout=120000)
 
-                    page.locator("#kit-file").set_input_files({
-                        "name": kit_path.name,
-                        "mimeType": "application/json",
-                        "buffer": raw,
-                    })
+                    self.assertTrue(page.locator("#sample-complexes").is_visible())
+                    page.locator("#sample-complexes").click()
                     page.wait_for_function("!document.querySelector('#export').disabled", timeout=60000)
 
                     with page.expect_download(timeout=60000) as info:

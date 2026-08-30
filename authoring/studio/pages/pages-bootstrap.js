@@ -215,7 +215,37 @@ def _browser_dispatch(operation, payload_json, raw_b64, source_name):
     return externalGuard(input, init);
   };
 
+  async function loadBundledSample(relative, filename) {
+    const response = await window.fetch(new URL(relative, APP_BASE), {method: 'GET', cache: 'no-store'});
+    if (!response.ok) throw new Error('M3_PAGES_SAMPLE_LOAD_FAILED');
+    const file = new File([await response.arrayBuffer()], filename, {type: 'application/json'});
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    const input = document.querySelector('#kit-file');
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change', {bubbles: true}));
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    const actions = document.querySelector('.top-actions');
+    const discard = document.querySelector('#discard');
+    const samples = [
+      ['sample-complexes', 'Exemple · Nombres complexes', 'samples/nombres_complexes_atlas.json', 'nombres_complexes_atlas.json'],
+      ['sample-signaux', 'Exemple · Signaux électriques', 'samples/signaux_electriques_atlas.json', 'signaux_electriques_atlas.json'],
+    ];
+    if (actions && discard) {
+      for (const [id, label, relative, filename] of samples) {
+        const button = document.createElement('button');
+        button.id = id;
+        button.type = 'button';
+        button.className = 'secondary';
+        button.textContent = label;
+        button.addEventListener('click', () => loadBundledSample(relative, filename).catch(error => {
+          window.__learnitPagesSampleError = String(error && error.message ? error.message : error);
+        }));
+        actions.insertBefore(button, discard);
+      }
+    }
     const subtitle = document.querySelector('.subtitle');
     if (subtitle) {
       subtitle.insertAdjacentHTML('afterend',

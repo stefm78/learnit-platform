@@ -71,6 +71,7 @@
     "Changed paths are exactly a subset of the six authorized packaging paths.",
     "Frozen ATLAS-WP-009 files compare byte-identical against the product HEAD.",
     "The generated Pages bundle contains the unchanged web UI plus the exact frozen Python core, exact existing validators and exact schema authority.",
+    "Both bundled canonical sample kits are byte-identical copies of the read-only Atlas proof kits and can be loaded from the Pages UI without a local file or terminal.",
     "No-op browser import/export is byte-identical to each canonical Atlas source kit.",
     "Representative browser edits preserve the same semantic/lineage/revision-scope rules as the local Python core; export of the exact browser draft is byte-identical to direct local Python core export of that draft. Fresh UUIDv4 revision IDs are intentionally not compared across independent edit executions.",
     "Browser validation remains fail-closed for stale revisions, digest tampering and malformed canonical content.",

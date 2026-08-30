@@ -20,6 +20,10 @@ AUTHORITY = {
 }
 
 UI_FILES = ("index.html", "studio.css", "studio.js")
+SAMPLES = {
+    "nombres_complexes_atlas.json": ROOT / "authoring" / "v2" / "atlas" / "nombres_complexes_atlas.json",
+    "signaux_electriques_atlas.json": ROOT / "authoring" / "v2" / "atlas" / "signaux_electriques_atlas.json",
+}
 INJECTION = '  <script src="pages-bootstrap.js"></script>\n  <script src="studio.js"></script>'
 SOURCE_SCRIPT = '  <script src="studio.js"></script>'
 
@@ -45,6 +49,11 @@ def build(output: Path) -> dict:
     (output / "index.html").write_text(index.replace(SOURCE_SCRIPT, INJECTION), encoding="utf-8")
     shutil.copy2(PAGES / "pages-bootstrap.js", output / "pages-bootstrap.js")
 
+    sample_root = output / "samples"
+    sample_root.mkdir()
+    for name, source in SAMPLES.items():
+        shutil.copy2(source, sample_root / name)
+
     authority_root = output / "_authority"
     for relative, source in AUTHORITY.items():
         target = authority_root / relative
@@ -62,6 +71,8 @@ def build(output: Path) -> dict:
                       for relative, source in sorted(AUTHORITY.items())},
         "frozenUi": {name: {"sha256": sha256(WEB / name), "bytes": (WEB / name).stat().st_size}
                      for name in UI_FILES},
+        "samples": {name: {"sha256": sha256(source), "bytes": source.stat().st_size}
+                    for name, source in sorted(SAMPLES.items())},
     }
     (output / "pages-evidence.json").write_text(
         json.dumps(evidence, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n",
