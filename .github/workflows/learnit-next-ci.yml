@@ -490,15 +490,7 @@ jobs:
               echo "M3.1 delegated route requires an authoring/v2 product change." >&2
               exit 2
             }
-            python - <<'PY'
-            import json
-            from pathlib import Path
-            wp=json.loads(Path('work-packages/ATLAS-WP-012.json').read_text(encoding='utf-8'))
-            assert wp['id']=='ATLAS-WP-012'
-            assert wp['authority']['issue']==261
-            assert '.github/workflows/atlas-m3-1-pedagogical-quality-ci.yml' in wp['scope']['allowedPaths']
-            assert 'authoring/v2/atlas/pedagogical_quality.py' in wp['scope']['allowedPaths']
-            PY
+            python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-012.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-012'; assert wp['authority']['issue']==261; assert '.github/workflows/atlas-m3-1-pedagogical-quality-ci.yml' in wp['scope']['allowedPaths']; assert 'authoring/v2/atlas/pedagogical_quality.py' in wp['scope']['allowedPaths']"
             echo "M3_1_DELEGATED_ROUTE=PASS"
             echo "M3_1_DEDICATED_WORKFLOW=.github/workflows/atlas-m3-1-pedagogical-quality-ci.yml"
             exit 0
