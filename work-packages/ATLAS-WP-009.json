@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-009",
   "title": "M3.0 Authoring Foundation implementation",
-  "status": "approved",
+  "status": "in-progress",
   "changeClass": "product-implementation-authoring-foundation",
   "riskClass": "medium",
   "authority": {
@@ -107,14 +107,14 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-009-m3-authoring-foundation",
-    "phase": "READY_NOT_STARTED",
+    "phase": "IMPLEMENTED_AWAITING_PRODUCT_CI",
     "productPullRequest": 235,
     "independentQaWorkPackage": "QA-WP-018",
     "independentQaIssue": 233,
     "maximumChangedFiles": 9,
     "humanGateRequired": true,
     "finalVerdict": null,
-    "preparedForHandover": true
+    "preparedForHandover": false
   },
   "rollback": "Revert or drop the isolated authoring/studio implementation, dedicated workflow and package metadata. No learner runtime, learner storage, canonical kit or schema migration is involved."
 }
