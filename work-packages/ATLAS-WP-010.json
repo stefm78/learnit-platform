@@ -109,8 +109,8 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-010-m3-pages-packaging",
-    "phase": "IMPLEMENTED_AWAITING_CI",
-    "productPullRequest": null,
+    "phase": "IMPLEMENTED_CI_RUNNING",
+    "productPullRequest": 244,
     "independentQaWorkPackage": "QA-WP-020",
     "independentQaIssue": 243,
     "maximumChangedFiles": 6,
