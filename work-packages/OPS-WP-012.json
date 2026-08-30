@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-012",
+  "title": "M3 Pages packaging promotion rebind verifier",
+  "status": "in-progress",
+  "changeClass": "operations-promotion-verification",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 254,
+    "parentProductIssue": 242,
+    "parentProductWorkPackage": "ATLAS-WP-010",
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Verify promotion of the frozen QA/human-approved M3 GitHub Pages browser packaging onto current main without mutating the historical candidate workflow or product semantics.",
+  "baseline": {
+    "baseCommit": "cdd232f163f5c6ae86e54fbe145b3cda1d6b4803",
+    "frozenPagesHead": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+    "frozenAuthoringHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "humanGate": "PASS"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-012.json",
+      ".github/workflows/atlas-m3-pages-promotion-rebind.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-010.json",
+      ".github/workflows/atlas-m3-pages-candidate.yml"
+    ]
+  },
+  "invariants": [
+    "No frozen ATLAS-WP-010 product file is modified by OPS-WP-012.",
+    "The verifier runs only for the dedicated Pages promotion branch or explicit manual dispatch.",
+    "Promotion must change exactly the six ATLAS-WP-010 packaging paths relative to its PR base.",
+    "All six promotion packaging files must be byte-identical to frozenPagesHead.",
+    "All nine promoted M3 authoring foundation files must remain byte-identical to frozenAuthoringHead.",
+    "Pages/browser packaging tests, foundation tests and canonical validators must pass on the integrated promotion tree.",
+    "Generated Pages bundle must be deterministic.",
+    "The promoted learner artifact identity must remain unchanged.",
+    "Human PASS is already present; this verifier is an integration gate, not a substitute human gate."
+  ],
+  "requiredEvidence": [
+    "Exact six-path packaging promotion delta.",
+    "Byte identity of all six packaging files to frozenPagesHead.",
+    "Byte identity of all nine foundation files to frozenAuthoringHead.",
+    "Pages browser/product tests PASS.",
+    "M3 authoring foundation tests PASS.",
+    "Canonical Atlas validators PASS.",
+    "Deterministic Pages build PASS.",
+    "Learner artifact exact bytes and SHA-256 PASS.",
+    "Machine-readable evidence bound to base, frozen candidate and exact promotion head."
+  ],
+  "adversarialTests": [
+    "Promotion path outside the exact six-file set.",
+    "Any frozen packaging blob differs by one byte.",
+    "Any frozen foundation blob differs by one byte.",
+    "Pages/browser test failure on the integrated tree.",
+    "Canonical validator failure.",
+    "Learner artifact drift.",
+    "Attempt to modify the historical candidate workflow to make promotion green."
+  ],
+  "nonGoals": [
+    "Changing M3 product semantics.",
+    "Re-running the human UX gate.",
+    "Changing canonical product QA evidence.",
+    "Changing the current live human-gate deployment.",
+    "Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope must pass for OPS-WP-012.",
+    "The promotion verifier must run on the final Pages promotion HEAD before merge."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-012-m3-pages-promotion-rebind",
+    "phase": "IMPLEMENTED_AWAITING_CI",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the verifier workflow in a later governed cleanup after Pages promotion closeout."
+}
