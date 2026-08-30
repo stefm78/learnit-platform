@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-005",
+  "title": "Route M3.1 authoring product lane to dedicated exact-head CI",
+  "status": "in-progress",
+  "changeClass": "ci-routing-extension",
+  "riskClass": "moderate",
+  "purpose": "Recognize the exact M3.1 pedagogical-quality product branch in the legacy Learn-it Next CI router and delegate product semantics to its dedicated exact-head workflow without weakening unknown-branch fail-closed behavior.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "6741050ef90e9f47b0642709912fc41a0e7ac5b5",
+    "authorityIssue": 265,
+    "productIssue": 261,
+    "productPullRequest": 264,
+    "branch": "ci/CI-WP-005-m3-1-delegated-route"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-005.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      ".github/workflows/atlas-m3-1-pedagogical-quality-ci.yml",
+      "work-packages/ATLAS-WP-012.json"
+    ]
+  },
+  "invariants": [
+    "Only the legacy Learn-it Next CI router and this work-package file may change.",
+    "All pre-existing Atlas M1, Wave A, workflow_dispatch and post-merge routes remain semantically unchanged.",
+    "The exact M3.1 product branch is the only new recognized branch.",
+    "The M3.1 route is delegation-only and does not claim to execute M3.1 product semantics.",
+    "Delegation requires the product PR to contain the canonical M3.1 work package, the dedicated exact-head product workflow and an authoring/v2 product change.",
+    "Every other unknown product-relevant pull-request branch remains fail-closed.",
+    "Rename/copy-aware product relevance logic in the ci-router path remains unchanged.",
+    "Repository governance, PR scope, product code, product tests and canonical authorities are untouched."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Learn-it Next CI self-audit PASS on the CI-WP-005 branch.",
+    "Static diff proves only one route_branch case and one m3-1-delegated execution block are added.",
+    "Unknown branch fallback remains ci-router.",
+    "ci-router unknown-product fail-closed checks remain present and unchanged.",
+    "M3.1 delegated block requires exact branch, exact work-package ID/issue, dedicated workflow path and authoring/v2 change."
+  ],
+  "adversarialTests": [
+    "Exact M3.1 branch with required workflow, work package and authoring/v2 change delegates successfully.",
+    "M3.1 branch missing dedicated workflow fails.",
+    "M3.1 branch missing canonical work package fails.",
+    "M3.1 branch without authoring/v2 product change fails.",
+    "Any other unknown branch with authoring/v2, contracts or apps/learnit-next product changes still fails closed.",
+    "Existing rename-out and copy-out product relevance self-tests remain unchanged.",
+    "Existing Atlas M1 and Wave A branch route strings remain unchanged."
+  ],
+  "nonGoals": [
+    "Executing or accepting M3.1 product semantics in the legacy router.",
+    "Changing product sources or tests.",
+    "Changing post-merge M3.1 promotion behavior.",
+    "Changing workflow_dispatch semantics.",
+    "Changing branch protection or required checks."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope provide independent repository-level review.",
+    "The workflow executes its existing ci-router self-test on this workflow-only change.",
+    "After merge, product PR #264 must rerun the exact M3.1 delegated route and dedicated product CI on the same rebased head."
+  ],
+  "execution": {
+    "issue": 265,
+    "maximumChangedFiles": 2,
+    "branch": "ci/CI-WP-005-m3-1-delegated-route",
+    "pullRequest": null,
+    "requiresContradictoryReviewBeforeMerge": false,
+    "mergeStatus": "not-merged"
+  },
+  "rollback": "Revert the single delegated route block and CI-WP-005 metadata; unknown M3.1 product branches return to the previous fail-closed behavior."
+}
