@@ -2,11 +2,16 @@ name: Learn-it Next Pages
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/learnit-next-pages.yml'
+      - 'work-packages/OPS-WP-016.json'
   push:
     branches: [main]
     paths:
       - '.github/workflows/learnit-next-pages.yml'
-      - 'work-packages/OPS-WP-013.json'
+      - 'work-packages/OPS-WP-016.json'
 
 permissions:
   contents: read
@@ -21,72 +26,85 @@ env:
   LEARNER_PROMOTED_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
   LEARNER_EXPECTED_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
   LEARNER_EXPECTED_BYTES: '366412'
-  M3_PROMOTED_MAIN: 936e574c7e6306d645c6b7eba12881556eaa0e90
-  FROZEN_AUTHORING_HEAD: a1b9259955ce748cd7e47531a470cd12b7dc0436
-  FROZEN_PAGES_HEAD: e3db34b2da3fc270451a6f63b6229c16e8e5113e
+  M3_1_PROMOTED_MAIN: be3d5b2635836e8ce0d9a6ecf42d573efc9ef749
+  FROZEN_PRODUCT_HEAD: 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2
+  FROZEN_QA_HEAD: 6ff592af68e6cc95bd479911a09388293c5528f5
 
 jobs:
-  publish:
+  verify:
+    name: Verify stable M3.1 Pages package
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 50
+    outputs:
+      site_artifact: ${{ steps.names.outputs.site_artifact }}
     steps:
-      - name: Checkout exact promoted M3 source
+      - name: Checkout exact promoted M3.1 source
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.M3_PROMOTED_MAIN }}
+          ref: ${{ env.M3_1_PROMOTED_MAIN }}
           fetch-depth: 0
           clean: true
 
-      - name: Prove frozen M3 publication inputs
+      - name: Prove exact promoted M3.1 product identity
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$(git rev-parse HEAD)" == "$M3_PROMOTED_MAIN" ]]
+          [[ "$(git rev-parse HEAD)" == "$M3_1_PROMOTED_MAIN" ]]
+          for path in             work-packages/ATLAS-WP-012.json             authoring/v2/atlas/pedagogical_quality.py             authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md             authoring/studio/core.py             authoring/studio/web/index.html             authoring/studio/web/studio.css             authoring/studio/web/studio.js             authoring/studio/pages/build_pages.py             authoring/studio/pages/pages-bootstrap.js             authoring/studio/tests/test_m3_1_pedagogical_quality.py             .github/workflows/atlas-m3-1-pedagogical-quality-ci.yml; do
+              [[ "$(git rev-parse "$FROZEN_PRODUCT_HEAD:$path")" == "$(git rev-parse "HEAD:$path")" ]] || exit 1
+          done
 
-          git diff --exit-code "$FROZEN_AUTHORING_HEAD".."$M3_PROMOTED_MAIN" -- \
-            work-packages/ATLAS-WP-009.json \
-            authoring/studio/README.md \
-            authoring/studio/core.py \
-            authoring/studio/server.py \
-            authoring/studio/web/index.html \
-            authoring/studio/web/studio.css \
-            authoring/studio/web/studio.js \
-            authoring/studio/tests/test_m3_authoring_foundation.py \
-            .github/workflows/atlas-m3-authoring-foundation-ci.yml
-
-          git diff --exit-code "$FROZEN_PAGES_HEAD".."$M3_PROMOTED_MAIN" -- \
-            work-packages/ATLAS-WP-010.json \
-            authoring/studio/pages/README.md \
-            authoring/studio/pages/build_pages.py \
-            authoring/studio/pages/pages-bootstrap.js \
-            authoring/studio/tests/test_m3_pages_packaging.py \
-            .github/workflows/atlas-m3-pages-candidate.yml
+      - name: Materialize exact independent QA worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin "$FROZEN_QA_HEAD"
+          [[ "$(git merge-base "$FROZEN_PRODUCT_HEAD" "$FROZEN_QA_HEAD")" == "$FROZEN_PRODUCT_HEAD" ]]
+          qa="$RUNNER_TEMP/qa"
+          git worktree add --detach "$qa" "$FROZEN_QA_HEAD"
+          echo "QA_TREE=$qa" >> "$GITHUB_ENV"
+          python - <<'PY'
+          import os, subprocess
+          expected={
+            'work-packages/QA-WP-021.json',
+            'authoring/studio/tests/qa_m3_1_pedagogical_quality.py',
+            '.github/workflows/atlas-m3-1-pedagogical-quality-qa.yml',
+          }
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',os.environ['FROZEN_PRODUCT_HEAD']+'...'+os.environ['FROZEN_QA_HEAD']],
+              text=True,
+          ).splitlines())
+          assert changed==expected, sorted(changed)
+          PY
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Re-run frozen M3 browser packaging proof
-        shell: bash
+      - name: Install test dependencies
         run: |
-          set -euo pipefail
-          python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
+          python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
           python -m playwright install --with-deps chromium
-          python -B authoring/studio/tests/test_m3_pages_packaging.py
-          python -B authoring/studio/tests/test_m3_authoring_foundation.py
-          python -B authoring/v2/validate_kit.py \
-            authoring/v2/atlas/nombres_complexes_atlas.json \
-            authoring/v2/atlas/signaux_electriques_atlas.json
-          python -B authoring/v2/atlas/validate_atlas_content.py
 
-      - name: Assemble stable learner plus authoring site
+      - name: Re-run M3.1 and inherited product proof
         shell: bash
         run: |
           set -euo pipefail
-          site="$RUNNER_TEMP/learnit-pages/site"
+          python -B authoring/v2/validate_kit.py             authoring/v2/atlas/nombres_complexes_atlas.json             authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/atlas/validate_atlas_content.py
+          python -B authoring/studio/tests/test_m3_1_pedagogical_quality.py
+          python -B authoring/studio/tests/test_m3_authoring_foundation.py
+          python -B authoring/studio/tests/test_m3_pages_packaging.py
+          cd "$QA_TREE"
+          python -B authoring/studio/tests/qa_m3_1_pedagogical_quality.py
+
+      - name: Assemble deterministic stable site
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          site="$RUNNER_TEMP/stable-site"
           learner="$RUNNER_TEMP/learner-source"
           authoring_a="$RUNNER_TEMP/authoring-a"
           authoring_b="$RUNNER_TEMP/authoring-b"
@@ -95,11 +113,11 @@ jobs:
           python -B authoring/studio/pages/build_pages.py --output "$authoring_a"
           python -B authoring/studio/pages/build_pages.py --output "$authoring_b"
           diff -qr "$authoring_a" "$authoring_b"
+          cmp authoring/v2/atlas/pedagogical_quality.py             "$authoring_a/_authority/authoring/v2/atlas/pedagogical_quality.py"
 
           git worktree add --detach "$learner" "$LEARNER_PROMOTED_HEAD"
           python -B "$learner/apps/learnit-next/build.py" --output "$site/index.html"
           cp "$site/index.html" "$site/learnit-next.html"
-
           actual_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
           actual_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
           [[ "$actual_sha" == "$LEARNER_EXPECTED_SHA256" ]]
@@ -107,33 +125,71 @@ jobs:
           cmp "$site/index.html" "$site/learnit-next.html"
 
           cp -a "$authoring_a" "$site/authoring"
-          sha256sum "$site/authoring/index.html" | awk '{print $1}' > "$RUNNER_TEMP/authoring-index.sha256"
+          authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
+          quality_sha="$(sha256sum authoring/v2/atlas/pedagogical_quality.py | awk '{print $1}')"
 
           cat > "$site/deployment-evidence.json" <<EOF
           {
-            "schema": "learnit.next.pages.deployment.v2",
+            "schema": "learnit.next.pages.deployment.v3",
             "learnerPromotedHead": "$LEARNER_PROMOTED_HEAD",
             "learnerArtifactBytes": $LEARNER_EXPECTED_BYTES,
             "learnerArtifactSha256": "$LEARNER_EXPECTED_SHA256",
-            "m3PromotedMain": "$M3_PROMOTED_MAIN",
-            "frozenAuthoringHead": "$FROZEN_AUTHORING_HEAD",
-            "frozenPagesHead": "$FROZEN_PAGES_HEAD",
+            "m3_1PromotedMain": "$M3_1_PROMOTED_MAIN",
+            "frozenProductHead": "$FROZEN_PRODUCT_HEAD",
+            "frozenQaHead": "$FROZEN_QA_HEAD",
+            "qualityEngineSha256": "$quality_sha",
+            "authoringIndexSha256": "$authoring_sha",
             "authoringPath": "/authoring/",
             "learnerIndexByteIdentity": "PASS",
             "stableAuthoringPublication": true,
+            "humanUxDebtIssue": 272,
             "runtimeBackendDependencyAdded": false
           }
           EOF
 
-          {
-            echo "## Learn-it stable Pages package"
-            echo ""
-            echo "- learner head: `$LEARNER_PROMOTED_HEAD`"
-            echo "- learner bytes: `$actual_bytes`"
-            echo "- learner SHA-256: `$actual_sha`"
-            echo "- M3 promoted main: `$M3_PROMOTED_MAIN`"
-            echo "- authoring path: `/authoring/`"
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo "STABLE_SITE=$site" >> "$GITHUB_ENV"
+
+      - name: Name immutable stable site artifact
+        id: names
+        shell: bash
+        run: echo "site_artifact=learnit-stable-pages-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified stable site
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.site_artifact }}
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ env.STABLE_SITE }}
+
+  deploy:
+    name: Deploy stable learner plus M3.1 authoring
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download immutable verified site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.site_artifact }}
+          path: ${{ runner.temp }}/stable-site
+
+      - name: Recheck stable site identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/stable-site"
+          actual_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
+          actual_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
+          [[ "$actual_sha" == "$LEARNER_EXPECTED_SHA256" ]]
+          [[ "$actual_bytes" == "$LEARNER_EXPECTED_BYTES" ]]
+          cmp "$site/index.html" "$site/learnit-next.html"
+          grep -q '"m3_1PromotedMain": "'"$M3_1_PROMOTED_MAIN"'"' "$site/deployment-evidence.json"
+          grep -q '"stableAuthoringPublication": true' "$site/deployment-evidence.json"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -141,9 +197,9 @@ jobs:
       - name: Upload stable Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ${{ runner.temp }}/learnit-pages/site
+          path: ${{ runner.temp }}/stable-site
 
-      - name: Deploy stable learner plus authoring site
+      - name: Deploy stable learner plus M3.1 authoring
         id: deployment
         uses: actions/deploy-pages@v4
 
@@ -153,21 +209,15 @@ jobs:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
-          expected_authoring_sha="$(cat "$RUNNER_TEMP/authoring-index.sha256")"
-
+          site="$RUNNER_TEMP/stable-site"
+          expected_authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
           ok=0
           for attempt in $(seq 1 20); do
-            rm -f "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/live-authoring.html" "$RUNNER_TEMP/live-pages-evidence.json"
-            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/live-index.html" \
-              && curl --fail --silent --show-error "${PAGE_URL}authoring/" -o "$RUNNER_TEMP/live-authoring.html" \
-              && curl --fail --silent --show-error "${PAGE_URL}authoring/pages-evidence.json" -o "$RUNNER_TEMP/live-pages-evidence.json"; then
+            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/live-index.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/" -o "$RUNNER_TEMP/live-authoring.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/pages-evidence.json" -o "$RUNNER_TEMP/live-pages-evidence.json"               && curl --fail --silent --show-error "${PAGE_URL}deployment-evidence.json" -o "$RUNNER_TEMP/live-deployment-evidence.json"; then
               live_sha="$(sha256sum "$RUNNER_TEMP/live-index.html" | awk '{print $1}')"
               live_bytes="$(wc -c < "$RUNNER_TEMP/live-index.html" | tr -d ' ')"
               live_authoring_sha="$(sha256sum "$RUNNER_TEMP/live-authoring.html" | awk '{print $1}')"
-              if [[ "$live_sha" == "$LEARNER_EXPECTED_SHA256" \
-                    && "$live_bytes" == "$LEARNER_EXPECTED_BYTES" \
-                    && "$live_authoring_sha" == "$expected_authoring_sha" ]] \
-                 && cmp "$RUNNER_TEMP/live-pages-evidence.json" "$RUNNER_TEMP/learnit-pages/site/authoring/pages-evidence.json"; then
+              if [[ "$live_sha" == "$LEARNER_EXPECTED_SHA256"                     && "$live_bytes" == "$LEARNER_EXPECTED_BYTES"                     && "$live_authoring_sha" == "$expected_authoring_sha" ]]                  && cmp "$RUNNER_TEMP/live-pages-evidence.json" "$site/authoring/pages-evidence.json"                  && cmp "$RUNNER_TEMP/live-deployment-evidence.json" "$site/deployment-evidence.json"; then
                 ok=1
                 break
               fi
@@ -175,9 +225,25 @@ jobs:
             sleep 3
           done
           [[ "$ok" == 1 ]]
-
+          cat > "$RUNNER_TEMP/stable-live-evidence.json" <<EOF
           {
-            echo "- live learner smoke: `PASS`"
-            echo "- live /authoring/ smoke: `PASS`"
-            echo "- live authoring evidence identity: `PASS`"
-          } >> "$GITHUB_STEP_SUMMARY"
+            "schema": "learnit.next.pages.stable-live.v1",
+            "result": "PASS",
+            "m3_1PromotedMain": "$M3_1_PROMOTED_MAIN",
+            "frozenProductHead": "$FROZEN_PRODUCT_HEAD",
+            "frozenQaHead": "$FROZEN_QA_HEAD",
+            "learnerSha256": "$LEARNER_EXPECTED_SHA256",
+            "liveLearner": "PASS",
+            "liveAuthoring": "PASS",
+            "livePagesEvidenceIdentity": "PASS",
+            "stableAuthoringPublication": true
+          }
+          EOF
+
+      - name: Upload stable live evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnit-stable-pages-live-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/stable-live-evidence.json
