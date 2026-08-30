@@ -188,9 +188,12 @@ class LiveBrowserContradictoryOracle(unittest.TestCase):
 
             page.locator("#refresh-preview").click()
             page.wait_for_function(
-                "document.querySelector('#preview-content').innerText.includes('fresh package revision')",
+                "document.querySelector('#preview-content .diagnostic-item') !== null",
                 timeout=60000,
             )
+            preview_error = page.locator("#preview-content").inner_text()
+            self.assertIn("packageRevisionId", preview_error)
+            self.assertIn("fresh UUIDv4", preview_error)
             self.assertIsNotNone(page.evaluate("localStorage.getItem('learnit.authoring.m3.v1')"))
 
             page.once("dialog", lambda dialog: dialog.accept())
