@@ -153,7 +153,14 @@ The current Atlas canonical profile already requires, per objective, the ordered
 practice → correction → validation → validation → transfer
 ```
 
-and two independence claims.
+and exactly two independence claims per objective. The frozen Atlas claim topology used by both canonical proof kits is:
+
+```text
+first practice → first validation
+first validation → second validation
+```
+
+M3.1 must not invent a third validation→transfer claim: the canonical Atlas authority requires exactly two claims. Transfer quality is assessed through the existing transfer activity plus deterministic non-claim diagnostics.
 
 M3.1 adds diagnostics that are deterministic but not contract-defining.
 
@@ -173,13 +180,14 @@ The transfer activity should have a difficulty rank greater than the first pract
 
 `easy < medium < advanced < expert`.
 
-`PQ_TRANSFER_CLAIM_WEAK`
-
-The independence claim ending at the transfer activity should use `new-context` or `alternate-representation`, not merely `new-instance`.
-
 `PQ_VALIDATION_CHAIN_WEAK`
 
-The two validation activities should be linked by an independence claim whose basis is `new-instance` or `alternate-representation`, and the later validation should then be the source of the transfer claim.
+The existing two-claim chain should match the frozen Atlas topology exactly:
+
+1. first practice → first validation, with basis `new-instance` or `alternate-representation`;
+2. first validation → second validation, with basis `new-context` or `alternate-representation`.
+
+No direct transfer claim is expected or permitted by this quality rule. A missing or differently connected two-claim chain is a warning, not a reason to expand the canonical claim count.
 
 ### 6.2 Advice rules
 
@@ -193,7 +201,7 @@ Both independent validations use the same interaction type. A different type is 
 
 `PQ_NO_ALTERNATE_REPRESENTATION`
 
-Neither validation nor transfer independence uses `alternate-representation`. This is advisory only because not every objective benefits from a representation change.
+Neither of the two existing validation-independence claims uses `alternate-representation`. This is advisory only because not every objective benefits from a representation change.
 
 These rules deliberately avoid semantic judgments that deterministic static analysis cannot prove, such as whether a distractor is intellectually plausible, an explanation is scientifically correct, or a transfer situation is genuinely meaningful beyond the declared and hashed stimulus relation.
 
@@ -346,7 +354,7 @@ Implementation CI must prove at minimum:
 1. both canonical Atlas proof kits still pass unchanged canonical validators;
 2. the engine returns deterministic report bytes for identical input;
 3. canonical-invalid input never produces a positive profile verdict;
-4. each warning/advice rule is independently triggered by a controlled mutation;
+4. each warning/advice rule is independently triggered by a controlled mutation, including adversarial proof that no M3.1 rule requires a third independence claim;
 5. diagnostic ordering and paths are deterministic;
 6. `--require-excellent` exit codes match the report;
 7. the quality engine never writes its input;
@@ -396,7 +404,15 @@ Rollback removes the quality module, Atlas authoring skill, M3.1 UI/report wirin
 
 No learner data, learner runtime, canonical kit or schema migration is involved.
 
-## 17. Design verdict
+## 17. Claim-topology correction
+
+A pre-implementation adversarial review found that the original frozen draft incorrectly expected a validation→transfer independence claim. That was incompatible with the canonical validator's exact two-claim count and with both canonical proof kits.
+
+Correction authority: issue #262.
+
+The correction preserves the canonical validator and proof kits unchanged. M3.1 evaluates only the existing two-claim topology and does not create a quality requirement that would force a contract/editorial-authority change.
+
+## 18. Design verdict
 
 If this design and ATLAS-WP-011 are accepted:
 

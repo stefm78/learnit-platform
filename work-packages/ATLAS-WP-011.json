@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-011",
   "title": "M3.1 Pedagogical Quality Engine design",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "product-design-pedagogical-quality",
   "riskClass": "medium",
   "authority": {
@@ -45,7 +45,8 @@
     "Canonical validity, pedagogical quality and learner outcome claims remain distinct.",
     "The same Python quality engine must serve CLI, CI and Studio; JavaScript may render but not reimplement rules.",
     "AI self-iteration must stop rather than invent unsupported source content.",
-    "No document ingestion, LLM product integration, learner-runtime change, contract revision, Gate3, Gate4 or M4+ activation."
+    "No document ingestion, LLM product integration, learner-runtime change, contract revision, Gate3, Gate4 or M4+ activation.",
+    "M3.1 must not require or synthesize a third independence claim; the frozen Atlas exact two-claim topology remains authoritative."
   ],
   "requiredEvidence": [
     "Exact two-file design diff.",
@@ -63,7 +64,8 @@
     "Reject claims that static kit inspection proves learner mastery or effectiveness.",
     "Reject source-provenance fields without a contract gate.",
     "Reject implementation or QA path overlap.",
-    "Reject hidden activation of M3.2/M3.3/Gate3/Gate4/M4+."
+    "Reject hidden activation of M3.2/M3.3/Gate3/Gate4/M4+.",
+    "Reject any M3.1 quality rule that requires a validation-to-transfer claim or any third independence claim per objective."
   ],
   "nonGoals": [
     "M3.1 implementation",
@@ -78,15 +80,21 @@
     "Linus architecture challenge recorded on authority issue #259.",
     "Steve product/experience challenge recorded on authority issue #259.",
     "Repository governance and PR scope gate the design PR.",
-    "Implementation requires a separate ATLAS-WP-012 authority after design acceptance."
+    "Implementation requires a separate ATLAS-WP-012 authority after design acceptance.",
+    "Claim-topology correction is governed by issue #262 before implementation resumes."
   ],
   "execution": {
-    "branch": "atlas/ATLAS-WP-011-m3-1-quality-design",
-    "phase": "DESIGN_FROZEN_FOR_REVIEW",
+    "branch": "atlas/ATLAS-WP-011-m3-1-quality-design-correction",
+    "phase": "CORRECTION_FROZEN_FOR_REVIEW",
     "pullRequest": null,
     "maximumChangedFiles": 2,
     "humanGateRequired": false,
     "finalVerdict": null
   },
-  "rollback": "Revert the two design files only. M3.0 promoted product and stable Pages publication remain unchanged."
+  "rollback": "Revert the two design files only. M3.0 promoted product and stable Pages publication remain unchanged.",
+  "correction": {
+    "issue": 262,
+    "reason": "Pre-implementation adversarial review found an impossible validation-to-transfer claim expectation conflicting with the frozen exact two-claim Atlas authority.",
+    "decision": "Preserve the canonical two-claim topology: first practice to first validation, then first validation to second validation. No direct transfer claim is required by M3.1."
+  }
 }
