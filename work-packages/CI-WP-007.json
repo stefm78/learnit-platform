@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-007",
+  "title": "Route M3.2 AI Kit Factory product lane",
+  "status": "in-progress",
+  "changeClass": "ci-routing-extension",
+  "riskClass": "moderate",
+  "purpose": "Recognize the exact governed M3.2 AI Kit Factory product branch in the legacy Learn-it Next CI router and delegate semantic verification to its dedicated exact-head workflow while preserving fail-closed behavior for all other unknown product branches.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "c973f12c68ef675fc3c64e26e5b60860be9a24db",
+    "authorityIssue": 287,
+    "productIssue": 286,
+    "branch": "ci/CI-WP-007-m3-2-factory-route"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-007.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      ".github/workflows/atlas-m3-2-ai-kit-factory-ci.yml",
+      "work-packages/ATLAS-WP-014.json"
+    ]
+  },
+  "invariants": [
+    "Only the legacy Learn-it Next CI router and this work-package file may change.",
+    "The exact M3.2 factory branch is the only new recognized branch.",
+    "The new route is delegation-only and does not execute M3.2 product semantics.",
+    "Delegation requires the canonical product work package, dedicated exact-head workflow, authoring/factory product changes, author skill V2 and reviewer skill V1.",
+    "All existing M3.1 implementation/promotion routes remain unchanged.",
+    "Every other unknown product-relevant branch remains fail-closed.",
+    "Rename/copy-aware product relevance logic remains unchanged.",
+    "Repository governance, PR scope and product tests are untouched."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Learn-it Next CI self-audit PASS.",
+    "Static diff shows one new route_branch case and one delegated execution block.",
+    "Unknown branch fallback remains ci-router.",
+    "Existing unknown-product fail-closed logic remains unchanged."
+  ],
+  "adversarialTests": [
+    "Exact M3.2 factory branch with required workflow/work package/factory/skills delegates.",
+    "Missing dedicated workflow fails.",
+    "Missing product work package fails.",
+    "Missing authoring/factory changes fails.",
+    "Missing either skill fails.",
+    "Any other unknown product branch remains fail-closed.",
+    "Existing M3.1 routes remain unchanged."
+  ],
+  "nonGoals": [
+    "Executing or accepting M3.2 product semantics in the legacy router.",
+    "Changing product sources/tests.",
+    "Changing branch protection.",
+    "M3.3/M3.4/Gate3/Gate4/M4+."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope provide independent repository-level review.",
+    "The workflow executes its existing self-test on the CI-only change."
+  ],
+  "execution": {
+    "issue": 287,
+    "maximumChangedFiles": 2,
+    "branch": "ci/CI-WP-007-m3-2-factory-route",
+    "pullRequest": null,
+    "mergeStatus": "not-merged"
+  },
+  "rollback": "Revert the single M3.2 delegated route block and CI-WP-007 metadata."
+}
