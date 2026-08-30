@@ -76,7 +76,7 @@ class BrowserEquivalenceTests(unittest.TestCase):
             from playwright.sync_api import sync_playwright
         except ImportError as exc:
             raise unittest.SkipTest(f"playwright unavailable: {exc}")
-        cls.sync_playwright = sync_playwright
+        cls.sync_playwright = staticmethod(sync_playwright)
 
     def test_pages_noop_and_edit_match_python_reference_and_network_boundary(self):
         from authoring.studio.core import apply_edit, create_draft, export_draft
