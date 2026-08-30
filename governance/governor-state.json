@@ -178,17 +178,22 @@
     "embedding M3 authoring or LLM assistance code into the learner runtime artifact"
   ],
   "activeRisks": [
-    "Human review of AI-authored kits lacks a sequence-level graphical/contextual overview; tracked as non-blocking debt #272."
+    {
+      "id": "ATLAS-RISK-M3-1-HUMAN-CONTEXT-001",
+      "severity": "moderate",
+      "statement": "Human review of AI-authored kits lacks a sequence-level graphical/contextual overview; tracked as non-blocking debt #272.",
+      "closureGate": "Close or supersede issue #272 only after a separately authorized human-review workflow provides sequence-level context and passes its own evidence gate."
+    }
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "M3.2_PRODUCT_ARBITRATION",
-    "condition": "Before any Source-to-Draft product implementation or document-ingestion contract change, obtain a fresh accountable-owner arbitration and open a bounded M3.2 authority. M3.1 completion does not implicitly authorize M3.2."
+    "id": "ATLAS-WP-013",
+    "condition": "ATLAS-WP-013 is reserved for the next bounded M3.2 Source-to-Draft authority and must not be created or activated until a fresh accountable-owner product arbitration explicitly authorizes M3.2."
   },
   "review": {
     "lastReviewedAt": "2026-08-30",
     "lastReviewedBy": "Permanent Governor after M3.1 product promotion and stable Pages publication",
-    "decision": "M3_1_COMPLETE_NEXT_INCREMENT_HOLD",
+    "decision": "HOLD",
     "authorityIssue": 280,
     "nextReviewTrigger": "explicit M3.2 Source-to-Draft proposal, M3.3 assistance proposal, human UX debt #272 reactivation, contract change, storage migration, security/autonomy expansion, Gate3/Gate4 request or M4+ proposal"
   }
