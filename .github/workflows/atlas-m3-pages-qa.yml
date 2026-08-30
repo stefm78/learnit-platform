@@ -1,0 +1,112 @@
+name: Atlas M3 Pages QA
+
+on:
+  push:
+    branches:
+      - qa/QA-WP-020-m3-pages-final
+    paths:
+      - 'work-packages/QA-WP-020.json'
+      - 'authoring/studio/tests/qa_m3_pages_packaging.py'
+      - '.github/workflows/atlas-m3-pages-qa.yml'
+  pull_request:
+    paths:
+      - 'work-packages/QA-WP-020.json'
+      - 'authoring/studio/tests/qa_m3_pages_packaging.py'
+      - '.github/workflows/atlas-m3-pages-qa.yml'
+
+permissions:
+  contents: read
+
+env:
+  PRODUCT_HEAD: e3db34b2da3fc270451a6f63b6229c16e8e5113e
+  FROZEN_M3_HEAD: a1b9259955ce748cd7e47531a470cd12b7dc0436
+
+jobs:
+  exact-head-contradictory-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact QA head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind exact product head and QA-only delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$PRODUCT_HEAD" HEAD
+          changed="$(git diff --name-only "$PRODUCT_HEAD"...HEAD)"
+          allowed='^(work-packages/QA-WP-020\.json|authoring/studio/tests/qa_m3_pages_packaging\.py|\.github/workflows/atlas-m3-pages-qa\.yml)$'
+          count=0
+          while IFS= read -r path; do
+            [[ -z "$path" ]] && continue
+            [[ "$path" =~ $allowed ]] || { echo "OUT_OF_SCOPE_QA: $path"; exit 1; }
+            count=$((count+1))
+          done <<< "$changed"
+          [[ "$count" -eq 3 ]]
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install browser QA dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run independent contradictory oracle
+        run: python -B authoring/studio/tests/qa_m3_pages_packaging.py
+
+      - name: Corroborate with frozen product tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/studio/tests/test_m3_pages_packaging.py
+          python -B authoring/studio/tests/test_m3_authoring_foundation.py
+          python -B authoring/v2/validate_kit.py             authoring/v2/atlas/nombres_complexes_atlas.json             authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/atlas/validate_atlas_content.py
+
+      - name: Write final exact-head QA evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          qa_head="$(git rev-parse HEAD)"
+          mkdir -p "$RUNNER_TEMP/qa-evidence"
+          python - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          root=pathlib.Path('.')
+          paths=[
+            'work-packages/QA-WP-020.json',
+            'authoring/studio/tests/qa_m3_pages_packaging.py',
+            '.github/workflows/atlas-m3-pages-qa.yml',
+          ]
+          payload=b''
+          for path in sorted(paths):
+              data=(root/path).read_bytes()
+              payload += path.encode()+b'\0'+len(data).to_bytes(8,'big')+data
+          out={
+            'schema':'learnit.qa-wp-020.final.v1',
+            'verdict':'PASS_QA_WP_020_EXACT_HEAD_CONTRADICTORY_QA',
+            'productHead':os.environ['PRODUCT_HEAD'],
+            'qaHead':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+            'qaOwnedPaths':paths,
+            'qaSourceSha256':hashlib.sha256(payload).hexdigest(),
+            'liveAuthoringUrl':'https://stefm78.github.io/learnit-platform/authoring/',
+            'learnerBytes':366412,
+            'learnerSha256':'4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7',
+            'productPromotionAuthorized':False,
+            'humanGateRequired':True,
+          }
+          pathlib.Path(os.environ['RUNNER_TEMP'],'qa-evidence','qa-wp-020.json').write_text(
+              json.dumps(out,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8'
+          )
+          print(json.dumps(out,indent=2))
+          PY
+
+      - name: Upload final QA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-wp-020-final-${{ github.sha }}
+          path: ${{ runner.temp }}/qa-evidence/qa-wp-020.json

@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-020",
+  "title": "M3.0 GitHub Pages packaging contradictory QA",
+  "status": "in-progress",
+  "changeClass": "qa-independent-contradictory",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 243,
+    "productIssue": 242,
+    "productPullRequest": 244,
+    "productWorkPackage": "ATLAS-WP-010",
+    "parentProductIssue": 232,
+    "parentProductWorkPackage": "ATLAS-WP-009",
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.0-PAGES-HUMAN-GATE"
+  },
+  "purpose": "Independently challenge the exact frozen GitHub Pages packaging candidate and its live deployment before the human authoring gate.",
+  "baseline": {
+    "baseCommit": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+    "productHead": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+    "frozenAuthoringProductHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+    "productRun": 33311468792,
+    "productArtifact": 9732110564,
+    "productArtifactDigest": "sha256:59dbb977da1bf8f1778c90edcdf67fa79ea1502a94f14c73a6eb30f46c836689",
+    "pagesArtifact": 9732110739,
+    "pagesArtifactDigest": "sha256:1a92b5c273fdfa06da4602a0ee13e660c3085ca4a6ecd5a27345bbf0731b3c0a",
+    "deploymentRun": 33313906432,
+    "liveAuthoringUrl": "https://stefm78.github.io/learnit-platform/authoring/",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-020.json",
+      "authoring/studio/tests/qa_m3_pages_packaging.py",
+      ".github/workflows/atlas-m3-pages-qa.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "contracts/**",
+      "authoring/v2/**",
+      "authoring/studio/core.py",
+      "authoring/studio/server.py",
+      "authoring/studio/web/**",
+      "authoring/studio/pages/**",
+      "authoring/studio/tests/test_m3_authoring_foundation.py",
+      "authoring/studio/tests/test_m3_pages_packaging.py",
+      "work-packages/ATLAS-WP-009.json",
+      "work-packages/ATLAS-WP-010.json",
+      ".github/workflows/atlas-m3-authoring-foundation-ci.yml",
+      ".github/workflows/atlas-m3-pages-candidate.yml"
+    ]
+  },
+  "invariants": [
+    "QA changes exactly the three QA-owned paths and never repairs product code.",
+    "All ATLAS-WP-009 foundation files remain byte-identical to the independently accepted frozen authoring product HEAD.",
+    "ATLAS-WP-010 remains exactly the productHead under test.",
+    "The browser adapter delegates semantic authority to the frozen Python core and validators rather than duplicating validation in JavaScript.",
+    "No-op live export is byte-identical to the canonical bundled source kit.",
+    "For a semantic edit, browser draft lineage/revision behavior is checked and browser export must equal direct frozen Python export of that exact browser draft.",
+    "Tampered restored drafts fail closed and are removed from the isolated authoring localStorage namespace.",
+    "External browser traffic is restricted to GET-only pinned Pyodide assets and carries no kit/draft payload.",
+    "The deployed learner root remains byte-identical to the promoted M2.2 artifact.",
+    "Final QA PASS authorizes only the human gate, not product merge or promotion."
+  ],
+  "requiredEvidence": [
+    "Exact QA-only three-path diff from productHead.",
+    "Exact ATLAS-WP-010 six-path product packaging delta from the frozen M3.0 foundation.",
+    "Independent static authority and bundled-sample hash verification.",
+    "Live GitHub Pages load with Python engine ready.",
+    "Live no-op export byte identity.",
+    "Live semantic edit with lineage preserved, package revision rotated and exact-draft export equivalence to the frozen local Python core.",
+    "Live tampered-draft fail-closed behavior.",
+    "Observed browser external-request allowlist and no authoring-data external POST/body.",
+    "Live learner root exact bytes and SHA-256.",
+    "Final machine-readable QA artifact bound to exact productHead and QA head."
+  ],
+  "adversarialTests": [
+    "Any QA diff outside the three QA-owned paths.",
+    "Any product packaging diff outside the six ATLAS-WP-010 paths.",
+    "Any frozen ATLAS-WP-009 file changed by packaging.",
+    "Bundled sample differs from the read-only canonical proof kit.",
+    "No-op live export differs by one byte from source.",
+    "Browser export differs from frozen core export of the exact same browser draft.",
+    "Lineage changes or required package revision fails to rotate after a semantic edit.",
+    "Stale or tampered package revision survives restore or leaves export enabled.",
+    "External POST, PUT, PATCH or DELETE request, external request body, or external URL outside the pinned Pyodide base.",
+    "Live learner root differs in bytes or SHA-256.",
+    "Preview claims learner recommendation, memory, transfer or mastery authority."
+  ],
+  "nonGoals": [
+    "Repairing ATLAS-WP-010.",
+    "Changing the deployment harness.",
+    "Approving UX quality on behalf of the human reviewer.",
+    "Merging or promoting M3.",
+    "Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "QA oracle is independently authored in QA-owned files only.",
+    "Product tests may be re-run as corroborating evidence but are not the sole QA basis.",
+    "Final verdict binds to one exact frozen productHead and one exact QA head.",
+    "The live human gate is exposed only after final contradictory QA passes.",
+    "Explicit human PASS remains mandatory before product merge or promotion."
+  ],
+  "execution": {
+    "branch": "qa/QA-WP-020-m3-pages-final",
+    "phase": "IMPLEMENTED_AWAITING_CI",
+    "pullRequest": null,
+    "maximumChangedFiles": 3,
+    "humanGateRequired": true,
+    "finalVerdict": null
+  },
+  "rollback": "Close the QA PR without merge. Product and live candidate remain unchanged."
+}
