@@ -18,9 +18,9 @@ Exit gate: canonical repository sources no longer contradict the promoted M2.2 e
 
 ### M3.0 — Authoring Foundation
 
-Selected next **design-only** increment under issue #223.
+**Design accepted** under completed issue #223. Product implementation remains HOLD pending a fresh bounded implementation authority.
 
-Target vertical slice:
+Accepted target vertical slice:
 
 ```text
 existing canonical kit
@@ -37,7 +37,7 @@ Architecture boundary:
 - existing canonical kit contracts and validators are reused where possible;
 - no new activity type, contract revision, backend, account, sync or runtime AI is implied;
 - document ingestion and LLM-assisted authoring belong to later M3 increments, not M3.0;
-- implementation is forbidden until the design freezes exact paths, ownership, QA and rollback.
+- the accepted design now freezes exact paths, ownership, QA and rollback; implementation still requires a separate explicit authority.
 
 ### M3.1 — Pedagogical diagnostics
 
