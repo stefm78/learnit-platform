@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-011",
+  "title": "M3.1 Pedagogical Quality Engine design",
+  "status": "in-progress",
+  "changeClass": "product-design-pedagogical-quality",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 259,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.1-DESIGN"
+  },
+  "purpose": "Freeze the architecture, report contract, deterministic pedagogical-quality profile, AI-sandbox CLI, Atlas authoring-skill alignment, implementation scope and independent QA boundary for M3.1.",
+  "baseline": {
+    "baseCommit": "60746304a5d12d0bb626cea90de38cbfb811be94",
+    "promotedM3Main": "936e574c7e6306d645c6b7eba12881556eaa0e90",
+    "frozenAuthoringHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+    "frozenPagesHead": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+    "legacyAuthoringPackSha256": "339d5b32f2ac7d00b21300e8cba58f69a3c00afb8af520cdadbc97870a3c8116",
+    "legacySkillSha256": "67fa114ce213c472953ad4da39e7756d7a8a059128c7ac8bd66440542a38c8f1",
+    "legacyValidatorSha256": "25984b8f1707c2f3dac4d91446fa514db66eec1040d4779059876c6832d751ff",
+    "legacyAlignmentSha256": "d0a26d97b458c45a8dffcb469b613ddb55b20dd4be92b32af2b9a6597ab6d83f"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-011.json",
+      "docs/atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "contracts/**",
+      "authoring/**",
+      "governance/**",
+      ".github/**",
+      "work-packages/ATLAS-WP-012.json",
+      "work-packages/QA-WP-021.json"
+    ]
+  },
+  "invariants": [
+    "Existing learnit.kit.v2 schema and canonical validators remain normative and read-only.",
+    "The legacy V13.2 skill/validator are design evidence only and are not mechanically ported.",
+    "M3.1 quality analysis is deterministic, read-only, local and network-free.",
+    "No scalar quality score becomes a release authority.",
+    "Canonical validity, pedagogical quality and learner outcome claims remain distinct.",
+    "The same Python quality engine must serve CLI, CI and Studio; JavaScript may render but not reimplement rules.",
+    "AI self-iteration must stop rather than invent unsupported source content.",
+    "No document ingestion, LLM product integration, learner-runtime change, contract revision, Gate3, Gate4 or M4+ activation."
+  ],
+  "requiredEvidence": [
+    "Exact two-file design diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Explicit V13.2-to-Atlas mapping decisions.",
+    "Stable report and CLI contracts frozen.",
+    "Exact implementation and independent-QA path sets frozen and disjoint.",
+    "Human-gate boundary frozen without authorizing product promotion."
+  ],
+  "adversarialTests": [
+    "Reject any design that copies learnit.import.v1.1 fields into learnit.kit.v2.",
+    "Reject duplicated JavaScript pedagogical semantics.",
+    "Reject a numeric score as sole release gate.",
+    "Reject claims that static kit inspection proves learner mastery or effectiveness.",
+    "Reject source-provenance fields without a contract gate.",
+    "Reject implementation or QA path overlap.",
+    "Reject hidden activation of M3.2/M3.3/Gate3/Gate4/M4+."
+  ],
+  "nonGoals": [
+    "M3.1 implementation",
+    "PDF/text/Markdown ingestion",
+    "LLM integration",
+    "schema changes",
+    "new activity types",
+    "learner runtime changes",
+    "Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Linus architecture challenge recorded on authority issue #259.",
+    "Steve product/experience challenge recorded on authority issue #259.",
+    "Repository governance and PR scope gate the design PR.",
+    "Implementation requires a separate ATLAS-WP-012 authority after design acceptance."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-011-m3-1-quality-design",
+    "phase": "DESIGN_PREPARED",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert the two design files only. M3.0 promoted product and stable Pages publication remain unchanged."
+}
