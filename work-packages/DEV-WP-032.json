@@ -94,12 +94,13 @@
   "execution": {
     "branch": "dev/DEV-WP-032-controlled-time-navigator",
     "phase": "READY_NOT_STARTED",
-    "pullRequest": null,
+    "pullRequest": 237,
     "independentQaWorkPackage": "QA-WP-019",
     "independentQaIssue": 234,
     "maximumChangedFiles": 5,
     "humanGateRequired": false,
-    "finalVerdict": null
+    "finalVerdict": null,
+    "preparedForHandover": true
   },
   "rollback": "Drop the dev-tool branch/PR or delete the generated controlled-time candidate and dev-only storage. Canonical learner source, artifact and normal learner storage remain unchanged."
 }
