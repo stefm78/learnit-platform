@@ -56,7 +56,14 @@ jobs:
           assert package['baseline']['devHead']==dev
           assert package['execution']['devHead']==dev
           assert package['baseline']['devTree']==expected_tree
-          assert package['status']=='under-qa'
+          assert package['status'] in {'under-qa','accepted'}
+          if package['status']=='accepted':
+              assert package['execution']['phase']=='COMPLETE'
+              assert package['execution']['finalVerdict']=='PASS_QA_WP_019_EXACT_HEAD_CONTRADICTORY_QA'
+              evidence=package['verificationEvidence']
+              assert evidence['verdict']=='PASS_QA_WP_019_EXACT_HEAD_CONTRADICTORY_QA'
+              assert evidence['qualifyingQaHead']=='9ef23d67dd187274818f1b900f378d4187d44a64'
+              assert evidence['boundDevHead']==dev
           actual_tree=subprocess.check_output(['git','rev-parse',f'{dev}^{{tree}}'],text=True).strip()
           assert actual_tree==expected_tree,(actual_tree,expected_tree)
           merge_base=subprocess.check_output(['git','merge-base',dev,'HEAD'],text=True).strip()

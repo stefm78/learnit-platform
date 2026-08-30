@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "QA-WP-019",
   "title": "Controlled-time Atlas navigator contradictory QA",
-  "status": "under-qa",
+  "status": "accepted",
   "changeClass": "independent-qa-controlled-time-tooling",
   "riskClass": "medium",
   "authority": {
@@ -89,15 +89,30 @@
     "Repository governance and PR scope validate the QA branch.",
     "No heavy human gate is required after QA PASS."
   ],
+  "verificationEvidence": {
+    "verdict": "PASS_QA_WP_019_EXACT_HEAD_CONTRADICTORY_QA",
+    "qualifyingQaHead": "9ef23d67dd187274818f1b900f378d4187d44a64",
+    "boundDevHead": "e3ee52addb4147e19b74f0a491493bc8eb224d08",
+    "workflowRun": 33303701959,
+    "workflowConclusion": "success",
+    "artifactId": 9729764308,
+    "artifactDigest": "sha256:f5ecc2763831dcf77bccf8d073eb2f5a355231fcc8d9439a11c9813c70c40cb5",
+    "browserOracle": "PASS",
+    "normalStorageUnchanged": "PASS",
+    "devStorageSelectiveReset": "PASS",
+    "boundaryOracle": "PASS_1_3_7_21_DAYS",
+    "transferTimeAlone": "LOCKED",
+    "outboundNetworkRequests": 0
+  },
   "execution": {
     "branch": "qa/QA-WP-019-controlled-time-navigator-final",
-    "phase": "FINAL_QA_BOUND_TO_EXACT_DEV_HEAD",
+    "phase": "COMPLETE",
     "devWorkPackage": "DEV-WP-032",
     "devIssue": 231,
     "devHead": "e3ee52addb4147e19b74f0a491493bc8eb224d08",
-    "finalVerdict": null,
+    "finalVerdict": "PASS_QA_WP_019_EXACT_HEAD_CONTRADICTORY_QA",
     "preparationPullRequest": 238,
-    "finalPullRequest": null,
+    "finalPullRequest": 239,
     "preparationSupersededWithoutMerge": true,
     "preparedForHandover": false
   },
