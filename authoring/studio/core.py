@@ -251,7 +251,7 @@ def _activity_semantic(activity: dict[str, Any]) -> Any:
     elif activity.get("type") == "fill":
         base["segments"] = [segment.get("text") if "text" in segment else None for segment in activity.get("segments", [])]
         base["tokens"] = [
-            (token.get("label"), token.get("maxUses")) for token in activity.get("tokens", [])
+            [token.get("label"), token.get("maxUses")] for token in activity.get("tokens", [])
         ]
         base["answers"] = [answer.get("tokenId") for answer in activity.get("answers", [])]
     return normalize(base)
