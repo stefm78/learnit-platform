@@ -21,7 +21,10 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - The promoted M1 artifact is `334194` bytes with SHA-256 `6ca39dd107aea45c14cd7bec7c7ff447c36af1fc12e1c8b3f6c1a0fdc066028f`.
 - Atlas M2 memory/reconfirmation is promoted on product merge `dd0c191179f968d35742cb58f7d6bb9ccb53a852`.
 - Atlas M2.2 transfer plus learner-facing clarity is promoted with accepted product HEAD `abaa0af0dcbd5338be2221587c1e871c4f939c52` and accepted QA HEAD `0e529f8b4f684a7c9aa900742efe94b2a012abc0`; its exact canonical artifact is `366412` bytes with SHA-256 `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7` and is published through GitHub Pages.
-- M3.0 Authoring Foundation design is accepted under completed issue `#223`; it freezes a separate local/offline authoring application, canonical validator reuse, deterministic export/re-import evidence and exact future implementation/QA paths. Product implementation is not yet authorized.
+- M3.0 Authoring Foundation and its browser/Pages packaging are promoted as a separate local/static authoring application.
+- M3.1 Pedagogical Quality Engine is promoted with frozen product HEAD `6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2`, independent QA HEAD `6ff592af68e6cc95bd479911a09388293c5528f5`, promotion merge `be3d5b2635836e8ce0d9a6ecf42d573efc9ef749` and stable Pages publication merge `601cade1376e6f87e71351fe3f201833a9356697`.
+- The promoted learner runtime remains the exact M2.2 artifact: `366412` bytes, SHA-256 `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7`. M3 authoring does not redefine learner artifact identity.
+- Human sequence-level graphical review debt for AI-authored kits is tracked as issue `#272` and remains deferred/non-blocking.
 - Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
 ## Current decisions
@@ -36,7 +39,9 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - Tested artifact must equal distributed artifact.
 - Atlas M2 adds no database, store or migration; it derives reconfirmation state from immutable M1 evidence under the bounded policy authorized by issue `#157`.
 - Atlas M2.2 adds deterministic transfer evidence without changing the memory schedule, then applies only bounded learner-facing clarity corrections; it introduces no backend, storage migration or runtime network dependency.
-- M3.0 Authoring Foundation must be architecturally separate from the learner runtime: shared canonical contracts are allowed, shared authoring/runtime behavior is not.
+- M3.0/M3.1 authoring remains architecturally separate from the learner runtime: shared canonical contracts are allowed, authoring-only behavior is not embedded into the learner artifact.
+- M3.1 has one deterministic Python pedagogical-quality authority shared by CLI, CI and Studio. Canonical schema/validators remain upstream; browser JavaScript renders the Python report and does not duplicate `PQ_*` rule semantics.
+- AI self-iteration is an authoring/development workflow only: source material → constrained Atlas authoring skill → candidate kit → canonical validation → pedagogical-quality report → correction/rerun. No runtime LLM or authoring network dependency is introduced.
 
 ## Accepted architecture decisions
 
@@ -47,21 +52,22 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 ## Atlas reading order
 
 1. `../../governance/governor-state.json`;
-2. `../../work-packages/ATLAS-WP-005.json`, `ATLAS-WP-006.json` and `ATLAS-WP-007.json` for completed M2.2 product and publication evidence;
-3. M3.0 design authority issue `#223`;
-4. `../atlas/README.md`;
-5. `../atlas/CONTRACTS.md`;
-6. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
-7. `../../GOVERNANCE.md`.
+2. `../../work-packages/ATLAS-WP-005.json`, `ATLAS-WP-006.json` and `ATLAS-WP-007.json` for the unchanged promoted M2.2 learner baseline;
+3. `../../work-packages/ATLAS-WP-009.json`, `ATLAS-WP-010.json` and `ATLAS-WP-012.json` for promoted M3.0/M3.1 authoring;
+4. `../atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md` and `../../authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md`;
+5. `../atlas/README.md`;
+6. `../atlas/CONTRACTS.md`;
+7. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
+8. `../../GOVERNANCE.md`.
 
 Historical `reference-v1/` material remains non-canonical.
 
 ## Active Atlas gate
 
-Atlas M1 bootstrap, lane execution, integration, independent QA, human validation, promotion and post-merge verification are historical completed steps.
+Atlas M1, M2 and M2.2 learner milestones are promoted historical steps. The exact learner artifact remains unchanged.
 
-Atlas M2 product implementation, M2.2 transfer and clarity correction, independent QA, accountable-human validation, promotion and exact-artifact Pages publication are completed historical steps.
+M3.0 Authoring Foundation, M3.0 browser/Pages packaging and M3.1 Pedagogical Quality are promoted, independently tested and stably published under `/authoring/`.
 
-M3.0 Authoring Foundation design is accepted. The next mandatory gate is a fresh bounded implementation package that conforms exactly to `../atlas/M3_AUTHORING_FOUNDATION_DESIGN.md`.
+The next possible product increment is M3.2 **Source to Draft**, but it remains HOLD until a fresh accountable-owner arbitration and bounded authority are accepted. M3.1 completion does not authorize document ingestion, provenance-contract changes or assisted authoring automatically.
 
-Product implementation remains HOLD until that separate authority is explicitly opened. Gate3, Gate4 and M4+ platform evolution remain separately held.
+Human graphical/context review debt remains open as issue `#272`. M3.3, M3.4, Gate3, Gate4 and M4+ platform evolution remain separately held.
