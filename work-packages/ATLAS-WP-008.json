@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-008",
   "title": "M3.0 Authoring Foundation design",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "product-design-authoring-foundation",
   "riskClass": "medium",
   "authority": {
@@ -83,9 +83,13 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-008-m3-authoring-foundation-design",
-    "pullRequest": null,
-    "implementationDesignVerdict": null,
-    "finalStatus": "PENDING_DESIGN_GATE"
+    "pullRequest": 226,
+    "designHead": "f75bbebe580aba56df389a9851b4c55016d0b231",
+    "mergeCommit": "eb38312bb22ac854b5d57ddab98e2eb9c85a3ae5",
+    "repositoryGovernanceRun": 33297758909,
+    "prScopeRun": 33297759018,
+    "implementationDesignVerdict": "PASS_M3_0_AUTHORING_FOUNDATION_DESIGN_TO_IMPLEMENTATION_GATE",
+    "finalStatus": "ACCEPTED_DESIGN_ONLY"
   },
   "rollback": "Drop or revert this design package. No product source, learner state, canonical kit or contract is changed."
 }
