@@ -182,8 +182,20 @@ class LiveBrowserContradictoryOracle(unittest.TestCase):
             )
             page.reload(wait_until="domcontentloaded", timeout=120000)
             page.wait_for_function("window.__learnitPagesReady === true", timeout=120000)
-            page.wait_for_function("localStorage.getItem('learnit.authoring.m3.v1') === null", timeout=60000)
-            self.assertTrue(page.locator("#export").is_disabled())
+            page.wait_for_function("document.querySelector('#export').disabled === true", timeout=60000)
+            self.assertIn("bloquante", page.locator("#validation-badge").inner_text().lower())
+            self.assertIn("STALE_PACKAGE_REVISION", page.locator("#diagnostic-list").inner_text())
+
+            page.locator("#refresh-preview").click()
+            page.wait_for_function(
+                "document.querySelector('#preview-content').innerText.includes('fresh package revision')",
+                timeout=60000,
+            )
+            self.assertIsNotNone(page.evaluate("localStorage.getItem('learnit.authoring.m3.v1')"))
+
+            page.once("dialog", lambda dialog: dialog.accept())
+            page.locator("#discard").click()
+            self.assertIsNone(page.evaluate("localStorage.getItem('learnit.authoring.m3.v1')"))
 
             origin = LIVE_ROOT.rstrip("/")
             external = [(u, m, body) for u, m, body in requests if not u.startswith(origin)]

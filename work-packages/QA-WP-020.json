@@ -60,7 +60,7 @@
     "The browser adapter delegates semantic authority to the frozen Python core and validators rather than duplicating validation in JavaScript.",
     "No-op live export is byte-identical to the canonical bundled source kit.",
     "For a semantic edit, browser draft lineage/revision behavior is checked and browser export must equal direct frozen Python export of that exact browser draft.",
-    "Tampered restored drafts fail closed and are removed from the isolated authoring localStorage namespace.",
+    "Tampered restored drafts remain visibly blocked: canonical validation reports a blocking integrity diagnostic, export stays disabled, preview cannot bypass integrity checks, and only explicit author discard clears the isolated authoring localStorage namespace.",
     "External browser traffic is restricted to GET-only pinned Pyodide assets and carries no kit/draft payload.",
     "The deployed learner root remains byte-identical to the promoted M2.2 artifact.",
     "Final QA PASS authorizes only the human gate, not product merge or promotion."
@@ -72,7 +72,7 @@
     "Live GitHub Pages load with Python engine ready.",
     "Live no-op export byte identity.",
     "Live semantic edit with lineage preserved, package revision rotated and exact-draft export equivalence to the frozen local Python core.",
-    "Live tampered-draft fail-closed behavior.",
+    "Live tampered-draft fail-closed behavior: blocking diagnostic, export disabled, preview blocked, explicit discard clears only the authoring namespace.",
     "Observed browser external-request allowlist and no authoring-data external POST/body.",
     "Live learner root exact bytes and SHA-256.",
     "Final machine-readable QA artifact bound to exact productHead and QA head."
@@ -85,7 +85,7 @@
     "No-op live export differs by one byte from source.",
     "Browser export differs from frozen core export of the exact same browser draft.",
     "Lineage changes or required package revision fails to rotate after a semantic edit.",
-    "Stale or tampered package revision survives restore or leaves export enabled.",
+    "Stale or tampered package revision restores as exportable, lacks a blocking integrity diagnostic, bypasses preview integrity, or cannot be explicitly discarded.",
     "External POST, PUT, PATCH or DELETE request, external request body, or external URL outside the pinned Pyodide base.",
     "Live learner root differs in bytes or SHA-256.",
     "Preview claims learner recommendation, memory, transfer or mastery authority."
@@ -106,7 +106,7 @@
   ],
   "execution": {
     "branch": "qa/QA-WP-020-m3-pages-final",
-    "phase": "FINAL_EXACT_HEAD_QA_RUNNING",
+    "phase": "CORRECTED_ORACLE_FINAL_QA_RUNNING",
     "pullRequest": 247,
     "maximumChangedFiles": 3,
     "humanGateRequired": true,
