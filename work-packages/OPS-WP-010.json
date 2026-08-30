@@ -86,8 +86,8 @@
   ],
   "execution": {
     "branch": "ops/OPS-WP-010-atlas-pages-human-gate-deploy",
-    "phase": "IMPLEMENTED_AWAITING_CI",
-    "pullRequest": null,
+    "phase": "READY_FOR_REVIEW",
+    "pullRequest": 246,
     "maximumChangedFiles": 2,
     "humanGateRequired": false,
     "finalVerdict": null
