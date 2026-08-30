@@ -72,11 +72,15 @@ M1 n’inclut pas de backend, compte, synchronisation, catalogue distant, market
 
 Révision espacée, validation différée, reconfirmation, erreurs récurrentes et défis de transfert.
 
-M2.0/M2.1 (mémoire et reconfirmation) sont promus. M2.2 ajoute de façon bornée un défi de transfert déterministe après reconfirmation : une reconfirmation réussie ouvre au plus une tentative de transfert ultérieure, sans modifier l’horloge mémoire ni produire de claim de maîtrise.
+M2.0/M2.1 (mémoire et reconfirmation) sont promus. M2.2 (transfert déterministe + correction bornée de clarté UX) est également promu et publié. Une reconfirmation réussie ouvre au plus une tentative de transfert ultérieure, sans modifier l’horloge mémoire ni produire de claim de maîtrise.
 
 ### M3 — Authoring Studio
 
-Édition visuelle, aperçu, validation en direct, import de documents, assistance LLM hors runtime et publication de kits canoniques.
+M3.0 **Authoring Foundation** est le prochain incrément sélectionné en design seulement sous issue #223. Son vertical slice minimal est : kit canonique existant → édition visuelle → validation live → aperçu → export canonique déterministe → réimport sans dérive sémantique.
+
+Le studio d’authoring reste une application locale/statique séparée du runtime apprenant. M3.0 n’autorise ni nouveau type d’activité, ni changement de contrat implicite, ni backend, ni compte, ni synchronisation, ni LLM runtime.
+
+Les incréments ultérieurs de M3 couvriront séparément diagnostics pédagogiques, import de documents, assistance LLM hors runtime et passage à l’échelle/publication.
 
 ### M4 — Learn-it Everywhere
 
@@ -118,7 +122,17 @@ Le Gouverneur intervient aux frontières de périmètre, de contrat, de migratio
 
 ## Autorité
 
+Autorité historique M1 :
 - issue : `#130`
 - work package : `ATLAS-WP-001`
-- baseline promue : `06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35`
-- artefact promu SHA-256 : `9780bf3763864fbd42804a7dee129ae16e999e7971c4fce9a0a6a240d52b20df`
+
+Baseline promue actuelle M2.2 :
+- product HEAD accepté : `abaa0af0dcbd5338be2221587c1e871c4f939c52`
+- QA HEAD accepté : `0e529f8b4f684a7c9aa900742efe94b2a012abc0`
+- artefact : `366412` octets
+- SHA-256 : `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7`
+- publication : `https://stefm78.github.io/learnit-platform/`
+
+Prochain gate :
+- issue `#223` — M3.0 Authoring Foundation design
+- design uniquement ; aucune implémentation produit avant acceptation de ce gate.
