@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-011",
+  "title": "M3 authoring promotion rebind verifier",
+  "status": "in-progress",
+  "changeClass": "operations-promotion-verification",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 251,
+    "parentProductIssue": 232,
+    "parentProductWorkPackage": "ATLAS-WP-009",
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Verify promotion of the frozen QA/human-approved M3 authoring product onto current main without weakening or mutating the historical product workflow.",
+  "baseline": {
+    "baseCommit": "ca2dfe8bf35db5a902dce3fff950a697b6d104d7",
+    "frozenProductHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "humanGate": "PASS"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-011.json",
+      ".github/workflows/atlas-m3-authoring-promotion-rebind.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-009.json",
+      ".github/workflows/atlas-m3-authoring-foundation-ci.yml"
+    ]
+  },
+  "invariants": [
+    "No frozen ATLAS-WP-009 file is modified by OPS-WP-011.",
+    "The verifier runs only for the dedicated ATLAS-WP-009 promotion branch or explicit manual dispatch.",
+    "Promotion must change exactly the nine ATLAS-WP-009 paths relative to its PR base.",
+    "All nine promotion product files must be byte-identical to frozenProductHead.",
+    "M3 authoring product tests and canonical validators must pass on the integrated promotion tree.",
+    "The promoted learner artifact identity must remain unchanged.",
+    "Human PASS is already present; this verifier is an integration gate, not a substitute human gate."
+  ],
+  "requiredEvidence": [
+    "Exact nine-path promotion delta.",
+    "Byte identity of all nine product files to frozenProductHead.",
+    "M3 authoring browser/product tests PASS.",
+    "Canonical Atlas validators PASS.",
+    "Promoted learner regressions PASS.",
+    "Learner artifact exact bytes and SHA-256 PASS.",
+    "Machine-readable evidence bound to base, frozen product head and promotion head."
+  ],
+  "adversarialTests": [
+    "Promotion path outside the exact nine-file set.",
+    "Any frozen product blob differs by one byte.",
+    "Authoring product/browser test failure on the integrated tree.",
+    "Canonical validator failure.",
+    "Learner artifact drift.",
+    "Attempt to modify the historical product workflow to make promotion green."
+  ],
+  "nonGoals": [
+    "Changing M3 product semantics.",
+    "Re-running the human UX gate.",
+    "Changing canonical product QA evidence.",
+    "Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope must pass for OPS-WP-011.",
+    "The promotion verifier must run on the final promotion HEAD before merge."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-011-m3-authoring-promotion-rebind",
+    "phase": "IMPLEMENTED_AWAITING_CI",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the verifier workflow in a later governed cleanup after M3 promotion closeout."
+}
