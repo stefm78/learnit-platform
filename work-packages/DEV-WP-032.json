@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "DEV-WP-032",
   "title": "Controlled-time Atlas QA navigator",
-  "status": "approved",
+  "status": "under-qa",
   "changeClass": "dev-qa-controlled-time-tooling",
   "riskClass": "medium",
   "authority": {
@@ -91,16 +91,42 @@
     "Repository governance and PR scope validate the dev-tool branch.",
     "No heavy accountable-human gate is required; optional manual smoke is non-blocking after independent QA PASS."
   ],
+  "implementationEvidence": {
+    "localVerdict": "PASS_DEV_WP_032_LOCAL_IMPLEMENTATION_TO_EXACT_HEAD_QA_BINDING",
+    "canonicalArtifactBytes": 366412,
+    "canonicalArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "controlledTimeCandidateBytes": 382079,
+    "controlledTimeCandidateSha256": "f9388f8f79ef771c4e54cc5ffbfe014709e4152f561bb21c2e5fd82c440ac88e",
+    "simulationMarker": "LEARNIT_CONTROLLED_TIME_INJECT_V1",
+    "browserBanner": "TEMPS SIMULÉ — DONNÉES DE TEST",
+    "indexedDbNames": [
+      "learnit_dev_controlled_time_next_v1",
+      "learnit_dev_controlled_time_atlas_m1_v2"
+    ],
+    "localStoragePrefix": "learnit.dev.controlled-time.next.v1.",
+    "quickDays": [
+      0,
+      1,
+      3,
+      7,
+      21
+    ],
+    "outboundNetworkRequired": false,
+    "normalPagesPublication": false,
+    "developerTests": "PASS_5_OF_5",
+    "browserEvidence": "REQUIRED_IN_CI_AND_INDEPENDENT_QA",
+    "exactImplementationHead": null
+  },
   "execution": {
     "branch": "dev/DEV-WP-032-controlled-time-navigator",
-    "phase": "READY_NOT_STARTED",
+    "phase": "IMPLEMENTATION_COMPLETE_HEAD_FREEZE_PENDING",
     "pullRequest": 237,
     "independentQaWorkPackage": "QA-WP-019",
     "independentQaIssue": 234,
     "maximumChangedFiles": 5,
     "humanGateRequired": false,
     "finalVerdict": null,
-    "preparedForHandover": true
+    "preparedForHandover": false
   },
   "rollback": "Drop the dev-tool branch/PR or delete the generated controlled-time candidate and dev-only storage. Canonical learner source, artifact and normal learner storage remain unchanged."
 }
