@@ -1,0 +1,214 @@
+name: Atlas M3.1 Promotion Rebind
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FROZEN_PRODUCT_HEAD: 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2
+  FROZEN_QA_HEAD: 6ff592af68e6cc95bd479911a09388293c5528f5
+  LEARNER_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
+  EXPECTED_LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  EXPECTED_LEARNER_BYTES: '366412'
+  PROMOTION_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  verify:
+    name: M3.1 promotion rebind
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'atlas/ATLAS-WP-012-m3-1-promotion'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout exact promotion head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Prove exact promotion delta and frozen product identity
+        shell: bash
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          [[ -n "$PR_BASE" ]]
+          [[ "$(git rev-parse HEAD)" == "$PROMOTION_HEAD" ]]
+          [[ "$(git merge-base "$PR_BASE" HEAD)" == "$PR_BASE" ]]
+          python - <<'PY'
+          import os, subprocess
+          allowed={
+            'work-packages/ATLAS-WP-012.json',
+            'authoring/v2/atlas/pedagogical_quality.py',
+            'authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md',
+            'authoring/studio/core.py',
+            'authoring/studio/web/index.html',
+            'authoring/studio/web/studio.css',
+            'authoring/studio/web/studio.js',
+            'authoring/studio/pages/build_pages.py',
+            'authoring/studio/pages/pages-bootstrap.js',
+            'authoring/studio/tests/test_m3_1_pedagogical_quality.py',
+            '.github/workflows/atlas-m3-1-pedagogical-quality-ci.yml',
+          }
+          base=os.environ['PR_BASE']
+          changed=set(subprocess.check_output(['git','diff','--name-only',base+'...HEAD'],text=True).splitlines())
+          assert changed==allowed, f'PROMOTION_SCOPE_MISMATCH:{sorted(changed)}'
+          print('M3_1_PROMOTION_CHANGED_PATHS=11')
+          PY
+          for path in             work-packages/ATLAS-WP-012.json             authoring/v2/atlas/pedagogical_quality.py             authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md             authoring/studio/core.py             authoring/studio/web/index.html             authoring/studio/web/studio.css             authoring/studio/web/studio.js             authoring/studio/pages/build_pages.py             authoring/studio/pages/pages-bootstrap.js             authoring/studio/tests/test_m3_1_pedagogical_quality.py             .github/workflows/atlas-m3-1-pedagogical-quality-ci.yml; do
+              [[ "$(git rev-parse "$FROZEN_PRODUCT_HEAD:$path")" == "$(git rev-parse "HEAD:$path")" ]] || {
+                echo "PRODUCT_BLOB_MISMATCH:$path" >&2
+                exit 1
+              }
+          done
+
+      - name: Materialize exact QA worktree and prove QA scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin "$FROZEN_QA_HEAD"
+          [[ "$(git merge-base "$FROZEN_PRODUCT_HEAD" "$FROZEN_QA_HEAD")" == "$FROZEN_PRODUCT_HEAD" ]]
+          qa="$RUNNER_TEMP/qa"
+          git worktree add --detach "$qa" "$FROZEN_QA_HEAD"
+          echo "QA_TREE=$qa" >> "$GITHUB_ENV"
+          python - <<'PY'
+          import os, subprocess
+          product=os.environ['FROZEN_PRODUCT_HEAD']
+          qa=os.environ['FROZEN_QA_HEAD']
+          expected={
+            'work-packages/QA-WP-021.json',
+            'authoring/studio/tests/qa_m3_1_pedagogical_quality.py',
+            '.github/workflows/atlas-m3-1-pedagogical-quality-qa.yml',
+          }
+          changed=set(subprocess.check_output(['git','diff','--name-only',product+'...'+qa],text=True).splitlines())
+          assert changed==expected, f'QA_SCOPE_MISMATCH:{sorted(changed)}'
+          print('QA_SCOPE=PASS')
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation and browser dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run canonical Atlas validators
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/v2/validate_kit.py             authoring/v2/atlas/nombres_complexes_atlas.json             authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/atlas/validate_atlas_content.py
+
+      - name: Run M3.1 product and browser tests
+        run: python -B authoring/studio/tests/test_m3_1_pedagogical_quality.py
+
+      - name: Run exact independent QA oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$QA_TREE"
+          python -B authoring/studio/tests/qa_m3_1_pedagogical_quality.py
+
+      - name: Build deterministic Pages bundle and prove quality authority identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/studio/pages/build_pages.py --output "$RUNNER_TEMP/pages-a"
+          python -B authoring/studio/pages/build_pages.py --output "$RUNNER_TEMP/pages-b"
+          diff -qr "$RUNNER_TEMP/pages-a" "$RUNNER_TEMP/pages-b"
+          cmp authoring/v2/atlas/pedagogical_quality.py             "$RUNNER_TEMP/pages-a/_authority/authoring/v2/atlas/pedagogical_quality.py"
+
+      - name: Materialize declared learner projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fingerprint=item.get('fingerprint',{})
+              if fingerprint.get('kind')!='git-blob-sha1':
+                  continue
+              data=subprocess.run(['git','cat-file','blob',fingerprint.get('value','')],check=True,stdout=subprocess.PIPE).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+          PY
+
+      - name: Run promoted learner regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/contract_v2.py
+          python -B apps/learnit-next/tests/storage_isolation.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/atlas_m1_learning.py
+          python -B apps/learnit-next/tests/atlas_m1_core.py
+          python -B apps/learnit-next/tests/atlas_m1_experience.py
+          python -B apps/learnit-next/tests/atlas_m1_content.py
+          python -B apps/learnit-next/tests/atlas_m1_int.py
+          python -B apps/learnit-next/tests/atlas_m2_memory.py
+          python -B apps/learnit-next/tests/atlas_m2_transfer.py
+          python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py
+
+      - name: Verify learner artifact identity twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          a="$RUNNER_TEMP/learnit-a.html"
+          b="$RUNNER_TEMP/learnit-b.html"
+          python -B apps/learnit-next/build.py --output "$a"
+          python -B apps/learnit-next/build.py --output "$b"
+          cmp "$a" "$b"
+          bytes="$(wc -c < "$a" | tr -d ' ')"
+          sha="$(sha256sum "$a" | awk '{print $1}')"
+          [[ "$bytes" == "$EXPECTED_LEARNER_BYTES" ]]
+          [[ "$sha" == "$EXPECTED_LEARNER_SHA256" ]]
+
+      - name: Write promotion evidence
+        shell: bash
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/m3-1-promotion.json" <<EOF
+          {
+            "schema": "learnit.atlas.m3_1.promotion-rebind.v1",
+            "baseHead": "$PR_BASE",
+            "frozenProductHead": "$FROZEN_PRODUCT_HEAD",
+            "frozenQaHead": "$FROZEN_QA_HEAD",
+            "promotionHead": "$PROMOTION_HEAD",
+            "productBlobIdentity": "PASS",
+            "productAndBrowserTests": "PASS",
+            "canonicalValidators": "PASS",
+            "independentQa": "PASS",
+            "pagesDeterminism": "PASS",
+            "qualityAuthorityBundleIdentity": "PASS",
+            "learnerBytes": $EXPECTED_LEARNER_BYTES,
+            "learnerSha256": "$EXPECTED_LEARNER_SHA256",
+            "humanGate": "PASS_M3_1_AI_AUTHORING_WITH_NON_BLOCKING_HUMAN_UX_DEBT",
+            "uxDebtIssue": 272,
+            "verdict": "PASS_ATLAS_M3_1_PROMOTION_REBIND"
+          }
+          EOF
+
+      - name: Upload promotion evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m3-1-promotion-rebind-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/m3-1-promotion.json
