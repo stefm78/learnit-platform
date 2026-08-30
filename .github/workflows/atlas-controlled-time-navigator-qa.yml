@@ -1,0 +1,194 @@
+name: Atlas controlled-time navigator QA
+
+on:
+  pull_request:
+    branches:
+      - dev/DEV-WP-032-controlled-time-navigator
+    paths:
+      - work-packages/QA-WP-019.json
+      - apps/learnit-next/tests/qa_controlled_time_navigator.py
+      - .github/workflows/atlas-controlled-time-navigator-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-controlled-time-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contradictory-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DEV_HEAD: e3ee52addb4147e19b74f0a491493bc8eb224d08
+      DEV_TREE: b87699579685c6ec59813ad09b9ecf29a8bb827a
+      CANDIDATE_SHA256: f9388f8f79ef771c4e54cc5ffbfe014709e4152f561bb21c2e5fd82c440ac88e
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Bind exact DEV head and exact QA delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          dev=os.environ['DEV_HEAD']
+          expected_tree=os.environ['DEV_TREE']
+          package=json.loads(Path('work-packages/QA-WP-019.json').read_text(encoding='utf-8'))
+          assert package['id']=='QA-WP-019'
+          assert package['authority']['issue']==234
+          assert package['baseline']['devHead']==dev
+          assert package['execution']['devHead']==dev
+          assert package['baseline']['devTree']==expected_tree
+          assert package['status']=='under-qa'
+          actual_tree=subprocess.check_output(['git','rev-parse',f'{dev}^{{tree}}'],text=True).strip()
+          assert actual_tree==expected_tree,(actual_tree,expected_tree)
+          merge_base=subprocess.check_output(['git','merge-base',dev,'HEAD'],text=True).strip()
+          assert merge_base==dev,(merge_base,dev)
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',f'{dev}...HEAD'],text=True,
+          ).splitlines())
+          allowed=set(package['scope']['allowedPaths'])
+          assert changed==allowed, {'changed':sorted(changed),'allowed':sorted(allowed)}
+          forbidden={
+              'apps/learnit-next/dev/controlled_time_navigator.py',
+              'apps/learnit-next/dev/controlled_time_inject.js',
+              'apps/learnit-next/tests/dev_controlled_time_navigator.py',
+              'work-packages/DEV-WP-032.json',
+          }
+          assert changed.isdisjoint(forbidden)
+          print(json.dumps({'devHead':dev,'devTree':actual_tree,'qaDelta':sorted(changed)},sort_keys=True))
+          PY
+
+      - name: Materialize declared baseline projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          materialized=[]
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fingerprint=item.get('fingerprint',{})
+              if fingerprint.get('kind')!='git-blob-sha1':
+                  continue
+              blob=fingerprint.get('value','')
+              data=subprocess.run(
+                  ['git','cat-file','blob',blob],check=True,stdout=subprocess.PIPE,
+              ).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+              materialized.append(str(path))
+          print('CONTROLLED_TIME_QA_MATERIALIZED='+str(len(materialized)))
+          PY
+
+      - name: Install browser QA dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run independent contradictory oracle
+        env:
+          LEARNIT_CONTROLLED_TIME_QA_BROWSER: '1'
+        run: python -B apps/learnit-next/tests/qa_controlled_time_navigator.py
+
+      - name: Rebuild independently bound evidence
+        shell: bash
+        env:
+          QA_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/canonical.html"
+          python -B apps/learnit-next/dev/controlled_time_navigator.py \
+            --output "${RUNNER_TEMP}/learnit-next-controlled-time.html" \
+            > "${RUNNER_TEMP}/generator-result.json"
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          temp=Path(os.environ['RUNNER_TEMP'])
+          canonical=(temp/'canonical.html').read_bytes()
+          candidate=(temp/'learnit-next-controlled-time.html').read_bytes()
+          generator=json.loads((temp/'generator-result.json').read_text(encoding='utf-8'))
+          evidence={
+              'schema':'learnit.atlas.controlled-time.qa-evidence.v1',
+              'result':'PASS',
+              'verdict':'PASS_QA_WP_019_EXACT_HEAD_CONTRADICTORY_QA',
+              'workPackage':'QA-WP-019',
+              'authorityIssue':234,
+              'qaHead':os.environ['QA_HEAD'],
+              'devHead':os.environ['DEV_HEAD'],
+              'devTree':os.environ['DEV_TREE'],
+              'canonical':{
+                  'bytes':len(canonical),
+                  'sha256':hashlib.sha256(canonical).hexdigest(),
+              },
+              'candidate':{
+                  'bytes':len(candidate),
+                  'sha256':hashlib.sha256(candidate).hexdigest(),
+              },
+              'generator':generator,
+              'browserOracle':'PASS',
+              'normalStorageUnchanged':'PASS',
+              'devStorageSelectiveReset':'PASS',
+              'boundaryOracle':'PASS_1_3_7_21_DAYS',
+              'transferTimeAlone':'LOCKED',
+              'outboundNetworkRequests':0,
+          }
+          assert evidence['canonical']=={
+              'bytes':366412,
+              'sha256':'4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7',
+          }
+          assert evidence['candidate']=={
+              'bytes':382079,
+              'sha256':os.environ['CANDIDATE_SHA256'],
+          }
+          (temp/'qa-controlled-time-evidence.json').write_text(
+              json.dumps(evidence,sort_keys=True,separators=(',',':'))+'\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(evidence,indent=2,sort_keys=True))
+          PY
+
+      - name: Validate repository and QA-only diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B tools/validate_repository.py
+          git diff --check "${DEV_HEAD}...HEAD"
+
+      - name: Upload exact QA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-controlled-time-qa-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/learnit-next-controlled-time.html
+            ${{ runner.temp }}/generator-result.json
+            ${{ runner.temp }}/qa-controlled-time-evidence.json

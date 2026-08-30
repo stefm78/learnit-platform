@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-019",
+  "title": "Controlled-time Atlas navigator contradictory QA",
+  "status": "under-qa",
+  "changeClass": "independent-qa-controlled-time-tooling",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 234,
+    "devAuthorityIssue": 231,
+    "devWorkPackage": "DEV-WP-032",
+    "governorIssue": 4,
+    "governorComment": 5467590273,
+    "program": "PROJECT-ATLAS",
+    "milestone": "CONTROLLED-TIME-QA"
+  },
+  "purpose": "Independently prove that DEV-WP-032 exercises Atlas time boundaries without changing learner semantics, contaminating normal storage or altering the canonical learner artifact.",
+  "baseline": {
+    "baseCommit": "c8e6e2a01a9a517f0aa7bdbfc2e01a600d2f30ba",
+    "canonicalProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "canonicalArtifactBytes": 366412,
+    "canonicalArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "devHead": "e3ee52addb4147e19b74f0a491493bc8eb224d08",
+    "devTree": "b87699579685c6ec59813ad09b9ecf29a8bb827a",
+    "controlledTimeCandidateBytes": 382079,
+    "controlledTimeCandidateSha256": "f9388f8f79ef771c4e54cc5ffbfe014709e4152f561bb21c2e5fd82c440ac88e"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-019.json",
+      "apps/learnit-next/tests/qa_controlled_time_navigator.py",
+      ".github/workflows/atlas-controlled-time-navigator-qa.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/dev/controlled_time_navigator.py",
+      "apps/learnit-next/dev/controlled_time_inject.js",
+      "apps/learnit-next/tests/dev_controlled_time_navigator.py",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      ".github/workflows/learnit-next-pages.yml",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/DEV-WP-032.json"
+    ]
+  },
+  "invariants": [
+    "QA never repairs DEV-WP-032 or learner-runtime files.",
+    "Final QA is descended from and bound to exact frozen DEV-WP-032 HEAD e3ee52addb4147e19b74f0a491493bc8eb224d08.",
+    "QA delta from the final DEV-WP-032 HEAD is exactly the three QA-owned paths.",
+    "Canonical learner artifact identity remains unchanged.",
+    "Simulated-time persistence is isolated from normal learner storage.",
+    "QA verifies exact 1/3/7/21-day boundaries and transfer prerequisites independently from developer tests.",
+    "Any production-source mutation, storage contamination, policy drift or network dependency yields HOLD."
+  ],
+  "requiredEvidence": [
+    "Independent canonical-artifact byte/SHA identity check.",
+    "Independent generated-candidate identity and visible simulation marker check.",
+    "Normal storage remains byte/state unchanged after simulated-time use and reset.",
+    "Exact 1-day due transition just-before and at boundary.",
+    "Exact 3-day, 7-day and 21-day transitions just-before and at boundary.",
+    "Transfer remains unavailable without prerequisite reconfirmation evidence and available only when canonical rules allow it.",
+    "Reset returns to system time and clears only dev namespace.",
+    "No external network dependency.",
+    "Final QA binds to exact DEV-WP-032 HEAD and exact generated candidate digest."
+  ],
+  "adversarialTests": [
+    "Off-by-one millisecond boundary errors.",
+    "Production storage namespace leakage.",
+    "Synthetic evidence persists after reset.",
+    "Simulation banner can disappear while controlled time remains active.",
+    "Clock accepts malformed timestamps or invalid deltas.",
+    "Memory policy constants change.",
+    "Transfer is unlocked by time alone.",
+    "Dev candidate overwrites or is published as canonical learner artifact.",
+    "Final PASS attempted without exact-head binding."
+  ],
+  "nonGoals": [
+    "Dev-tool implementation or repair.",
+    "Learner product changes.",
+    "M3 authoring work.",
+    "Human UX approval.",
+    "Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "Oracle is authored independently from DEV-WP-032 tests.",
+    "Final QA uses exact DEV-WP-032 HEAD as binding and verifies only QA-owned delta.",
+    "Repository governance and PR scope validate the QA branch.",
+    "No heavy human gate is required after QA PASS."
+  ],
+  "execution": {
+    "branch": "qa/QA-WP-019-controlled-time-navigator-final",
+    "phase": "FINAL_QA_BOUND_TO_EXACT_DEV_HEAD",
+    "devWorkPackage": "DEV-WP-032",
+    "devIssue": 231,
+    "devHead": "e3ee52addb4147e19b74f0a491493bc8eb224d08",
+    "finalVerdict": null,
+    "preparationPullRequest": 238,
+    "finalPullRequest": null,
+    "preparationSupersededWithoutMerge": true,
+    "preparedForHandover": false
+  },
+  "rollback": "Drop the QA branch/PR only. No dev-tool or learner product file is modified by this package."
+}
