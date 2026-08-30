@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-008",
+  "title": "M3.0 Authoring Foundation design",
+  "status": "in-progress",
+  "changeClass": "product-design-authoring-foundation",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 223,
+    "governorIssue": 4,
+    "governorComment": 5467203247,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.0-DESIGN"
+  },
+  "purpose": "Freeze the minimal separate local Authoring Foundation architecture and exact implementation/QA boundaries before any M3.0 product code is written.",
+  "baseline": {
+    "baseCommit": "34475f58fe617a78168fa72c758a495aab8048bb",
+    "promotedM2_2ProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "promotedM2_2QaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+    "promotedM2_2ArtifactBytes": 366412,
+    "promotedM2_2ArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "pagesUrl": "https://stefm78.github.io/learnit-platform/"
+  },
+  "scope": {
+    "allowedPaths": [
+      "docs/atlas/M3_AUTHORING_FOUNDATION_DESIGN.md",
+      "work-packages/ATLAS-WP-008.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-009.json",
+      "work-packages/QA-WP-018.json"
+    ]
+  },
+  "invariants": [
+    "Design only: no M3.0 product implementation under this work package.",
+    "Authoring remains a separate local/offline application from the learner runtime.",
+    "learnit.kit.v2 schema and existing v2/Atlas validators remain frozen read-only inputs.",
+    "M3.0 edits existing valid Atlas kits only; no structural add/delete/reorder and no new activity type.",
+    "Canonical export is authoritative only after the existing validator stack passes.",
+    "No-op export of canonical proof kits must be byte-identical.",
+    "Semantic edits preserve lineage IDs, rotate required revision IDs once per draft revision, and recompute claims/digests.",
+    "No learner storage, learner source, backend, account, sync, runtime AI or network-required learning behavior.",
+    "Gate3, Gate4 and M4+ remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact two-path design diff only.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Design freezes implementation and independent-QA paths.",
+    "Design defines deterministic export/re-import evidence and explicit rollback.",
+    "Design keeps document ingestion and LLM assistance out of M3.0."
+  ],
+  "adversarialTests": [
+    "Reject a design that duplicates or silently forks canonical validation authority.",
+    "Reject authoring code embedded in the learner artifact.",
+    "Reject schema or activity-type expansion hidden inside M3.0.",
+    "Reject export semantics that can preserve stale revision IDs or digests.",
+    "Reject preview as learner-runtime semantic authority.",
+    "Reject shared writable product/QA files.",
+    "Reject any implicit Gate3/Gate4/M4+ activation."
+  ],
+  "independentReview": [
+    "Learning review confirms the next bottleneck is authoring quality/cost rather than another learner semantic.",
+    "Steve review requires a simple existing-kit edit/validate/preview/export flow.",
+    "Linus review requires isolated authoring and reuse of canonical validators rather than a second contract engine.",
+    "Repository governance and PR scope independently validate design-only scope."
+  ],
+  "nonGoals": [
+    "M3.0 implementation",
+    "Document/PDF/Markdown ingestion",
+    "LLM-assisted authoring",
+    "New activity types",
+    "Structural course authoring",
+    "Backend/accounts/sync",
+    "Gate3 or Gate4 activation",
+    "M4+ platform work"
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-008-m3-authoring-foundation-design",
+    "pullRequest": null,
+    "implementationDesignVerdict": null,
+    "finalStatus": "PENDING_DESIGN_GATE"
+  },
+  "rollback": "Drop or revert this design package. No product source, learner state, canonical kit or contract is changed."
+}
