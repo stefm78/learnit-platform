@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-010",
+  "title": "Atlas M3 Pages human-gate deployment harness",
+  "status": "in-progress",
+  "changeClass": "operations-pages-candidate-deployment",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 245,
+    "productIssue": 242,
+    "productPullRequest": 244,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.0-PAGES-HUMAN-GATE"
+  },
+  "purpose": "Deploy one exact frozen ATLAS-WP-010 candidate from a main-originating workflow so GitHub Pages protected-environment rules are satisfied without merging or promoting the product candidate.",
+  "baseline": {
+    "baseCommit": "6a379da1d8857a3dd4603a67a1eb8aac34da1d46",
+    "candidateHead": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+    "frozenAuthoringProductHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "candidateProductRun": 33311468792,
+    "candidateProductArtifact": 9732110564,
+    "candidateProductArtifactDigest": "sha256:59dbb977da1bf8f1778c90edcdf67fa79ea1502a94f14c73a6eb30f46c836689",
+    "candidatePagesArtifact": 9732110739,
+    "candidatePagesArtifactDigest": "sha256:1a92b5c273fdfa06da4602a0ee13e660c3085ca4a6ecd5a27345bbf0731b3c0a"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-010.json",
+      ".github/workflows/atlas-m3-pages-human-gate-deploy.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-009.json",
+      "work-packages/ATLAS-WP-010.json",
+      ".github/workflows/learnit-next-pages.yml",
+      ".github/workflows/atlas-m3-pages-candidate.yml"
+    ]
+  },
+  "invariants": [
+    "The workflow source and merge originate from main, but the deployed candidate checkout is pinned to the exact candidateHead.",
+    "The deployment harness does not modify product source, learner source, validators, schemas, canonical kits or the frozen candidate branch.",
+    "The learner root is rebuilt from learnerPromotedHead and must match exact expected bytes and SHA-256 before deployment.",
+    "The authoring subtree is built only from candidateHead and must pass the candidate product packaging tests before deployment.",
+    "The deployed root contains the unchanged learner index and learnit-next.html plus the candidate /authoring/ subtree.",
+    "This deployment is a reversible human-gate surface and is not M3 product promotion.",
+    "Explicit human PASS remains mandatory before ATLAS-WP-009 or ATLAS-WP-010 product merge/promotion."
+  ],
+  "requiredEvidence": [
+    "PR changes exactly the two authorized operational paths.",
+    "Repository governance and PR scope pass before merge.",
+    "Main-triggered deployment checks out candidateHead exactly.",
+    "Candidate packaging browser tests pass again from the deployment harness.",
+    "Learner root bytes and SHA-256 match the promoted artifact before upload.",
+    "GitHub Pages deployment succeeds and returns the live page URL.",
+    "Live /authoring/ exposes the zero-setup canonical sample launchers."
+  ],
+  "adversarialTests": [
+    "Candidate checkout SHA differs from the hard-pinned candidateHead.",
+    "Learner build differs by one byte or digest from the promoted artifact.",
+    "Deployment tries to use the product PR merge ref instead of candidateHead.",
+    "Any operational PR path outside the two-file allowlist.",
+    "Candidate packaging tests fail before upload.",
+    "Deployment is treated as product promotion or used to merge the product PR."
+  ],
+  "nonGoals": [
+    "Changing ATLAS-WP-010 product code.",
+    "Changing GitHub Pages environment protection rules.",
+    "Changing learner runtime or canonical content.",
+    "General-purpose arbitrary-ref deployment.",
+    "M3 product merge or promotion.",
+    "Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "Repository governance validates the work package.",
+    "PR scope must confirm exactly two changed files.",
+    "The deployment workflow independently re-verifies the exact candidate SHA and learner artifact identity at runtime.",
+    "QA-WP-020 remains the independent contradictory product QA after live deployment."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-010-atlas-pages-human-gate-deploy",
+    "phase": "READY_FOR_REVIEW",
+    "pullRequest": 246,
+    "maximumChangedFiles": 2,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Re-run the existing Learn-it Next Pages workflow from main to restore the learner-only Pages artifact, then close/remove this deployment harness in a later governed cleanup."
+}
