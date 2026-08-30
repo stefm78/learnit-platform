@@ -6,7 +6,62 @@ RC718 remains the frozen legacy standalone product. The successor is a distinct 
 
 The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
-> **Historical status (post-Atlas M2):** the C1–C7 sequence below records the clean-generation path that led to Learn-it Next. It is retained as historical planning evidence, not as the active roadmap or current gate. Learning Loop V2, Atlas M1 and Atlas M2 have been promoted; the exact M2 artifact is published through GitHub Pages. No next product increment is selected here.
+> **Current status (post-Atlas M2.2):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation and Atlas M2.2 transfer + bounded learner-facing clarity are promoted. The exact M2.2 artifact is published through GitHub Pages. The C1–C7 sequence below is retained as historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
+
+## Active post-M2.2 roadmap
+
+### P0 — canonical state alignment
+
+Align the machine-readable governor state, architecture status, project README and roadmap with the promoted M2.2 facts and the currently enforced main-protection ruleset.
+
+Exit gate: canonical repository sources no longer contradict the promoted M2.2 evidence or branch-protection reality.
+
+### M3.0 — Authoring Foundation
+
+Selected next **design-only** increment under issue #223.
+
+Target vertical slice:
+
+```text
+existing canonical kit
+→ visual edit
+→ live validation
+→ preview
+→ canonical deterministic export
+→ re-import without semantic drift
+```
+
+Architecture boundary:
+
+- authoring is a separate local/static application from the learner runtime;
+- existing canonical kit contracts and validators are reused where possible;
+- no new activity type, contract revision, backend, account, sync or runtime AI is implied;
+- document ingestion and LLM-assisted authoring belong to later M3 increments, not M3.0;
+- implementation is forbidden until the design freezes exact paths, ownership, QA and rollback.
+
+### M3.1 — Pedagogical diagnostics
+
+After M3.0 is proven, add author-facing diagnostics for objective coverage, activity roles, durations, validation/transfer completeness and actionable errors.
+
+### M3.2 — Source to draft
+
+Later bounded ingestion of PDF/text/Markdown into a traceable author draft. Source provenance is mandatory and no imported suggestion is published automatically.
+
+### M3.3 — Assisted authoring
+
+Optional LLM assistance outside the learner runtime. Suggestions must be reviewed and converted into canonical static content before distribution.
+
+### M3.4 — Scale and publishing
+
+Batch validation, asset handling, collision diagnostics, rollback and 100/500-kit scale evidence before any broader publishing model.
+
+### M4+ — platform evolution
+
+Identity/synchronization, teacher/cohort and network/catalog capabilities remain future gates, not implied commitments.
+
+### Separate tooling candidate
+
+A controlled-time navigator is justified by M2.2 human-test cost and may be authorized as a small dev/QA-only work package. It must not alter the normal learner artifact or block M3.0 design.
 
 ## Completed foundation
 
@@ -170,7 +225,7 @@ Introduce immutable learning events only when product use cases justify their co
 
 ## Held platform evolution
 
-The following remain separate future decisions, not assumed roadmap commitments:
+The following remain separate future decisions, not assumed roadmap commitments. M3.0 does not authorize any of them:
 
 1. synchronization simulator;
 2. accounts and learner profiles;
