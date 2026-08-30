@@ -25,7 +25,8 @@
     "learnerArtifactBytes": 366412,
     "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
     "pyodideVersion": "0.29.4",
-    "pyodideBaseUrl": "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/"
+    "pyodideBaseUrl": "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/",
+    "baseCommit": "a1b9259955ce748cd7e47531a470cd12b7dc0436"
   },
   "scope": {
     "allowedPaths": [
