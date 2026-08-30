@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-08-30-POST-M3-1-PROMOTION",
-  "effectiveFromCommit": "601cade1376e6f87e71351fe3f201833a9356697",
-  "reviewedBaselineCommit": "601cade1376e6f87e71351fe3f201833a9356697",
+  "stateId": "GOV-STATE-2026-08-30-M3-2-AI-KIT-FACTORY-DESIGN",
+  "effectiveFromCommit": "0ea71eece35d7f631982c2042fcffba008f05284",
+  "reviewedBaselineCommit": "0ea71eece35d7f631982c2042fcffba008f05284",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m3-1-promoted",
-    "status": "complete",
-    "description": "M3.0 Authoring Foundation and browser packaging are promoted. M3.1 Pedagogical Quality Engine is independently QA-passed, human-approved for the AI-authoring scope, promoted and stably published under /authoring/. The learner runtime remains the exact promoted M2.2 artifact. Human sequence-level graphical review debt is tracked separately as issue #272."
+    "id": "project-atlas-m3-2-ai-kit-factory-design-accepted",
+    "status": "active",
+    "description": "M3.2 AI Kit Factory design is accepted. Source-to-Draft is rejected for M3.2. The authorized architecture is direct source reading by an author AI, deterministic canonical and M3.1 structural quality gates, independent semantic/source-fidelity review, and a deterministic factory PASS/HOLD gate. Learner runtime and promoted M3.1 authoring remain unchanged."
   },
   "currentMain": {
-    "commit": "601cade1376e6f87e71351fe3f201833a9356697",
-    "sourcePullRequest": 279,
-    "description": "Post-M3.1 stable Pages main: exact promoted M3.1 authoring product is bound to the canonical stable Pages publisher while preserving the frozen learner artifact."
+    "commit": "0ea71eece35d7f631982c2042fcffba008f05284",
+    "sourcePullRequest": 283,
+    "description": "Post-M3.2-design main: AI Kit Factory design accepted; no M3.2 product implementation merged yet."
   },
   "developmentBaseline": {
-    "status": "not-selected",
-    "workPackage": null,
-    "candidate": null,
-    "sourceCommit": null,
+    "status": "selected",
+    "workPackage": "ATLAS-WP-014",
+    "candidate": "M3.2 AI Kit Factory implementation",
+    "sourceCommit": "0ea71eece35d7f631982c2042fcffba008f05284",
     "authorityIssue": null,
-    "note": "M3.1 is complete and promoted. M3.2 Source to Draft is only the next possible product increment and remains HOLD until a fresh accountable-owner arbitration and bounded authority are opened."
+    "note": "ATLAS-WP-014 is the next bounded implementation gate authorized by accepted design ATLAS-WP-013. No Source-to-Draft subsystem is authorized."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -153,14 +153,25 @@
       "deploymentUrl": "https://stefm78.github.io/learnit-platform/authoring/",
       "learnerArtifactBytes": 366412,
       "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+    },
+    "projectAtlasM3_2Design": {
+      "workPackage": "ATLAS-WP-013",
+      "status": "accepted",
+      "authorityIssue": 282,
+      "designHead": "39cdc783f1f679fee1882b34d2e087d40835e8d8",
+      "designMerge": "0ea71eece35d7f631982c2042fcffba008f05284",
+      "verdict": "PASS_M3_2_AI_KIT_FACTORY_DESIGN_TO_IMPLEMENTATION_GATE",
+      "sourceToDraftDecision": "rejected-for-m3.2",
+      "implementationGate": "ATLAS-WP-014"
     }
   },
   "authorizedWork": [
-    "GOV-WP-031 may align canonical state after completed M3.1 promotion only.",
+    "ATLAS-WP-014 may implement only the bounded M3.2 AI Kit Factory paths frozen by accepted design ATLAS-WP-013.",
+    "QA-WP-022 may be prepared on disjoint QA-owned paths and may issue findings but may not repair product files.",
     "Repository maintenance and evidence-preserving closeout may proceed only under dedicated bounded work packages."
   ],
   "heldWork": [
-    "M3.2 Source to Draft remains HOLD until a fresh accountable-owner product arbitration and bounded authority are accepted.",
+    "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain outside M3.2 and require a new evidence-backed decision if ever needed.",
     "M3.3 assisted authoring and M3.4 scale/publishing remain HOLD until separately authorized.",
     "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
     "Gate 3 repository-write capability remains HOLD unless separately authorized.",
@@ -187,14 +198,14 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "ATLAS-WP-013",
-    "condition": "ATLAS-WP-013 is reserved for the next bounded M3.2 Source-to-Draft authority and must not be created or activated until a fresh accountable-owner product arbitration explicitly authorizes M3.2."
+    "id": "ATLAS-WP-014",
+    "condition": "Implement only the accepted M3.2 AI Kit Factory design: no source-ingestion subsystem, no canonical contract change, no model/vendor API, no learner-runtime change. Final acceptance requires independent QA-WP-022 and real-source qualification evidence."
   },
   "review": {
     "lastReviewedAt": "2026-08-30",
-    "lastReviewedBy": "Permanent Governor after M3.1 product promotion and stable Pages publication",
-    "decision": "HOLD",
-    "authorityIssue": 280,
-    "nextReviewTrigger": "explicit M3.2 Source-to-Draft proposal, M3.3 assistance proposal, human UX debt #272 reactivation, contract change, storage migration, security/autonomy expansion, Gate3/Gate4 request or M4+ proposal"
+    "lastReviewedBy": "Permanent Governor after accountable-owner M3.2 arbitration and accepted AI Kit Factory design",
+    "decision": "GO_WITH_CONDITIONS",
+    "authorityIssue": 284,
+    "nextReviewTrigger": "ATLAS-WP-014 candidate freeze, semantic-review contract change, source-ingestion proposal, model/vendor integration proposal, qualification failure, human UX debt #272 reactivation, Gate3/Gate4 request or M4+ proposal"
   }
 }

@@ -84,7 +84,9 @@ Le studio reste séparé du runtime apprenant. Le learner publié reste exacteme
 
 Le gate humain M3.1 a validé l’approche AI-authoring. La faiblesse de compréhension globale pour un reviewer humain — absence de vue graphique du cycle objectif → pratique → correction → validations → transfert — est conservée comme dette non bloquante sous l’issue #272.
 
-M3.2 **Source to Draft** est le prochain incrément possible, mais reste HOLD jusqu’à un nouvel arbitrage explicite. M3.3 assistance LLM et M3.4 passage à l’échelle/publication restent également des gates séparés.
+M3.2 **AI Kit Factory** a son design accepté. Le projet renonce pour ce milestone à construire un pipeline générique Source-to-Draft : une IA auteur lit directement les documents fournis, produit le kit canonique, itère contre les validateurs et le moteur M3.1, puis une IA reviewer dans un contexte indépendant challenge fidélité aux sources, exactitude, ambiguïtés, couverture, validation/transfert et adéquation au brief apprenant. Un gate déterministe lie les preuves par hash et décide PASS/HOLD.
+
+Le prochain gate est l’implémentation bornée `ATLAS-WP-014`. Aucun fournisseur de modèle, API IA, backend, changement du runtime apprenant ou extension de `learnit.kit.v2` n’est autorisé par M3.2. M3.3 et M3.4 restent des gates séparés.
 
 ### M4 — Learn-it Everywhere
 
@@ -142,5 +144,6 @@ Gate courant :
 - M3.1 Pedagogical Quality Engine : promu, QA indépendante PASS, gate humain PASS pour l’approche AI-authoring ;
 - publication stable : `https://stefm78.github.io/learnit-platform/authoring/` ;
 - dette de vue pédagogique humaine : #272, différée et non bloquante ;
-- prochaine évolution possible : M3.2 Source to Draft, **HOLD** jusqu’à un nouvel arbitrage et une autorité bornée ;
+- M3.2 AI Kit Factory : design accepté sous `ATLAS-WP-013` / #282 ;
+- prochain gate : implémentation bornée `ATLAS-WP-014`, sans pipeline Source-to-Draft ni API modèle ;
 - M3.3, M3.4, Gate3, Gate4 et M4+ restent HOLD.

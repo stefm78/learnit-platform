@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-032",
+  "title": "Align canonical state to accepted M3.2 AI Kit Factory design",
+  "status": "in-progress",
+  "changeClass": "governance-canonical-state-alignment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 284,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.2-DESIGN-ACCEPTED"
+  },
+  "purpose": "Align governor state and canonical top-level documentation with the accepted M3.2 AI Kit Factory design, replacing stale Source-to-Draft roadmap language without changing product code.",
+  "baseline": {
+    "baseCommit": "0ea71eece35d7f631982c2042fcffba008f05284",
+    "acceptedDesignHead": "39cdc783f1f679fee1882b34d2e087d40835e8d8",
+    "acceptedDesignMerge": "0ea71eece35d7f631982c2042fcffba008f05284",
+    "acceptedDesignIssue": 282,
+    "humanUxDebtIssue": 272
+  },
+  "scope": {
+    "allowedPaths": [
+      "governance/governor-state.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "docs/atlas/README.md",
+      "work-packages/GOV-WP-032.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-014.json",
+      "work-packages/QA-WP-022.json"
+    ]
+  },
+  "invariants": [
+    "This package is documentation/governance only.",
+    "M3.2 is AI Kit Factory, not Source-to-Draft.",
+    "ATLAS-WP-014 is the next bounded implementation gate.",
+    "No model/vendor API, backend, learner-runtime AI or canonical-kit contract change is authorized.",
+    "M3.1 promoted product and exact M2.2 learner artifact remain unchanged.",
+    "Human graphical/context review debt #272 remains deferred and non-blocking.",
+    "M3.3, M3.4, Gate3, Gate4 and M4+ remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact six-path diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Governor state and canonical docs agree on accepted AI Kit Factory architecture and ATLAS-WP-014 next gate.",
+    "No Source-to-Draft wording remains as the active M3.2 architecture.",
+    "No product/runtime/workflow path changed."
+  ],
+  "adversarialTests": [
+    "Reject active wording that M3.2 is Source-to-Draft.",
+    "Reject implicit model API or learner-runtime AI authorization.",
+    "Reject M3.2 contract extension or source provenance fields in learnit.kit.v2.",
+    "Reject omission/closure of debt #272.",
+    "Reject activation of M3.3/M3.4/Gate3/Gate4/M4+.",
+    "Reject any diff outside the exact six allowed paths."
+  ],
+  "nonGoals": [
+    "M3.2 implementation",
+    "QA preparation",
+    "Human UX debt #272 implementation",
+    "Contract/runtime/workflow changes",
+    "M3.3/M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Repository governance and PR scope independently verify the metadata-only alignment."
+  ],
+  "execution": {
+    "branch": "gov/GOV-WP-032-m3-2-ai-factory-state",
+    "pullRequest": null,
+    "maximumChangedFiles": 6,
+    "phase": "CANONICAL_STATE_ALIGNMENT_PREPARED",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert only the six governance/documentation paths. Accepted M3.2 design remains authoritative in ATLAS-WP-013."
+}

@@ -8,7 +8,7 @@ The roadmap is evidence-gated. Repository state, accepted ADRs and work packages
 
 > **Current status (post-Atlas M3.1):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation and M3.1 Pedagogical Quality are promoted. The learner runtime remains the exact M2.2 artifact; the separate M3.1 authoring surface is stably published under `/authoring/`. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
 
-## Active post-M3.1 roadmap
+## Active post-M3.1 roadmap — M3.2 design accepted
 
 ### P0 — canonical state alignment
 
@@ -49,11 +49,28 @@ Quality bands are non-numeric and do not claim learning effectiveness. The human
 
 Human sequence-level review remains weaker than desired because the Studio shows activities and diagnostics too locally. A future graphical overview of objective → practice → correction → validation 1 → validation 2 → transfer is tracked as non-blocking debt #272.
 
-### M3.2 — Source to Draft — **HOLD / NEXT POSSIBLE**
+### M3.2 — AI Kit Factory — **DESIGN ACCEPTED / IMPLEMENTATION AUTHORIZED**
 
-Potential later bounded ingestion of PDF/text/Markdown into a traceable author draft. Source provenance remains mandatory and nothing imported is automatically published.
+The owner explicitly rejected a generic Source-to-Draft pipeline as unnecessary complexity for this milestone.
 
-M3.2 is **not authorized by M3.1 completion**. It requires a new accountable-owner arbitration and bounded authority before design/implementation begins.
+Accepted flow:
+
+```text
+source files + learner brief
+→ AI author
+→ learnit.kit.v2 candidate
+→ canonical validators
+→ M3.1 pedagogical-quality gate
+→ author repair loop
+→ independent AI semantic/source review
+→ deterministic factory PASS/HOLD
+```
+
+The factory does not add a document-ingestion subsystem, intermediate draft contract, OCR layer, model-provider API, backend or learner-runtime AI.
+
+Structural factory eligibility requires M3.1 `STRONG` or `EXCELLENT_BY_PROFILE`. Semantic release additionally requires a separate reviewer context bound to exact source/brief/kit hashes. The deterministic gate validates this evidence contract but does not claim semantic truth by itself.
+
+The next bounded implementation gate is `ATLAS-WP-014`.
 
 ### M3.3 — Assisted authoring — **HOLD**
 
@@ -233,7 +250,7 @@ Introduce immutable learning events only when product use cases justify their co
 
 ## Held platform evolution
 
-The following remain separate future decisions, not assumed roadmap commitments. M3.1 completion does not authorize any of them:
+The following remain separate future decisions, not assumed roadmap commitments. Accepted M3.2 design does not authorize any of them:
 
 1. synchronization simulator;
 2. accounts and learner profiles;
