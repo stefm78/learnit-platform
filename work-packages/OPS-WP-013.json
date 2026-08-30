@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-013",
+  "title": "M3 stable GitHub Pages publication",
+  "status": "in-progress",
+  "changeClass": "operations-stable-pages-publication",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 257,
+    "program": "PROJECT-ATLAS",
+    "milestone": "POST-M3-0-STABLE-PAGES"
+  },
+  "purpose": "Make the canonical Learn-it Next Pages publisher preserve the exact promoted learner root and the exact promoted M3 authoring surface under /authoring/, replacing the temporary human-gate publication dependency without changing product semantics.",
+  "baseline": {
+    "baseCommit": "936e574c7e6306d645c6b7eba12881556eaa0e90",
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "m3PromotedMain": "936e574c7e6306d645c6b7eba12881556eaa0e90",
+    "frozenAuthoringHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+    "frozenPagesHead": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+    "humanGate": "PASS"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-013.json",
+      ".github/workflows/learnit-next-pages.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-009.json",
+      "work-packages/ATLAS-WP-010.json",
+      ".github/workflows/atlas-m3-pages-candidate.yml",
+      ".github/workflows/atlas-m3-pages-human-gate-deploy.yml"
+    ]
+  },
+  "invariants": [
+    "The learner root is rebuilt only from learnerPromotedHead and must remain exactly 366412 bytes with the frozen SHA-256.",
+    "The stable /authoring/ subtree is built only from m3PromotedMain.",
+    "All nine M3 Authoring Foundation product blobs must be byte-identical to frozenAuthoringHead before deployment.",
+    "All six M3 Pages packaging blobs must be byte-identical to frozenPagesHead before deployment.",
+    "Frozen M3 product/browser tests and canonical Atlas validators must pass before deployment.",
+    "The authoring bundle must be deterministic across two builds.",
+    "Live post-deploy smoke must prove the learner root exact digest/bytes and the /authoring/ index plus pages-evidence identity.",
+    "No backend, account, synchronization, remote authoring-data transfer, learner semantic, Gate3, Gate4 or M4+ capability is introduced.",
+    "No additional human UX gate is required because the deployed M3 sources are byte-identical to the already human-approved candidate."
+  ],
+  "requiredEvidence": [
+    "Exact two-path PR delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Frozen nine-file Authoring Foundation byte identity PASS.",
+    "Frozen six-file Pages packaging byte identity PASS.",
+    "M3 authoring and browser packaging regressions PASS.",
+    "Canonical Atlas validators PASS.",
+    "Deterministic authoring bundle PASS.",
+    "Learner artifact exact bytes and SHA-256 PASS.",
+    "GitHub Pages deployment PASS.",
+    "Live learner and /authoring/ post-deploy smoke PASS."
+  ],
+  "adversarialTests": [
+    "Any frozen M3 authoring or Pages blob differs by one byte.",
+    "Learner artifact differs by one byte or digest.",
+    "Stable publisher omits /authoring/ or overwrites learner root semantics.",
+    "Authoring bundle is non-deterministic.",
+    "Live Pages serves stale learner or authoring content after deployment.",
+    "Any changed path outside the exact two-file allowlist."
+  ],
+  "nonGoals": [
+    "M3.1 feature development.",
+    "Changing the M3.0 editor, validators, schema or learner runtime.",
+    "Changing GitHub Pages environment protection.",
+    "Backend, accounts, sync, remote publishing, runtime AI, Gate3, Gate4 or M4+."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate the operational PR.",
+    "Runtime workflow re-verifies exact pinned source identities and frozen product tests before publication.",
+    "Live post-deploy smoke verifies the published learner and authoring surfaces."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-013-m3-stable-pages",
+    "phase": "IMPLEMENTATION_PREPARED",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert this two-file operational change and re-run the prior human-gate deployment harness. Product sources and promoted artifacts remain unchanged."
+}
