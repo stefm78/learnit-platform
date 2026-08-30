@@ -12,6 +12,7 @@ env:
   FROZEN_PRODUCT_HEAD: a1b9259955ce748cd7e47531a470cd12b7dc0436
   EXPECTED_LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
   EXPECTED_LEARNER_BYTES: '366412'
+  PROMOTION_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   verify:
@@ -34,6 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ -n "$PR_BASE" ]]
+          [[ "$(git rev-parse HEAD)" == "$PROMOTION_HEAD" ]]
           [[ "$(git merge-base "$PR_BASE" HEAD)" == "$PR_BASE" ]]
           allowed='^(.github/workflows/atlas-m3-authoring-foundation-ci.yml|authoring/studio/README.md|authoring/studio/core.py|authoring/studio/server.py|authoring/studio/tests/test_m3_authoring_foundation.py|authoring/studio/web/index.html|authoring/studio/web/studio.css|authoring/studio/web/studio.js|work-packages/ATLAS-WP-009.json)$'
           changed="$(git diff --name-only "$PR_BASE"...HEAD)"
@@ -125,7 +127,8 @@ jobs:
             "schema": "learnit.atlas.m3.authoring.promotion-rebind.v1",
             "baseHead": "$PR_BASE",
             "frozenProductHead": "$FROZEN_PRODUCT_HEAD",
-            "promotionHead": "$GITHUB_SHA",
+            "promotionHead": "$PROMOTION_HEAD",
+            "workflowEventSha": "$GITHUB_SHA",
             "productBlobIdentity": "PASS",
             "productAndBrowserTests": "PASS",
             "canonicalValidators": "PASS",
@@ -139,5 +142,5 @@ jobs:
       - name: Upload promotion evidence
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-m3-authoring-promotion-rebind-${{ github.sha }}
+          name: atlas-m3-authoring-promotion-rebind-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/m3-promotion-evidence/evidence.json
