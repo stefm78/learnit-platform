@@ -205,8 +205,14 @@ function renderPedagogicalQuality(report) {
     const severityClass = item.severity === 'advice' ? ' advice' : (item.severity === 'warning' ? ' warning' : '');
     const severityLabel = item.severity === 'advice' ? 'Conseil' : (item.severity === 'warning' ? 'Avertissement' : 'Blocage');
     node.className = `diagnostic-item${severityClass}`;
-    node.innerHTML = `<strong>${severityLabel} · ${escapeHtml(item.code)}</strong>
-      <code>${escapeHtml(item.path || '  diagnostics.innerHTML = '';
+    node.innerHTML = `<strong>${severityLabel} · ${escapeHtml(item.code)}</strong><code>${escapeHtml(item.path || '$')}</code><div>${escapeHtml(item.cause)}</div><div class="quality-detail"><b>Impact :</b> ${escapeHtml(item.impact || '')}</div><div class="quality-detail"><b>Correction :</b> ${escapeHtml(item.fix || '')}</div>`;
+    qualityList.appendChild(node);
+  }
+}
+
+function renderDiagnostics() {
+  const result = state.validation;
+  diagnostics.innerHTML = '';
   if (!result) {
     validationBadge.textContent = 'À vérifier';
     validationBadge.className = 'badge';
@@ -230,7 +236,6 @@ function renderPedagogicalQuality(report) {
   $('#export-status').textContent = result.ok ? 'Le même validateur canonique sera rejoué au moment de l’export.' : 'Corrigez les erreurs bloquantes avant export.';
   renderPedagogicalQuality(result.pedagogicalQuality || null);
 }
-
 async function refreshPreview() {
   if (!state.draft) return;
   try {
