@@ -125,9 +125,21 @@ class BrowserEquivalenceTests(unittest.TestCase):
                     title.evaluate("(node) => node.dispatchEvent(new Event('change', {bubbles:true}))")
                     page.wait_for_function("!document.querySelector('#export').disabled", timeout=60000)
 
-                    reference = create_draft(raw, kit_path.name)
-                    reference = apply_edit(reference, ["title"], new_title)
-                    expected, _ = export_draft(reference)
+                    original = create_draft(raw, kit_path.name)
+                    reference = apply_edit(original, ["title"], new_title)
+                    browser_draft = json.loads(
+                        page.evaluate("localStorage.getItem('learnit.authoring.m3.v1')")
+                    )
+                    self.assertEqual(browser_draft["package"]["title"], reference["package"]["title"])
+                    self.assertEqual(
+                        browser_draft["package"]["packageLineageId"],
+                        original["package"]["packageLineageId"],
+                    )
+                    self.assertNotEqual(
+                        browser_draft["package"]["packageRevisionId"],
+                        original["package"]["packageRevisionId"],
+                    )
+                    expected, _ = export_draft(browser_draft)
 
                     with page.expect_download(timeout=60000) as info2:
                         page.locator("#export").click()

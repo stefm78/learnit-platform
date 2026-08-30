@@ -72,7 +72,7 @@
     "Frozen ATLAS-WP-009 files compare byte-identical against the product HEAD.",
     "The generated Pages bundle contains the unchanged web UI plus the exact frozen Python core, exact existing validators and exact schema authority.",
     "No-op browser import/export is byte-identical to each canonical Atlas source kit.",
-    "Representative QCM and fill edits exported by the browser are byte-identical to the local Python core output for the same edit path and value.",
+    "Representative browser edits preserve the same semantic/lineage/revision-scope rules as the local Python core; export of the exact browser draft is byte-identical to direct local Python core export of that draft. Fresh UUIDv4 revision IDs are intentionally not compared across independent edit executions.",
     "Browser validation remains fail-closed for stale revisions, digest tampering and malformed canonical content.",
     "Cross-origin browser requests are GET-only and restricted to the pinned Pyodide base URL; no request carries kit or draft data.",
     "Reload and discard touch only learnit.authoring.m3.v1 storage.",
@@ -87,7 +87,7 @@
     "External request containing source bytes, draft JSON, lineage IDs or exported kit bytes.",
     "Stale revision or digest tampering through restored localStorage.",
     "Malformed UTF-8, duplicate JSON keys or unsupported canonical floats.",
-    "Browser export differs from direct local core export for identical semantic edit.",
+    "Browser export differs from direct local core export of the exact same browser draft, or browser semantic/revision-scope effects differ from the local core contract.",
     "Candidate site changes learner root artifact bytes or SHA-256.",
     "Pages build omits or silently substitutes a frozen authority file.",
     "Any changed path outside the exact packaging allowlist."
