@@ -1,0 +1,361 @@
+name: Atlas M3.1 author human-gate deploy
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-m3-1-human-gate-deploy.yml'
+      - 'work-packages/OPS-WP-014.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-m3-1-human-gate-deploy.yml'
+      - 'work-packages/OPS-WP-014.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atlas-m3-1-human-gate
+  cancel-in-progress: false
+
+env:
+  PRODUCT_HEAD: 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2
+  QA_HEAD: 6ff592af68e6cc95bd479911a09388293c5528f5
+  LEARNER_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
+  LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  LEARNER_BYTES: '366412'
+
+jobs:
+  verify:
+    name: Verify exact M3.1 human-gate candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      site_artifact: ${{ steps.names.outputs.site_artifact }}
+      evidence_artifact: ${{ steps.names.outputs.evidence_artifact }}
+    steps:
+      - name: Checkout exact operations head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind OPS-WP-014 exact two-path scope
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha || '' }}
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$TARGET" ]]
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+
+          wp=json.loads(Path('work-packages/OPS-WP-014.json').read_text(encoding='utf-8'))
+          assert wp['id']=='OPS-WP-014'
+          assert wp['authority']['issue']==270
+          assert wp['baseline']['productHead']==os.environ['PRODUCT_HEAD']
+          assert wp['baseline']['qaHead']==os.environ['QA_HEAD']
+          allowed=set(wp['scope']['allowedPaths'])
+
+          event=os.environ['EVENT']
+          if event=='pull_request':
+              base=os.environ['PR_BASE']
+              assert len(base)==40
+              changed=set(subprocess.check_output(
+                  ['git','diff','--name-only',base+'...HEAD'], text=True
+              ).splitlines())
+              assert changed==allowed, f'OPS_SCOPE_MISMATCH:{sorted(changed)}'
+          elif event=='push':
+              parents=subprocess.check_output(
+                  ['git','show','-s','--format=%P','HEAD'], text=True
+              ).split()
+              if len(parents)==2:
+                  changed=set(subprocess.check_output(
+                      ['git','diff','--name-only',parents[0],'HEAD'], text=True
+                  ).splitlines())
+                  assert changed==allowed, f'OPS_POST_MERGE_SCOPE_MISMATCH:{sorted(changed)}'
+          print('OPS_WP_014_SCOPE=PASS')
+          PY
+
+      - name: Materialize exact product QA and learner worktrees
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in "$PRODUCT_HEAD" "$QA_HEAD" "$LEARNER_HEAD"; do
+            git fetch --force --no-tags origin "$sha"
+            git cat-file -e "$sha^{commit}"
+          done
+          [[ "$(git merge-base "$PRODUCT_HEAD" "$QA_HEAD")" == "$PRODUCT_HEAD" ]]
+
+          product="$RUNNER_TEMP/product"
+          qa="$RUNNER_TEMP/qa"
+          learner="$RUNNER_TEMP/learner"
+          git worktree add --detach "$product" "$PRODUCT_HEAD"
+          git worktree add --detach "$qa" "$QA_HEAD"
+          git worktree add --detach "$learner" "$LEARNER_HEAD"
+
+          export PRODUCT_TREE="$product" QA_TREE="$qa" LEARNER_TREE="$learner"
+          echo "PRODUCT_TREE=$product" >> "$GITHUB_ENV"
+          echo "QA_TREE=$qa" >> "$GITHUB_ENV"
+          echo "LEARNER_TREE=$learner" >> "$GITHUB_ENV"
+
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+
+          product=os.environ['PRODUCT_HEAD']
+          qa=os.environ['QA_HEAD']
+          allowed={
+            'work-packages/QA-WP-021.json',
+            'authoring/studio/tests/qa_m3_1_pedagogical_quality.py',
+            '.github/workflows/atlas-m3-1-pedagogical-quality-qa.yml',
+          }
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',product+'...'+qa], text=True
+          ).splitlines())
+          assert changed==allowed, f'QA_SCOPE_MISMATCH:{sorted(changed)}'
+
+          product_wp=json.loads(subprocess.check_output(
+              ['git','show',product+':work-packages/ATLAS-WP-012.json'], text=True
+          ))
+          for path in product_wp['scope']['allowedPaths']:
+              expected=subprocess.check_output(['git','rev-parse',product+':'+path],text=True).strip()
+              actual=subprocess.check_output(['git','rev-parse',qa+':'+path],text=True).strip()
+              assert actual==expected, f'QA_CHANGED_PRODUCT_BLOB:{path}'
+          print('QA_FROZEN_PRODUCT_IDENTITY=PASS')
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir -r "$PRODUCT_TREE/apps/player/requirements-test.txt"
+          python -m playwright install --with-deps chromium
+
+      - name: Re-run exact frozen M3.1 product proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$PRODUCT_TREE"
+          python -B authoring/v2/validate_kit.py             authoring/v2/atlas/nombres_complexes_atlas.json             authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/atlas/validate_atlas_content.py
+          python -B authoring/studio/tests/test_m3_1_pedagogical_quality.py
+
+      - name: Re-run exact independent QA oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$QA_TREE"
+          python -B authoring/studio/tests/qa_m3_1_pedagogical_quality.py
+
+      - name: Assemble deterministic verified Pages site
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/verified-site"
+          authoring_a="$RUNNER_TEMP/authoring-a"
+          authoring_b="$RUNNER_TEMP/authoring-b"
+          mkdir -p "$site"
+
+          cd "$PRODUCT_TREE"
+          python -B authoring/studio/pages/build_pages.py --output "$authoring_a"
+          python -B authoring/studio/pages/build_pages.py --output "$authoring_b"
+          diff -qr "$authoring_a" "$authoring_b"
+          cmp             authoring/v2/atlas/pedagogical_quality.py             "$authoring_a/_authority/authoring/v2/atlas/pedagogical_quality.py"
+
+          cd "$LEARNER_TREE"
+          python -B apps/learnit-next/build.py --output "$site/index.html"
+          cp "$site/index.html" "$site/learnit-next.html"
+          learner_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
+          learner_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
+          [[ "$learner_sha" == "$LEARNER_SHA256" ]]
+          [[ "$learner_bytes" == "$LEARNER_BYTES" ]]
+          cmp "$site/index.html" "$site/learnit-next.html"
+
+          cp -a "$authoring_a" "$site/authoring"
+          authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
+          quality_sha="$(sha256sum "$PRODUCT_TREE/authoring/v2/atlas/pedagogical_quality.py" | awk '{print $1}')"
+
+          python - "$site/authoring/pages-evidence.json" "$quality_sha" <<'PY'
+          import json, sys
+          evidence=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert evidence['schema']=='learnit.atlas.m3.pages.bundle.v2'
+          assert evidence['mode']=='STATIC_BROWSER_PYTHON_AUTHORITY_M3_1'
+          assert evidence['pedagogicalQualityProfile']=='atlas.pedagogy.v1'
+          actual=evidence['authority']['authoring/v2/atlas/pedagogical_quality.py']['sha256']
+          assert actual==sys.argv[2], (actual,sys.argv[2])
+          PY
+
+          cat > "$site/atlas-m3-1-human-gate.json" <<EOF
+          {
+            "schema": "learnit.atlas.m3_1.human-gate.v1",
+            "productHead": "$PRODUCT_HEAD",
+            "qaHead": "$QA_HEAD",
+            "learnerHead": "$LEARNER_HEAD",
+            "learnerBytes": $LEARNER_BYTES,
+            "learnerSha256": "$LEARNER_SHA256",
+            "authoringIndexSha256": "$authoring_sha",
+            "qualityEngineSha256": "$quality_sha",
+            "authoringPath": "/authoring/",
+            "promotion": false,
+            "humanGateRequired": true
+          }
+          EOF
+
+          cat > "$RUNNER_TEMP/ops-wp-014-evidence.json" <<EOF
+          {
+            "schema": "learnit.atlas.ops_wp_014.evidence.v1",
+            "result": "PASS",
+            "productHead": "$PRODUCT_HEAD",
+            "qaHead": "$QA_HEAD",
+            "learnerHead": "$LEARNER_HEAD",
+            "learnerBytes": $LEARNER_BYTES,
+            "learnerSha256": "$LEARNER_SHA256",
+            "authoringIndexSha256": "$authoring_sha",
+            "qualityEngineSha256": "$quality_sha",
+            "deterministicAuthoringBundle": true,
+            "productProofRerun": "PASS",
+            "independentQaRerun": "PASS",
+            "promotion": false,
+            "humanGateRequired": true
+          }
+          EOF
+
+          echo "VERIFIED_SITE=$site" >> "$GITHUB_ENV"
+
+      - name: Name immutable verification artifacts
+        id: names
+        shell: bash
+        run: |
+          echo "site_artifact=m3-1-human-gate-site-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "evidence_artifact=ops-wp-014-evidence-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified candidate site
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.site_artifact }}
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ env.VERIFIED_SITE }}
+
+      - name: Upload pre-deploy evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.evidence_artifact }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/ops-wp-014-evidence.json
+
+  deploy:
+    name: Deploy verified M3.1 author gate
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}authoring/
+    steps:
+      - name: Download immutable verified site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.site_artifact }}
+          path: ${{ runner.temp }}/verified-site
+
+      - name: Recheck downloaded candidate identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/verified-site"
+          learner_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
+          learner_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
+          [[ "$learner_sha" == "$LEARNER_SHA256" ]]
+          [[ "$learner_bytes" == "$LEARNER_BYTES" ]]
+          cmp "$site/index.html" "$site/learnit-next.html"
+          grep -q '"productHead": "'"$PRODUCT_HEAD"'"' "$site/atlas-m3-1-human-gate.json"
+          grep -q '"qaHead": "'"$QA_HEAD"'"' "$site/atlas-m3-1-human-gate.json"
+          grep -q '"promotion": false' "$site/atlas-m3-1-human-gate.json"
+          grep -q '"humanGateRequired": true' "$site/atlas-m3-1-human-gate.json"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload verified Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/verified-site
+
+      - name: Deploy exact frozen M3.1 candidate
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Live post-deploy smoke
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/verified-site"
+          expected_authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
+          ok=0
+          for attempt in $(seq 1 20); do
+            rm -f "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/live-authoring.html"               "$RUNNER_TEMP/live-pages-evidence.json" "$RUNNER_TEMP/live-human-gate.json"
+            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/live-index.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/" -o "$RUNNER_TEMP/live-authoring.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/pages-evidence.json" -o "$RUNNER_TEMP/live-pages-evidence.json"               && curl --fail --silent --show-error "${PAGE_URL}atlas-m3-1-human-gate.json" -o "$RUNNER_TEMP/live-human-gate.json"; then
+              live_sha="$(sha256sum "$RUNNER_TEMP/live-index.html" | awk '{print $1}')"
+              live_bytes="$(wc -c < "$RUNNER_TEMP/live-index.html" | tr -d ' ')"
+              live_authoring_sha="$(sha256sum "$RUNNER_TEMP/live-authoring.html" | awk '{print $1}')"
+              if [[ "$live_sha" == "$LEARNER_SHA256"                     && "$live_bytes" == "$LEARNER_BYTES"                     && "$live_authoring_sha" == "$expected_authoring_sha" ]]                  && cmp "$RUNNER_TEMP/live-pages-evidence.json" "$site/authoring/pages-evidence.json"                  && cmp "$RUNNER_TEMP/live-human-gate.json" "$site/atlas-m3-1-human-gate.json"; then
+                ok=1
+                break
+              fi
+            fi
+            sleep 3
+          done
+          [[ "$ok" == 1 ]]
+
+          cat > "$RUNNER_TEMP/ops-wp-014-live.json" <<EOF
+          {
+            "schema": "learnit.atlas.ops_wp_014.live.v1",
+            "result": "PASS",
+            "productHead": "$PRODUCT_HEAD",
+            "qaHead": "$QA_HEAD",
+            "learnerSha256": "$LEARNER_SHA256",
+            "authoringUrl": "${PAGE_URL}authoring/",
+            "liveLearner": "PASS",
+            "liveAuthoring": "PASS",
+            "livePagesEvidenceIdentity": "PASS",
+            "promotion": false,
+            "humanGateRequired": true
+          }
+          EOF
+
+          {
+            echo "## Atlas M3.1 author human gate"
+            echo ""
+            echo "- product HEAD: `$PRODUCT_HEAD`"
+            echo "- QA HEAD: `$QA_HEAD`"
+            echo "- learner SHA-256: `$LEARNER_SHA256`"
+            echo "- authoring URL: `${PAGE_URL}authoring/`"
+            echo "- live smoke: `PASS`"
+            echo "- promotion: `false`"
+            echo "- human gate required: `true`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload live deployment evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-wp-014-live-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/ops-wp-014-live.json

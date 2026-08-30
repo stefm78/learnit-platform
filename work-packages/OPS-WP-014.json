@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-014",
+  "title": "M3.1 GitHub Pages author human-gate deployment",
+  "status": "in-progress",
+  "changeClass": "operations-human-gate-pages-deployment",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 270,
+    "productIssue": 261,
+    "productPullRequest": 264,
+    "qaIssue": 268,
+    "qaPullRequest": 269
+  },
+  "purpose": "Deploy the exact frozen M3.1 authoring candidate under /authoring/ while preserving the exact promoted learner root, so the required short desktop author-facing human gate can be performed.",
+  "baseline": {
+    "baseCommit": "b01aac7fab57e44b8489c21a2de28e25d80466ad",
+    "productHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+    "productRun": 33327797651,
+    "productArtifact": 9736746706,
+    "productArtifactDigest": "sha256:3e348dbe55af28be92af24774a8106a4e9708bdb7d435351e36619d8d73cc6d1",
+    "qaHead": "6ff592af68e6cc95bd479911a09388293c5528f5",
+    "qaRun": 33332143078,
+    "qaArtifact": 9737952365,
+    "qaArtifactDigest": "sha256:d4f2a643413c28c36e5d9ceb9cb8b5bd64c682e89be3d14c5622621cd761208e",
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "qaGovernanceRun": 33332143079,
+    "qaGovernance": "PASS"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-014.json",
+      ".github/workflows/atlas-m3-1-human-gate-deploy.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      ".github/workflows/learnit-next-pages.yml",
+      ".github/workflows/atlas-m3-pages-human-gate-deploy.yml",
+      "work-packages/ATLAS-WP-012.json",
+      "work-packages/QA-WP-021.json"
+    ]
+  },
+  "invariants": [
+    "Only this work-package file and the M3.1 human-gate deployment workflow may change.",
+    "The deployed authoring subtree is built from exact frozen M3.1 product HEAD 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2.",
+    "The deployment workflow re-runs the exact independent QA oracle from exact QA HEAD 6ff592af68e6cc95bd479911a09388293c5528f5 in a separate worktree.",
+    "QA changes relative to product are exactly the three QA-WP-021 owned files.",
+    "Product blobs remain byte-identical between product HEAD and QA HEAD.",
+    "The Pages authoring bundle is deterministic and contains exact pedagogical_quality.py bytes.",
+    "The learner root remains exactly 366412 bytes with the frozen SHA-256.",
+    "Deployment occurs only through the protected github-pages environment from main.",
+    "Live smoke proves learner root, /authoring/ and pages-evidence identity.",
+    "Deployment evidence explicitly states promotion=false and humanGateRequired=true.",
+    "No product merge, stable M3.1 promotion, M3.2, M3.3, Gate3, Gate4 or M4+ activation is performed."
+  ],
+  "requiredEvidence": [
+    "Exact two-path operational PR delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "QA-WP-021 final repository-governance mirror PASS before merge.",
+    "Exact product and QA head binding PASS.",
+    "Canonical validators and M3.1 product/browser tests PASS.",
+    "Independent QA oracle PASS from separate exact QA worktree.",
+    "Deterministic M3.1 Pages bundle PASS.",
+    "Exact quality-engine bundle identity PASS.",
+    "Exact promoted learner artifact bytes and SHA-256 PASS.",
+    "GitHub Pages protected-environment deployment PASS.",
+    "Live learner and /authoring/ smoke PASS.",
+    "Deployment evidence artifact bound to product and QA heads."
+  ],
+  "adversarialTests": [
+    "Product head differs from frozen product SHA.",
+    "QA head is not a descendant of exact product head.",
+    "QA diff includes any path outside its exact three-file allowlist.",
+    "Any ATLAS-WP-012 product blob differs between product and QA heads.",
+    "M3.1 product or browser tests fail.",
+    "Independent QA oracle fails.",
+    "Pages bundle differs across two builds.",
+    "Bundled quality engine differs from frozen product authority.",
+    "Learner artifact differs by one byte or digest.",
+    "Live Pages serves stale learner, stale authoring, or mismatched pages-evidence."
+  ],
+  "nonGoals": [
+    "Changing M3.1 product or QA code.",
+    "Merging or promoting ATLAS-WP-012.",
+    "Updating the stable Learn-it Next Pages publisher.",
+    "Backend, account, sync or remote authoring-data transfer.",
+    "M3.2, M3.3, Gate3, Gate4 or M4+."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this two-file operations PR.",
+    "Runtime deployment re-runs both product and independent-QA proof on exact pinned heads.",
+    "Live post-deploy smoke verifies the actual public Pages surfaces."
+  ],
+  "execution": {
+    "issue": 270,
+    "branch": "ops/OPS-WP-014-m3-1-human-gate",
+    "maximumChangedFiles": 2,
+    "pullRequest": null,
+    "phase": "READY_FOR_PR_VERIFICATION",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Re-run the stable Learn-it Next Pages publisher to restore the promoted M3.0 authoring surface. Product and learner sources remain unchanged."
+}
