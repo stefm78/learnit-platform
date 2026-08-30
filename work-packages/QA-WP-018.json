@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-018",
+  "title": "M3.0 Authoring Foundation contradictory QA",
+  "status": "approved",
+  "changeClass": "independent-qa-authoring-foundation",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 233,
+    "productAuthorityIssue": 232,
+    "productWorkPackage": "ATLAS-WP-009",
+    "parentDesignIssue": 223,
+    "governorIssue": 4,
+    "governorComment": 5467590273,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.0-QA"
+  },
+  "purpose": "Prepare and execute an independent contradictory oracle for M3.0 Authoring Foundation without repairing product implementation, then bind final QA to one exact frozen ATLAS-WP-009 HEAD.",
+  "baseline": {
+    "baseCommit": "c8e6e2a01a9a517f0aa7bdbfc2e01a600d2f30ba",
+    "acceptedDesignHead": "f75bbebe580aba56df389a9851b4c55016d0b231",
+    "productHead": null,
+    "productArtifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-018.json",
+      "authoring/studio/tests/qa_m3_authoring_foundation.py",
+      ".github/workflows/atlas-m3-authoring-foundation-qa.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/studio/README.md",
+      "authoring/studio/core.py",
+      "authoring/studio/server.py",
+      "authoring/studio/web/**",
+      "authoring/studio/tests/test_m3_authoring_foundation.py",
+      "apps/**",
+      "contracts/**",
+      "authoring/v2/**",
+      "governance/**",
+      "docs/**",
+      "work-packages/ATLAS-WP-009.json"
+    ]
+  },
+  "invariants": [
+    "QA is independent and never repairs or authors ATLAS-WP-009 product files.",
+    "The oracle may be prepared from the common baseline but final PASS requires exact frozen product-head binding.",
+    "QA delta from the final product HEAD is exactly the three QA-owned paths.",
+    "Canonical schema, validators and proof kits remain read-only.",
+    "No-op export byte identity is required, not approximate semantic equivalence.",
+    "Lineage/revision/digest/claim rules are checked independently from product developer examples.",
+    "Authoring storage isolation and loopback/no-network boundaries are adversarially tested.",
+    "Any scope, determinism, validator-authority or learner-runtime divergence yields HOLD."
+  ],
+  "requiredEvidence": [
+    "Independent no-op byte-identity checks for both canonical proof kits.",
+    "Independent QCM and fill edit cases with lineage preservation and required revision rotation.",
+    "Independent stale-digest and stale-claim rejection cases.",
+    "Independent duplicate-key, malformed-UTF8, phase/role, QCM and fill corruption cases.",
+    "Export is impossible when canonical validation fails.",
+    "Repeated unchanged-draft export is byte-identical.",
+    "Authoring reload/discard touches only learnit.authoring.m3.v1.",
+    "Loopback binding, no permissive CORS and no outbound network are proven.",
+    "Exported edited kits pass canonical validators and real Learn-it import regression.",
+    "Product source paths outside the accepted M3.0 allowlist remain unchanged.",
+    "Final QA records exact product HEAD and evidence digest before PASS."
+  ],
+  "adversarialTests": [
+    "Developer-only happy paths that miss stale revision identity.",
+    "Fake green UI while canonical validators reject.",
+    "Claim/digest recomputation omitted after visible stimulus edits.",
+    "Export non-determinism.",
+    "Hidden learner storage access.",
+    "Non-loopback listening or external fetch.",
+    "Preview divergence treated as runtime proof.",
+    "Product/QA path overlap or QA repair.",
+    "Final PASS attempted without exact-head binding."
+  ],
+  "nonGoals": [
+    "Product implementation or repair.",
+    "Design modification.",
+    "Human UX approval.",
+    "Document ingestion or LLM assistance.",
+    "Learner-runtime changes.",
+    "Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "QA oracle is authored independently from ATLAS-WP-009 tests.",
+    "Final QA uses the exact product HEAD as its base/binding and verifies only QA-owned delta.",
+    "Repository governance and PR scope validate the QA branch.",
+    "Human authoring gate is separate and occurs only after QA PASS."
+  ],
+  "execution": {
+    "branch": "qa/QA-WP-018-m3-authoring-foundation",
+    "phase": "ORACLE_READY_PRODUCT_HEAD_PENDING",
+    "productWorkPackage": "ATLAS-WP-009",
+    "productIssue": 232,
+    "productHead": null,
+    "finalVerdict": null
+  },
+  "rollback": "Drop the QA branch/PR only. No product file is changed or repaired by this package."
+}
