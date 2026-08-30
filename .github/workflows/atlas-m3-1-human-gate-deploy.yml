@@ -90,6 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           for sha in "$PRODUCT_HEAD" "$QA_HEAD" "$LEARNER_HEAD"; do
+            git fetch --force --no-tags origin "$sha"
             git cat-file -e "$sha^{commit}"
           done
           [[ "$(git merge-base "$PRODUCT_HEAD" "$QA_HEAD")" == "$PRODUCT_HEAD" ]]
