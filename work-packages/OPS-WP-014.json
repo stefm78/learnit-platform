@@ -26,7 +26,9 @@
     "qaArtifactDigest": "sha256:d4f2a643413c28c36e5d9ceb9cb8b5bd64c682e89be3d14c5622621cd761208e",
     "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
     "learnerArtifactBytes": 366412,
-    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "qaGovernanceRun": 33332143079,
+    "qaGovernance": "PASS"
   },
   "scope": {
     "allowedPaths": [
@@ -101,7 +103,7 @@
     "branch": "ops/OPS-WP-014-m3-1-human-gate",
     "maximumChangedFiles": 2,
     "pullRequest": null,
-    "phase": "IMPLEMENTATION_PREPARED_WAITING_FINAL_QA_GOVERNANCE",
+    "phase": "READY_FOR_PR_VERIFICATION",
     "humanGateRequired": true,
     "mergeStatus": "not-merged",
     "finalVerdict": null
