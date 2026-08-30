@@ -1,0 +1,122 @@
+name: Atlas M3 Pages human-gate deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-m3-pages-human-gate-deploy.yml'
+      - 'work-packages/OPS-WP-010.json'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atlas-m3-pages-human-gate-deploy
+  cancel-in-progress: false
+
+env:
+  CANDIDATE_HEAD: e3db34b2da3fc270451a6f63b6229c16e8e5113e
+  FROZEN_PRODUCT_HEAD: a1b9259955ce748cd7e47531a470cd12b7dc0436
+  LEARNER_PROMOTED_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
+  LEARNER_EXPECTED_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  LEARNER_EXPECTED_BYTES: '366412'
+
+jobs:
+  publish-human-gate:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}authoring/
+    steps:
+      - name: Checkout exact frozen Pages candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CANDIDATE_HEAD }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Prove exact candidate binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$CANDIDATE_HEAD" ]]
+          git merge-base --is-ancestor "$FROZEN_PRODUCT_HEAD" "$CANDIDATE_HEAD"
+          git diff --exit-code "$FROZEN_PRODUCT_HEAD"..HEAD --             work-packages/ATLAS-WP-009.json             authoring/studio/README.md             authoring/studio/core.py             authoring/studio/server.py             authoring/studio/web/index.html             authoring/studio/web/studio.css             authoring/studio/web/studio.js             authoring/studio/tests/test_m3_authoring_foundation.py             .github/workflows/atlas-m3-authoring-foundation-ci.yml
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Re-run candidate browser packaging proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
+          python -m playwright install --with-deps chromium
+          python -B authoring/studio/tests/test_m3_pages_packaging.py
+
+      - name: Assemble exact human-gate Pages site
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/pages-site"
+          learner="$RUNNER_TEMP/learner-source"
+          authoring="$RUNNER_TEMP/authoring"
+          mkdir -p "$site"
+
+          python -B authoring/studio/pages/build_pages.py --output "$authoring"
+
+          git worktree add --detach "$learner" "$LEARNER_PROMOTED_HEAD"
+          python -B "$learner/apps/learnit-next/build.py" --output "$site/index.html"
+          cp "$site/index.html" "$site/learnit-next.html"
+
+          actual_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
+          actual_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
+          [[ "$actual_sha" == "$LEARNER_EXPECTED_SHA256" ]]
+          [[ "$actual_bytes" == "$LEARNER_EXPECTED_BYTES" ]]
+          cmp "$site/index.html" "$site/learnit-next.html"
+
+          cp -a "$authoring" "$site/authoring"
+          cat > "$site/atlas-m3-human-gate.json" <<EOF
+          {
+            "schema": "learnit.atlas.m3.pages.human-gate.v1",
+            "candidateHead": "$CANDIDATE_HEAD",
+            "frozenProductHead": "$FROZEN_PRODUCT_HEAD",
+            "learnerPromotedHead": "$LEARNER_PROMOTED_HEAD",
+            "learnerBytes": $LEARNER_EXPECTED_BYTES,
+            "learnerSha256": "$LEARNER_EXPECTED_SHA256",
+            "authoringPath": "/authoring/",
+            "promotion": false,
+            "humanGateRequired": true
+          }
+          EOF
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload exact human-gate Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/pages-site
+
+      - name: Deploy exact frozen candidate
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Publish deployment evidence
+        shell: bash
+        run: |
+          {
+            echo "## Atlas M3 Pages human gate"
+            echo ""
+            echo "- candidate HEAD: `$CANDIDATE_HEAD`"
+            echo "- learner bytes: `$LEARNER_EXPECTED_BYTES`"
+            echo "- learner SHA-256: `$LEARNER_EXPECTED_SHA256`"
+            echo "- authoring URL: `${{ steps.deployment.outputs.page_url }}authoring/`"
+            echo "- product promotion: `false`"
+            echo "- human gate required: `true`"
+          } >> "$GITHUB_STEP_SUMMARY"
