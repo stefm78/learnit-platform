@@ -1,42 +1,42 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-08-27-POST-M2",
-  "effectiveFromCommit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
-  "reviewedBaselineCommit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
+  "stateId": "GOV-STATE-2026-08-30-POST-M2-2",
+  "effectiveFromCommit": "637169c50647785552588c560821d8239691870f",
+  "reviewedBaselineCommit": "637169c50647785552588c560821d8239691870f",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m2-promoted-stable",
+    "id": "project-atlas-m2-2-promoted-stable",
     "status": "complete",
-    "description": "Atlas M2 is promoted, independently QA-accepted, human-approved and published as the exact canonical GitHub Pages artifact. No next product increment is currently authorized."
+    "description": "Atlas M2.2 transfer plus bounded UX clarity is independently QA-accepted, human-approved, integrated and published as the exact canonical GitHub Pages artifact. M3.0 Authoring Foundation is selected next as a design-only increment; product implementation is not yet authorized."
   },
   "currentMain": {
-    "commit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
-    "sourcePullRequest": 200,
-    "description": "Post-M2 Pages promotion main: Atlas M2 product merge dd0c1911 plus exact-artifact Pages repin via ATLAS-WP-004."
+    "commit": "637169c50647785552588c560821d8239691870f",
+    "sourcePullRequest": 221,
+    "description": "Post-M2.2 closeout main after exact accepted product integration, exact-artifact Pages publication, and accepted ATLAS-WP-005/006/007 metadata closeouts."
   },
   "developmentBaseline": {
-    "status": "not-selected",
-    "workPackage": null,
-    "candidate": null,
-    "sourceCommit": null,
-    "authorityIssue": null,
-    "note": "No active product development baseline. A new authority issue/work package is required before the next product increment."
+    "status": "design-selected",
+    "workPackage": "ATLAS-WP-008",
+    "candidate": "M3.0 Authoring Foundation design",
+    "sourceCommit": "637169c50647785552588c560821d8239691870f",
+    "authorityIssue": 223,
+    "note": "Design only. No M3.0 product implementation is authorized until the bounded design package is accepted and freezes exact implementation paths, shared contracts, QA and rollback."
   },
   "promotedBaseline": {
     "status": "promoted",
-    "workPackage": "ATLAS-WP-003",
-    "candidate": "Project Atlas M2 Memory Proof Loop",
-    "sourceCommit": "dd0c191179f968d35742cb58f7d6bb9ccb53a852",
-    "acceptedProductHead": "ce7cf459902281c44557ae017f92c7667e0393df",
-    "acceptedQaHead": "4b0d80dd3b576a2300a4d1516481769b198d9637",
-    "artifactBytes": 352237,
-    "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091",
-    "promotedAt": "2026-08-27",
-    "humanValidation": "PASS M2 — GO PROMOTION",
-    "promotionAuthorityIssue": 157,
-    "pagesDeploymentRun": 33090509949,
+    "workPackage": "ATLAS-WP-007",
+    "candidate": "Project Atlas M2.2 transfer + learner-facing clarity",
+    "sourceCommit": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "acceptedProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "acceptedQaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+    "artifactBytes": 366412,
+    "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "promotedAt": "2026-08-29",
+    "humanValidation": "PASS M2.2 — GO PROMOTION",
+    "promotionAuthorityIssue": 208,
+    "pagesDeploymentRun": 33269665324,
     "pagesUrl": "https://stefm78.github.io/learnit-platform/"
   },
   "acceptedControls": {
@@ -76,54 +76,66 @@
       "deploymentRun": 33090509949,
       "deploymentUrl": "https://stefm78.github.io/learnit-platform/",
       "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091"
+    },
+    "projectAtlasM2_2Transfer": {
+      "workPackage": "ATLAS-WP-005",
+      "status": "accepted",
+      "acceptedInitialProductHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+      "acceptedInitialQaHead": "4b3a5960f54c1f2855cebe417f989ba4abfaa5f7",
+      "finalPromotedProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52"
+    },
+    "projectAtlasM2_2Clarity": {
+      "workPackage": "ATLAS-WP-006",
+      "status": "accepted",
+      "finalProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+      "finalQaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+      "artifactBytes": 366412,
+      "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+      "humanGate": "PASS M2.2 — GO PROMOTION"
+    },
+    "projectAtlasM2_2Pages": {
+      "workPackage": "ATLAS-WP-007",
+      "status": "accepted",
+      "mergeCommit": "790af51f251292a7600f2b95a0e7f8e7ad486350",
+      "deploymentRun": 33269665324,
+      "deploymentJob": 99145768574,
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/",
+      "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
     }
   },
   "authorizedWork": [
-    "No product implementation is currently authorized. New product work requires a new explicit authority issue/work package and bounded scope.",
-    "Repository maintenance and evidence-preserving governance closeout may proceed only under dedicated bounded work packages."
+    "GOV-WP-029 may align canonical post-M2.2 repository state and roadmap documentation only.",
+    "ATLAS-WP-008 / issue #223 is selected for M3.0 Authoring Foundation design only. No product implementation is authorized until that design gate is accepted.",
+    "Repository maintenance and evidence-preserving closeout may proceed only under dedicated bounded work packages."
   ],
   "heldWork": [
+    "M3.0 product implementation remains HOLD until ATLAS-WP-008 design acceptance.",
+    "Controlled-time navigator tooling is a confirmed separate dev/QA candidate but is not active under this work package.",
     "Gate 3 repository-write capability remains HOLD unless separately authorized.",
     "Gate 4 parallel runtime remains HOLD unless separately authorized.",
-    "backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace",
-    "teacher, cohort and institutional features before explicit later-milestone authority",
-    "new Atlas product semantics until a new authority issue/work package is approved"
+    "M4 Learn-it Everywhere, backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace remain HOLD.",
+    "Teacher, cohort and institutional features remain HOLD before explicit later-milestone authority."
   ],
   "prohibitedWork": [
     "runtime LLM, remote AI API, embedded secret or network-required learning behavior without explicit future authority",
-    "direct write to main outside the repository's governed pull-request process",
+    "direct write to main outside the repository's enforced governed pull-request process",
     "silent product repair by an integration or QA lane in a product-owner file",
     "destructive migration or reuse of protected RC718 storage",
     "claiming certification, durable mastery or retention beyond observed evidence",
-    "publishing an artifact different from the exact artifact tested and promoted"
+    "publishing an artifact different from the exact artifact tested and promoted",
+    "embedding M3 authoring or LLM assistance code into the learner runtime artifact"
   ],
-  "activeRisks": [
-    {
-      "id": "RISK-GOV-002",
-      "severity": "high",
-      "statement": "The main-protection ruleset is configured but not enforced on this private personal-account repository.",
-      "closureGate": "Move the repository to an eligible topology and verify a negative bypass test."
-    }
-  ],
-  "activeExceptions": [
-    {
-      "id": "EXC-GOV-001",
-      "rule": "main branch protection must technically require pull requests and mandatory checks",
-      "reason": "GitHub reports the configured ruleset as not enforced on the current private personal-account repository.",
-      "owner": "stefm78",
-      "expiryOrRemovalGate": "repository plan or ownership topology change, serious governance bypass, or first external collaborator",
-      "rollback": "Remove the exception only after enforcement is reported and a negative bypass test passes."
-    }
-  ],
+  "activeRisks": [],
+  "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "GOV-WP-001",
-    "condition": "Permanent governor review must authorize and bind a new explicit product work package before any next product increment begins."
+    "id": "ATLAS-WP-008",
+    "condition": "Accept the bounded M3.0 Authoring Foundation design under issue #223 before any M3.0 implementation branch or product-code modification begins."
   },
   "review": {
-    "lastReviewedAt": "2026-08-27",
-    "lastReviewedBy": "Accountable owner with completed independent QA and human M2 promotion gate",
-    "decision": "HOLD",
-    "authorityIssue": 157,
-    "nextReviewTrigger": "new product increment proposal, security/autonomy expansion, storage migration, accessibility reactivation trigger, or material governance/ruleset change"
+    "lastReviewedAt": "2026-08-30",
+    "lastReviewedBy": "Accountable owner plus permanent Governor after M2.2 independent QA, human promotion and exact Pages publication",
+    "decision": "GO_M3_0_AUTHORING_FOUNDATION_DESIGN",
+    "authorityIssue": 223,
+    "nextReviewTrigger": "ATLAS-WP-008 design acceptance, any proposed contract change, document-ingestion/LLM expansion, storage migration, accessibility reactivation trigger, or security/autonomy expansion"
   }
 }
