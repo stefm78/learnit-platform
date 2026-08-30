@@ -106,8 +106,8 @@
   ],
   "execution": {
     "branch": "qa/QA-WP-020-m3-pages-final",
-    "phase": "IMPLEMENTED_AWAITING_CI",
-    "pullRequest": null,
+    "phase": "FINAL_EXACT_HEAD_QA_RUNNING",
+    "pullRequest": 247,
     "maximumChangedFiles": 3,
     "humanGateRequired": true,
     "finalVerdict": null
