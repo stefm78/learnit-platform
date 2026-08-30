@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "QA-WP-018",
   "title": "M3.0 Authoring Foundation contradictory QA",
-  "status": "approved",
+  "status": "in-progress",
   "changeClass": "independent-qa-authoring-foundation",
   "riskClass": "medium",
   "authority": {
@@ -93,13 +93,13 @@
   ],
   "execution": {
     "branch": "qa/QA-WP-018-m3-authoring-foundation",
-    "phase": "ORACLE_READY_PRODUCT_HEAD_PENDING",
+    "phase": "ORACLE_IMPLEMENTED_PRODUCT_HEAD_PENDING",
     "productWorkPackage": "ATLAS-WP-009",
     "productIssue": 232,
     "productHead": null,
     "finalVerdict": null,
     "preparationPullRequest": 236,
-    "preparedForHandover": true
+    "preparedForHandover": false
   },
   "rollback": "Drop the QA branch/PR only. No product file is changed or repaired by this package."
 }
