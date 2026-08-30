@@ -8,7 +8,7 @@
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "project-atlas-m3-2-ai-kit-factory-design-accepted",
-    "status": "implementation-authorized",
+    "status": "active",
     "description": "M3.2 AI Kit Factory design is accepted. Source-to-Draft is rejected for M3.2. The authorized architecture is direct source reading by an author AI, deterministic canonical and M3.1 structural quality gates, independent semantic/source-fidelity review, and a deterministic factory PASS/HOLD gate. Learner runtime and promoted M3.1 authoring remain unchanged."
   },
   "currentMain": {
