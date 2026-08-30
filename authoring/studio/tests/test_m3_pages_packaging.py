@@ -16,6 +16,7 @@ import unittest
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 PRODUCT_HEAD = "a1b9259955ce748cd7e47531a470cd12b7dc0436"
 PYODIDE_BASE = "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/"
 FROZEN_PRODUCT_PATHS = (
