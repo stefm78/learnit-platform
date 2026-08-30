@@ -126,7 +126,7 @@ jobs:
           set -euo pipefail
           grep -q 'learnit.kit.v2' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md
           grep -q 'pedagogical_quality.py candidate.json --json --require-excellent' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md
-          grep -q 'exactement deux' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md
+          grep -Fq 'Each objective has **exactly two** Atlas independence claims.' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md
           grep -q 'Do not create a third claim for transfer' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md
           grep -q 'stop and report the gap instead of fabricating content' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md
           ! grep -q 'learnit.import.v1.1' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md
