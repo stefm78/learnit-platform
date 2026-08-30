@@ -40,9 +40,10 @@ For current product work, read these sources in this order:
 1. [`governance/governor-state.json`](governance/governor-state.json) for the repository's machine-readable current state;
 2. [`ATLAS-WP-005`](work-packages/ATLAS-WP-005.json), [`ATLAS-WP-006`](work-packages/ATLAS-WP-006.json) and [`ATLAS-WP-007`](work-packages/ATLAS-WP-007.json) for the unchanged promoted learner M2.2 baseline;
 3. [`ATLAS-WP-009`](work-packages/ATLAS-WP-009.json), [`ATLAS-WP-010`](work-packages/ATLAS-WP-010.json) and [`ATLAS-WP-012`](work-packages/ATLAS-WP-012.json) for the promoted M3.0/M3.1 authoring product;
-4. [`docs/atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md`](docs/atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md) for the accepted M3.1 quality architecture;
-5. accepted architecture decisions under [`docs/architecture/decisions/`](docs/architecture/decisions/);
-6. [`GOVERNANCE.md`](GOVERNANCE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
+4. [`docs/atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md`](docs/atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md) for the promoted M3.1 quality architecture;
+5. [`docs/atlas/M3_2_AI_KIT_FACTORY_DESIGN.md`](docs/atlas/M3_2_AI_KIT_FACTORY_DESIGN.md) and [`ATLAS-WP-013`](work-packages/ATLAS-WP-013.json) for the accepted M3.2 AI Kit Factory design;
+6. accepted architecture decisions under [`docs/architecture/decisions/`](docs/architecture/decisions/);
+7. [`GOVERNANCE.md`](GOVERNANCE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 Historical work packages, reviews, handovers and roadmap stages remain evidence; they do not describe active work merely because they use terms such as “current” or “next gate”.
 
@@ -71,7 +72,9 @@ Historical work packages, reviews, handovers and roadmap stages remain evidence;
 
 Atlas M2.2 remains the promoted learner runtime baseline. M3.0 Authoring Foundation and M3.1 Pedagogical Quality are promoted and stably published as the separate authoring surface.
 
-The next possible product increment is **M3.2 Source to Draft**, but it remains HOLD pending a fresh accountable-owner arbitration and bounded authority. M3.1 completion does not authorize document ingestion automatically.
+M3.2 **AI Kit Factory** design is accepted. It deliberately rejects a generic Source-to-Draft/document-ingestion pipeline for this milestone. The authorized next gate is the bounded implementation: source files are read directly by an author AI, deterministic code gates canonical and structural pedagogical quality, and a logically independent reviewer AI gates semantic/source fidelity before a deterministic factory PASS/HOLD.
+
+No model provider/API, learner-runtime AI, backend or canonical-kit contract change is authorized by M3.2.
 
 Human graphical/context review debt is tracked in #272 and remains non-blocking until human supervision becomes a first-class authoring workflow.
 
