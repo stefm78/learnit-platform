@@ -345,11 +345,37 @@ class ControlledTimeContradictoryQa(unittest.TestCase):
             );
           }
         """
-        put_synthetic_dev_state = r"""
+        put_synthetic_dev_databases = r"""
           async () => {
-            localStorage.setItem('learnit.next.v1.qa-synthetic', 'SIMULATED');
             const put = (name, version, store) => new Promise((resolve, reject) => {
               const request = indexedDB.open(name, version);
+              request.onupgradeneeded = () => {
+                const db = request.result;
+                if (name.endsWith('next_v1')) {
+                  for (const entry of [
+                    ['packages', 'packageInstallId'],
+                    ['courses', 'courseInstallId'],
+                    ['progress', ['courseInstallId', 'activityRevisionId']],
+                    ['meta', 'key'],
+                    ['objectiveProgress', ['courseInstallId', 'objectiveId']],
+                  ]) {
+                    if (!db.objectStoreNames.contains(entry[0])) {
+                      db.createObjectStore(entry[0], {keyPath: entry[1]});
+                    }
+                  }
+                } else {
+                  for (const entry of [
+                    ['learningEvents', 'eventId'],
+                    ['scoredExecutions', 'executionId'],
+                    ['resumeStates', 'sessionRef.sessionId'],
+                    ['atlasMeta', 'key'],
+                  ]) {
+                    if (!db.objectStoreNames.contains(entry[0])) {
+                      db.createObjectStore(entry[0], {keyPath: entry[1]});
+                    }
+                  }
+                }
+              };
               request.onerror = () => reject(request.error);
               request.onsuccess = () => {
                 const db = request.result;
@@ -359,14 +385,28 @@ class ControlledTimeContradictoryQa(unittest.TestCase):
                 tx.onerror = () => reject(tx.error);
               };
             });
-            await put('learnit_next_v1', 2, 'meta');
-            await put('learnit_atlas_m1_v2', 1, 'atlasMeta');
+            await put('learnit_dev_controlled_time_next_v1', 2, 'meta');
+            await put('learnit_dev_controlled_time_atlas_m1_v2', 1, 'atlasMeta');
           }
         """
         read_proofs = r"""
-          async (proofKey) => {
-            const get = (name, version, store) => new Promise((resolve, reject) => {
+          async ({namespace, proofKey}) => {
+            const dev = namespace === 'dev';
+            const nextName = dev ? 'learnit_dev_controlled_time_next_v1' : 'learnit_next_v1';
+            const atlasName = dev ? 'learnit_dev_controlled_time_atlas_m1_v2' : 'learnit_atlas_m1_v2';
+            const localKey = dev
+              ? 'learnit.dev.controlled-time.next.v1.' + proofKey
+              : 'learnit.next.v1.' + proofKey;
+            const get = (name, version, store, stores) => new Promise((resolve, reject) => {
               const request = indexedDB.open(name, version);
+              request.onupgradeneeded = () => {
+                const db = request.result;
+                for (const entry of stores) {
+                  if (!db.objectStoreNames.contains(entry[0])) {
+                    db.createObjectStore(entry[0], {keyPath: entry[1]});
+                  }
+                }
+              };
               request.onerror = () => reject(request.error);
               request.onsuccess = () => {
                 const db = request.result;
@@ -377,13 +417,20 @@ class ControlledTimeContradictoryQa(unittest.TestCase):
               };
             });
             return {
-              local: localStorage.getItem(
-                proofKey === 'qa-normal-proof'
-                  ? 'learnit.next.v1.qa-normal-proof'
-                  : 'learnit.next.v1.qa-synthetic'
-              ),
-              next: await get('learnit_next_v1', 2, 'meta'),
-              atlas: await get('learnit_atlas_m1_v2', 1, 'atlasMeta'),
+              local: localStorage.getItem(localKey),
+              next: await get(nextName, 2, 'meta', [
+                ['packages', 'packageInstallId'],
+                ['courses', 'courseInstallId'],
+                ['progress', ['courseInstallId', 'activityRevisionId']],
+                ['meta', 'key'],
+                ['objectiveProgress', ['courseInstallId', 'objectiveId']],
+              ]),
+              atlas: await get(atlasName, 1, 'atlasMeta', [
+                ['learningEvents', 'eventId'],
+                ['scoredExecutions', 'executionId'],
+                ['resumeStates', 'sessionRef.sessionId'],
+                ['atlasMeta', 'key'],
+              ]),
             };
           }
         """
@@ -403,10 +450,11 @@ class ControlledTimeContradictoryQa(unittest.TestCase):
                         route.abort()
 
                 context.route("**/*", route_request)
-                page = context.new_page()
-                page.goto(blank_url)
-                page.evaluate(seed_normal_storage)
+                storage_page = context.new_page()
+                storage_page.goto(blank_url)
+                storage_page.evaluate(seed_normal_storage)
 
+                page = context.new_page()
                 page.goto(candidate_url)
                 panel = page.locator("#learnit-controlled-time-panel")
                 panel.wait_for(state="visible")
@@ -434,7 +482,19 @@ class ControlledTimeContradictoryQa(unittest.TestCase):
                     page.evaluate("window.__LEARNIT_ATLAS_CLOCK__.now()"),
                     origin_iso,
                 )
-                page.evaluate(put_synthetic_dev_state)
+                page.evaluate(
+                    "localStorage.setItem('learnit.next.v1.qa-synthetic','SIMULATED')",
+                )
+                storage_page.evaluate(put_synthetic_dev_databases)
+                simulated = storage_page.evaluate(read_proofs, {
+                    "namespace": "dev",
+                    "proofKey": "qa-synthetic",
+                })
+                self.assertEqual(simulated, {
+                    "local": "SIMULATED",
+                    "next": {"key": "qa-synthetic", "value": "SIMULATED"},
+                    "atlas": {"key": "qa-synthetic", "value": "SIMULATED"},
+                })
 
                 start = datetime(2026, 8, 1, 10, tzinfo=timezone.utc)
                 for days in (1, 3, 7, 21):
@@ -451,7 +511,10 @@ class ControlledTimeContradictoryQa(unittest.TestCase):
                 with page.expect_navigation():
                     page.locator('[data-controlled-time-days="0"]').click()
                 self.assertEqual(page.evaluate("new Date().toISOString()"), origin_iso)
-                cleared = page.evaluate(read_proofs, "qa-synthetic")
+                cleared = storage_page.evaluate(read_proofs, {
+                    "namespace": "dev",
+                    "proofKey": "qa-synthetic",
+                })
                 self.assertEqual(cleared, {"local": None, "next": None, "atlas": None})
 
                 page.locator("[data-controlled-time-iso]").fill("2026-08-01T10:00:00Z")
@@ -462,18 +525,26 @@ class ControlledTimeContradictoryQa(unittest.TestCase):
                 )
                 self.assertEqual(page.evaluate("new Date().toISOString()"), origin_iso)
 
-                page.evaluate(put_synthetic_dev_state)
+                page.evaluate(
+                    "localStorage.setItem('learnit.next.v1.qa-synthetic','SIMULATED')",
+                )
+                storage_page.evaluate(put_synthetic_dev_databases)
                 with page.expect_navigation():
                     page.locator("[data-controlled-time-system]").click()
                 api = page.evaluate("window.__LEARNIT_CONTROLLED_TIME__")
                 self.assertEqual(api["mode"], "system")
                 self.assertIsNone(api["nowIso"])
                 self.assertLess(abs(page.evaluate("Date.now()") - int(datetime.now().timestamp() * 1000)), 60_000)
-                cleared = page.evaluate(read_proofs, "qa-synthetic")
+                cleared = storage_page.evaluate(read_proofs, {
+                    "namespace": "dev",
+                    "proofKey": "qa-synthetic",
+                })
                 self.assertEqual(cleared, {"local": None, "next": None, "atlas": None})
 
-                page.goto(blank_url)
-                normal = page.evaluate(read_proofs, "qa-normal-proof")
+                normal = storage_page.evaluate(read_proofs, {
+                    "namespace": "normal",
+                    "proofKey": "qa-normal-proof",
+                })
                 self.assertEqual(normal["local"], "KEEP")
                 self.assertEqual(normal["next"], {"key": "qa-normal-proof", "value": "KEEP"})
                 self.assertEqual(normal["atlas"], {"key": "qa-normal-proof", "value": "KEEP"})
