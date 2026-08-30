@@ -19,7 +19,8 @@
     "exactProductRun": 33327797651,
     "exactProductArtifact": 9736746706,
     "exactProductArtifactDigest": "sha256:3e348dbe55af28be92af24774a8106a4e9708bdb7d435351e36619d8d73cc6d1",
-    "acceptedDesignHead": "12acb83c3f986a0c29e06e4add715984d1484b5a"
+    "acceptedDesignHead": "12acb83c3f986a0c29e06e4add715984d1484b5a",
+    "baseCommit": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2"
   },
   "scope": {
     "allowedPaths": [
