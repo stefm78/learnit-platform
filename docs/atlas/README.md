@@ -76,7 +76,7 @@ M2.0/M2.1 (mémoire et reconfirmation) sont promus. M2.2 (transfert déterminist
 
 ### M3 — Authoring Studio
 
-M3.0 **Authoring Foundation** est le prochain incrément sélectionné en design seulement sous issue #223. Son vertical slice minimal est : kit canonique existant → édition visuelle → validation live → aperçu → export canonique déterministe → réimport sans dérive sémantique.
+Le design M3.0 **Authoring Foundation** est accepté sous l’issue #223. Son vertical slice minimal gelé est : kit canonique existant → édition visuelle → validation live → aperçu → export canonique déterministe → réimport sans dérive sémantique.
 
 Le studio d’authoring reste une application locale/statique séparée du runtime apprenant. M3.0 n’autorise ni nouveau type d’activité, ni changement de contrat implicite, ni backend, ni compte, ni synchronisation, ni LLM runtime.
 
@@ -133,6 +133,7 @@ Baseline promue actuelle M2.2 :
 - SHA-256 : `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7`
 - publication : `https://stefm78.github.io/learnit-platform/`
 
-Prochain gate :
-- issue `#223` — M3.0 Authoring Foundation design
-- design uniquement ; aucune implémentation produit avant acceptation de ce gate.
+Gate courant :
+- design M3.0 accepté : `docs/atlas/M3_AUTHORING_FOUNDATION_DESIGN.md`
+- prochaine étape obligatoire : nouveau work package d’implémentation borné
+- aucune implémentation produit n’est active tant que cette autorité séparée n’est pas ouverte.
