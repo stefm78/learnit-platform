@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-016",
+  "title": "Promote M3.1 to stable GitHub Pages publisher",
+  "status": "in-progress",
+  "changeClass": "operations-stable-pages-rebind",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 278,
+    "productIssue": 261,
+    "uxDebtIssue": 272,
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Rebind the canonical stable Learn-it Next Pages publisher to the exact promoted M3.1 authoring product while preserving the frozen learner root and independent QA proof.",
+  "baseline": {
+    "baseCommit": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749",
+    "m3_1PromotedMain": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749",
+    "frozenProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+    "frozenQaHead": "6ff592af68e6cc95bd479911a09388293c5528f5",
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "humanGate": "PASS_M3_1_AI_AUTHORING_WITH_NON_BLOCKING_HUMAN_UX_DEBT"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-016.json",
+      ".github/workflows/learnit-next-pages.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-012.json",
+      "work-packages/QA-WP-021.json"
+    ]
+  },
+  "invariants": [
+    "Only the stable Pages workflow and OPS-WP-016 metadata may change.",
+    "Stable /authoring/ is built from exact promoted M3.1 main be3d5b2635836e8ce0d9a6ecf42d573efc9ef749.",
+    "All eleven M3.1 product blobs at the promoted main are byte-identical to frozenProductHead.",
+    "Exact independent QA oracle from frozenQaHead passes in a separate worktree.",
+    "M3.1 product/browser tests and canonical validators pass before deployment.",
+    "Existing M3.0 foundation and Pages packaging regressions pass on the promoted M3.1 tree.",
+    "Authoring bundle is deterministic and bundles exact pedagogical_quality.py bytes.",
+    "Learner root remains exactly 366412 bytes with the frozen SHA-256.",
+    "Pull requests verify only and never deploy.",
+    "Push to main or manual dispatch deploys through protected github-pages and live-smokes learner plus /authoring/.",
+    "UX debt #272 remains tracked and is not implemented here.",
+    "No M3.2/M3.3/Gate3/Gate4/M4+ capability is activated."
+  ],
+  "requiredEvidence": [
+    "Exact two-path operational PR delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Exact eleven-file frozen product identity PASS.",
+    "Canonical validators PASS.",
+    "M3.1 product/browser tests PASS.",
+    "Exact QA oracle PASS.",
+    "M3.0 foundation/Pages regression PASS.",
+    "Deterministic authoring bundle and exact quality-authority bundle identity PASS.",
+    "Exact learner artifact bytes/SHA PASS.",
+    "Post-merge protected Pages deployment PASS.",
+    "Live learner and /authoring/ smoke PASS."
+  ],
+  "adversarialTests": [
+    "Any change outside exact two-file ops allowlist.",
+    "Any M3.1 product blob differs from frozen product.",
+    "QA head/scope mismatch.",
+    "Any canonical/product/QA/foundation/pages regression failure.",
+    "Non-deterministic authoring bundle.",
+    "Bundled quality engine differs from promoted product.",
+    "Learner artifact drift.",
+    "PR event attempts Pages deployment.",
+    "Live stable publisher serves M3.0 or stale authoring after M3.1 promotion."
+  ],
+  "nonGoals": [
+    "M3.1 semantic changes",
+    "UX debt #272 implementation",
+    "M3.2/M3.3",
+    "Gate3/Gate4/M4+",
+    "Learner changes"
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate the two-file ops PR.",
+    "The stable workflow re-runs product, QA and live publication proof on exact pinned heads."
+  ],
+  "execution": {
+    "issue": 278,
+    "branch": "ops/OPS-WP-016-m3-1-stable-pages",
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTATION_PREPARED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Revert OPS-WP-016 to restore the previous stable publisher workflow. The product promotion remains intact; the human-gate deployment can temporarily preserve M3.1 /authoring/."
+}
