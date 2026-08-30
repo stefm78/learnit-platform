@@ -234,7 +234,30 @@ class CoreContractTests(unittest.TestCase):
             with self.assertRaises(AuthoringError, msg=path):
                 apply_edit(draft, path, "forbidden")
 
-    def test_07_preview_is_explicitly_author_only(self) -> None:
+    def test_07_tampered_draft_cannot_bypass_revision_or_lineage_rules(self) -> None:
+        import copy
+        draft = create_draft(raw(KITS[0]), KITS[0].name)
+        stale = copy.deepcopy(draft)
+        stale["package"]["courses"][0]["activities"][0]["prompt"] += " altéré"
+        verdict = validate_draft(stale)
+        self.assertFalse(verdict["exportAvailable"])
+        self.assertIn("STALE_ACTIVITY_REVISION", {item["code"] for item in verdict["diagnostics"]})
+        with self.assertRaises(AuthoringError):
+            export_draft(stale)
+
+        lineage = copy.deepcopy(draft)
+        lineage["package"]["courses"][0]["activities"][0]["activityLineageId"] = "00000000-0000-4000-8000-000000000000"
+        verdict = validate_draft(lineage)
+        self.assertFalse(verdict["exportAvailable"])
+        self.assertIn("LINEAGE_MUTATION", {item["code"] for item in verdict["diagnostics"]})
+
+        claim = copy.deepcopy(draft)
+        claim["package"]["courses"][0]["atlasValidationIndependenceClaims"][0]["claimId"] = "atlas-claim-sha256:" + "0" * 64
+        verdict = validate_draft(claim)
+        self.assertFalse(verdict["exportAvailable"])
+        self.assertIn("CLAIM_TAMPER", {item["code"] for item in verdict["diagnostics"]})
+
+    def test_08_preview_is_explicitly_author_only(self) -> None:
         draft = create_draft(raw(KITS[0]), KITS[0].name)
         preview = build_preview(draft, 0, 0)
         self.assertEqual(PREVIEW_AUTHORITY, preview["authority"])
@@ -242,7 +265,7 @@ class CoreContractTests(unittest.TestCase):
         self.assertNotIn("recommendation", preview)
         self.assertNotIn("mastery", preview)
 
-    def test_08_server_is_loopback_only_and_no_permissive_cors_or_outbound_client_exists(self) -> None:
+    def test_09_server_is_loopback_only_and_no_permissive_cors_or_outbound_client_exists(self) -> None:
         self.assertEqual("127.0.0.1", loopback_host("127.0.0.1"))
         self.assertEqual("::1", loopback_host("::1"))
         for host in ("0.0.0.0", "192.168.1.20", "example.com"):
@@ -252,7 +275,7 @@ class CoreContractTests(unittest.TestCase):
         self.assertNotIn("Access-Control-Allow-Origin", server_text)
         self.assertNotRegex(server_text, r"\b(requests|httpx|aiohttp)\b")
 
-    def test_09_web_persistence_is_exactly_the_isolated_authoring_key(self) -> None:
+    def test_10_web_persistence_is_exactly_the_isolated_authoring_key(self) -> None:
         js = JS_PATH.read_text(encoding="utf-8")
         self.assertIn("const STORAGE_KEY = 'learnit.authoring.m3.v1';", js)
         storage_calls = re.findall(r"localStorage\.(?:getItem|setItem|removeItem)\(([^)]*)\)", js)
@@ -282,7 +305,7 @@ class BrowserIsolationTests(unittest.TestCase):
         cls.server.server_close()
         cls.thread.join(timeout=5)
 
-    def test_10_reload_and_discard_touch_only_authoring_storage_and_no_external_network(self) -> None:
+    def test_11_reload_and_discard_touch_only_authoring_storage_and_no_external_network(self) -> None:
         context = self.browser.new_context()
         external: list[str] = []
 
