@@ -75,7 +75,8 @@
     "branch": "ci/CI-WP-006-m3-1-promotion-route",
     "pullRequest": null,
     "requiresContradictoryReviewBeforeMerge": false,
-    "mergeStatus": "not-merged"
+    "mergeStatus": "not-merged",
+    "phase": "READY_FOR_FINAL_CI"
   },
   "rollback": "Revert the single promotion delegated route block and CI-WP-006 metadata; the promotion branch returns to fail-closed behavior."
 }
