@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-022",
+  "title": "M3.2 AI Kit Factory independent contradictory QA",
+  "status": "in-progress",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "moderate",
+  "purpose": "Independently attack the exact frozen ATLAS-WP-014 M3.2 AI Kit Factory product head without modifying any product path.",
+  "authority": {
+    "issue": 294,
+    "parentProductIssue": 286,
+    "parentProductPullRequest": 290,
+    "acceptedDesignIssue": 282
+  },
+  "baseline": {
+    "baseCommit": "f45c32f73e4914c9432f67d2f5dc3da8dbcd85cd",
+    "exactProductHead": "f45c32f73e4914c9432f67d2f5dc3da8dbcd85cd",
+    "exactProductRun": 33336411362,
+    "exactProductArtifact": 9739154544,
+    "exactProductArtifactDigest": "sha256:8bdaf7b11d4ac3605548de8c50199db320f5548ff57e45addf0ee409ef639541",
+    "acceptedDesignHead": "39cdc783f1f679fee1882b34d2e087d40835e8d8"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-022.json",
+      "authoring/factory/tests/qa_ai_kit_factory.py",
+      ".github/workflows/atlas-m3-2-ai-kit-factory-qa.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/README.md",
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md",
+      "authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md",
+      "authoring/factory/tests/test_ai_kit_factory.py",
+      ".github/workflows/atlas-m3-2-ai-kit-factory-ci.yml",
+      "work-packages/ATLAS-WP-014.json",
+      "contracts/**",
+      "apps/**",
+      "governance/**",
+      "authoring/v2/**",
+      "authoring/studio/**"
+    ]
+  },
+  "invariants": [
+    "QA is read-only with respect to all ATLAS-WP-014 product files.",
+    "QA branch is based exactly on frozen product head f45c32f73e4914c9432f67d2f5dc3da8dbcd85cd.",
+    "All product blobs remain byte-identical to frozen product head.",
+    "QA uses independent Nombres complexes based cases rather than mechanically copying product tests.",
+    "Stale review binding is independently challenged for kit, source and brief changes.",
+    "Semantic-review shape, evidence references, independence and verdict consistency are independently attacked.",
+    "Canonical and M3.1 structural gates remain upstream and cannot be bypassed by a positive semantic review.",
+    "QA never repairs product code.",
+    "Exact promoted learner artifact remains unchanged."
+  ],
+  "requiredEvidence": [
+    "Exact three-path QA diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "All seven ATLAS-WP-014 product blobs match exact frozen product head.",
+    "Independent QA oracle PASS.",
+    "Canonical validators PASS.",
+    "Factory/product test oracle remains PASS.",
+    "Learner regressions PASS.",
+    "Exact learner artifact remains 366412 bytes with frozen SHA-256.",
+    "Final QA evidence binds exact product and QA heads."
+  ],
+  "adversarialTests": [
+    "One-byte kit/source drift and semantic brief drift invalidate review binding.",
+    "Malformed/duplicate source specs and invalid learner brief fail closed.",
+    "Missing/extra semantic dimensions fail closed.",
+    "Required dimension without source evidence fails closed.",
+    "Unknown evidence source ID fails closed.",
+    "Author scratchpad or active-context reuse causes semantic HOLD.",
+    "Dimension HOLD or major finding cannot hide behind PASS verdict.",
+    "Duplicate finding IDs fail closed.",
+    "Canonical-invalid or M3.1 COMPLETE candidates cannot factory PASS.",
+    "STRONG/EXCELLENT may pass with minor/advice findings only.",
+    "Factory evidence remains deterministic and host paths absent.",
+    "Factory code remains read-only, network-free and non-extracting."
+  ],
+  "nonGoals": [
+    "Product repair",
+    "Changing factory semantics",
+    "Real-source qualification",
+    "Promotion",
+    "M3.3/M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "This package is the independent contradictory QA lane for ATLAS-WP-014.",
+    "Final PASS must bind one exact product head and one exact QA head."
+  ],
+  "execution": {
+    "issue": 294,
+    "branch": "qa/QA-WP-022-m3-2-ai-kit-factory",
+    "maximumChangedFiles": 3,
+    "pullRequest": null,
+    "finalVerdict": null,
+    "mergeStatus": "not-merged"
+  },
+  "rollback": "Close QA PR without merge. QA files are additive and product remains frozen."
+}
