@@ -129,20 +129,34 @@ def _canonical_diagnostics(package: dict[str, Any]) -> list[dict[str, Any]]:
     schema = v2.load(SCHEMA_PATH)
     if not isinstance(schema, dict):
         raise QualityError("canonical schema root must be an object")
-    report = v2.validate(Path("<pedagogical-quality>"), package, schema, False)
-    for message in report.errors:
-        path, cause = _split_general(message)
+    try:
+        report = v2.validate(Path("<pedagogical-quality>"), package, schema, False)
+    except Exception as exc:
         diagnostics.append(
             _diagnostic(
                 "CANONICAL_V2_INVALID",
                 "blocking",
-                path,
-                cause,
-                "Le kit n'est pas valide selon le contrat Learn-it canonique.",
-                "Corriger d'abord cette erreur avec le schéma et le validateur v2 existants.",
+                "$",
+                str(exc),
+                "Le kit ne peut pas être accepté par le validateur Learn-it canonique.",
+                "Corriger d'abord la structure ou le contenu canonique avec le schéma et le validateur v2 existants.",
                 _refs(package),
             )
         )
+    else:
+        for message in report.errors:
+            path, cause = _split_general(message)
+            diagnostics.append(
+                _diagnostic(
+                    "CANONICAL_V2_INVALID",
+                    "blocking",
+                    path,
+                    cause,
+                    "Le kit n'est pas valide selon le contrat Learn-it canonique.",
+                    "Corriger d'abord cette erreur avec le schéma et le validateur v2 existants.",
+                    _refs(package),
+                )
+            )
     try:
         atlas.validate_package(package)
     except Exception as exc:
