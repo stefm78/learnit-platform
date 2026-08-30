@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-014",
+  "title": "M3.2 AI Kit Factory implementation",
+  "status": "in-progress",
+  "changeClass": "product-authoring-ai-kit-factory",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 286,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.2"
+  },
+  "purpose": "Implement the accepted minimal AI Kit Factory: direct source reading by an author AI, deterministic source/brief/kit binding and structural gates, independent semantic-review contract, and deterministic final PASS/HOLD evidence.",
+  "baseline": {
+    "baseCommit": "c973f12c68ef675fc3c64e26e5b60860be9a24db",
+    "acceptedDesignHead": "39cdc783f1f679fee1882b34d2e087d40835e8d8",
+    "acceptedDesignMerge": "0ea71eece35d7f631982c2042fcffba008f05284",
+    "canonicalStateMerge": "c973f12c68ef675fc3c64e26e5b60860be9a24db",
+    "m3_1FrozenProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-014.json",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/README.md",
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md",
+      "authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md",
+      "authoring/factory/tests/test_ai_kit_factory.py",
+      ".github/workflows/atlas-m3-2-ai-kit-factory-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "apps/**",
+      "governance/**",
+      "authoring/v2/validate_kit.py",
+      "authoring/v2/atlas/validate_atlas_content.py",
+      "authoring/v2/atlas/pedagogical_quality.py",
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md",
+      "authoring/studio/**",
+      "work-packages/QA-WP-022.json",
+      "authoring/factory/tests/qa_ai_kit_factory.py",
+      ".github/workflows/atlas-m3-2-ai-kit-factory-qa.yml"
+    ]
+  },
+  "invariants": [
+    "M3.2 is AI Kit Factory, not Source-to-Draft.",
+    "Source files are treated as opaque bytes by deterministic factory code; no extraction/OCR/normalization subsystem is introduced.",
+    "Factory evidence/provenance remains outside learnit.kit.v2.",
+    "Canonical validators and the M3.1 pedagogical-quality engine remain read-only upstream authorities.",
+    "Factory structural eligibility requires M3.1 STRONG or EXCELLENT_BY_PROFILE.",
+    "COMPLETE is HOLD; advice may remain at STRONG to avoid metric gaming or source distortion.",
+    "Semantic review requires exactly six dimensions and exact source/brief/kit context binding.",
+    "Reviewer independence declarations require no author scratchpad and no active author context reuse.",
+    "Any blocking/major semantic finding prevents PASS.",
+    "Factory gate is deterministic, read-only and network-free.",
+    "No model/vendor API, backend, Studio change, learner-runtime change or automatic publication is introduced.",
+    "Promoted learner artifact remains exact."
+  ],
+  "requiredEvidence": [
+    "Exact seven-path implementation delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Context output deterministic and source-order independent.",
+    "Host source paths absent from evidence.",
+    "One-byte source/kit change and semantic brief change invalidate a previous review.",
+    "Canonical-invalid candidate cannot factory PASS.",
+    "M3.1 COMPLETE candidate cannot factory PASS.",
+    "STRONG/EXCELLENT with valid independent semantic review can PASS.",
+    "Missing dimension, unknown source evidence and malformed brief fail closed.",
+    "Independence violation, dimension HOLD or blocking/major finding causes semantic HOLD.",
+    "Minor/advice semantic findings may remain non-blocking.",
+    "CLI inputs remain byte-identical and factory code has no network/write primitive.",
+    "Author V2 and reviewer V1 skills encode the accepted separation.",
+    "Learner regressions and exact learner artifact identity PASS.",
+    "Independent QA binds one exact frozen product HEAD."
+  ],
+  "adversarialTests": [
+    "Stale semantic review after kit byte drift.",
+    "Stale semantic review after source byte drift.",
+    "Stale semantic review after learner-brief semantic change.",
+    "Positive semantic report over canonical-invalid kit.",
+    "Positive semantic report over M3.1 COMPLETE kit.",
+    "Missing semantic dimension.",
+    "Unknown sourceId in evidence.",
+    "Reviewer declares author scratchpad/context access.",
+    "PASS semantic verdict with blocking/major finding.",
+    "Duplicate finding IDs.",
+    "Malformed learner brief or source specification.",
+    "Any network/write primitive in factory gate.",
+    "Any product change outside exact allowlist."
+  ],
+  "nonGoals": [
+    "Generic PDF/text/Markdown ingestion",
+    "OCR",
+    "Source-to-Draft schema",
+    "Embedded model/API",
+    "Studio document upload",
+    "Human UX debt #272",
+    "Automatic publishing",
+    "Batch scale",
+    "M3.3/M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Accepted design was challenged under Linus/Steve/pedagogy perspectives.",
+    "Repository governance and PR scope gate the product PR.",
+    "QA-WP-022 uses disjoint QA-only paths and is non-repairing.",
+    "At least two real-source qualification runs are required before promotion."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-014-m3-2-ai-kit-factory",
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "pullRequest": null,
+    "maximumChangedFiles": 7,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the additive factory gate, V2 author/reviewer skills, tests/workflow and work-package metadata. M3.1, Studio, learner runtime and stored data remain unchanged."
+}
