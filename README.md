@@ -64,8 +64,8 @@ Historical work packages, reviews, handovers and roadmap stages remain evidence;
 
 ## Active product gate
 
-Atlas M2.2 is promoted and published.
+Atlas M2.2 is promoted and published. The **M3.0 Authoring Foundation design is accepted** under completed issue #223.
 
-The next selected increment is **M3.0 Authoring Foundation design** under issue #223. It is design-only: no M3.0 product implementation is authorized until the bounded design gate freezes exact implementation paths, shared contracts, deterministic export/re-import evidence, independent QA and rollback.
+No M3.0 implementation is currently authorized. The next mandatory gate is a fresh bounded implementation package conforming exactly to the accepted design in `docs/atlas/M3_AUTHORING_FOUNDATION_DESIGN.md`.
 
 Gate3, Gate4, M4+, backend, accounts, synchronization, remote catalog and runtime AI remain HOLD.

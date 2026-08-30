@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-08-30-POST-M2-2",
-  "effectiveFromCommit": "637169c50647785552588c560821d8239691870f",
-  "reviewedBaselineCommit": "637169c50647785552588c560821d8239691870f",
+  "stateId": "GOV-STATE-2026-08-30-POST-M3-0-DESIGN",
+  "effectiveFromCommit": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+  "reviewedBaselineCommit": "12ed301344806d21f61972d69a9b12abcedbc0b7",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m2-2-promoted-stable",
+    "id": "project-atlas-m3-0-design-accepted",
     "status": "complete",
-    "description": "Atlas M2.2 transfer plus bounded UX clarity is independently QA-accepted, human-approved, integrated and published as the exact canonical GitHub Pages artifact. M3.0 Authoring Foundation is selected next as a design-only increment; product implementation is not yet authorized."
+    "description": "M3.0 Authoring Foundation design is accepted with a separate local/offline authoring architecture, frozen canonical validator reuse, deterministic export/re-import evidence, exact future implementation paths and independent-QA separation. No M3.0 product implementation is currently authorized."
   },
   "currentMain": {
-    "commit": "637169c50647785552588c560821d8239691870f",
-    "sourcePullRequest": 221,
-    "description": "Post-M2.2 closeout main after exact accepted product integration, exact-artifact Pages publication, and accepted ATLAS-WP-005/006/007 metadata closeouts."
+    "commit": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+    "sourcePullRequest": 227,
+    "description": "Post-M3.0 design closeout main: accepted Authoring Foundation design metadata after design PR #226 and governed closeout #227."
   },
   "developmentBaseline": {
-    "status": "selected",
-    "workPackage": "ATLAS-WP-008",
-    "candidate": "M3.0 Authoring Foundation design",
-    "sourceCommit": "637169c50647785552588c560821d8239691870f",
-    "authorityIssue": 223,
-    "note": "Design only. No M3.0 product implementation is authorized until the bounded design package is accepted and freezes exact implementation paths, shared contracts, QA and rollback."
+    "status": "not-selected",
+    "workPackage": null,
+    "candidate": null,
+    "sourceCommit": null,
+    "authorityIssue": null,
+    "note": "M3.0 design is accepted. A fresh bounded implementation authority/work package is required before authoring product code may begin."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -101,16 +101,24 @@
       "deploymentJob": 99145768574,
       "deploymentUrl": "https://stefm78.github.io/learnit-platform/",
       "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+    },
+    "projectAtlasM3_0Design": {
+      "workPackage": "ATLAS-WP-008",
+      "status": "accepted",
+      "authorityIssue": 223,
+      "designHead": "f75bbebe580aba56df389a9851b4c55016d0b231",
+      "designMerge": "eb38312bb22ac854b5d57ddab98e2eb9c85a3ae5",
+      "closeoutMerge": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+      "verdict": "PASS_M3_0_AUTHORING_FOUNDATION_DESIGN_TO_IMPLEMENTATION_GATE"
     }
   },
   "authorizedWork": [
-    "GOV-WP-029 may align canonical post-M2.2 repository state and roadmap documentation only.",
-    "ATLAS-WP-008 / issue #223 is selected for M3.0 Authoring Foundation design only. No product implementation is authorized until that design gate is accepted.",
+    "GOV-WP-030 may align canonical state after accepted M3.0 design only.",
     "Repository maintenance and evidence-preserving closeout may proceed only under dedicated bounded work packages."
   ],
   "heldWork": [
-    "M3.0 product implementation remains HOLD until ATLAS-WP-008 design acceptance.",
-    "Controlled-time navigator tooling is a confirmed separate dev/QA candidate but is not active under this work package.",
+    "M3.0 Authoring Foundation implementation remains HOLD until a fresh explicit implementation authority and bounded work package are approved.",
+    "Controlled-time navigator tooling remains a separate optional dev/QA candidate and is not active.",
     "Gate 3 repository-write capability remains HOLD unless separately authorized.",
     "Gate 4 parallel runtime remains HOLD unless separately authorized.",
     "M4 Learn-it Everywhere, backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace remain HOLD.",
@@ -128,14 +136,14 @@
   "activeRisks": [],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "ATLAS-WP-008",
-    "condition": "Accept the bounded M3.0 Authoring Foundation design under issue #223 before any M3.0 implementation branch or product-code modification begins."
+    "id": "ATLAS-WP-009",
+    "condition": "Create and explicitly authorize a bounded M3.0 Authoring Foundation implementation package conforming exactly to the accepted ATLAS-WP-008 design before any authoring product-code modification begins."
   },
   "review": {
     "lastReviewedAt": "2026-08-30",
-    "lastReviewedBy": "Accountable owner plus permanent Governor after M2.2 independent QA, human promotion and exact Pages publication; decision GO_M3_0_AUTHORING_FOUNDATION_DESIGN",
-    "decision": "GO",
-    "authorityIssue": 223,
-    "nextReviewTrigger": "ATLAS-WP-008 design acceptance, any proposed contract change, document-ingestion/LLM expansion, storage migration, accessibility reactivation trigger, or security/autonomy expansion"
+    "lastReviewedBy": "Permanent Governor after accepted M3.0 Authoring Foundation design and governed closeout",
+    "decision": "HOLD",
+    "authorityIssue": 228,
+    "nextReviewTrigger": "explicit M3.0 implementation proposal, any deviation from accepted design, contract change, document-ingestion/LLM expansion, storage migration, accessibility reactivation trigger, or security/autonomy expansion"
   }
 }
