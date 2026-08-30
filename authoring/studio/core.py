@@ -227,6 +227,228 @@ def _validate_draft_shape(draft: Any) -> dict[str, Any]:
     return draft
 
 
+def _valid_uuid4(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        parsed = uuid.UUID(value)
+    except ValueError:
+        return False
+    return parsed.version == 4 and str(parsed) == value.lower()
+
+
+def _activity_semantic(activity: dict[str, Any]) -> Any:
+    base = {
+        key: activity.get(key)
+        for key in (
+            "prompt", "explanation", "difficulty", "learningPhase",
+            "assessmentRole", "estimatedMinutes",
+        )
+    }
+    if activity.get("type") == "qcm":
+        base["choices"] = [choice.get("label") for choice in activity.get("choices", [])]
+        base["correctChoiceId"] = activity.get("correctChoiceId")
+    elif activity.get("type") == "fill":
+        base["segments"] = [segment.get("text") if "text" in segment else None for segment in activity.get("segments", [])]
+        base["tokens"] = [
+            (token.get("label"), token.get("maxUses")) for token in activity.get("tokens", [])
+        ]
+        base["answers"] = [answer.get("tokenId") for answer in activity.get("answers", [])]
+    return normalize(base)
+
+
+def _draft_integrity_diagnostics(draft: dict[str, Any]) -> list[dict[str, Any]]:
+    """Reject structural/identity tampering in the browser-persisted draft envelope."""
+    diagnostics: list[dict[str, Any]] = []
+
+    def add(code: str, path: str, cause: str, value: Any = None) -> None:
+        item: dict[str, Any] = {
+            "severity": "blocking", "code": code, "path": path, "cause": cause,
+        }
+        if value is not None:
+            item["value"] = value
+        diagnostics.append(item)
+
+    package = draft["package"]
+    original = draft["originalPackage"]
+    allocations = draft["revisionAllocations"]
+
+    if package.get("contract") != original.get("contract"):
+        add("DRAFT_STRUCTURE", "$.contract", "Contract identity is immutable in M3.0")
+    if package.get("packageLineageId") != original.get("packageLineageId"):
+        add("LINEAGE_MUTATION", "$.packageLineageId", "Package lineage is immutable")
+
+    current_courses = package.get("courses")
+    original_courses = original.get("courses")
+    if not isinstance(current_courses, list) or not isinstance(original_courses, list) or len(current_courses) != len(original_courses):
+        add("DRAFT_STRUCTURE", "$.courses", "Course count/order is immutable in M3.0")
+        return diagnostics
+
+    allocated_courses = allocations.get("courses", [])
+    allocated_activities = allocations.get("activities", [])
+    if not isinstance(allocated_courses, list) or len(set(allocated_courses)) != len(allocated_courses):
+        add("DRAFT_ALLOCATIONS", "$.revisionAllocations.courses", "Course allocation list is malformed")
+        allocated_courses = []
+    if not isinstance(allocated_activities, list) or len(set(allocated_activities)) != len(allocated_activities):
+        add("DRAFT_ALLOCATIONS", "$.revisionAllocations.activities", "Activity allocation list is malformed")
+        allocated_activities = []
+
+    known_courses: set[str] = set()
+    known_activities: set[str] = set()
+    package_needs_revision = any(
+        package.get(key) != original.get(key)
+        for key in ("title", "description", "versionLabel", "language")
+    )
+
+    for ci, (course, before_course) in enumerate(zip(current_courses, original_courses)):
+        cp = f"$.courses[{ci}]"
+        if not isinstance(course, dict) or not isinstance(before_course, dict):
+            add("DRAFT_STRUCTURE", cp, "Course objects are required")
+            continue
+        lineage = before_course.get("courseLineageId")
+        if course.get("courseLineageId") != lineage:
+            add("LINEAGE_MUTATION", cp + ".courseLineageId", "Course lineage is immutable")
+        if isinstance(lineage, str):
+            known_courses.add(lineage)
+
+        objectives = course.get("objectives")
+        before_objectives = before_course.get("objectives")
+        course_direct_change = any(
+            course.get(key) != before_course.get(key)
+            for key in ("title", "subtitle", "estimatedMinutes")
+        )
+        if not isinstance(objectives, list) or not isinstance(before_objectives, list) or len(objectives) != len(before_objectives):
+            add("DRAFT_STRUCTURE", cp + ".objectives", "Objective count/order is immutable in M3.0")
+            continue
+        for oi, (objective, before_objective) in enumerate(zip(objectives, before_objectives)):
+            op = f"{cp}.objectives[{oi}]"
+            if objective.get("objectiveId") != before_objective.get("objectiveId"):
+                add("LINEAGE_MUTATION", op + ".objectiveId", "Objective identity is immutable")
+            if objective.get("label") != before_objective.get("label"):
+                course_direct_change = True
+
+        activities = course.get("activities")
+        before_activities = before_course.get("activities")
+        if not isinstance(activities, list) or not isinstance(before_activities, list) or len(activities) != len(before_activities):
+            add("DRAFT_STRUCTURE", cp + ".activities", "Activity count/order is immutable in M3.0")
+            continue
+        activity_change = False
+        for ai, (activity, before_activity) in enumerate(zip(activities, before_activities)):
+            ap = f"{cp}.activities[{ai}]"
+            if not isinstance(activity, dict) or not isinstance(before_activity, dict):
+                add("DRAFT_STRUCTURE", ap, "Activity objects are required")
+                continue
+            activity_lineage = before_activity.get("activityLineageId")
+            if activity.get("activityLineageId") != activity_lineage:
+                add("LINEAGE_MUTATION", ap + ".activityLineageId", "Activity lineage is immutable")
+            if isinstance(activity_lineage, str):
+                known_activities.add(activity_lineage)
+            for key in ("type", "objectiveIds"):
+                if activity.get(key) != before_activity.get(key):
+                    add("DRAFT_STRUCTURE", ap + f".{key}", f"Activity {key} is structurally frozen in M3.0")
+
+            if activity.get("type") == "qcm" and before_activity.get("type") == "qcm":
+                choices, before_choices = activity.get("choices"), before_activity.get("choices")
+                if not isinstance(choices, list) or not isinstance(before_choices, list) or len(choices) != len(before_choices):
+                    add("DRAFT_STRUCTURE", ap + ".choices", "QCM choice count/order is immutable")
+                else:
+                    for xi, (choice, before_choice) in enumerate(zip(choices, before_choices)):
+                        if choice.get("choiceId") != before_choice.get("choiceId"):
+                            add("LINEAGE_MUTATION", f"{ap}.choices[{xi}].choiceId", "QCM choice identity is immutable")
+            elif activity.get("type") == "fill" and before_activity.get("type") == "fill":
+                segments, before_segments = activity.get("segments"), before_activity.get("segments")
+                if not isinstance(segments, list) or not isinstance(before_segments, list) or len(segments) != len(before_segments):
+                    add("DRAFT_STRUCTURE", ap + ".segments", "Fill segment count/order is immutable")
+                else:
+                    for si, (segment, before_segment) in enumerate(zip(segments, before_segments)):
+                        current_slot, old_slot = segment.get("slotId"), before_segment.get("slotId")
+                        if ("slotId" in segment) != ("slotId" in before_segment) or current_slot != old_slot:
+                            add("DRAFT_STRUCTURE", f"{ap}.segments[{si}]", "Fill slot structure is immutable")
+                tokens, before_tokens = activity.get("tokens"), before_activity.get("tokens")
+                if not isinstance(tokens, list) or not isinstance(before_tokens, list) or len(tokens) != len(before_tokens):
+                    add("DRAFT_STRUCTURE", ap + ".tokens", "Fill token count/order is immutable")
+                else:
+                    for ti, (token, before_token) in enumerate(zip(tokens, before_tokens)):
+                        if token.get("tokenId") != before_token.get("tokenId"):
+                            add("LINEAGE_MUTATION", f"{ap}.tokens[{ti}].tokenId", "Fill token identity is immutable")
+                answers, before_answers = activity.get("answers"), before_activity.get("answers")
+                if not isinstance(answers, list) or not isinstance(before_answers, list) or len(answers) != len(before_answers):
+                    add("DRAFT_STRUCTURE", ap + ".answers", "Fill answer count/order is immutable")
+                else:
+                    for ni, (answer, before_answer) in enumerate(zip(answers, before_answers)):
+                        if answer.get("slotId") != before_answer.get("slotId"):
+                            add("DRAFT_STRUCTURE", f"{ap}.answers[{ni}].slotId", "Fill answer slot identity is immutable")
+
+            semantic_changed = _activity_semantic(activity) != _activity_semantic(before_activity)
+            activity_change = activity_change or semantic_changed
+            allocated = activity_lineage in allocated_activities
+            if semantic_changed and not allocated:
+                add("STALE_ACTIVITY_REVISION", ap + ".activityRevisionId", "Semantic activity edit lacks a fresh draft revision")
+            if allocated:
+                if activity.get("activityRevisionId") == before_activity.get("activityRevisionId") or not _valid_uuid4(activity.get("activityRevisionId")):
+                    add("STALE_ACTIVITY_REVISION", ap + ".activityRevisionId", "Allocated activity revision is not a fresh UUIDv4")
+                if activity.get("activityRevisionDigest") != ZERO_DIGEST:
+                    add("DRAFT_DIGEST_TAMPER", ap + ".activityRevisionDigest", "Allocated activity digest must remain pending until canonical materialization")
+            else:
+                if activity.get("activityRevisionId") != before_activity.get("activityRevisionId"):
+                    add("REVISION_ID_TAMPER", ap + ".activityRevisionId", "Activity revision changed without an allocation")
+                if activity.get("activityRevisionDigest") != before_activity.get("activityRevisionDigest"):
+                    add("DRAFT_DIGEST_TAMPER", ap + ".activityRevisionDigest", "Unedited activity digest must remain unchanged")
+
+        if course.get("atlasValidationIndependenceClaims") != before_course.get("atlasValidationIndependenceClaims"):
+            add("CLAIM_TAMPER", cp + ".atlasValidationIndependenceClaims", "Atlas claims are canonical derived fields, not draft-editable fields")
+
+        course_needs_revision = course_direct_change or activity_change
+        package_needs_revision = package_needs_revision or course_needs_revision
+        course_allocated = lineage in allocated_courses
+        if course_needs_revision and not course_allocated:
+            add("STALE_COURSE_REVISION", cp + ".courseRevisionId", "Semantic course content changed without a fresh course revision")
+        if course_allocated:
+            if course.get("courseRevisionId") == before_course.get("courseRevisionId") or not _valid_uuid4(course.get("courseRevisionId")):
+                add("STALE_COURSE_REVISION", cp + ".courseRevisionId", "Allocated course revision is not a fresh UUIDv4")
+            if course.get("courseRevisionDigest") != ZERO_DIGEST:
+                add("DRAFT_DIGEST_TAMPER", cp + ".courseRevisionDigest", "Allocated course digest must remain pending until materialization")
+        else:
+            if course.get("courseRevisionId") != before_course.get("courseRevisionId"):
+                add("REVISION_ID_TAMPER", cp + ".courseRevisionId", "Course revision changed without an allocation")
+            if course.get("courseRevisionDigest") != before_course.get("courseRevisionDigest"):
+                add("DRAFT_DIGEST_TAMPER", cp + ".courseRevisionDigest", "Unedited course digest must remain unchanged")
+
+    unknown_courses = sorted(set(allocated_courses) - known_courses)
+    unknown_activities = sorted(set(allocated_activities) - known_activities)
+    if unknown_courses:
+        add("DRAFT_ALLOCATIONS", "$.revisionAllocations.courses", "Unknown course lineage in allocation state", unknown_courses)
+    if unknown_activities:
+        add("DRAFT_ALLOCATIONS", "$.revisionAllocations.activities", "Unknown activity lineage in allocation state", unknown_activities)
+
+    package_allocated = allocations.get("package") is True
+    if package_needs_revision and not package_allocated:
+        add("STALE_PACKAGE_REVISION", "$.packageRevisionId", "Semantic package content changed without a fresh package revision")
+    if package_allocated:
+        if package.get("packageRevisionId") == original.get("packageRevisionId") or not _valid_uuid4(package.get("packageRevisionId")):
+            add("STALE_PACKAGE_REVISION", "$.packageRevisionId", "Allocated package revision is not a fresh UUIDv4")
+        if package.get("packageRevisionDigest") != ZERO_DIGEST:
+            add("DRAFT_DIGEST_TAMPER", "$.packageRevisionDigest", "Allocated package digest must remain pending until materialization")
+        if draft.get("dirty") is not True:
+            add("DRAFT_DIRTY_STATE", "$.dirty", "Allocated draft revision must be marked dirty")
+    else:
+        if package.get("packageRevisionId") != original.get("packageRevisionId"):
+            add("REVISION_ID_TAMPER", "$.packageRevisionId", "Package revision changed without an allocation")
+        if package.get("packageRevisionDigest") != original.get("packageRevisionDigest"):
+            add("DRAFT_DIGEST_TAMPER", "$.packageRevisionDigest", "Unedited package digest must remain unchanged")
+        if draft.get("dirty") not in (False, None):
+            add("DRAFT_DIRTY_STATE", "$.dirty", "Unallocated draft cannot be marked dirty")
+
+    return diagnostics
+
+
+def _assert_draft_integrity(draft: dict[str, Any]) -> None:
+    diagnostics = _draft_integrity_diagnostics(draft)
+    if diagnostics:
+        first = diagnostics[0]
+        raise AuthoringError(first["code"], first["cause"], first["path"], first.get("value"))
+
+
 def _materialize(package: dict[str, Any]) -> dict[str, Any]:
     _, atlas = authorities()
     value = copy.deepcopy(normalize(package))
@@ -400,6 +622,7 @@ def apply_edit(
     uuid_factory: Callable[[], Any] = uuid.uuid4,
 ) -> dict[str, Any]:
     current = copy.deepcopy(_validate_draft_shape(draft))
+    _assert_draft_integrity(current)
     package = current["package"]
     parent, key, printable, affected = _resolve_edit(package, path)
     normalized_value = normalize(value, printable)
@@ -423,6 +646,16 @@ def apply_edit(
 def validate_draft(draft: dict[str, Any]) -> dict[str, Any]:
     try:
         current = _validate_draft_shape(draft)
+        diagnostics = _draft_integrity_diagnostics(current)
+        if diagnostics:
+            return {
+                "ok": False,
+                "exportAvailable": False,
+                "diagnostics": diagnostics,
+                "blockingCount": len(diagnostics),
+                "warningCount": 0,
+                "materializedSha256": None,
+            }
         materialized = _materialize(current["package"])
         diagnostics = _authoritative_diagnostics(materialized)
     except AuthoringError as exc:
@@ -442,6 +675,7 @@ def validate_draft(draft: dict[str, Any]) -> dict[str, Any]:
 
 def export_draft(draft: dict[str, Any]) -> tuple[bytes, str]:
     current = _validate_draft_shape(draft)
+    _assert_draft_integrity(current)
     materialized = _materialize(current["package"])
     diagnostics = _authoritative_diagnostics(materialized)
     blocking = [item for item in diagnostics if item.get("severity") == "blocking"]
@@ -470,6 +704,7 @@ def reimport_export(draft: dict[str, Any], source_name: str = "export.json") -> 
 
 def build_preview(draft: dict[str, Any], course_index: int, activity_index: int) -> dict[str, Any]:
     current = _validate_draft_shape(draft)
+    _assert_draft_integrity(current)
     package = current["package"]
     ci = _index(package.get("courses"), course_index, "$.courses")
     course = package["courses"][ci]
