@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-010",
+  "title": "M3.0 GitHub Pages browser packaging",
+  "status": "in-progress",
+  "changeClass": "product-packaging-authoring-pages",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 242,
+    "parentProductIssue": 232,
+    "parentProductWorkPackage": "ATLAS-WP-009",
+    "independentQaIssue": 243,
+    "independentQaWorkPackage": "QA-WP-020",
+    "governorIssue": 4,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.0-PAGES-HUMAN-GATE"
+  },
+  "purpose": "Expose the already validated M3.0 Authoring Foundation through GitHub Pages for the human gate, while executing the frozen Python authoring core and validators inside the browser and preserving the learner Pages root byte-for-byte.",
+  "baseline": {
+    "frozenAuthoringProductHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+    "frozenAuthoringSourceSha256": "431719ac49538305c3e6842dced66d2b2da41d2ceb331f8e95d9d7a2ebaf03f5",
+    "authoringQaVerdict": "PASS_QA_WP_018_EXACT_HEAD_CONTRADICTORY_QA",
+    "learnerPagesPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "pyodideVersion": "0.29.4",
+    "pyodideBaseUrl": "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-010.json",
+      "authoring/studio/pages/README.md",
+      "authoring/studio/pages/build_pages.py",
+      "authoring/studio/pages/pages-bootstrap.js",
+      "authoring/studio/tests/test_m3_pages_packaging.py",
+      ".github/workflows/atlas-m3-pages-candidate.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "contracts/**",
+      "authoring/v2/**",
+      "authoring/studio/core.py",
+      "authoring/studio/server.py",
+      "authoring/studio/web/**",
+      "authoring/studio/tests/test_m3_authoring_foundation.py",
+      "docs/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-009.json",
+      "work-packages/QA-WP-018.json",
+      "work-packages/QA-WP-020.json",
+      ".github/workflows/atlas-m3-authoring-foundation-ci.yml",
+      ".github/workflows/atlas-m3-authoring-foundation-qa.yml",
+      ".github/workflows/atlas-m3-pages-qa.yml",
+      ".github/workflows/learnit-next-pages.yml"
+    ]
+  },
+  "invariants": [
+    "All ATLAS-WP-009 product files remain byte-identical to frozenAuthoringProductHead.",
+    "The frozen Python M3.0 core plus existing v2 and Atlas validators remain the sole semantic and export authority.",
+    "No JavaScript validator or duplicated semantic engine is introduced.",
+    "The GitHub Pages adapter emulates only the existing local /api/import, /api/edit, /api/validate, /api/preview and /api/export transport behavior.",
+    "Kit bytes and draft data never leave the browser; external network is restricted to GET-only requests under the pinned Pyodide base URL.",
+    "The local loopback/offline authoring path remains available and unchanged.",
+    "The learner GitHub Pages root remains exactly the promoted 366412-byte artifact with the frozen SHA-256.",
+    "Candidate Pages publication is a reversible human-gate surface and is not product promotion.",
+    "No learner runtime, schema, validator, canonical kit, backend, account, sync, remote catalog, document ingestion, LLM runtime, Gate3, Gate4 or M4+ capability changes."
+  ],
+  "requiredEvidence": [
+    "Changed paths are exactly a subset of the six authorized packaging paths.",
+    "Frozen ATLAS-WP-009 files compare byte-identical against the product HEAD.",
+    "The generated Pages bundle contains the unchanged web UI plus the exact frozen Python core, exact existing validators and exact schema authority.",
+    "No-op browser import/export is byte-identical to each canonical Atlas source kit.",
+    "Representative QCM and fill edits exported by the browser are byte-identical to the local Python core output for the same edit path and value.",
+    "Browser validation remains fail-closed for stale revisions, digest tampering and malformed canonical content.",
+    "Cross-origin browser requests are GET-only and restricted to the pinned Pyodide base URL; no request carries kit or draft data.",
+    "Reload and discard touch only learnit.authoring.m3.v1 storage.",
+    "Learner root artifact bytes and SHA-256 remain unchanged in the candidate Pages site.",
+    "Candidate deployment exposes /authoring/ only after all product checks pass.",
+    "Product HEAD is frozen before QA-WP-020 final binding."
+  ],
+  "adversarialTests": [
+    "Attempt to modify any frozen ATLAS-WP-009 product file.",
+    "Attempt to bypass Python validation with a JavaScript-only success response.",
+    "External POST/PUT/PATCH/DELETE or GET request outside the pinned Pyodide base URL.",
+    "External request containing source bytes, draft JSON, lineage IDs or exported kit bytes.",
+    "Stale revision or digest tampering through restored localStorage.",
+    "Malformed UTF-8, duplicate JSON keys or unsupported canonical floats.",
+    "Browser export differs from direct local core export for identical semantic edit.",
+    "Candidate site changes learner root artifact bytes or SHA-256.",
+    "Pages build omits or silently substitutes a frozen authority file.",
+    "Any changed path outside the exact packaging allowlist."
+  ],
+  "nonGoals": [
+    "Changing the M3.0 editor UI or semantic behavior.",
+    "Replacing the local loopback authoring mode.",
+    "Vendoring or modifying Pyodide source code.",
+    "Backend hosting, accounts, synchronization or remote publishing.",
+    "Document ingestion or LLM-assisted authoring.",
+    "Learner runtime or contract changes.",
+    "M3.1 feature expansion, Gate3, Gate4 or M4+ activation."
+  ],
+  "independentReview": [
+    "QA-WP-020 owns an independent contradictory oracle and may not repair ATLAS-WP-010 files.",
+    "Final QA must bind to one exact frozen ATLAS-WP-010 product HEAD and product evidence.",
+    "Repository governance and PR-scope checks must pass on the packaging PR.",
+    "The live GitHub Pages URL is presented only after final QA PASS.",
+    "Human PASS is required before merge or promotion."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-010-m3-pages-packaging",
+    "phase": "IMPLEMENTED_AWAITING_CI",
+    "productPullRequest": null,
+    "independentQaWorkPackage": "QA-WP-020",
+    "independentQaIssue": 243,
+    "maximumChangedFiles": 6,
+    "humanGateRequired": true,
+    "finalVerdict": null,
+    "preparedForHandover": false
+  },
+  "rollback": "Close the candidate packaging PR and redeploy the existing learnit-next-pages workflow. The frozen M3.0 product and learner artifact require no rollback or migration."
+}

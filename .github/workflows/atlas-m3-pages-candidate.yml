@@ -1,0 +1,142 @@
+name: Atlas M3 Pages candidate
+
+on:
+  push:
+    branches:
+      - atlas/ATLAS-WP-010-m3-pages-packaging
+    paths:
+      - 'work-packages/ATLAS-WP-010.json'
+      - 'authoring/studio/pages/**'
+      - 'authoring/studio/tests/test_m3_pages_packaging.py'
+      - '.github/workflows/atlas-m3-pages-candidate.yml'
+  pull_request:
+    paths:
+      - 'work-packages/ATLAS-WP-010.json'
+      - 'authoring/studio/pages/**'
+      - 'authoring/studio/tests/test_m3_pages_packaging.py'
+      - '.github/workflows/atlas-m3-pages-candidate.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atlas-m3-pages-candidate
+  cancel-in-progress: false
+
+env:
+  PRODUCT_HEAD: a1b9259955ce748cd7e47531a470cd12b7dc0436
+  LEARNER_PROMOTED_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
+  LEARNER_EXPECTED_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  LEARNER_EXPECTED_BYTES: '366412'
+
+jobs:
+  verify-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind exact frozen product and scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$PRODUCT_HEAD" HEAD
+          changed="$(git diff --name-only "$PRODUCT_HEAD"...HEAD)"
+          allowed='^(.github/workflows/atlas-m3-pages-candidate.yml|authoring/studio/pages/(README.md|build_pages.py|pages-bootstrap.js)|authoring/studio/tests/test_m3_pages_packaging.py|work-packages/ATLAS-WP-010.json)$'
+          while IFS= read -r path; do
+            [[ -z "$path" ]] || [[ "$path" =~ $allowed ]] || { echo "OUT_OF_SCOPE: $path"; exit 1; }
+          done <<< "$changed"
+          git diff --exit-code "$PRODUCT_HEAD"..HEAD --             work-packages/ATLAS-WP-009.json             authoring/studio/README.md             authoring/studio/core.py             authoring/studio/server.py             authoring/studio/web/index.html             authoring/studio/web/studio.css             authoring/studio/web/studio.js             authoring/studio/tests/test_m3_authoring_foundation.py             .github/workflows/atlas-m3-authoring-foundation-ci.yml
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared browser test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r apps/player/requirements-test.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run Pages product tests and browser equivalence
+        run: python -B authoring/studio/tests/test_m3_pages_packaging.py
+
+      - name: Build candidate Pages tree twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/studio/pages/build_pages.py --output "$RUNNER_TEMP/authoring-a"
+          python -B authoring/studio/pages/build_pages.py --output "$RUNNER_TEMP/authoring-b"
+          diff -qr "$RUNNER_TEMP/authoring-a" "$RUNNER_TEMP/authoring-b"
+
+      - name: Re-run frozen authoring and learner regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/studio/tests/test_m3_authoring_foundation.py
+          python -B authoring/v2/validate_kit.py --foundation-profile             authoring/v2/atlas/nombres_complexes_atlas.json             authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/atlas/validate_atlas_content.py
+
+      - name: Assemble Pages candidate preserving learner root
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/pages-site"
+          learner="$RUNNER_TEMP/learner-source"
+          mkdir -p "$site"
+          git worktree add --detach "$learner" "$LEARNER_PROMOTED_HEAD"
+          python -B "$learner/apps/learnit-next/build.py" --output "$site/index.html"
+          cp "$site/index.html" "$site/learnit-next.html"
+          actual_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
+          actual_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
+          [[ "$actual_sha" == "$LEARNER_EXPECTED_SHA256" ]]
+          [[ "$actual_bytes" == "$LEARNER_EXPECTED_BYTES" ]]
+          cmp "$site/index.html" "$site/learnit-next.html"
+          cp -a "$RUNNER_TEMP/authoring-a" "$site/authoring"
+          cat > "$site/atlas-m3-pages-candidate.json" <<EOF
+          {
+            "schema": "learnit.atlas.m3.pages.candidate.v1",
+            "candidateHead": "$GITHUB_SHA",
+            "frozenProductHead": "$PRODUCT_HEAD",
+            "learnerPromotedHead": "$LEARNER_PROMOTED_HEAD",
+            "learnerBytes": $LEARNER_EXPECTED_BYTES,
+            "learnerSha256": "$LEARNER_EXPECTED_SHA256",
+            "authoringPath": "/authoring/",
+            "humanGateRequired": true
+          }
+          EOF
+          tar --sort=name --mtime='UTC 2020-01-01' --owner=0 --group=0 --numeric-owner             -cf "$RUNNER_TEMP/atlas-m3-pages-source.tar"             work-packages/ATLAS-WP-010.json authoring/studio/pages             authoring/studio/tests/test_m3_pages_packaging.py             .github/workflows/atlas-m3-pages-candidate.yml
+          sha256sum "$RUNNER_TEMP/atlas-m3-pages-source.tar" > "$RUNNER_TEMP/atlas-m3-pages-source.sha256"
+
+      - name: Upload product evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m3-pages-product-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/atlas-m3-pages-source.tar
+            ${{ runner.temp }}/atlas-m3-pages-source.sha256
+            ${{ runner.temp }}/pages-site/authoring/pages-evidence.json
+            ${{ runner.temp }}/pages-site/atlas-m3-pages-candidate.json
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/pages-site
+
+  deploy-candidate:
+    if: github.event_name == 'push'
+    needs: verify-and-package
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}authoring/
+    steps:
+      - name: Deploy candidate Pages surface
+        id: deployment
+        uses: actions/deploy-pages@v4
