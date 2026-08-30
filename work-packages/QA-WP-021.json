@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-021",
+  "title": "M3.1 Pedagogical Quality independent contradictory QA",
+  "status": "in-progress",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "moderate",
+  "purpose": "Independently test the exact frozen ATLAS-WP-012 M3.1 pedagogical-quality product head without modifying any product path.",
+  "authority": {
+    "issue": 268,
+    "parentProductIssue": 261,
+    "parentProductPullRequest": 264,
+    "acceptedDesignIssue": 259,
+    "correctedDesignIssue": 262
+  },
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "exactProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+    "exactProductRun": 33327797651,
+    "exactProductArtifact": 9736746706,
+    "exactProductArtifactDigest": "sha256:3e348dbe55af28be92af24774a8106a4e9708bdb7d435351e36619d8d73cc6d1",
+    "acceptedDesignHead": "12acb83c3f986a0c29e06e4add715984d1484b5a"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-021.json",
+      "authoring/studio/tests/qa_m3_1_pedagogical_quality.py",
+      ".github/workflows/atlas-m3-1-pedagogical-quality-qa.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/v2/**",
+      "authoring/studio/core.py",
+      "authoring/studio/web/**",
+      "authoring/studio/pages/**",
+      "authoring/studio/tests/test_m3_1_pedagogical_quality.py",
+      "contracts/**",
+      "apps/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "QA is read-only with respect to all M3.1 product files.",
+    "The QA branch is based on the exact frozen product head 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2.",
+    "The QA workflow proves all non-QA blobs remain byte-identical to the exact frozen product head.",
+    "Canonical validity, pedagogical quality and export availability are tested as distinct states.",
+    "The QA oracle uses independent controlled cases, primarily the signals kit and the second objective, rather than mechanically copying product tests.",
+    "Exactly two Atlas independence claims remain the expected topology; QA must not demand a transfer claim.",
+    "A QA finding is HOLD only; QA does not repair product code.",
+    "The promoted learner artifact remains exactly 366412 bytes with the frozen SHA-256."
+  ],
+  "requiredEvidence": [
+    "Exact three-path QA diff relative to frozen product head.",
+    "Repository governance PASS on exact QA head.",
+    "PR scope PASS on exact QA head.",
+    "Independent QA Python oracle PASS.",
+    "Canonical validators PASS on frozen product files.",
+    "Frozen product tree identity PASS outside the three QA-owned paths.",
+    "Browser/Pyodide versus direct Python quality-report equivalence PASS.",
+    "Pages bundle exact Python quality authority identity PASS.",
+    "No product-side PQ_* rule authority in Studio JavaScript or Pages bootstrap.",
+    "Learner regression suite PASS.",
+    "Learner artifact exact 366412-byte and SHA-256 identity PASS.",
+    "Final evidence artifact bound to both exact product head and exact QA head."
+  ],
+  "adversarialTests": [
+    "Malformed canonical object produces HOLD_CANONICAL_INVALID and BLOCKED.",
+    "Wrong canonical contract produces only blocking canonical diagnostics.",
+    "Every canonical diagnostic exposes code, severity, path, refs, cause, impact and fix.",
+    "Report bytes and diagnostic ordering are deterministic.",
+    "Advice-only baseline remains canonical-valid and exportable.",
+    "Course duration mismatch is detected as a quality warning, not canonical invalidity.",
+    "Duplicate stimulus on the second Signals objective is detected.",
+    "Transfer no harder than first practice on the second Signals objective is detected.",
+    "Weak first independence claim remains exactly two claims and triggers PQ_VALIDATION_CHAIN_WEAK.",
+    "CLI exit classes 0,2,3,4 are proven without input mutation.",
+    "Quality engine has no network/write primitives.",
+    "Studio keeps canonical and quality rendering separate and contains no PQ_* rule definitions.",
+    "Pages bundle copies exact pedagogical_quality.py bytes and is deterministic.",
+    "Browser/Pyodide and direct Python return equivalent reports for the same Signals draft."
+  ],
+  "nonGoals": [
+    "Repairing or modifying ATLAS-WP-012 product code.",
+    "Changing the M3.1 quality rules.",
+    "Changing the canonical schema or Atlas validator.",
+    "Deploying or promoting M3.1.",
+    "Authorizing M3.2, M3.3, Gate3, Gate4 or M4+."
+  ],
+  "independentReview": [
+    "This work package is the independent contradictory QA lane for ATLAS-WP-012.",
+    "Final PASS requires exact product-head binding and exact QA-head evidence."
+  ],
+  "execution": {
+    "issue": 268,
+    "branch": "qa/QA-WP-021-m3-1-pedagogical-quality",
+    "maximumChangedFiles": 3,
+    "pullRequest": null,
+    "finalVerdict": null,
+    "mergeStatus": "not-merged"
+  },
+  "rollback": "Close the QA pull request without merge. QA files are additive and do not alter the product."
+}
