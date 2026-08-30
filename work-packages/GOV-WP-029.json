@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-029",
   "title": "Post-M2.2 canonical state and roadmap alignment",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "governance-canonical-state-alignment",
   "riskClass": "low",
   "authority": {
@@ -75,9 +75,12 @@
   ],
   "execution": {
     "branch": "gov/GOV-WP-029-post-m2-2-roadmap-alignment",
-    "pullRequest": null,
-    "mergeCommit": null,
-    "finalStatus": "PENDING_ALIGNMENT"
+    "pullRequest": 224,
+    "implementationHead": "c385ad642f3f431a21bbb3ab43b9e70fe47a6aa3",
+    "mergeCommit": "17f719b74cab0823e34a5d6ba7b69fff3a1881bb",
+    "repositoryGovernanceRun": 33297531159,
+    "prScopeRun": 33297531140,
+    "finalStatus": "PASS_POST_M2_2_CANONICAL_ALIGNMENT"
   },
   "rollback": "Revert this metadata/documentation alignment only. No product state or learner data is changed."
 }
