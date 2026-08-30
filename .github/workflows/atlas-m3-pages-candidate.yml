@@ -79,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           python -B authoring/studio/tests/test_m3_authoring_foundation.py
-          python -B authoring/v2/validate_kit.py --foundation-profile             authoring/v2/atlas/nombres_complexes_atlas.json             authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/validate_kit.py authoring/v2/atlas/nombres_complexes_atlas.json authoring/v2/atlas/signaux_electriques_atlas.json
           python -B authoring/v2/atlas/validate_atlas_content.py
 
       - name: Assemble Pages candidate preserving learner root
