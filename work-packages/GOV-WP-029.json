@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-029",
+  "title": "Post-M2.2 canonical state and roadmap alignment",
+  "status": "in-progress",
+  "changeClass": "governance-canonical-state-alignment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 222,
+    "governorIssue": 4,
+    "program": "PROJECT-ATLAS",
+    "milestone": "POST-M2.2-ALIGNMENT"
+  },
+  "purpose": "Realign canonical repository state, architecture and roadmap documentation after M2.2 promotion/publication and select M3.0 Authoring Foundation as the next design increment without authorizing product implementation.",
+  "baseline": {
+    "baseCommit": "637169c50647785552588c560821d8239691870f",
+    "acceptedProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "acceptedProductTree": "1179c60dcdf8c2cfecc9e4f26a1f75da41801cb5",
+    "acceptedQaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+    "artifactBytes": 366412,
+    "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "pagesRun": 33269665324,
+    "pagesUrl": "https://stefm78.github.io/learnit-platform/",
+    "nextDesignAuthorityIssue": 223
+  },
+  "scope": {
+    "allowedPaths": [
+      "governance/governor-state.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "docs/atlas/README.md",
+      "work-packages/GOV-WP-029.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "work-packages/ATLAS-WP-008.json"
+    ]
+  },
+  "invariants": [
+    "No product runtime, learner semantics, authoring implementation, contract or workflow changes.",
+    "M2.2 promoted artifact identity remains exactly 366412 bytes and the accepted SHA-256.",
+    "The active main-protection ruleset is recorded as enforced; the obsolete non-enforcement exception is removed.",
+    "M3.0 is selected only as a design increment under issue #223; product implementation remains forbidden until its design gate is accepted.",
+    "Gate3, Gate4, M4+, backend, accounts, cloud synchronization, remote catalog and runtime AI remain HOLD.",
+    "Historical roadmap evidence remains preserved and clearly marked historical."
+  ],
+  "requiredEvidence": [
+    "Diff contains only the six authorized governance/documentation paths.",
+    "Repository governance passes.",
+    "PR scope passes.",
+    "All canonical current-state documents agree on M2.2 promoted/published status and the next design gate.",
+    "No runtime or build artifact changes."
+  ],
+  "adversarialTests": [
+    "Search canonical docs for stale claims that Atlas M2 is the latest promoted baseline.",
+    "Search governor-state for obsolete main-protection non-enforcement exception.",
+    "Reject wording that implies M3.0 product implementation is already authorized.",
+    "Reject any M3.0 design statement that implicitly opens Gate3, Gate4, backend, sync or runtime AI."
+  ],
+  "independentReview": [
+    "Permanent governor #4 records the alignment decision.",
+    "Repository governance and PR-scope checks independently validate the metadata-only change."
+  ],
+  "nonGoals": [
+    "M3.0 implementation",
+    "Controlled-time tooling implementation",
+    "Accessibility evidence work",
+    "Backend/accounts/sync/runtime AI",
+    "Gate3 or Gate4 activation"
+  ],
+  "execution": {
+    "branch": "gov/GOV-WP-029-post-m2-2-roadmap-alignment",
+    "pullRequest": null,
+    "mergeCommit": null,
+    "finalStatus": "PENDING_ALIGNMENT"
+  },
+  "rollback": "Revert this metadata/documentation alignment only. No product state or learner data is changed."
+}
