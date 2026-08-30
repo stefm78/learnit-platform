@@ -7,6 +7,9 @@ on:
       - '.github/workflows/learnit-next-ci.yml'
       - 'apps/learnit-next/**'
       - 'authoring/v2/**'
+      - 'authoring/factory/**'
+      - 'authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md'
+      - 'authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md'
       - 'contracts/**'
   push:
     branches: [main]
@@ -14,6 +17,9 @@ on:
       - '.github/workflows/learnit-next-ci.yml'
       - 'apps/learnit-next/**'
       - 'authoring/v2/**'
+      - 'authoring/factory/**'
+      - 'authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md'
+      - 'authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md'
       - 'contracts/**'
   workflow_dispatch:
     inputs:

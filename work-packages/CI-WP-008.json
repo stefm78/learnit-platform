@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-008",
+  "title": "Activate M3.2 factory paths in Learn-it Next CI trigger",
+  "status": "in-progress",
+  "changeClass": "ci-trigger-extension",
+  "riskClass": "low",
+  "purpose": "Make the already-governed M3.2 AI Kit Factory delegated route reachable by adding only the exact factory and skill paths to the Learn-it Next CI pull_request and push filters.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "e5c60b44d4ef1a824f6cd55d8be7fb4bc5782f19",
+    "authorityIssue": 291,
+    "parentRoutingIssue": 287,
+    "productIssue": 286,
+    "branch": "ci/CI-WP-008-m3-2-trigger-paths"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-008.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      ".github/workflows/atlas-m3-2-ai-kit-factory-ci.yml",
+      "work-packages/ATLAS-WP-014.json"
+    ]
+  },
+  "invariants": [
+    "Only the Learn-it Next CI workflow and this work-package file may change.",
+    "Routing semantics introduced by CI-WP-007 remain byte-for-byte unchanged.",
+    "Only event path filters are extended.",
+    "Both pull_request and push filters include authoring/factory/**.",
+    "Both pull_request and push filters include exactly the two M3.2 skill files.",
+    "Existing authoring/v2, learner and contracts triggers remain unchanged.",
+    "Every other unknown product branch remains fail-closed.",
+    "No product, test, contract or branch-protection behavior is changed."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Learn-it Next CI exact-head routed matrix PASS on the CI-only branch.",
+    "Static proof that the three M3.2 trigger entries occur in both PR and push filters.",
+    "Static proof that the CI-WP-007 m3-2-factory-delegated route block is unchanged from base."
+  ],
+  "adversarialTests": [
+    "Factory-only product delta must trigger Learn-it Next CI.",
+    "Either M3.2 skill file alone must trigger Learn-it Next CI.",
+    "Removing the factory trigger from PR or push is a failure.",
+    "Changing the m3-2-factory-delegated route logic is a failure.",
+    "Changing any non-workflow path outside CI-WP-008 metadata is a failure."
+  ],
+  "nonGoals": [
+    "Changing M3.2 product semantics.",
+    "Changing delegated route logic.",
+    "Changing product relevance parsing.",
+    "Changing branch protection.",
+    "M3.3/M3.4/Gate3/Gate4/M4+."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate the two-file CI change.",
+    "The existing Learn-it Next CI self-test/routed matrix must pass on the exact CI head."
+  ],
+  "execution": {
+    "issue": 291,
+    "maximumChangedFiles": 2,
+    "branch": "ci/CI-WP-008-m3-2-trigger-paths",
+    "pullRequest": null,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Revert the three M3.2 path-filter additions and CI-WP-008 metadata. The route then becomes unreachable again but all product code remains unchanged."
+}
