@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-015",
+  "title": "M3.1 Pedagogical Quality promotion rebind verifier",
+  "status": "in-progress",
+  "changeClass": "operations-promotion-verification",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 273,
+    "parentProductIssue": 261,
+    "parentProductWorkPackage": "ATLAS-WP-012",
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Verify promotion of the frozen human-approved and independently-QA-passed M3.1 pedagogical-quality product onto current main without mutating product semantics or historical product/QA workflows.",
+  "baseline": {
+    "baseCommit": "63d35c2f9f0998ad07459f282e0cf0422c8747a9",
+    "frozenProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+    "frozenQaHead": "6ff592af68e6cc95bd479911a09388293c5528f5",
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "humanGate": "PASS_M3_1_AI_AUTHORING_WITH_NON_BLOCKING_HUMAN_UX_DEBT",
+    "uxDebtIssue": 272
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-015.json",
+      ".github/workflows/atlas-m3-1-promotion-rebind.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-012.json",
+      "work-packages/QA-WP-021.json",
+      ".github/workflows/atlas-m3-1-pedagogical-quality-ci.yml",
+      ".github/workflows/atlas-m3-1-pedagogical-quality-qa.yml"
+    ]
+  },
+  "invariants": [
+    "No frozen ATLAS-WP-012 product file is modified by OPS-WP-015.",
+    "The verifier runs only for the dedicated M3.1 promotion branch or explicit manual dispatch.",
+    "Promotion must change exactly the eleven ATLAS-WP-012 product paths relative to its PR base.",
+    "All eleven promoted product files must be byte-identical to frozenProductHead.",
+    "The exact independent QA oracle from frozenQaHead must pass in a separate worktree.",
+    "The QA diff relative to frozenProductHead must remain exactly the three QA-WP-021 paths.",
+    "Canonical validators and M3.1 product/browser tests must pass on the integrated promotion tree.",
+    "Generated Pages bundle must be deterministic and contain the exact pedagogical-quality Python authority.",
+    "Promoted learner artifact identity must remain unchanged.",
+    "Human PASS is already present; UX debt #272 is non-blocking and must not be folded into promotion."
+  ],
+  "requiredEvidence": [
+    "Exact eleven-path promotion delta.",
+    "Byte identity of all eleven product files to frozenProductHead.",
+    "Canonical Atlas validators PASS.",
+    "M3.1 product/browser tests PASS.",
+    "Independent QA-WP-021 oracle PASS from exact frozenQaHead.",
+    "QA exact three-path scope PASS.",
+    "Deterministic Pages build PASS.",
+    "Exact bundled pedagogical_quality.py identity PASS.",
+    "Learner artifact exact bytes and SHA-256 PASS.",
+    "Machine-readable evidence bound to base, frozen product, frozen QA and promotion head."
+  ],
+  "adversarialTests": [
+    "Any promotion path outside the exact eleven-file set.",
+    "Any frozen product blob differs by one byte.",
+    "QA head not descendant of frozen product head or QA diff not exactly three owned paths.",
+    "Any product/browser/canonical/QA failure.",
+    "Pages bundle drift or quality-engine bundle mismatch.",
+    "Learner artifact drift.",
+    "Attempt to implement UX debt #272 during promotion."
+  ],
+  "nonGoals": [
+    "Changing M3.1 semantics",
+    "Implementing UX debt #272",
+    "Re-running human UX arbitration",
+    "M3.2/M3.3",
+    "Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Repository governance and PR scope must pass for OPS-WP-015.",
+    "The promotion verifier must run on the final M3.1 promotion HEAD before merge."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-015-m3-1-promotion-rebind",
+    "phase": "IMPLEMENTED_AWAITING_CI",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the verifier workflow in a later governed cleanup after M3.1 promotion closeout."
+}
