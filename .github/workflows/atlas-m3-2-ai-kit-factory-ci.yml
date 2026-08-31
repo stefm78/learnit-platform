@@ -1,0 +1,233 @@
+name: Atlas M3.2 AI Kit Factory CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-m3-2-factory-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  product:
+    name: M3.2 AI Kit Factory exact-head evidence
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'atlas/ATLAS-WP-014-m3-2-ai-kit-factory'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout exact product head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind authority baseline and exact product scope
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          set -euo pipefail
+          AUTHORITY_BASE=c973f12c68ef675fc3c64e26e5b60860be9a24db
+          SCOPE_BASE="${PR_BASE_SHA:-$AUTHORITY_BASE}"
+          [[ "$(git rev-parse HEAD)" == "$TARGET" ]]
+          [[ "$SCOPE_BASE" =~ ^[0-9a-f]{40}$ ]]
+          git cat-file -e "$AUTHORITY_BASE^{commit}"
+          git cat-file -e "$SCOPE_BASE^{commit}"
+          [[ "$(git merge-base "$AUTHORITY_BASE" HEAD)" == "$AUTHORITY_BASE" ]]
+          [[ "$(git merge-base "$SCOPE_BASE" HEAD)" == "$SCOPE_BASE" ]]
+          export SCOPE_BASE
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/ATLAS-WP-014.json').read_text(encoding='utf-8'))
+          assert wp['id']=='ATLAS-WP-014'
+          assert wp['authority']['issue']==286
+          assert wp['baseline']['baseCommit']=='c973f12c68ef675fc3c64e26e5b60860be9a24db'
+          allowed=set(wp['scope']['allowedPaths'])
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',os.environ['SCOPE_BASE']+'...HEAD'],
+              text=True,
+          ).splitlines())
+          assert changed==allowed, f'ATLAS_WP_014_SCOPE_MISMATCH:{sorted(changed)} != {sorted(allowed)}'
+          assert len(changed)==7
+          print('ATLAS_WP_014_SCOPE_BASE='+os.environ['SCOPE_BASE'])
+          for path in sorted(changed): print(path)
+          PY
+
+      - name: Prove frozen upstream authorities unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=c973f12c68ef675fc3c64e26e5b60860be9a24db
+          git diff --exit-code "$BASE"...HEAD --             contracts             authoring/v2/validate_kit.py             authoring/v2/atlas/validate_atlas_content.py             authoring/v2/atlas/pedagogical_quality.py             authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md             authoring/studio             apps/learnit-next/source_manifest.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Re-run canonical Atlas authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/v2/validate_kit.py             authoring/v2/atlas/nombres_complexes_atlas.json             authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/atlas/validate_atlas_content.py
+
+      - name: Run M3.2 product oracle
+        run: python -B authoring/factory/tests/test_ai_kit_factory.py
+
+      - name: Prove factory boundary is local read-only and non-ingesting
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -REn '\b(requests|httpx|aiohttp)\b|urllib\.request|socket\.|WebSocket|XMLHttpRequest|EventSource'             authoring/factory/factory_gate.py
+          ! grep -En '\.write_text\(|\.write_bytes\(|(^|[^A-Za-z])open\('             authoring/factory/factory_gate.py
+          ! grep -REni '\b(pypdf|pdfplumber|pymupdf|fitz|tesseract|ocr)\b'             authoring/factory/factory_gate.py
+          ! grep -REn 'learnit\.kit\.v2.*source|sourceRef|sourceProvenance'             authoring/factory/factory_gate.py
+
+      - name: Prove AI role contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'SKILL_ATLAS_KIT_AUTHORING_V1.md' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md
+          grep -q 'Do not review your own final kit inside this active author context' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md
+          grep -q 'PASS_AI_KIT_FACTORY_V1' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md
+          grep -q 'authorActiveContextReused' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'PASS_SEMANTIC_REVIEW_V1' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'sourceFidelity' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'answerCorrectness' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'objectiveCoverage' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'validationTransfer' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'learnerFit' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+
+      - name: Materialize exact declared learner projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          materialized=[]
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fingerprint=item.get('fingerprint',{})
+              if fingerprint.get('kind')!='git-blob-sha1':
+                  continue
+              data=subprocess.run(
+                  ['git','cat-file','blob',fingerprint.get('value','')],
+                  check=True,stdout=subprocess.PIPE,
+              ).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+              materialized.append(str(path))
+          print('MATERIALIZED='+str(len(materialized)))
+          PY
+
+      - name: Run promoted learner regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/contract_v2.py
+          python -B apps/learnit-next/tests/storage_isolation.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/atlas_m1_learning.py
+          python -B apps/learnit-next/tests/atlas_m1_core.py
+          python -B apps/learnit-next/tests/atlas_m1_experience.py
+          python -B apps/learnit-next/tests/atlas_m1_content.py
+          python -B apps/learnit-next/tests/atlas_m1_int.py
+          python -B apps/learnit-next/tests/atlas_m2_memory.py
+          python -B apps/learnit-next/tests/atlas_m2_transfer.py
+          python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py
+
+      - name: Rebuild exact promoted learner artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learner-a.html"
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learner-b.html"
+          cmp "$RUNNER_TEMP/learner-a.html" "$RUNNER_TEMP/learner-b.html"
+          python - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          data=(Path(os.environ['RUNNER_TEMP'])/'learner-a.html').read_bytes()
+          assert len(data)==366412, len(data)
+          digest=hashlib.sha256(data).hexdigest()
+          assert digest=='4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7', digest
+          print('LEARNER_BYTES='+str(len(data)))
+          print('LEARNER_SHA256='+digest)
+          PY
+
+      - name: Diff hygiene
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          set -euo pipefail
+          SCOPE_BASE="${PR_BASE_SHA:-c973f12c68ef675fc3c64e26e5b60860be9a24db}"
+          git diff --check "$SCOPE_BASE"...HEAD
+
+      - name: Write exact M3.2 product evidence
+        if: success()
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+          SCOPE_BASE: ${{ github.event.pull_request.base.sha || 'c973f12c68ef675fc3c64e26e5b60860be9a24db' }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          gate=Path('authoring/factory/factory_gate.py').read_bytes()
+          author=Path('authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md').read_bytes()
+          reviewer=Path('authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md').read_bytes()
+          proof={
+            'schema':'learnit.atlas.m3_2.ai-kit-factory.product-evidence.v1',
+            'result':'PASS',
+            'verdict':'PASS_ATLAS_M3_2_AI_KIT_FACTORY_PRODUCT_HEAD',
+            'workPackage':'ATLAS-WP-014',
+            'authorityIssue':286,
+            'head':os.environ['TARGET'],
+            'authorityBaseline':'c973f12c68ef675fc3c64e26e5b60860be9a24db',
+            'scopeBase':os.environ['SCOPE_BASE'],
+            'acceptedDesignHead':'39cdc783f1f679fee1882b34d2e087d40835e8d8',
+            'factoryGateSha256':hashlib.sha256(gate).hexdigest(),
+            'authorSkillV2Sha256':hashlib.sha256(author).hexdigest(),
+            'reviewerSkillV1Sha256':hashlib.sha256(reviewer).hexdigest(),
+            'factoryProfile':'atlas.ai-kit-factory.v1',
+            'semanticReviewProfile':'atlas.semantic-review.v1',
+            'sourceToDraftSubsystem':False,
+            'modelProviderIntegration':False,
+            'networkRequired':False,
+            'inputMutation':False,
+            'learnerArtifactBytes':366412,
+            'learnerArtifactSha256':'4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7',
+          }
+          out=Path(os.environ['RUNNER_TEMP'])/'atlas_m3_2_product.json'
+          out.write_text(json.dumps(proof,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+          print(json.dumps(proof,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload exact M3.2 product evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m3-2-product-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/atlas_m3_2_product.json
