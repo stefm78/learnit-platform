@@ -1,0 +1,308 @@
+name: Atlas M3.2 AI Kit Factory QA
+
+on:
+  pull_request:
+    branches:
+      - atlas/ATLAS-WP-014-m3-2-ai-kit-factory
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-m3-2-factory-qa-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  contradictory-qa:
+    name: QA-WP-022 exact-head contradictory evidence
+    if: github.head_ref == 'qa/QA-WP-022-m3-2-ai-kit-factory'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PRODUCT_HEAD: f45c32f73e4914c9432f67d2f5dc3da8dbcd85cd
+      PRODUCT_RUN: '33336411362'
+      PRODUCT_ARTIFACT: '9739154544'
+      PRODUCT_ARTIFACT_DIGEST: sha256:8bdaf7b11d4ac3605548de8c50199db320f5548ff57e45addf0ee409ef639541
+      LEARNER_BYTES: '366412'
+      LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+
+    steps:
+      - name: Checkout exact QA head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Bind exact frozen product and QA scope
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          [[ "$PR_BASE_REF" == "atlas/ATLAS-WP-014-m3-2-ai-kit-factory" ]]
+          [[ "$PR_BASE_SHA" == "$PRODUCT_HEAD" ]]
+          [[ "$(git rev-parse HEAD)" == "$TARGET" ]]
+          git cat-file -e "$PRODUCT_HEAD^{commit}"
+          [[ "$(git merge-base "$PRODUCT_HEAD" HEAD)" == "$PRODUCT_HEAD" ]]
+          [[ "$(git rev-list --count "$PRODUCT_HEAD"..HEAD)" -ge 1 ]]
+          [[ "$(git rev-list --count HEAD.."$PRODUCT_HEAD")" == "0" ]]
+
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/QA-WP-022.json').read_text(encoding='utf-8'))
+          assert wp['id']=='QA-WP-022'
+          assert wp['authority']['issue']==294
+          assert wp['baseline']['exactProductHead']==os.environ['PRODUCT_HEAD']
+          assert str(wp['baseline']['exactProductRun'])==os.environ['PRODUCT_RUN']
+          assert str(wp['baseline']['exactProductArtifact'])==os.environ['PRODUCT_ARTIFACT']
+          assert wp['baseline']['exactProductArtifactDigest']==os.environ['PRODUCT_ARTIFACT_DIGEST']
+          allowed=set(wp['scope']['allowedPaths'])
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',os.environ['PRODUCT_HEAD']+'...HEAD'],
+              text=True,
+          ).splitlines())
+          assert changed==allowed, f'QA_WP_022_SCOPE_MISMATCH:{sorted(changed)} != {sorted(allowed)}'
+          assert len(changed)==3
+          print('QA_WP_022_EXACT_SCOPE=PASS')
+          for path in sorted(changed):
+              print(path)
+          PY
+
+      - name: Prove exact product blobs are unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          product_paths=(
+            work-packages/ATLAS-WP-014.json
+            authoring/factory/factory_gate.py
+            authoring/factory/README.md
+            authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md
+            authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+            authoring/factory/tests/test_ai_kit_factory.py
+            .github/workflows/atlas-m3-2-ai-kit-factory-ci.yml
+          )
+          for path in "${product_paths[@]}"; do
+            expected="$(git rev-parse "$PRODUCT_HEAD:$path")"
+            actual="$(git rev-parse "HEAD:$path")"
+            [[ "$actual" == "$expected" ]] || {
+              echo "PRODUCT_BLOB_DRIFT:$path expected=$expected actual=$actual" >&2
+              exit 1
+            }
+            echo "PRODUCT_BLOB_OK $path $actual"
+          done
+
+      - name: Re-run repository governance
+        run: python -B tools/validate_repository.py
+
+      - name: Re-run PR scope oracle against frozen product base
+        shell: bash
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          TARGET: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python -B tools/test_validate_pr_scope.py
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          Path('/tmp/qa-pr-body.md').write_text(os.environ.get('PR_BODY',''),encoding='utf-8')
+          PY
+          python -B tools/validate_pr_scope.py \
+            --base "$PRODUCT_HEAD" \
+            --head "$TARGET" \
+            --body-file /tmp/qa-pr-body.md \
+            --output /tmp/qa-pr-scope-report.json
+
+      - name: Re-run canonical Atlas authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/v2/validate_kit.py \
+            authoring/v2/atlas/nombres_complexes_atlas.json \
+            authoring/v2/atlas/signaux_electriques_atlas.json
+          python -B authoring/v2/atlas/validate_atlas_content.py
+
+      - name: Run independent QA oracle
+        run: python -B authoring/factory/tests/qa_ai_kit_factory.py
+
+      - name: Re-run frozen product oracle
+        run: python -B authoring/factory/tests/test_ai_kit_factory.py
+
+      - name: Prove factory boundary remains local read-only and non-ingesting
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -REn '\b(requests|httpx|aiohttp)\b|urllib\.request|socket\.|WebSocket|XMLHttpRequest|EventSource' \
+            authoring/factory/factory_gate.py
+          ! grep -En '\.write_text\(|\.write_bytes\(|(^|[^A-Za-z])open\(' \
+            authoring/factory/factory_gate.py
+          ! grep -REni '\b(pypdf|pdfplumber|pymupdf|fitz|tesseract|ocr)\b' \
+            authoring/factory/factory_gate.py
+          ! grep -REn 'learnit\.kit\.v2.*source|sourceRef|sourceProvenance' \
+            authoring/factory/factory_gate.py
+
+      - name: Prove author reviewer role separation remains exact
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'Do not review your own final kit inside this active author context' authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md
+          grep -q 'authorScratchpadSeen' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'authorActiveContextReused' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+          grep -q 'PASS_SEMANTIC_REVIEW_V1' authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+
+      - name: Materialize exact declared learner projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          materialized=[]
+          for item in manifest['workingFiles']:
+              path=Path(item['path'])
+              if path.is_file():
+                  continue
+              fingerprint=item.get('fingerprint',{})
+              if fingerprint.get('kind')!='git-blob-sha1':
+                  continue
+              data=subprocess.run(
+                  ['git','cat-file','blob',fingerprint.get('value','')],
+                  check=True,stdout=subprocess.PIPE,
+              ).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+              materialized.append(str(path))
+          print('MATERIALIZED='+str(len(materialized)))
+          PY
+
+      - name: Run promoted learner regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/contract_v2.py
+          python -B apps/learnit-next/tests/storage_isolation.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/atlas_m1_learning.py
+          python -B apps/learnit-next/tests/atlas_m1_core.py
+          python -B apps/learnit-next/tests/atlas_m1_experience.py
+          python -B apps/learnit-next/tests/atlas_m1_content.py
+          python -B apps/learnit-next/tests/atlas_m1_int.py
+          python -B apps/learnit-next/tests/atlas_m2_memory.py
+          python -B apps/learnit-next/tests/atlas_m2_transfer.py
+          python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py
+
+      - name: Rebuild exact promoted learner artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learner-a.html"
+          rm -rf apps/learnit-next/dist
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learner-b.html"
+          cmp "$RUNNER_TEMP/learner-a.html" "$RUNNER_TEMP/learner-b.html"
+          python - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          data=(Path(os.environ['RUNNER_TEMP'])/'learner-a.html').read_bytes()
+          expected_bytes=int(os.environ['LEARNER_BYTES'])
+          assert len(data)==expected_bytes, (len(data),expected_bytes)
+          digest=hashlib.sha256(data).hexdigest()
+          assert digest==os.environ['LEARNER_SHA256'], digest
+          print('LEARNER_BYTES='+str(len(data)))
+          print('LEARNER_SHA256='+digest)
+          PY
+
+      - name: Diff hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check "$PRODUCT_HEAD"...HEAD
+
+      - name: Write exact QA evidence
+        if: success()
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+
+          product_paths=[
+            'work-packages/ATLAS-WP-014.json',
+            'authoring/factory/factory_gate.py',
+            'authoring/factory/README.md',
+            'authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md',
+            'authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md',
+            'authoring/factory/tests/test_ai_kit_factory.py',
+            '.github/workflows/atlas-m3-2-ai-kit-factory-ci.yml',
+          ]
+          product_blobs={
+            path: subprocess.check_output(
+                ['git','rev-parse',os.environ['PRODUCT_HEAD']+':'+path],
+                text=True,
+            ).strip()
+            for path in product_paths
+          }
+          proof={
+            'schema':'learnit.atlas.m3_2.ai-kit-factory.qa-evidence.v1',
+            'result':'PASS',
+            'verdict':'PASS_QA_WP_022_EXACT_HEAD_CONTRADICTORY_QA',
+            'workPackage':'QA-WP-022',
+            'authorityIssue':294,
+            'parentProductIssue':286,
+            'pullRequest':int(os.environ['PR_NUMBER']),
+            'qaHead':os.environ['TARGET'],
+            'productHead':os.environ['PRODUCT_HEAD'],
+            'productRun':int(os.environ['PRODUCT_RUN']),
+            'productArtifact':int(os.environ['PRODUCT_ARTIFACT']),
+            'productArtifactDigest':os.environ['PRODUCT_ARTIFACT_DIGEST'],
+            'productBlobs':product_blobs,
+            'qaOracleSha256':hashlib.sha256(Path('authoring/factory/tests/qa_ai_kit_factory.py').read_bytes()).hexdigest(),
+            'qaWorkflowSha256':hashlib.sha256(Path('.github/workflows/atlas-m3-2-ai-kit-factory-qa.yml').read_bytes()).hexdigest(),
+            'qaWorkPackageSha256':hashlib.sha256(Path('work-packages/QA-WP-022.json').read_bytes()).hexdigest(),
+            'learnerArtifactBytes':int(os.environ['LEARNER_BYTES']),
+            'learnerArtifactSha256':os.environ['LEARNER_SHA256'],
+            'canonicalValidators':'PASS',
+            'productOracle':'PASS',
+            'independentOracle':'PASS',
+            'repositoryGovernance':'PASS',
+            'prScope':'PASS',
+            'productBlobIdentity':'PASS',
+            'learnerRegressions':'PASS',
+          }
+          out=Path(os.environ['RUNNER_TEMP'])/'atlas_m3_2_qa.json'
+          out.write_text(json.dumps(proof,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+          print(json.dumps(proof,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload exact QA evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m3-2-qa-${{ github.event.pull_request.head.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/atlas_m3_2_qa.json
+            /tmp/qa-pr-scope-report.json
