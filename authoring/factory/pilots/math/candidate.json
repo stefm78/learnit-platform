@@ -1,0 +1,260 @@
+{
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "2d80d579-555b-42f2-b970-a887b66fcae9",
+  "packageRevisionId": "b44c9844-a79d-4325-8f08-181a484b3f87",
+  "packageRevisionDigest": "sha256:6d02f1369d42541bcee1b2be880424090a7c7c2e3532620803ddf68a8444272b",
+  "title": "Probabilités — Exercice officiel 2024",
+  "description": "Kit pilote Atlas construit uniquement à partir de l’exercice 3 et de sa correction officielle éduscol.",
+  "versionLabel": "M3.2.5 real-source pilot math v1",
+  "language": "fr",
+  "courses": [
+    {
+      "courseLineageId": "0b46dfd7-8b4c-49c3-8ab4-1ee8a5079ede",
+      "courseRevisionId": "222fc233-f855-470a-92ba-db8d80234663",
+      "courseRevisionDigest": "sha256:011f83ff7d6cc2f8895d80a79c55ba433e5a19483649e0ea4dc686f24d54ab4b",
+      "title": "Probabilités conditionnelles — arbre de Q1 et Q2",
+      "subtitle": "À partir de l’exercice 3 officiel de spécialité mathématiques, session 2024",
+      "estimatedMinutes": 21,
+      "objectives": [
+        {
+          "objectiveId": "6ed694b6-8cc8-4a76-bbc4-174dd9f63add",
+          "label": "Calculer des probabilités à partir des chemins d’un arbre pondéré"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "63717a68-cfc4-4357-b4a6-df3d23146d96",
+          "activityRevisionId": "9d5fb85a-af18-413e-9f82-16ad9c569804",
+          "activityRevisionDigest": "sha256:54cb778da43623e3e06d17aee5cdd5a1b0816d2d72268622ed778062849989db",
+          "objectiveIds": [
+            "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
+          ],
+          "type": "qcm",
+          "prompt": "D’après l’arbre de l’exercice 3, quelle est la probabilité que le candidat réponde correctement à Q1 et à Q2 ?",
+          "explanation": "Le chemin A puis B a pour poids 0,8 × 0,6, donc P(A ∩ B) = 0,48, comme dans la correction officielle.",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "2721ea35-c64d-447c-86d3-36a1f0db63e1",
+              "label": "0,48"
+            },
+            {
+              "choiceId": "feef2452-cc78-410d-9e8b-f7f29030f466",
+              "label": "0,60"
+            },
+            {
+              "choiceId": "58b497d5-253c-4639-8490-b7889ccde64d",
+              "label": "0,80"
+            },
+            {
+              "choiceId": "d8102e40-e5bd-4afd-9400-f6264239e574",
+              "label": "1,40"
+            }
+          ],
+          "correctChoiceId": "2721ea35-c64d-447c-86d3-36a1f0db63e1"
+        },
+        {
+          "activityLineageId": "3fdff653-f5f2-4e29-9209-21e682c9de48",
+          "activityRevisionId": "ba788ae1-6d71-4654-a76e-970a5c06ed8b",
+          "activityRevisionDigest": "sha256:d984f800d64b2a7143a632376ee28050d27185594cb8327f95d8ddf296e1abf2",
+          "objectiveIds": [
+            "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
+          ],
+          "type": "qcm",
+          "prompt": "Une copie écrit P(A ∩ B) = 0,8 + 0,6. Quelle correction faut-il apporter ?",
+          "explanation": "Pour un chemin de l’arbre, on multiplie les probabilités successives : 0,8 × 0,6 = 0,48. L’addition 0,8 + 0,6 ne représente pas l’intersection A ∩ B.",
+          "difficulty": "medium",
+          "learningPhase": "consolidation",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "08e2f592-1c24-4421-86d3-cda1fb20e36f",
+              "label": "Remplacer l’addition par 0,8 × 0,6 = 0,48."
+            },
+            {
+              "choiceId": "d97b6637-64ee-4553-ab26-a9a31113649c",
+              "label": "Conserver 0,8 + 0,6 = 1,4."
+            },
+            {
+              "choiceId": "8c9a68b3-db99-493b-8ac7-8f8569e9e6d5",
+              "label": "Calculer 0,8 − 0,6 = 0,2."
+            },
+            {
+              "choiceId": "c2c81827-f756-4a3d-af8a-b32b46789771",
+              "label": "Calculer 0,6 ÷ 0,8 = 0,75."
+            }
+          ],
+          "correctChoiceId": "08e2f592-1c24-4421-86d3-cda1fb20e36f"
+        },
+        {
+          "activityLineageId": "914f3665-a5d8-48f0-a97c-51272476e7e8",
+          "activityRevisionId": "7e099359-c49c-479f-829f-3899628846c0",
+          "activityRevisionDigest": "sha256:e96fb1914b72d78f3206905570086cde50e3672c147e6f8b9407a141c9964eb0",
+          "objectiveIds": [
+            "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
+          ],
+          "type": "fill",
+          "prompt": "Le candidat échoue à Q1 puis réussit Q2. Complète la probabilité du chemin correspondant.",
+          "explanation": "La probabilité de ne pas réussir Q1 vaut 0,2, puis la probabilité de réussir Q2 dans ce cas vaut 0,1. Le chemin vaut donc 0,2 × 0,1 = 0,02.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "segments": [
+            {
+              "text": "P(Ā ∩ B) = "
+            },
+            {
+              "slotId": "afca0bbf-ef6b-4d1f-9b63-fdeff4189549"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "bee355f8-4c1a-48e1-8372-7721777b27d0",
+              "label": "0,02",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "cf3f694f-3d85-44f6-a22b-42d472b037e0",
+              "label": "0,08",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "13d79447-cb3f-4865-bf49-dd88811593d6",
+              "label": "0,18",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "eac298f9-c0b2-4a00-a368-1dbb0c6e2c8c",
+              "label": "0,20",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "afca0bbf-ef6b-4d1f-9b63-fdeff4189549",
+              "tokenId": "bee355f8-4c1a-48e1-8372-7721777b27d0"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "4a7431e9-6d4a-4e27-aebf-380b0af8456c",
+          "activityRevisionId": "5f3fe6e8-465f-4ea9-8ce1-029474159d8f",
+          "activityRevisionDigest": "sha256:b238447213463d70faab951a3f573cb97faf885514c57a9930e707ffb3825933",
+          "objectiveIds": [
+            "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
+          ],
+          "type": "qcm",
+          "prompt": "En réunissant les deux chemins qui aboutissent à une réponse correcte à Q2, quelle est P(B) ?",
+          "explanation": "La correction officielle additionne P(A ∩ B) = 0,48 et P(Ā ∩ B) = 0,02. Ainsi P(B) = 0,50.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "b8e78caa-a4e1-4a40-b87a-1c7125933b58",
+              "label": "0,50"
+            },
+            {
+              "choiceId": "1391cdf7-6411-400b-998e-0039bb8927f5",
+              "label": "0,46"
+            },
+            {
+              "choiceId": "817d99e2-fabf-48d0-9087-7343cf590246",
+              "label": "0,48"
+            },
+            {
+              "choiceId": "32c52afd-e41e-4fb6-8ce4-73f9f85e0dee",
+              "label": "0,58"
+            }
+          ],
+          "correctChoiceId": "b8e78caa-a4e1-4a40-b87a-1c7125933b58"
+        },
+        {
+          "activityLineageId": "68eec493-5ed7-40a1-a531-d65f074995a4",
+          "activityRevisionId": "e58bb9b2-7458-46b9-bd6b-be66f6b5cb7d",
+          "activityRevisionDigest": "sha256:6c6fbf3f3f9f30126ee9081fd2afb45567c9ddcacb4541b09952640ea99bc708",
+          "objectiveIds": [
+            "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
+          ],
+          "type": "fill",
+          "prompt": "On passe de l’arbre à la note X de l’exercice : quelle est la probabilité d’obtenir exactement un point, donc de réussir une seule des deux questions ?",
+          "explanation": "La correction officielle donne P(X = 0) = 0,18 et P(X = 2) = 0,48. Comme les trois valeurs 0, 1 et 2 épuisent les cas, P(X = 1) = 1 − 0,18 − 0,48 = 0,34.",
+          "difficulty": "advanced",
+          "learningPhase": "transfer",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 5,
+          "segments": [
+            {
+              "text": "P(X = 1) = "
+            },
+            {
+              "slotId": "2c0b13a4-f99b-4bbe-914d-fed5b7a4d36b"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "057b0049-97d7-47e1-a0e1-963dabeb5e61",
+              "label": "0,34",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "3a51d810-c739-4424-8f39-c99437442c15",
+              "label": "0,18",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "97412b98-f394-4816-b9ba-4998c8be4400",
+              "label": "0,48",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "0792e594-96ea-438f-85f7-9c1aefeb79d0",
+              "label": "0,66",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "2c0b13a4-f99b-4bbe-914d-fed5b7a4d36b",
+              "tokenId": "057b0049-97d7-47e1-a0e1-963dabeb5e61"
+            }
+          ]
+        }
+      ],
+      "atlasValidationIndependenceClaims": [
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:e1b0b36c33c1ef5b5b7cd9dd82b5da2a2315f62b5402af7cf399f12448d181d8",
+          "objectiveId": "6ed694b6-8cc8-4a76-bbc4-174dd9f63add",
+          "sourceActivityLineageId": "63717a68-cfc4-4357-b4a6-df3d23146d96",
+          "targetActivityLineageId": "914f3665-a5d8-48f0-a97c-51272476e7e8",
+          "basisCode": "new-instance",
+          "sourceStimulusDigest": "sha256:456641f6dbc57d8883c5abf4fd32027426b21959485581bdf331985bb64735e1",
+          "targetStimulusDigest": "sha256:b334a787b051fef6939e13ca8a452f3e21989c9b3a22069eb177f10c4ae0c867"
+        },
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:5895a6e5bb0ad9ec15770255e5d45186abbfeb58eeaab183a4b20646fde349df",
+          "objectiveId": "6ed694b6-8cc8-4a76-bbc4-174dd9f63add",
+          "sourceActivityLineageId": "914f3665-a5d8-48f0-a97c-51272476e7e8",
+          "targetActivityLineageId": "4a7431e9-6d4a-4e27-aebf-380b0af8456c",
+          "basisCode": "alternate-representation",
+          "sourceStimulusDigest": "sha256:b334a787b051fef6939e13ca8a452f3e21989c9b3a22069eb177f10c4ae0c867",
+          "targetStimulusDigest": "sha256:cc56f8c2581a7094c17451f15ac0ab120d6714bf6680f85622cb742f949523d3"
+        }
+      ]
+    }
+  ]
+}
