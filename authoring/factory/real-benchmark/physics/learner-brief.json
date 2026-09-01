@@ -1,0 +1,7 @@
+{
+  "schema": "learnit.atlas.learner_brief.v1",
+  "audience": "étudiant de premier cycle scientifique abordant le magnétisme",
+  "goal": "Relier courant, force magnétique, moment dipolaire et couple dans les situations explicitement traitées par MIT 8.02T Problem Solving 5.",
+  "language": "fr",
+  "timeBudgetMinutes": 25
+}
