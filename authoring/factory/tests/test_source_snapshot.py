@@ -131,6 +131,19 @@ class SnapshotTests(unittest.TestCase):
                 payload,
             )
 
+    def test_pdf_media_type_requires_pdf_signature(self):
+        with self.assertRaisesRegex(snapshot.SnapshotError, "lacks PDF signature"):
+            snapshot.validate_fetched_payload(
+                "https://example.test/download-handler",
+                "application/pdf",
+                b"<html>not a pdf</html>",
+            )
+        snapshot.validate_fetched_payload(
+            "https://example.test/download-handler",
+            "application/pdf",
+            b"%PDF-1.7\nreal bytes",
+        )
+
     def test_retrieval_failure_holds_snapshot(self):
         failed_url = self.source_url("python:docs-fr-3.14.7-text")
         fetcher = FakeFetcher(fail_url=failed_url)
