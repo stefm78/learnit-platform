@@ -1,0 +1,256 @@
+name: Atlas M3.2.5 Real Benchmark Candidates
+
+on:
+  push:
+    branches:
+      - atlas/ATLAS-WP-015-real-benchmark-candidates-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-real-benchmark-candidates-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  qualify:
+    name: Qualify eight frozen real-source candidates
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact candidate head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Download exact frozen source bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="${RUNNER_TEMP}/real-benchmark-sources"
+          mkdir -p "${SRC}"
+
+          fetch() {
+            local url="$1" out="$2" expected="$3"
+            curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$url" -o "${SRC}/$out"
+            printf '%s  %s\n' "$expected" "${SRC}/$out" | sha256sum -c -
+          }
+
+          fetch 'https://eduscol.education.gouv.fr/sites/default/files/document/bac-eds-math-session-2024-exemples-dexercicespdf-104544.pdf' \
+            math-exercises.pdf e3a1b3b19ad73db91e26eb53044c53348c5a7f0d9bcf0215d6c7b7640801b0f9
+          fetch 'https://eduscol.education.gouv.fr/sites/default/files/document/bac-eds-maths-attendus-pour-la-correctionpdf-104547.pdf' \
+            math-correction.pdf e72b860ae098370fb5c1c93b1c814c1dc63bd68258ba4a7a1899318bcc1fea3d
+          fetch 'https://ocw.mit.edu/courses/8-02t-electricity-and-magnetism-spring-2005/7cd89ae2894fa2d45fe629988081a809_solving05.pdf' \
+            physics.pdf 1d1584f20100a19ef7f1bc5210f07b6942002129c4473429060733034f8acd35
+          fetch 'https://docs.python.org/fr/3.14/archives/python-3.14-docs-text.zip' \
+            computer-science.zip db948ef604f1923b85236fc56221404d3f2564de891ca6424798253aa7c745b4
+          fetch 'https://eduscol.education.gouv.fr/sites/default/files/document/ra22lyceeg1abibachistoireth5-france-allemagne-democratiepdf-95535.pdf' \
+            history.pdf 00401a83bb1244e368d60620283740f37c78afcc909e71a380807864f9d69910
+          fetch 'https://www.govinfo.gov/content/pkg/SMAN-117/pdf/SMAN-117-pg561.pdf' \
+            law.pdf c9b9c5fa85613cc0e023b8d40120fa3fcb08667ed28404514545cf26e7a752fb
+          fetch 'https://www.has-sante.fr/upload/docs/application/pdf/2026-02/dir1/flash_securite_patient__retranscription_des_prescriptions_medicamenteuses._copier_une_prescription_cest_risquer_de_coller_de.pdf' \
+            medicine.pdf 62aae4493bf4d47e210c128992212f532209fbf8ae204b1d2e2d16abcf3d36c1
+          fetch 'https://ocw.mit.edu/courses/21l-488-contemporary-literature-british-novels-now-spring-2007/da92a1286f31e5d301d3e796acc8eb25_contemp_lit.pdf' \
+            literature.pdf 9f15b415f2e655786e683626352fb80bf4fd42c81d59009487b6bb5a7ff33d29
+          fetch 'https://op.europa.eu/o/opportal-service/download-handler?identifier=97cc2f12-c648-11ee-95d9-01aa75ed71a1&format=pdf&language=fr&productionSystem=cellar&part=' \
+            management.pdf ed210f58a73ffc98bc2549083a58068649ce6a4d6acc2fa874977c0608019dab
+
+          for pdf in math-exercises.pdf math-correction.pdf physics.pdf history.pdf law.pdf medicine.pdf literature.pdf management.pdf; do
+            head -c 5 "${SRC}/$pdf" | grep -q '%PDF-'
+          done
+
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile, os
+          src=Path(os.environ['RUNNER_TEMP'])/'real-benchmark-sources'
+          z=zipfile.ZipFile(src/'computer-science.zip')
+          matches=[n for n in z.namelist() if n.endswith('/tutorial/datastructures.txt') or n=='tutorial/datastructures.txt']
+          assert len(matches)==1, matches
+          (src/'computer-science-datastructures.txt').write_bytes(z.read(matches[0]))
+          print('PYTHON_DOC_MEMBER='+matches[0])
+          PY
+
+      - name: Re-run SourceAdmission on exact bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="${RUNNER_TEMP}/real-benchmark-sources"
+          EVD="${RUNNER_TEMP}/real-benchmark-evidence"
+          mkdir -p "${EVD}/admissions"
+
+          admit() {
+            local id="$1" file="$2"; shift 2
+            args=()
+            for condition in "$@"; do args+=(--accept-condition "$condition"); done
+            python -B authoring/factory/source_admission.py admit \
+              --catalog authoring/factory/benchmark_sources_v1.json \
+              --source-id "$id" \
+              --use-context internal-rd-noncommercial \
+              --file "${SRC}/$file" \
+              "${args[@]}" > "${EVD}/admissions/${file%.*}.json"
+          }
+
+          admit 'eduscol:math-specialite-examples-2024' math-exercises.pdf attribution exclude-marked-third-party
+          admit 'eduscol:math-specialite-correction-2024' math-correction.pdf attribution exclude-marked-third-party
+          admit 'mit-ocw:8-02t-solving05-2005' physics.pdf attribution noncommercial-use sharealike
+          admit 'python:docs-fr-3.14.7-text' computer-science.zip preserve-license-notice
+          admit 'eduscol:abibac-democratie-france-allemagne-2022' history.pdf attribution exclude-marked-third-party
+          admit 'govinfo:sman-117-constitution' law.pdf source-attribution
+          admit 'has:flash-prescription-retranscription-2026' medicine.pdf source-and-date-attribution no-alteration-or-distortion has-owned-content-only
+          admit 'mit-ocw:21l-488-contemporary-literature-characteristics' literature.pdf attribution noncommercial-use sharealike
+          admit 'eu:pm2-v3.1' management.pdf attribution
+
+      - name: Validate all eight candidates canonically
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t kits < <(find authoring/factory/real-benchmark -mindepth 2 -maxdepth 2 -name candidate.json | sort)
+          [[ "${#kits[@]}" -eq 8 ]]
+          python -B authoring/v2/validate_kit.py "${kits[@]}"
+
+      - name: Require M3.1 excellent quality for every candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVD="${RUNNER_TEMP}/real-benchmark-evidence"
+          mkdir -p "${EVD}/quality"
+          for domain in mathematics physics computer-science history law medicine literature management; do
+            python -B authoring/v2/atlas/pedagogical_quality.py \
+              "authoring/factory/real-benchmark/${domain}/candidate.json" \
+              --json --require-excellent \
+              > "${EVD}/quality/${domain}.json"
+          done
+
+      - name: Freeze exact Factory contexts
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="${RUNNER_TEMP}/real-benchmark-sources"
+          EVD="${RUNNER_TEMP}/real-benchmark-evidence"
+          mkdir -p "${EVD}/contexts"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/mathematics/candidate.json \
+            --brief authoring/factory/real-benchmark/mathematics/learner-brief.json \
+            --source 'eduscol:math-specialite-examples-2024='"${SRC}/math-exercises.pdf" \
+            --source 'eduscol:math-specialite-correction-2024='"${SRC}/math-correction.pdf" \
+            > "${EVD}/contexts/mathematics.json"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/physics/candidate.json \
+            --brief authoring/factory/real-benchmark/physics/learner-brief.json \
+            --source 'mit-ocw:8-02t-solving05-2005='"${SRC}/physics.pdf" \
+            > "${EVD}/contexts/physics.json"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/computer-science/candidate.json \
+            --brief authoring/factory/real-benchmark/computer-science/learner-brief.json \
+            --source 'python:docs-fr-3.14.7-text='"${SRC}/computer-science.zip" \
+            > "${EVD}/contexts/computer-science.json"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/history/candidate.json \
+            --brief authoring/factory/real-benchmark/history/learner-brief.json \
+            --source 'eduscol:abibac-democratie-france-allemagne-2022='"${SRC}/history.pdf" \
+            > "${EVD}/contexts/history.json"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/law/candidate.json \
+            --brief authoring/factory/real-benchmark/law/learner-brief.json \
+            --source 'govinfo:sman-117-constitution='"${SRC}/law.pdf" \
+            > "${EVD}/contexts/law.json"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/medicine/candidate.json \
+            --brief authoring/factory/real-benchmark/medicine/learner-brief.json \
+            --source 'has:flash-prescription-retranscription-2026='"${SRC}/medicine.pdf" \
+            > "${EVD}/contexts/medicine.json"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/literature/candidate.json \
+            --brief authoring/factory/real-benchmark/literature/learner-brief.json \
+            --source 'mit-ocw:21l-488-contemporary-literature-characteristics='"${SRC}/literature.pdf" \
+            > "${EVD}/contexts/literature.json"
+
+          python -B authoring/factory/factory_gate.py context \
+            --kit authoring/factory/real-benchmark/management/candidate.json \
+            --brief authoring/factory/real-benchmark/management/learner-brief.json \
+            --source 'eu:pm2-v3.1='"${SRC}/management.pdf" \
+            > "${EVD}/contexts/management.json"
+
+      - name: Assemble independent-review handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="${RUNNER_TEMP}/real-benchmark-sources"
+          EVD="${RUNNER_TEMP}/real-benchmark-evidence"
+          mkdir -p "${EVD}/candidates" "${EVD}/briefs" "${EVD}/sources"
+
+          for domain in mathematics physics computer-science history law medicine literature management; do
+            cp "authoring/factory/real-benchmark/${domain}/candidate.json" "${EVD}/candidates/${domain}.json"
+            cp "authoring/factory/real-benchmark/${domain}/learner-brief.json" "${EVD}/briefs/${domain}.json"
+          done
+          cp "${SRC}/math-exercises.pdf" "${EVD}/sources/"
+          cp "${SRC}/math-correction.pdf" "${EVD}/sources/"
+          cp "${SRC}/physics.pdf" "${EVD}/sources/"
+          cp "${SRC}/computer-science.zip" "${EVD}/sources/"
+          cp "${SRC}/computer-science-datastructures.txt" "${EVD}/sources/"
+          cp "${SRC}/history.pdf" "${EVD}/sources/"
+          cp "${SRC}/law.pdf" "${EVD}/sources/"
+          cp "${SRC}/medicine.pdf" "${EVD}/sources/"
+          cp "${SRC}/literature.pdf" "${EVD}/sources/"
+          cp "${SRC}/management.pdf" "${EVD}/sources/"
+
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, os
+          root=Path(os.environ['RUNNER_TEMP'])/'real-benchmark-evidence'
+          domains=['mathematics','physics','computer-science','history','law','medicine','literature','management']
+          def sha(p):
+              return 'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest()
+          cases={}
+          for d in domains:
+              ctx=json.loads((root/'contexts'/f'{d}.json').read_text(encoding='utf-8'))
+              quality=json.loads((root/'quality'/f'{d}.json').read_text(encoding='utf-8'))
+              cases[d]={
+                  'candidateSha256':sha(root/'candidates'/f'{d}.json'),
+                  'briefSha256':sha(root/'briefs'/f'{d}.json'),
+                  'factoryContext':ctx,
+                  'qualityBand':quality['qualityBand'],
+                  'canonicalValid':quality['canonicalValid'],
+              }
+          handoff={
+              'schema':'learnit.atlas.real_benchmark_reviewer_handoff.v1',
+              'factoryMain':'4cd6834e23a4bb93453d3597f80d088a3f2e54c0',
+              'sourceSnapshotId':'sha256:78e01b54891f71e030c935a658daa31cd9d27e96475fe0cf7a5021b7bc79905d',
+              'authorContext':'separate-from-reviewer-required',
+              'reviewerIndependenceRequired':True,
+              'authorScratchpadSeenMustBe':False,
+              'authorActiveContextReusedMustBe':False,
+              'cases':cases,
+          }
+          (root/'reviewer-handoff.json').write_text(
+              json.dumps(handoff,ensure_ascii=False,sort_keys=True,separators=(',',':'))+'\n',
+              encoding='utf-8'
+          )
+          print(json.dumps(handoff,ensure_ascii=False,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload frozen eight-domain reviewer bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-real-benchmark-reviewer-handoff-${{ github.sha }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/real-benchmark-evidence/
