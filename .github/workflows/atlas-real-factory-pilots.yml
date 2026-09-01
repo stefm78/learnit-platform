@@ -1,0 +1,133 @@
+name: Atlas M3.2.5 Real Factory Pilots
+
+on:
+  push:
+    branches:
+      - atlas/ATLAS-WP-015-real-factory-pilots
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-real-factory-pilots-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  qualify:
+    name: Freeze real-source math and literature candidates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact pilot head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Download exact admitted source bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/pilot-sources" "${RUNNER_TEMP}/pilot-evidence"
+
+          curl --fail --location --retry 3 --silent --show-error             'https://eduscol.education.gouv.fr/sites/default/files/document/bac-eds-math-session-2024-exemples-dexercicespdf-104544.pdf'             -o "${RUNNER_TEMP}/pilot-sources/math-exercises.pdf"
+          curl --fail --location --retry 3 --silent --show-error             'https://eduscol.education.gouv.fr/sites/default/files/document/bac-eds-maths-attendus-pour-la-correctionpdf-104547.pdf'             -o "${RUNNER_TEMP}/pilot-sources/math-correction.pdf"
+          curl --fail --location --retry 3 --silent --show-error             'https://ocw.mit.edu/courses/21l-488-contemporary-literature-british-novels-now-spring-2007/da92a1286f31e5d301d3e796acc8eb25_contemp_lit.pdf'             -o "${RUNNER_TEMP}/pilot-sources/literature.pdf"
+
+          echo 'e3a1b3b19ad73db91e26eb53044c53348c5a7f0d9bcf0215d6c7b7640801b0f9  '"${RUNNER_TEMP}"'/pilot-sources/math-exercises.pdf' | sha256sum -c -
+          echo 'e72b860ae098370fb5c1c93b1c814c1dc63bd68258ba4a7a1899318bcc1fea3d  '"${RUNNER_TEMP}"'/pilot-sources/math-correction.pdf' | sha256sum -c -
+          echo '9f15b415f2e655786e683626352fb80bf4fd42c81d59009487b6bb5a7ff33d29  '"${RUNNER_TEMP}"'/pilot-sources/literature.pdf' | sha256sum -c -
+
+      - name: Re-run source admission on exact bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/source_admission.py admit             --catalog authoring/factory/benchmark_sources_v1.json             --source-id eduscol:math-specialite-examples-2024             --use-context internal-rd-noncommercial             --file "${RUNNER_TEMP}/pilot-sources/math-exercises.pdf"             --accept-condition attribution             --accept-condition exclude-marked-third-party             > "${RUNNER_TEMP}/pilot-evidence/math-exercises-admission.json"
+
+          python -B authoring/factory/source_admission.py admit             --catalog authoring/factory/benchmark_sources_v1.json             --source-id eduscol:math-specialite-correction-2024             --use-context internal-rd-noncommercial             --file "${RUNNER_TEMP}/pilot-sources/math-correction.pdf"             --accept-condition attribution             --accept-condition exclude-marked-third-party             > "${RUNNER_TEMP}/pilot-evidence/math-correction-admission.json"
+
+          python -B authoring/factory/source_admission.py admit             --catalog authoring/factory/benchmark_sources_v1.json             --source-id mit-ocw:21l-488-contemporary-literature-characteristics             --use-context internal-rd-noncommercial             --file "${RUNNER_TEMP}/pilot-sources/literature.pdf"             --accept-condition attribution             --accept-condition noncommercial-use             --accept-condition sharealike             > "${RUNNER_TEMP}/pilot-evidence/literature-admission.json"
+
+      - name: Validate exact candidate kits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/v2/validate_kit.py             authoring/factory/pilots/math/candidate.json             authoring/factory/pilots/literature/candidate.json
+          python -B authoring/v2/atlas/pedagogical_quality.py             authoring/factory/pilots/math/candidate.json --json --require-excellent             > "${RUNNER_TEMP}/pilot-evidence/math-quality.json"
+          python -B authoring/v2/atlas/pedagogical_quality.py             authoring/factory/pilots/literature/candidate.json --json --require-excellent             > "${RUNNER_TEMP}/pilot-evidence/literature-quality.json"
+
+      - name: Freeze exact factory contexts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/factory_gate.py context             --kit authoring/factory/pilots/math/candidate.json             --brief authoring/factory/pilots/math/learner-brief.json             --source exercise="${RUNNER_TEMP}/pilot-sources/math-exercises.pdf"             --source correction="${RUNNER_TEMP}/pilot-sources/math-correction.pdf"             > "${RUNNER_TEMP}/pilot-evidence/math-factory-context.json"
+
+          python -B authoring/factory/factory_gate.py context             --kit authoring/factory/pilots/literature/candidate.json             --brief authoring/factory/pilots/literature/learner-brief.json             --source source="${RUNNER_TEMP}/pilot-sources/literature.pdf"             > "${RUNNER_TEMP}/pilot-evidence/literature-factory-context.json"
+
+      - name: Assemble reviewer handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp authoring/factory/pilots/math/candidate.json "${RUNNER_TEMP}/pilot-evidence/math-candidate.json"
+          cp authoring/factory/pilots/math/learner-brief.json "${RUNNER_TEMP}/pilot-evidence/math-learner-brief.json"
+          cp authoring/factory/pilots/literature/candidate.json "${RUNNER_TEMP}/pilot-evidence/literature-candidate.json"
+          cp authoring/factory/pilots/literature/learner-brief.json "${RUNNER_TEMP}/pilot-evidence/literature-learner-brief.json"
+          cp "${RUNNER_TEMP}/pilot-sources/"* "${RUNNER_TEMP}/pilot-evidence/"
+
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'pilot-evidence'
+          def sha(name):
+              return 'sha256:'+hashlib.sha256((root/name).read_bytes()).hexdigest()
+          def load(name):
+              return json.loads((root/name).read_text(encoding='utf-8'))
+          manifest={
+            'schema':'learnit.atlas.real_factory_pilot_handoff.v1',
+            'authorContext':'current-author-context',
+            'reviewerIndependenceRequired':True,
+            'reviewerMustNotReuseAuthorActiveContext':True,
+            'pilots':{
+              'math':{
+                'candidateSha256':sha('math-candidate.json'),
+                'briefSha256':sha('math-learner-brief.json'),
+                'factoryContext':load('math-factory-context.json'),
+                'quality':load('math-quality.json'),
+                'sources':{
+                  'exercise':sha('math-exercises.pdf'),
+                  'correction':sha('math-correction.pdf'),
+                },
+              },
+              'literature':{
+                'candidateSha256':sha('literature-candidate.json'),
+                'briefSha256':sha('literature-learner-brief.json'),
+                'factoryContext':load('literature-factory-context.json'),
+                'quality':load('literature-quality.json'),
+                'sources':{'source':sha('literature.pdf')},
+              },
+            },
+          }
+          (root/'reviewer-handoff.json').write_text(
+              json.dumps(manifest,ensure_ascii=False,sort_keys=True,separators=(',',':'))+'\n',
+              encoding='utf-8'
+          )
+          print(json.dumps(manifest,ensure_ascii=False,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload frozen reviewer-ready pilots
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-real-factory-pilots-${{ github.sha }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/pilot-evidence/
