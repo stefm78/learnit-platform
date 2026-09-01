@@ -198,21 +198,21 @@
       "benchmarkFocus": "Primary historical source: tests attribution, context and the distinction between source claims and neutral historical synthesis."
     },
     {
-      "sourceId": "eurlex:gdpr-32016R0679-fr-oj",
+      "sourceId": "nara:us-constitution-transcript",
       "domain": "law",
       "benchmarkRole": "primary",
-      "title": "Règlement (UE) 2016/679 — RGPD, texte du Journal officiel en français",
-      "authority": "Office des publications de l’Union européenne — EUR-Lex",
-      "sourceUrl": "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679",
-      "rightsUrl": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html?locale=fr",
+      "title": "The Constitution of the United States — official transcription",
+      "authority": "U.S. National Archives and Records Administration",
+      "sourceUrl": "https://www.archives.gov/founding-docs/constitution-transcript",
+      "rightsUrl": "https://www.archives.gov/global-pages/privacy.html",
       "version": {
         "strategy": "fixed",
-        "value": "CELEX-32016R0679-OJ-2016-05-04",
-        "rule": "Exact CELEX identifier and Official Journal publication state; the stable EUR-Lex text view is snapshotted and byte-bound."
+        "value": "1787-parchment-transcript",
+        "rule": "Official NARA transcription of the Constitution as inscribed on parchment, with exact web bytes additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
-        "license": "EU legal-document reuse policy under Decision 2011/833/EU; commercial and non-commercial reuse unless otherwise specified",
+        "license": "U.S. Government/NARA-produced web content public domain; NARA states worldwide reuse under CC0 1.0",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -224,16 +224,16 @@
         ],
         "evidence": [
           {
-            "url": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html?locale=fr",
-            "basis": "EUR-Lex states that, unless otherwise specified, legal documents may be reused for commercial or non-commercial purposes."
+            "url": "https://www.archives.gov/global-pages/privacy.html",
+            "basis": "NARA states that works it produces are public domain and available worldwide under CC0 1.0; it asks users to credit NARA as source."
           },
           {
-            "url": "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679",
-            "basis": "The official EUR-Lex record binds the regulation to CELEX 32016R0679 and the 4 May 2016 Official Journal version."
+            "url": "https://www.archives.gov/founding-docs/constitution-transcript",
+            "basis": "The official National Archives page identifies the content as a transcription of the Constitution parchment and preserves original spelling and punctuation."
           }
         ]
       },
-      "benchmarkFocus": "Normative legal text: tests article/recital distinction and fidelity to one exact official version."
+      "benchmarkFocus": "Normative constitutional text: tests article/section structure, original wording, amendments context and the boundary between legal text and interpretation."
     },
     {
       "sourceId": "has:flash-prescription-retranscription-2026",
