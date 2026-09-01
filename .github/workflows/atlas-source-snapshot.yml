@@ -60,7 +60,7 @@ jobs:
               ['git','diff','--name-only',os.environ['SCOPE_BASE']+'...HEAD'], text=True
           ).splitlines())
           assert changed==allowed, f'ATLAS_WP_017_SCOPE_MISMATCH:{sorted(changed)} != {sorted(allowed)}'
-          assert len(changed)==5
+          assert len(changed)==7
           print('ATLAS_WP_017_SCOPE=PASS')
           PY
 
