@@ -1,0 +1,7 @@
+{
+  "schema":"learnit.atlas.learner_brief.v1",
+  "audience":"élève de première suivant un enseignement d’histoire",
+  "goal":"Comprendre les jalons et la non-linéarité de la construction démocratique française de 1848 à la Troisième République à partir de la ressource éduscol.",
+  "language":"fr",
+  "timeBudgetMinutes":25
+}
