@@ -21,7 +21,9 @@
     "allowedPaths": [
       "work-packages/ATLAS-WP-017.json",
       "authoring/factory/source_snapshot.py",
+      "authoring/factory/benchmark_sources_v1.json",
       "authoring/factory/tests/test_source_snapshot.py",
+      "authoring/factory/tests/test_source_admission.py",
       ".github/workflows/atlas-source-snapshot.yml",
       ".github/workflows/learnit-next-ci.yml"
     ],
@@ -30,7 +32,6 @@
       "authoring/factory/reliability.py",
       "authoring/factory/source_admission.py",
       "authoring/factory/benchmark_contract.json",
-      "authoring/factory/benchmark_sources_v1.json",
       "authoring/skills/**",
       "authoring/v2/**",
       "contracts/**",
@@ -47,19 +48,20 @@
     "The snapshot manifest contains only logical IDs, hashes, byte counts, decisions and artifact-relative locators; no runner host paths.",
     "Caller-version sources such as Légifrance bind the explicit snapshot date.",
     "Duplicate content across distinct primary benchmark sources fails the snapshot.",
-    "M3.2, M3.2.5 reliability and SourceAdmission layers remain unchanged.",
+    "M3.2, M3.2.5 reliability and SourceAdmission gate code remain unchanged; the benchmark catalog may replace transport-incompatible candidates only with provenance/rights-equivalent or stronger official sources.",
     "A retrieval failure is a HOLD, never silently skipped.",
     "The snapshot runner performs retrieval only; it does not parse PDFs, extract OCR, call models or publish kits."
   ],
   "requiredEvidence": [
-    "Exact five-path delta from the SourceAdmission main baseline.",
+    "Exact seven-path delta from the SourceAdmission main baseline.",
     "Repository governance PASS and PR scope PASS.",
     "M3.2, M3.2.5 reliability and SourceAdmission regression oracles remain PASS.",
+    "The first real snapshot HOLD is preserved as evidence and its four transport failures are corrected by official alternatives rather than bypassed.",
     "Synthetic snapshot oracle proves eight primary domains can bind distinct source bytes.",
     "Permission-required OpenStax and NICE controls remain pre-ingestion and un-downloaded.",
     "A source retrieval failure produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
     "Duplicate primary source content produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
-    "Légifrance binds the configured snapshot date.",
+    "The legal benchmark binds an exact official EUR-Lex CELEX/OJ version; caller-bound version behavior remains covered by SourceAdmission.",
     "Snapshot manifest contains no physical host path.",
     "Trusted branch run attempts the real V1 catalog and uploads the exact source/admission bundle as an Actions artifact."
   ],
@@ -70,7 +72,8 @@
     "Dynamic version source without valid snapshot date.",
     "Host-path leakage into snapshot manifest.",
     "HTML error page returned for a PDF or ZIP URL.",
-    "Empty response body."
+    "Empty response body.",
+    "Catalog replacement weakens a rights constraint merely to make transport pass."
   ],
   "nonGoals": [
     "General-purpose crawler",
@@ -93,7 +96,7 @@
     "branch": "atlas/ATLAS-WP-017-real-source-snapshot",
     "phase": "IMPLEMENTATION_IN_PROGRESS",
     "pullRequest": null,
-    "maximumChangedFiles": 5,
+    "maximumChangedFiles": 7,
     "humanGateRequired": false,
     "finalVerdict": null
   },
