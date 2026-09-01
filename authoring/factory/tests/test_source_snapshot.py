@@ -27,13 +27,17 @@ class FakeFetcher:
         self.calls.append(url)
         if url == self.fail_url:
             raise snapshot.SnapshotError("synthetic retrieval failure")
-        if url in self.duplicate_urls:
-            data = b"same-primary-source-bytes\n"
-        else:
-            data = ("snapshot:" + url + "\n").encode("utf-8")
         media = "application/octet-stream"
         if url.endswith(".pdf"):
             media = "application/pdf"
+        elif "format=pdf" in url:
+            media = "application/pdf"
+
+        if url in self.duplicate_urls:
+            data = b"%PDF-1.7\nsame-primary-source-bytes\n" if media == "application/pdf" else b"same-primary-source-bytes\n"
+        else:
+            body = ("snapshot:" + url + "\n").encode("utf-8")
+            data = b"%PDF-1.7\n" + body if media == "application/pdf" else body
         elif url.endswith(".zip"):
             media = "application/zip"
         elif url.endswith("/") or "." not in url.rsplit("/", 1)[-1]:
