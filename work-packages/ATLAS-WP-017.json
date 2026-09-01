@@ -61,7 +61,7 @@
     "Permission-required OpenStax and NICE controls remain pre-ingestion and un-downloaded.",
     "A source retrieval failure produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
     "Duplicate primary source content produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
-    "The legal benchmark binds an exact official EUR-Lex CELEX/OJ version; caller-bound version behavior remains covered by SourceAdmission.",
+    "The legal benchmark binds the exact official National Archives U.S. Constitution transcription/version; caller-bound version behavior remains covered by SourceAdmission.",
     "Snapshot manifest contains no physical host path.",
     "Trusted branch run attempts the real V1 catalog and uploads the exact source/admission bundle as an Actions artifact."
   ],
