@@ -143,50 +143,50 @@ jobs:
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/mathematics/candidate.json \
             --brief authoring/factory/real-benchmark/mathematics/learner-brief.json \
-            --source 'eduscol:math-specialite-examples-2024='"${SRC}/math-exercises.pdf" \
-            --source 'eduscol:math-specialite-correction-2024='"${SRC}/math-correction.pdf" \
+            --source 'eduscol_math_specialite_examples_2024='"${SRC}/math-exercises.pdf" \
+            --source 'eduscol_math_specialite_correction_2024='"${SRC}/math-correction.pdf" \
             > "${EVD}/contexts/mathematics.json"
 
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/physics/candidate.json \
             --brief authoring/factory/real-benchmark/physics/learner-brief.json \
-            --source 'mit-ocw:8-02t-solving05-2005='"${SRC}/physics.pdf" \
+            --source 'mit_ocw_8_02t_solving05_2005='"${SRC}/physics.pdf" \
             > "${EVD}/contexts/physics.json"
 
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/computer-science/candidate.json \
             --brief authoring/factory/real-benchmark/computer-science/learner-brief.json \
-            --source 'python:docs-fr-3.14.7-text='"${SRC}/computer-science.zip" \
+            --source 'python_docs_fr_3_14_7_text='"${SRC}/computer-science.zip" \
             > "${EVD}/contexts/computer-science.json"
 
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/history/candidate.json \
             --brief authoring/factory/real-benchmark/history/learner-brief.json \
-            --source 'eduscol:abibac-democratie-france-allemagne-2022='"${SRC}/history.pdf" \
+            --source 'eduscol_abibac_democratie_france_allemagne_2022='"${SRC}/history.pdf" \
             > "${EVD}/contexts/history.json"
 
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/law/candidate.json \
             --brief authoring/factory/real-benchmark/law/learner-brief.json \
-            --source 'govinfo:sman-117-constitution='"${SRC}/law.pdf" \
+            --source 'govinfo_sman_117_constitution='"${SRC}/law.pdf" \
             > "${EVD}/contexts/law.json"
 
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/medicine/candidate.json \
             --brief authoring/factory/real-benchmark/medicine/learner-brief.json \
-            --source 'has:flash-prescription-retranscription-2026='"${SRC}/medicine.pdf" \
+            --source 'has_flash_prescription_retranscription_2026='"${SRC}/medicine.pdf" \
             > "${EVD}/contexts/medicine.json"
 
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/literature/candidate.json \
             --brief authoring/factory/real-benchmark/literature/learner-brief.json \
-            --source 'mit-ocw:21l-488-contemporary-literature-characteristics='"${SRC}/literature.pdf" \
+            --source 'mit_ocw_21l_488_contemporary_literature_characteristics='"${SRC}/literature.pdf" \
             > "${EVD}/contexts/literature.json"
 
           python -B authoring/factory/factory_gate.py context \
             --kit authoring/factory/real-benchmark/management/candidate.json \
             --brief authoring/factory/real-benchmark/management/learner-brief.json \
-            --source 'eu:pm2-v3.1='"${SRC}/management.pdf" \
+            --source 'eu_pm2_v3_1='"${SRC}/management.pdf" \
             > "${EVD}/contexts/management.json"
 
       - name: Assemble independent-review handoff
@@ -230,6 +230,18 @@ jobs:
                   'qualityBand':quality['qualityBand'],
                   'canonicalValid':quality['canonicalValid'],
               }
+          source_ids={
+              'mathematics':['eduscol_math_specialite_examples_2024','eduscol_math_specialite_correction_2024'],
+              'physics':['mit_ocw_8_02t_solving05_2005'],
+              'computer-science':['python_docs_fr_3_14_7_text'],
+              'history':['eduscol_abibac_democratie_france_allemagne_2022'],
+              'law':['govinfo_sman_117_constitution'],
+              'medicine':['has_flash_prescription_retranscription_2026'],
+              'literature':['mit_ocw_21l_488_contemporary_literature_characteristics'],
+              'management':['eu_pm2_v3_1'],
+          }
+          for d in domains:
+              cases[d]['reviewEvidenceSourceIds']=source_ids[d]
           handoff={
               'schema':'learnit.atlas.real_benchmark_reviewer_handoff.v1',
               'factoryMain':'4cd6834e23a4bb93453d3597f80d088a3f2e54c0',
