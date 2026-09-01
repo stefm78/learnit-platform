@@ -1,0 +1,7 @@
+{
+  "schema":"learnit.atlas.learner_brief.v1",
+  "audience":"professionnel ou étudiant en santé travaillant la sécurité médicamenteuse",
+  "goal":"Identifier les erreurs de retranscription et les mesures de prévention explicitement présentées dans le Flash sécurité patient HAS de février 2026.",
+  "language":"fr",
+  "timeBudgetMinutes":25
+}
