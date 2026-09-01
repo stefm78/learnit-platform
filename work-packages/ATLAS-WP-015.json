@@ -61,6 +61,7 @@
     "Semantic HOLD is preserved with non-empty reasons.",
     "Benchmark contract covers mathematics, physics, computer science, history, law, medicine, literature and management.",
     "Benchmark requires at least eight distinct runs, at least two PASS, at least two HOLD and no more than 25 percent human escalation.",
+    "Benchmark cases must use distinct source-content digests; changing only resource IDs or versions cannot make one source count as multiple domains.",
     "All-PASS benchmark corpus cannot pass.",
     "Duplicate FactoryRun identity cannot count twice.",
     "Dedicated exact-head CI produces reproducible evidence."
@@ -77,6 +78,7 @@
     "Benchmark with only HOLD runs.",
     "Benchmark missing one required domain.",
     "Benchmark duplicate run identity.",
+    "Benchmark relabels identical source bytes under a new resource version and different domain.",
     "Benchmark expected-decision mismatch.",
     "Benchmark excessive human escalation.",
     "Any host path leaked into emitted FactoryRun evidence."
