@@ -239,14 +239,14 @@
       "sourceId": "has:flash-prescription-retranscription-2026",
       "domain": "medicine",
       "benchmarkRole": "primary",
-      "title": "Flash sécurité patient — Retranscription des prescriptions médicamenteuses",
+      "title": "Flash sécurité patient — Retranscription des prescriptions médicamenteuses — PDF officiel",
       "authority": "Haute Autorité de santé",
-      "sourceUrl": "https://www.has-sante.fr/jcms/p_3887483/fr/flash-securite-patient-re-transcription-des-prescriptions-medicamenteuses-copier-une-prescription-c-est-risquer-de-coller-des-erreurs",
+      "sourceUrl": "https://www.has-sante.fr/upload/docs/application/pdf/2026-02/dir1/flash_securite_patient__retranscription_des_prescriptions_medicamenteuses._copier_une_prescription_cest_risquer_de_coller_de.pdf",
       "rightsUrl": "https://www.has-sante.fr/jcms/c_518191/fr/mentions-legales",
       "version": {
         "strategy": "fixed",
-        "value": "2026-02-28",
-        "rule": "Publication date of the selected HAS safety resource."
+        "value": "2026-02-28-pdf",
+        "rule": "Exact official HAS PDF linked by the publication page JSON-LD; exact bytes additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
@@ -265,11 +265,15 @@
         "evidence": [
           {
             "url": "https://www.has-sante.fr/jcms/c_518191/fr/mentions-legales",
-            "basis": "HAS states that public information for which it owns the rights may be reused subject to source/date attribution and non-alteration, while third-party content is excluded."
+            "basis": "HAS states that public information for which it owns the rights may be reused subject to source/date attribution and non-alteration; third-party material is excluded."
+          },
+          {
+            "url": "https://www.has-sante.fr/jcms/p_3887483/fr/flash-securite-patient-re-transcription-des-prescriptions-medicamenteuses-copier-une-prescription-c-est-risquer-de-coller-des-erreurs",
+            "basis": "The official publication page identifies the selected Flash sécurité patient and links the exact PDF used as benchmark source."
           }
         ]
       },
-      "benchmarkFocus": "Patient-safety content where a plausible simplification can become semantically unsafe if the document status or caution is distorted."
+      "benchmarkFocus": "Patient-safety document: tests fidelity to causes, consequences and prevention messages without inventing medical recommendations."
     },
     {
       "sourceId": "mit-ocw:21l-488-contemporary-literature-characteristics",
