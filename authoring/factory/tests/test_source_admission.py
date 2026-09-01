@@ -203,6 +203,13 @@ class SourceAdmissionTests(unittest.TestCase):
             self.assertNotIn(str(root), rendered)
             self.assertNotIn(str(path), rendered)
 
+    def test_management_source_is_exact_french_pm2_pdf(self):
+        source = self.source("eu:pm2-v3.1")
+        self.assertEqual("3.1-fr-pdf-2025", source["version"]["value"])
+        self.assertIn("download-handler", source["sourceUrl"])
+        self.assertIn("format=pdf", source["sourceUrl"])
+        self.assertEqual("CC BY 4.0", source["rights"]["license"].split(";")[0])
+
     def test_missing_source_bytes_holds_without_exception(self):
         source_id = "eu:pm2-v3.1"
         record = admission.build_admission(
