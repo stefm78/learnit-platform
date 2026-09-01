@@ -132,10 +132,10 @@ class SourceAdmissionTests(unittest.TestCase):
             self.assertEqual(admission.PASS, research["decision"]["verdict"])
             self.assertIsNotNone(research["content"])
 
-    def test_fixed_eurlex_legal_source_preserves_exact_version(self):
-        source_id = "eurlex:gdpr-32016R0679-fr-oj"
+    def test_fixed_constitution_legal_source_preserves_exact_version(self):
+        source_id = "nara:us-constitution-transcript"
         with tempfile.TemporaryDirectory() as td:
-            path = self.write_bytes(Path(td), data=b"official journal snapshot\n")
+            path = self.write_bytes(Path(td), data=b"constitution transcript snapshot\n")
             record = admission.build_admission(
                 self.catalog,
                 self.catalog_sha,
@@ -147,7 +147,7 @@ class SourceAdmissionTests(unittest.TestCase):
             )
             self.assertEqual(admission.PASS, record["decision"]["verdict"])
             self.assertEqual(
-                "CELEX-32016R0679-OJ-2016-05-04",
+                "1787-parchment-transcript",
                 record["source"]["version"],
             )
 
