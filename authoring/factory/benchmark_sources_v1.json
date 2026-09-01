@@ -1,0 +1,406 @@
+{
+  "schema": "learnit.atlas.source_catalog.v1",
+  "profile": "atlas.real-benchmark-sources.v1",
+  "defaultUseContext": "internal-rd-noncommercial",
+  "requiredDomains": [
+    "mathematics",
+    "physics",
+    "computer-science",
+    "history",
+    "law",
+    "medicine",
+    "literature",
+    "management"
+  ],
+  "sources": [
+    {
+      "sourceId": "eduscol:math-specialite-examples-2024",
+      "domain": "mathematics",
+      "benchmarkRole": "primary",
+      "title": "Préparer l’épreuve de spécialité Mathématiques — Exemples d’exercices",
+      "authority": "Ministère de l’Éducation nationale — éduscol",
+      "sourceUrl": "https://eduscol.education.gouv.fr/sites/default/files/document/bac-eds-math-session-2024-exemples-dexercicespdf-104544.pdf",
+      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+      "version": {
+        "strategy": "fixed",
+        "value": "2024-01",
+        "rule": "Edition month printed in the official PDF."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [
+          "attribution",
+          "exclude-marked-third-party"
+        ],
+        "evidence": [
+          {
+            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+            "basis": "éduscol states that its pages and downloadable documents are under Licence Ouverte 2.0, excluding identified third-party material."
+          }
+        ]
+      },
+      "benchmarkFocus": "Exercises with enough mathematical structure to test answer correctness and transfer."
+    },
+    {
+      "sourceId": "eduscol:math-specialite-correction-2024",
+      "domain": "mathematics",
+      "benchmarkRole": "support",
+      "title": "Préparer l’épreuve de spécialité Mathématiques — Attendus pour la correction",
+      "authority": "Ministère de l’Éducation nationale — éduscol",
+      "sourceUrl": "https://eduscol.education.gouv.fr/sites/default/files/document/bac-eds-maths-attendus-pour-la-correctionpdf-104547.pdf",
+      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+      "version": {
+        "strategy": "fixed",
+        "value": "2024-01",
+        "rule": "Companion correction document for the official January 2024 exercise set."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [
+          "attribution",
+          "exclude-marked-third-party"
+        ],
+        "evidence": [
+          {
+            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+            "basis": "The same éduscol reuse policy applies to its downloadable documents, with third-party exclusions preserved."
+          }
+        ]
+      },
+      "benchmarkFocus": "Reference correction used as independent evidence, not as a learner-facing answer dump."
+    },
+    {
+      "sourceId": "eduscol:physics-qcm-measurement-uncertainty-2026",
+      "domain": "physics",
+      "benchmarkRole": "primary",
+      "title": "QCM — Mesure et incertitude",
+      "authority": "Ministère de l’Éducation nationale — éduscol",
+      "sourceUrl": "https://eduscol.education.gouv.fr/sites/default/files/document/ralyceepro1phychiqcm-mesures-et-incertitudes-94707.zip",
+      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+      "version": {
+        "strategy": "fixed",
+        "value": "catalog-observed-2026-09-01",
+        "rule": "Official éduscol package as linked from the July 2026 physics-chemistry resources page."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [
+          "attribution",
+          "exclude-marked-third-party"
+        ],
+        "evidence": [
+          {
+            "url": "https://eduscol.education.gouv.fr/5898/programmes-et-ressources-en-physique-chimie-voie-professionnelle",
+            "basis": "The official resource page states that the QCM packages include correction and distractor analysis."
+          },
+          {
+            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+            "basis": "éduscol-owned pages and downloads are under Licence Ouverte 2.0, excluding identified third-party material."
+          }
+        ]
+      },
+      "benchmarkFocus": "Physics questions where distractor analysis can expose plausible-but-wrong pedagogy."
+    },
+    {
+      "sourceId": "python:docs-fr-3.14.7-text",
+      "domain": "computer-science",
+      "benchmarkRole": "primary",
+      "title": "Documentation officielle Python 3.14.7 — archive texte",
+      "authority": "Python Software Foundation",
+      "sourceUrl": "https://docs.python.org/fr/3.14/archives/python-3.14-docs-text.zip",
+      "rightsUrl": "https://docs.python.org/fr/3.14/copyright.html",
+      "version": {
+        "strategy": "fixed",
+        "value": "3.14.7-docs-2026-08-08",
+        "rule": "Python documentation version plus the official documentation update date."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "Python Software Foundation License Version 2; documentation code examples also 0BSD",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [
+          "preserve-license-notice"
+        ],
+        "evidence": [
+          {
+            "url": "https://docs.python.org/fr/3.14/download.html",
+            "basis": "The official download page provides the text archive for Python 3.14 documentation."
+          },
+          {
+            "url": "https://docs.python.org/fr/3.14/copyright.html",
+            "basis": "The official copyright page identifies the PSF License Version 2 and the additional 0BSD treatment for documentation code examples."
+          }
+        ]
+      },
+      "benchmarkFocus": "Version-sensitive technical truth and precise API semantics."
+    },
+    {
+      "sourceId": "eduscol:hggsp-2026",
+      "domain": "history",
+      "benchmarkRole": "primary",
+      "title": "Programmes et ressources en Histoire-géographie, géopolitique et sciences politiques",
+      "authority": "Ministère de l’Éducation nationale — éduscol",
+      "sourceUrl": "https://eduscol.education.gouv.fr/5802/programmes-et-ressources-en-histoire-geographie-geopolitique-et-sciences-politiques-voie-g",
+      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+      "version": {
+        "strategy": "fixed",
+        "value": "2026-03",
+        "rule": "Official page update month observed in the 2026 benchmark research."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "excluded",
+        "conditions": [
+          "attribution",
+          "eduscol-owned-content-only"
+        ],
+        "evidence": [
+          {
+            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+            "basis": "The benchmark scopes ingestion to éduscol-owned text; linked or embedded third-party resources are excluded from this source identity."
+          }
+        ]
+      },
+      "benchmarkFocus": "Tests whether a curriculum/reference page is sufficient evidence, rather than letting the author silently invent historical detail."
+    },
+    {
+      "sourceId": "legifrance:code-civil",
+      "domain": "law",
+      "benchmarkRole": "primary",
+      "title": "Code civil — texte consolidé",
+      "authority": "Légifrance",
+      "sourceUrl": "https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT00000607072/",
+      "rightsUrl": "https://www.legifrance.gouv.fr/contenu/pied-de-page/open-data-et-api",
+      "version": {
+        "strategy": "caller",
+        "value": null,
+        "rule": "Bind the exact consolidated legal state/retrieval date (ISO date) together with the byte hash."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "Licence Ouverte / Open Licence 2.0 for Légifrance open data",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [
+          "attribution",
+          "version-date-binding"
+        ],
+        "evidence": [
+          {
+            "url": "https://www.legifrance.gouv.fr/contenu/pied-de-page/open-data-et-api",
+            "basis": "Légifrance documents its open-data/API reuse regime."
+          },
+          {
+            "url": "https://www.data.gouv.fr/datasets/legi-codes-lois-et-reglements-consolides",
+            "basis": "The official LEGI dataset is published as open data and demonstrates that consolidated law is versioned/evolving source material."
+          }
+        ]
+      },
+      "benchmarkFocus": "Temporal/version binding: a legally correct kit must state which exact consolidated source state it used."
+    },
+    {
+      "sourceId": "has:flash-prescription-retranscription-2026",
+      "domain": "medicine",
+      "benchmarkRole": "primary",
+      "title": "Flash sécurité patient — Retranscription des prescriptions médicamenteuses",
+      "authority": "Haute Autorité de santé",
+      "sourceUrl": "https://www.has-sante.fr/jcms/p_3887483/fr/flash-securite-patient-re-transcription-des-prescriptions-medicamenteuses-copier-une-prescription-c-est-risquer-de-coller-des-erreurs",
+      "rightsUrl": "https://www.has-sante.fr/jcms/c_518191/fr/mentions-legales",
+      "version": {
+        "strategy": "fixed",
+        "value": "2026-02-28",
+        "rule": "Publication date of the selected HAS safety resource."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "French public-information reuse regime for HAS-owned public information",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "excluded",
+        "conditions": [
+          "source-and-date-attribution",
+          "no-alteration-or-distortion",
+          "has-owned-content-only"
+        ],
+        "evidence": [
+          {
+            "url": "https://www.has-sante.fr/jcms/c_518191/fr/mentions-legales",
+            "basis": "HAS states that public information for which it owns the rights may be reused subject to source/date attribution and non-alteration, while third-party content is excluded."
+          }
+        ]
+      },
+      "benchmarkFocus": "Patient-safety content where a plausible simplification can become semantically unsafe if the document status or caution is distorted."
+    },
+    {
+      "sourceId": "bnf:gallica-medecin-malgre-lui-selection",
+      "domain": "literature",
+      "benchmarkRole": "primary",
+      "title": "Molière — Le Médecin malgré lui, sélection Gallica",
+      "authority": "Bibliothèque nationale de France — Gallica",
+      "sourceUrl": "https://gallica.bnf.fr/selections/fr/html/litteratures/moliere-le-medecin-malgre-lui",
+      "rightsUrl": "https://www.bnf.fr/fr/conditions-de-reutilisations-des-donnees-de-la-bnf",
+      "version": {
+        "strategy": "fixed",
+        "value": "catalog-observed-2026-09-01",
+        "rule": "Exact Gallica selection page snapshot used for this first literature stress case."
+      },
+      "rights": {
+        "status": "conditional",
+        "license": "BnF/Gallica reuse conditions for digitized public-domain collections; commercial reuse may require separate conditions",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial"
+        ],
+        "thirdPartyContentStatus": "excluded",
+        "conditions": [
+          "noncommercial-use",
+          "source-attribution",
+          "exact-selected-content-only"
+        ],
+        "evidence": [
+          {
+            "url": "https://www.bnf.fr/fr/conditions-de-reutilisations-des-donnees-de-la-bnf",
+            "basis": "BnF distinguishes metadata reuse and digitized-document reuse; non-commercial reuse of digitized public-domain collections is available under stated attribution conditions."
+          },
+          {
+            "url": "https://gallica.bnf.fr/selections/fr/html/litteratures/moliere-le-medecin-malgre-lui",
+            "basis": "The official Gallica selection identifies multiple historical editions, making edition identity itself part of the benchmark challenge."
+          }
+        ]
+      },
+      "benchmarkFocus": "Edition/source attribution: the author must not collapse several historical editions into one unversioned literary source."
+    },
+    {
+      "sourceId": "eu:pm2-v3.1",
+      "domain": "management",
+      "benchmarkRole": "primary",
+      "title": "PM² Project Management Methodology Guide v3.1",
+      "authority": "European Commission — Directorate-General for Digital Services",
+      "sourceUrl": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-fr",
+      "rightsUrl": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-en",
+      "version": {
+        "strategy": "fixed",
+        "value": "3.1",
+        "rule": "The Publications Office metadata explicitly identifies the PM² Guide as v3.1."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "CC BY 4.0",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [
+          "attribution"
+        ],
+        "evidence": [
+          {
+            "url": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-en",
+            "basis": "The EU Publications Office states that PM² v3.1 updated its copyright statement to the European Commission standard CC BY 4.0 licence."
+          }
+        ]
+      },
+      "benchmarkFocus": "Structured project-management methodology with lifecycle, roles, processes and artefacts."
+    },
+    {
+      "sourceId": "openstax:calculus-volume-1",
+      "domain": "mathematics",
+      "benchmarkRole": "negative-control",
+      "title": "OpenStax Calculus Volume 1",
+      "authority": "OpenStax",
+      "sourceUrl": "https://openstax.org/books/calculus-volume-1/pages/preface",
+      "rightsUrl": "https://openstax.org/books/calculus-volume-1/pages/preface",
+      "version": {
+        "strategy": "fixed",
+        "value": "observed-2026-09-01",
+        "rule": "Negative-control rights state observed during benchmark research."
+      },
+      "rights": {
+        "status": "permission-required",
+        "license": "CC BY-NC-SA 4.0 plus explicit OpenStax AI-ingestion permission requirement",
+        "allowedUseContexts": [],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [],
+        "evidence": [
+          {
+            "url": "https://openstax.org/books/calculus-volume-1/pages/preface",
+            "basis": "The official OpenStax page states that ingestion into a large language model or generative-AI offering requires permission."
+          }
+        ]
+      },
+      "benchmarkFocus": "Must be refused before source bytes are read by the Factory."
+    },
+    {
+      "sourceId": "nice:guidelines-ai-negative-control",
+      "domain": "medicine",
+      "benchmarkRole": "negative-control",
+      "title": "NICE guideline content — AI-use negative control",
+      "authority": "National Institute for Health and Care Excellence",
+      "sourceUrl": "https://www.nice.org.uk/reusing-our-content/nice-uk-open-content-licence",
+      "rightsUrl": "https://www.nice.org.uk/reusing-our-content/nice-syndication-api",
+      "version": {
+        "strategy": "fixed",
+        "value": "observed-2026-09-01",
+        "rule": "Negative-control rights state observed during benchmark research."
+      },
+      "rights": {
+        "status": "permission-required",
+        "license": "NICE content licence with separate permission/licensing requirement for AI use",
+        "allowedUseContexts": [],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [],
+        "evidence": [
+          {
+            "url": "https://www.nice.org.uk/reusing-our-content/nice-uk-open-content-licence",
+            "basis": "NICE separates AI use from ordinary open-content reuse."
+          },
+          {
+            "url": "https://www.nice.org.uk/reusing-our-content/nice-syndication-api",
+            "basis": "The official NICE reuse guidance requires approval/licensing for AI use of NICE content."
+          }
+        ]
+      },
+      "benchmarkFocus": "Must be refused before source bytes are read by the Factory."
+    }
+  ]
+}
