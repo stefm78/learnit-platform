@@ -313,18 +313,18 @@
       "sourceId": "eu:pm2-v3.1",
       "domain": "management",
       "benchmarkRole": "primary",
-      "title": "PM² Project Management Methodology Guide v3.1",
+      "title": "Méthodologie de Gestion de Projet PM² — Guide 3.1, PDF français",
       "authority": "European Commission — Directorate-General for Digital Services",
-      "sourceUrl": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-fr",
+      "sourceUrl": "https://op.europa.eu/o/opportal-service/download-handler?identifier=97cc2f12-c648-11ee-95d9-01aa75ed71a1&format=pdf&language=fr&productionSystem=cellar&part=",
       "rightsUrl": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-en",
       "version": {
         "strategy": "fixed",
-        "value": "3.1",
-        "rule": "The Publications Office metadata explicitly identifies the PM² Guide as v3.1."
+        "value": "3.1-fr-pdf-2025",
+        "rule": "Exact French PM² Guide 3.1 PDF. The PDF identifies Guide 3.1, a 2025 publication imprint and an internal edition statement 'v3.1, December 2023'; exact bytes are additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
-        "license": "CC BY 4.0",
+        "license": "CC BY 4.0; the exact PDF states reproduction and reuse are authorised provided the source is acknowledged",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -336,12 +336,16 @@
         ],
         "evidence": [
           {
-            "url": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-en",
-            "basis": "The EU Publications Office states that PM² v3.1 updated its copyright statement to the European Commission standard CC BY 4.0 licence."
+            "url": "https://op.europa.eu/fr/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-fr",
+            "basis": "The official Publications Office record identifies PM² Guide 3.1, the French PDF, ISBN/DOI/catalogue number and download availability."
+          },
+          {
+            "url": "https://pm2.europa.eu/pm2-resources/pm2-project-management-methodology_en",
+            "basis": "The official PM² resource page identifies the PM² Guide as the core methodology resource and provides official access paths."
           }
         ]
       },
-      "benchmarkFocus": "Structured project-management methodology with lifecycle, roles, processes and artefacts."
+      "benchmarkFocus": "Full project-management methodology: project definition, lifecycle phases, governance roles, artefacts, monitoring/control, risks, quality and tailoring."
     },
     {
       "sourceId": "openstax:calculus-volume-1",
