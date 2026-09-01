@@ -1,0 +1,158 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:d91b299078927f669827e5d22506b109dd96ccd45afbc2fd059e6ee6646d0a98",
+    "kitSha256": "sha256:b48af5b1eb27c460a74d8346e010477d7eee38329213dc775a5aafe926d65951",
+    "sourceSetDigest": "sha256:b0a8ccc6efeb12ec643faf75a06673820d36ec8d81600d09f2d656a6ddd9765b",
+    "briefSha256": "sha256:9d4ec52e881ec0a55376e8dc299cee9d929a821b120373824a5a8b2a7c68d32d"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les claims factuels des objectifs, prompts, réponses et explications restent fidèles au tutoriel fourni : append ajoute en fin de liste, pop() sans indice retire et renvoie le dernier élément, une pile est LIFO, deque est recommandée pour une file avec retraits en tête, et la compréhension filtrant x >= 0 est reproduite correctement.",
+      "evidence": [
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:14-16",
+          "basis": "La source définit list.append comme l'ajout d'un élément à la fin de la liste."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:35-40,111-118",
+          "basis": "La source définit pop() sans indice et son usage pour une pile LIFO."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:137-150",
+          "basis": "La source explique la file FIFO, le coût des retraits en tête de liste et recommande collections.deque."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:224-230",
+          "basis": "La source contient exactement l'exemple de compréhension [x for x in vec if x >= 0] donnant [0, 2, 4]."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Les cinq activités ont une réponse indiquée correcte et unique au regard de la source ; les distracteurs ne fournissent pas de seconde réponse valide dans le cadre posé.",
+      "evidence": [
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:14-16,30-40",
+          "basis": "append ajoute en fin de liste ; remove supprime la première occurrence égale ; pop() retire et renvoie l'élément ciblé, le dernier sans indice."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:111-118,137-150",
+          "basis": "La source confirme respectivement LIFO avec append/pop et l'emploi de collections.deque pour une file efficace."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:224-230",
+          "basis": "L'expression retenue dans l'activité de compréhension est exactement celle qui filtre les valeurs négatives dans la source."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les formulations permettent d'identifier une seule réponse attendue ; aucune interprétation concurrente ni distracteur équivalent n'a été relevé dans les activités statiques.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Dans le budget de 25 minutes, le kit couvre les éléments explicitement demandés par le learner brief : choix de append, pop, deque et d'une compréhension de liste, avec pile et file comme contextes d'usage.",
+      "evidence": [
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:14-16,35-40",
+          "basis": "La source fournit les sémantiques de append et pop visées par le brief."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:111-150",
+          "basis": "La source couvre l'usage des listes comme piles et la recommandation de deque pour les files."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:165-173,197-200,224-230",
+          "basis": "La source présente la construction et le filtrage par compréhension de liste, y compris le cas utilisé dans le kit."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "hold",
+      "summary": "La chaîne de validation/transfert n'est pas sémantiquement indépendante : l'activité déclarée transfer reproduit mot pour mot l'instance de la source, et les deux claims d'indépendance relient des sous-concepts différents plutôt qu'une même notion sous nouvelle instance ou représentation.",
+      "evidence": [
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:224-230",
+          "basis": "Le prétendu transfert reprend exactement vec = [-4, -2, 0, 2, 4] et [x for x in vec if x >= 0] de la source, sans nouveau contexte, nouvelles valeurs ni nouveau cadrage."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:14-16,111-118",
+          "basis": "Le premier claim relie une question sur la sémantique de append à une validation de la règle LIFO ; la source les présente comme contenus distincts, pas comme deux instances du même stimulus conceptuel."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:111-118,137-150",
+          "basis": "Le second claim relie la règle LIFO d'une pile au choix de deque pour une file FIFO ; la source distingue explicitement ces deux usages et structures, ce qui ne constitue pas une représentation alternative de la même notion."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le niveau de langage, la difficulté et les 21 minutes annoncées sont compatibles avec un débutant ayant déjà manipulé des listes simples et avec le budget de 25 minutes.",
+      "evidence": []
+    }
+  },
+  "findings": [
+    {
+      "id": "CS-F01",
+      "severity": "major",
+      "dimension": "validationTransfer",
+      "path": "$.courses[0].activities[4]",
+      "problem": "L'activité marquée learningPhase=transfer n'est pas un transfert : elle reprend exactement le vecteur, la condition et l'expression de compréhension montrés dans le tutoriel source.",
+      "impact": "Une réussite peut relever de la reconnaissance ou de la reproduction de l'exemple source et ne démontre pas la mobilisation de la règle dans un contexte, une représentation ou une instance nouvelle.",
+      "fix": "Remplacer ce transfert par une activité source-compatible utilisant la même règle de compréhension dans une instance ou un contexte réellement différent, sans reprendre les mêmes valeurs ni la même expression visible dans la source.",
+      "evidence": [
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:224-230",
+          "basis": "Le texte source contient exactement l'instance vec = [-4, -2, 0, 2, 4] et l'expression [x for x in vec if x >= 0] reprises dans l'activité."
+        }
+      ]
+    },
+    {
+      "id": "CS-F02",
+      "severity": "major",
+      "dimension": "validationTransfer",
+      "path": "$.courses[0].atlasValidationIndependenceClaims",
+      "problem": "Les bases sémantiques des deux claims d'indépendance ne correspondent pas à leurs paires d'activités : append → règle LIFO n'est pas une nouvelle instance de la même notion, et règle LIFO → choix de deque pour une file n'est pas une représentation alternative de la même notion.",
+      "impact": "La métadonnée d'indépendance peut faire traiter comme preuves indépendantes des validations portant sur des sous-concepts voisins mais différents ; elle ne démontre donc pas que le contenu pratiqué a été réévalué indépendamment.",
+      "fix": "Relier chaque claim à deux activités évaluant effectivement la même connaissance sous une nouvelle instance, un nouveau contexte ou une représentation alternative conforme au basisCode ; si nécessaire, réécrire les validations plutôt que de conserver des claims sémantiquement faux.",
+      "evidence": [
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:14-16,111-118",
+          "basis": "La source distingue la méthode append de la propriété LIFO et de l'usage de pop pour une pile."
+        },
+        {
+          "sourceId": "python_docs_fr_3_14_7_text",
+          "locator": "tutorial/datastructures.txt:111-118,137-150",
+          "basis": "La source traite séparément pile LIFO et file FIFO/deque ; ces contenus ne sont pas deux représentations du même concept."
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Revue limitée à la fidélité sémantique, à la correction des réponses et à l'adéquation statique au learner brief ; elle ne démontre ni maîtrise durable, ni rétention, ni efficacité éducative en usage réel."
+  ],
+  "verdict": "HOLD_SEMANTIC_REVIEW_V1"
+}

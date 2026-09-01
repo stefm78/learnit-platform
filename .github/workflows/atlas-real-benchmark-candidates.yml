@@ -217,6 +217,32 @@ jobs:
           python -B authoring/factory/reliability.py verify-run \
             --run "${EVD}/factory-runs/law.json"
 
+          set +e
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/benchmark-cases/computer-science-v1-hold/candidate.json \
+            --brief authoring/factory/real-benchmark/computer-science/learner-brief.json \
+            --review authoring/factory/real-benchmark/benchmark-cases/computer-science-v1-hold/review.json \
+            --resource python_docs_fr_3_14_7_text@3.14.7="${SRC}/computer-science.zip" \
+            > "${EVD}/factory-runs/computer-science-v1-hold.json"
+          cs_rc=$?
+          set -e
+          [[ "${cs_rc}" -eq 6 ]]
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/computer-science-v1-hold.json"
+
+          set +e
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/benchmark-cases/history-v1-hold/candidate.json \
+            --brief authoring/factory/real-benchmark/history/learner-brief.json \
+            --review authoring/factory/real-benchmark/benchmark-cases/history-v1-hold/review.json \
+            --resource eduscol_abibac_democratie_france_allemagne_2022@2022="${SRC}/history.pdf" \
+            > "${EVD}/factory-runs/history-v1-hold.json"
+          hist_rc=$?
+          set -e
+          [[ "${hist_rc}" -eq 6 ]]
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/history-v1-hold.json"
+
       - name: Assemble independent-review handoff
         shell: bash
         run: |
