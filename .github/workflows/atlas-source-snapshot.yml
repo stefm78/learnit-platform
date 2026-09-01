@@ -5,6 +5,7 @@ on:
     branches:
       - atlas/ATLAS-WP-017-real-source-snapshot
       - atlas/ATLAS-WP-017b-source-snapshot-content-integrity
+      - atlas/ATLAS-WP-017c-management-source-content
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -41,7 +42,7 @@ jobs:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
         run: |
           set -euo pipefail
-          BASE=ae415c8547002c9ca335eff6b79368c70ad3b031
+          BASE=c8d196b4ba4fcd161e2fb5a99f66268390253e69
           SCOPE_BASE="${PR_BASE_SHA:-$BASE}"
           [[ "$(git rev-parse HEAD)" == "$TARGET" ]]
           git cat-file -e "$BASE^{commit}"
@@ -55,7 +56,7 @@ jobs:
           wp=json.loads(Path('work-packages/ATLAS-WP-017.json').read_text(encoding='utf-8'))
           assert wp['id']=='ATLAS-WP-017'
           assert wp['authority']['issue']==301
-          assert wp['baseline']['baseCommit']=='ae415c8547002c9ca335eff6b79368c70ad3b031'
+          assert wp['baseline']['baseCommit']=='c8d196b4ba4fcd161e2fb5a99f66268390253e69'
           allowed=set(wp['scope']['allowedPaths'])
           changed=set(subprocess.check_output(
               ['git','diff','--name-only',os.environ['SCOPE_BASE']+'...HEAD'], text=True
@@ -69,7 +70,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE=ae415c8547002c9ca335eff6b79368c70ad3b031
+          BASE=c8d196b4ba4fcd161e2fb5a99f66268390253e69
           git diff --exit-code "$BASE"...HEAD --             authoring/factory/factory_gate.py             authoring/factory/reliability.py             authoring/factory/source_admission.py             authoring/factory/benchmark_contract.json             authoring/skills             authoring/v2             contracts             apps             governance
           echo 'PRIOR_FACTORY_LAYERS_UNCHANGED=PASS'
 
@@ -106,7 +107,7 @@ jobs:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
         run: |
           set -euo pipefail
-          SCOPE_BASE="${PR_BASE_SHA:-ae415c8547002c9ca335eff6b79368c70ad3b031}"
+          SCOPE_BASE="${PR_BASE_SHA:-c8d196b4ba4fcd161e2fb5a99f66268390253e69}"
           git diff --check "$SCOPE_BASE"...HEAD
 
   real-snapshot:
