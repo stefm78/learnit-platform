@@ -1,30 +1,240 @@
 {
-  "contract":"learnit.kit.v2",
-  "packageLineageId":"2951087e-0ae9-4af8-9ddb-ed3832e66b98",
-  "packageRevisionId":"55ac013f-b736-4a4c-a799-3d02ed64d55d",
-  "packageRevisionDigest":"sha256:6c238e674254be067bfa745d69b7d6f29f89c3bd96e3a25d482dd1169dcb777b",
-  "title":"PM² 3.1 — cycle de vie et points de contrôle",
-  "description":"Kit pilote Atlas fondé sur le Guide officiel français PM² Méthodologie de Gestion de Projet 3.1.",
-  "versionLabel":"M3.2.5 real-source management v1",
-  "language":"fr",
-  "courses":[{
-    "courseLineageId":"40913f7c-264e-455f-8f26-6da82db903e1",
-    "courseRevisionId":"bb95fd16-6d17-4e9f-9bef-20d7a063a544",
-    "courseRevisionDigest":"sha256:49505d5081df744f486225d562d60493a5d527bb49112b3746780a692b0b773e",
-    "title":"Comprendre le cycle de vie PM²",
-    "subtitle":"Commission européenne — Guide PM² 3.1, vue d’ensemble du cycle de vie",
-    "estimatedMinutes":21,
-    "objectives":[{"objectiveId":"e43c607f-ecd5-4261-a7b1-d5b36cd070ed","label":"Distinguer les quatre phases PM², le Suivi et Contrôle, les artefacts et les points de contrôle"}],
-    "activities":[
-      {"activityLineageId":"7a4f2c81-57f2-4114-a07f-8e522886ed5e","activityRevisionId":"03e7d3db-3069-44e2-9ad2-1d29af348992","activityRevisionDigest":"sha256:ee57382980b0e66a0b42457e7e660b26dc83b396385092a45e32127029f2beeb","objectiveIds":["e43c607f-ecd5-4261-a7b1-d5b36cd070ed"],"type":"qcm","prompt":"Selon le Guide PM² 3.1, combien de phases séquentielles composent le cycle de vie du projet ?","explanation":"Le guide indique que le cycle de vie PM² comprend quatre phases séquentielles qui ne se chevauchent pas : Lancement, Planification, Exécution et Clôture.","difficulty":"easy","learningPhase":"application","assessmentRole":"practice","estimatedMinutes":4,"choices":[{"choiceId":"dd03ddd3-f409-4af3-afe1-c521a39e6dee","label":"Quatre phases."},{"choiceId":"0a71b324-4b04-476b-8857-fe56b6bd546f","label":"Deux phases."},{"choiceId":"260fc53a-0923-4468-9649-6cc679d34519","label":"Cinq phases obligatoirement superposées."},{"choiceId":"9383ae89-f716-4f22-9c7d-7fd59a050bb5","label":"Une seule phase continue."}],"correctChoiceId":"dd03ddd3-f409-4af3-afe1-c521a39e6dee"},
-      {"activityLineageId":"c2c70a93-d5d8-4e97-8467-f6baef609232","activityRevisionId":"4c59ab83-fbbf-47e4-8404-32125912e4df","activityRevisionDigest":"sha256:29edebea053ded256a48ad24dffca112aaa48eb67a5c12740e91484358644f27","objectiveIds":["e43c607f-ecd5-4261-a7b1-d5b36cd070ed"],"type":"qcm","prompt":"Une équipe classe le « Suivi et Contrôle » comme une cinquième phase séquentielle après la Clôture. Quelle correction respecte le Guide PM² ?","explanation":"Le guide présente quatre phases séquentielles. Les activités de Suivi et Contrôle sont menées tout au long du cycle de vie, et non comme une cinquième phase située après la clôture.","difficulty":"medium","learningPhase":"consolidation","assessmentRole":"practice","estimatedMinutes":4,"choices":[{"choiceId":"1174a1a6-cb1b-4b3e-b489-a18f9dc9f099","label":"Suivi et Contrôle s’exerce tout au long du cycle de vie."},{"choiceId":"7f8db7d8-5965-4ddb-bbc2-9b5b5bc1869e","label":"Suivi et Contrôle vient uniquement après la Clôture."},{"choiceId":"18b5276c-f61e-4628-9ac6-9714c9c84f6d","label":"Suivi et Contrôle remplace la Planification."},{"choiceId":"288ec18d-f30c-46da-939b-028c633d7508","label":"PM² ne prévoit aucun suivi."}],"correctChoiceId":"1174a1a6-cb1b-4b3e-b489-a18f9dc9f099"},
-      {"activityLineageId":"978b1f0d-e05e-40c4-904c-1dadc21c0028","activityRevisionId":"de96327f-a369-4723-830f-858f093f4747","activityRevisionDigest":"sha256:7092446924b77d6d2de0f78c98e7ea635ceb85493730eafc84277e6ddeb0cdb6","objectiveIds":["e43c607f-ecd5-4261-a7b1-d5b36cd070ed"],"type":"fill","prompt":"Complète l’artefact que le Guide PM² associe à la définition plus détaillée du projet pendant la Phase de Lancement.","explanation":"La Phase de Lancement comprend l’élaboration de la Charte du Projet, qui détaille notamment périmètre, coût, temps, risque, jalons, livrables et organisation du projet.","difficulty":"medium","learningPhase":"validation","assessmentRole":"validation","estimatedMinutes":4,"segments":[{"text":"Artefact de lancement : "},{"slotId":"84919a2c-3b83-4977-ada4-9d6d14f3f3e3"},{"text":"."}],"tokens":[{"tokenId":"84a603a0-7a08-4b0b-b6e5-d58b4e1dfcb1","label":"Charte du Projet","maxUses":1},{"tokenId":"d72bc000-cc9a-49a2-a0c2-7f6407f6bb40","label":"Rapport de Fin de Projet","maxUses":1},{"tokenId":"7d7c73e4-ced0-4bc4-9c58-86df8ec8dd4b","label":"Registre des Leçons Apprises","maxUses":1},{"tokenId":"eb3c92bf-2b58-4644-84b3-a912009a9ed7","label":"Plan de Transition uniquement","maxUses":1}],"answers":[{"slotId":"84919a2c-3b83-4977-ada4-9d6d14f3f3e3","tokenId":"84a603a0-7a08-4b0b-b6e5-d58b4e1dfcb1"}]},
-      {"activityLineageId":"a94ef781-5fb9-48e0-b055-0be14b001629","activityRevisionId":"244b06e5-0d80-49fc-880c-acdefb3ec014","activityRevisionDigest":"sha256:241185b9ee119b443f9df8a71d668c33fa599e96cdad78d933dcc7a3768539f6","objectiveIds":["e43c607f-ecd5-4261-a7b1-d5b36cd070ed"],"type":"qcm","prompt":"Quel point de contrôle PM² se situe à la fin de la Phase de Planification ?","explanation":"Le guide liste trois points de contrôle : RfP à la fin du Lancement, RfE à la fin de la Planification et RfC à la fin de l’Exécution.","difficulty":"medium","learningPhase":"validation","assessmentRole":"validation","estimatedMinutes":4,"choices":[{"choiceId":"3cf0da92-1e26-4d48-ab2c-f085139bccc5","label":"RfE — Prêt pour l’Exécution."},{"choiceId":"2f752a04-a209-4bdc-a822-2f75558e22e5","label":"RfP — Prêt pour la Planification."},{"choiceId":"9ee7b430-ad89-41e2-852c-40a20a9606b7","label":"RfC — Prêt pour la Clôture."},{"choiceId":"6f61f052-c41d-494e-a49e-7d53441da0cf","label":"Aucun point de contrôle."}],"correctChoiceId":"3cf0da92-1e26-4d48-ab2c-f085139bccc5"},
-      {"activityLineageId":"616efb17-b600-47d1-8e88-4db74f73e2b0","activityRevisionId":"2f0f6e7c-d24b-416f-920c-c7dfbb83e0b8","activityRevisionDigest":"sha256:1a9214a38fc9e74cb97d3a86a057edd0ff34e2ecb579df9f977a2fb3213e8f00","objectiveIds":["e43c607f-ecd5-4261-a7b1-d5b36cd070ed"],"type":"fill","prompt":"Transfert : un projet a terminé la Planification et demande l’autorisation de commencer l’Exécution. Complète l’organe que le Guide PM² désigne pour prendre cette décision.","explanation":"À la fin de la Planification, le Chef de Projet utilise les livrables de planification pour demander l’approbation de passer à l’Exécution ; la décision est prise par le Comité de Pilotage (PSC).","difficulty":"advanced","learningPhase":"transfer","assessmentRole":"practice","estimatedMinutes":5,"segments":[{"text":"Décision prise par le "},{"slotId":"108bac80-72fc-4170-8012-5f52fa31b8d5"},{"text":"."}],"tokens":[{"tokenId":"5902266f-0802-4df2-b440-07f9aae9bb9e","label":"Comité de Pilotage (PSC)","maxUses":1},{"tokenId":"8b9e5e92-468a-4ee6-89bc-b70a2fec71fc","label":"Chef de Projet seul","maxUses":1},{"tokenId":"c746677e-c5ed-41b9-bb29-a4f2c0baf99e","label":"Équipe Centrale du Projet seule","maxUses":1},{"tokenId":"8c87270b-394f-444d-b0db-d6ea7b54d550","label":"fournisseur externe seul","maxUses":1}],"answers":[{"slotId":"108bac80-72fc-4170-8012-5f52fa31b8d5","tokenId":"5902266f-0802-4df2-b440-07f9aae9bb9e"}]}
-    ],
-    "atlasValidationIndependenceClaims":[
-      {"claimVersion":"atlas.independence.v1","claimId":"atlas-claim-sha256:2b0a9e6dac17ed7916656c93cbce8c6ed2598f0d6fee1dfb69526a3bad2f6f2a","objectiveId":"e43c607f-ecd5-4261-a7b1-d5b36cd070ed","sourceActivityLineageId":"7a4f2c81-57f2-4114-a07f-8e522886ed5e","targetActivityLineageId":"978b1f0d-e05e-40c4-904c-1dadc21c0028","basisCode":"new-instance","sourceStimulusDigest":"sha256:36d2714851ad155e4be6389370f06b8550a887084597fac439594fe4fc61f6b3","targetStimulusDigest":"sha256:fc534ab190914c36106f2caaf8b8335399ee37e67bb354bbf7cdbedb36ffb3da"},
-      {"claimVersion":"atlas.independence.v1","claimId":"atlas-claim-sha256:044d98de4bc09d9b12bc6f13a818433cb98723c8d816aed5fd53674a845885b2","objectiveId":"e43c607f-ecd5-4261-a7b1-d5b36cd070ed","sourceActivityLineageId":"978b1f0d-e05e-40c4-904c-1dadc21c0028","targetActivityLineageId":"a94ef781-5fb9-48e0-b055-0be14b001629","basisCode":"alternate-representation","sourceStimulusDigest":"sha256:fc534ab190914c36106f2caaf8b8335399ee37e67bb354bbf7cdbedb36ffb3da","targetStimulusDigest":"sha256:2554e60c528482ceae1ed3c1f83173b7960e8f6297e335b7ae31bd22c68f5564"}
-    ]
-  }]
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "2951087e-0ae9-4af8-9ddb-ed3832e66b98",
+  "packageRevisionId": "1b0df3f7-c3c0-4c14-a3bb-bd02c1bc264f",
+  "packageRevisionDigest": "sha256:f55b8ad2adaddd40663cea3fddffa7a8cffe5df513390b37c6ce7bd230ec6120",
+  "title": "PM² 3.1 — cycle de vie et points de contrôle",
+  "description": "Kit pilote Atlas fondé sur le Guide officiel français PM² Méthodologie de Gestion de Projet 3.1.",
+  "versionLabel": "M3.2.5 real-source management v2",
+  "language": "fr",
+  "courses": [
+    {
+      "courseLineageId": "40913f7c-264e-455f-8f26-6da82db903e1",
+      "courseRevisionId": "90029be1-7612-4aa3-aa8d-6299f2b4e520",
+      "courseRevisionDigest": "sha256:e3434a600e974b4c10725e35a3d57ffb2cb2ade43718f2cf8e0dad54a1992edf",
+      "title": "Comprendre le cycle de vie PM²",
+      "subtitle": "Commission européenne — Guide PM² 3.1, vue d’ensemble du cycle de vie",
+      "estimatedMinutes": 21,
+      "objectives": [
+        {
+          "objectiveId": "e43c607f-ecd5-4261-a7b1-d5b36cd070ed",
+          "label": "Distinguer les quatre phases PM², situer Suivi et Contrôle et reconnaître des artefacts ou points de contrôle clés"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "7a4f2c81-57f2-4114-a07f-8e522886ed5e",
+          "activityRevisionId": "b2e23f3b-3e9e-43fe-95c7-7f47a437754a",
+          "activityRevisionDigest": "sha256:8845f8abcf570f452af342c4e8b0a643c277b17db484221cf10932d4a7028d5d",
+          "objectiveIds": [
+            "e43c607f-ecd5-4261-a7b1-d5b36cd070ed"
+          ],
+          "type": "qcm",
+          "prompt": "Quelle association résume correctement les quatre phases séquentielles du cycle de vie PM² ?",
+          "explanation": "Le guide distingue Lancement pour définir le projet, Planification pour détailler sa conduite, Exécution pour produire les livrables et Clôture pour transférer les résultats, clôturer administrativement et capitaliser les leçons apprises.",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "dd03ddd3-f409-4af3-afe1-c521a39e6dee",
+              "label": "Lancement = définir ; Planification = planifier en détail ; Exécution = produire les livrables ; Clôture = transférer et clôturer."
+            },
+            {
+              "choiceId": "0a71b324-4b04-476b-8857-fe56b6bd546f",
+              "label": "Lancement = produire ; Planification = clôturer ; Exécution = définir ; Clôture = planifier."
+            },
+            {
+              "choiceId": "260fc53a-0923-4468-9649-6cc679d34519",
+              "label": "Lancement = clôturer ; Planification = produire ; Exécution = planifier ; Clôture = définir."
+            },
+            {
+              "choiceId": "9383ae89-f716-4f22-9c7d-7fd59a050bb5",
+              "label": "Les quatre phases ont exactement la même finalité."
+            }
+          ],
+          "correctChoiceId": "dd03ddd3-f409-4af3-afe1-c521a39e6dee"
+        },
+        {
+          "activityLineageId": "c2c70a93-d5d8-4e97-8467-f6baef609232",
+          "activityRevisionId": "4c59ab83-fbbf-47e4-8404-32125912e4df",
+          "activityRevisionDigest": "sha256:29edebea053ded256a48ad24dffca112aaa48eb67a5c12740e91484358644f27",
+          "objectiveIds": [
+            "e43c607f-ecd5-4261-a7b1-d5b36cd070ed"
+          ],
+          "type": "qcm",
+          "prompt": "Une équipe classe le « Suivi et Contrôle » comme une cinquième phase séquentielle après la Clôture. Quelle correction respecte le Guide PM² ?",
+          "explanation": "Le guide présente quatre phases séquentielles. Les activités de Suivi et Contrôle sont menées tout au long du cycle de vie, et non comme une cinquième phase située après la clôture.",
+          "difficulty": "medium",
+          "learningPhase": "consolidation",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "1174a1a6-cb1b-4b3e-b489-a18f9dc9f099",
+              "label": "Suivi et Contrôle s’exerce tout au long du cycle de vie."
+            },
+            {
+              "choiceId": "7f8db7d8-5965-4ddb-bbc2-9b5b5bc1869e",
+              "label": "Suivi et Contrôle vient uniquement après la Clôture."
+            },
+            {
+              "choiceId": "18b5276c-f61e-4628-9ac6-9714c9c84f6d",
+              "label": "Suivi et Contrôle remplace la Planification."
+            },
+            {
+              "choiceId": "288ec18d-f30c-46da-939b-028c633d7508",
+              "label": "PM² ne prévoit aucun suivi."
+            }
+          ],
+          "correctChoiceId": "1174a1a6-cb1b-4b3e-b489-a18f9dc9f099"
+        },
+        {
+          "activityLineageId": "978b1f0d-e05e-40c4-904c-1dadc21c0028",
+          "activityRevisionId": "06c65b95-6a82-44be-8d6f-189491009ec3",
+          "activityRevisionDigest": "sha256:b50d9c8d7bd8fbb64220559463057de46b128e4b194d80b4cfd88925288a305f",
+          "objectiveIds": [
+            "e43c607f-ecd5-4261-a7b1-d5b36cd070ed"
+          ],
+          "type": "fill",
+          "prompt": "Un projet formalise son périmètre, ses jalons, ses livrables et son organisation dans la Charte du Projet. Complète la phase PM² correspondante.",
+          "explanation": "La Charte du Projet est élaborée pendant la Phase de Lancement et sert de base à la planification détaillée.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "segments": [
+            {
+              "text": "Phase : "
+            },
+            {
+              "slotId": "84919a2c-3b83-4977-ada4-9d6d14f3f3e3"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "84a603a0-7a08-4b0b-b6e5-d58b4e1dfcb1",
+              "label": "Lancement",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "d72bc000-cc9a-49a2-a0c2-7f6407f6bb40",
+              "label": "Planification",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "7d7c73e4-ced0-4bc4-9c58-86df8ec8dd4b",
+              "label": "Exécution",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "eb3c92bf-2b58-4644-84b3-a912009a9ed7",
+              "label": "Clôture",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "84919a2c-3b83-4977-ada4-9d6d14f3f3e3",
+              "tokenId": "84a603a0-7a08-4b0b-b6e5-d58b4e1dfcb1"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "a94ef781-5fb9-48e0-b055-0be14b001629",
+          "activityRevisionId": "8465f965-a6a9-4a0e-9805-b247623b7767",
+          "activityRevisionDigest": "sha256:3507e9bb2bfbec81e28e031a39636e1f830a4479e27f014306f69f38d3759b4f",
+          "objectiveIds": [
+            "e43c607f-ecd5-4261-a7b1-d5b36cd070ed"
+          ],
+          "type": "qcm",
+          "prompt": "Les plans ont été approuvés au point RfE et l’équipe commence à produire les livrables du projet. Dans quelle phase PM² se trouve-t-elle ?",
+          "explanation": "RfE marque la fin de la Planification et autorise le passage à l’Exécution, phase pendant laquelle les livrables sont produits.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "3cf0da92-1e26-4d48-ab2c-f085139bccc5",
+              "label": "Exécution."
+            },
+            {
+              "choiceId": "2f752a04-a209-4bdc-a822-2f75558e22e5",
+              "label": "Lancement."
+            },
+            {
+              "choiceId": "9ee7b430-ad89-41e2-852c-40a20a9606b7",
+              "label": "Planification."
+            },
+            {
+              "choiceId": "6f61f052-c41d-494e-a49e-7d53441da0cf",
+              "label": "Clôture."
+            }
+          ],
+          "correctChoiceId": "3cf0da92-1e26-4d48-ab2c-f085139bccc5"
+        },
+        {
+          "activityLineageId": "616efb17-b600-47d1-8e88-4db74f73e2b0",
+          "activityRevisionId": "146e0be4-2bea-4b4e-8bf0-03666da16ef1",
+          "activityRevisionDigest": "sha256:8b21df77da328db7d8de78cd816dcc786146fa8e3977c177baa466c81e1e4a71",
+          "objectiveIds": [
+            "e43c607f-ecd5-4261-a7b1-d5b36cd070ed"
+          ],
+          "type": "qcm",
+          "prompt": "Transfert : les livrables ont été produits, le projet a franchi le point RfC et l’équipe doit transférer les résultats, clôturer administrativement et consigner les leçons apprises. Quelle phase doit-elle engager ?",
+          "explanation": "Après l’Exécution et le point RfC, la Phase de Clôture organise le transfert des résultats, la clôture administrative et les leçons apprises.",
+          "difficulty": "advanced",
+          "learningPhase": "transfer",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 5,
+          "choices": [
+            {
+              "choiceId": "5902266f-0802-4df2-b440-07f9aae9bb9e",
+              "label": "Clôture."
+            },
+            {
+              "choiceId": "8b9e5e92-468a-4ee6-89bc-b70a2fec71fc",
+              "label": "Lancement."
+            },
+            {
+              "choiceId": "c746677e-c5ed-41b9-bb29-a4f2c0baf99e",
+              "label": "Planification."
+            },
+            {
+              "choiceId": "8c87270b-394f-444d-b0db-d6ea7b54d550",
+              "label": "Exécution."
+            }
+          ],
+          "correctChoiceId": "5902266f-0802-4df2-b440-07f9aae9bb9e"
+        }
+      ],
+      "atlasValidationIndependenceClaims": [
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:ceae5c759f123db30d647f5f1c888806e35ab734b03f946590ebe8857cdd6692",
+          "objectiveId": "e43c607f-ecd5-4261-a7b1-d5b36cd070ed",
+          "sourceActivityLineageId": "7a4f2c81-57f2-4114-a07f-8e522886ed5e",
+          "targetActivityLineageId": "978b1f0d-e05e-40c4-904c-1dadc21c0028",
+          "basisCode": "new-instance",
+          "sourceStimulusDigest": "sha256:de138dcf4d1b364718b54e846445e49e94f84371fadd4068afb52e83d8faa8ce",
+          "targetStimulusDigest": "sha256:d7389560bc03cbda94ea9eb2be24562eb0c19c6105d8706198674f6aef0f1c2e"
+        },
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:78301c6efcac740a21abd347d6d58ff3adee0c6c935150f0d54277a8da0a4187",
+          "objectiveId": "e43c607f-ecd5-4261-a7b1-d5b36cd070ed",
+          "sourceActivityLineageId": "978b1f0d-e05e-40c4-904c-1dadc21c0028",
+          "targetActivityLineageId": "a94ef781-5fb9-48e0-b055-0be14b001629",
+          "basisCode": "alternate-representation",
+          "sourceStimulusDigest": "sha256:d7389560bc03cbda94ea9eb2be24562eb0c19c6105d8706198674f6aef0f1c2e",
+          "targetStimulusDigest": "sha256:b888d07a1dabe0de569b5ff713a9822483036b7bc9e71e525abba5e788caf836"
+        }
+      ]
+    }
+  ]
 }
