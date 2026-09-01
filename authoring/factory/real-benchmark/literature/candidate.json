@@ -1,17 +1,17 @@
 {
   "contract": "learnit.kit.v2",
   "packageLineageId": "4040a3cd-9ced-49c1-8509-d91875876c8d",
-  "packageRevisionId": "2bf66732-77b6-4944-bbfb-9e7bf3e5c6cd",
-  "packageRevisionDigest": "sha256:bc20d77680d43b493076107fb494728b5ed96c06b6ad773e745a625b4c2a3954",
+  "packageRevisionId": "5f35fbeb-0530-472a-90e5-29579bd50655",
+  "packageRevisionDigest": "sha256:538b188a2f8ffb9f88e741783569b6b4127eecec39d844f11ba81abf071e7ef6",
   "title": "Littérature contemporaine — caractéristiques",
   "description": "Kit pilote Atlas limité au contenu explicitement listé dans le document MIT OpenCourseWare 21L.488.",
-  "versionLabel": "M3.2.5 real-source pilot literature v1",
+  "versionLabel": "M3.2.5 real-source pilot literature v2",
   "language": "fr",
   "courses": [
     {
       "courseLineageId": "5843c3a8-3668-413c-80bc-2f14b9a8147d",
-      "courseRevisionId": "9562e5f1-5c4f-4c50-9d56-4f8afe293fd7",
-      "courseRevisionDigest": "sha256:9dd3c74fdd0c7f6b6aa3f21ef5d0c3f6e95c93b31f4adcca70e39b2cdd2f28cb",
+      "courseRevisionId": "562c28da-27cf-4ca0-8147-02f993f66c11",
+      "courseRevisionDigest": "sha256:a4705d71e62dbe2bfc476129ad096d99b98ba4d8ccce9c0828e58e728931e452",
       "title": "Caractéristiques de la littérature contemporaine",
       "subtitle": "Lecture guidée du document MIT OpenCourseWare 21L.488",
       "estimatedMinutes": 21,
@@ -92,8 +92,8 @@
         },
         {
           "activityLineageId": "58d68f59-289a-4ae0-adbf-c4295d210fab",
-          "activityRevisionId": "4ef93502-77f4-4e2f-beb7-615c15b89490",
-          "activityRevisionDigest": "sha256:62c4f45a37099bebf9496073424edd289db18866ec7cecda9fa6a716698abc28",
+          "activityRevisionId": "333e87bb-c364-4b09-b2ce-ce3273c54fe3",
+          "activityRevisionDigest": "sha256:1e1009ce3fe8f42256ab8e424b5f96b876c94e7fd5c71b5bf5390ab01ee4819f",
           "objectiveIds": [
             "23b78d88-9d63-4016-af9b-d008a83de6f1"
           ],
@@ -106,7 +106,7 @@
           "estimatedMinutes": 4,
           "segments": [
             {
-              "text": "La littérature contemporaine met l’accent sur la fragmentation dans l’expérience humaine et comme "
+              "text": "Le document associe la fragmentation dans l’expérience humaine de la culture postmoderne à une "
             },
             {
               "slotId": "1560baea-7d1b-4b51-8cd2-c68f1db1b324"
@@ -236,22 +236,22 @@
       "atlasValidationIndependenceClaims": [
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:a6f559618e51e4ae60466c69d520b5dd297767f0e3724dad9baa12477ba7e8de",
+          "claimId": "atlas-claim-sha256:964b5cc89ee65e621bf5a90304ec7d4d2070e813def5abb77fc16587e69742ae",
           "objectiveId": "23b78d88-9d63-4016-af9b-d008a83de6f1",
           "sourceActivityLineageId": "6d42983c-d30b-4404-b1ab-5ea650172d15",
           "targetActivityLineageId": "58d68f59-289a-4ae0-adbf-c4295d210fab",
           "basisCode": "new-instance",
           "sourceStimulusDigest": "sha256:cd7915cdadb5384bf48168a350088b3f5dca76285d719eb47975b6868b33e881",
-          "targetStimulusDigest": "sha256:9154bf0c3522e0bd79f680d883fa760ebfc3236f1327fcde1bbf17a52905cb8e"
+          "targetStimulusDigest": "sha256:f3b0cef57f93dd65e980fdb19d4096678f28b424f9f2fc7b4f07546ef9e2295b"
         },
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:a6c73e5b6f4f29520e230b371cf208ddf1f5d83af859b38aa91692eec2d21b53",
+          "claimId": "atlas-claim-sha256:055be716e75ae42dffb89e9700a4dd5f3ca0e947b0bd0d12a77afa2427223bd2",
           "objectiveId": "23b78d88-9d63-4016-af9b-d008a83de6f1",
           "sourceActivityLineageId": "58d68f59-289a-4ae0-adbf-c4295d210fab",
           "targetActivityLineageId": "98de9c1a-49f3-467c-895b-b8c2b2a4d247",
           "basisCode": "alternate-representation",
-          "sourceStimulusDigest": "sha256:9154bf0c3522e0bd79f680d883fa760ebfc3236f1327fcde1bbf17a52905cb8e",
+          "sourceStimulusDigest": "sha256:f3b0cef57f93dd65e980fdb19d4096678f28b424f9f2fc7b4f07546ef9e2295b",
           "targetStimulusDigest": "sha256:e462ec2278ab2948761d6f196c20539258421bce7c778b27212eec14e96eba8b"
         }
       ]
