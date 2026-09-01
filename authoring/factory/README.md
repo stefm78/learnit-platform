@@ -198,3 +198,97 @@ If the gate returns HOLD:
 6. repeat until PASS or an unresolved source limitation is reported.
 
 The factory never edits the kit automatically and never weakens a validator to obtain PASS.
+
+## M3.2.5 reliability layer
+
+M3.2.5 composes around the promoted M3.2 gate. It does not replace or weaken `factory_gate.py`.
+
+A source used in a reliability run has a logical identity:
+
+```text
+resourceId + version + sha256
+```
+
+The physical path is only a local resolver input and is never emitted in a `FactoryRun` or evidence bundle. Moving the same bytes to another storage location therefore does not change the emitted run, while changing the logical resource version does change the M3.2.5 run identity.
+
+Create a deterministic run:
+
+```bash
+python -B authoring/factory/reliability.py run \
+  --kit candidate.json \
+  --brief learner-brief.json \
+  --review semantic-review.json \
+  --resource cours@2026-01=./cours.pdf \
+  > factory-run.json
+```
+
+Verify a stored run without the original host paths:
+
+```bash
+python -B authoring/factory/reliability.py verify-run \
+  --run factory-run.json
+```
+
+A `FactoryRun` is a path-free manifest binding:
+
+```text
+resources
++ learner brief
++ generated kit
++ deterministic validators
++ semantic review
++ M3.2 factory evidence
++ final PASS/HOLD decision
+→ self-verifying evidence bundle
+→ deterministic runId
+```
+
+The run manifest does not store source documents, generated-kit libraries or large media payloads. Those may live outside Git; their logical identity remains stable through `resourceId + version + sha256`.
+
+### Benchmark gate
+
+The executable benchmark policy is `benchmark_contract.json`. The v1 contract requires:
+
+- mathematics;
+- physics;
+- computer science;
+- history;
+- law;
+- medicine;
+- literature;
+- management;
+- at least eight distinct FactoryRuns;
+- at least two PASS runs;
+- at least two justified HOLD runs;
+- distinct source-content digests for distinct benchmark cases, so one source cannot be relabelled into several domains;
+- human escalation on no more than 25% of runs.
+
+A corpus that only produces PASS is therefore not considered a reliability proof.
+
+Benchmark manifest:
+
+```json
+{
+  "schema": "learnit.atlas.factory_benchmark_manifest.v1",
+  "cases": [
+    {
+      "caseId": "math-001",
+      "domain": "mathematics",
+      "run": "/evidence/math-001.factory-run.json",
+      "expectedDecision": "PASS",
+      "humanEscalation": false
+    }
+  ]
+}
+```
+
+The manifest path is operational input; emitted benchmark reports contain case IDs and run IDs, not host paths.
+
+Run the benchmark:
+
+```bash
+python -B authoring/factory/reliability.py benchmark \
+  --manifest benchmark-manifest.json
+```
+
+M3.2.5 does not authorize source ingestion, OCR, model-provider integration, automatic publishing, learner-runtime AI, M3.3, M3.4, Gate3 or Gate4.
