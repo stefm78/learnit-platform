@@ -1,0 +1,7 @@
+{
+  "schema": "learnit.atlas.learner_brief.v1",
+  "audience": "étudiant de premier cycle découvrant l’analyse littéraire contemporaine",
+  "goal": "Identifier plusieurs caractéristiques explicitement listées dans le document MIT et éviter de leur attribuer un sens que la source ne donne pas.",
+  "language": "fr",
+  "timeBudgetMinutes": 25
+}
