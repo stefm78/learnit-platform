@@ -2,7 +2,7 @@
   "contract": "learnit.kit.v2",
   "packageLineageId": "665829ef-bc7f-4ad3-b265-4cb301e31684",
   "packageRevisionId": "38d7161c-8e08-43cb-8e9a-78e5454d6a21",
-  "packageRevisionDigest": "sha256:a9a31041d7366221b15a784570a65f7f0c104c08371e606f309fbadbd0364f3e",
+  "packageRevisionDigest": "sha256:33df017ce34ff3c1f2ee29d200abfc1b0d40c7efaf4245db72dbe36ae88194bb",
   "title": "Physique — force magnétique et moment dipolaire",
   "description": "Kit pilote Atlas fondé exclusivement sur le document MIT 8.02T Problem Solving 5.",
   "versionLabel": "M3.2.5 real-source physics v2",
@@ -11,7 +11,7 @@
     {
       "courseLineageId": "4d525640-f0f0-4b8a-bde1-149cd5971494",
       "courseRevisionId": "10b4a6d4-20ea-46d6-b31d-b7745cc2606c",
-      "courseRevisionDigest": "sha256:be6debb6b9bdb3658a1ca5155190c19e947dad3d81a661e0c6feda437d673344",
+      "courseRevisionDigest": "sha256:90a2ece77be67519c2a139d088cb38da3d35ee8b5e856e935e988dce6e50fe18",
       "title": "Courant, force et couple magnétique",
       "subtitle": "MIT 8.02T — Problem Solving 5, sections force sur un fil, boucle de courant et moment dipolaire",
       "estimatedMinutes": 21,
@@ -236,22 +236,22 @@
       "atlasValidationIndependenceClaims": [
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:90f529311443b70909f801e3b6165b30b2337cf9938baa2a2af38280b8a69006",
+          "claimId": "atlas-claim-sha256:c14f1b35029fa3b017bb928fab37670188bd19a78c0d65258e36388eb5fbf8a0",
           "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
           "sourceActivityLineageId": "fdb5bb80-a47c-4e41-9b50-a4a620a302d4",
           "targetActivityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
           "basisCode": "new-instance",
           "sourceStimulusDigest": "sha256:9acf10d919556550a3c45480e4eb4dc7e71ffd67fcba75279f3f9f90b74a60d9",
-          "targetStimulusDigest": "sha256:be5db6a80c09ffdb51608e399440744a7aa485caa5e369f0548e5eccd689a4f8"
+          "targetStimulusDigest": "sha256:ebb3188abd13f5873e7ea5bb4ef35fa23e3afb80cdcc996f100cd8df99b2aca1"
         },
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:110fe7e06db5903a2a2d1e49f077e56d70cf7b5f6454b658ce42debc1c4c9e00",
+          "claimId": "atlas-claim-sha256:d09f8f767a4316be64f96cf7bdcb7fe6fc3bc0156c97a333e32bc24644fa420f",
           "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
           "sourceActivityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
           "targetActivityLineageId": "2c624bb5-a715-42f8-9f14-b2fa55277695",
           "basisCode": "alternate-representation",
-          "sourceStimulusDigest": "sha256:be5db6a80c09ffdb51608e399440744a7aa485caa5e369f0548e5eccd689a4f8",
+          "sourceStimulusDigest": "sha256:ebb3188abd13f5873e7ea5bb4ef35fa23e3afb80cdcc996f100cd8df99b2aca1",
           "targetStimulusDigest": "sha256:8d56b40c46e663498a96835f6c444ca58bed7afbcff404a76623569c3dbf2937"
         }
       ]
