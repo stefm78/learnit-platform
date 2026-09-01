@@ -52,7 +52,8 @@
     "M3.2, M3.2.5 reliability and SourceAdmission gate code remain unchanged; the benchmark catalog may replace transport-incompatible candidates only with provenance/rights-equivalent or stronger official sources.",
     "A retrieval failure is a HOLD, never silently skipped.",
     "The snapshot runner performs retrieval only; it does not parse PDFs, extract OCR, call models or publish kits.",
-    "The management primary source must bind the full official French PM² Guide 3.1 PDF, not merely its Publications Office metadata page."
+    "The management primary source must bind the full official French PM² Guide 3.1 PDF, not merely its Publications Office metadata page.",
+    "History, law, medicine and management primary sources are bound to static official PDF bytes rather than dynamic presentation pages."
   ],
   "requiredEvidence": [
     "Exact seven-path corrective delta from merged main ae415c8547002c9ca335eff6b79368c70ad3b031.",
@@ -69,7 +70,9 @@
     "Duplicate primary source content produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
     "The legal benchmark binds the exact official National Archives U.S. Constitution transcription/version; caller-bound version behavior remains covered by SourceAdmission.",
     "Snapshot manifest contains no physical host path.",
-    "Trusted branch run attempts the real V1 catalog and uploads the exact source/admission bundle as an Actions artifact."
+    "Trusted branch run attempts the real V1 catalog and uploads the exact source/admission bundle as an Actions artifact.",
+    "Final trusted real snapshot is sha256:78e01b54891f71e030c935a658daa31cd9d27e96475fe0cf7a5021b7bc79905d with eight admitted primary domains and two pre-ingestion negative controls.",
+    "Static primary hashes include history sha256:00401a83bb1244e368d60620283740f37c78afcc909e71a380807864f9d69910, law sha256:c9b9c5fa85613cc0e023b8d40120fa3fcb08667ed28404514545cf26e7a752fb, medicine sha256:62aae4493bf4d47e210c128992212f532209fbf8ae204b1d2e2d16abcf3d36c1, management sha256:ed210f58a73ffc98bc2549083a58068649ce6a4d6acc2fa874977c0608019dab."
   ],
   "adversarialTests": [
     "Network failure for one primary source.",
@@ -104,7 +107,7 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-017c-management-source-content",
-    "phase": "MANAGEMENT_SOURCE_CONTENT_CORRECTION_IN_PROGRESS",
+    "phase": "READY_FOR_PR",
     "pullRequest": null,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
