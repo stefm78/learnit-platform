@@ -84,43 +84,42 @@
       "benchmarkFocus": "Reference correction used as independent evidence, not as a learner-facing answer dump."
     },
     {
-      "sourceId": "eduscol:physics-qcm-measurement-uncertainty-2026",
+      "sourceId": "mit-ocw:8-02t-solving05-2005",
       "domain": "physics",
       "benchmarkRole": "primary",
-      "title": "QCM — Mesure et incertitude",
-      "authority": "Ministère de l’Éducation nationale — éduscol",
-      "sourceUrl": "https://eduscol.education.gouv.fr/sites/default/files/document/ralyceepro1phychiqcm-mesures-et-incertitudes-94707.zip",
-      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+      "title": "Problem Solving 5 — Magnetic Force, Torque, and Magnetic Moments",
+      "authority": "Massachusetts Institute of Technology — MIT OpenCourseWare",
+      "sourceUrl": "https://ocw.mit.edu/courses/8-02t-electricity-and-magnetism-spring-2005/7cd89ae2894fa2d45fe629988081a809_solving05.pdf",
+      "rightsUrl": "https://ocw.mit.edu/pages/privacy-and-terms-of-use/",
       "version": {
         "strategy": "fixed",
-        "value": "catalog-observed-2026-09-01",
-        "rule": "Official éduscol package as linked from the July 2026 physics-chemistry resources page."
+        "value": "8.02T-spring-2005-solving05",
+        "rule": "Exact MIT OCW course/resource identity and published Spring 2005 problem-solving PDF."
       },
       "rights": {
-        "status": "allowed",
-        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
+        "status": "conditional",
+        "license": "CC BY-NC-SA 4.0; MIT OCW explicitly permits AI training/use subject to its licence restrictions",
         "allowedUseContexts": [
-          "internal-rd-noncommercial",
-          "commercial-product",
-          "public-demo"
+          "internal-rd-noncommercial"
         ],
         "thirdPartyContentStatus": "none-declared",
         "conditions": [
           "attribution",
-          "exclude-marked-third-party"
+          "noncommercial-use",
+          "sharealike"
         ],
         "evidence": [
           {
-            "url": "https://eduscol.education.gouv.fr/5898/programmes-et-ressources-en-physique-chimie-voie-professionnelle",
-            "basis": "The official resource page states that the QCM packages include correction and distractor analysis."
+            "url": "https://ocw.mit.edu/pages/privacy-and-terms-of-use/",
+            "basis": "MIT OCW states CC BY-NC-SA 4.0 and explicitly permits AI training/use when attribution, non-commercial and ShareAlike requirements are met."
           },
           {
-            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
-            "basis": "éduscol-owned pages and downloads are under Licence Ouverte 2.0, excluding identified third-party material."
+            "url": "https://ocw.mit.edu/courses/8-02t-electricity-and-magnetism-spring-2005/resources/solving05/",
+            "basis": "The official resource page identifies the exact 259 kB PDF, course, level and physics problem-solving objectives."
           }
         ]
       },
-      "benchmarkFocus": "Physics questions where distractor analysis can expose plausible-but-wrong pedagogy."
+      "benchmarkFocus": "Dense electromagnetism reasoning with diagrams, derivation steps and multiple linked questions."
     },
     {
       "sourceId": "python:docs-fr-3.14.7-text",
@@ -161,56 +160,21 @@
       "benchmarkFocus": "Version-sensitive technical truth and precise API semantics."
     },
     {
-      "sourceId": "eduscol:hggsp-2026",
+      "sourceId": "nara:declaration-independence-transcript",
       "domain": "history",
       "benchmarkRole": "primary",
-      "title": "Programmes et ressources en Histoire-géographie, géopolitique et sciences politiques",
-      "authority": "Ministère de l’Éducation nationale — éduscol",
-      "sourceUrl": "https://eduscol.education.gouv.fr/5802/programmes-et-ressources-en-histoire-geographie-geopolitique-et-sciences-politiques-voie-g",
-      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+      "title": "Declaration of Independence (1776) — National Archives transcript",
+      "authority": "U.S. National Archives and Records Administration",
+      "sourceUrl": "https://www.archives.gov/milestone-documents/declaration-of-independence",
+      "rightsUrl": "https://www.archives.gov/global-pages/privacy.html",
       "version": {
         "strategy": "fixed",
-        "value": "2026-03",
-        "rule": "Official page update month observed in the 2026 benchmark research."
+        "value": "1776-stone-engraving-transcript",
+        "rule": "Official NARA transcript of the Stone Engraving, with exact web bytes additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
-        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
-        "allowedUseContexts": [
-          "internal-rd-noncommercial",
-          "commercial-product",
-          "public-demo"
-        ],
-        "thirdPartyContentStatus": "excluded",
-        "conditions": [
-          "attribution",
-          "eduscol-owned-content-only"
-        ],
-        "evidence": [
-          {
-            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
-            "basis": "The benchmark scopes ingestion to éduscol-owned text; linked or embedded third-party resources are excluded from this source identity."
-          }
-        ]
-      },
-      "benchmarkFocus": "Tests whether a curriculum/reference page is sufficient evidence, rather than letting the author silently invent historical detail."
-    },
-    {
-      "sourceId": "legifrance:code-civil",
-      "domain": "law",
-      "benchmarkRole": "primary",
-      "title": "Code civil — texte consolidé",
-      "authority": "Légifrance",
-      "sourceUrl": "https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT00000607072/",
-      "rightsUrl": "https://www.legifrance.gouv.fr/contenu/pied-de-page/open-data-et-api",
-      "version": {
-        "strategy": "caller",
-        "value": null,
-        "rule": "Bind the exact consolidated legal state/retrieval date (ISO date) together with the byte hash."
-      },
-      "rights": {
-        "status": "allowed",
-        "license": "Licence Ouverte / Open Licence 2.0 for Légifrance open data",
+        "license": "U.S. Government/NARA-produced web content public domain; NARA states worldwide reuse under CC0 1.0",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -218,21 +182,58 @@
         ],
         "thirdPartyContentStatus": "none-declared",
         "conditions": [
-          "attribution",
-          "version-date-binding"
+          "source-attribution"
         ],
         "evidence": [
           {
-            "url": "https://www.legifrance.gouv.fr/contenu/pied-de-page/open-data-et-api",
-            "basis": "Légifrance documents its open-data/API reuse regime."
+            "url": "https://www.archives.gov/global-pages/privacy.html",
+            "basis": "NARA states that works it produces are public domain and available worldwide under CC0 1.0; it asks users to credit NARA as source."
           },
           {
-            "url": "https://www.data.gouv.fr/datasets/legi-codes-lois-et-reglements-consolides",
-            "basis": "The official LEGI dataset is published as open data and demonstrates that consolidated law is versioned/evolving source material."
+            "url": "https://www.archives.gov/milestone-documents/declaration-of-independence",
+            "basis": "The official National Archives page provides the historical document context and transcript used by this benchmark."
           }
         ]
       },
-      "benchmarkFocus": "Temporal/version binding: a legally correct kit must state which exact consolidated source state it used."
+      "benchmarkFocus": "Primary historical source: tests attribution, context and the distinction between source claims and neutral historical synthesis."
+    },
+    {
+      "sourceId": "eurlex:gdpr-32016R0679-fr-oj",
+      "domain": "law",
+      "benchmarkRole": "primary",
+      "title": "Règlement (UE) 2016/679 — RGPD, texte du Journal officiel en français",
+      "authority": "Office des publications de l’Union européenne — EUR-Lex",
+      "sourceUrl": "https://eur-lex.europa.eu/legal-content/FR/TXT/PDF/?uri=CELEX:32016R0679",
+      "rightsUrl": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html?locale=fr",
+      "version": {
+        "strategy": "fixed",
+        "value": "CELEX-32016R0679-OJ-2016-05-04",
+        "rule": "Exact CELEX identifier and Official Journal publication state, not a silently updated consolidated text."
+      },
+      "rights": {
+        "status": "allowed",
+        "license": "EU legal-document reuse policy under Decision 2011/833/EU; commercial and non-commercial reuse unless otherwise specified",
+        "allowedUseContexts": [
+          "internal-rd-noncommercial",
+          "commercial-product",
+          "public-demo"
+        ],
+        "thirdPartyContentStatus": "none-declared",
+        "conditions": [
+          "source-attribution"
+        ],
+        "evidence": [
+          {
+            "url": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html?locale=fr",
+            "basis": "EUR-Lex states that, unless otherwise specified, legal documents may be reused for commercial or non-commercial purposes."
+          },
+          {
+            "url": "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679",
+            "basis": "The official EUR-Lex record binds the regulation to CELEX 32016R0679 and the 4 May 2016 Official Journal version."
+          }
+        ]
+      },
+      "benchmarkFocus": "Normative legal text: tests article/recital distinction and fidelity to one exact official version."
     },
     {
       "sourceId": "has:flash-prescription-retranscription-2026",
@@ -271,17 +272,17 @@
       "benchmarkFocus": "Patient-safety content where a plausible simplification can become semantically unsafe if the document status or caution is distorted."
     },
     {
-      "sourceId": "bnf:gallica-medecin-malgre-lui-selection",
+      "sourceId": "bnf:gallica-tartuffe-1669-textebrut",
       "domain": "literature",
       "benchmarkRole": "primary",
-      "title": "Molière — Le Médecin malgré lui, sélection Gallica",
+      "title": "Molière — Le Tartuffe ou L’Imposteur, édition Jean Ribou 1669 — texte brut Gallica",
       "authority": "Bibliothèque nationale de France — Gallica",
-      "sourceUrl": "https://gallica.bnf.fr/selections/fr/html/litteratures/moliere-le-medecin-malgre-lui",
+      "sourceUrl": "https://gallica.bnf.fr/ark:/12148/bpt6k701569.texteBrut",
       "rightsUrl": "https://www.bnf.fr/fr/conditions-de-reutilisations-des-donnees-de-la-bnf",
       "version": {
         "strategy": "fixed",
-        "value": "catalog-observed-2026-09-01",
-        "rule": "Exact Gallica selection page snapshot used for this first literature stress case."
+        "value": "ark-bpt6k701569-jean-ribou-1669",
+        "rule": "Exact Gallica ARK and historical edition; OCR/text bytes are additionally bound by SHA-256."
       },
       "rights": {
         "status": "conditional",
@@ -289,7 +290,7 @@
         "allowedUseContexts": [
           "internal-rd-noncommercial"
         ],
-        "thirdPartyContentStatus": "excluded",
+        "thirdPartyContentStatus": "none-declared",
         "conditions": [
           "noncommercial-use",
           "source-attribution",
@@ -298,15 +299,19 @@
         "evidence": [
           {
             "url": "https://www.bnf.fr/fr/conditions-de-reutilisations-des-donnees-de-la-bnf",
-            "basis": "BnF distinguishes metadata reuse and digitized-document reuse; non-commercial reuse of digitized public-domain collections is available under stated attribution conditions."
+            "basis": "BnF distinguishes metadata and digitized-document reuse; the benchmark remains in the declared non-commercial R&D context."
           },
           {
-            "url": "https://gallica.bnf.fr/selections/fr/html/litteratures/moliere-le-medecin-malgre-lui",
-            "basis": "The official Gallica selection identifies multiple historical editions, making edition identity itself part of the benchmark challenge."
+            "url": "https://gallica.bnf.fr/ark:/12148/bpt6k701569",
+            "basis": "The stable Gallica ARK identifies the exact historical edition used for the benchmark."
+          },
+          {
+            "url": "https://api.bnf.fr/fr/api-document-de-gallica",
+            "basis": "BnF documents the .texteBrut API for retrieving full text from an exact Gallica ARK and notes API rate limits."
           }
         ]
       },
-      "benchmarkFocus": "Edition/source attribution: the author must not collapse several historical editions into one unversioned literary source."
+      "benchmarkFocus": "Historical OCR/edition fidelity: the kit must stay bound to one exact edition and surface uncertainty rather than silently normalize it."
     },
     {
       "sourceId": "eu:pm2-v3.1",
