@@ -494,7 +494,9 @@ jobs:
               '.github/workflows/learnit-next-ci.yml' \
               'work-packages/ATLAS-WP-017.json' \
               'authoring/factory/source_snapshot.py' \
-              'authoring/factory/tests/test_source_snapshot.py'; do
+              'authoring/factory/benchmark_sources_v1.json' \
+              'authoring/factory/tests/test_source_snapshot.py' \
+              'authoring/factory/tests/test_source_admission.py'; do
               grep -Fxq "${required}" <<< "${changed}" || {
                 echo "Source snapshot required path is missing: ${required}" >&2
                 exit 2
@@ -503,8 +505,7 @@ jobs:
             for forbidden in \
               'authoring/factory/factory_gate.py' \
               'authoring/factory/reliability.py' \
-              'authoring/factory/source_admission.py' \
-              'authoring/factory/benchmark_sources_v1.json'; do
+              'authoring/factory/source_admission.py'; do
               ! grep -Fxq "${forbidden}" <<< "${changed}" || {
                 echo "Prior factory layer must remain unchanged: ${forbidden}" >&2
                 exit 2
