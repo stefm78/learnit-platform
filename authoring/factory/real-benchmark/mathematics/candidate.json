@@ -1,37 +1,37 @@
 {
   "contract": "learnit.kit.v2",
   "packageLineageId": "2d80d579-555b-42f2-b970-a887b66fcae9",
-  "packageRevisionId": "b44c9844-a79d-4325-8f08-181a484b3f87",
-  "packageRevisionDigest": "sha256:6d02f1369d42541bcee1b2be880424090a7c7c2e3532620803ddf68a8444272b",
+  "packageRevisionId": "5b9d7c24-ff31-40d3-a8f8-40b7660d947b",
+  "packageRevisionDigest": "sha256:6148eb2079c053d7dbd11b799cf6370ab34beb3b9870619288ae97af9c75e305",
   "title": "Probabilités — Exercice officiel 2024",
   "description": "Kit pilote Atlas construit uniquement à partir de l’exercice 3 et de sa correction officielle éduscol.",
-  "versionLabel": "M3.2.5 real-source pilot math v1",
+  "versionLabel": "M3.2.5 real-source pilot math v2",
   "language": "fr",
   "courses": [
     {
       "courseLineageId": "0b46dfd7-8b4c-49c3-8ab4-1ee8a5079ede",
-      "courseRevisionId": "222fc233-f855-470a-92ba-db8d80234663",
-      "courseRevisionDigest": "sha256:011f83ff7d6cc2f8895d80a79c55ba433e5a19483649e0ea4dc686f24d54ab4b",
+      "courseRevisionId": "15a9ec08-5227-4b17-8650-a149f621b3a3",
+      "courseRevisionDigest": "sha256:1a75c216885e433e1fac47aee37e105bf7bc09cbe660bbc5626cd882c0bef022",
       "title": "Probabilités conditionnelles — arbre de Q1 et Q2",
       "subtitle": "À partir de l’exercice 3 officiel de spécialité mathématiques, session 2024",
       "estimatedMinutes": 21,
       "objectives": [
         {
           "objectiveId": "6ed694b6-8cc8-4a76-bbc4-174dd9f63add",
-          "label": "Calculer des probabilités à partir des chemins d’un arbre pondéré"
+          "label": "Lire un arbre pondéré et calculer les probabilités de ses chemins"
         }
       ],
       "activities": [
         {
           "activityLineageId": "63717a68-cfc4-4357-b4a6-df3d23146d96",
-          "activityRevisionId": "9d5fb85a-af18-413e-9f82-16ad9c569804",
-          "activityRevisionDigest": "sha256:54cb778da43623e3e06d17aee5cdd5a1b0816d2d72268622ed778062849989db",
+          "activityRevisionId": "8b681b59-dad4-4ea8-8962-98fe5f4ab598",
+          "activityRevisionDigest": "sha256:f4cc91f4a8d6881c56d486d67bec2d9883dd7fd7ceafe4f651ed2af3cab7ac82",
           "objectiveIds": [
             "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
           ],
           "type": "qcm",
-          "prompt": "D’après l’arbre de l’exercice 3, quelle est la probabilité que le candidat réponde correctement à Q1 et à Q2 ?",
-          "explanation": "Le chemin A puis B a pour poids 0,8 × 0,6, donc P(A ∩ B) = 0,48, comme dans la correction officielle.",
+          "prompt": "Voici l’arbre pondéré de l’exercice 3 :\\nDépart\\n├─ A (0,8)\\n│  ├─ B (0,6)\\n│  └─ B̄ (0,4)\\n└─ Ā (0,2)\\n   ├─ B (0,1)\\n   └─ B̄ (0,9)\\nPour le chemin « réussir Q1 puis réussir Q2 » (A puis B), quels poids faut-il lire ?",
+          "explanation": "Sur le chemin A puis B, on lit d’abord 0,8 sur la branche A, puis 0,6 sur la branche B issue de A.",
           "difficulty": "medium",
           "learningPhase": "application",
           "assessmentRole": "practice",
@@ -39,19 +39,19 @@
           "choices": [
             {
               "choiceId": "2721ea35-c64d-447c-86d3-36a1f0db63e1",
-              "label": "0,48"
+              "label": "0,8 puis 0,6"
             },
             {
               "choiceId": "feef2452-cc78-410d-9e8b-f7f29030f466",
-              "label": "0,60"
+              "label": "0,8 puis 0,4"
             },
             {
               "choiceId": "58b497d5-253c-4639-8490-b7889ccde64d",
-              "label": "0,80"
+              "label": "0,2 puis 0,1"
             },
             {
               "choiceId": "d8102e40-e5bd-4afd-9400-f6264239e574",
-              "label": "1,40"
+              "label": "0,2 puis 0,9"
             }
           ],
           "correctChoiceId": "2721ea35-c64d-447c-86d3-36a1f0db63e1"
@@ -92,13 +92,13 @@
         },
         {
           "activityLineageId": "914f3665-a5d8-48f0-a97c-51272476e7e8",
-          "activityRevisionId": "7e099359-c49c-479f-829f-3899628846c0",
-          "activityRevisionDigest": "sha256:e96fb1914b72d78f3206905570086cde50e3672c147e6f8b9407a141c9964eb0",
+          "activityRevisionId": "318a74aa-bacc-463a-b6e7-c3c9661fe0f2",
+          "activityRevisionDigest": "sha256:d8c9078a38b93805d07b907c6c67659f7ab3711bc51991e7d1caf8c965cc80ad",
           "objectiveIds": [
             "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
           ],
           "type": "fill",
-          "prompt": "Le candidat échoue à Q1 puis réussit Q2. Complète la probabilité du chemin correspondant.",
+          "prompt": "Sur l’arbre, P(A)=0,8 et la branche Ā → B porte le poids 0,1. Le candidat échoue à Q1 puis réussit Q2. Complète la probabilité du chemin correspondant.",
           "explanation": "La probabilité de ne pas réussir Q1 vaut 0,2, puis la probabilité de réussir Q2 dans ce cas vaut 0,1. Le chemin vaut donc 0,2 × 0,1 = 0,02.",
           "difficulty": "medium",
           "learningPhase": "validation",
@@ -146,13 +146,13 @@
         },
         {
           "activityLineageId": "4a7431e9-6d4a-4e27-aebf-380b0af8456c",
-          "activityRevisionId": "5f3fe6e8-465f-4ea9-8ce1-029474159d8f",
-          "activityRevisionDigest": "sha256:b238447213463d70faab951a3f573cb97faf885514c57a9930e707ffb3825933",
+          "activityRevisionId": "d8603af9-2970-462e-97c4-52dcfc6882a1",
+          "activityRevisionDigest": "sha256:5d872f9b8685c20a8b122ea5cfd1647cdf89620fa98f2a33c8eba135119799ef",
           "objectiveIds": [
             "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
           ],
           "type": "qcm",
-          "prompt": "En réunissant les deux chemins qui aboutissent à une réponse correcte à Q2, quelle est P(B) ?",
+          "prompt": "À partir de l’arbre, on lit P(A)=0,8, P(B|A)=0,6 et P(B|Ā)=0,1. En réunissant les deux chemins qui aboutissent à une réponse correcte à Q2, quelle est P(B) ?",
           "explanation": "La correction officielle additionne P(A ∩ B) = 0,48 et P(Ā ∩ B) = 0,02. Ainsi P(B) = 0,50.",
           "difficulty": "medium",
           "learningPhase": "validation",
@@ -180,13 +180,13 @@
         },
         {
           "activityLineageId": "68eec493-5ed7-40a1-a531-d65f074995a4",
-          "activityRevisionId": "e58bb9b2-7458-46b9-bd6b-be66f6b5cb7d",
-          "activityRevisionDigest": "sha256:6c6fbf3f3f9f30126ee9081fd2afb45567c9ddcacb4541b09952640ea99bc708",
+          "activityRevisionId": "21a419c8-5d12-4c0c-a873-30148490f341",
+          "activityRevisionDigest": "sha256:0c2f35227b4f734ce94c0fe6b25e484380326f54ad0108b588bc3ce719c0cd69",
           "objectiveIds": [
             "6ed694b6-8cc8-4a76-bbc4-174dd9f63add"
           ],
           "type": "fill",
-          "prompt": "On passe de l’arbre à la note X de l’exercice : quelle est la probabilité d’obtenir exactement un point, donc de réussir une seule des deux questions ?",
+          "prompt": "On passe de l’arbre à la note X de l’exercice. La correction donne P(X=0)=0,18 et P(X=2)=0,48. Quelle est P(X=1), c’est-à-dire la probabilité d’obtenir exactement un point ?",
           "explanation": "La correction officielle donne P(X = 0) = 0,18 et P(X = 2) = 0,48. Comme les trois valeurs 0, 1 et 2 épuisent les cas, P(X = 1) = 1 − 0,18 − 0,48 = 0,34.",
           "difficulty": "advanced",
           "learningPhase": "transfer",
@@ -236,23 +236,23 @@
       "atlasValidationIndependenceClaims": [
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:e1b0b36c33c1ef5b5b7cd9dd82b5da2a2315f62b5402af7cf399f12448d181d8",
+          "claimId": "atlas-claim-sha256:8482a972c36b42c9cc4b7c49b0bac4a749f68384a4bd4f7690284d7504ffabc8",
           "objectiveId": "6ed694b6-8cc8-4a76-bbc4-174dd9f63add",
           "sourceActivityLineageId": "63717a68-cfc4-4357-b4a6-df3d23146d96",
           "targetActivityLineageId": "914f3665-a5d8-48f0-a97c-51272476e7e8",
           "basisCode": "new-instance",
-          "sourceStimulusDigest": "sha256:456641f6dbc57d8883c5abf4fd32027426b21959485581bdf331985bb64735e1",
-          "targetStimulusDigest": "sha256:b334a787b051fef6939e13ca8a452f3e21989c9b3a22069eb177f10c4ae0c867"
+          "sourceStimulusDigest": "sha256:51300881d6abab679b9f40cf60c22325590c90e6fe9ce9a6493c3e125d4ca82b",
+          "targetStimulusDigest": "sha256:2ce2bd9b9c89132612a64b41c66774c59d8339d0707228601999185201a7790e"
         },
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:5895a6e5bb0ad9ec15770255e5d45186abbfeb58eeaab183a4b20646fde349df",
+          "claimId": "atlas-claim-sha256:c835f9f318337ec3860969ef3f29c548802dfb25f9b61f72aeb1f5a6e48d77ef",
           "objectiveId": "6ed694b6-8cc8-4a76-bbc4-174dd9f63add",
           "sourceActivityLineageId": "914f3665-a5d8-48f0-a97c-51272476e7e8",
           "targetActivityLineageId": "4a7431e9-6d4a-4e27-aebf-380b0af8456c",
           "basisCode": "alternate-representation",
-          "sourceStimulusDigest": "sha256:b334a787b051fef6939e13ca8a452f3e21989c9b3a22069eb177f10c4ae0c867",
-          "targetStimulusDigest": "sha256:cc56f8c2581a7094c17451f15ac0ab120d6714bf6680f85622cb742f949523d3"
+          "sourceStimulusDigest": "sha256:2ce2bd9b9c89132612a64b41c66774c59d8339d0707228601999185201a7790e",
+          "targetStimulusDigest": "sha256:aeaacd20e47da71dd6dfa88cf21c17eac96f6221b6a0d01b5122abf164cdfd8e"
         }
       ]
     }
