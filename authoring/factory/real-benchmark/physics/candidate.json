@@ -1,24 +1,24 @@
 {
   "contract": "learnit.kit.v2",
   "packageLineageId": "665829ef-bc7f-4ad3-b265-4cb301e31684",
-  "packageRevisionId": "01a31f6d-ebf1-46bf-954b-1d1e8569fba5",
-  "packageRevisionDigest": "sha256:f049dac63331272c848e69241d1e897f855eeffdf6c2b39a96d52bb7c785788f",
+  "packageRevisionId": "38d7161c-8e08-43cb-8e9a-78e5454d6a21",
+  "packageRevisionDigest": "sha256:a9a31041d7366221b15a784570a65f7f0c104c08371e606f309fbadbd0364f3e",
   "title": "Physique — force magnétique et moment dipolaire",
   "description": "Kit pilote Atlas fondé exclusivement sur le document MIT 8.02T Problem Solving 5.",
-  "versionLabel": "M3.2.5 real-source physics v1",
+  "versionLabel": "M3.2.5 real-source physics v2",
   "language": "fr",
   "courses": [
     {
       "courseLineageId": "4d525640-f0f0-4b8a-bde1-149cd5971494",
-      "courseRevisionId": "0e3f1ec2-093d-41ac-b57e-996df9c98817",
-      "courseRevisionDigest": "sha256:c54430d7348e267013f0f52b40424356bf19654990f97fe4c0f0f13f87feb767",
+      "courseRevisionId": "10b4a6d4-20ea-46d6-b31d-b7745cc2606c",
+      "courseRevisionDigest": "sha256:be6debb6b9bdb3658a1ca5155190c19e947dad3d81a661e0c6feda437d673344",
       "title": "Courant, force et couple magnétique",
       "subtitle": "MIT 8.02T — Problem Solving 5, sections force sur un fil, boucle de courant et moment dipolaire",
       "estimatedMinutes": 21,
       "objectives": [
         {
           "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
-          "label": "Relier le courant, la force magnétique et le couple d’une boucle de courant à leurs expressions vectorielles"
+          "label": "Relier courant, force magnétique, couple obtenu par r×F et formulation par moment dipolaire"
         }
       ],
       "activities": [
@@ -37,116 +37,222 @@
           "assessmentRole": "practice",
           "estimatedMinutes": 4,
           "choices": [
-            {"choiceId": "e62b70c3-1ea6-4f65-a0e1-97b36ef6069b", "label": "I = ρ A v_d"},
-            {"choiceId": "8b5a7b92-b8d9-4fc0-831b-72467433c5d2", "label": "I = ρ A / v_d"},
-            {"choiceId": "211e18db-1ca8-4abe-a82e-1c77ccd556d5", "label": "I = ρ v_d / A"},
-            {"choiceId": "f386c0b5-129b-4d8b-a8ca-75934fa13402", "label": "I = A / (ρ v_d)"}
+            {
+              "choiceId": "e62b70c3-1ea6-4f65-a0e1-97b36ef6069b",
+              "label": "I = ρ A v_d"
+            },
+            {
+              "choiceId": "8b5a7b92-b8d9-4fc0-831b-72467433c5d2",
+              "label": "I = ρ A / v_d"
+            },
+            {
+              "choiceId": "211e18db-1ca8-4abe-a82e-1c77ccd556d5",
+              "label": "I = ρ v_d / A"
+            },
+            {
+              "choiceId": "f386c0b5-129b-4d8b-a8ca-75934fa13402",
+              "label": "I = A / (ρ v_d)"
+            }
           ],
           "correctChoiceId": "e62b70c3-1ea6-4f65-a0e1-97b36ef6069b"
         },
         {
           "activityLineageId": "abbf1872-5976-44ce-af1d-af7f18f48045",
-          "activityRevisionId": "df91a7e5-dc16-4446-8a45-2b73e5c4fba9",
-          "activityRevisionDigest": "sha256:651b6d836b53a246c2e4e1acb0aa45f13782e90f70bc33ee6476026c1b5cc7e1",
-          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "activityRevisionId": "70a7d4e4-3015-4f0f-ae6d-587094e550b9",
+          "activityRevisionDigest": "sha256:db5e98818c39458fdfc94daade65db09f808c89d3195c9d128c91939760c4764",
+          "objectiveIds": [
+            "91d4530b-c107-41ad-b967-a4fb853c3152"
+          ],
           "type": "qcm",
-          "prompt": "Une copie propose dF_B = I B_ext ds sans tenir compte des directions. Quelle correction respecte l’écriture vectorielle donnée dans la source ?",
-          "explanation": "Le document établit pour un élément de courant la relation vectorielle dF_B = I ds × B_ext. Le produit vectoriel porte l’information de direction.",
+          "prompt": "Une copie remplace l’élément vectoriel d𝐬 par sa norme scalaire ds. Quelle écriture respecte exactement la relation vectorielle donnée dans la source ?",
+          "explanation": "La source introduit l’élément de courant vectoriel I d𝐬, précise que sa norme vérifie ds = dx, puis écrit d𝐅_B = I d𝐬 × 𝐁_ext.",
           "difficulty": "medium",
           "learningPhase": "consolidation",
           "assessmentRole": "practice",
           "estimatedMinutes": 4,
           "choices": [
-            {"choiceId": "eab06bc1-7884-4c3d-af73-c6ce996eed9b", "label": "dF_B = I ds × B_ext"},
-            {"choiceId": "2f1cc83a-6715-4f1f-b2e1-e266257607f2", "label": "dF_B = I ds + B_ext"},
-            {"choiceId": "2f440dfb-36d6-497a-97a2-ac4b770e9c19", "label": "dF_B = I B_ext / ds"},
-            {"choiceId": "40c7061d-612c-441e-9a31-068f61a73706", "label": "dF_B = ρ A ds"}
+            {
+              "choiceId": "eab06bc1-7884-4c3d-af73-c6ce996eed9b",
+              "label": "d𝐅_B = I d𝐬 × 𝐁_ext"
+            },
+            {
+              "choiceId": "2f1cc83a-6715-4f1f-b2e1-e266257607f2",
+              "label": "d𝐅_B = I ds + 𝐁_ext"
+            },
+            {
+              "choiceId": "2f440dfb-36d6-497a-97a2-ac4b770e9c19",
+              "label": "d𝐅_B = I 𝐁_ext / ds"
+            },
+            {
+              "choiceId": "40c7061d-612c-441e-9a31-068f61a73706",
+              "label": "d𝐅_B = ρ A ds"
+            }
           ],
           "correctChoiceId": "eab06bc1-7884-4c3d-af73-c6ce996eed9b"
         },
         {
           "activityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
-          "activityRevisionId": "78aa4a65-f6e9-4ff9-be86-506aa79d6246",
-          "activityRevisionDigest": "sha256:732e8d11c3e4770ca4f059ff02a3cc83a10ea5ee5b9b8e5faf22c2a954e3ad46",
-          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "activityRevisionId": "12c79a6b-a6ee-4178-b289-ac414089e427",
+          "activityRevisionDigest": "sha256:3f6bf05d7c8ca7b3e937a20a783054cf5d4890893d8fe8545043359b2566d917",
+          "objectiveIds": [
+            "91d4530b-c107-41ad-b967-a4fb853c3152"
+          ],
           "type": "fill",
-          "prompt": "Complète la définition du moment dipolaire magnétique d’une boucle plane de courant.",
-          "explanation": "La section « Magnetic Dipole Moment » définit le vecteur moment dipolaire par μ = I A n̂, où n̂ est la normale orientée par la règle de la main droite.",
+          "prompt": "Dans la dérivation du couple de la boucle rectangulaire, la source calcule le couple du côté 4 à partir du vecteur position 𝐫₄ et de la force 𝐅₄. Complète la relation.",
+          "explanation": "Pour le côté 4, le document écrit 𝛕₄ = 𝐫₄ × 𝐅₄. Cette étape relie directement la force magnétique exercée sur un côté de la boucle au couple qu’elle produit.",
           "difficulty": "medium",
           "learningPhase": "validation",
           "assessmentRole": "validation",
           "estimatedMinutes": 4,
-          "segments": [{"text": "Pour une boucle plane, μ = "},{"slotId": "172d07c8-1ee6-4990-9dda-19e3cac1e4a7"},{"text": "."}],
-          "tokens": [
-            {"tokenId": "285c81ff-3953-40c0-aa57-6a4c03f60b0e", "label": "I A n̂", "maxUses": 1},
-            {"tokenId": "b12794d0-526a-4db5-ba35-31349b155a56", "label": "I / A n̂", "maxUses": 1},
-            {"tokenId": "23ca0c6c-a702-4297-a8da-c147c7c6670d", "label": "A / I n̂", "maxUses": 1},
-            {"tokenId": "9185f817-4c85-4f4b-8616-1ccf4fd092d0", "label": "I A B_ext", "maxUses": 1}
+          "segments": [
+            {
+              "text": "𝛕₄ = "
+            },
+            {
+              "slotId": "172d07c8-1ee6-4990-9dda-19e3cac1e4a7"
+            },
+            {
+              "text": "."
+            }
           ],
-          "answers": [{"slotId": "172d07c8-1ee6-4990-9dda-19e3cac1e4a7", "tokenId": "285c81ff-3953-40c0-aa57-6a4c03f60b0e"}]
+          "tokens": [
+            {
+              "tokenId": "285c81ff-3953-40c0-aa57-6a4c03f60b0e",
+              "label": "𝐫₄ × 𝐅₄",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "b12794d0-526a-4db5-ba35-31349b155a56",
+              "label": "𝐫₄ + 𝐅₄",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "23ca0c6c-a702-4297-a8da-c147c7c6670d",
+              "label": "𝐅₄ / 𝐫₄",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "9185f817-4c85-4f4b-8616-1ccf4fd092d0",
+              "label": "I A n̂",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "172d07c8-1ee6-4990-9dda-19e3cac1e4a7",
+              "tokenId": "285c81ff-3953-40c0-aa57-6a4c03f60b0e"
+            }
+          ]
         },
         {
           "activityLineageId": "2c624bb5-a715-42f8-9f14-b2fa55277695",
-          "activityRevisionId": "b44fd7dd-f52f-4049-af8d-e99908323b14",
-          "activityRevisionDigest": "sha256:ce18c05164455e80a9e74d442b670b48ca6882f632c656fae6550b0afdaf6c2a",
-          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "activityRevisionId": "79457cfa-b3ad-44e8-b584-a91ac79e4f1b",
+          "activityRevisionDigest": "sha256:a877dc32a88dbb050ad24b390e568d98a3c6e049d2226999786734e553a37cd5",
+          "objectiveIds": [
+            "91d4530b-c107-41ad-b967-a4fb853c3152"
+          ],
           "type": "qcm",
-          "prompt": "Quelle relation vectorielle le document donne-t-il pour le couple exercé sur un dipôle magnétique dans un champ uniforme ?",
-          "explanation": "La source écrit explicitement τ_magnetic = μ × B_ext pour une boucle plane, ou plus généralement un dipôle magnétique, dans un champ uniforme.",
+          "prompt": "Après avoir obtenu le couple total en sommant les couples issus des forces sur les côtés de la boucle, la source définit 𝛍 = I A n̂ et demande de recalculer le même couple. Quelle relation doit retrouver le même résultat dans un champ uniforme ?",
+          "explanation": "La question 15 relie explicitement les deux représentations : le couple calculé à partir des forces et de 𝐫 × 𝐅 doit être retrouvé avec 𝛕 = 𝛍 × 𝐁_ext.",
           "difficulty": "medium",
           "learningPhase": "validation",
           "assessmentRole": "validation",
           "estimatedMinutes": 4,
           "choices": [
-            {"choiceId": "316623db-a791-4a7c-95ad-ed4bc0e0dd76", "label": "τ = μ × B_ext"},
-            {"choiceId": "82f9bfff-6d7c-43e3-9254-5963fd056a5d", "label": "τ = μ + B_ext"},
-            {"choiceId": "fd111805-560f-4ce7-92e5-f564b372c007", "label": "τ = μ / B_ext"},
-            {"choiceId": "7b278856-2e51-4100-a3e8-c7f283153a82", "label": "τ = I A seulement"}
+            {
+              "choiceId": "316623db-a791-4a7c-95ad-ed4bc0e0dd76",
+              "label": "𝛕 = 𝛍 × 𝐁_ext"
+            },
+            {
+              "choiceId": "82f9bfff-6d7c-43e3-9254-5963fd056a5d",
+              "label": "𝛕 = 𝛍 + 𝐁_ext"
+            },
+            {
+              "choiceId": "fd111805-560f-4ce7-92e5-f564b372c007",
+              "label": "𝛕 = 𝛍 / 𝐁_ext"
+            },
+            {
+              "choiceId": "7b278856-2e51-4100-a3e8-c7f283153a82",
+              "label": "𝛕 = I A seulement"
+            }
           ],
           "correctChoiceId": "316623db-a791-4a7c-95ad-ed4bc0e0dd76"
         },
         {
           "activityLineageId": "633ab7f3-2e30-46e4-9697-a6acb6b8416f",
-          "activityRevisionId": "891f82ec-3390-413e-ba10-61b963b14643",
-          "activityRevisionDigest": "sha256:4699f9526eeaad87ac3863ed9a06e15cd5f974f56668cba304f0a068574a602a",
-          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "activityRevisionId": "0eb5d02a-c6bd-4384-9bad-ec41a8671892",
+          "activityRevisionDigest": "sha256:31cbfda3216288c32e556ee903530f7dbb4f9d6a39fc8446e5ff2e09818f95fd",
+          "objectiveIds": [
+            "91d4530b-c107-41ad-b967-a4fb853c3152"
+          ],
           "type": "fill",
-          "prompt": "Transfert : une boucle rectangulaire de côtés a et b porte un courant I. Si μ est perpendiculaire à B_ext, complète la norme du couple à partir de μ = I A n̂ et τ = μ × B_ext.",
-          "explanation": "L’aire de la boucle vaut A = ab, donc |μ| = Iab. Pour des vecteurs perpendiculaires, la norme du produit vectoriel vaut le produit des normes : |τ| = Iab B_ext.",
+          "prompt": "Transfert : une boucle rectangulaire de côtés a et b porte un courant I. Le couple obtenu par les forces doit coïncider avec celui obtenu par 𝛍 = I A n̂ et 𝛕 = 𝛍 × 𝐁_ext. Si 𝛍 est perpendiculaire à 𝐁_ext, complète la norme du couple.",
+          "explanation": "L’aire vaut A = ab, donc |𝛍| = Iab. Pour des vecteurs perpendiculaires, |𝛕| = |𝛍| B_ext = Iab B_ext, en accord avec le calcul du couple de la boucle à partir des forces.",
           "difficulty": "advanced",
           "learningPhase": "transfer",
           "assessmentRole": "practice",
           "estimatedMinutes": 5,
-          "segments": [{"text": "|τ| = "},{"slotId": "0707b817-445f-49a2-92f5-5f0b7f9c8c26"},{"text": "."}],
-          "tokens": [
-            {"tokenId": "8941bfb6-2e45-4fc0-9105-a70f58cd2743", "label": "I a b B_ext", "maxUses": 1},
-            {"tokenId": "66a5f64a-9751-4ab3-b26f-530b2132f7da", "label": "I (a+b) B_ext", "maxUses": 1},
-            {"tokenId": "0d48586c-fac1-412c-bfa2-538d4e9a1902", "label": "I a b / B_ext", "maxUses": 1},
-            {"tokenId": "194a143b-31c9-48b0-814a-4aa4a068073b", "label": "a b B_ext / I", "maxUses": 1}
+          "segments": [
+            {
+              "text": "|τ| = "
+            },
+            {
+              "slotId": "0707b817-445f-49a2-92f5-5f0b7f9c8c26"
+            },
+            {
+              "text": "."
+            }
           ],
-          "answers": [{"slotId": "0707b817-445f-49a2-92f5-5f0b7f9c8c26", "tokenId": "8941bfb6-2e45-4fc0-9105-a70f58cd2743"}]
+          "tokens": [
+            {
+              "tokenId": "8941bfb6-2e45-4fc0-9105-a70f58cd2743",
+              "label": "I a b B_ext",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "66a5f64a-9751-4ab3-b26f-530b2132f7da",
+              "label": "I (a+b) B_ext",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "0d48586c-fac1-412c-bfa2-538d4e9a1902",
+              "label": "I a b / B_ext",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "194a143b-31c9-48b0-814a-4aa4a068073b",
+              "label": "a b B_ext / I",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "0707b817-445f-49a2-92f5-5f0b7f9c8c26",
+              "tokenId": "8941bfb6-2e45-4fc0-9105-a70f58cd2743"
+            }
+          ]
         }
       ],
       "atlasValidationIndependenceClaims": [
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:da19f2684168923eaa5589efe28bba58fb5933cfc646cd25a1e8977bd1aed72d",
+          "claimId": "atlas-claim-sha256:90f529311443b70909f801e3b6165b30b2337cf9938baa2a2af38280b8a69006",
           "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
           "sourceActivityLineageId": "fdb5bb80-a47c-4e41-9b50-a4a620a302d4",
           "targetActivityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
           "basisCode": "new-instance",
           "sourceStimulusDigest": "sha256:9acf10d919556550a3c45480e4eb4dc7e71ffd67fcba75279f3f9f90b74a60d9",
-          "targetStimulusDigest": "sha256:18fa05768c87886baa09e64d3775319077079a6e6183c5a6bfb0d607d006fe73"
+          "targetStimulusDigest": "sha256:be5db6a80c09ffdb51608e399440744a7aa485caa5e369f0548e5eccd689a4f8"
         },
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:2c605fdc67861c858e236a5fbc68566ea125cd2e429ac73f1d07f6eb0f754160",
+          "claimId": "atlas-claim-sha256:110fe7e06db5903a2a2d1e49f077e56d70cf7b5f6454b658ce42debc1c4c9e00",
           "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
           "sourceActivityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
           "targetActivityLineageId": "2c624bb5-a715-42f8-9f14-b2fa55277695",
           "basisCode": "alternate-representation",
-          "sourceStimulusDigest": "sha256:18fa05768c87886baa09e64d3775319077079a6e6183c5a6bfb0d607d006fe73",
-          "targetStimulusDigest": "sha256:6188f8458ea7e930185e8a5c6f224104db82e4636a5ea28f87698ea7eddd5f60"
+          "sourceStimulusDigest": "sha256:be5db6a80c09ffdb51608e399440744a7aa485caa5e369f0548e5eccd689a4f8",
+          "targetStimulusDigest": "sha256:8d56b40c46e663498a96835f6c444ca58bed7afbcff404a76623569c3dbf2937"
         }
       ]
     }
