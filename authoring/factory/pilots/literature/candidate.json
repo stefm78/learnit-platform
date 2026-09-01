@@ -1,0 +1,260 @@
+{
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "4040a3cd-9ced-49c1-8509-d91875876c8d",
+  "packageRevisionId": "2bf66732-77b6-4944-bbfb-9e7bf3e5c6cd",
+  "packageRevisionDigest": "sha256:bc20d77680d43b493076107fb494728b5ed96c06b6ad773e745a625b4c2a3954",
+  "title": "Littérature contemporaine — caractéristiques",
+  "description": "Kit pilote Atlas limité au contenu explicitement listé dans le document MIT OpenCourseWare 21L.488.",
+  "versionLabel": "M3.2.5 real-source pilot literature v1",
+  "language": "fr",
+  "courses": [
+    {
+      "courseLineageId": "5843c3a8-3668-413c-80bc-2f14b9a8147d",
+      "courseRevisionId": "9562e5f1-5c4f-4c50-9d56-4f8afe293fd7",
+      "courseRevisionDigest": "sha256:9dd3c74fdd0c7f6b6aa3f21ef5d0c3f6e95c93b31f4adcca70e39b2cdd2f28cb",
+      "title": "Caractéristiques de la littérature contemporaine",
+      "subtitle": "Lecture guidée du document MIT OpenCourseWare 21L.488",
+      "estimatedMinutes": 21,
+      "objectives": [
+        {
+          "objectiveId": "23b78d88-9d63-4016-af9b-d008a83de6f1",
+          "label": "Identifier et distinguer des caractéristiques explicitement listées dans le document"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "6d42983c-d30b-4404-b1ab-5ea650172d15",
+          "activityRevisionId": "122bb3a3-4af6-4011-9396-6238f296c437",
+          "activityRevisionDigest": "sha256:4cffaca88508a9ba2b41abdb2f72c3f71615fd757155eec6581cbdb93883f1c6",
+          "objectiveIds": [
+            "23b78d88-9d63-4016-af9b-d008a83de6f1"
+          ],
+          "type": "qcm",
+          "prompt": "Selon le document MIT, laquelle de ces caractéristiques est associée à la littérature contemporaine ?",
+          "explanation": "Le document indique qu’elle peut employer des techniques métafictionnelles pour attirer l’attention sur le rapport — ou l’absence de rapport — de l’œuvre à la « réalité ».",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "c829ed7e-d85b-42bf-8ec8-6d3a449465ff",
+              "label": "Elle emploie des techniques métafictionnelles qui interrogent le rapport de l’œuvre à la réalité."
+            },
+            {
+              "choiceId": "b2d6f659-8e82-40f8-8f82-28c70a7eb004",
+              "label": "Elle refuse toute réflexion sur le rapport entre œuvre et réalité."
+            },
+            {
+              "choiceId": "0284de87-11da-47e1-9d75-9bc186bd4b1b",
+              "label": "Elle impose une narration omnisciente comme seule forme valable."
+            },
+            {
+              "choiceId": "9642c356-f19e-4b89-8ba4-d83e9b0ffcc5",
+              "label": "Elle sépare toujours strictement culture savante et culture populaire."
+            }
+          ],
+          "correctChoiceId": "c829ed7e-d85b-42bf-8ec8-6d3a449465ff"
+        },
+        {
+          "activityLineageId": "ff5aa639-db46-4baf-8418-c4da5e6185a7",
+          "activityRevisionId": "98bac8ca-6300-47c6-aaea-446e94f5fbe1",
+          "activityRevisionDigest": "sha256:84e3fc204fc3c81ba823a89ef83b6c42786373023347eff0e0168c320d022322",
+          "objectiveIds": [
+            "23b78d88-9d63-4016-af9b-d008a83de6f1"
+          ],
+          "type": "qcm",
+          "prompt": "Une lecture affirme : « le document présente les identités comme vraies et naturelles ». Quelle correction respecte la source ?",
+          "explanation": "La troisième caractéristique dit au contraire que les identités ont une nature performative : elles ne sont pas « vraies » ou naturelles et semblent telles parce qu’elles sont cohérentes et persistantes.",
+          "difficulty": "medium",
+          "learningPhase": "consolidation",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "581a42c8-cc58-4928-bb65-fbe66fe97a1d",
+              "label": "Les identités sont présentées comme performatives plutôt que vraies ou naturelles."
+            },
+            {
+              "choiceId": "ec34a6ff-6dc8-43b0-94ae-682cb878b370",
+              "label": "Les identités sont présentées comme biologiquement fixes."
+            },
+            {
+              "choiceId": "98182a60-e1c3-4014-8420-c4dd5aa099fc",
+              "label": "Le document ne parle pas des identités."
+            },
+            {
+              "choiceId": "3b869182-9e3e-491c-8033-0e3841b73ee3",
+              "label": "Le document affirme que toute identité disparaît immédiatement."
+            }
+          ],
+          "correctChoiceId": "581a42c8-cc58-4928-bb65-fbe66fe97a1d"
+        },
+        {
+          "activityLineageId": "58d68f59-289a-4ae0-adbf-c4295d210fab",
+          "activityRevisionId": "4ef93502-77f4-4e2f-beb7-615c15b89490",
+          "activityRevisionDigest": "sha256:62c4f45a37099bebf9496073424edd289db18866ec7cecda9fa6a716698abc28",
+          "objectiveIds": [
+            "23b78d88-9d63-4016-af9b-d008a83de6f1"
+          ],
+          "type": "fill",
+          "prompt": "Complète la formulation fidèle à la quatrième caractéristique du document.",
+          "explanation": "La source associe explicitement la fragmentation à l’expérience humaine de la culture postmoderne et à une stratégie artistique.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "segments": [
+            {
+              "text": "La littérature contemporaine met l’accent sur la fragmentation dans l’expérience humaine et comme "
+            },
+            {
+              "slotId": "1560baea-7d1b-4b51-8cd2-c68f1db1b324"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "5f61ea32-aa01-49c4-9079-3b5e58c32244",
+              "label": "stratégie artistique",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "a850c0ac-79ad-45b6-af39-064b87cc3069",
+              "label": "preuve scientifique",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "b11e8577-693c-4e16-9ba3-dc6102198a3d",
+              "label": "règle grammaticale",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "3075c516-ad9a-4c5e-b945-a19250eecdbb",
+              "label": "garantie de vérité",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "1560baea-7d1b-4b51-8cd2-c68f1db1b324",
+              "tokenId": "5f61ea32-aa01-49c4-9079-3b5e58c32244"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "98de9c1a-49f3-467c-895b-b8c2b2a4d247",
+          "activityRevisionId": "7167868d-6e84-43a6-9e2d-9fcf366d7440",
+          "activityRevisionDigest": "sha256:13640b3b1dbdb95548e02d86165329a29d27fcdbcd90978541cf5ecef10556ce",
+          "objectiveIds": [
+            "23b78d88-9d63-4016-af9b-d008a83de6f1"
+          ],
+          "type": "qcm",
+          "prompt": "Que dit le document du lien entre langage et réalité ?",
+          "explanation": "La huitième caractéristique questionne le lien entre langage et réalité et précise que toute représentation est biaisée.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "e22a0e4f-b14e-4c68-a9dd-155f6cde615a",
+              "label": "Il est questionné : toute représentation est biaisée."
+            },
+            {
+              "choiceId": "9f4093a2-1532-49a5-97d1-c126f521e93d",
+              "label": "Il est garanti : le langage reproduit toujours la réalité sans biais."
+            },
+            {
+              "choiceId": "dc82cc9d-f697-4de6-a89c-c4ef849890c0",
+              "label": "Il n’est jamais abordé."
+            },
+            {
+              "choiceId": "618d7297-36ea-47a7-b2af-844c35ef5bea",
+              "label": "Il est réduit à une règle de ponctuation."
+            }
+          ],
+          "correctChoiceId": "e22a0e4f-b14e-4c68-a9dd-155f6cde615a"
+        },
+        {
+          "activityLineageId": "24324f06-5c2a-43a7-82fd-76872cb0473b",
+          "activityRevisionId": "0891a164-278e-4443-a66c-bd91e17bbdaf",
+          "activityRevisionDigest": "sha256:4a527e5f1f10523072729681c59d7702897e1a1178d4df747510ab8105f1e295",
+          "objectiveIds": [
+            "23b78d88-9d63-4016-af9b-d008a83de6f1"
+          ],
+          "type": "fill",
+          "prompt": "Le document décrit la perméabilité d’anciennes frontières. Complète l’un des couples explicitement cités, sans inventer d’exemple extérieur.",
+          "explanation": "La dixième caractéristique cite notamment les frontières entre hommes et femmes, entre l’Est et l’Ouest, et entre haute et basse culture.",
+          "difficulty": "advanced",
+          "learningPhase": "transfer",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 5,
+          "segments": [
+            {
+              "text": "Une frontière explicitement citée est celle entre "
+            },
+            {
+              "slotId": "8a7ff8fb-600c-4694-b3c4-7fe78d7a802c"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "907e40fa-d6a1-4b84-9513-8934c366c416",
+              "label": "haute et basse culture",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "80c7f496-6bf6-4c2f-a6b0-efe019f8ea98",
+              "label": "fiction et biographie",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "9bb2a0c9-211a-490d-b160-bc3baeb71848",
+              "label": "ville et campagne",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "36830d61-b0e5-4a7e-af48-d98d96b6a179",
+              "label": "passé et futur",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "8a7ff8fb-600c-4694-b3c4-7fe78d7a802c",
+              "tokenId": "907e40fa-d6a1-4b84-9513-8934c366c416"
+            }
+          ]
+        }
+      ],
+      "atlasValidationIndependenceClaims": [
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:a6f559618e51e4ae60466c69d520b5dd297767f0e3724dad9baa12477ba7e8de",
+          "objectiveId": "23b78d88-9d63-4016-af9b-d008a83de6f1",
+          "sourceActivityLineageId": "6d42983c-d30b-4404-b1ab-5ea650172d15",
+          "targetActivityLineageId": "58d68f59-289a-4ae0-adbf-c4295d210fab",
+          "basisCode": "new-instance",
+          "sourceStimulusDigest": "sha256:cd7915cdadb5384bf48168a350088b3f5dca76285d719eb47975b6868b33e881",
+          "targetStimulusDigest": "sha256:9154bf0c3522e0bd79f680d883fa760ebfc3236f1327fcde1bbf17a52905cb8e"
+        },
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:a6c73e5b6f4f29520e230b371cf208ddf1f5d83af859b38aa91692eec2d21b53",
+          "objectiveId": "23b78d88-9d63-4016-af9b-d008a83de6f1",
+          "sourceActivityLineageId": "58d68f59-289a-4ae0-adbf-c4295d210fab",
+          "targetActivityLineageId": "98de9c1a-49f3-467c-895b-b8c2b2a4d247",
+          "basisCode": "alternate-representation",
+          "sourceStimulusDigest": "sha256:9154bf0c3522e0bd79f680d883fa760ebfc3236f1327fcde1bbf17a52905cb8e",
+          "targetStimulusDigest": "sha256:e462ec2278ab2948761d6f196c20539258421bce7c778b27212eec14e96eba8b"
+        }
+      ]
+    }
+  ]
+}
