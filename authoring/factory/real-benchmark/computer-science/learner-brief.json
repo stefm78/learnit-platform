@@ -1,0 +1,7 @@
+{
+  "schema":"learnit.atlas.learner_brief.v1",
+  "audience":"débutant Python ayant déjà manipulé des listes simples",
+  "goal":"Choisir correctement append, pop, deque et les compréhensions de liste dans les cas explicitement couverts par le tutoriel Python 3.14.7.",
+  "language":"fr",
+  "timeBudgetMinutes":25
+}
