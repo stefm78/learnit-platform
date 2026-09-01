@@ -156,6 +156,7 @@ class ResourceIdentityTests(unittest.TestCase):
             one = ws.run("2026-01")
             two = ws.run("2026-02")
             self.assertNotEqual(one["resourceSetDigest"], two["resourceSetDigest"])
+            self.assertEqual(one["resourceContentDigest"], two["resourceContentDigest"])
             self.assertNotEqual(one["runId"], two["runId"])
             self.assertEqual(one["factoryContextDigest"], two["factoryContextDigest"])
             self.assertEqual("PASS_AI_KIT_FACTORY_V1", one["decision"]["verdict"])
@@ -245,6 +246,10 @@ class BenchmarkTests(unittest.TestCase):
             case_root = root / f"case-{index}"
             case_root.mkdir()
             ws = Workspace(case_root)
+            ws.source.write_text(
+                ws.source.read_text(encoding="utf-8") + f"Benchmark domain: {domain}.\n",
+                encoding="utf-8",
+            )
             hold = True if all_hold else (False if all_pass else index >= 4)
             ws.write_review(hold=hold)
             run = ws.run(version=f"v{index+1}")
@@ -334,6 +339,38 @@ class BenchmarkTests(unittest.TestCase):
             report = reliability.run_benchmark(contract, manifest_path)
             self.assertEqual("HOLD_FACTORY_BENCHMARK_V1", report["verdict"])
             self.assertTrue(any(x.startswith("BENCHMARK_HUMAN_ESCALATION_RATE") for x in report["reasons"]))
+
+    def test_same_source_content_cannot_be_relabelled_across_domains(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            contract = self._contract(root)
+            manifest_path = self._manifest(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+            first_path = Path(manifest["cases"][0]["run"])
+            second_path = Path(manifest["cases"][1]["run"])
+            second_run = copy.deepcopy(
+                json.loads(first_path.read_text(encoding="utf-8"))
+            )
+            second_run["evidenceBundle"]["resources"][0]["version"] = "relabelled-version"
+            second_run["resourceSetDigest"] = reliability.digest(
+                second_run["evidenceBundle"]["resources"]
+            )
+            second_run["evidenceBundle"]["resourceSetDigest"] = second_run["resourceSetDigest"]
+            bundle = second_run["evidenceBundle"]
+            bundle_core = {k: v for k, v in bundle.items() if k != "bundleSha256"}
+            bundle["bundleSha256"] = reliability.digest(bundle_core)
+            run_core = {k: v for k, v in second_run.items() if k != "runId"}
+            second_run["runId"] = reliability.digest(run_core)
+            second_path.write_text(
+                factory.canonical_output(second_run), encoding="utf-8"
+            )
+
+            with self.assertRaisesRegex(
+                reliability.ReliabilityInputError,
+                "duplicate benchmark source content",
+            ):
+                reliability.run_benchmark(contract, manifest_path)
 
     def test_duplicate_run_identity_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
