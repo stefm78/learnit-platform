@@ -1,8 +1,8 @@
 {
   "contract": "learnit.kit.v2",
   "packageLineageId": "f1a23242-d288-4f5f-be27-69b9c059289e",
-  "packageRevisionId": "c75ac7d9-f47a-40b1-9bf0-fd8d98009088",
-  "packageRevisionDigest": "sha256:314b84c8826afc79496a77619496c040856210b0596d05bc3412cbe526ab78ba",
+  "packageRevisionId": "edb849ca-8e42-46bf-9155-1e6f0c967481",
+  "packageRevisionDigest": "sha256:8eae937fc09965193ab1f3c600fe717c5b03e1c0d121962f13eaca86974b3688",
   "title": "Sécurité du patient — retranscription des prescriptions",
   "description": "Kit pilote Atlas fondé exclusivement sur le Flash sécurité patient HAS de février 2026.",
   "versionLabel": "M3.2.5 real-source medicine v2",
@@ -10,8 +10,8 @@
   "courses": [
     {
       "courseLineageId": "d573b059-da2f-4afa-b9a4-ccde1608c814",
-      "courseRevisionId": "1752140b-acde-4b5a-96e4-16b2868323cf",
-      "courseRevisionDigest": "sha256:9bddfc8fae197729b6f27965a4e8ee9b0fdc8fc03fc8a4126a513326af64b6c5",
+      "courseRevisionId": "aa06decb-51dd-471e-837c-c029016903e4",
+      "courseRevisionDigest": "sha256:f0a276c59b0262e2ccf9e5d58ae50736f7f5fe930b24cd3d63da7ab63a9c5843",
       "title": "Prévenir les erreurs de retranscription médicamenteuse",
       "subtitle": "HAS — Flash sécurité patient, (Re)transcription des prescriptions médicamenteuses",
       "estimatedMinutes": 21,
@@ -146,14 +146,14 @@
         },
         {
           "activityLineageId": "a6a62bb5-9d27-4589-afe4-4ed34de11bcf",
-          "activityRevisionId": "05e89534-b9d7-45aa-b4ca-2c7184342057",
-          "activityRevisionDigest": "sha256:896983086ceda333e0dc3dd09cbb96e1456dad84acd119b9807298c3f5cbb105",
+          "activityRevisionId": "94349a1e-45e8-46b7-bede-0cd41bf67d16",
+          "activityRevisionDigest": "sha256:e1283fc8bb4460aa4c55a47d511c7364a66fc7c048d794675d327cc88feb55c0",
           "objectiveIds": [
             "298cbdbe-624e-4aef-93aa-d0c32b1f55bd"
           ],
           "type": "qcm",
-          "prompt": "Dans l’évènement 3 du Flash HAS, quelle erreur a été introduite lors de la retranscription du méthotrexate ?",
-          "explanation": "Le Flash décrit une erreur sur le jour d’administration introduite lors d’une retranscription papier : le méthotrexate a été administré une semaine avant la date prescrite.",
+          "prompt": "Dans l’évènement 2, la retranscription transforme 0,5 mg de colchicine en 5 mg par 24 h. Quelle nature d’erreur cette reformulation met-elle en évidence ?",
+          "explanation": "Le médicament reste la colchicine et le problème porte sur la dose saisie : 5 mg au lieu de 0,5 mg.",
           "difficulty": "medium",
           "learningPhase": "validation",
           "assessmentRole": "validation",
@@ -161,76 +161,56 @@
           "choices": [
             {
               "choiceId": "d9f3bd59-5615-4f2a-8f6e-f24ee6a04080",
-              "label": "Le méthotrexate a été administré une semaine avant la date prescrite."
+              "label": "Une erreur de dose lors de la retranscription."
             },
             {
               "choiceId": "014ba596-6c2d-48dd-9f2f-b975fda36184",
-              "label": "La dose de méthotrexate a été multipliée par dix."
+              "label": "Une erreur de jour d’administration."
             },
             {
               "choiceId": "f878e4ee-e65e-494d-adf9-a5fc78942751",
-              "label": "Le méthotrexate n’a jamais été prescrit."
+              "label": "Un changement de médicament."
             },
             {
               "choiceId": "7d37b3c5-1c9f-4115-8673-82c4fbb908f7",
-              "label": "La prescription a été transformée en prescription orale d’urgence."
+              "label": "Une absence totale de prescription."
             }
           ],
           "correctChoiceId": "d9f3bd59-5615-4f2a-8f6e-f24ee6a04080"
         },
         {
           "activityLineageId": "1ce7e286-7f2b-4bda-b40b-05967d2a840a",
-          "activityRevisionId": "952ced0c-22ac-465b-b55c-1b4e4d23fa87",
-          "activityRevisionDigest": "sha256:d9f6e8a617213dca60dc6f7339192104c42bcd3705119506d8294c00e62d2f8d",
+          "activityRevisionId": "e6fa9946-a9e5-4c33-b736-41895684131a",
+          "activityRevisionDigest": "sha256:5602c11cad3abaa5d8be32968059fe1f051e519afdfed5a52f8bd8a649affb23",
           "objectiveIds": [
             "298cbdbe-624e-4aef-93aa-d0c32b1f55bd"
           ],
-          "type": "fill",
-          "prompt": "Transfert : deux services utilisent des LAP non interopérables et envisagent une copie manuelle systématique. Quelle orientation générale du Flash faut-il appliquer en priorité ?",
-          "explanation": "Le document préconise d’éviter la retranscription et de sécuriser les outils et transitions, notamment par l’interopérabilité, un support numérique unique et des pratiques de vérification adaptées.",
+          "type": "qcm",
+          "prompt": "Transfert : une retranscription papier décale le jour du méthotrexate et conduit à une administration une semaine trop tôt. Quelle combinaison identifie correctement l’erreur de l’évènement 3 et applique l’orientation générale du Flash ?",
+          "explanation": "L’évènement 3 est une erreur de jour d’administration introduite lors d’une retranscription papier. Le Flash recommande d’éviter la retranscription et de sécuriser les outils et transitions.",
           "difficulty": "advanced",
           "learningPhase": "transfer",
           "assessmentRole": "practice",
           "estimatedMinutes": 5,
-          "segments": [
+          "choices": [
             {
-              "text": "Orientation prioritaire : "
+              "choiceId": "479a9482-6121-4cee-8b46-abe5c5d902cd",
+              "label": "Erreur de jour d’administration ; éviter la retranscription."
             },
             {
-              "slotId": "1975100f-032b-4b72-b247-6a04759ad339"
+              "choiceId": "a767bb27-b75b-4e17-84cd-8467b96c407a",
+              "label": "Erreur de dose ; multiplier les copies manuelles."
             },
             {
-              "text": "."
+              "choiceId": "4f6c5e25-da6c-4de2-b291-9abca7b69ff7",
+              "label": "Erreur de médicament ; supprimer les contrôles."
+            },
+            {
+              "choiceId": "c052348b-ab23-4e6e-8e8c-aa92105d21e9",
+              "label": "Aucune erreur ; ignorer les transitions de soins."
             }
           ],
-          "tokens": [
-            {
-              "tokenId": "479a9482-6121-4cee-8b46-abe5c5d902cd",
-              "label": "éviter la retranscription",
-              "maxUses": 1
-            },
-            {
-              "tokenId": "a767bb27-b75b-4e17-84cd-8467b96c407a",
-              "label": "multiplier les copies manuelles",
-              "maxUses": 1
-            },
-            {
-              "tokenId": "4f6c5e25-da6c-4de2-b291-9abca7b69ff7",
-              "label": "supprimer les contrôles",
-              "maxUses": 1
-            },
-            {
-              "tokenId": "c052348b-ab23-4e6e-8e8c-aa92105d21e9",
-              "label": "ignorer les transitions de soins",
-              "maxUses": 1
-            }
-          ],
-          "answers": [
-            {
-              "slotId": "1975100f-032b-4b72-b247-6a04759ad339",
-              "tokenId": "479a9482-6121-4cee-8b46-abe5c5d902cd"
-            }
-          ]
+          "correctChoiceId": "479a9482-6121-4cee-8b46-abe5c5d902cd"
         }
       ],
       "atlasValidationIndependenceClaims": [
@@ -246,13 +226,13 @@
         },
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:b6989cba02552444f8b22109d0452b311fe7b509da8073589897f61986153432",
+          "claimId": "atlas-claim-sha256:ba9effbdaced6c550ab3f8f0d8ee845d1d00fb2c860daf38d079eb084d207371",
           "objectiveId": "298cbdbe-624e-4aef-93aa-d0c32b1f55bd",
           "sourceActivityLineageId": "76436092-8908-4af0-b2db-b81d966db2b7",
           "targetActivityLineageId": "a6a62bb5-9d27-4589-afe4-4ed34de11bcf",
-          "basisCode": "new-context",
+          "basisCode": "alternate-representation",
           "sourceStimulusDigest": "sha256:94ed22b4a8cd0a2f1ed1a130378dfa2f7143ff8e2f157b2d2b1032c59acd7db9",
-          "targetStimulusDigest": "sha256:5b4699ec3978152f72a231f2abb673c7f2d5e71313e79d56ab5a340b0081dde0"
+          "targetStimulusDigest": "sha256:5f0d3382ad478b9ab4b2c9a3d68610d967418708420e0f288481647c53c4fe6a"
         }
       ]
     }
