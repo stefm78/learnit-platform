@@ -160,21 +160,21 @@
       "benchmarkFocus": "Version-sensitive technical truth and precise API semantics."
     },
     {
-      "sourceId": "nara:declaration-independence-transcript",
+      "sourceId": "eduscol:abibac-democratie-france-allemagne-2022",
       "domain": "history",
       "benchmarkRole": "primary",
-      "title": "Declaration of Independence (1776) — National Archives transcript",
-      "authority": "U.S. National Archives and Records Administration",
-      "sourceUrl": "https://www.archives.gov/milestone-documents/declaration-of-independence",
-      "rightsUrl": "https://www.archives.gov/global-pages/privacy.html",
+      "title": "1848 et la IIe République, 1875 et la IIIe République : une construction politique longue et discontinue en France",
+      "authority": "Ministère de l’Éducation nationale — éduscol",
+      "sourceUrl": "https://eduscol.education.gouv.fr/sites/default/files/document/ra22lyceeg1abibachistoireth5-france-allemagne-democratiepdf-95535.pdf",
+      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
       "version": {
         "strategy": "fixed",
-        "value": "1776-stone-engraving-transcript",
-        "rule": "Official NARA transcript of the Stone Engraving, with exact web bytes additionally bound by SHA-256."
+        "value": "2022-eduscol-abibac-theme5",
+        "rule": "Exact official éduscol PDF resource; exact bytes additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
-        "license": "U.S. Government/NARA-produced web content public domain; NARA states worldwide reuse under CC0 1.0",
+        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -182,37 +182,38 @@
         ],
         "thirdPartyContentStatus": "none-declared",
         "conditions": [
-          "source-attribution"
+          "attribution",
+          "exclude-marked-third-party"
         ],
         "evidence": [
           {
-            "url": "https://www.archives.gov/global-pages/privacy.html",
-            "basis": "NARA states that works it produces are public domain and available worldwide under CC0 1.0; it asks users to credit NARA as source."
+            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+            "basis": "éduscol states that its pages and downloadable documents are under Licence Ouverte 2.0, excluding identified third-party material."
           },
           {
-            "url": "https://www.archives.gov/milestone-documents/declaration-of-independence",
-            "basis": "The official National Archives page provides the historical document context and transcript used by this benchmark."
+            "url": "https://eduscol.education.gouv.fr/sites/default/files/document/ra22lyceeg1abibachistoireth5-france-allemagne-democratiepdf-95535.pdf",
+            "basis": "The official static PDF is the exact history resource used for the benchmark."
           }
         ]
       },
-      "benchmarkFocus": "Primary historical source: tests attribution, context and the distinction between source claims and neutral historical synthesis."
+      "benchmarkFocus": "Historical synthesis on democratic construction in France around 1848 and 1870-1875; tests chronology and cautious synthesis."
     },
     {
-      "sourceId": "nara:us-constitution-transcript",
+      "sourceId": "govinfo:sman-117-constitution",
       "domain": "law",
       "benchmarkRole": "primary",
-      "title": "The Constitution of the United States — official transcription",
-      "authority": "U.S. National Archives and Records Administration",
-      "sourceUrl": "https://www.archives.gov/founding-docs/constitution-transcript",
-      "rightsUrl": "https://www.archives.gov/global-pages/privacy.html",
+      "title": "Constitution of the United States of America — Senate Manual 117th Congress, historical documents section",
+      "authority": "U.S. Government Publishing Office / United States Senate",
+      "sourceUrl": "https://www.govinfo.gov/content/pkg/SMAN-117/pdf/SMAN-117-pg561.pdf",
+      "rightsUrl": "https://www.govinfo.gov/about/policies",
       "version": {
         "strategy": "fixed",
-        "value": "1787-parchment-transcript",
-        "rule": "Official NARA transcription of the Constitution as inscribed on parchment, with exact web bytes additionally bound by SHA-256."
+        "value": "SMAN-117-pg561-2022-01-03",
+        "rule": "Exact GovInfo package/section PDF for Senate Manual 117th Congress, pages 561-575."
       },
       "rights": {
         "status": "allowed",
-        "license": "U.S. Government/NARA-produced web content public domain; NARA states worldwide reuse under CC0 1.0",
+        "license": "U.S. Government work / public-domain regime under 17 U.S.C. § 105 for government-authored material",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -224,29 +225,29 @@
         ],
         "evidence": [
           {
-            "url": "https://www.archives.gov/global-pages/privacy.html",
-            "basis": "NARA states that works it produces are public domain and available worldwide under CC0 1.0; it asks users to credit NARA as source."
+            "url": "https://www.govinfo.gov/about/policies",
+            "basis": "GovInfo explains the public-domain rule for works of the United States Government under 17 U.S.C. § 105 and cautions separately about third-party material."
           },
           {
-            "url": "https://www.archives.gov/founding-docs/constitution-transcript",
-            "basis": "The official National Archives page identifies the content as a transcription of the Constitution parchment and preserves original spelling and punctuation."
+            "url": "https://www.govinfo.gov/app/details/SMAN-117/SMAN-117-pg561",
+            "basis": "The official GovInfo content record identifies this exact Senate Manual historical-documents section as the Constitution of the United States of America."
           }
         ]
       },
-      "benchmarkFocus": "Normative constitutional text: tests article/section structure, original wording, amendments context and the boundary between legal text and interpretation."
+      "benchmarkFocus": "Normative constitutional text: tests article/section fidelity and separation of source text from interpretation."
     },
     {
       "sourceId": "has:flash-prescription-retranscription-2026",
       "domain": "medicine",
       "benchmarkRole": "primary",
-      "title": "Flash sécurité patient — Retranscription des prescriptions médicamenteuses",
+      "title": "Flash sécurité patient — Retranscription des prescriptions médicamenteuses — PDF officiel",
       "authority": "Haute Autorité de santé",
-      "sourceUrl": "https://www.has-sante.fr/jcms/p_3887483/fr/flash-securite-patient-re-transcription-des-prescriptions-medicamenteuses-copier-une-prescription-c-est-risquer-de-coller-des-erreurs",
+      "sourceUrl": "https://www.has-sante.fr/upload/docs/application/pdf/2026-02/dir1/flash_securite_patient__retranscription_des_prescriptions_medicamenteuses._copier_une_prescription_cest_risquer_de_coller_de.pdf",
       "rightsUrl": "https://www.has-sante.fr/jcms/c_518191/fr/mentions-legales",
       "version": {
         "strategy": "fixed",
-        "value": "2026-02-28",
-        "rule": "Publication date of the selected HAS safety resource."
+        "value": "2026-02-28-pdf",
+        "rule": "Exact official HAS PDF linked by the publication page JSON-LD; exact bytes additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
@@ -265,11 +266,15 @@
         "evidence": [
           {
             "url": "https://www.has-sante.fr/jcms/c_518191/fr/mentions-legales",
-            "basis": "HAS states that public information for which it owns the rights may be reused subject to source/date attribution and non-alteration, while third-party content is excluded."
+            "basis": "HAS states that public information for which it owns the rights may be reused subject to source/date attribution and non-alteration; third-party material is excluded."
+          },
+          {
+            "url": "https://www.has-sante.fr/jcms/p_3887483/fr/flash-securite-patient-re-transcription-des-prescriptions-medicamenteuses-copier-une-prescription-c-est-risquer-de-coller-des-erreurs",
+            "basis": "The official publication page identifies the selected Flash sécurité patient and links the exact PDF used as benchmark source."
           }
         ]
       },
-      "benchmarkFocus": "Patient-safety content where a plausible simplification can become semantically unsafe if the document status or caution is distorted."
+      "benchmarkFocus": "Patient-safety document: tests fidelity to causes, consequences and prevention messages without inventing medical recommendations."
     },
     {
       "sourceId": "mit-ocw:21l-488-contemporary-literature-characteristics",
@@ -313,18 +318,18 @@
       "sourceId": "eu:pm2-v3.1",
       "domain": "management",
       "benchmarkRole": "primary",
-      "title": "PM² Project Management Methodology Guide v3.1",
+      "title": "Méthodologie de Gestion de Projet PM² — Guide 3.1, PDF français",
       "authority": "European Commission — Directorate-General for Digital Services",
-      "sourceUrl": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-fr",
+      "sourceUrl": "https://op.europa.eu/o/opportal-service/download-handler?identifier=97cc2f12-c648-11ee-95d9-01aa75ed71a1&format=pdf&language=fr&productionSystem=cellar&part=",
       "rightsUrl": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-en",
       "version": {
         "strategy": "fixed",
-        "value": "3.1",
-        "rule": "The Publications Office metadata explicitly identifies the PM² Guide as v3.1."
+        "value": "3.1-fr-pdf-2025",
+        "rule": "Exact French PM² Guide 3.1 PDF. The PDF identifies Guide 3.1, a 2025 publication imprint and an internal edition statement 'v3.1, December 2023'; exact bytes are additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
-        "license": "CC BY 4.0",
+        "license": "CC BY 4.0; the exact PDF states reproduction and reuse are authorised provided the source is acknowledged",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -336,12 +341,16 @@
         ],
         "evidence": [
           {
-            "url": "https://op.europa.eu/en/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-en",
-            "basis": "The EU Publications Office states that PM² v3.1 updated its copyright statement to the European Commission standard CC BY 4.0 licence."
+            "url": "https://op.europa.eu/fr/publication-detail/-/publication/97cc2f12-c648-11ee-95d9-01aa75ed71a1/language-fr",
+            "basis": "The official Publications Office record identifies PM² Guide 3.1, the French PDF, ISBN/DOI/catalogue number and download availability."
+          },
+          {
+            "url": "https://pm2.europa.eu/pm2-resources/pm2-project-management-methodology_en",
+            "basis": "The official PM² resource page identifies the PM² Guide as the core methodology resource and provides official access paths."
           }
         ]
       },
-      "benchmarkFocus": "Structured project-management methodology with lifecycle, roles, processes and artefacts."
+      "benchmarkFocus": "Full project-management methodology: project definition, lifecycle phases, governance roles, artefacts, monitoring/control, risks, quality and tailoring."
     },
     {
       "sourceId": "openstax:calculus-volume-1",

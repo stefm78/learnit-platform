@@ -132,8 +132,8 @@ class SourceAdmissionTests(unittest.TestCase):
             self.assertEqual(admission.PASS, research["decision"]["verdict"])
             self.assertIsNotNone(research["content"])
 
-    def test_fixed_constitution_legal_source_preserves_exact_version(self):
-        source_id = "nara:us-constitution-transcript"
+    def test_fixed_govinfo_constitution_source_preserves_exact_version(self):
+        source_id = "govinfo:sman-117-constitution"
         with tempfile.TemporaryDirectory() as td:
             path = self.write_bytes(Path(td), data=b"constitution transcript snapshot\n")
             record = admission.build_admission(
@@ -147,7 +147,7 @@ class SourceAdmissionTests(unittest.TestCase):
             )
             self.assertEqual(admission.PASS, record["decision"]["verdict"])
             self.assertEqual(
-                "1787-parchment-transcript",
+                "SMAN-117-pg561-2022-01-03",
                 record["source"]["version"],
             )
 
@@ -202,6 +202,13 @@ class SourceAdmissionTests(unittest.TestCase):
             rendered = factory.canonical_output(record)
             self.assertNotIn(str(root), rendered)
             self.assertNotIn(str(path), rendered)
+
+    def test_management_source_is_exact_french_pm2_pdf(self):
+        source = self.source("eu:pm2-v3.1")
+        self.assertEqual("3.1-fr-pdf-2025", source["version"]["value"])
+        self.assertIn("download-handler", source["sourceUrl"])
+        self.assertIn("format=pdf", source["sourceUrl"])
+        self.assertEqual("CC BY 4.0", source["rights"]["license"].split(";")[0])
 
     def test_missing_source_bytes_holds_without_exception(self):
         source_id = "eu:pm2-v3.1"

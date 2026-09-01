@@ -122,7 +122,7 @@ jobs:
               atlas/ATLAS-WP-014-m3-2-ai-kit-factory) echo 'm3-2-factory-delegated wave' ;;
               atlas/ATLAS-WP-015-m3-2-5-factory-reliability) echo 'm3-2-5-factory-reliability-delegated wave' ;;
               atlas/ATLAS-WP-016-source-admission-benchmark-v1) echo 'source-admission-delegated wave' ;;
-              atlas/ATLAS-WP-017-real-source-snapshot|atlas/ATLAS-WP-017b-source-snapshot-content-integrity) echo 'source-snapshot-delegated wave' ;;
+              atlas/ATLAS-WP-017-real-source-snapshot|atlas/ATLAS-WP-017b-source-snapshot-content-integrity|atlas/ATLAS-WP-017c-management-source-content) echo 'source-snapshot-delegated wave' ;;
               *) echo 'ci-router wave' ;;
             esac
           }
@@ -481,7 +481,7 @@ jobs:
               echo "Source snapshot delegated route is valid only for the exact product pull request." >&2
               exit 2
             }
-            [[ "${BRANCH}" == atlas/ATLAS-WP-017-real-source-snapshot || "${BRANCH}" == atlas/ATLAS-WP-017b-source-snapshot-content-integrity ]] || {
+            [[ "${BRANCH}" == atlas/ATLAS-WP-017-real-source-snapshot || "${BRANCH}" == atlas/ATLAS-WP-017b-source-snapshot-content-integrity || "${BRANCH}" == atlas/ATLAS-WP-017c-management-source-content ]] || {
               echo "Unexpected branch for source snapshot delegated route: ${BRANCH}" >&2
               exit 2
             }
@@ -511,7 +511,7 @@ jobs:
                 exit 2
               }
             done
-            python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-017.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-017'; assert wp['authority']['issue']==301; assert wp['baseline']['baseCommit']=='ae415c8547002c9ca335eff6b79368c70ad3b031'; assert '.github/workflows/atlas-source-snapshot.yml' in wp['scope']['allowedPaths']; assert 'authoring/factory/source_snapshot.py' in wp['scope']['allowedPaths']"
+            python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-017.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-017'; assert wp['authority']['issue']==301; assert wp['baseline']['baseCommit']=='c8d196b4ba4fcd161e2fb5a99f66268390253e69'; assert '.github/workflows/atlas-source-snapshot.yml' in wp['scope']['allowedPaths']; assert 'authoring/factory/source_snapshot.py' in wp['scope']['allowedPaths']"
             echo "SOURCE_SNAPSHOT_DELEGATED_ROUTE=PASS"
             echo "SOURCE_SNAPSHOT_WORKFLOW=.github/workflows/atlas-source-snapshot.yml"
             exit 0

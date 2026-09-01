@@ -27,17 +27,25 @@ class FakeFetcher:
         self.calls.append(url)
         if url == self.fail_url:
             raise snapshot.SnapshotError("synthetic retrieval failure")
-        if url in self.duplicate_urls:
-            data = b"same-primary-source-bytes\n"
-        else:
-            data = ("snapshot:" + url + "\n").encode("utf-8")
+
         media = "application/octet-stream"
-        if url.endswith(".pdf"):
+        if url.endswith(".pdf") or "format=pdf" in url:
             media = "application/pdf"
         elif url.endswith(".zip"):
             media = "application/zip"
         elif url.endswith("/") or "." not in url.rsplit("/", 1)[-1]:
             media = "text/html"
+
+        if url in self.duplicate_urls:
+            data = (
+                b"%PDF-1.7\nsame-primary-source-bytes\n"
+                if media == "application/pdf"
+                else b"same-primary-source-bytes\n"
+            )
+        else:
+            body = ("snapshot:" + url + "\n").encode("utf-8")
+            data = b"%PDF-1.7\n" + body if media == "application/pdf" else body
+
         return {
             "bytes": data,
             "mediaType": media,
@@ -92,7 +100,7 @@ class SnapshotTests(unittest.TestCase):
             self.assertNotIn(str(root), rendered)
             self.assertTrue((root / "source_snapshot_manifest.json").exists())
 
-    def test_exact_constitution_source_version_is_preserved_in_admission(self):
+    def test_exact_govinfo_constitution_source_version_is_preserved_in_admission(self):
         fetcher = FakeFetcher()
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -103,10 +111,10 @@ class SnapshotTests(unittest.TestCase):
                 fetcher=fetcher,
             )
             self.assertEqual(snapshot.PASS, manifest["verdict"])
-            record_path = root / "admissions" / "nara_us-constitution-transcript.json"
+            record_path = root / "admissions" / "govinfo_sman-117-constitution.json"
             record = json.loads(record_path.read_text(encoding="utf-8"))
             self.assertEqual(
-                "1787-parchment-transcript",
+                "SMAN-117-pg561-2022-01-03",
                 record["source"]["version"],
             )
             self.assertEqual(admission.PASS, record["decision"]["verdict"])
@@ -130,6 +138,19 @@ class SnapshotTests(unittest.TestCase):
                 "text/html",
                 payload,
             )
+
+    def test_pdf_media_type_requires_pdf_signature(self):
+        with self.assertRaisesRegex(snapshot.SnapshotError, "lacks PDF signature"):
+            snapshot.validate_fetched_payload(
+                "https://example.test/download-handler",
+                "application/pdf",
+                b"<html>not a pdf</html>",
+            )
+        snapshot.validate_fetched_payload(
+            "https://example.test/download-handler",
+            "application/pdf",
+            b"%PDF-1.7\nreal bytes",
+        )
 
     def test_retrieval_failure_holds_snapshot(self):
         failed_url = self.source_url("python:docs-fr-3.14.7-text")
