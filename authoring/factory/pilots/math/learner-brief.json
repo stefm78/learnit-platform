@@ -1,0 +1,7 @@
+{
+  "schema": "learnit.atlas.learner_brief.v1",
+  "audience": "élève de terminale générale, spécialité mathématiques",
+  "goal": "Savoir lire l’arbre pondéré de l’exercice 3 et calculer les probabilités associées aux réponses Q1 et Q2.",
+  "language": "fr",
+  "timeBudgetMinutes": 25
+}
