@@ -160,21 +160,21 @@
       "benchmarkFocus": "Version-sensitive technical truth and precise API semantics."
     },
     {
-      "sourceId": "nara:declaration-independence-transcript",
+      "sourceId": "eduscol:abibac-democratie-france-allemagne-2022",
       "domain": "history",
       "benchmarkRole": "primary",
-      "title": "Declaration of Independence (1776) — National Archives transcript",
-      "authority": "U.S. National Archives and Records Administration",
-      "sourceUrl": "https://www.archives.gov/milestone-documents/declaration-of-independence",
-      "rightsUrl": "https://www.archives.gov/global-pages/privacy.html",
+      "title": "1848 et la IIe République, 1875 et la IIIe République : une construction politique longue et discontinue en France",
+      "authority": "Ministère de l’Éducation nationale — éduscol",
+      "sourceUrl": "https://eduscol.education.gouv.fr/sites/default/files/document/ra22lyceeg1abibachistoireth5-france-allemagne-democratiepdf-95535.pdf",
+      "rightsUrl": "https://eduscol.education.gouv.fr/4656/mentions-legales",
       "version": {
         "strategy": "fixed",
-        "value": "1776-stone-engraving-transcript",
-        "rule": "Official NARA transcript of the Stone Engraving, with exact web bytes additionally bound by SHA-256."
+        "value": "2022-eduscol-abibac-theme5",
+        "rule": "Exact official éduscol PDF resource; exact bytes additionally bound by SHA-256."
       },
       "rights": {
         "status": "allowed",
-        "license": "U.S. Government/NARA-produced web content public domain; NARA states worldwide reuse under CC0 1.0",
+        "license": "Licence Ouverte / Open Licence 2.0 for éduscol-owned content",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -182,37 +182,38 @@
         ],
         "thirdPartyContentStatus": "none-declared",
         "conditions": [
-          "source-attribution"
+          "attribution",
+          "exclude-marked-third-party"
         ],
         "evidence": [
           {
-            "url": "https://www.archives.gov/global-pages/privacy.html",
-            "basis": "NARA states that works it produces are public domain and available worldwide under CC0 1.0; it asks users to credit NARA as source."
+            "url": "https://eduscol.education.gouv.fr/4656/mentions-legales",
+            "basis": "éduscol states that its pages and downloadable documents are under Licence Ouverte 2.0, excluding identified third-party material."
           },
           {
-            "url": "https://www.archives.gov/milestone-documents/declaration-of-independence",
-            "basis": "The official National Archives page provides the historical document context and transcript used by this benchmark."
+            "url": "https://eduscol.education.gouv.fr/sites/default/files/document/ra22lyceeg1abibachistoireth5-france-allemagne-democratiepdf-95535.pdf",
+            "basis": "The official static PDF is the exact history resource used for the benchmark."
           }
         ]
       },
-      "benchmarkFocus": "Primary historical source: tests attribution, context and the distinction between source claims and neutral historical synthesis."
+      "benchmarkFocus": "Historical synthesis on democratic construction in France around 1848 and 1870-1875; tests chronology and cautious synthesis."
     },
     {
-      "sourceId": "nara:us-constitution-transcript",
+      "sourceId": "govinfo:sman-117-constitution",
       "domain": "law",
       "benchmarkRole": "primary",
-      "title": "The Constitution of the United States — official transcription",
-      "authority": "U.S. National Archives and Records Administration",
-      "sourceUrl": "https://www.archives.gov/founding-docs/constitution-transcript",
-      "rightsUrl": "https://www.archives.gov/global-pages/privacy.html",
+      "title": "Constitution of the United States of America — Senate Manual 117th Congress, historical documents section",
+      "authority": "U.S. Government Publishing Office / United States Senate",
+      "sourceUrl": "https://www.govinfo.gov/content/pkg/SMAN-117/pdf/SMAN-117-pg561.pdf",
+      "rightsUrl": "https://www.govinfo.gov/about/policies",
       "version": {
         "strategy": "fixed",
-        "value": "1787-parchment-transcript",
-        "rule": "Official NARA transcription of the Constitution as inscribed on parchment, with exact web bytes additionally bound by SHA-256."
+        "value": "SMAN-117-pg561-2022-01-03",
+        "rule": "Exact GovInfo package/section PDF for Senate Manual 117th Congress, pages 561-575."
       },
       "rights": {
         "status": "allowed",
-        "license": "U.S. Government/NARA-produced web content public domain; NARA states worldwide reuse under CC0 1.0",
+        "license": "U.S. Government work / public-domain regime under 17 U.S.C. § 105 for government-authored material",
         "allowedUseContexts": [
           "internal-rd-noncommercial",
           "commercial-product",
@@ -224,16 +225,16 @@
         ],
         "evidence": [
           {
-            "url": "https://www.archives.gov/global-pages/privacy.html",
-            "basis": "NARA states that works it produces are public domain and available worldwide under CC0 1.0; it asks users to credit NARA as source."
+            "url": "https://www.govinfo.gov/about/policies",
+            "basis": "GovInfo explains the public-domain rule for works of the United States Government under 17 U.S.C. § 105 and cautions separately about third-party material."
           },
           {
-            "url": "https://www.archives.gov/founding-docs/constitution-transcript",
-            "basis": "The official National Archives page identifies the content as a transcription of the Constitution parchment and preserves original spelling and punctuation."
+            "url": "https://www.govinfo.gov/app/details/SMAN-117/SMAN-117-pg561",
+            "basis": "The official GovInfo content record identifies this exact Senate Manual historical-documents section as the Constitution of the United States of America."
           }
         ]
       },
-      "benchmarkFocus": "Normative constitutional text: tests article/section structure, original wording, amendments context and the boundary between legal text and interpretation."
+      "benchmarkFocus": "Normative constitutional text: tests article/section fidelity and separation of source text from interpretation."
     },
     {
       "sourceId": "has:flash-prescription-retranscription-2026",
