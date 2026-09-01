@@ -18,19 +18,16 @@ CATALOG = ROOT / "authoring/factory/benchmark_sources_v1.json"
 
 
 class FakeFetcher:
-    def __init__(self, *, fail_url=None, duplicate_primary=False):
+    def __init__(self, *, fail_url=None, duplicate_urls=None):
         self.calls = []
         self.fail_url = fail_url
-        self.duplicate_primary = duplicate_primary
+        self.duplicate_urls = set(duplicate_urls or [])
 
     def __call__(self, url):
         self.calls.append(url)
         if url == self.fail_url:
             raise snapshot.SnapshotError("synthetic retrieval failure")
-        if self.duplicate_primary and (
-            "bac-eds-math-session" in url
-            or "ralyceepro1phychiqcm" in url
-        ):
+        if url in self.duplicate_urls:
             data = b"same-primary-source-bytes\n"
         else:
             data = ("snapshot:" + url + "\n").encode("utf-8")
@@ -95,7 +92,7 @@ class SnapshotTests(unittest.TestCase):
             self.assertNotIn(str(root), rendered)
             self.assertTrue((root / "source_snapshot_manifest.json").exists())
 
-    def test_dynamic_legifrance_source_binds_snapshot_date(self):
+    def test_exact_eurlex_version_is_preserved_in_admission(self):
         fetcher = FakeFetcher()
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -106,9 +103,12 @@ class SnapshotTests(unittest.TestCase):
                 fetcher=fetcher,
             )
             self.assertEqual(snapshot.PASS, manifest["verdict"])
-            record_path = root / "admissions" / "legifrance_code-civil.json"
+            record_path = root / "admissions" / "eurlex_gdpr-32016R0679-fr-oj.json"
             record = json.loads(record_path.read_text(encoding="utf-8"))
-            self.assertEqual("2026-09-01", record["source"]["version"])
+            self.assertEqual(
+                "CELEX-32016R0679-OJ-2016-05-04",
+                record["source"]["version"],
+            )
             self.assertEqual(admission.PASS, record["decision"]["verdict"])
 
     def test_retrieval_failure_holds_snapshot(self):
@@ -134,7 +134,13 @@ class SnapshotTests(unittest.TestCase):
             self.assertIsNone(row["sha256"])
 
     def test_duplicate_primary_content_is_rejected(self):
-        fetcher = FakeFetcher(duplicate_primary=True)
+        catalog = self.catalog()
+        primary_urls = [
+            item["sourceUrl"]
+            for item in catalog["sources"]
+            if item["benchmarkRole"] == "primary"
+        ]
+        fetcher = FakeFetcher(duplicate_urls=primary_urls[:2])
         with tempfile.TemporaryDirectory() as td:
             manifest = snapshot.snapshot_catalog(
                 CATALOG,
