@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-016",
+  "title": "Source Admission and Real Benchmark Corpus V1",
+  "status": "in-progress",
+  "changeClass": "product-authoring-source-admission",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 299,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.2.5"
+  },
+  "purpose": "Add a fail-closed, pre-ingestion source admission gate and freeze the first eight-domain benchmark source catalog without storing source bytes in Git.",
+  "baseline": {
+    "baseCommit": "524cfc8b35654d7d54d3222a462fe582f4706a89",
+    "parentWorkPackage": "ATLAS-WP-015",
+    "parentIssue": 297
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-016.json",
+      "authoring/factory/source_admission.py",
+      "authoring/factory/benchmark_sources_v1.json",
+      "authoring/factory/tests/test_source_admission.py",
+      ".github/workflows/atlas-source-admission-ci.yml",
+      ".github/workflows/learnit-next-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/benchmark_contract.json",
+      "authoring/skills/**",
+      "authoring/v2/**",
+      "contracts/**",
+      "apps/**",
+      "governance/**",
+      "docs/governance/**"
+    ]
+  },
+  "invariants": [
+    "Source admission happens before any model/source-content ingestion.",
+    "The gate evaluates explicit curated rights/provenance metadata and does not infer legal rights from a hostname.",
+    "Permission-required, prohibited, unknown, unresolved-third-party and unsupported-context sources fail before local source bytes are read.",
+    "A PASS binds exact local bytes by SHA-256 but never emits their physical host path.",
+    "Dynamic sources such as consolidated law require an explicit caller-bound version/date.",
+    "No source documents, PDFs, ZIPs, kits or large media payloads are committed to Git by this work package.",
+    "The promoted M3.2 factory gate and merged M3.2.5 reliability layer remain byte-unchanged.",
+    "The benchmark catalog covers mathematics, physics, computer science, history, law, medicine, literature and management.",
+    "OpenStax and NICE remain negative admission controls and cannot reach model ingestion without separate permission.",
+    "No benchmark verdict is forced in advance."
+  ],
+  "requiredEvidence": [
+    "Exact six-path delta from the M3.2.5 reliability main baseline.",
+    "Repository governance PASS and PR scope PASS.",
+    "Existing M3.2 and M3.2.5 product oracles remain PASS.",
+    "Source catalog validates with exactly the eight required primary domains and at least two blocked negative controls.",
+    "Allowed source with missing conditions HOLDs before source bytes are read.",
+    "Permission-required negative controls HOLD with no source-byte binding even when a nonexistent file path is supplied.",
+    "Conditional BnF/Gallica source is accepted only in the declared internal non-commercial R&D context and with all conditions acknowledged.",
+    "Légifrance source cannot PASS without explicit version/date binding.",
+    "Unknown rights and unresolved third-party content fail before bytes are read.",
+    "Physical file paths never appear in SourceAdmission output.",
+    "Dedicated exact-head CI re-runs repository validation, M3.2, M3.2.5 and SourceAdmission product oracles."
+  ],
+  "adversarialTests": [
+    "Permission-required source supplied with nonexistent local path.",
+    "Allowed source with required attribution condition omitted.",
+    "Conditional source requested for commercial-product context.",
+    "Dynamic legal source with no version/date.",
+    "Source with unknown rights status.",
+    "Source with unresolved third-party material.",
+    "Duplicate or missing benchmark primary domain.",
+    "Negative control relabelled as allowed.",
+    "Tampered SourceAdmission record.",
+    "Host path leakage in emitted evidence."
+  ],
+  "nonGoals": [
+    "Legal-advice engine",
+    "Automatic rights inference",
+    "Web crawler",
+    "Remote source resolver",
+    "PDF/OCR extraction",
+    "Source normalization",
+    "Model/provider call",
+    "Source corpus storage in Git",
+    "Generated-kit corpus storage in Git",
+    "Learner-kit schema changes",
+    "Publishing automation",
+    "M3.3/M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Source rights metadata must be supported by official provenance/rights URLs captured in the catalog.",
+    "The gate must be challenged for pre-ingestion ordering: a blocked source must not be read merely to compute a hash.",
+    "M3.2.5 promotion remains blocked until real source bytes are retrieved, admitted, used in independent FactoryRuns and aggregated by the existing benchmark gate."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-016-source-admission-benchmark-v1",
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "pullRequest": null,
+    "maximumChangedFiles": 6,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the additive source-admission module/catalog/tests/workflow/router entry. M3.2 factory, M3.2.5 reliability, learner runtime, canonical contracts and stored data remain unchanged."
+}
