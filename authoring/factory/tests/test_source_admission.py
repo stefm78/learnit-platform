@@ -132,8 +132,8 @@ class SourceAdmissionTests(unittest.TestCase):
             self.assertEqual(admission.PASS, research["decision"]["verdict"])
             self.assertIsNotNone(research["content"])
 
-    def test_fixed_constitution_legal_source_preserves_exact_version(self):
-        source_id = "nara:us-constitution-transcript"
+    def test_fixed_govinfo_constitution_source_preserves_exact_version(self):
+        source_id = "govinfo:sman-117-constitution"
         with tempfile.TemporaryDirectory() as td:
             path = self.write_bytes(Path(td), data=b"constitution transcript snapshot\n")
             record = admission.build_admission(
@@ -147,7 +147,7 @@ class SourceAdmissionTests(unittest.TestCase):
             )
             self.assertEqual(admission.PASS, record["decision"]["verdict"])
             self.assertEqual(
-                "1787-parchment-transcript",
+                "SMAN-117-pg561-2022-01-03",
                 record["source"]["version"],
             )
 
