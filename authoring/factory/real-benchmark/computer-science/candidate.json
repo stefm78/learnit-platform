@@ -1,30 +1,260 @@
 {
-  "contract":"learnit.kit.v2",
-  "packageLineageId":"6bb288c4-9134-4907-98af-c53783c24083",
-  "packageRevisionId":"ed478185-f3b7-4c30-bbf3-63c6b776952e",
-  "packageRevisionDigest":"sha256:f3191fb2ec3208d9317d7a3f0b38170c74ec656a82c576f9e01168b5906c4fe3",
-  "title":"Python 3.14 — listes, piles, files et compréhensions",
-  "description":"Kit pilote Atlas fondé sur l’archive texte officielle Python 3.14.7, tutoriel Structures de données.",
-  "versionLabel":"M3.2.5 real-source computer-science v1",
-  "language":"fr",
-  "courses":[{
-    "courseLineageId":"1c00c0b5-e26c-45ce-bc9d-62120cc5ebb9",
-    "courseRevisionId":"d12e8c62-940f-43c3-942e-8b0a0275b177",
-    "courseRevisionDigest":"sha256:99fccc135febc46b23ac273e8e3365ba53cbc61c73ef9a0f07370647401241f2",
-    "title":"Manipuler les listes avec les opérations adaptées",
-    "subtitle":"Documentation Python 3.14.7 — tutorial/datastructures.txt",
-    "estimatedMinutes":21,
-    "objectives":[{"objectiveId":"a9eea4a2-efa7-47a8-80e3-8ea8aec74b12","label":"Choisir les opérations adaptées sur les listes et distinguer pile, file et compréhension"}],
-    "activities":[
-      {"activityLineageId":"cd6dd0d8-f323-4738-8711-efdf5930a1a4","activityRevisionId":"8d2322fc-cdbf-4340-9363-1a9a22a2f873","activityRevisionDigest":"sha256:103ba6d2ba233b8e8ef54c81e9445965c37830b040432bdab5524a7760e2d7c8","objectiveIds":["a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"],"type":"qcm","prompt":"Selon le tutoriel Python 3.14, que fait list.append(value) ?","explanation":"La documentation définit append comme l’ajout d’un élément à la fin de la liste, de manière similaire à a[len(a):] = [x].","difficulty":"easy","learningPhase":"application","assessmentRole":"practice","estimatedMinutes":4,"choices":[{"choiceId":"4a32ae5e-b8b6-410b-af44-a71862ebd20b","label":"Ajoute un élément à la fin de la liste."},{"choiceId":"f6d26414-cdc4-440a-bee4-8cc3bdc1ba30","label":"Supprime le premier élément égal à value."},{"choiceId":"c7a29cba-6847-4a9f-aa6b-35ca050b32ed","label":"Trie la liste."},{"choiceId":"f82a1fcb-f185-43f1-a005-2e4247078d84","label":"Renvoie l’indice de value."}],"correctChoiceId":"4a32ae5e-b8b6-410b-af44-a71862ebd20b"},
-      {"activityLineageId":"3bd548f4-1218-4137-8ff1-d7c04af470c0","activityRevisionId":"941dff0d-1ff0-43f5-94de-34f41a22dd11","activityRevisionDigest":"sha256:232d2273ff84ddb3be678948d1c82c35c01b82af55aaf0f380e2d6c2cd7aa0c0","objectiveIds":["a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"],"type":"qcm","prompt":"Une pile Python utilise une liste. Une copie propose remove() pour récupérer le dernier élément ajouté. Quelle correction suit le tutoriel ?","explanation":"Pour une pile LIFO, le tutoriel recommande append() pour empiler et pop() sans indice pour retirer et renvoyer le dernier élément.","difficulty":"medium","learningPhase":"consolidation","assessmentRole":"practice","estimatedMinutes":4,"choices":[{"choiceId":"6305102d-917d-4a21-92e7-94898ad67dcd","label":"Utiliser pop() sans indice."},{"choiceId":"eadbe3ab-898d-4915-a31f-ee8ceddde5a0","label":"Utiliser remove() sans argument."},{"choiceId":"b7e63385-53b9-4740-8ef4-45dbcabbb24d","label":"Utiliser sort()."},{"choiceId":"84bed4e2-9592-4b0a-bb22-0da99bfcf51a","label":"Utiliser index(-1)."}],"correctChoiceId":"6305102d-917d-4a21-92e7-94898ad67dcd"},
-      {"activityLineageId":"b5bd0537-6afe-4e7b-b274-45eedba8d22e","activityRevisionId":"7212abc6-92e2-4555-8e4f-d338bf46f869","activityRevisionDigest":"sha256:2243466e4b6a282e96c4d1341456ce226029247013ef363ce55fdc333a7daebc","objectiveIds":["a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"],"type":"fill","prompt":"Complète la règle de fonctionnement d’une pile construite avec une liste.","explanation":"Le tutoriel décrit la pile comme « last-in, first-out » : le dernier élément ajouté est le premier récupéré.","difficulty":"medium","learningPhase":"validation","assessmentRole":"validation","estimatedMinutes":4,"segments":[{"text":"Une pile suit l’ordre "},{"slotId":"24fe707c-b92a-40d3-ac37-849379ae0d31"},{"text":"."}],"tokens":[{"tokenId":"38f3e5ce-f367-41e4-baff-cb165ef27601","label":"LIFO : dernier entré, premier sorti","maxUses":1},{"tokenId":"8bada8e3-368a-4de5-a5c7-fe68c7608e7f","label":"FIFO : premier entré, premier sorti","maxUses":1},{"tokenId":"f4a8555f-2919-4307-82a7-0febd6a5f355","label":"ordre alphabétique","maxUses":1},{"tokenId":"bca4c1d9-868a-4c1a-a3a3-6867efa8d196","label":"ordre aléatoire","maxUses":1}],"answers":[{"slotId":"24fe707c-b92a-40d3-ac37-849379ae0d31","tokenId":"38f3e5ce-f367-41e4-baff-cb165ef27601"}]},
-      {"activityLineageId":"70939e2f-0dc1-407b-a3da-082189ee0397","activityRevisionId":"07aa370c-3ed1-4595-b008-78f1a1d98592","activityRevisionDigest":"sha256:956f603e03d7ab4256e3f1faa81958341e98f858a3e497e6e35c58b8b4d7081d","objectiveIds":["a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"],"type":"qcm","prompt":"Pour une file où l’on retire fréquemment le premier élément, quelle structure la documentation conseille-t-elle plutôt qu’une liste ?","explanation":"Le tutoriel explique que les retraits en début de liste sont lents et recommande collections.deque, conçue pour des ajouts et retraits rapides aux deux extrémités.","difficulty":"medium","learningPhase":"validation","assessmentRole":"validation","estimatedMinutes":4,"choices":[{"choiceId":"13730142-9d25-4fd1-9981-38ad37686cad","label":"collections.deque"},{"choiceId":"8f3dca9a-f12e-46b1-9fa9-d3ae7b4e5483","label":"tuple"},{"choiceId":"5f1bffca-b518-44ef-9243-3f1a68b6873d","label":"set"},{"choiceId":"5a2399c5-49d0-4bc1-8c53-82f669bb4524","label":"complex"}],"correctChoiceId":"13730142-9d25-4fd1-9981-38ad37686cad"},
-      {"activityLineageId":"182fd15c-0f43-40cf-8612-c47613111fba","activityRevisionId":"341d587a-7d69-4c72-aa02-3de1b3be2950","activityRevisionDigest":"sha256:c0e23bbb103a0bde30831880c3a949aa4dace7d0e0d5918766b0407023965f2b","objectiveIds":["a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"],"type":"fill","prompt":"Transfert : à partir de vec = [-4, -2, 0, 2, 4], complète la compréhension de liste qui conserve uniquement les valeurs non négatives, comme dans le tutoriel.","explanation":"La documentation donne précisément l’exemple [x for x in vec if x >= 0], qui produit [0, 2, 4].","difficulty":"advanced","learningPhase":"transfer","assessmentRole":"practice","estimatedMinutes":5,"segments":[{"text":"Expression : "},{"slotId":"66a2e271-9982-4c51-b5f5-776273f27e8c"},{"text":"."}],"tokens":[{"tokenId":"94ce4004-c76b-419d-bcab-c811f9e70dd4","label":"[x for x in vec if x >= 0]","maxUses":1},{"tokenId":"7024f5b5-9a76-4649-9588-f2ca6dcc929c","label":"[x*2 for x in vec]","maxUses":1},{"tokenId":"8d744277-b3c5-480d-8867-3c1fd5dc3b7b","label":"[x for x in vec if x < 0]","maxUses":1},{"tokenId":"af6b84b2-5050-4901-84bc-a2c7ad4a3173","label":"list(range(vec))","maxUses":1}],"answers":[{"slotId":"66a2e271-9982-4c51-b5f5-776273f27e8c","tokenId":"94ce4004-c76b-419d-bcab-c811f9e70dd4"}]}
-    ],
-    "atlasValidationIndependenceClaims":[
-      {"claimVersion":"atlas.independence.v1","claimId":"atlas-claim-sha256:500ae8452b8217ffd491e756bd89ca414bd503dfa5c6cd8d1c91df318904d791","objectiveId":"a9eea4a2-efa7-47a8-80e3-8ea8aec74b12","sourceActivityLineageId":"cd6dd0d8-f323-4738-8711-efdf5930a1a4","targetActivityLineageId":"b5bd0537-6afe-4e7b-b274-45eedba8d22e","basisCode":"new-instance","sourceStimulusDigest":"sha256:436404cb10184877d9af133d1cac37cb0a3f629d211712753df1f92cb60b9475","targetStimulusDigest":"sha256:e4dad4e508cd85d0e4083017a53cf8e7e896422f86e04ecc236b8de8571008c3"},
-      {"claimVersion":"atlas.independence.v1","claimId":"atlas-claim-sha256:9dec0b2d3cbb19494d34ac5d23d763628e5c4e26aee3e0ed3d4c83a074037213","objectiveId":"a9eea4a2-efa7-47a8-80e3-8ea8aec74b12","sourceActivityLineageId":"b5bd0537-6afe-4e7b-b274-45eedba8d22e","targetActivityLineageId":"70939e2f-0dc1-407b-a3da-082189ee0397","basisCode":"alternate-representation","sourceStimulusDigest":"sha256:e4dad4e508cd85d0e4083017a53cf8e7e896422f86e04ecc236b8de8571008c3","targetStimulusDigest":"sha256:0748e9db2639971a256af1b74fd2ac7473d80a9871e125cc68d7e452622f3bbd"}
-    ]
-  }]
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "6bb288c4-9134-4907-98af-c53783c24083",
+  "packageRevisionId": "b381cb7f-2f1f-40cd-966e-7e7447120057",
+  "packageRevisionDigest": "sha256:8863597b733696c2c4023fe4c23976051fb8ef91f6fad4b9b527e7cbf4263277",
+  "title": "Python 3.14 — listes, piles, files et compréhensions",
+  "description": "Kit pilote Atlas fondé sur l’archive texte officielle Python 3.14.7, tutoriel Structures de données.",
+  "versionLabel": "M3.2.5 real-source computer-science v2",
+  "language": "fr",
+  "courses": [
+    {
+      "courseLineageId": "1c00c0b5-e26c-45ce-bc9d-62120cc5ebb9",
+      "courseRevisionId": "c37ee65d-2389-46ce-9683-7d091aeecdda",
+      "courseRevisionDigest": "sha256:9c071cc28ac302f77ae62cfb4fc30b94bd15d4faed817b6fef5e63da09000f91",
+      "title": "Manipuler les listes avec les opérations adaptées",
+      "subtitle": "Documentation Python 3.14.7 — tutorial/datastructures.txt",
+      "estimatedMinutes": 21,
+      "objectives": [
+        {
+          "objectiveId": "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12",
+          "label": "Choisir les opérations et structures Python adaptées, notamment pour une pile, une file et une compréhension filtrée"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "cd6dd0d8-f323-4738-8711-efdf5930a1a4",
+          "activityRevisionId": "4034e43e-a9d3-47ee-9215-d7a5bc09105c",
+          "activityRevisionDigest": "sha256:e5db3613767cfb22d8abccdd3f9f5e1980083b714b2b1aac9e0c104796c2ff92",
+          "objectiveIds": [
+            "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"
+          ],
+          "type": "qcm",
+          "prompt": "On utilise une liste comme pile. Quelle paire d’opérations suit le tutoriel pour empiler puis dépiler en LIFO ?",
+          "explanation": "Le tutoriel utilise append() pour ajouter au sommet de la pile et pop() sans indice pour retirer et renvoyer le dernier élément ajouté.",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "4a32ae5e-b8b6-410b-af44-a71862ebd20b",
+              "label": "append() puis pop() sans indice."
+            },
+            {
+              "choiceId": "f6d26414-cdc4-440a-bee4-8cc3bdc1ba30",
+              "label": "append() puis remove() sans argument."
+            },
+            {
+              "choiceId": "c7a29cba-6847-4a9f-aa6b-35ca050b32ed",
+              "label": "sort() puis pop(0)."
+            },
+            {
+              "choiceId": "f82a1fcb-f185-43f1-a005-2e4247078d84",
+              "label": "index() puis append()."
+            }
+          ],
+          "correctChoiceId": "4a32ae5e-b8b6-410b-af44-a71862ebd20b"
+        },
+        {
+          "activityLineageId": "3bd548f4-1218-4137-8ff1-d7c04af470c0",
+          "activityRevisionId": "307ef013-43af-49ac-8624-063af0ca7b05",
+          "activityRevisionDigest": "sha256:66354155013a3e5d5e5a0e0b6ce7786b34e871d8a96eb813f939b813773fc4de",
+          "objectiveIds": [
+            "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"
+          ],
+          "type": "qcm",
+          "prompt": "Une file doit retirer fréquemment le premier élément. Une copie propose d’utiliser une liste avec pop(0). Quelle correction suit la recommandation du tutoriel ?",
+          "explanation": "Le tutoriel indique que les retraits en tête de liste sont lents et recommande collections.deque pour les files.",
+          "difficulty": "medium",
+          "learningPhase": "consolidation",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "6305102d-917d-4a21-92e7-94898ad67dcd",
+              "label": "Utiliser collections.deque."
+            },
+            {
+              "choiceId": "eadbe3ab-898d-4915-a31f-ee8ceddde5a0",
+              "label": "Utiliser tuple."
+            },
+            {
+              "choiceId": "b7e63385-53b9-4740-8ef4-45dbcabbb24d",
+              "label": "Utiliser set."
+            },
+            {
+              "choiceId": "84bed4e2-9592-4b0a-bb22-0da99bfcf51a",
+              "label": "Utiliser complex."
+            }
+          ],
+          "correctChoiceId": "6305102d-917d-4a21-92e7-94898ad67dcd"
+        },
+        {
+          "activityLineageId": "b5bd0537-6afe-4e7b-b274-45eedba8d22e",
+          "activityRevisionId": "8a0d64ac-c3bf-4934-ad16-55713562e931",
+          "activityRevisionDigest": "sha256:4012f0b67bcc4d01ce1eef255dbc86e44774174fb544d74972efd82d23f67feb",
+          "objectiveIds": [
+            "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"
+          ],
+          "type": "fill",
+          "prompt": "Nouvelle instance de pile : pile = [10, 20], puis pile.append(30). Complète la valeur renvoyée par pile.pop().",
+          "explanation": "Une pile est LIFO et pop() sans indice retire le dernier élément. Après append(30), pop() renvoie donc 30.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "segments": [
+            {
+              "text": "Valeur renvoyée : "
+            },
+            {
+              "slotId": "24fe707c-b92a-40d3-ac37-849379ae0d31"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "38f3e5ce-f367-41e4-baff-cb165ef27601",
+              "label": "30",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "8bada8e3-368a-4de5-a5c7-fe68c7608e7f",
+              "label": "10",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "f4a8555f-2919-4307-82a7-0febd6a5f355",
+              "label": "20",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "bca4c1d9-868a-4c1a-a3a3-6867efa8d196",
+              "label": "aucune valeur",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "24fe707c-b92a-40d3-ac37-849379ae0d31",
+              "tokenId": "38f3e5ce-f367-41e4-baff-cb165ef27601"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "70939e2f-0dc1-407b-a3da-082189ee0397",
+          "activityRevisionId": "d3d68950-fe9c-437f-bfa7-9aacda10aa55",
+          "activityRevisionDigest": "sha256:a2060981ccb8ed71abc8c7a58e7b52b4a79c389e0f1c7816eda9826e67826850",
+          "objectiveIds": [
+            "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"
+          ],
+          "type": "qcm",
+          "prompt": "Quelle séquence de code représente la même règle LIFO dans une autre écriture ?",
+          "explanation": "Dans une pile construite avec une liste, append() ajoute le dernier élément et pop() sans indice retire ce même dernier élément.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "choices": [
+            {
+              "choiceId": "13730142-9d25-4fd1-9981-38ad37686cad",
+              "label": "s = []; s.append('A'); s.append('B'); s.pop() renvoie 'B'."
+            },
+            {
+              "choiceId": "8f3dca9a-f12e-46b1-9fa9-d3ae7b4e5483",
+              "label": "s = []; s.append('A'); s.append('B'); s.pop() renvoie 'A'."
+            },
+            {
+              "choiceId": "5f1bffca-b518-44ef-9243-3f1a68b6873d",
+              "label": "s = []; s.append('A'); s.append('B'); s.remove() sans argument renvoie 'B'."
+            },
+            {
+              "choiceId": "5a2399c5-49d0-4bc1-8c53-82f669bb4524",
+              "label": "s = []; s.append('A'); s.append('B'); s.sort() renvoie 'B'."
+            }
+          ],
+          "correctChoiceId": "13730142-9d25-4fd1-9981-38ad37686cad"
+        },
+        {
+          "activityLineageId": "182fd15c-0f43-40cf-8612-c47613111fba",
+          "activityRevisionId": "8a6ed6c8-c292-4b0e-b910-a17117a8da13",
+          "activityRevisionDigest": "sha256:f8bd4b19d10347a8e077a59d8db11e1ee84cc6a8ebd2b46342b400187a6af7b0",
+          "objectiveIds": [
+            "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12"
+          ],
+          "type": "fill",
+          "prompt": "Transfert : à partir de mesures = [5, -1, 0, 7], complète une compréhension de liste qui conserve uniquement les valeurs non négatives.",
+          "explanation": "Le tutoriel montre qu’une compréhension peut filtrer une séquence avec une condition if. En appliquant la même règle à de nouvelles valeurs, [x for x in mesures if x >= 0] conserve 5, 0 et 7.",
+          "difficulty": "advanced",
+          "learningPhase": "transfer",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 5,
+          "segments": [
+            {
+              "text": "Expression : "
+            },
+            {
+              "slotId": "66a2e271-9982-4c51-b5f5-776273f27e8c"
+            },
+            {
+              "text": "."
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "94ce4004-c76b-419d-bcab-c811f9e70dd4",
+              "label": "[x for x in mesures if x >= 0]",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "7024f5b5-9a76-4649-9588-f2ca6dcc929c",
+              "label": "[x*2 for x in mesures]",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "8d744277-b3c5-480d-8867-3c1fd5dc3b7b",
+              "label": "[x for x in mesures if x < 0]",
+              "maxUses": 1
+            },
+            {
+              "tokenId": "af6b84b2-5050-4901-84bc-a2c7ad4a3173",
+              "label": "list(range(mesures))",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "66a2e271-9982-4c51-b5f5-776273f27e8c",
+              "tokenId": "94ce4004-c76b-419d-bcab-c811f9e70dd4"
+            }
+          ]
+        }
+      ],
+      "atlasValidationIndependenceClaims": [
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:43082eb4aa44d7a35b742547a6fd3ff30b1b4fc958a36466379b8595c3e3aef9",
+          "objectiveId": "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12",
+          "sourceActivityLineageId": "cd6dd0d8-f323-4738-8711-efdf5930a1a4",
+          "targetActivityLineageId": "b5bd0537-6afe-4e7b-b274-45eedba8d22e",
+          "basisCode": "new-instance",
+          "sourceStimulusDigest": "sha256:7d21d8f3285d7abf10fbf39db00da5799e379d284fc4c2bc31e975b2dad53cdb",
+          "targetStimulusDigest": "sha256:33183c33e551ec3e0f75c10eb572fce71312758a7f37f5730e89a707b732d4dd"
+        },
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:6c90483c1a81b07b9193727182da8eedc7a4a75cdf3c9cf9c7f005b29d7533ff",
+          "objectiveId": "a9eea4a2-efa7-47a8-80e3-8ea8aec74b12",
+          "sourceActivityLineageId": "b5bd0537-6afe-4e7b-b274-45eedba8d22e",
+          "targetActivityLineageId": "70939e2f-0dc1-407b-a3da-082189ee0397",
+          "basisCode": "alternate-representation",
+          "sourceStimulusDigest": "sha256:33183c33e551ec3e0f75c10eb572fce71312758a7f37f5730e89a707b732d4dd",
+          "targetStimulusDigest": "sha256:45025627db8ad5f432278e85540764a724bb79f88c8eeadae8ba4718513e0b26"
+        }
+      ]
+    }
+  ]
 }
