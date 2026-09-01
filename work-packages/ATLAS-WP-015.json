@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-015",
+  "title": "M3.2.5 Factory Reliability and Scale Readiness",
+  "status": "in-progress",
+  "changeClass": "product-authoring-ai-kit-factory-reliability",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 297,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.2.5"
+  },
+  "purpose": "Add an executable reliability layer around the promoted M3.2 AI Kit Factory: storage-independent resource identity, deterministic FactoryRun/evidence records, self-verification, and a benchmark gate that proves both PASS and justified HOLD behavior.",
+  "baseline": {
+    "baseCommit": "39775e83d029f780bf0fa21783ea597ab1abc6b5",
+    "m3_2PromotionMerge": "39775e83d029f780bf0fa21783ea597ab1abc6b5",
+    "m3_2WorkPackage": "ATLAS-WP-014",
+    "m3_2FactoryVerdict": "PASS_M3_2_AI_KIT_FACTORY_TO_PROMOTION"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-015.json",
+      "authoring/factory/reliability.py",
+      "authoring/factory/benchmark_contract.json",
+      "authoring/factory/tests/test_factory_reliability.py",
+      "authoring/factory/README.md",
+      ".github/workflows/atlas-m3-2-5-factory-reliability-ci.yml",
+      ".github/workflows/learnit-next-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/factory_gate.py",
+      "authoring/skills/**",
+      "authoring/v2/**",
+      "contracts/**",
+      "apps/**",
+      "governance/**",
+      "docs/governance/**",
+      "authoring/studio/**"
+    ]
+  },
+  "invariants": [
+    "Promoted M3.2 factory_gate.py remains byte-unchanged and authoritative for canonical, pedagogical, semantic and binding decisions.",
+    "Logical resource identity is resourceId + version + sha256; physical host paths are never emitted in FactoryRun or evidence records.",
+    "Resource version participates in M3.2.5 run identity but does not weaken or replace M3.2 byte-level semantic-review binding.",
+    "FactoryRun and evidence bundle are deterministic manifests, not storage containers and not learner-kit fields.",
+    "Evidence/provenance remains outside learnit.kit.v2.",
+    "Benchmark PASS requires both successful qualifications and justified HOLD qualifications.",
+    "Git stores code, contracts, tests and benchmark policy, not a large source/kit/media corpus.",
+    "No source extraction, OCR, model API, backend, runtime AI, publishing or learner-runtime mutation is introduced.",
+    "M3.3, M3.4, Gate3, Gate4 and M4+ remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact seven-path delta from promoted M3.2 main.",
+    "Repository governance PASS and PR scope PASS.",
+    "Existing M3.2 product oracle remains PASS with factory_gate.py byte-identical to baseline.",
+    "Moving identical resource bytes to a different host path leaves emitted resource identity, evidence bundle and FactoryRun byte-identical.",
+    "Changing only a resource version changes resourceSetDigest and runId while preserving the M3.2 byte-level context digest.",
+    "FactoryRun self-verification rejects tampered decision, resource, artifact, validator, bundle or run digests.",
+    "Source byte drift still produces M3.2 review-binding HOLD.",
+    "Semantic HOLD is preserved with non-empty reasons.",
+    "Benchmark contract covers mathematics, physics, computer science, history, law, medicine, literature and management.",
+    "Benchmark requires at least eight distinct runs, at least two PASS, at least two HOLD and no more than 25 percent human escalation.",
+    "All-PASS benchmark corpus cannot pass.",
+    "Duplicate FactoryRun identity cannot count twice.",
+    "Dedicated exact-head CI produces reproducible evidence."
+  ],
+  "adversarialTests": [
+    "Same resource bytes at different physical paths.",
+    "Same resource bytes with different logical version.",
+    "One-byte resource drift after semantic review.",
+    "Tampered FactoryRun final decision.",
+    "Tampered nested factory evidence or evidence-bundle digest.",
+    "Duplicate resourceId in one run.",
+    "Missing resource version.",
+    "Benchmark with only PASS runs.",
+    "Benchmark with only HOLD runs.",
+    "Benchmark missing one required domain.",
+    "Benchmark duplicate run identity.",
+    "Benchmark expected-decision mismatch.",
+    "Benchmark excessive human escalation.",
+    "Any host path leaked into emitted FactoryRun evidence."
+  ],
+  "nonGoals": [
+    "Source ingestion or normalization pipeline",
+    "PDF/OCR extraction",
+    "Source-to-Draft schema",
+    "Remote resource resolver implementation",
+    "Repository source corpus",
+    "Repository generated-kit corpus",
+    "Model/provider integration",
+    "Automatic publication",
+    "Human authoring UX expansion",
+    "M3.3/M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "The reliability layer composes around the promoted M3.2 gate instead of modifying it.",
+    "Exact-head CI re-runs the promoted M3.2 oracle before the new reliability oracle.",
+    "A later real-source benchmark must contain both independent PASS and independent justified HOLD cases before M3.2.5 promotion.",
+    "No human gate is required for this implementation unless real benchmark execution exposes an unresolved semantic/product ambiguity."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-015-m3-2-5-factory-reliability",
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "pullRequest": null,
+    "maximumChangedFiles": 7,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the additive M3.2.5 reliability module, benchmark contract, tests/workflow/router entry and restore the factory README. Promoted M3.2 factory_gate.py, learner runtime, canonical contracts and stored data remain unchanged."
+}
