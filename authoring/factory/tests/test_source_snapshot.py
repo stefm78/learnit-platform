@@ -92,7 +92,7 @@ class SnapshotTests(unittest.TestCase):
             self.assertNotIn(str(root), rendered)
             self.assertTrue((root / "source_snapshot_manifest.json").exists())
 
-    def test_exact_eurlex_version_is_preserved_in_admission(self):
+    def test_exact_constitution_source_version_is_preserved_in_admission(self):
         fetcher = FakeFetcher()
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -103,10 +103,10 @@ class SnapshotTests(unittest.TestCase):
                 fetcher=fetcher,
             )
             self.assertEqual(snapshot.PASS, manifest["verdict"])
-            record_path = root / "admissions" / "eurlex_gdpr-32016R0679-fr-oj.json"
+            record_path = root / "admissions" / "nara_us-constitution-transcript.json"
             record = json.loads(record_path.read_text(encoding="utf-8"))
             self.assertEqual(
-                "CELEX-32016R0679-OJ-2016-05-04",
+                "1787-parchment-transcript",
                 record["source"]["version"],
             )
             self.assertEqual(admission.PASS, record["decision"]["verdict"])
