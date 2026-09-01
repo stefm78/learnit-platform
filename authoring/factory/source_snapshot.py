@@ -70,6 +70,11 @@ def validate_fetched_payload(url: str, media_type: str, data: bytes) -> None:
             f"source-content mismatch for {url}: texteBrut endpoint returned {normalized_type}"
         )
 
+    if normalized_type == "application/pdf" and not data.startswith(b"%PDF-"):
+        raise SnapshotError(
+            f"source-content mismatch for {url}: application/pdf payload lacks PDF signature"
+        )
+
     if normalized_type in HTML_MEDIA_TYPES:
         for marker in INTERSTITIAL_MARKERS:
             if marker in prefix:
