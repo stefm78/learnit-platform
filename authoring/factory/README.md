@@ -260,6 +260,7 @@ The executable benchmark policy is `benchmark_contract.json`. The v1 contract re
 - at least eight distinct FactoryRuns;
 - at least two PASS runs;
 - at least two justified HOLD runs;
+- distinct source-content digests for distinct benchmark cases, so one source cannot be relabelled into several domains;
 - human escalation on no more than 25% of runs.
 
 A corpus that only produces PASS is therefore not considered a reliability proof.
