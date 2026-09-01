@@ -207,6 +207,16 @@ jobs:
           python -B authoring/factory/reliability.py verify-run \
             --run "${EVD}/factory-runs/literature.json"
 
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/law/candidate.json \
+            --brief authoring/factory/real-benchmark/law/learner-brief.json \
+            --review authoring/factory/real-benchmark/reviews/law.json \
+            --resource govinfo_sman_117_constitution@117th-congress="${SRC}/law.pdf" \
+            > "${EVD}/factory-runs/law.json"
+
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/law.json"
+
       - name: Assemble independent-review handoff
         shell: bash
         run: |

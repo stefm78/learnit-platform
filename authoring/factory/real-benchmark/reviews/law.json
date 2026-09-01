@@ -1,0 +1,85 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:d25627417b3914d1d5a6de98381fee8da5554d5601d3a5bf57525920f7f3d5e9",
+    "kitSha256": "sha256:2aaf40617ab69baf5cf3aec5e170eb3134d2fc083ddccd932d58a57c6c5387b9",
+    "sourceSetDigest": "sha256:fa053ed116344423e43fdea93e8c2afe87a1a18e625b56e34f41daa757c22fb4",
+    "briefSha256": "sha256:4df849bea79f02fdd7403d51a53806d6892ac24e8eb533260d996d043a460440"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les affirmations matérielles du kit restent dans le texte des sections 1 et 2 de l’article I : attribution des pouvoirs législatifs au Congrès bicaméral, choix des représentants tous les deux ans, âge de vingt-cinq ans, sept années de citoyenneté et condition d’habitation dans l’État lors de l’élection. Aucune interprétation juridique supplémentaire n’est présentée comme si elle figurait dans la source.",
+      "evidence": [
+        {
+          "sourceId": "govinfo_sman_117_constitution",
+          "locator": "p. 561 (PDF p. 1), Article I, Section 1, 1711.1",
+          "basis": "La source investit les pouvoirs législatifs accordés dans un Congrès des États-Unis composé d’un Sénat et d’une Chambre des représentants, conformément à la première activité et à son explication."
+        },
+        {
+          "sourceId": "govinfo_sman_117_constitution",
+          "locator": "p. 561 (PDF p. 1), Article I, Section 2, clauses 1-2, 1711.2-1711.3",
+          "basis": "La source indique le choix des membres de la Chambre tous les deux ans et fixe pour un représentant l’âge de vingt-cinq ans, sept années de citoyenneté et l’habitation dans l’État où il est choisi au moment de l’élection."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Les cinq réponses désignées sont correctes après vérification directe du texte : Congrès bicaméral, périodicité de deux ans, seuil de vingt-cinq ans, citoyenneté depuis sept ans, puis échec de la seule condition d’âge pour une personne de vingt-quatre ans. Les distracteurs ne constituent pas d’autre réponse correcte aux questions posées.",
+      "evidence": [
+        {
+          "sourceId": "govinfo_sman_117_constitution",
+          "locator": "p. 561 (PDF p. 1), Article I, Section 1, 1711.1",
+          "basis": "Le texte donne sans alternative le Congrès composé du Sénat et de la Chambre des représentants comme détenteur des pouvoirs législatifs accordés."
+        },
+        {
+          "sourceId": "govinfo_sman_117_constitution",
+          "locator": "p. 561 (PDF p. 1), Article I, Section 2, clauses 1-2, 1711.2-1711.3",
+          "basis": "« every second Year » établit la périodicité de deux ans; la clause suivante établit vingt-cinq ans et sept années de citoyenneté, ce qui rend également correcte l’évaluation négative du cas à vingt-quatre ans."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les consignes identifient l’article et la section pertinents, distinguent explicitement la condition d’âge dans le transfert et proposent, pour chaque QCM, une seule option compatible avec le texte. Aucun référent manquant, équivalence accidentelle entre distracteurs ou double interprétation déterminante n’a été relevé.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Pour un brief volontairement limité à « quelques clauses » en vingt-cinq minutes, le kit couvre plusieurs formes de lecture normative de l’article I : localisation du pouvoir législatif, correction d’une périodicité erronée et lecture de qualifications explicites de la Chambre. Ce périmètre est suffisamment varié pour l’objectif annoncé sans exiger une couverture exhaustive de l’article I.",
+      "evidence": [
+        {
+          "sourceId": "govinfo_sman_117_constitution",
+          "locator": "p. 561 (PDF p. 1), Article I, Sections 1-2, 1711.1-1711.3",
+          "basis": "Ces passages contiennent précisément les trois ensembles de notions mobilisés par le kit : structure du Congrès, périodicité de choix des représentants et qualifications explicites des représentants."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "pass",
+      "summary": "Les validations ne répètent pas simplement les activités de pratique : elles passent à d’autres clauses et à d’autres formats de réponse pour vérifier la même compétence de lecture précise. Le transfert transforme ensuite le seuil d’âge en cas individuel à évaluer, tout en restant strictement dérivable de la clause source.",
+      "evidence": [
+        {
+          "sourceId": "govinfo_sman_117_constitution",
+          "locator": "p. 561 (PDF p. 1), Article I, Section 2, clause 2, 1711.3",
+          "basis": "La clause fournit indépendamment le seuil de vingt-cinq ans, les sept années de citoyenneté et la condition d’habitation; elle permet les validations sur les qualifications et le transfert vers le cas d’une personne âgée de vingt-quatre ans sans ajouter de règle externe."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le kit est en français, emploie un vocabulaire juridique explicité sans technicité excessive, reste centré sur la lecture littérale plutôt que sur le conseil juridique et totalise vingt-et-une minutes estimées pour un budget de vingt-cinq minutes. Le niveau et la charge sont cohérents avec un apprenant découvrant la lecture précise d’un texte constitutionnel.",
+      "evidence": []
+    }
+  },
+  "findings": [],
+  "limitations": [
+    "Le verdict porte sur la fidélité à la source, la correction statique des activités et leur adéquation au brief; il ne démontre ni maîtrise durable, ni rétention, ni efficacité pédagogique mesurée."
+  ],
+  "verdict": "PASS_SEMANTIC_REVIEW_V1"
+}
