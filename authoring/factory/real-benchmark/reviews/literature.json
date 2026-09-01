@@ -1,0 +1,75 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:d5e2c16cf89a29c0c4ca2692db4bfe1c6318bed304f266a6c7d4d3e4518b3639",
+    "kitSha256": "sha256:d6177391ff3037a95bcac0670cdb5ce4d50b36d96411f3c84a47d25c96f2082f",
+    "sourceSetDigest": "sha256:517dae3891c7a91c0ebf074a33cfe1d535deb76865dde34f831f709d5b267662",
+    "briefSha256": "sha256:c6d45f88ce7dfcdb6c9c327690c94ce5ca9711061a0d87034ec980dfd030d5d3"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les cinq caractéristiques travaillées restent dans le périmètre exact du document MIT. La formulation de la quatrième caractéristique conserve explicitement la qualification relative à la culture postmoderne ; les autres activités reformulent les caractéristiques de la source sans ajouter de faits, d'exemples ou de règles externes.",
+      "evidence": [
+        {
+          "sourceId": "mit_ocw_21l_488_contemporary_literature_characteristics",
+          "locator": "p. 1, caractéristiques 2, 3, 4, 8 et 10",
+          "basis": "Ces entrées énoncent respectivement les techniques métafictionnelles et leur rapport à la réalité, la nature performative des identités, la fragmentation dans l'expérience humaine de la culture postmoderne et comme stratégie artistique, le lien entre langage et réalité, et la perméabilité des anciennes frontières."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Chaque réponse correcte a été vérifiée indépendamment contre la source. Les choix ou jetons retenus correspondent aux caractéristiques 2, 3, 4, 8 et 10, tandis que les distracteurs contredisent la source ou introduisent des propositions qu'elle ne donne pas.",
+      "evidence": [
+        {
+          "sourceId": "mit_ocw_21l_488_contemporary_literature_characteristics",
+          "locator": "p. 1, caractéristiques 2, 3, 4, 8 et 10",
+          "basis": "La source fournit directement le contenu permettant de vérifier les cinq réponses : techniques métafictionnelles, identités performatives, stratégie artistique, représentation biaisée et frontière entre haute et basse culture."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les formulations sont suffisamment déterminées pour le niveau visé. Les QCM n'ont qu'une réponse compatible avec la source et les activités à compléter proposent un jeton correct nettement distinct des distracteurs ; aucune condition nécessaire ni référence décisive ne manque.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Le kit fait identifier et distinguer cinq caractéristiques explicitement listées, sur des axes différents, et comprend une activité qui oblige à rejeter une attribution de sens contraire à la source. Cette couverture est suffisante pour le but volontairement borné du brief et le budget de 25 minutes, sans exiger une revue exhaustive des onze caractéristiques.",
+      "evidence": [
+        {
+          "sourceId": "mit_ocw_21l_488_contemporary_literature_characteristics",
+          "locator": "p. 1, liste des caractéristiques 1 à 11, en particulier 2, 3, 4, 8 et 10",
+          "basis": "Le document contient onze caractéristiques et le candidat en travaille cinq distinctes, incluant explicitement la distinction entre ce que la source affirme et une interprétation qu'elle ne soutient pas."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "pass",
+      "summary": "Les validations portent sur de nouvelles caractéristiques par rapport aux activités de pratique et changent de représentation entre complétion et QCM. Le transfert final utilise encore une autre caractéristique et demande de distinguer un couple explicitement cité de couples inventés ; il reste donc distinct, source-supporté et adapté à l'objectif d'identification.",
+      "evidence": [
+        {
+          "sourceId": "mit_ocw_21l_488_contemporary_literature_characteristics",
+          "locator": "p. 1, caractéristiques 4, 8 et 10",
+          "basis": "Les validations s'appuient sur les caractéristiques 4 et 8, distinctes des pratiques portant sur 2 et 3, puis le transfert mobilise la caractéristique 10 et l'un de ses couples de frontières explicitement cités."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le français et le niveau conceptuel conviennent à un étudiant de premier cycle découvrant l'analyse littéraire contemporaine. Les activités restent ancrées dans le document court fourni, progressent de l'identification vers la distinction et totalisent 21 minutes pour un budget de 25 minutes.",
+      "evidence": []
+    }
+  },
+  "findings": [],
+  "limitations": [
+    "La source est une liste synthétique d'une page sans exemples d'œuvres ni développement argumentatif ; la revue peut vérifier les caractéristiques littérales et leurs reformulations, mais pas un transfert vers l'analyse d'œuvres concrètes, que ce candidat ne revendique pas."
+  ],
+  "verdict": "PASS_SEMANTIC_REVIEW_V1"
+}

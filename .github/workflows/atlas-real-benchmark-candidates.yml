@@ -189,6 +189,24 @@ jobs:
             --source 'eu_pm2_v3_1='"${SRC}/management.pdf" \
             > "${EVD}/contexts/management.json"
 
+      - name: Build and verify Literature FactoryRun when reviewed
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="${RUNNER_TEMP}/real-benchmark-sources"
+          EVD="${RUNNER_TEMP}/real-benchmark-evidence"
+          mkdir -p "${EVD}/factory-runs"
+
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/literature/candidate.json \
+            --brief authoring/factory/real-benchmark/literature/learner-brief.json \
+            --review authoring/factory/real-benchmark/reviews/literature.json \
+            --resource mit_ocw_21l_488_contemporary_literature_characteristics@21L488-spring-2007="${SRC}/literature.pdf" \
+            > "${EVD}/factory-runs/literature.json"
+
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/literature.json"
+
       - name: Assemble independent-review handoff
         shell: bash
         run: |
