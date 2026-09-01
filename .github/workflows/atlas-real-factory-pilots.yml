@@ -131,3 +131,38 @@ jobs:
           retention-days: 90
           if-no-files-found: error
           path: ${{ runner.temp }}/pilot-evidence/
+
+
+  probe-management-source:
+    name: Probe exact PM2 guide bytes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact pilot head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          clean: true
+
+      - name: Download official PM2 3.1 French PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/pm2-probe"
+          curl --fail --location --retry 3 --silent --show-error \
+            'https://op.europa.eu/o/opportal-service/download-handler?identifier=97cc2f12-c648-11ee-95d9-01aa75ed71a1&format=pdf&language=fr&productionSystem=cellar&part=' \
+            -o "${RUNNER_TEMP}/pm2-probe/pm2-guide-3.1-fr.pdf"
+          test -s "${RUNNER_TEMP}/pm2-probe/pm2-guide-3.1-fr.pdf"
+          file "${RUNNER_TEMP}/pm2-probe/pm2-guide-3.1-fr.pdf"
+          head -c 5 "${RUNNER_TEMP}/pm2-probe/pm2-guide-3.1-fr.pdf" | grep -q '%PDF-'
+          sha256sum "${RUNNER_TEMP}/pm2-probe/pm2-guide-3.1-fr.pdf" | tee "${RUNNER_TEMP}/pm2-probe/sha256.txt"
+          wc -c "${RUNNER_TEMP}/pm2-probe/pm2-guide-3.1-fr.pdf" | tee "${RUNNER_TEMP}/pm2-probe/bytes.txt"
+
+      - name: Upload PM2 probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-pm2-guide-probe-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/pm2-probe/
