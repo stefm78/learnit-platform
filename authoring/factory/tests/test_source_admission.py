@@ -104,10 +104,10 @@ class SourceAdmissionTests(unittest.TestCase):
                 self.assertIsNone(record["content"])
                 admission.verify_admission(record)
 
-    def test_conditional_bnf_source_is_context_bound(self):
-        source_id = "bnf:gallica-tartuffe-1669-textebrut"
+    def test_conditional_mit_literature_source_is_context_bound(self):
+        source_id = "mit-ocw:21l-488-contemporary-literature-characteristics"
         with tempfile.TemporaryDirectory() as td:
-            path = self.write_bytes(Path(td), data=b"gallica selection snapshot\n")
+            path = self.write_bytes(Path(td), data=b"mit literature lecture outline snapshot\n")
             commercial = admission.build_admission(
                 self.catalog,
                 self.catalog_sha,

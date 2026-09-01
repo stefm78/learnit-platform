@@ -111,6 +111,26 @@ class SnapshotTests(unittest.TestCase):
             )
             self.assertEqual(admission.PASS, record["decision"]["verdict"])
 
+    def test_text_endpoint_html_interstitial_is_rejected(self):
+        with self.assertRaisesRegex(snapshot.SnapshotError, "source-content mismatch"):
+            snapshot.validate_fetched_payload(
+                "https://gallica.bnf.fr/ark:/12148/bpt6k701569.texteBrut",
+                "text/html",
+                b"<html><title>Gallica | Verification de securite</title></html>",
+            )
+
+    def test_generic_security_interstitial_is_rejected(self):
+        payload = (
+            "<html><head><title>Gallica | Vérification de sécurité</title></head>"
+            "<body><altcha-widget></altcha-widget></body></html>"
+        ).encode("utf-8")
+        with self.assertRaisesRegex(snapshot.SnapshotError, "interstitial/security page"):
+            snapshot.validate_fetched_payload(
+                "https://example.test/source",
+                "text/html",
+                payload,
+            )
+
     def test_retrieval_failure_holds_snapshot(self):
         failed_url = self.source_url("python:docs-fr-3.14.7-text")
         fetcher = FakeFetcher(fail_url=failed_url)

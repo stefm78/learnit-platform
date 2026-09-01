@@ -272,46 +272,42 @@
       "benchmarkFocus": "Patient-safety content where a plausible simplification can become semantically unsafe if the document status or caution is distorted."
     },
     {
-      "sourceId": "bnf:gallica-tartuffe-1669-textebrut",
+      "sourceId": "mit-ocw:21l-488-contemporary-literature-characteristics",
       "domain": "literature",
       "benchmarkRole": "primary",
-      "title": "Molière — Le Tartuffe ou L’Imposteur, édition Jean Ribou 1669 — texte brut Gallica",
-      "authority": "Bibliothèque nationale de France — Gallica",
-      "sourceUrl": "https://gallica.bnf.fr/ark:/12148/bpt6k701569.texteBrut",
-      "rightsUrl": "https://www.bnf.fr/fr/conditions-de-reutilisations-des-donnees-de-la-bnf",
+      "title": "Characteristics of Contemporary Literature",
+      "authority": "Massachusetts Institute of Technology — MIT OpenCourseWare",
+      "sourceUrl": "https://ocw.mit.edu/courses/21l-488-contemporary-literature-british-novels-now-spring-2007/da92a1286f31e5d301d3e796acc8eb25_contemp_lit.pdf",
+      "rightsUrl": "https://ocw.mit.edu/pages/privacy-and-terms-of-use/",
       "version": {
         "strategy": "fixed",
-        "value": "ark-bpt6k701569-jean-ribou-1669",
-        "rule": "Exact Gallica ARK and historical edition; OCR/text bytes are additionally bound by SHA-256."
+        "value": "21L.488-spring-2007-contemp-lit",
+        "rule": "Exact MIT OCW course/resource identity and one-page lecture outline PDF."
       },
       "rights": {
         "status": "conditional",
-        "license": "BnF/Gallica reuse conditions for digitized public-domain collections; commercial reuse may require separate conditions",
+        "license": "CC BY-NC-SA 4.0; MIT OCW explicitly permits AI training/use subject to its licence restrictions",
         "allowedUseContexts": [
           "internal-rd-noncommercial"
         ],
         "thirdPartyContentStatus": "none-declared",
         "conditions": [
+          "attribution",
           "noncommercial-use",
-          "source-attribution",
-          "exact-selected-content-only"
+          "sharealike"
         ],
         "evidence": [
           {
-            "url": "https://www.bnf.fr/fr/conditions-de-reutilisations-des-donnees-de-la-bnf",
-            "basis": "BnF distinguishes metadata and digitized-document reuse; the benchmark remains in the declared non-commercial R&D context."
+            "url": "https://ocw.mit.edu/pages/privacy-and-terms-of-use/",
+            "basis": "MIT OCW states CC BY-NC-SA 4.0 and explicitly permits AI training/use when attribution, non-commercial and ShareAlike requirements are met."
           },
           {
-            "url": "https://gallica.bnf.fr/ark:/12148/bpt6k701569",
-            "basis": "The stable Gallica ARK identifies the exact historical edition used for the benchmark."
-          },
-          {
-            "url": "https://api.bnf.fr/fr/api-document-de-gallica",
-            "basis": "BnF documents the .texteBrut API for retrieving full text from an exact Gallica ARK and notes API rate limits."
+            "url": "https://ocw.mit.edu/courses/21l-488-contemporary-literature-british-novels-now-spring-2007/resources/contemp_lit/",
+            "basis": "The official MIT OCW resource page identifies the exact lecture outline, Literature department, Spring 2007, undergraduate level."
           }
         ]
       },
-      "benchmarkFocus": "Historical OCR/edition fidelity: the kit must stay bound to one exact edition and surface uncertainty rather than silently normalize it."
+      "benchmarkFocus": "Concise literary-criticism source: tests whether the Factory can preserve a bounded list of characteristics without inventing examples or turning tendencies into universal rules."
     },
     {
       "sourceId": "eu:pm2-v3.1",

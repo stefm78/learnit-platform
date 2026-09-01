@@ -31,6 +31,15 @@ PASS = "PASS_REAL_SOURCE_SNAPSHOT_V1"
 HOLD = "HOLD_REAL_SOURCE_SNAPSHOT_V1"
 USER_AGENT = "Learnit-Atlas-Source-Snapshot/1.0 (+https://github.com/stefm78/learnit-platform)"
 SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]+")
+HTML_MEDIA_TYPES = {"text/html", "application/xhtml+xml"}
+INTERSTITIAL_MARKERS = (
+    b"<title>gallica | v\xc3\xa9rification de s\xc3\xa9curit\xc3\xa9</title>",
+    b"altcha-widget",
+    b"pour poursuivre, merci de cocher cette case",
+    b"cf-chl-",
+    b"just a moment",
+    b"access denied",
+)
 
 
 class SnapshotError(ValueError):
@@ -48,6 +57,26 @@ def extension_for(url: str, media_type: str | None) -> str:
         return suffix
     guessed = mimetypes.guess_extension((media_type or "").split(";", 1)[0].strip())
     return guessed or ".bin"
+
+
+def validate_fetched_payload(url: str, media_type: str, data: bytes) -> None:
+    """Reject transport success that is not the requested source content."""
+    normalized_type = (media_type or "").split(";", 1)[0].strip().lower()
+    path = urlparse(url).path.lower()
+    prefix = bytes(data[:131072]).lower()
+
+    if path.endswith(".textebrut") and normalized_type in HTML_MEDIA_TYPES:
+        raise SnapshotError(
+            f"source-content mismatch for {url}: texteBrut endpoint returned {normalized_type}"
+        )
+
+    if normalized_type in HTML_MEDIA_TYPES:
+        for marker in INTERSTITIAL_MARKERS:
+            if marker in prefix:
+                label = marker.decode("utf-8", errors="replace")
+                raise SnapshotError(
+                    f"interstitial/security page detected for {url}: marker={label!r}"
+                )
 
 
 def fetch_url(url: str, timeout: int = 60) -> dict[str, Any]:
@@ -75,10 +104,11 @@ def fetch_url(url: str, timeout: int = 60) -> dict[str, Any]:
         raise SnapshotError(f"empty response for {url}")
 
     expected_suffix = Path(urlparse(url).path).suffix.lower()
-    if expected_suffix in {".pdf", ".zip"} and media_type in {"text/html", "application/xhtml+xml"}:
+    if expected_suffix in {".pdf", ".zip"} and media_type in HTML_MEDIA_TYPES:
         raise SnapshotError(
             f"content-type mismatch for {url}: expected {expected_suffix}, got {media_type}"
         )
+    validate_fetched_payload(url, media_type, data)
     return {
         "bytes": data,
         "mediaType": media_type or "application/octet-stream",
@@ -212,6 +242,24 @@ def snapshot_catalog(
             continue
 
         media_type = str(fetched.get("mediaType") or "application/octet-stream")
+        try:
+            validate_fetched_payload(source["sourceUrl"], media_type, bytes(data))
+        except SnapshotError as exc:
+            rows.append({
+                "sourceId": source_id,
+                "domain": source["domain"],
+                "benchmarkRole": source["benchmarkRole"],
+                "retrieval": "failed",
+                "mediaType": media_type,
+                "bytes": None,
+                "sha256": None,
+                "admissionId": None,
+                "admissionVerdict": None,
+                "artifactFile": None,
+            })
+            reasons.append(f"SOURCE_RETRIEVAL_CONTENT_INVALID:{source_id}:{exc}")
+            continue
+
         ext = extension_for(source["sourceUrl"], media_type)
         relative_file = f"sources/{safe_name(source_id)}{ext}"
         file_path = output_dir / relative_file
