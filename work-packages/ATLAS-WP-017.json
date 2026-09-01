@@ -13,7 +13,7 @@
   },
   "purpose": "Retrieve admitted benchmark sources into a trusted GitHub Actions artifact, bind exact bytes to SourceAdmission records, and emit a path-free snapshot manifest without committing the corpus to Git.",
   "baseline": {
-    "baseCommit": "657a9840eb9499047a48dc97d7cfc1001acad309",
+    "baseCommit": "ae415c8547002c9ca335eff6b79368c70ad3b031",
     "parentWorkPackage": "ATLAS-WP-016",
     "parentIssue": 299
   },
@@ -46,17 +46,20 @@
     "Downloaded bytes are stored only in the workflow artifact, not committed to Git.",
     "Every successfully retrieved source is immediately bound to a SourceAdmission SHA-256 record.",
     "The snapshot manifest contains only logical IDs, hashes, byte counts, decisions and artifact-relative locators; no runner host paths.",
-    "Caller-version sources such as Légifrance bind the explicit snapshot date.",
+    "HTTP success is not sufficient: security/CAPTCHA/interstitial payloads and endpoint/content-type mismatches are retrieval HOLDs and must never be admitted as source bytes.",
+    "Any caller-version source must bind an explicit snapshot date/version before retrieval; fixed-version sources retain their exact catalog version.",
     "Duplicate content across distinct primary benchmark sources fails the snapshot.",
     "M3.2, M3.2.5 reliability and SourceAdmission gate code remain unchanged; the benchmark catalog may replace transport-incompatible candidates only with provenance/rights-equivalent or stronger official sources.",
     "A retrieval failure is a HOLD, never silently skipped.",
     "The snapshot runner performs retrieval only; it does not parse PDFs, extract OCR, call models or publish kits."
   ],
   "requiredEvidence": [
-    "Exact seven-path delta from the SourceAdmission main baseline.",
+    "Exact seven-path corrective delta from merged main ae415c8547002c9ca335eff6b79368c70ad3b031.",
     "Repository governance PASS and PR scope PASS.",
     "M3.2, M3.2.5 reliability and SourceAdmission regression oracles remain PASS.",
     "The first real snapshot HOLD is preserved as evidence and its four transport failures are corrected by official alternatives rather than bypassed.",
+    "The previously reported snapshot sha256:f95e2418c57ad835fda8276ae23e5201869486547eecb8b34594a78b7f550f3b is explicitly revoked because its Gallica literature payload was a security-verification interstitial.",
+    "Synthetic and real evidence prove that an HTML security/CAPTCHA/interstitial response cannot produce PASS_REAL_SOURCE_SNAPSHOT_V1.",
     "Synthetic snapshot oracle proves eight primary domains can bind distinct source bytes.",
     "Permission-required OpenStax and NICE controls remain pre-ingestion and un-downloaded.",
     "A source retrieval failure produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
@@ -72,6 +75,8 @@
     "Dynamic version source without valid snapshot date.",
     "Host-path leakage into snapshot manifest.",
     "HTML error page returned for a PDF or ZIP URL.",
+    "HTTP 200 HTML security-verification page from a nominal source endpoint.",
+    "Gallica .texteBrut endpoint returning HTML instead of source text.",
     "Empty response body.",
     "Catalog replacement weakens a rights constraint merely to make transport pass."
   ],
@@ -93,8 +98,8 @@
     "M3.2.5 promotion still requires actual FactoryRuns plus independent semantic reviews and the existing benchmark gate."
   ],
   "execution": {
-    "branch": "atlas/ATLAS-WP-017-real-source-snapshot",
-    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "branch": "atlas/ATLAS-WP-017b-source-snapshot-content-integrity",
+    "phase": "CONTENT_INTEGRITY_CORRECTION_IN_PROGRESS",
     "pullRequest": null,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
