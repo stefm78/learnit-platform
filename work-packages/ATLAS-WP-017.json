@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-017",
+  "title": "Real Source Snapshot Runner",
+  "status": "in-progress",
+  "changeClass": "product-authoring-source-snapshot",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 301,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.2.5"
+  },
+  "purpose": "Retrieve admitted benchmark sources into a trusted GitHub Actions artifact, bind exact bytes to SourceAdmission records, and emit a path-free snapshot manifest without committing the corpus to Git.",
+  "baseline": {
+    "baseCommit": "657a9840eb9499047a48dc97d7cfc1001acad309",
+    "parentWorkPackage": "ATLAS-WP-016",
+    "parentIssue": 299
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-017.json",
+      "authoring/factory/source_snapshot.py",
+      "authoring/factory/benchmark_sources_v1.json",
+      "authoring/factory/tests/test_source_snapshot.py",
+      "authoring/factory/tests/test_source_admission.py",
+      ".github/workflows/atlas-source-snapshot.yml",
+      ".github/workflows/learnit-next-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/source_admission.py",
+      "authoring/factory/benchmark_contract.json",
+      "authoring/skills/**",
+      "authoring/v2/**",
+      "contracts/**",
+      "apps/**",
+      "governance/**",
+      "docs/governance/**"
+    ]
+  },
+  "invariants": [
+    "Only sources that pass pre-ingestion admission prerequisites are downloaded.",
+    "Negative controls are never downloaded.",
+    "Downloaded bytes are stored only in the workflow artifact, not committed to Git.",
+    "Every successfully retrieved source is immediately bound to a SourceAdmission SHA-256 record.",
+    "The snapshot manifest contains only logical IDs, hashes, byte counts, decisions and artifact-relative locators; no runner host paths.",
+    "Caller-version sources such as Légifrance bind the explicit snapshot date.",
+    "Duplicate content across distinct primary benchmark sources fails the snapshot.",
+    "M3.2, M3.2.5 reliability and SourceAdmission gate code remain unchanged; the benchmark catalog may replace transport-incompatible candidates only with provenance/rights-equivalent or stronger official sources.",
+    "A retrieval failure is a HOLD, never silently skipped.",
+    "The snapshot runner performs retrieval only; it does not parse PDFs, extract OCR, call models or publish kits."
+  ],
+  "requiredEvidence": [
+    "Exact seven-path delta from the SourceAdmission main baseline.",
+    "Repository governance PASS and PR scope PASS.",
+    "M3.2, M3.2.5 reliability and SourceAdmission regression oracles remain PASS.",
+    "The first real snapshot HOLD is preserved as evidence and its four transport failures are corrected by official alternatives rather than bypassed.",
+    "Synthetic snapshot oracle proves eight primary domains can bind distinct source bytes.",
+    "Permission-required OpenStax and NICE controls remain pre-ingestion and un-downloaded.",
+    "A source retrieval failure produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
+    "Duplicate primary source content produces HOLD_REAL_SOURCE_SNAPSHOT_V1.",
+    "The legal benchmark binds the exact official National Archives U.S. Constitution transcription/version; caller-bound version behavior remains covered by SourceAdmission.",
+    "Snapshot manifest contains no physical host path.",
+    "Trusted branch run attempts the real V1 catalog and uploads the exact source/admission bundle as an Actions artifact."
+  ],
+  "adversarialTests": [
+    "Network failure for one primary source.",
+    "Same source bytes returned for two different primary domains.",
+    "Negative-control source accidentally becomes admissible.",
+    "Dynamic version source without valid snapshot date.",
+    "Host-path leakage into snapshot manifest.",
+    "HTML error page returned for a PDF or ZIP URL.",
+    "Empty response body.",
+    "Catalog replacement weakens a rights constraint merely to make transport pass."
+  ],
+  "nonGoals": [
+    "General-purpose crawler",
+    "Search engine",
+    "Source normalization",
+    "PDF/OCR extraction",
+    "Model/provider call",
+    "Generated-kit creation",
+    "Permanent source archive design",
+    "Release/object-storage migration",
+    "Learner runtime changes",
+    "M3.3/M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "The real branch snapshot is evidence, not a promotion decision.",
+    "An Actions artifact is an operational short-term store for this benchmark; retention/storage promotion can be decided after the first corpus proves useful.",
+    "M3.2.5 promotion still requires actual FactoryRuns plus independent semantic reviews and the existing benchmark gate."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-017-real-source-snapshot",
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "pullRequest": null,
+    "maximumChangedFiles": 7,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the additive snapshot runner/tests/workflow/router entry. The source catalog, source admission layer, M3.2 and M3.2.5 reliability remain unchanged."
+}

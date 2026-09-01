@@ -1,0 +1,161 @@
+name: Atlas Real Source Snapshot
+
+on:
+  push:
+    branches:
+      - atlas/ATLAS-WP-017-real-source-snapshot
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      snapshot_date:
+        description: Exact snapshot/version date (YYYY-MM-DD)
+        required: true
+        default: '2026-09-01'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-source-snapshot-${{ github.ref }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Source Snapshot exact-head validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind exact baseline and scope
+        shell: bash
+        env:
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          set -euo pipefail
+          BASE=657a9840eb9499047a48dc97d7cfc1001acad309
+          SCOPE_BASE="${PR_BASE_SHA:-$BASE}"
+          [[ "$(git rev-parse HEAD)" == "$TARGET" ]]
+          git cat-file -e "$BASE^{commit}"
+          git cat-file -e "$SCOPE_BASE^{commit}"
+          [[ "$(git merge-base "$BASE" HEAD)" == "$BASE" ]]
+          [[ "$(git merge-base "$SCOPE_BASE" HEAD)" == "$SCOPE_BASE" ]]
+          export SCOPE_BASE
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/ATLAS-WP-017.json').read_text(encoding='utf-8'))
+          assert wp['id']=='ATLAS-WP-017'
+          assert wp['authority']['issue']==301
+          assert wp['baseline']['baseCommit']=='657a9840eb9499047a48dc97d7cfc1001acad309'
+          allowed=set(wp['scope']['allowedPaths'])
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',os.environ['SCOPE_BASE']+'...HEAD'], text=True
+          ).splitlines())
+          assert changed==allowed, f'ATLAS_WP_017_SCOPE_MISMATCH:{sorted(changed)} != {sorted(allowed)}'
+          assert len(changed)==7
+          print('ATLAS_WP_017_SCOPE=PASS')
+          PY
+
+      - name: Prove prior factory layers untouched
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=657a9840eb9499047a48dc97d7cfc1001acad309
+          git diff --exit-code "$BASE"...HEAD --             authoring/factory/factory_gate.py             authoring/factory/reliability.py             authoring/factory/source_admission.py             authoring/factory/benchmark_contract.json             authoring/skills             authoring/v2             contracts             apps             governance
+          echo 'PRIOR_FACTORY_LAYERS_UNCHANGED=PASS'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Validate repository
+        run: python -B tools/validate_repository.py
+
+      - name: Re-run M3.2 oracle
+        run: python -B authoring/factory/tests/test_ai_kit_factory.py
+
+      - name: Re-run M3.2.5 reliability oracle
+        run: python -B authoring/factory/tests/test_factory_reliability.py
+
+      - name: Re-run SourceAdmission oracle
+        run: python -B authoring/factory/tests/test_source_admission.py
+
+      - name: Run SourceSnapshot oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B -m py_compile             authoring/factory/source_snapshot.py             authoring/factory/tests/test_source_snapshot.py
+          python -B authoring/factory/tests/test_source_snapshot.py
+
+      - name: Diff hygiene
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          set -euo pipefail
+          SCOPE_BASE="${PR_BASE_SHA:-657a9840eb9499047a48dc97d7cfc1001acad309}"
+          git diff --check "$SCOPE_BASE"...HEAD
+
+  real-snapshot:
+    name: Real eight-domain source snapshot
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SNAPSHOT_DATE: ${{ inputs.snapshot_date || '2026-09-01' }}
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Retrieve and bind real admitted sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/atlas-real-source-snapshot"
+          mkdir -p "${OUT}"
+          python -B authoring/factory/source_snapshot.py             --catalog authoring/factory/benchmark_sources_v1.json             --output "${OUT}"             --snapshot-date "${SNAPSHOT_DATE}"             --use-context internal-rd-noncommercial             | tee "${OUT}/snapshot-run.json"
+          test -s "${OUT}/source_snapshot_manifest.json"
+
+      - name: Summarize snapshot
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          manifest=json.loads((Path(os.environ['RUNNER_TEMP'])/'atlas-real-source-snapshot/source_snapshot_manifest.json').read_text(encoding='utf-8'))
+          print('SNAPSHOT_VERDICT='+manifest['verdict'])
+          print('SNAPSHOT_ID='+manifest['snapshotId'])
+          for row in manifest['sources']:
+              print(f"{row['sourceId']} | {row['retrieval']} | {row['admissionVerdict']} | {row['sha256']}")
+          assert manifest['verdict']=='PASS_REAL_SOURCE_SNAPSHOT_V1'
+          PY
+
+      - name: Upload exact source snapshot bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-real-source-snapshot-${{ env.SNAPSHOT_DATE }}-${{ github.sha }}
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/atlas-real-source-snapshot/

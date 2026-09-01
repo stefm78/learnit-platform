@@ -105,7 +105,7 @@ class SourceAdmissionTests(unittest.TestCase):
                 admission.verify_admission(record)
 
     def test_conditional_bnf_source_is_context_bound(self):
-        source_id = "bnf:gallica-medecin-malgre-lui-selection"
+        source_id = "bnf:gallica-tartuffe-1669-textebrut"
         with tempfile.TemporaryDirectory() as td:
             path = self.write_bytes(Path(td), data=b"gallica selection snapshot\n")
             commercial = admission.build_admission(
@@ -132,11 +132,11 @@ class SourceAdmissionTests(unittest.TestCase):
             self.assertEqual(admission.PASS, research["decision"]["verdict"])
             self.assertIsNotNone(research["content"])
 
-    def test_dynamic_legal_source_requires_explicit_version(self):
-        source_id = "legifrance:code-civil"
+    def test_fixed_constitution_legal_source_preserves_exact_version(self):
+        source_id = "nara:us-constitution-transcript"
         with tempfile.TemporaryDirectory() as td:
-            path = self.write_bytes(Path(td), data=b"consolidated code snapshot\n")
-            unbound = admission.build_admission(
+            path = self.write_bytes(Path(td), data=b"constitution transcript snapshot\n")
+            record = admission.build_admission(
                 self.catalog,
                 self.catalog_sha,
                 source_id,
@@ -145,20 +145,11 @@ class SourceAdmissionTests(unittest.TestCase):
                 self.accepted(source_id),
                 None,
             )
-            self.assertEqual(admission.HOLD_VERSION, unbound["decision"]["verdict"])
-            self.assertIsNone(unbound["content"])
-
-            bound = admission.build_admission(
-                self.catalog,
-                self.catalog_sha,
-                source_id,
-                "internal-rd-noncommercial",
-                path,
-                self.accepted(source_id),
-                "2026-09-01",
+            self.assertEqual(admission.PASS, record["decision"]["verdict"])
+            self.assertEqual(
+                "1787-parchment-transcript",
+                record["source"]["version"],
             )
-            self.assertEqual(admission.PASS, bound["decision"]["verdict"])
-            self.assertEqual("2026-09-01", bound["source"]["version"])
 
     def test_unresolved_third_party_rights_fail_before_file_read(self):
         mutated = copy.deepcopy(self.catalog)
