@@ -1,0 +1,154 @@
+{
+  "contract": "learnit.kit.v2",
+  "packageLineageId": "665829ef-bc7f-4ad3-b265-4cb301e31684",
+  "packageRevisionId": "01a31f6d-ebf1-46bf-954b-1d1e8569fba5",
+  "packageRevisionDigest": "sha256:f049dac63331272c848e69241d1e897f855eeffdf6c2b39a96d52bb7c785788f",
+  "title": "Physique — force magnétique et moment dipolaire",
+  "description": "Kit pilote Atlas fondé exclusivement sur le document MIT 8.02T Problem Solving 5.",
+  "versionLabel": "M3.2.5 real-source physics v1",
+  "language": "fr",
+  "courses": [
+    {
+      "courseLineageId": "4d525640-f0f0-4b8a-bde1-149cd5971494",
+      "courseRevisionId": "0e3f1ec2-093d-41ac-b57e-996df9c98817",
+      "courseRevisionDigest": "sha256:c54430d7348e267013f0f52b40424356bf19654990f97fe4c0f0f13f87feb767",
+      "title": "Courant, force et couple magnétique",
+      "subtitle": "MIT 8.02T — Problem Solving 5, sections force sur un fil, boucle de courant et moment dipolaire",
+      "estimatedMinutes": 21,
+      "objectives": [
+        {
+          "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
+          "label": "Relier le courant, la force magnétique et le couple d’une boucle de courant à leurs expressions vectorielles"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "fdb5bb80-a47c-4e41-9b50-a4a620a302d4",
+          "activityRevisionId": "82f4ac0f-2c67-4306-a088-b317e6812330",
+          "activityRevisionDigest": "sha256:b64e20d3d2851b27118ecef7e830816dc611afa62b232dae6b8d14c6b3a0082f",
+          "objectiveIds": [
+            "91d4530b-c107-41ad-b967-a4fb853c3152"
+          ],
+          "type": "qcm",
+          "prompt": "Dans le document MIT, une densité volumique de charge positive ρ traverse une section A avec une vitesse de dérive v_d. Quelle expression donne le courant I ?",
+          "explanation": "La question 3 relie la charge traversant la section pendant dt au courant : dq = ρ A v_d dt, donc I = dq/dt = ρ A v_d.",
+          "difficulty": "medium",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {"choiceId": "e62b70c3-1ea6-4f65-a0e1-97b36ef6069b", "label": "I = ρ A v_d"},
+            {"choiceId": "8b5a7b92-b8d9-4fc0-831b-72467433c5d2", "label": "I = ρ A / v_d"},
+            {"choiceId": "211e18db-1ca8-4abe-a82e-1c77ccd556d5", "label": "I = ρ v_d / A"},
+            {"choiceId": "f386c0b5-129b-4d8b-a8ca-75934fa13402", "label": "I = A / (ρ v_d)"}
+          ],
+          "correctChoiceId": "e62b70c3-1ea6-4f65-a0e1-97b36ef6069b"
+        },
+        {
+          "activityLineageId": "abbf1872-5976-44ce-af1d-af7f18f48045",
+          "activityRevisionId": "df91a7e5-dc16-4446-8a45-2b73e5c4fba9",
+          "activityRevisionDigest": "sha256:651b6d836b53a246c2e4e1acb0aa45f13782e90f70bc33ee6476026c1b5cc7e1",
+          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "type": "qcm",
+          "prompt": "Une copie propose dF_B = I B_ext ds sans tenir compte des directions. Quelle correction respecte l’écriture vectorielle donnée dans la source ?",
+          "explanation": "Le document établit pour un élément de courant la relation vectorielle dF_B = I ds × B_ext. Le produit vectoriel porte l’information de direction.",
+          "difficulty": "medium",
+          "learningPhase": "consolidation",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 4,
+          "choices": [
+            {"choiceId": "eab06bc1-7884-4c3d-af73-c6ce996eed9b", "label": "dF_B = I ds × B_ext"},
+            {"choiceId": "2f1cc83a-6715-4f1f-b2e1-e266257607f2", "label": "dF_B = I ds + B_ext"},
+            {"choiceId": "2f440dfb-36d6-497a-97a2-ac4b770e9c19", "label": "dF_B = I B_ext / ds"},
+            {"choiceId": "40c7061d-612c-441e-9a31-068f61a73706", "label": "dF_B = ρ A ds"}
+          ],
+          "correctChoiceId": "eab06bc1-7884-4c3d-af73-c6ce996eed9b"
+        },
+        {
+          "activityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
+          "activityRevisionId": "78aa4a65-f6e9-4ff9-be86-506aa79d6246",
+          "activityRevisionDigest": "sha256:732e8d11c3e4770ca4f059ff02a3cc83a10ea5ee5b9b8e5faf22c2a954e3ad46",
+          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "type": "fill",
+          "prompt": "Complète la définition du moment dipolaire magnétique d’une boucle plane de courant.",
+          "explanation": "La section « Magnetic Dipole Moment » définit le vecteur moment dipolaire par μ = I A n̂, où n̂ est la normale orientée par la règle de la main droite.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "segments": [{"text": "Pour une boucle plane, μ = "},{"slotId": "172d07c8-1ee6-4990-9dda-19e3cac1e4a7"},{"text": "."}],
+          "tokens": [
+            {"tokenId": "285c81ff-3953-40c0-aa57-6a4c03f60b0e", "label": "I A n̂", "maxUses": 1},
+            {"tokenId": "b12794d0-526a-4db5-ba35-31349b155a56", "label": "I / A n̂", "maxUses": 1},
+            {"tokenId": "23ca0c6c-a702-4297-a8da-c147c7c6670d", "label": "A / I n̂", "maxUses": 1},
+            {"tokenId": "9185f817-4c85-4f4b-8616-1ccf4fd092d0", "label": "I A B_ext", "maxUses": 1}
+          ],
+          "answers": [{"slotId": "172d07c8-1ee6-4990-9dda-19e3cac1e4a7", "tokenId": "285c81ff-3953-40c0-aa57-6a4c03f60b0e"}]
+        },
+        {
+          "activityLineageId": "2c624bb5-a715-42f8-9f14-b2fa55277695",
+          "activityRevisionId": "b44fd7dd-f52f-4049-af8d-e99908323b14",
+          "activityRevisionDigest": "sha256:ce18c05164455e80a9e74d442b670b48ca6882f632c656fae6550b0afdaf6c2a",
+          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "type": "qcm",
+          "prompt": "Quelle relation vectorielle le document donne-t-il pour le couple exercé sur un dipôle magnétique dans un champ uniforme ?",
+          "explanation": "La source écrit explicitement τ_magnetic = μ × B_ext pour une boucle plane, ou plus généralement un dipôle magnétique, dans un champ uniforme.",
+          "difficulty": "medium",
+          "learningPhase": "validation",
+          "assessmentRole": "validation",
+          "estimatedMinutes": 4,
+          "choices": [
+            {"choiceId": "316623db-a791-4a7c-95ad-ed4bc0e0dd76", "label": "τ = μ × B_ext"},
+            {"choiceId": "82f9bfff-6d7c-43e3-9254-5963fd056a5d", "label": "τ = μ + B_ext"},
+            {"choiceId": "fd111805-560f-4ce7-92e5-f564b372c007", "label": "τ = μ / B_ext"},
+            {"choiceId": "7b278856-2e51-4100-a3e8-c7f283153a82", "label": "τ = I A seulement"}
+          ],
+          "correctChoiceId": "316623db-a791-4a7c-95ad-ed4bc0e0dd76"
+        },
+        {
+          "activityLineageId": "633ab7f3-2e30-46e4-9697-a6acb6b8416f",
+          "activityRevisionId": "891f82ec-3390-413e-ba10-61b963b14643",
+          "activityRevisionDigest": "sha256:4699f9526eeaad87ac3863ed9a06e15cd5f974f56668cba304f0a068574a602a",
+          "objectiveIds": ["91d4530b-c107-41ad-b967-a4fb853c3152"],
+          "type": "fill",
+          "prompt": "Transfert : une boucle rectangulaire de côtés a et b porte un courant I. Si μ est perpendiculaire à B_ext, complète la norme du couple à partir de μ = I A n̂ et τ = μ × B_ext.",
+          "explanation": "L’aire de la boucle vaut A = ab, donc |μ| = Iab. Pour des vecteurs perpendiculaires, la norme du produit vectoriel vaut le produit des normes : |τ| = Iab B_ext.",
+          "difficulty": "advanced",
+          "learningPhase": "transfer",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 5,
+          "segments": [{"text": "|τ| = "},{"slotId": "0707b817-445f-49a2-92f5-5f0b7f9c8c26"},{"text": "."}],
+          "tokens": [
+            {"tokenId": "8941bfb6-2e45-4fc0-9105-a70f58cd2743", "label": "I a b B_ext", "maxUses": 1},
+            {"tokenId": "66a5f64a-9751-4ab3-b26f-530b2132f7da", "label": "I (a+b) B_ext", "maxUses": 1},
+            {"tokenId": "0d48586c-fac1-412c-bfa2-538d4e9a1902", "label": "I a b / B_ext", "maxUses": 1},
+            {"tokenId": "194a143b-31c9-48b0-814a-4aa4a068073b", "label": "a b B_ext / I", "maxUses": 1}
+          ],
+          "answers": [{"slotId": "0707b817-445f-49a2-92f5-5f0b7f9c8c26", "tokenId": "8941bfb6-2e45-4fc0-9105-a70f58cd2743"}]
+        }
+      ],
+      "atlasValidationIndependenceClaims": [
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:da19f2684168923eaa5589efe28bba58fb5933cfc646cd25a1e8977bd1aed72d",
+          "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
+          "sourceActivityLineageId": "fdb5bb80-a47c-4e41-9b50-a4a620a302d4",
+          "targetActivityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
+          "basisCode": "new-instance",
+          "sourceStimulusDigest": "sha256:9acf10d919556550a3c45480e4eb4dc7e71ffd67fcba75279f3f9f90b74a60d9",
+          "targetStimulusDigest": "sha256:18fa05768c87886baa09e64d3775319077079a6e6183c5a6bfb0d607d006fe73"
+        },
+        {
+          "claimVersion": "atlas.independence.v1",
+          "claimId": "atlas-claim-sha256:2c605fdc67861c858e236a5fbc68566ea125cd2e429ac73f1d07f6eb0f754160",
+          "objectiveId": "91d4530b-c107-41ad-b967-a4fb853c3152",
+          "sourceActivityLineageId": "7609fe0b-302a-4d1a-8480-7b572a77dd39",
+          "targetActivityLineageId": "2c624bb5-a715-42f8-9f14-b2fa55277695",
+          "basisCode": "alternate-representation",
+          "sourceStimulusDigest": "sha256:18fa05768c87886baa09e64d3775319077079a6e6183c5a6bfb0d607d006fe73",
+          "targetStimulusDigest": "sha256:6188f8458ea7e930185e8a5c6f224104db82e4636a5ea28f87698ea7eddd5f60"
+        }
+      ]
+    }
+  ]
+}
