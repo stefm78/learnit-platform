@@ -291,4 +291,3 @@ python -B authoring/factory/reliability.py benchmark \
 ```
 
 M3.2.5 does not authorize source ingestion, OCR, model-provider integration, automatic publishing, learner-runtime AI, M3.3, M3.4, Gate3 or Gate4.
-
