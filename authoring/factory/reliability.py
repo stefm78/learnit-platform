@@ -28,6 +28,7 @@ RELIABILITY_PROFILE = "atlas.factory-reliability.v1"
 BENCHMARK_PROFILE = "atlas.factory-benchmark.v1"
 DEFAULT_BENCHMARK_CONTRACT = ROOT / "authoring/factory/benchmark_contract.json"
 VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 BENCHMARK_EXIT = 7
 
 
@@ -110,6 +111,11 @@ def build_run(kit: Path, brief: Path, review: Path, specs: list[str]) -> dict[st
     _, brief_raw = load_json(brief, "learner brief")
     _, review_raw = load_json(review, "semantic review")
     resource_digest = digest(resources)
+    content_rows = sorted(
+        [{"bytes": item["bytes"], "sha256": item["sha256"]} for item in resources],
+        key=lambda item: (item["sha256"], item["bytes"]),
+    )
+    resource_content_digest = digest(content_rows)
     decision = {"verdict": gate["verdict"], "reasons": list(gate["reasons"])}
     bundle_core = {
         "schema": BUNDLE_SCHEMA,
@@ -138,6 +144,7 @@ def build_run(kit: Path, brief: Path, review: Path, specs: list[str]) -> dict[st
         "schema": RUN_SCHEMA,
         "profile": RELIABILITY_PROFILE,
         "resourceSetDigest": resource_digest,
+        "resourceContentDigest": resource_content_digest,
         "factoryContextDigest": gate["context"]["contextDigest"],
         "evidenceBundle": bundle,
         "decision": decision,
@@ -147,7 +154,7 @@ def build_run(kit: Path, brief: Path, review: Path, specs: list[str]) -> dict[st
 
 def verify_run(value: Any) -> dict[str, Any]:
     run = exact(value, {
-        "schema", "profile", "resourceSetDigest", "factoryContextDigest",
+        "schema", "profile", "resourceSetDigest", "resourceContentDigest", "factoryContextDigest",
         "evidenceBundle", "decision", "runId",
     }, "FactoryRun")
     if run["schema"] != RUN_SCHEMA or run["profile"] != RELIABILITY_PROFILE:
@@ -169,12 +176,22 @@ def verify_run(value: Any) -> dict[str, Any]:
             raise ReliabilityInputError("invalid resource identity")
         if rid in ids or not VERSION.fullmatch(text(item["version"], "resource.version")):
             raise ReliabilityInputError("duplicate resourceId or invalid version")
+        if isinstance(item["bytes"], bool) or not isinstance(item["bytes"], int) or item["bytes"] < 0:
+            raise ReliabilityInputError("resource bytes must be an integer >= 0")
+        if not isinstance(item["sha256"], str) or not SHA256.fullmatch(item["sha256"]):
+            raise ReliabilityInputError("resource sha256 is invalid")
         ids.add(rid)
     if resources != sorted(resources, key=lambda item: item["resourceId"]):
         raise ReliabilityInputError("resources must be sorted")
     resource_digest = digest(resources)
     if run["resourceSetDigest"] != resource_digest or bundle["resourceSetDigest"] != resource_digest:
         raise ReliabilityInputError("resourceSetDigest mismatch")
+    content_rows = sorted(
+        [{"bytes": item["bytes"], "sha256": item["sha256"]} for item in resources],
+        key=lambda item: (item["sha256"], item["bytes"]),
+    )
+    if run["resourceContentDigest"] != digest(content_rows):
+        raise ReliabilityInputError("resourceContentDigest mismatch")
 
     gate = exact(bundle["factoryEvidence"], {
         "schema", "profile", "context", "canonicalValid", "pedagogicalQuality",
@@ -185,6 +202,19 @@ def verify_run(value: Any) -> dict[str, Any]:
         "sourceSetDigest", "contextDigest",
     }, "factoryEvidence.context")
     semantic = exact(gate["semanticReview"], {"sha256", "verdict", "counts"}, "semanticReview")
+    for key in ("kitSha256", "briefSha256", "sourceSetDigest", "contextDigest"):
+        if not isinstance(context[key], str) or not SHA256.fullmatch(context[key]):
+            raise ReliabilityInputError(f"factory context {key} is invalid")
+    if context["sourceSetDigest"] != factory.sha256_bytes(canonical(context["sources"])):
+        raise ReliabilityInputError("factory sourceSetDigest mismatch")
+    context_input = {
+        "profile": context["profile"],
+        "kitSha256": context["kitSha256"],
+        "briefSha256": context["briefSha256"],
+        "sourceSetDigest": context["sourceSetDigest"],
+    }
+    if context["contextDigest"] != factory.sha256_bytes(canonical(context_input)):
+        raise ReliabilityInputError("factory contextDigest mismatch")
     if bundle["factoryEvidenceSha256"] != digest(gate):
         raise ReliabilityInputError("factoryEvidenceSha256 mismatch")
     if run["factoryContextDigest"] != context["contextDigest"]:
@@ -195,6 +225,14 @@ def verify_run(value: Any) -> dict[str, Any]:
         raise ReliabilityInputError("resource/M3.2 source binding mismatch")
 
     artifacts = exact(bundle["artifacts"], {"learnerBrief", "generatedKit", "semanticReview"}, "artifacts")
+    exact(artifacts["learnerBrief"], {"bytes", "sha256", "canonicalSha256"}, "learnerBrief artifact")
+    exact(artifacts["generatedKit"], {"bytes", "sha256"}, "generatedKit artifact")
+    exact(artifacts["semanticReview"], {"bytes", "sha256"}, "semanticReview artifact")
+    for label, artifact in artifacts.items():
+        if isinstance(artifact["bytes"], bool) or not isinstance(artifact["bytes"], int) or artifact["bytes"] < 0:
+            raise ReliabilityInputError(f"{label} artifact bytes must be an integer >= 0")
+        if not isinstance(artifact["sha256"], str) or not SHA256.fullmatch(artifact["sha256"]):
+            raise ReliabilityInputError(f"{label} artifact sha256 is invalid")
     if artifacts["learnerBrief"]["canonicalSha256"] != context["briefSha256"]:
         raise ReliabilityInputError("brief hash mismatch")
     if artifacts["generatedKit"]["sha256"] != context["kitSha256"]:
@@ -256,7 +294,7 @@ def run_benchmark(contract_path: Path, manifest_path: Path) -> dict[str, Any]:
     if manifest["schema"] != BENCHMARK_MANIFEST_SCHEMA or not isinstance(manifest["cases"], list):
         raise ReliabilityInputError("invalid benchmark manifest")
     rows: list[dict[str, Any]] = []
-    case_ids: set[str] = set(); run_ids: set[str] = set(); reasons: list[str] = []
+    case_ids: set[str] = set(); run_ids: set[str] = set(); content_ids: set[str] = set(); reasons: list[str] = []
     for case in manifest["cases"]:
         case = exact(case, {"caseId", "domain", "run", "expectedDecision", "humanEscalation"}, "benchmark case")
         case_id = text(case["caseId"], "caseId"); domain = text(case["domain"], "domain")
@@ -270,6 +308,11 @@ def run_benchmark(contract_path: Path, manifest_path: Path) -> dict[str, Any]:
         if run["runId"] in run_ids:
             raise ReliabilityInputError(f"duplicate FactoryRun identity {run['runId']}")
         run_ids.add(run["runId"])
+        if run["resourceContentDigest"] in content_ids:
+            raise ReliabilityInputError(
+                f"duplicate benchmark source content {run['resourceContentDigest']}"
+            )
+        content_ids.add(run["resourceContentDigest"])
         if case["expectedDecision"] != "ANY" and case["expectedDecision"] != actual:
             reasons.append(f"BENCHMARK_EXPECTATION_MISMATCH:{case_id}:expected={case['expectedDecision']}:actual={actual}")
         if actual == "HOLD" and not run["decision"]["reasons"]:
