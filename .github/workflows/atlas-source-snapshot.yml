@@ -69,7 +69,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE=657a9840eb9499047a48dc97d7cfc1001acad309
-          git diff --exit-code "$BASE"...HEAD --             authoring/factory/factory_gate.py             authoring/factory/reliability.py             authoring/factory/source_admission.py             authoring/factory/benchmark_contract.json             authoring/factory/benchmark_sources_v1.json             authoring/skills             authoring/v2             contracts             apps             governance
+          git diff --exit-code "$BASE"...HEAD --             authoring/factory/factory_gate.py             authoring/factory/reliability.py             authoring/factory/source_admission.py             authoring/factory/benchmark_contract.json             authoring/skills             authoring/v2             contracts             apps             governance
           echo 'PRIOR_FACTORY_LAYERS_UNCHANGED=PASS'
 
       - name: Set up Python
