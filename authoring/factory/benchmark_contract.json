@@ -1,0 +1,18 @@
+{
+  "schema": "learnit.atlas.factory_benchmark_contract.v1",
+  "profile": "atlas.factory-benchmark.v1",
+  "requiredDomains": [
+    "mathematics",
+    "physics",
+    "computer-science",
+    "history",
+    "law",
+    "medicine",
+    "literature",
+    "management"
+  ],
+  "minimumRuns": 8,
+  "minimumPass": 2,
+  "minimumHold": 2,
+  "maximumHumanEscalationRate": 0.25
+}
