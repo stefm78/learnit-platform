@@ -121,6 +121,7 @@ jobs:
               atlas/ATLAS-WP-012-m3-1-promotion) echo 'm3-1-promotion-delegated wave' ;;
               atlas/ATLAS-WP-014-m3-2-ai-kit-factory) echo 'm3-2-factory-delegated wave' ;;
               atlas/ATLAS-WP-015-m3-2-5-factory-reliability) echo 'm3-2-5-factory-reliability-delegated wave' ;;
+              atlas/ATLAS-WP-016-source-admission-benchmark-v1) echo 'source-admission-delegated wave' ;;
               *) echo 'ci-router wave' ;;
             esac
           }
@@ -473,6 +474,46 @@ jobs:
           ATLAS_NETWORK_BLOCKED: ${{ steps.profile.outputs.name == 'atlas-contracts' && '1' || '0' }}
         run: |
           set -euo pipefail
+
+          if [[ "${PROFILE}" == source-admission-delegated ]]; then
+            [[ "${EVENT}" == pull_request ]] || {
+              echo "Source admission delegated route is valid only for the exact product pull request." >&2
+              exit 2
+            }
+            [[ "${BRANCH}" == atlas/ATLAS-WP-016-source-admission-benchmark-v1 ]] || {
+              echo "Unexpected branch for source admission delegated route: ${BRANCH}" >&2
+              exit 2
+            }
+            [[ "${PR_BASE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+            git fetch --force --no-tags origin "${PR_BASE_SHA}"
+            compare_base="$(git merge-base "${PR_BASE_SHA}" "${TARGET}")"
+            changed="$(git diff --name-only "${compare_base}" "${TARGET}")"
+            for required in \
+              '.github/workflows/atlas-source-admission-ci.yml' \
+              '.github/workflows/learnit-next-ci.yml' \
+              'work-packages/ATLAS-WP-016.json' \
+              'authoring/factory/source_admission.py' \
+              'authoring/factory/benchmark_sources_v1.json' \
+              'authoring/factory/tests/test_source_admission.py'; do
+              grep -Fxq "${required}" <<< "${changed}" || {
+                echo "Source admission required path is missing: ${required}" >&2
+                exit 2
+              }
+            done
+            for forbidden in \
+              'authoring/factory/factory_gate.py' \
+              'authoring/factory/reliability.py' \
+              'authoring/factory/benchmark_contract.json'; do
+              ! grep -Fxq "${forbidden}" <<< "${changed}" || {
+                echo "Promoted factory layer must remain unchanged: ${forbidden}" >&2
+                exit 2
+              }
+            done
+            python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-016.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-016'; assert wp['authority']['issue']==299; assert wp['baseline']['baseCommit']=='524cfc8b35654d7d54d3222a462fe582f4706a89'; assert '.github/workflows/atlas-source-admission-ci.yml' in wp['scope']['allowedPaths']; assert 'authoring/factory/source_admission.py' in wp['scope']['allowedPaths']"
+            echo "SOURCE_ADMISSION_DELEGATED_ROUTE=PASS"
+            echo "SOURCE_ADMISSION_WORKFLOW=.github/workflows/atlas-source-admission-ci.yml"
+            exit 0
+          fi
 
           if [[ "${PROFILE}" == m3-2-5-factory-reliability-delegated ]]; then
             [[ "${EVENT}" == pull_request ]] || {
