@@ -1,0 +1,7 @@
+{
+  "schema":"learnit.atlas.learner_brief.v1",
+  "audience":"apprenant découvrant la lecture précise d’un texte constitutionnel",
+  "goal":"Lire fidèlement quelques clauses de l’article I de la Constitution des États-Unis sans confondre texte normatif et interprétation.",
+  "language":"fr",
+  "timeBudgetMinutes":25
+}
