@@ -203,12 +203,12 @@
       "benchmarkRole": "primary",
       "title": "Règlement (UE) 2016/679 — RGPD, texte du Journal officiel en français",
       "authority": "Office des publications de l’Union européenne — EUR-Lex",
-      "sourceUrl": "https://eur-lex.europa.eu/legal-content/FR/TXT/PDF/?uri=CELEX:32016R0679",
+      "sourceUrl": "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679",
       "rightsUrl": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html?locale=fr",
       "version": {
         "strategy": "fixed",
         "value": "CELEX-32016R0679-OJ-2016-05-04",
-        "rule": "Exact CELEX identifier and Official Journal publication state, not a silently updated consolidated text."
+        "rule": "Exact CELEX identifier and Official Journal publication state; the stable EUR-Lex text view is snapshotted and byte-bound."
       },
       "rights": {
         "status": "allowed",
