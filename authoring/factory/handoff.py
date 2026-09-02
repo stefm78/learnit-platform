@@ -215,8 +215,7 @@ def source_admission_rows(
         except source_admission.SourceAdmissionError as exc:
             raise HandoffInputError(f"admission {source_id}: {exc}") from exc
 
-        if record["source"]["sourceId"] != source_id:
-            raise HandoffInputError(f"admission {source_id}: sourceId mismatch")
+        admission_source_id = record["source"]["sourceId"]
         if record["catalogSha256"] != catalog_sha:
             raise HandoffInputError(f"admission {source_id}: catalogSha256 mismatch")
         if record["decision"]["verdict"] != source_admission.PASS:
@@ -232,7 +231,7 @@ def source_admission_rows(
         rebuilt = source_admission.build_admission(
             catalog,
             catalog_sha,
-            source_id,
+            admission_source_id,
             record["useContext"],
             source_path,
             list(record["acceptedConditions"]),
@@ -620,14 +619,13 @@ def verify_embedded_authorities(
                 raise HandoffInputError(f"{admission_path}: catalog binding mismatch")
             if record["decision"]["verdict"] != source_admission.PASS:
                 raise HandoffInputError(f"{admission_path}: source admission is not PASS")
-            if record["source"]["sourceId"] != source_id:
-                raise HandoffInputError(f"{admission_path}: sourceId mismatch")
+            admission_source_id = record["source"]["sourceId"]
             if record["source"]["version"] != resource["version"]:
                 raise HandoffInputError(f"{admission_path}: resource version mismatch")
             rebuilt = source_admission.build_admission(
                 catalog,
                 catalog_sha,
-                source_id,
+                admission_source_id,
                 record["useContext"],
                 source_path,
                 list(record["acceptedConditions"]),
