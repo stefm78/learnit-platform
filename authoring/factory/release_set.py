@@ -145,6 +145,51 @@ def validate_kit_value(value: Any, label: str) -> dict[str, Any]:
     return value
 
 
+def validate_releasable_factory_run(run: dict[str, Any], label: str) -> None:
+    """Fail closed on contradictions inside an otherwise self-verifying PASS run.
+
+    M3.2.5 verifies deterministic internal bindings. M3.4 additionally requires
+    the embedded factory evidence itself to support the exact releasable PASS
+    decision before admitting the run to a qualified release set.
+    """
+    gate = run["evidenceBundle"]["factoryEvidence"]
+    if gate["verdict"] != "PASS_AI_KIT_FACTORY_V1" or gate["reasons"] != []:
+        raise ReleaseSetInputError(f"{label}: FactoryRun factory evidence is not an exact PASS")
+    if gate["canonicalValid"] is not True:
+        raise ReleaseSetInputError(f"{label}: FactoryRun canonical evidence is not PASS")
+
+    quality = exact(
+        gate["pedagogicalQuality"],
+        {"verdict", "qualityBand", "counts"},
+        f"{label}.factoryEvidence.pedagogicalQuality",
+    )
+    if quality["qualityBand"] not in ("STRONG", "EXCELLENT_BY_PROFILE"):
+        raise ReleaseSetInputError(
+            f"{label}: FactoryRun pedagogical quality does not support PASS"
+        )
+
+    semantic = exact(
+        gate["semanticReview"],
+        {"sha256", "verdict", "counts"},
+        f"{label}.factoryEvidence.semanticReview",
+    )
+    if semantic["verdict"] != factory.SEMANTIC_PASS:
+        raise ReleaseSetInputError(
+            f"{label}: FactoryRun semantic review does not support PASS"
+        )
+    counts = exact(
+        semantic["counts"],
+        set(factory.FINDING_SEVERITIES),
+        f"{label}.factoryEvidence.semanticReview.counts",
+    )
+    for severity, count in counts.items():
+        integer(count, f"{label}.factoryEvidence.semanticReview.counts.{severity}")
+    if counts["blocking"] or counts["major"]:
+        raise ReleaseSetInputError(
+            f"{label}: FactoryRun semantic findings do not support PASS"
+        )
+
+
 def entry_from_bytes(
     run_raw: bytes,
     kit_raw: bytes,
@@ -155,6 +200,7 @@ def entry_from_bytes(
         run = reliability.verify_run(run_value)
     except reliability.ReliabilityInputError as exc:
         raise ReleaseSetInputError(f"{label}: FactoryRun verification failed: {exc}") from exc
+    validate_releasable_factory_run(run, label)
     if reliability.decision_class(run) != "PASS":
         raise ReleaseSetInputError(
             f"{label}: FactoryRun is not releasable ({run['decision']['verdict']})"
@@ -425,9 +471,10 @@ def verify_release_archive(path: Path) -> dict[str, Any]:
     if "release-set.json" not in members:
         raise ReleaseSetInputError("release-set.json is missing")
 
-    manifest = validate_manifest(
-        load_json_bytes(members["release-set.json"], "release-set.json")
-    )
+    manifest_value = load_json_bytes(members["release-set.json"], "release-set.json")
+    if members["release-set.json"] != canonical(manifest_value):
+        raise ReleaseSetInputError("release-set.json is not canonical JSON")
+    manifest = validate_manifest(manifest_value)
     expected = {"release-set.json"}
     rows: list[tuple[dict[str, Any], dict[str, Any], list[tuple[str, str, str]]]] = []
 
