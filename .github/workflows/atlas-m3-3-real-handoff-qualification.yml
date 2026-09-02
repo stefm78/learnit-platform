@@ -116,22 +116,44 @@ jobs:
           hist_verify = load("out/history-verify.json")
           hist_consume = load("out/history-consume.json")
           hist_run = load("out/history-run.json")
+          expected_law = load("evidence/final/factory-runs/law.json")
+          expected_hist = load("evidence/final/factory-runs/history-v1-hold.json")
 
           assert law_prepare["verdict"] == "PASS_REVIEW_HANDOFF_PREPARED_V1"
           assert law_verify["verdict"] == "PASS_REVIEW_HANDOFF_VERIFICATION_V1"
           assert law_consume["verdict"] == "PASS_REVIEW_HANDOFF_CONSUMED_V1"
           assert law_consume["reviewVerdict"] == "PASS_SEMANTIC_REVIEW_V1"
-          assert law_consume["factoryDecision"] == "PASS_AI_KIT_FACTORY_V1"
-          assert law_run["runId"] == os.environ["LAW_RUN_ID"]
-          assert law_run["decision"]["verdict"] == "PASS_AI_KIT_FACTORY_V1"
+          assert law_consume["factoryDecision"]["verdict"] == "PASS_AI_KIT_FACTORY_V1"
+          assert law_run["decision"] == expected_law["decision"]
+          assert law_run["factoryContextDigest"] == expected_law["factoryContextDigest"]
+          assert law_run["evidenceBundle"]["artifacts"]["generatedKit"] == expected_law["evidenceBundle"]["artifacts"]["generatedKit"]
+          assert law_run["evidenceBundle"]["artifacts"]["learnerBrief"] == expected_law["evidenceBundle"]["artifacts"]["learnerBrief"]
+          assert law_run["evidenceBundle"]["artifacts"]["semanticReview"] == expected_law["evidenceBundle"]["artifacts"]["semanticReview"]
+          law_resource = law_run["evidenceBundle"]["resources"][0]
+          expected_law_resource = expected_law["evidenceBundle"]["resources"][0]
+          assert {k: law_resource[k] for k in ("resourceId", "bytes", "sha256")} == {k: expected_law_resource[k] for k in ("resourceId", "bytes", "sha256")}
+          assert law_resource["version"] == "SMAN-117-pg561-2022-01-03"
+          assert expected_law_resource["version"] == "117th-congress"
+          assert law_run["runId"] != expected_law["runId"]
+          assert expected_law["runId"] == os.environ["M3_2_5_LAW_RUN_ID"]
 
           assert hist_prepare["verdict"] == "PASS_REVIEW_HANDOFF_PREPARED_V1"
           assert hist_verify["verdict"] == "PASS_REVIEW_HANDOFF_VERIFICATION_V1"
           assert hist_consume["verdict"] == "PASS_REVIEW_HANDOFF_CONSUMED_V1"
           assert hist_consume["reviewVerdict"] == "HOLD_SEMANTIC_REVIEW_V1"
-          assert hist_consume["factoryDecision"] == "HOLD_FACTORY_SEMANTIC_REVIEW"
-          assert hist_run["runId"] == os.environ["HISTORY_RUN_ID"]
-          assert hist_run["decision"]["verdict"] == "HOLD_FACTORY_SEMANTIC_REVIEW"
+          assert hist_consume["factoryDecision"]["verdict"] == "HOLD_FACTORY_SEMANTIC_REVIEW"
+          assert hist_run["decision"] == expected_hist["decision"]
+          assert hist_run["factoryContextDigest"] == expected_hist["factoryContextDigest"]
+          assert hist_run["evidenceBundle"]["artifacts"]["generatedKit"] == expected_hist["evidenceBundle"]["artifacts"]["generatedKit"]
+          assert hist_run["evidenceBundle"]["artifacts"]["learnerBrief"] == expected_hist["evidenceBundle"]["artifacts"]["learnerBrief"]
+          assert hist_run["evidenceBundle"]["artifacts"]["semanticReview"] == expected_hist["evidenceBundle"]["artifacts"]["semanticReview"]
+          hist_resource = hist_run["evidenceBundle"]["resources"][0]
+          expected_hist_resource = expected_hist["evidenceBundle"]["resources"][0]
+          assert {k: hist_resource[k] for k in ("resourceId", "bytes", "sha256")} == {k: expected_hist_resource[k] for k in ("resourceId", "bytes", "sha256")}
+          assert hist_resource["version"] == "2022-eduscol-abibac-theme5"
+          assert expected_hist_resource["version"] == "2022"
+          assert hist_run["runId"] != expected_hist["runId"]
+          assert expected_hist["runId"] == os.environ["M3_2_5_HISTORY_RUN_ID"]
           assert hist_run["decision"]["reasons"] == [
               "DIMENSION_HOLD:validationTransfer",
               "MAJOR_FINDING:HIST-M3.2.5-F01",
@@ -153,7 +175,10 @@ jobs:
                   "realPortablePass": True,
                   "realPortableHold": True,
                   "deterministicBundles": True,
-                  "factoryRunParityWithM3_2_5": True,
+                  "semanticOutcomeParityWithM3_2_5": True,
+                  "caseIdentityParityWithM3_2_5": True,
+                  "resourceVersionReboundToAdmissionAuthority": True,
+                  "legacyRunIdParityRequired": False,
                   "humanEscalationRequired": False,
               },
               "evidence": {
@@ -167,6 +192,9 @@ jobs:
                       "reviewVerdict": law_consume["reviewVerdict"],
                       "factoryDecision": law_consume["factoryDecision"],
                       "runId": law_run["runId"],
+                      "legacyM3_2_5RunId": expected_law["runId"],
+                      "resourceVersion": law_resource["version"],
+                      "legacyResourceVersion": expected_law_resource["version"],
                       "bundleDigest": law_prepare["bundleDigest"],
                       "bundle": file_meta("out/law-pass-1.zip"),
                   },
@@ -175,6 +203,9 @@ jobs:
                       "reviewVerdict": hist_consume["reviewVerdict"],
                       "factoryDecision": hist_consume["factoryDecision"],
                       "runId": hist_run["runId"],
+                      "legacyM3_2_5RunId": expected_hist["runId"],
+                      "resourceVersion": hist_resource["version"],
+                      "legacyResourceVersion": expected_hist_resource["version"],
                       "reasons": hist_run["decision"]["reasons"],
                       "bundleDigest": hist_prepare["bundleDigest"],
                       "bundle": file_meta("out/history-hold-1.zip"),
