@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "QA-WP-024",
   "title": "M3.4 Qualified Release Set contradictory QA",
-  "status": "qa-in-progress",
+  "status": "under-qa",
   "changeClass": "independent-contradictory-qa",
   "riskClass": "high",
   "purpose": "Independently attack the exact frozen M3.4 Qualified Release Set product HEAD without modifying product code, and issue PASS only if all #328 fail-closed, determinism, scale, security and trust-boundary requirements survive.",
@@ -17,7 +17,8 @@
     "acceptedDesignPullRequest": 321,
     "acceptedDesignMerge": "baa9eea87d58a960f834e1712b4bf64d65b2ab3d",
     "promotedFactoryAuthority": "c102ca81f3b144bea1140860ef633a0d01987d59",
-    "branch": "qa/QA-WP-024-m3-4-release-set-contradictory"
+    "branch": "qa/QA-WP-024-m3-4-release-set-contradictory",
+    "baseCommit": "41f2245e56b42a2e541d185f39a3edb5d8b6f01b"
   },
   "scope": {
     "allowedPaths": [
@@ -144,10 +145,15 @@
     "authorityIssue": 328,
     "branch": "qa/QA-WP-024-m3-4-release-set-contradictory",
     "maximumChangedFiles": 3,
-    "pullRequest": null,
+    "pullRequest": 330,
     "workflow": "Atlas M3.4 Qualified Release Set Contradictory QA",
     "workflowRun": null,
     "finalVerdict": null
   },
-  "rollback": "Delete or revert only the three QA-WP-024 paths. No product or promoted upstream authority is modified."
+  "rollback": "Delete or revert only the three QA-WP-024 paths. No product or promoted upstream authority is modified.",
+  "independentReview": [
+    "QA evidence is produced independently from issue #328, frozen product bytes, promoted read-only authorities, and QA-owned fixtures only; author scratchpad and author active context are excluded.",
+    "Any reproduced defect is reported against exact frozen product HEAD 41f2245e56b42a2e541d185f39a3edb5d8b6f01b and is not repaired in the QA lane.",
+    "A PASS is allowed only after every required adversarial class in issue #328 survives the independent oracle."
+  ]
 }
