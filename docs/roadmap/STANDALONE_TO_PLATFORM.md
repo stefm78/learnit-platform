@@ -6,13 +6,13 @@ RC718 remains the frozen legacy standalone product. The successor is a distinct 
 
 The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
-> **Current status (post-Atlas M3.3):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation, M3.1 Pedagogical Quality, M3.2 AI Kit Factory and M3.3 Portable Review Handoff are promoted. M3.2.5 Factory Reliability remains qualified on a real eight-domain benchmark. The learner runtime remains the exact M2.2 artifact; the separate authoring/factory capabilities remain outside learner runtime. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
+> **Current status (post-Atlas M3.4):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation, M3.1 Pedagogical Quality, M3.2 AI Kit Factory, M3.3 Portable Review Handoff and M3.4 Qualified Release Set are promoted. M3.2.5 Factory Reliability remains qualified on a real eight-domain benchmark. The learner runtime remains the exact M2.2 artifact; the separate authoring/factory/release-set capabilities remain outside learner runtime. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
 
-## Active post-M3.3 roadmap — M3.4 held pending arbitration
+## Active post-M3.4 roadmap — next product direction held pending arbitration
 
 ### P0 — canonical state alignment
 
-Canonical state alignment is completed through GOV-WP-031: machine-readable governor state, architecture status, project README and roadmap describe the promoted M3.1 facts without changing product code.
+Canonical state alignment is completed through GOV-WP-035: machine-readable governor state, architecture status, project README and roadmap describe the promoted M3.4 facts without changing product code.
 
 ### M3.0 — Authoring Foundation — **PROMOTED**
 
@@ -95,9 +95,40 @@ Promotion evidence: frozen product HEAD `d4fe01f94ce38b2cd4d884930555f2bce971f56
 
 No provider API, learner-runtime AI, source-ingestion/OCR layer, automatic semantic repair or automatic publication was added.
 
-### M3.4 — Scale and publishing — **HOLD / NEXT POSSIBLE GATE**
+### M3.4 — Qualified Release Set — **PROMOTED**
 
-Batch validation, asset handling, collision diagnostics, rollback and 100/500-kit scale evidence remain only a candidate direction. Before implementation, fresh accountable-owner arbitration must prove that scale/publishing is the next highest-value capability and freeze exact publishing/evidence boundaries. Separate authority required.
+The historical "Scale and publishing" candidate was challenged and narrowed before implementation. M3.4 does **not** publish remotely. It provides a bounded deterministic release-set layer:
+
+```text
+self-verifying PASS FactoryRuns + exact canonical kits
+→ exact byte binding
+→ canonical identity/digest validation
+→ cross-kit collision checks
+→ deterministic release-set manifest
+→ deterministic portable ZIP
+→ offline fail-closed verification
+```
+
+Promotion evidence:
+- frozen product HEAD `870d69800dcb07fcfff9f1d232dd143c8eaa6486`;
+- fresh contradictory QA R2 HEAD `9c0e20ef176ee03532543d009f22979c95d0d748`;
+- QA verdict `PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA`;
+- promotion merge `b8337c785cbec995de5891080776c4c44dd99179`;
+- dedicated M3.4 post-merge CI PASS;
+- central post-merge routing gap closed separately by CI-WP-013 at `f4bbc91c5d480e2996faa8a592c3c18fd83d8906`.
+
+Scale-100 and Scale-500 remain engineering-only evidence and do not claim semantic qualification of synthetic fixtures. M3.4 adds no remote publisher, signing/authentication, asset/media contract, backend, provider dependency or learner-runtime behavior.
+
+### Post-M3.4 owner arbitration — **HOLD / NEXT DECISION**
+
+There is no preselected next implementation milestone. Fresh accountable-owner arbitration must compare at least:
+
+1. controlled remote distribution/publishing;
+2. human pedagogical overview debt #272;
+3. further factory/operator automation;
+4. stopping because the current local/static workflow is sufficient.
+
+This comparison is a decision gate, not implementation authority. Any selected direction requires a new bounded design/work package. Gate3 repository-write capability, Gate4 parallel runtime and M4+ remain held.
 
 ### M4+ — platform evolution
 

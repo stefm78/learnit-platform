@@ -90,7 +90,9 @@ M3.2.5 **Factory Reliability** est également promu et qualifié. Le benchmark r
 
 M3.3 **Portable Review Handoff** est promu. L’ancien concept "Assisted Authoring" a été redéfini pour éviter de dupliquer la factory : le milestone fournit un bundle déterministe par candidat, transporte exactement kit/brief/sources/admission/contexte/skill vers un reviewer indépendant, puis refuse toute re-entry stale ou non indépendante avant de reconstruire un FactoryRun auto-vérifiable. QA contradictoire et qualification réelle dans deux contextes reviewer séparés ont PASS avant le merge `c102ca81f3b144bea1140860ef633a0d01987d59`.
 
-Aucun fournisseur de modèle, API IA, backend, changement du runtime apprenant ou extension de `learnit.kit.v2` n’est autorisé par ces milestones. M3.4 Scale and Publishing devient le prochain gate possible, mais reste HOLD jusqu’à une nouvelle arbitration/design borné.
+M3.4 **Qualified Release Set** est promu. Le périmètre historique "Scale and Publishing" a été réduit à un mécanisme local déterministe : des FactoryRuns PASS auto-vérifiables et les octets exacts des kits canoniques sont liés, contrôlés pour les collisions d’identité/révision, assemblés dans un ZIP content-addressed déterministe puis vérifiés offline en fail-closed. Le product HEAD accepté est `870d69800dcb07fcfff9f1d232dd143c8eaa6486`, la QA contradictoire R2 a PASS sur `9c0e20ef176ee03532543d009f22979c95d0d748`, et le merge de promotion est `b8337c785cbec995de5891080776c4c44dd99179`. Scale-100/500 reste une preuve d’ingénierie, pas une qualification sémantique de fixtures synthétiques.
+
+Aucun fournisseur de modèle, API IA, backend, changement du runtime apprenant ou extension de `learnit.kit.v2` n’est autorisé par ces milestones. M3.4 n’ajoute pas non plus de publication distante, signature/authentification d’éditeur ni contrat asset/media. Après M3.4, aucune direction produit n’est présélectionnée : une nouvelle arbitration accountable-owner doit comparer publication/distribution contrôlée, dette de vue pédagogique #272, automatisation factory/opérateur supplémentaire et possibilité de s’arrêter au workflow local/statique actuel.
 
 ### M4 — Learn-it Everywhere
 
@@ -151,5 +153,6 @@ Gate courant :
 - M3.2 AI Kit Factory : promu sous `ATLAS-WP-014` / #286 ;
 - M3.2.5 Factory Reliability : promu et qualifié sous `ATLAS-WP-015` / #297, benchmark réel `PASS_FACTORY_BENCHMARK_V1` (8 runs, 6 PASS, 2 HOLD, 0 escalade humaine) ;
 - M3.3 Portable Review Handoff : promu sous `ATLAS-WP-019` / #310, QA indépendante PASS et qualification réelle PASS/HOLD en contextes séparés ;
-- prochain gate possible : M3.4 Scale and Publishing, HOLD jusqu’à nouvelle arbitration/design ;
+- M3.4 Qualified Release Set : promu sous `ATLAS-WP-021` / #322, product HEAD `870d69800dcb07fcfff9f1d232dd143c8eaa6486`, QA R2 HEAD `9c0e20ef176ee03532543d009f22979c95d0d748`, verdict `PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA`, promotion merge `b8337c785cbec995de5891080776c4c44dd99179` ;
+- prochain gate produit : HOLD jusqu’à arbitration post-M3.4 entre distribution distante contrôlée, dette #272, automatisation factory/opérateur supplémentaire ou arrêt au workflow local/statique actuel ;
 - Gate3, Gate4 et M4+ restent HOLD.
