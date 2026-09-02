@@ -71,9 +71,9 @@
   ],
   "execution": {
     "branch": "ci/CI-WP-010-source-snapshot-pr-scope",
-    "pullRequest": null,
+    "pullRequest": 316,
     "maximumChangedFiles": 2,
-    "phase": "IMPLEMENTED_PENDING_CI",
+    "phase": "PR_OPEN_PENDING_CI",
     "humanGateRequired": false,
     "finalVerdict": null
   },
