@@ -1,37 +1,37 @@
 {
   "contract": "learnit.kit.v2",
   "packageLineageId": "f1a23242-d288-4f5f-be27-69b9c059289e",
-  "packageRevisionId": "edb849ca-8e42-46bf-9155-1e6f0c967481",
-  "packageRevisionDigest": "sha256:8eae937fc09965193ab1f3c600fe717c5b03e1c0d121962f13eaca86974b3688",
+  "packageRevisionId": "65fbec33-761a-46fb-a9d0-a7c72b9403ae",
+  "packageRevisionDigest": "sha256:67eb94b6a4061cf58a9b14e9f91a21911cb352b26b5446e1ce9d391b0f6a0de1",
   "title": "Sécurité du patient — retranscription des prescriptions",
   "description": "Kit pilote Atlas fondé exclusivement sur le Flash sécurité patient HAS de février 2026.",
-  "versionLabel": "M3.2.5 real-source medicine v2",
+  "versionLabel": "M3.2.5 real-source medicine v3",
   "language": "fr",
   "courses": [
     {
       "courseLineageId": "d573b059-da2f-4afa-b9a4-ccde1608c814",
-      "courseRevisionId": "aa06decb-51dd-471e-837c-c029016903e4",
-      "courseRevisionDigest": "sha256:f0a276c59b0262e2ccf9e5d58ae50736f7f5fe930b24cd3d63da7ab63a9c5843",
+      "courseRevisionId": "e893cf78-b489-4917-bca7-31f14db16ed0",
+      "courseRevisionDigest": "sha256:04cc2dc813eccf520694b4427cd3f9d428e299b246a5952fcb9f78c7b04ba38d",
       "title": "Prévenir les erreurs de retranscription médicamenteuse",
       "subtitle": "HAS — Flash sécurité patient, (Re)transcription des prescriptions médicamenteuses",
       "estimatedMinutes": 21,
       "objectives": [
         {
           "objectiveId": "298cbdbe-624e-4aef-93aa-d0c32b1f55bd",
-          "label": "Identifier les erreurs et les mesures de prévention explicitement décrites par le Flash HAS"
+          "label": "Identifier des erreurs de retranscription et choisir des mesures de prévention explicitement décrites par le Flash HAS"
         }
       ],
       "activities": [
         {
           "activityLineageId": "42a3624e-703e-4111-bc74-df6f5bb2cf54",
-          "activityRevisionId": "d496c6d8-86ec-4ef8-8cc5-1703f2203158",
-          "activityRevisionDigest": "sha256:6ca3f7304237e3410a61e0662f311096f0e9faa3e0beb44de8dac6ee575aebc7",
+          "activityRevisionId": "d8a809ae-f167-4c00-82d2-3dc0f22b42c0",
+          "activityRevisionDigest": "sha256:e41725864fc0c12509abbebf36834684992e3666993dbfe9dc8950f31299a047",
           "objectiveIds": [
             "298cbdbe-624e-4aef-93aa-d0c32b1f55bd"
           ],
           "type": "qcm",
-          "prompt": "Dans l’évènement 1 du Flash HAS, quelle erreur de posologie est introduite lors de la retranscription de la lamotrigine ?",
-          "explanation": "La prescription devait débuter progressivement à 25 mg puis 50 mg puis 75 mg. La retranscription dans le LAP a introduit 125 mg dès l’initiation.",
+          "prompt": "Dans l’évènement 1, la retranscription introduit 125 mg de lamotrigine dès l’initiation au lieu de la progression prescrite. Quelle combinaison identifie correctement le risque et la conduite de sécurisation décrite par le Flash lorsqu’un prescripteur doit recopier une prescription ?",
+          "explanation": "Il s’agit d’une erreur de dose introduite lors d’une retranscription. Le Flash précise que lorsqu’une copie par un prescripteur est nécessaire, elle doit être précédée d’une analyse approfondie, notamment des dosages, posologies, durées, voies d’administration et interactions.",
           "difficulty": "medium",
           "learningPhase": "application",
           "assessmentRole": "practice",
@@ -39,33 +39,33 @@
           "choices": [
             {
               "choiceId": "105f391a-040f-40d4-8bcb-e6cc487f3825",
-              "label": "125 mg dès l’initiation du traitement."
+              "label": "Erreur de dose ; effectuer une analyse approfondie avant validation, notamment des dosages et posologies."
             },
             {
               "choiceId": "0eb64e8f-1ac3-450e-a4d5-ebc09a2523ed",
-              "label": "5 mg au lieu de 0,5 mg."
+              "label": "Erreur de jour ; recopier sans analyse pour gagner du temps."
             },
             {
               "choiceId": "0ef43976-d811-4de4-9a68-2ea6775d64ad",
-              "label": "Une administration une semaine trop tôt."
+              "label": "Erreur de médicament ; supprimer les vérifications de cohérence."
             },
             {
               "choiceId": "d65d3783-1312-4fe8-8db0-287951ef5a50",
-              "label": "Aucune dose n’a été saisie."
+              "label": "Aucune erreur ; conserver la retranscription telle quelle."
             }
           ],
           "correctChoiceId": "105f391a-040f-40d4-8bcb-e6cc487f3825"
         },
         {
           "activityLineageId": "7cd1629c-5b72-4459-84c0-aa104377432d",
-          "activityRevisionId": "e2eb64d5-957e-4f7e-9a4d-54be4a38e37d",
-          "activityRevisionDigest": "sha256:f3f5f0cdc47aef9d26f888ca05fc9f3e2e3cb685b427c822f98ea5a6b99f6622",
+          "activityRevisionId": "5084d98a-30bb-48cc-9208-cec782259b0e",
+          "activityRevisionDigest": "sha256:52fdca5387c8c7f1dbe97f7dd2124d23f280318eaecdda189fe3f0c7e39fd0db",
           "objectiveIds": [
             "298cbdbe-624e-4aef-93aa-d0c32b1f55bd"
           ],
           "type": "qcm",
           "prompt": "Une procédure propose qu’un professionnel non habilité à prescrire retranscrive systématiquement les prescriptions si un médecin n’est pas disponible. Quelle correction respecte le Flash HAS ?",
-          "explanation": "Le document indique que la retranscription par des professionnels non habilités à prescrire n’est pas autorisée. Sans prescription médicale écrite, l’administration n’est pas possible sauf urgence, avec prescription orale explicite et formalisation écrite rapide.",
+          "explanation": "Le Flash indique que la retranscription par des professionnels non habilités à prescrire n’est pas autorisée. En situation d’urgence et en l’absence de prescription médicale écrite, l’administration par l’infirmier repose sur une prescription médicale orale explicite et circonstanciée ; cette prescription doit ensuite être formalisée par écrit par le médecin dans les meilleurs délais.",
           "difficulty": "medium",
           "learningPhase": "consolidation",
           "assessmentRole": "practice",
@@ -92,21 +92,21 @@
         },
         {
           "activityLineageId": "76436092-8908-4af0-b2db-b81d966db2b7",
-          "activityRevisionId": "597ca5d3-b973-4ae7-a124-9b267105d5b2",
-          "activityRevisionDigest": "sha256:07670113c3d712a19f2308c2318a5c6f0c8286197a9ff529078e57d0ad7b628e",
+          "activityRevisionId": "a423c053-29f7-419a-ae8b-f8487af7c1df",
+          "activityRevisionDigest": "sha256:ae6061711e6d8a9c649e147befc54aae8b92a63aaa0b6f8af520e0dfd53b503f",
           "objectiveIds": [
             "298cbdbe-624e-4aef-93aa-d0c32b1f55bd"
           ],
           "type": "fill",
-          "prompt": "Complète l’erreur de dose décrite dans l’évènement 2 concernant la colchicine.",
-          "explanation": "Le Flash indique que l’interne a saisi 5 mg de colchicine par 24 h au lieu de 0,5 mg.",
+          "prompt": "Nouvelle instance : dans l’évènement 2, 5 mg de colchicine sont saisis au lieu de 0,5 mg. Pour sécuriser une copie nécessaire par un prescripteur, complète l’un des éléments que le Flash demande de vérifier lors de l’analyse approfondie.",
+          "explanation": "Le Flash demande une analyse approfondie avant validation d’une copie nécessaire, avec vérification notamment des dosages, posologies, durées, voies d’administration et interactions.",
           "difficulty": "medium",
           "learningPhase": "validation",
           "assessmentRole": "validation",
           "estimatedMinutes": 4,
           "segments": [
             {
-              "text": "Dose saisie à tort : "
+              "text": "Vérifier notamment les "
             },
             {
               "slotId": "b9b787d1-b9ac-4a53-838d-c49ca6aaab1a"
@@ -118,22 +118,22 @@
           "tokens": [
             {
               "tokenId": "b7691d96-2e18-466c-94b7-5ecfe85e272c",
-              "label": "5 mg par 24 h",
+              "label": "dosages et posologies",
               "maxUses": 1
             },
             {
               "tokenId": "91fc2a2c-2882-4505-a95f-f325bddfa17e",
-              "label": "0,5 mg par 24 h",
+              "label": "couleurs des écrans",
               "maxUses": 1
             },
             {
               "tokenId": "af15b72f-bc59-4323-b578-2c511bea586f",
-              "label": "50 mg par 24 h",
+              "label": "horaires de pause",
               "maxUses": 1
             },
             {
               "tokenId": "54a6ca14-2693-4a6c-8447-e911ce358600",
-              "label": "0,05 mg par 24 h",
+              "label": "noms des services uniquement",
               "maxUses": 1
             }
           ],
@@ -146,14 +146,14 @@
         },
         {
           "activityLineageId": "a6a62bb5-9d27-4589-afe4-4ed34de11bcf",
-          "activityRevisionId": "94349a1e-45e8-46b7-bede-0cd41bf67d16",
-          "activityRevisionDigest": "sha256:e1283fc8bb4460aa4c55a47d511c7364a66fc7c048d794675d327cc88feb55c0",
+          "activityRevisionId": "2370e53e-8849-4692-99c6-4aa78fde21ae",
+          "activityRevisionDigest": "sha256:e585ea0b8082dc32643adb358c6541fed949aa32e3e114abe7541631c8088968",
           "objectiveIds": [
             "298cbdbe-624e-4aef-93aa-d0c32b1f55bd"
           ],
           "type": "qcm",
-          "prompt": "Dans l’évènement 2, la retranscription transforme 0,5 mg de colchicine en 5 mg par 24 h. Quelle nature d’erreur cette reformulation met-elle en évidence ?",
-          "explanation": "Le médicament reste la colchicine et le problème porte sur la dose saisie : 5 mg au lieu de 0,5 mg.",
+          "prompt": "Un prescripteur doit exceptionnellement copier une prescription existante lors d’une transition de soins. Quelle conduite respecte le Flash avant validation de cette copie ?",
+          "explanation": "La HAS demande une analyse approfondie de la prescription copiée, notamment des dosages, posologies, durées, voies d’administration et interactions, avant validation.",
           "difficulty": "medium",
           "learningPhase": "validation",
           "assessmentRole": "validation",
@@ -161,33 +161,33 @@
           "choices": [
             {
               "choiceId": "d9f3bd59-5615-4f2a-8f6e-f24ee6a04080",
-              "label": "Une erreur de dose lors de la retranscription."
+              "label": "Analyser la prescription en profondeur avant validation, notamment dosage, posologie, durée, voie et interactions."
             },
             {
               "choiceId": "014ba596-6c2d-48dd-9f2f-b975fda36184",
-              "label": "Une erreur de jour d’administration."
+              "label": "Valider immédiatement la copie sans vérifier le traitement."
             },
             {
               "choiceId": "f878e4ee-e65e-494d-adf9-a5fc78942751",
-              "label": "Un changement de médicament."
+              "label": "Confier systématiquement la retranscription à un professionnel non habilité à prescrire."
             },
             {
               "choiceId": "7d37b3c5-1c9f-4115-8673-82c4fbb908f7",
-              "label": "Une absence totale de prescription."
+              "label": "Multiplier les copies papier entre logiciels non interopérables."
             }
           ],
           "correctChoiceId": "d9f3bd59-5615-4f2a-8f6e-f24ee6a04080"
         },
         {
           "activityLineageId": "1ce7e286-7f2b-4bda-b40b-05967d2a840a",
-          "activityRevisionId": "e6fa9946-a9e5-4c33-b736-41895684131a",
-          "activityRevisionDigest": "sha256:5602c11cad3abaa5d8be32968059fe1f051e519afdfed5a52f8bd8a649affb23",
+          "activityRevisionId": "9382c8aa-3ca2-4463-ae8f-662ea28c85f2",
+          "activityRevisionDigest": "sha256:8115a83c1d26a6b861c6b8d9fc03d9e367e2b36b4f79d74b96c1d7b8c9a371dc",
           "objectiveIds": [
             "298cbdbe-624e-4aef-93aa-d0c32b1f55bd"
           ],
           "type": "qcm",
-          "prompt": "Transfert : une retranscription papier décale le jour du méthotrexate et conduit à une administration une semaine trop tôt. Quelle combinaison identifie correctement l’erreur de l’évènement 3 et applique l’orientation générale du Flash ?",
-          "explanation": "L’évènement 3 est une erreur de jour d’administration introduite lors d’une retranscription papier. Le Flash recommande d’éviter la retranscription et de sécuriser les outils et transitions.",
+          "prompt": "Transfert : après un évènement analogue à l’évènement 3, où une retranscription papier a décalé le jour du méthotrexate et conduit à une administration une semaine trop tôt, deux services veulent réduire durablement le risque. Quelle combinaison est la plus conforme aux préconisations du Flash ?",
+          "explanation": "Le Flash recommande d’éviter la retranscription, d’utiliser autant que possible un support numérique unique pour prescription et administration, de favoriser l’interopérabilité des systèmes d’information et d’adapter les droits d’accès, avec formation et sécurisation des pratiques.",
           "difficulty": "advanced",
           "learningPhase": "transfer",
           "assessmentRole": "practice",
@@ -195,19 +195,19 @@
           "choices": [
             {
               "choiceId": "479a9482-6121-4cee-8b46-abe5c5d902cd",
-              "label": "Erreur de jour d’administration ; éviter la retranscription."
+              "label": "Éviter la retranscription, viser un support numérique unique, favoriser l’interopérabilité et adapter les droits d’accès."
             },
             {
               "choiceId": "a767bb27-b75b-4e17-84cd-8467b96c407a",
-              "label": "Erreur de dose ; multiplier les copies manuelles."
+              "label": "Multiplier les recopies papier et désactiver les contrôles de cohérence."
             },
             {
               "choiceId": "4f6c5e25-da6c-4de2-b291-9abca7b69ff7",
-              "label": "Erreur de médicament ; supprimer les contrôles."
+              "label": "Conserver des logiciels isolés et demander aux non-prescripteurs de recopier les ordonnances."
             },
             {
               "choiceId": "c052348b-ab23-4e6e-8e8c-aa92105d21e9",
-              "label": "Aucune erreur ; ignorer les transitions de soins."
+              "label": "Supprimer les droits d’accès différenciés et ne plus former les utilisateurs."
             }
           ],
           "correctChoiceId": "479a9482-6121-4cee-8b46-abe5c5d902cd"
@@ -216,23 +216,23 @@
       "atlasValidationIndependenceClaims": [
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:add37f0a3d78ab5e3ac4fa3d02d913238e18667fe4cfd6e51470cde1fd5667f7",
+          "claimId": "atlas-claim-sha256:38213b8d77e5fc9b8f0525924b7c793cd445fa4d2eb003d62e232215baf58927",
           "objectiveId": "298cbdbe-624e-4aef-93aa-d0c32b1f55bd",
           "sourceActivityLineageId": "42a3624e-703e-4111-bc74-df6f5bb2cf54",
           "targetActivityLineageId": "76436092-8908-4af0-b2db-b81d966db2b7",
           "basisCode": "new-instance",
-          "sourceStimulusDigest": "sha256:09dcf7298f722cc1f5e9b3efff1977a7f6b79c6849de30b05e5e8ba90aa98605",
-          "targetStimulusDigest": "sha256:94ed22b4a8cd0a2f1ed1a130378dfa2f7143ff8e2f157b2d2b1032c59acd7db9"
+          "sourceStimulusDigest": "sha256:bbaa7d0af306b127ff97fc94be44818013a303ed3ecd73e35545c616a30f134a",
+          "targetStimulusDigest": "sha256:cf25df8ff883df709469ad0a37225df9bcb53e822fb606aadacea6f93a70e18f"
         },
         {
           "claimVersion": "atlas.independence.v1",
-          "claimId": "atlas-claim-sha256:ba9effbdaced6c550ab3f8f0d8ee845d1d00fb2c860daf38d079eb084d207371",
+          "claimId": "atlas-claim-sha256:86a40130f49ae8d1344a3f3c210fc1e698d6e50f9d6ed4fe188a08494df79b3f",
           "objectiveId": "298cbdbe-624e-4aef-93aa-d0c32b1f55bd",
           "sourceActivityLineageId": "76436092-8908-4af0-b2db-b81d966db2b7",
           "targetActivityLineageId": "a6a62bb5-9d27-4589-afe4-4ed34de11bcf",
           "basisCode": "alternate-representation",
-          "sourceStimulusDigest": "sha256:94ed22b4a8cd0a2f1ed1a130378dfa2f7143ff8e2f157b2d2b1032c59acd7db9",
-          "targetStimulusDigest": "sha256:5f0d3382ad478b9ab4b2c9a3d68610d967418708420e0f288481647c53c4fe6a"
+          "sourceStimulusDigest": "sha256:cf25df8ff883df709469ad0a37225df9bcb53e822fb606aadacea6f93a70e18f",
+          "targetStimulusDigest": "sha256:4b73fd102be78f692aab8cd59e1e9b119641c1304d3fabbc3e0c135e44b877ab"
         }
       ]
     }

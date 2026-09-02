@@ -228,6 +228,26 @@ jobs:
           python -B authoring/factory/reliability.py verify-run \
             --run "${EVD}/factory-runs/mathematics.json"
 
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/physics/candidate.json \
+            --brief authoring/factory/real-benchmark/physics/learner-brief.json \
+            --review authoring/factory/real-benchmark/reviews/physics.json \
+            --resource mit_ocw_8_02t_solving05_2005@8.02T-2005="${SRC}/physics.pdf" \
+            > "${EVD}/factory-runs/physics.json"
+
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/physics.json"
+
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/management/candidate.json \
+            --brief authoring/factory/real-benchmark/management/learner-brief.json \
+            --review authoring/factory/real-benchmark/reviews/management.json \
+            --resource eu_pm2_v3_1@3.1="${SRC}/management.pdf" \
+            > "${EVD}/factory-runs/management.json"
+
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/management.json"
+
           set +e
           python -B authoring/factory/reliability.py run \
             --kit authoring/factory/real-benchmark/benchmark-cases/computer-science-v1-hold/candidate.json \
