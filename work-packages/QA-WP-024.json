@@ -63,14 +63,14 @@
       "id": "QA-WP-024-R2-F01",
       "sourceFinding": "F01 forged PASS admission",
       "required": true,
-      "status": "PENDING_FRESH_EXECUTION",
+      "status": "PASS_FRESH_EXECUTION",
       "attack": "Start from a genuine semantic-HOLD FactoryRun, mutate only outer factory verdict/reasons and final decisions to PASS, recompute deterministic digests/runId, and require M3.4 admission to reject it."
     },
     {
       "id": "QA-WP-024-R2-F02",
       "sourceFinding": "F02 noncanonical release-set.json bytes",
       "required": true,
-      "status": "PENDING_FRESH_EXECUTION",
+      "status": "PASS_FRESH_EXECUTION",
       "attack": "Re-encode the exact same release-set JSON object as pretty-printed bytes, rebuild deterministic ZIP metadata, and require offline verification to reject the byte-distinct manifest."
     }
   ],
@@ -144,9 +144,17 @@
     "authorityIssue": 331,
     "branch": "qa/QA-WP-024-R2-m3-4-release-set-contradictory",
     "maximumChangedFiles": 3,
+    "pullRequest": 332,
     "workflow": "Atlas M3.4 Qualified Release Set Contradictory QA R2",
-    "status": "PENDING_FRESH_EXECUTION",
-    "finalVerdict": null
+    "status": "PASS_FRESH_EXECUTION_RECORDED_PENDING_FINAL_HEAD_REVALIDATION",
+    "evidenceHead": "11f9cab71c31e2495feb47b7922b1c71156b2cc6",
+    "workflowRun": 33668118420,
+    "workflowJob": 100374754462,
+    "exactHeadGuard": "PASS",
+    "productRegression": "PASS",
+    "contradictoryOracle": "PASS",
+    "finalVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
+    "note": "This record is based only on the fresh R2 run above. Because recording it creates a new QA HEAD, the new HEAD must itself pass the same workflow before the verdict is externally finalized."
   },
   "requiredPassVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
   "requiredHoldVerdict": "HOLD_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
