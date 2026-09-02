@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-013",
+  "title": "Route M3.4 promotion post-merge CI",
+  "status": "in-progress",
+  "changeClass": "ci-routing",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 333,
+    "promotedProductPullRequest": 323,
+    "qaR2PullRequest": 332,
+    "predecessorCiWorkPackage": "CI-WP-012"
+  },
+  "purpose": "Teach the central Learn-it Next router to recognize the exact already-promoted M3.4 Qualified Release Set merge on main and verify its post-merge topology/blob identity without invoking legacy Wave A semantics.",
+  "baseline": {
+    "baseCommit": "b8337c785cbec995de5891080776c4c44dd99179",
+    "branch": "ci/CI-WP-013-m3-4-post-merge-route",
+    "acceptedProductHead": "870d69800dcb07fcfff9f1d232dd143c8eaa6486",
+    "promotionMerge": "b8337c785cbec995de5891080776c4c44dd99179",
+    "qaHead": "9c0e20ef176ee03532543d009f22979c95d0d748",
+    "qaVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
+    "failedPostMergeRun": 33668966680,
+    "failedPostMergeJob": 100377552615
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-013.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/atlas-m3-4-release-set-ci.yml",
+      "work-packages/ATLAS-WP-021.json",
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "Only the central router and CI-WP-013 metadata change.",
+    "The exact M3.4 promotion first-parent delta maps to one dedicated post-merge routing profile.",
+    "The route requires exactly two parents and second parent 870d69800dcb07fcfff9f1d232dd143c8eaa6486.",
+    "Every promoted M3.4 path blob at merge HEAD must equal the accepted product-head blob.",
+    "The route validates ATLAS-WP-021 authority metadata but does not duplicate M3.4 product semantics.",
+    "Existing Wave A, Atlas M1 and delegated M3.x PR route behavior remains unchanged.",
+    "No learner/product/runtime/contract/authoring semantics change."
+  ],
+  "expectedPromotionPaths": [
+    ".github/workflows/atlas-m3-4-release-set-ci.yml",
+    "authoring/factory/README.md",
+    "authoring/factory/release_set.py",
+    "authoring/factory/tests/test_release_set.py",
+    "work-packages/ATLAS-WP-021.json"
+  ],
+  "requiredEvidence": [
+    "Exact two-file CI-WP-013 pull-request delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Generic ci-router audit PASS for the CI-only PR.",
+    "Exact M3.4 promotion shape resolves to m3-4-release-set-post-merge.",
+    "Wrong second parent, path deficit/excess and promoted blob mismatch fail closed.",
+    "Promoted product tree remains byte-identical.",
+    "Post-merge central Learn-it Next CI no longer invokes historical Wave A for this exact M3.4 promotion shape."
+  ],
+  "adversarialTests": [
+    "Wrong second parent is rejected.",
+    "Missing M3.4 promotion path is rejected.",
+    "Extra M3.4 promotion path is rejected.",
+    "Promoted blob mismatch is rejected.",
+    "Unknown post-merge shapes preserve existing generic behavior.",
+    "CI-WP-013 merge itself remains on the generic ci-router path."
+  ],
+  "nonGoals": [
+    "Changing M3.4 product code.",
+    "Changing QA-WP-024 R2 evidence.",
+    "Changing learner runtime.",
+    "Remote publishing.",
+    "Gate 3, Gate 4 or M4+ activation.",
+    "Canonical-state or roadmap arbitration."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this two-file CI-only change.",
+    "The existing dedicated M3.4 push workflow remains the product-semantic post-merge authority."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-013-m3-4-post-merge-route",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert the CI-WP-013 router branch/metadata change. The already-promoted M3.4 product tree and QA evidence remain unchanged."
+}
