@@ -124,6 +124,7 @@ jobs:
               atlas/ATLAS-WP-016-source-admission-benchmark-v1) echo 'source-admission-delegated wave' ;;
               atlas/ATLAS-WP-017-real-source-snapshot|atlas/ATLAS-WP-017b-source-snapshot-content-integrity|atlas/ATLAS-WP-017c-management-source-content) echo 'source-snapshot-delegated wave' ;;
               atlas/ATLAS-WP-019-m3-3-review-handoff) echo 'm3-3-review-handoff-delegated wave' ;;
+              atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
               *) echo 'ci-router wave' ;;
             esac
           }
@@ -555,6 +556,48 @@ jobs:
             python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-016.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-016'; assert wp['authority']['issue']==299; assert wp['baseline']['baseCommit']=='524cfc8b35654d7d54d3222a462fe582f4706a89'; assert '.github/workflows/atlas-source-admission-ci.yml' in wp['scope']['allowedPaths']; assert 'authoring/factory/source_admission.py' in wp['scope']['allowedPaths']"
             echo "SOURCE_ADMISSION_DELEGATED_ROUTE=PASS"
             echo "SOURCE_ADMISSION_WORKFLOW=.github/workflows/atlas-source-admission-ci.yml"
+            exit 0
+          fi
+
+          if [[ "${PROFILE}" == m3-4-release-set-delegated ]]; then
+            [[ "${EVENT}" == pull_request ]] || {
+              echo "M3.4 release-set delegated route is valid only for the exact product pull request." >&2
+              exit 2
+            }
+            [[ "${BRANCH}" == atlas/ATLAS-WP-021-m3-4-qualified-release-set ]] || {
+              echo "Unexpected branch for M3.4 release-set delegated route: ${BRANCH}" >&2
+              exit 2
+            }
+            [[ "${PR_BASE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+            git fetch --force --no-tags origin "${PR_BASE_SHA}"
+            compare_base="$(git merge-base "${PR_BASE_SHA}" "${TARGET}")"
+            changed="$(git diff --name-only "${compare_base}" "${TARGET}")"
+            for required in \
+              '.github/workflows/atlas-m3-4-release-set-ci.yml' \
+              'work-packages/ATLAS-WP-021.json' \
+              'authoring/factory/release_set.py' \
+              'authoring/factory/tests/test_release_set.py' \
+              'authoring/factory/README.md'; do
+              grep -Fxq "${required}" <<< "${changed}" || {
+                echo "M3.4 release-set required path is missing: ${required}" >&2
+                exit 2
+              }
+            done
+            for forbidden in \
+              'authoring/factory/factory_gate.py' \
+              'authoring/factory/reliability.py' \
+              'authoring/factory/handoff.py' \
+              'authoring/v2/validate_kit.py' \
+              'authoring/v2/atlas/validate_atlas_content.py' \
+              'contracts/learnit-kit-v2.schema.json'; do
+              ! grep -Fxq "${forbidden}" <<< "${changed}" || {
+                echo "Promoted upstream authority must remain unchanged in M3.4: ${forbidden}" >&2
+                exit 2
+              }
+            done
+            python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-021.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-021'; assert wp['authority']['issue']==322; assert wp['baseline']['baseCommit']=='baa9eea87d58a960f834e1712b4bf64d65b2ab3d'; assert '.github/workflows/atlas-m3-4-release-set-ci.yml' in wp['scope']['allowedPaths']; assert 'authoring/factory/release_set.py' in wp['scope']['allowedPaths']"
+            echo "M3_4_RELEASE_SET_DELEGATED_ROUTE=PASS"
+            echo "M3_4_RELEASE_SET_WORKFLOW=.github/workflows/atlas-m3-4-release-set-ci.yml"
             exit 0
           fi
 
