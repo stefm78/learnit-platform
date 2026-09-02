@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-023",
+  "title": "M3.3 Portable Review Handoff independent contradictory QA",
+  "status": "in-progress",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "moderate",
+  "purpose": "Independently attack the exact frozen ATLAS-WP-019 M3.3 Portable Review Handoff product head without modifying any product path.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 314,
+    "parentProductIssue": 310,
+    "parentProductPullRequest": 313,
+    "acceptedDesignIssue": 308
+  },
+  "baseline": {
+    "baseCommit": "d4fe01f94ce38b2cd4d884930555f2bce971f561",
+    "exactProductHead": "d4fe01f94ce38b2cd4d884930555f2bce971f561",
+    "exactProductRun": 33612392221,
+    "productBaselineMain": "16bae3e7a5c58f667609e481d4d38f2b1b2fa584",
+    "acceptedDesignMerge": "e00c25cbf63e0188c53f417ca4091033afcff2a5",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-023.json",
+      "authoring/factory/tests/qa_review_handoff.py",
+      ".github/workflows/atlas-m3-3-review-handoff-qa.yml"
+    ],
+    "forbiddenPaths": [
+      "work-packages/ATLAS-WP-019.json",
+      "authoring/factory/handoff.py",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_review_handoff.py",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/source_admission.py",
+      "authoring/factory/benchmark_contract.json",
+      "authoring/factory/benchmark_sources_v1.json",
+      "authoring/skills/**",
+      "authoring/v2/**",
+      "contracts/**",
+      "apps/**",
+      "authoring/studio/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "QA is read-only with respect to all ATLAS-WP-019 product files and promoted upstream authorities.",
+    "QA branch is based exactly on frozen product head d4fe01f94ce38b2cd4d884930555f2bce971f561.",
+    "All product and promoted authority blobs remain byte-identical to the frozen product head.",
+    "QA uses independent Nombres complexes based fixtures rather than mechanically copying the product oracle.",
+    "Bundle identity is deterministic across host-path relocation and contains no host-path or author-private context leakage.",
+    "SourceAdmission PASS is replayed against exact source bytes; admitted-byte drift and admission HOLD fail closed.",
+    "Archive structure, metadata, declaration set and embedded authorities are independently attacked.",
+    "Review re-entry fails closed on target drift, reviewer-independence violation, source-ID injection and inconsistent semantic verdict.",
+    "Semantic PASS and justified HOLD both delegate to a self-verifying promoted FactoryRun.",
+    "Existing M3.2 PASS-with-minor semantics remain unchanged.",
+    "QA never repairs product code.",
+    "Exact promoted learner artifact remains unchanged."
+  ],
+  "requiredEvidence": [
+    "Exact three-path QA diff.",
+    "Repository governance PASS.",
+    "PR scope PASS against the frozen product head.",
+    "Exact product and promoted authority blob identity PASS.",
+    "Independent contradictory QA oracle PASS.",
+    "Frozen M3.2, M3.2.5, SourceAdmission and M3.3 product regression oracles PASS.",
+    "Deterministic path-independent bundle identity PASS.",
+    "Exact SourceAdmission and admitted-byte drift/HOLD tests PASS.",
+    "Exact reviewer skill and deterministic REVIEW_REQUEST.md binding PASS.",
+    "Canonical ZIP metadata and hostile archive mutation tests PASS.",
+    "Tampered embedded catalog, admission, context, quality and reviewer skill fail closed.",
+    "Stale target, independence flags, source-ID injection and inconsistent review verdict fail before FactoryRun creation.",
+    "PASS review yields self-verifying PASS FactoryRun; justified HOLD yields self-verifying HOLD FactoryRun.",
+    "Minor-only findings preserve existing PASS semantics.",
+    "Bundle/review and prepare inputs remain byte-unchanged.",
+    "No network/provider/source-ingestion primitive is introduced.",
+    "Promoted learner regressions PASS and exact learner artifact remains 366412 bytes with frozen SHA-256."
+  ],
+  "adversarialTests": [
+    "Same logical inputs at different physical host paths.",
+    "Source/admission caller alias differs from curated catalog source ID without weakening admission.",
+    "One-byte source drift after SourceAdmission.",
+    "Pre-ingestion/permission HOLD admission.",
+    "Exact reviewer skill and deterministic review request identity.",
+    "Host-path and author-private-context leakage scan.",
+    "Non-canonical member order, timestamp, mode and compression.",
+    "Duplicate, traversal, backslash, undeclared and digest-tampered ZIP members.",
+    "Re-sealed tampering of source catalog, SourceAdmission, FactoryContext, quality report and reviewer skill.",
+    "Stale semantic review target.",
+    "authorScratchpadSeen=true and authorActiveContextReused=true.",
+    "Unknown review evidence source ID.",
+    "Inconsistent PASS verdict over a semantic HOLD condition.",
+    "Semantic PASS FactoryRun, justified semantic HOLD FactoryRun and minor-only PASS.",
+    "Consume and prepare input mutation checks.",
+    "Network/provider/source-ingestion primitive scan."
+  ],
+  "nonGoals": [
+    "Product repair",
+    "Changing M3.3 product semantics",
+    "Changing SourceAdmission, M3.2 or M3.2.5 authorities",
+    "Real portable reviewer qualification",
+    "Promotion",
+    "M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "This package is the independent contradictory QA lane for ATLAS-WP-019.",
+    "Any product defect yields HOLD on issue #310 and may only be repaired by the product lane.",
+    "Final PASS binds one exact frozen product head and one exact QA head.",
+    "QA files are never merged into the product branch."
+  ],
+  "execution": {
+    "issue": 314,
+    "branch": "qa/QA-WP-023-m3-3-review-handoff",
+    "maximumChangedFiles": 3,
+    "pullRequest": null,
+    "finalVerdict": null,
+    "mergeStatus": "not-merged"
+  },
+  "rollback": "Close the QA PR without merge. QA files are additive and the frozen product remains unchanged."
+}
