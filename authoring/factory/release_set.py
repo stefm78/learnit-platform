@@ -192,6 +192,7 @@ def collision_check(
     package_lineages: set[str] = set()
     run_ids: set[str] = set()
     revision_index: dict[str, tuple[str, str]] = {}
+    package_revision_index: dict[str, tuple[str, str]] = {}
 
     for entry, _kit, revisions in rows:
         lineage = entry["packageLineageId"]
@@ -200,6 +201,21 @@ def collision_check(
                 f"duplicate packageLineageId in release set: {lineage}"
             )
         package_lineages.add(lineage)
+
+        package_revision_id = entry["packageRevisionId"]
+        package_revision_binding = (
+            entry["packageRevisionDigest"],
+            entry["kit"]["sha256"],
+        )
+        previous_package_revision = package_revision_index.get(package_revision_id)
+        if (
+            previous_package_revision is not None
+            and previous_package_revision != package_revision_binding
+        ):
+            raise ReleaseSetInputError(
+                f"package revision exact-byte collision: {package_revision_id}"
+            )
+        package_revision_index[package_revision_id] = package_revision_binding
 
         run_id = entry["factoryRun"]["runId"]
         if run_id in run_ids:
