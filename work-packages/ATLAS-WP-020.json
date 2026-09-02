@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-020",
+  "title": "M3.4 Scale / Release Pack arbitration and bounded design",
+  "status": "in-progress",
+  "changeClass": "product-authoring-scale-release-arbitration",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 320,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.4"
+  },
+  "purpose": "Challenge the historical M3.4 Scale and Publishing milestone after M3.3 promotion and, only if justified, freeze the smallest useful operator-scale release capability without introducing remote publishing infrastructure.",
+  "baseline": {
+    "baseCommit": "3b02ef988e978fb47eafc20241387a3ce59e8596",
+    "m3_3PromotionMerge": "c102ca81f3b144bea1140860ef633a0d01987d59",
+    "m3_3FrozenProductHead": "d4fe01f94ce38b2cd4d884930555f2bce971f561",
+    "m3_3FreshQualificationRun": 33617237648,
+    "learnerPromotedHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-020.json",
+      "docs/atlas/M3_4_QUALIFIED_RELEASE_SET_DESIGN.md"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "governance/**",
+      "tools/**",
+      "docs/architecture/**",
+      "docs/roadmap/**"
+    ]
+  },
+  "invariants": [
+    "This work package is arbitration/design only and changes no product code.",
+    "Promoted M3.2, M3.2.5 and M3.3 authorities remain read-only and authoritative.",
+    "The exact promoted M2.2 learner artifact remains unchanged.",
+    "Remote publishing, repository-write effects, backend, accounts, synchronization, catalog, marketplace and provider integration remain held.",
+    "M3.4 may compose self-verifying PASS FactoryRuns but may not create a new semantic authority.",
+    "Asset/media authoring remains deferred because learnit.kit.v2 has no current asset model.",
+    "100/500-kit evidence is engineering scale evidence only and must not be represented as semantic qualification of 100/500 real kits."
+  ],
+  "requiredEvidence": [
+    "Steve/operator-value challenge identifies a current operator pain that M3.4 would remove.",
+    "Linus/architecture challenge proves a thin composition layer is sufficient.",
+    "Reliability challenge defines deterministic collision, duplication, scale and rollback behavior.",
+    "Historical M3.4 components are explicitly accepted, rejected or deferred.",
+    "Exact implementation and independent-QA writable paths are frozen if design GO.",
+    "Repository governance PASS and PR scope PASS."
+  ],
+  "adversarialTests": [
+    "Challenge automatic GitHub Release or remote publication as premature repository-write scope.",
+    "Challenge any asset model that would require expanding learnit.kit.v2.",
+    "Challenge a release pack that accepts a HOLD FactoryRun.",
+    "Challenge kit bytes whose SHA-256 does not match FactoryRun generatedKit evidence.",
+    "Challenge same revision ID with conflicting digest across a release set.",
+    "Challenge duplicate package lineage ambiguity inside one release set.",
+    "Challenge path/order-dependent release identity.",
+    "Challenge claims that synthetic 500-kit scale fixtures prove semantic quality."
+  ],
+  "nonGoals": [
+    "M3.4 implementation",
+    "Remote publishing",
+    "GitHub Releases automation",
+    "Source/document storage",
+    "Asset/media schema",
+    "Catalog/marketplace",
+    "Backend/accounts/synchronization",
+    "Learner runtime change",
+    "Provider/model integration",
+    "Human graphical review debt #272"
+  ],
+  "independentReview": [
+    "Three independent challenge lenses are recorded on issue #320: operator value, architecture, and reliability/adversarial scale.",
+    "Final design must reflect their common intersection rather than preserve historical scope by default."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-020-m3-4-scale-release-pack-design",
+    "phase": "ARBITRATION_AND_DESIGN_IN_PROGRESS",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert the two design-only files. No promoted product/runtime/evidence state is changed."
+}
