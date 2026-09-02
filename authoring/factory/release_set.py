@@ -393,6 +393,8 @@ def read_canonical_archive(raw: bytes) -> dict[str, bytes]:
                 members[name] = zf.read(info)
     except ReleaseSetInputError:
         raise
+    except handoff.HandoffInputError as exc:
+        raise ReleaseSetInputError(f"invalid release ZIP member: {exc}") from exc
     except (zipfile.BadZipFile, OSError, KeyError, RuntimeError) as exc:
         raise ReleaseSetInputError(f"invalid release ZIP: {exc}") from exc
 
