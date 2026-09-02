@@ -1,0 +1,107 @@
+name: Atlas M3.4 Qualified Release Set CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'work-packages/ATLAS-WP-021.json'
+      - 'authoring/factory/release_set.py'
+      - 'authoring/factory/README.md'
+      - 'authoring/factory/tests/test_release_set.py'
+      - '.github/workflows/atlas-m3-4-release-set-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'work-packages/ATLAS-WP-021.json'
+      - 'authoring/factory/release_set.py'
+      - 'authoring/factory/README.md'
+      - 'authoring/factory/tests/test_release_set.py'
+      - '.github/workflows/atlas-m3-4-release-set-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-m3-4-release-set-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  exact-head:
+    name: M3.4 qualified-release-set exact-head evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact target
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Bind exact product scope and frozen upstream authorities
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+          PRODUCT_BASE: baa9eea87d58a960f834e1712b4bf64d65b2ab3d
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
+          git fetch --force --no-tags origin "${PRODUCT_BASE}"
+          for path in \
+            authoring/factory/factory_gate.py \
+            authoring/factory/reliability.py \
+            authoring/factory/handoff.py \
+            authoring/v2/validate_kit.py \
+            authoring/v2/atlas/validate_atlas_content.py \
+            contracts/learnit-kit-v2.schema.json; do
+            git diff --quiet "${PRODUCT_BASE}" HEAD -- "${path}" || {
+              echo "Frozen upstream authority changed: ${path}" >&2
+              exit 2
+            }
+          done
+          if [[ "${EVENT}" == pull_request ]]; then
+            [[ "${BRANCH}" == atlas/ATLAS-WP-021-m3-4-qualified-release-set ]]
+            git fetch --force --no-tags origin "${BASE_SHA}"
+            compare_base="$(git merge-base "${BASE_SHA}" "${TARGET}")"
+            actual="$(git diff --name-only "${compare_base}" "${TARGET}" | sort)"
+            expected="$(printf '%s\n' \
+              '.github/workflows/atlas-m3-4-release-set-ci.yml' \
+              'authoring/factory/README.md' \
+              'authoring/factory/release_set.py' \
+              'authoring/factory/tests/test_release_set.py' \
+              'work-packages/ATLAS-WP-021.json' | sort)"
+            [[ "${actual}" == "${expected}" ]] || {
+              echo "M3.4 exact path set mismatch." >&2
+              diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+              exit 2
+            }
+          fi
+
+      - name: Run promoted factory regression oracles
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/tests/test_ai_kit_factory.py
+          python -B authoring/factory/tests/test_factory_reliability.py
+          python -B authoring/factory/tests/test_review_handoff.py
+
+      - name: Run M3.4 qualified release-set oracle
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/tests/test_release_set.py
+
+      - name: Repository governance mirror
+        run: |
+          set -euo pipefail
+          python tools/validate_repository.py
