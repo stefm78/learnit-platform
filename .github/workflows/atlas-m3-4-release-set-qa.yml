@@ -1,0 +1,84 @@
+name: Atlas M3.4 Qualified Release Set Contradictory QA
+
+on:
+  push:
+    branches:
+      - 'qa/QA-WP-024-m3-4-release-set-contradictory'
+    paths:
+      - 'work-packages/QA-WP-024.json'
+      - 'authoring/factory/tests/qa_release_set.py'
+      - '.github/workflows/atlas-m3-4-release-set-qa.yml'
+  pull_request:
+    branches:
+      - 'atlas/ATLAS-WP-021-m3-4-qualified-release-set'
+    paths:
+      - 'work-packages/QA-WP-024.json'
+      - 'authoring/factory/tests/qa_release_set.py'
+      - '.github/workflows/atlas-m3-4-release-set-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-m3-4-release-set-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contradictory-qa:
+    name: QA-WP-024 exact-head contradictory oracle
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      QA_EXPECTED_PRODUCT_HEAD: 41f2245e56b42a2e541d185f39a3edb5d8b6f01b
+      QA_PRODUCT_BRANCH: atlas/ATLAS-WP-021-m3-4-qualified-release-set
+    steps:
+      - name: Check out QA head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Bind QA to exact frozen product HEAD and disjoint scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin "${QA_PRODUCT_BRANCH}"
+          actual_product_head="$(git rev-parse "origin/${QA_PRODUCT_BRANCH}")"
+          [[ "${actual_product_head}" == "${QA_EXPECTED_PRODUCT_HEAD}" ]] || {
+            echo "Frozen product branch moved: expected ${QA_EXPECTED_PRODUCT_HEAD}, got ${actual_product_head}" >&2
+            exit 2
+          }
+          git merge-base --is-ancestor "${QA_EXPECTED_PRODUCT_HEAD}" HEAD
+          actual="$(git diff --name-only "${QA_EXPECTED_PRODUCT_HEAD}" HEAD | sort)"
+          expected="$(printf '%s\n'             '.github/workflows/atlas-m3-4-release-set-qa.yml'             'authoring/factory/tests/qa_release_set.py'             'work-packages/QA-WP-024.json' | sort)"
+          [[ "${actual}" == "${expected}" ]] || {
+            echo "QA-WP-024 exact path set mismatch." >&2
+            diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+            exit 2
+          }
+          for path in             work-packages/ATLAS-WP-021.json             authoring/factory/release_set.py             authoring/factory/README.md             authoring/factory/tests/test_release_set.py             .github/workflows/atlas-m3-4-release-set-ci.yml; do
+            git diff --quiet "${QA_EXPECTED_PRODUCT_HEAD}" HEAD -- "${path}" || {
+              echo "QA modified frozen product path: ${path}" >&2
+              exit 2
+            }
+          done
+
+      - name: Confirm frozen product regression oracle remains green
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/tests/test_release_set.py
+
+      - name: Run independent contradictory QA oracle
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/tests/qa_release_set.py
