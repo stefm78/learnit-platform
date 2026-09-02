@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-012",
+  "title": "Route M3.4 Qualified Release Set exact-head CI",
+  "status": "in-progress",
+  "changeClass": "ci-routing",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 326,
+    "triggerEvidencePullRequest": 323,
+    "predecessorCiWorkPackage": "CI-WP-011"
+  },
+  "purpose": "Teach the central Learn-it Next exact-head router to recognize the governed M3.4 Qualified Release Set product branch and delegate to its dedicated exact-head workflow instead of rejecting it as an unknown ci-router branch.",
+  "baseline": {
+    "baseCommit": "c71358077bf76e976600ef851aba620a3e070982",
+    "branch": "ci/CI-WP-012-m3-4-release-set-route"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-012.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/atlas-m3-4-release-set-ci.yml",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml",
+      "work-packages/ATLAS-WP-021.json",
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "Only the central router and CI-WP-012 metadata change.",
+    "The M3.4 branch maps to one dedicated delegated profile.",
+    "The delegated profile validates exactly the M3.4 product pull-request branch and five expected product paths.",
+    "The delegated profile rejects changes to promoted M3.2, M3.2.5, M3.3, canonical-kit and Atlas validator authorities.",
+    "Existing route mappings and behaviors remain unchanged.",
+    "No learner/product/runtime/contract semantics change."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Generic ci-router audit accepts this CI-only router change.",
+    "Static route maps atlas/ATLAS-WP-021-m3-4-qualified-release-set to m3-4-release-set-delegated.",
+    "Product PR #323 rerun reaches M3_4_RELEASE_SET_DELEGATED_ROUTE=PASS after this change is merged into its base."
+  ],
+  "adversarialTests": [
+    "Unknown branch remains on ci-router and requires a workflow audit change.",
+    "M3.4 delegated profile rejects non-pull-request execution.",
+    "M3.4 delegated profile rejects an unexpected branch.",
+    "M3.4 delegated profile rejects any missing required product path.",
+    "M3.4 delegated profile rejects upstream authority changes."
+  ],
+  "nonGoals": [
+    "Changing M3.4 product code.",
+    "Changing M3.3 product or routing semantics.",
+    "Changing learner product behavior.",
+    "Changing branch protection.",
+    "Remote publishing."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this two-file CI-only change.",
+    "The M3.4 product PR is the acceptance target for the new delegated route."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-012-m3-4-release-set-route",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTATION_PREPARED",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the M3.4 route case, delegated block and CI-WP-012 metadata; the central router returns to rejecting the M3.4 branch as unknown."
+}
