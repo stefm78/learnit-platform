@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-009",
+  "title": "Route M3.3 review-handoff product lane",
+  "status": "in-progress",
+  "changeClass": "ci-routing",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 311,
+    "parentDesignIssue": 308,
+    "productIssue": 310
+  },
+  "purpose": "Recognize exactly the governed ATLAS-WP-019 M3.3 portable review-handoff branch and delegate semantic verification to its dedicated exact-head workflow while keeping unknown authoring branches fail-closed.",
+  "baseline": {
+    "baseCommit": "e00c25cbf63e0188c53f417ca4091033afcff2a5",
+    "branch": "ci/CI-WP-009-m3-3-review-handoff-route"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-009.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-019.json",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml"
+    ]
+  },
+  "invariants": [
+    "Only the generic CI router and CI-WP-009 metadata change.",
+    "Only atlas/ATLAS-WP-019-m3-3-review-handoff receives the new delegated route.",
+    "The delegated route requires the exact five bounded M3.3 product paths.",
+    "Promoted factory_gate.py, reliability.py, source_admission.py and reviewer skill remain unchanged in the product lane.",
+    "Every other unknown authoring/product branch remains fail-closed.",
+    "No product/runtime/contract semantics are implemented in this router."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Learn-it Next CI routed matrix PASS.",
+    "Static route only recognizes the exact ATLAS-WP-019 branch."
+  ],
+  "adversarialTests": [
+    "Unknown authoring/factory branch remains rejected.",
+    "Missing dedicated M3.3 workflow is rejected.",
+    "Missing ATLAS-WP-019 metadata is rejected.",
+    "Modification of promoted upstream factory authorities is rejected by delegated route."
+  ],
+  "nonGoals": [
+    "M3.3 product implementation",
+    "Product semantics",
+    "Branch protection changes",
+    "M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this CI-only change."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-009-m3-3-review-handoff-route",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "phase": "ROUTER_PREPARED",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert the single M3.3 route entry/delegation block and CI-WP-009 metadata; all product code remains unchanged."
+}
