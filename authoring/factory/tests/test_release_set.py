@@ -229,6 +229,33 @@ class ReleaseSetTests(unittest.TestCase):
             self.assertEqual(3, verified["metrics"]["packages"])
             self.assertNotIn(str(root).encode(), a.read_bytes())
 
+    def test_01b_host_path_relocation_preserves_release_bytes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            source_root = root / "source-tree"
+            moved_root = root / "moved-tree"
+            source_root.mkdir()
+            moved_root.mkdir()
+            fixtures = FixtureFactory(source_root)
+            rows = [fixtures.actual(i) for i in range(1, 4)]
+
+            original = root / "original.zip"
+            release_set.build_release_archive(specs(rows), original)
+
+            moved_rows = []
+            for index, (run_path, kit_path) in enumerate(rows):
+                case = moved_root / f"case-{index}"
+                case.mkdir()
+                moved_run = case / "renamed-run.json"
+                moved_kit = case / "renamed-kit.json"
+                moved_run.write_bytes(run_path.read_bytes())
+                moved_kit.write_bytes(kit_path.read_bytes())
+                moved_rows.append((moved_run, moved_kit))
+
+            relocated = root / "relocated.zip"
+            release_set.build_release_archive(specs(moved_rows), relocated)
+            self.assertEqual(original.read_bytes(), relocated.read_bytes())
+
     def test_02_hold_and_kit_byte_drift_fail_closed(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
