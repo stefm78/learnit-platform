@@ -271,6 +271,43 @@ class ReleaseSetTests(unittest.TestCase):
                     specs([(run_path, kit_path)]), root / "drift.zip"
                 )
 
+    def test_02b_forged_pass_with_embedded_semantic_hold_fails_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fixtures = FixtureFactory(root)
+            run_path, kit_path = fixtures.actual(202, hold=True)
+            forged = json.loads(run_path.read_text(encoding="utf-8"))
+            gate = forged["evidenceBundle"]["factoryEvidence"]
+            self.assertEqual(factory.SEMANTIC_HOLD, gate["semanticReview"]["verdict"])
+
+            gate["verdict"] = "PASS_AI_KIT_FACTORY_V1"
+            gate["reasons"] = []
+            decision = {"verdict": "PASS_AI_KIT_FACTORY_V1", "reasons": []}
+            forged["decision"] = copy.deepcopy(decision)
+            forged["evidenceBundle"]["finalDecision"] = copy.deepcopy(decision)
+            bundle = forged["evidenceBundle"]
+            bundle["factoryEvidenceSha256"] = reliability.digest(gate)
+            bundle_core = {
+                key: value for key, value in bundle.items() if key != "bundleSha256"
+            }
+            bundle["bundleSha256"] = reliability.digest(bundle_core)
+            run_core = {key: value for key, value in forged.items() if key != "runId"}
+            forged["runId"] = reliability.digest(run_core)
+
+            # Upstream M3.2.5 checks deterministic consistency; M3.4 must also
+            # reject a PASS decision contradicted by its embedded semantic evidence.
+            reliability.verify_run(copy.deepcopy(forged))
+            forged_path = root / "forged-pass.json"
+            canonical_write(forged_path, forged)
+            with self.assertRaisesRegex(
+                release_set.ReleaseSetInputError,
+                "semantic review does not support PASS",
+            ):
+                release_set.build_release_archive(
+                    specs([(forged_path, kit_path)]),
+                    root / "forged-pass.zip",
+                )
+
     def test_03_duplicate_lineage_and_revision_collision_fail_closed(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -404,6 +441,32 @@ class ReleaseSetTests(unittest.TestCase):
                     zf.writestr(name, data)
             with self.assertRaises(release_set.ReleaseSetInputError):
                 release_set.verify_release_archive(noncanonical)
+
+    def test_05b_manifest_representation_must_be_canonical_json_bytes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fixtures = FixtureFactory(root)
+            row = fixtures.actual(205)
+            release = root / "release.zip"
+            release_set.build_release_archive(specs([row]), release)
+
+            with zipfile.ZipFile(release, "r") as zf:
+                members = {name: zf.read(name) for name in zf.namelist()}
+            manifest = json.loads(members["release-set.json"].decode("utf-8"))
+            pretty = (
+                json.dumps(manifest, ensure_ascii=False, sort_keys=False, indent=2)
+                + "\n"
+            ).encode("utf-8")
+            self.assertNotEqual(members["release-set.json"], pretty)
+
+            members["release-set.json"] = pretty
+            tampered = root / "representation-tampered.zip"
+            tampered.write_bytes(handoff.zip_bytes(members))
+            with self.assertRaisesRegex(
+                release_set.ReleaseSetInputError,
+                "release-set.json is not canonical JSON",
+            ):
+                release_set.verify_release_archive(tampered)
 
     def test_06_prior_release_remains_verifiable_after_newer_release(self):
         with tempfile.TemporaryDirectory() as td:
