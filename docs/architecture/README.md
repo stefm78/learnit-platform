@@ -28,6 +28,7 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - M3.2 AI Kit Factory is promoted under `ATLAS-WP-014` / issue `#286`, preserving the accepted direct-source author AI → deterministic structural gates → independent semantic review → deterministic PASS/HOLD architecture.
 - M3.2.5 Factory Reliability is promoted and real-source qualified under `ATLAS-WP-015` / issue `#297`: 8 distinct real FactoryRuns across all required domains, 6 PASS, 2 justified semantic HOLD, zero human escalations, final verdict `PASS_FACTORY_BENCHMARK_V1`.
 - M3.3 Portable Review Handoff is promoted under `ATLAS-WP-019` / issue `#310`, frozen product HEAD `d4fe01f94ce38b2cd4d884930555f2bce971f561`, independent QA PASS and promotion merge `c102ca81f3b144bea1140860ef633a0d01987d59`.
+- M3.4 Qualified Release Set is promoted under `ATLAS-WP-021` / issue `#322`, frozen product HEAD `870d69800dcb07fcfff9f1d232dd143c8eaa6486`, independent QA R2 HEAD `9c0e20ef176ee03532543d009f22979c95d0d748`, verdict `PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA` and promotion merge `b8337c785cbec995de5891080776c4c44dd99179`. The additive layer is local/offline, content-addressed and deterministic; it does not add remote publishing, signing, assets or learner-runtime behavior.
 - Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
 ## Current decisions
@@ -63,21 +64,24 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 5. `../atlas/M3_2_AI_KIT_FACTORY_DESIGN.md`, `../../work-packages/ATLAS-WP-014.json` and `../../work-packages/ATLAS-WP-015.json`;
 6. `../../authoring/factory/benchmark_contract.json` and `../../authoring/factory/reliability.py`;
 7. `../atlas/M3_3_PORTABLE_REVIEW_HANDOFF_DESIGN.md`, `../../work-packages/ATLAS-WP-019.json` and `../../authoring/factory/handoff.py`;
-8. `../atlas/README.md`;
-9. `../atlas/CONTRACTS.md`;
-10. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
-11. `../../GOVERNANCE.md`.
+8. `../atlas/M3_4_QUALIFIED_RELEASE_SET_DESIGN.md`, `../../work-packages/ATLAS-WP-021.json` and `../../authoring/factory/release_set.py`;
+9. `../atlas/README.md`;
+10. `../atlas/CONTRACTS.md`;
+11. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
+12. `../../GOVERNANCE.md`.
 
 Historical `reference-v1/` material remains non-canonical.
 
 ## Active Atlas gate
 
-Atlas M1, M2 and M2.2 learner milestones are promoted historical steps. The exact learner artifact remains unchanged.
+Atlas M1, M2 and M2.2 learner milestones are promoted historical steps. The exact learner artifact remains unchanged at 366412 bytes / SHA-256 `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7`.
 
 M3.0 Authoring Foundation, M3.0 browser/Pages packaging and M3.1 Pedagogical Quality are promoted, independently tested and stably published under `/authoring/`.
 
-M3.2 **AI Kit Factory** is promoted, M3.2.5 **Factory Reliability** is qualified and M3.3 **Portable Review Handoff** is promoted. The accepted architecture remains: source files + learner brief → author AI → canonical/M3.1 structural gates → independent semantic reviewer → deterministic factory PASS/HOLD, with M3.3 adding deterministic portable transport/re-entry around that reviewer boundary.
+M3.2 **AI Kit Factory** is promoted, M3.2.5 **Factory Reliability** is qualified, M3.3 **Portable Review Handoff** is promoted, and M3.4 **Qualified Release Set** is promoted. The architecture remains provider-neutral: source files + learner brief → author AI → canonical/M3.1 structural gates → independent semantic reviewer → deterministic FactoryRun PASS/HOLD → deterministic qualified release-set composition.
 
-The real M3.3 promotion evidence binds frozen product HEAD `d4fe01f94ce38b2cd4d884930555f2bce971f561`, independent contradictory QA and fresh separate-context PASS/HOLD reviewer paths. The PASS path produced FactoryRun `sha256:348a48f520ac148e497667c512fd31637aff11fb72bef616d73e25d15ebbfcb9`; the justified HOLD path produced FactoryRun `sha256:2136d4db43678a6e39f47b193bf93a6f405fff6f9fc42bff2ede6053ea3ea2f3`.
+M3.4 binds exact canonical kit bytes to self-verifying PASS FactoryRuns, rechecks canonical identity/digest claims, rejects cross-kit collisions, emits one deterministic content-addressed release ZIP, and verifies that ZIP offline. The accepted product HEAD is `870d69800dcb07fcfff9f1d232dd143c8eaa6486`; fresh contradictory QA R2 passed on QA HEAD `9c0e20ef176ee03532543d009f22979c95d0d748`; promotion merge is `b8337c785cbec995de5891080776c4c44dd99179`. CI-WP-013 repaired only central post-merge routing at `f4bbc91c5d480e2996faa8a592c3c18fd83d8906`.
 
-Human graphical/context review debt remains open as issue `#272`. M3.4 Scale and Publishing is the next possible gate and remains HOLD pending fresh accountable-owner arbitration/design; Gate3, Gate4 and M4+ platform evolution remain separately held.
+Human graphical/context review debt remains open as issue `#272`. No remote distribution backend, publisher authentication/signature, asset/media contract or learner-runtime capability is implied by M3.4.
+
+The next product direction is **HOLD pending fresh accountable-owner arbitration**. At minimum that arbitration must compare controlled remote distribution/publishing, debt #272, further factory/operator automation, and stopping because the current local/static workflow is sufficient. Gate3, Gate4 and M4+ platform evolution remain separately held.
