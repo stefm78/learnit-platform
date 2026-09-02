@@ -112,14 +112,15 @@ class Workspace:
             and row["rights"]["thirdPartyContentStatus"] != "present-unresolved"
             and catalog["defaultUseContext"] in row["rights"]["allowedUseContexts"]
         )
-        self.source_id = self.source_row["sourceId"]
+        self.catalog_source_id = self.source_row["sourceId"]
+        self.source_id = "handoff_source"
         strategy = self.source_row["version"]["strategy"]
         version = self.source_row["version"]["value"] if strategy == "fixed" else "test-v1"
         accepted = list(self.source_row["rights"]["conditions"])
         record = source_admission.build_admission(
             catalog,
             catalog_sha,
-            self.source_id,
+            self.catalog_source_id,
             catalog["defaultUseContext"],
             self.source,
             accepted,
@@ -208,13 +209,14 @@ class PrepareReviewTests(unittest.TestCase):
             negative = next(
                 row for row in ws.catalog["sources"] if row["benchmarkRole"] == "negative-control"
             )
-            ws.source_id = negative["sourceId"]
+            ws.catalog_source_id = negative["sourceId"]
+            ws.source_id = "negative_control"
             strategy = negative["version"]["strategy"]
             version = negative["version"]["value"] if strategy == "fixed" else "test-v1"
             record = source_admission.build_admission(
                 ws.catalog,
                 ws.catalog_sha,
-                ws.source_id,
+                ws.catalog_source_id,
                 ws.catalog["defaultUseContext"],
                 ws.source,
                 list(negative["rights"]["conditions"]),
