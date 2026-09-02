@@ -189,7 +189,7 @@ jobs:
             --source 'eu_pm2_v3_1='"${SRC}/management.pdf" \
             > "${EVD}/contexts/management.json"
 
-      - name: Build and verify Literature FactoryRun when reviewed
+      - name: Build and verify real benchmark FactoryRuns
         shell: bash
         run: |
           set -euo pipefail
