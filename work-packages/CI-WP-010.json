@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-010",
+  "title": "Scope Atlas Source Snapshot PR validation to governed heads",
+  "status": "in-progress",
+  "changeClass": "ci-routing",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 315,
+    "triggerEvidencePullRequest": 313,
+    "predecessorCiWorkPackage": "CI-WP-009"
+  },
+  "purpose": "Prevent the historical ATLAS-WP-017 Source Snapshot exact-head validator from producing false failures on unrelated pull requests while preserving its exact governed PR heads, push behavior, and workflow_dispatch behavior.",
+  "baseline": {
+    "baseCommit": "16bae3e7a5c58f667609e481d4d38f2b1b2fa584",
+    "branch": "ci/CI-WP-010-source-snapshot-pr-scope"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-source-snapshot.yml",
+      "work-packages/CI-WP-010.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml",
+      "work-packages/CI-WP-009.json",
+      "work-packages/ATLAS-WP-019.json",
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "Only the Source Snapshot workflow and CI-WP-010 metadata change.",
+    "On pull_request, Source Snapshot exact-head validation executes only for the exact ATLAS-WP-017, ATLAS-WP-017b, and ATLAS-WP-017c governed head refs.",
+    "The existing Source Snapshot validation steps remain byte-for-byte unchanged.",
+    "Push behavior remains unchanged.",
+    "workflow_dispatch behavior remains unchanged.",
+    "CI-WP-009 and the M3.3 delegated route remain unchanged.",
+    "No product/runtime/contract/source semantics or branch-protection behavior changes."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "CI-WP-010 pull request shows Source Snapshot exact-head validation skipped rather than failed.",
+    "Static guard contains exactly the three governed Source Snapshot head refs.",
+    "Static proof that validation steps below the job guard are unchanged from baseline."
+  ],
+  "adversarialTests": [
+    "An unrelated atlas/ATLAS-WP-019 pull request must not execute the ATLAS-WP-017 exact-scope assertion.",
+    "An unknown pull-request head must not execute the ATLAS-WP-017 exact-scope assertion.",
+    "Each of the three governed Source Snapshot head refs must still satisfy the job guard.",
+    "A push event must still satisfy the job guard regardless of github.head_ref.",
+    "A workflow_dispatch event must still satisfy the job guard regardless of github.head_ref."
+  ],
+  "nonGoals": [
+    "Changing Source Snapshot product semantics.",
+    "Changing Source Snapshot validation commands.",
+    "Changing Learn-it Next CI routing.",
+    "Changing M3.3 review-handoff product semantics.",
+    "Changing branch protection."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this two-file CI-only change.",
+    "The exact CI-WP-010 PR must demonstrate neutral skip behavior for the unrelated Source Snapshot validator."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-010-source-snapshot-pr-scope",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTED_PENDING_CI",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the job-level pull-request head guard and CI-WP-010 metadata; historical behavior returns, including false failures on unrelated PRs."
+}
