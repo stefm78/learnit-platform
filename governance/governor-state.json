@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-09-02-M3-3-PROMOTED",
-  "effectiveFromCommit": "c102ca81f3b144bea1140860ef633a0d01987d59",
-  "reviewedBaselineCommit": "c102ca81f3b144bea1140860ef633a0d01987d59",
+  "stateId": "GOV-STATE-2026-09-02-M3-4-PROMOTED",
+  "effectiveFromCommit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
+  "reviewedBaselineCommit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m3-3-portable-review-handoff-promoted",
+    "id": "project-atlas-m3-4-qualified-release-set-promoted",
     "status": "active",
-    "description": "M3.3 Portable Review Handoff is promoted on top of the promoted M3.2/M3.2.5 factory. The provider-neutral handoff packages one exact candidate case for an independent reviewer, validates fail-closed re-entry, and yields self-verifying PASS/HOLD FactoryRuns. Independent QA and fresh separate-context real PASS/HOLD qualification both passed. The learner runtime remains the exact promoted M2.2 artifact."
+    "description": "M3.4 Qualified Release Set is promoted on top of the promoted M3.2/M3.2.5/M3.3 factory stack. Exact PASS FactoryRuns and canonical kit bytes can now be composed into one deterministic, content-addressed, offline-verifiable release ZIP with fail-closed collision/archive checks and engineering Scale-100/Scale-500 evidence. Independent contradictory QA R2 passed after F01/F02 repair. Remote publishing, signing, assets and learner-runtime changes remain outside M3.4."
   },
   "currentMain": {
-    "commit": "c102ca81f3b144bea1140860ef633a0d01987d59",
-    "sourcePullRequest": 313,
-    "description": "Current main includes promoted M3.3 Portable Review Handoff plus the independently promoted CI-WP-010 Source Snapshot routing correction. M3.3 product evidence remains bound to frozen product HEAD d4fe01f94ce38b2cd4d884930555f2bce971f561."
+    "commit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
+    "sourcePullRequest": 334,
+    "description": "Current main contains promoted M3.4 product merge b8337c785cbec995de5891080776c4c44dd99179 plus CI-WP-013 post-merge central-routing closeout. M3.4 product evidence remains bound to frozen product HEAD 870d69800dcb07fcfff9f1d232dd143c8eaa6486 and independent QA R2 HEAD 9c0e20ef176ee03532543d009f22979c95d0d748."
   },
   "developmentBaseline": {
     "status": "held",
-    "workPackage": "ATLAS-WP-020",
-    "candidate": "M3.4 Scale and Publishing arbitration/design",
-    "sourceCommit": "c102ca81f3b144bea1140860ef633a0d01987d59",
-    "authorityIssue": null,
-    "note": "M3.4 is only the next possible product gate. No M3.4 implementation is authorized until fresh accountable-owner arbitration/design proves a bounded need for scale/publishing beyond the promoted local authoring and portable review flow."
+    "workPackage": "GOV-WP-035",
+    "candidate": "Post-M3.4 accountable-owner arbitration",
+    "sourceCommit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
+    "authorityIssue": 335,
+    "note": "No next product implementation is authorized. Fresh owner arbitration must compare controlled remote distribution/publishing, human pedagogical overview debt #272, further factory/operator automation, and stopping because the current local/static workflow is sufficient."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -215,14 +215,34 @@
       "promotionMerge": "c102ca81f3b144bea1140860ef633a0d01987d59",
       "providerIntegration": "none",
       "learnerRuntimeChange": "none"
+    },
+    "projectAtlasM3_4QualifiedReleaseSet": {
+      "workPackage": "ATLAS-WP-021",
+      "status": "promoted",
+      "authorityIssue": 322,
+      "designIssue": 320,
+      "designMerge": "baa9eea87d58a960f834e1712b4bf64d65b2ab3d",
+      "frozenProductHead": "870d69800dcb07fcfff9f1d232dd143c8eaa6486",
+      "independentQaWorkPackage": "QA-WP-024",
+      "acceptedQaHead": "9c0e20ef176ee03532543d009f22979c95d0d748",
+      "qaRun": 33668446539,
+      "qaVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
+      "promotionMerge": "b8337c785cbec995de5891080776c4c44dd99179",
+      "postMergeCiWorkPackage": "CI-WP-013",
+      "postMergeCiMerge": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
+      "publishing": "deferred",
+      "assetContract": "none",
+      "learnerRuntimeChange": "none"
     }
   },
   "authorizedWork": [
     "Repository maintenance, canonical-state alignment and evidence-preserving closeout may proceed under bounded authority.",
-    "M3.2/M3.2.5/M3.3 regression fixes may proceed only under a new bounded authority that preserves promoted learner runtime, factory contracts and reviewer independence."
+    "Fresh post-M3.4 read-only/accountable-owner arbitration may compare controlled remote distribution/publishing, human pedagogical overview debt #272, further factory/operator automation, and stopping; it does not itself authorize implementation.",
+    "M3.2/M3.2.5/M3.3/M3.4 regression fixes may proceed only under a new bounded authority that preserves promoted learner runtime, factory contracts, qualified release-set integrity and reviewer independence."
   ],
   "heldWork": [
-    "M3.4 scale/publishing remains HOLD pending fresh accountable-owner arbitration and bounded design.",
+    "Post-M3.4 product implementation remains HOLD pending fresh accountable-owner arbitration; controlled remote distribution/publishing, human pedagogical overview debt #272, further factory/operator automation and stopping are all unselected options.",
+    "Remote publishing, signing/authentication and any asset/media contract remain HOLD and require separate bounded design/authority.",
     "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current evidence and require a new evidence-backed decision if proposed.",
     "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
     "Gate 3 repository-write capability remains HOLD unless separately authorized.",
