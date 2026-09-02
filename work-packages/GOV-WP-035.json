@@ -90,5 +90,12 @@
     "humanGateRequired": false,
     "finalVerdict": null
   },
-  "rollback": "Revert the six metadata/documentation paths. Promoted M3.4 product bytes, QA evidence and learner runtime remain unchanged."
+  "rollback": "Revert the six metadata/documentation paths. Promoted M3.4 product bytes, QA evidence and learner runtime remain unchanged.",
+  "adversarialTests": [
+    "Any canonical surface that still describes M3.4 as HOLD must fail review.",
+    "Any change to the promoted M2.2 learner artifact identity must fail review.",
+    "Any statement that remote publishing, signing, assets, Gate3, Gate4 or M4+ is authorized must fail review.",
+    "Any preselection of the post-M3.4 owner-arbitration options must fail review.",
+    "Any changed path outside the exact six-path governance/documentation scope must fail review."
+  ]
 }
