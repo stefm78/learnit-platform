@@ -200,11 +200,11 @@ def entry_from_bytes(
         run = reliability.verify_run(run_value)
     except reliability.ReliabilityInputError as exc:
         raise ReleaseSetInputError(f"{label}: FactoryRun verification failed: {exc}") from exc
-    validate_releasable_factory_run(run, label)
     if reliability.decision_class(run) != "PASS":
         raise ReleaseSetInputError(
             f"{label}: FactoryRun is not releasable ({run['decision']['verdict']})"
         )
+    validate_releasable_factory_run(run, label)
 
     expected_kit_sha = run["evidenceBundle"]["artifacts"]["generatedKit"]["sha256"]
     actual_kit_sha = sha(kit_raw)
