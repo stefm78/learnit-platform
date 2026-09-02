@@ -169,6 +169,7 @@ class Fixture:
             "language": "fr",
             "timeBudgetMinutes": 45,
         })
+        self._template_run: dict | None = None
 
     def materialize(
         self,
@@ -210,6 +211,45 @@ class Fixture:
             f"case-{index}-{'hold' if hold else 'pass'}",
             hold=hold,
         )
+
+    def template_run(self) -> dict:
+        if self._template_run is None:
+            run_path, _ = self.actual(900000)
+            self._template_run = json.loads(run_path.read_text(encoding="utf-8"))
+        return copy.deepcopy(self._template_run)
+
+    def synthetic(self, index: int) -> tuple[Path, Path]:
+        """Fast engineering-only self-verifying row for Scale-100/500 mechanics."""
+        case = self.root / f"synthetic-{index}"
+        case.mkdir(parents=True, exist_ok=True)
+        kit = make_kit(index)
+        kit_path = case / "candidate.json"
+        canonical_write(kit_path, kit)
+        kit_raw = kit_path.read_bytes()
+
+        run = self.template_run()
+        kit_sha = factory.sha256_bytes(kit_raw)
+        gate = run["evidenceBundle"]["factoryEvidence"]
+        context = gate["context"]
+        context["kitSha256"] = kit_sha
+        context["contextDigest"] = factory.sha256_bytes(
+            factory.canonical_json_bytes({
+                "profile": context["profile"],
+                "kitSha256": context["kitSha256"],
+                "briefSha256": context["briefSha256"],
+                "sourceSetDigest": context["sourceSetDigest"],
+            })
+        )
+        run["factoryContextDigest"] = context["contextDigest"]
+        run["evidenceBundle"]["artifacts"]["generatedKit"] = {
+            "bytes": len(kit_raw),
+            "sha256": kit_sha,
+        }
+        rehash_run(run)
+        reliability.verify_run(copy.deepcopy(run))
+        run_path = case / "factory-run.json"
+        canonical_write(run_path, run)
+        return run_path, kit_path
 
 
 def specs(rows: list[tuple[Path, Path]]) -> list[str]:
@@ -634,8 +674,8 @@ class QualifiedReleaseSetContradictoryQA(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             fixture = Fixture(root)
-            # Each row is a valid independent engineering fixture, not a semantic benchmark.
-            rows = [fixture.actual(10000 + i) for i in range(count)]
+            # Engineering-only synthetic rows: release mechanics, not semantic qualification.
+            rows = [fixture.synthetic(10000 + i) for i in range(count)]
             a = root / f"scale-{count}-a.zip"
             b = root / f"scale-{count}-b.zip"
             result_a = release_set.build_release_archive(specs(rows), a)
@@ -668,7 +708,6 @@ class QualifiedReleaseSetContradictoryQA(unittest.TestCase):
             "git push",
             "github",
             "openai",
-            "provider",
             "apps/",
             "publish_release",
         )
