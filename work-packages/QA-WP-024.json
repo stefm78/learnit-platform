@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-024",
+  "title": "M3.4 Qualified Release Set contradictory QA R2",
+  "status": "accepted",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "high",
+  "purpose": "Fresh independent contradictory QA round authorized only by issue #331 against exact frozen M3.4 product HEAD 870d69800dcb07fcfff9f1d232dd143c8eaa6486. No product repair. Prior #328/#330 execution results are historical only and are not reused as current evidence.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "authorityIssue": 331,
+    "parentProductIssue": 322,
+    "parentProductPullRequest": 323,
+    "frozenProductHead": "870d69800dcb07fcfff9f1d232dd143c8eaa6486",
+    "productBaseAtAuthorization": "4fea74aee4f071d283130b66cf0f9da7c6949ffb",
+    "branch": "qa/QA-WP-024-R2-m3-4-release-set-contradictory",
+    "baseCommit": "870d69800dcb07fcfff9f1d232dd143c8eaa6486"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-024.json",
+      "authoring/factory/tests/qa_release_set.py",
+      ".github/workflows/atlas-m3-4-release-set-qa.yml"
+    ],
+    "forbiddenPaths": [
+      "work-packages/ATLAS-WP-021.json",
+      "authoring/factory/release_set.py",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_release_set.py",
+      ".github/workflows/atlas-m3-4-release-set-ci.yml",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/handoff.py",
+      "authoring/v2/**",
+      "authoring/skills/**",
+      "contracts/**",
+      "apps/**",
+      "governance/**",
+      "docs/**"
+    ]
+  },
+  "independence": {
+    "role": "Fresh QA R2 only",
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false,
+    "productRepairAllowed": false,
+    "priorQaResultsReusableAsCurrentEvidence": false
+  },
+  "invariants": [
+    "Every R2 verdict is bound to frozen product HEAD 870d69800dcb07fcfff9f1d232dd143c8eaa6486.",
+    "The first QA R2 commit must have the frozen product HEAD as its direct parent.",
+    "The complete QA R2 diff must remain exactly within the three paths authorized by issue #331.",
+    "A genuine semantic-HOLD FactoryRun must remain rejected even after outer PASS layers and deterministic integrity identifiers are recomputed.",
+    "An exact PASS factory admission additionally requires embedded semantic PASS and zero blocking/major semantic finding counts.",
+    "A semantically identical but byte-different release-set.json must fail offline verification even when ZIP metadata is deterministic.",
+    "All other M3.4 contradictory classes mandated by issue #331 must be rerun fresh.",
+    "Scale-100 and Scale-500 remain engineering-only mechanics fixtures.",
+    "No network, repository write, provider/model dependency, private source/review payload, learner-runtime mutation or remote publication is introduced by the QA oracle.",
+    "Trust boundary: deterministic internal integrity and exact FactoryRun binding are tested; publisher authentication/signature and remote-distribution trust are not claimed."
+  ],
+  "regressionTargets": [
+    {
+      "id": "QA-WP-024-R2-F01",
+      "sourceFinding": "F01 forged PASS admission",
+      "required": true,
+      "status": "PENDING_FRESH_EXECUTION",
+      "attack": "Start from a genuine semantic-HOLD FactoryRun, mutate only outer factory verdict/reasons and final decisions to PASS, recompute deterministic digests/runId, and require M3.4 admission to reject it."
+    },
+    {
+      "id": "QA-WP-024-R2-F02",
+      "sourceFinding": "F02 noncanonical release-set.json bytes",
+      "required": true,
+      "status": "PENDING_FRESH_EXECUTION",
+      "attack": "Re-encode the exact same release-set JSON object as pretty-printed bytes, rebuild deterministic ZIP metadata, and require offline verification to reject the byte-distinct manifest."
+    }
+  ],
+  "adversarialTests": [
+    "01 HOLD FactoryRun injection",
+    "02 tampered FactoryRun",
+    "03 forged PASS decision",
+    "04 inconsistent runId",
+    "05 inconsistent evidenceBundle.artifacts.generatedKit.sha256",
+    "06 one-byte kit drift after FactoryRun",
+    "07 valid but wrong kit paired with a run",
+    "08 reused packageRevisionId",
+    "09 ambiguous packageRevisionDigest",
+    "10 same packageRevisionId with differing digest and/or exact kit SHA",
+    "11 duplicate packageLineageId",
+    "12 conflicting package revision identity",
+    "13 conflicting course revision identity",
+    "14 conflicting activity revision identity",
+    "15 same revision ID with different digest or exact bytes",
+    "16 duplicate inputs must not be silently double-counted",
+    "17 ../ traversal",
+    "18 backslash path",
+    "19 absolute path",
+    "20 duplicate archive member",
+    "21 extra undeclared archive member",
+    "22 missing declared archive member",
+    "23 symlink/non-regular archive member",
+    "24 changed ZIP compression or metadata / non-canonical archive",
+    "25 tampered release-set.json",
+    "26 renamed member without consistent manifest",
+    "27 prior release remains independently verifiable after another release",
+    "28 reversed input order",
+    "29 host-path relocation",
+    "30 exact rebuild byte identity and releaseSetId identity",
+    "31 homonymous titles with distinct canonical identities",
+    "32 different physical filenames for identical logical inputs",
+    "33 Scale-100",
+    "34 Scale-500",
+    "35 no subprocess-per-kit design",
+    "36 no manifestly exponential growth",
+    "37 scale fixtures explicitly engineering-only",
+    "38 no network",
+    "39 no GitHub/repository write",
+    "40 no git push",
+    "41 no provider/model dependency",
+    "42 no source PDF, learner brief, separate semantic review, scratchpad or private author context in ZIP",
+    "43 no learner-runtime mutation",
+    "44 no remote publication",
+    "45 internal deterministic integrity = YES",
+    "46 exact binding to supplied FactoryRuns = YES",
+    "47 publisher authentication = NO",
+    "48 cryptographic signature = NO",
+    "49 remote distribution trust = OUT OF SCOPE"
+  ],
+  "requiredEvidence": [
+    "Fresh branch direct-parent proof from exact frozen product HEAD.",
+    "Exact three-path QA delta from the frozen product HEAD.",
+    "Fresh product regression execution on the QA branch before contradictory assertions.",
+    "Fresh independent contradictory oracle execution including explicit F01 and F02 regressions plus the full M3.4 matrix.",
+    "Actions run and job evidence bound to the final QA HEAD.",
+    "Any newly reproduced product defect is reported as HOLD without modifying product files."
+  ],
+  "nonGoals": [
+    "Repairing release_set.py or any product path.",
+    "Using #328/#330 execution results as current R2 evidence.",
+    "Changing promoted upstream authorities, learner runtime, publishing, signing, backend, catalog or provider integration.",
+    "Using author scratchpad or author active context as QA evidence."
+  ],
+  "execution": {
+    "round": "R2",
+    "authorityIssue": 331,
+    "branch": "qa/QA-WP-024-R2-m3-4-release-set-contradictory",
+    "maximumChangedFiles": 3,
+    "workflow": "Atlas M3.4 Qualified Release Set Contradictory QA R2",
+    "status": "PENDING_FRESH_EXECUTION",
+    "finalVerdict": null
+  },
+  "requiredPassVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
+  "requiredHoldVerdict": "HOLD_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
+  "rollback": "Delete or revert only the three QA-WP-024 R2 paths/changes. No product or promoted upstream authority is modified.",
+  "independentReview": [
+    "R2 evidence must be produced from issue #331, exact frozen product bytes, read-only promoted authorities and QA-owned fresh fixtures only.",
+    "Any defect is reported against exact frozen product HEAD 870d69800dcb07fcfff9f1d232dd143c8eaa6486 and is not repaired in the QA lane.",
+    "PASS is permitted only after all required R2 attacks survive a fresh exact-head Actions execution."
+  ]
+}
