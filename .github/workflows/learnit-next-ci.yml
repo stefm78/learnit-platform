@@ -253,6 +253,13 @@ jobs:
 
             expected_atlas="$(printf '%s\n' "${ATLAS_M1_PROMOTION_PATHS}" | sed '/^$/d' | sort -u)"
 
+            expected_m3_4="$(printf '%s\n' \
+              '.github/workflows/atlas-m3-4-release-set-ci.yml' \
+              'authoring/factory/README.md' \
+              'authoring/factory/release_set.py' \
+              'authoring/factory/tests/test_release_set.py' \
+              'work-packages/ATLAS-WP-021.json' | sort -u)"
+
             if [[ "${workflow_changed}" == true && "${product_relevant}" == false ]]; then
               profile=ci-router
               branch=main
@@ -267,6 +274,11 @@ jobs:
               profile=atlas-int-post-merge
               branch=main
               base="${CORRECTIVE_COMMON_BASELINE}"
+              post_merge=true
+            elif [[ "${actual}" == "${expected_m3_4}" ]]; then
+              profile=m3-4-release-set-post-merge
+              branch=main
+              base="${parents[0]}"
               post_merge=true
             else
               profile=wave-a
@@ -478,6 +490,23 @@ jobs:
         run: |
           set -euo pipefail
 
+          m3_4_promotion_paths() {
+            printf '%s\n' \
+              '.github/workflows/atlas-m3-4-release-set-ci.yml' \
+              'authoring/factory/README.md' \
+              'authoring/factory/release_set.py' \
+              'authoring/factory/tests/test_release_set.py' \
+              'work-packages/ATLAS-WP-021.json' | sort -u
+          }
+
+          m3_4_post_merge_shape_ok() {
+            local actual="$1" second_parent="$2"
+            local expected
+            expected="$(m3_4_promotion_paths)"
+            [[ "${actual}" == "${expected}" ]] &&
+              [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
+          }
+
           if [[ "${PROFILE}" == source-snapshot-delegated ]]; then
             [[ "${EVENT}" == pull_request ]] || {
               echo "Source snapshot delegated route is valid only for the exact product pull request." >&2
@@ -556,6 +585,44 @@ jobs:
             python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-016.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-016'; assert wp['authority']['issue']==299; assert wp['baseline']['baseCommit']=='524cfc8b35654d7d54d3222a462fe582f4706a89'; assert '.github/workflows/atlas-source-admission-ci.yml' in wp['scope']['allowedPaths']; assert 'authoring/factory/source_admission.py' in wp['scope']['allowedPaths']"
             echo "SOURCE_ADMISSION_DELEGATED_ROUTE=PASS"
             echo "SOURCE_ADMISSION_WORKFLOW=.github/workflows/atlas-source-admission-ci.yml"
+            exit 0
+          fi
+
+          if [[ "${PROFILE}" == m3-4-release-set-post-merge ]]; then
+            [[ "${EVENT}" == push ]] || {
+              echo "M3.4 post-merge route is valid only for a push to main." >&2
+              exit 2
+            }
+            parents=( $(git show -s --format=%P HEAD) )
+            [[ ${#parents[@]} -eq 2 ]] || {
+              echo "M3.4 promotion merge must have exactly two parents." >&2
+              exit 2
+            }
+            [[ "${parents[0]}" == "${BASE}" ]] || {
+              echo "M3.4 promotion first parent differs from resolved base." >&2
+              exit 2
+            }
+            accepted=870d69800dcb07fcfff9f1d232dd143c8eaa6486
+            [[ "${parents[1]}" == "${accepted}" ]] || {
+              echo "M3.4 promotion second parent differs from accepted product head." >&2
+              exit 2
+            }
+            actual="$(git diff --name-only "${parents[0]}" HEAD | sed '/^$/d' | sort -u)"
+            m3_4_post_merge_shape_ok "${actual}" "${parents[1]}" || {
+              echo "M3.4 post-merge path/head shape differs." >&2
+              diff -u <(m3_4_promotion_paths) <(printf '%s\n' "${actual}") || true
+              exit 2
+            }
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              [[ "$(git rev-parse "HEAD:${path}")" == "$(git rev-parse "${accepted}:${path}")" ]] || {
+                echo "Promoted M3.4 blob differs from accepted product head: ${path}" >&2
+                exit 2
+              }
+            done < <(m3_4_promotion_paths)
+            python -c "import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-021.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-021'; assert wp['authority']['issue']==322; assert wp['authority']['milestone']=='M3.4'"
+            echo "M3_4_RELEASE_SET_POST_MERGE_ROUTE=PASS"
+            echo "M3_4_ACCEPTED_PRODUCT_HEAD=${accepted}"
             exit 0
           fi
 
@@ -898,6 +965,26 @@ jobs:
             assert_status_product_relevance rename-infra false 'R100\x00docs/a.md\x00docs/b.md\x00'
             assert_status_product_relevance rename-into-product true 'R100\x00docs/foo.js\x00apps/learnit-next/src/foo.js\x00'
             assert_status_product_relevance copy-out-product true 'C100\x00contracts/source.json\x00docs/source.json\x00'
+
+            if [[ "${BRANCH}" == ci/CI-WP-013-m3-4-post-merge-route ]]; then
+              promotion=b8337c785cbec995de5891080776c4c44dd99179
+              accepted=870d69800dcb07fcfff9f1d232dd143c8eaa6486
+              promotion_parents=( $(git show -s --format=%P "${promotion}") )
+              [[ ${#promotion_parents[@]} -eq 2 ]]
+              [[ "${promotion_parents[1]}" == "${accepted}" ]]
+              promotion_actual="$(git diff --name-only "${promotion_parents[0]}" "${promotion}" | sed '/^$/d' | sort -u)"
+              m3_4_post_merge_shape_ok "${promotion_actual}" "${promotion_parents[1]}"
+              ! m3_4_post_merge_shape_ok "${promotion_actual}" 0000000000000000000000000000000000000000
+              missing="$(printf '%s\n' "${promotion_actual}" | sed '1d')"
+              ! m3_4_post_merge_shape_ok "${missing}" "${accepted}"
+              extra="$(printf '%s\nunexpected/path' "${promotion_actual}")"
+              ! m3_4_post_merge_shape_ok "${extra}" "${accepted}"
+              while IFS= read -r path; do
+                [[ "$(git rev-parse "${promotion}:${path}")" == "$(git rev-parse "${accepted}:${path}")" ]]
+              done < <(m3_4_promotion_paths)
+              grep -Fq 'Promoted M3.4 blob differs from accepted product head' .github/workflows/learnit-next-ci.yml
+              echo "CI_WP_013_M3_4_POST_MERGE_SELF_TEST=PASS"
+            fi
 
             echo "CI_ROUTER_RENAME_MATRIX=PASS"
             echo "CI_ROUTER_SELF_TEST=PASS"
