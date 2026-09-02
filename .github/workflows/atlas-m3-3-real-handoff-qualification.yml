@@ -1,0 +1,206 @@
+name: Atlas M3.3 Real Handoff Qualification
+
+on:
+  push:
+    branches:
+      - evidence/ATLAS-M3-3-real-handoff-qualification
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  qualify:
+    name: Real PASS and HOLD portable handoff qualification
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PRODUCT_HEAD: d4fe01f94ce38b2cd4d884930555f2bce971f561
+      PRE_REPAIR_ARTIFACT_ID: "9810550596"
+      FINAL_BENCHMARK_ARTIFACT_ID: "9835659825"
+      REVIEW_EVIDENCE_COMMIT: 344f8a515398f8b505c12c7e83432a932ed4eeef
+      LAW_REVIEW_SHA256: b8fe23f3442fb1342ff44cd01c87d8d6e188a69f8e665d082080f0a3d12a6a5d
+      HISTORY_REVIEW_SHA256: 90fa3100b1f4af63d9db963d00732216ed934c2f1f9e12014404276f9ef7f98e
+      LAW_RUN_ID: sha256:7ffb7c789ef94258413316223650c0589720f870fb832ca61162ede34fcabc56
+      HISTORY_RUN_ID: sha256:68a4001f8137c52f7a83f5a28a682e4b35449671ef15e69f85c517692f6fae2e
+
+    steps:
+      - name: Check out exact frozen M3.3 product head
+        uses: actions/checkout@v4
+        with:
+          ref: d4fe01f94ce38b2cd4d884930555f2bce971f561
+          fetch-depth: 1
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Assert exact product head
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$PRODUCT_HEAD" ]]
+
+      - name: Download authoritative real-benchmark evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/pre evidence/final evidence/reviews out
+          for spec in             "$PRE_REPAIR_ARTIFACT_ID:evidence/pre.zip"             "$FINAL_BENCHMARK_ARTIFACT_ID:evidence/final.zip"; do
+            id="${spec%%:*}"
+            dest="${spec#*:}"
+            curl --fail --silent --show-error --location               -H "Authorization: Bearer $GH_TOKEN"               -H "Accept: application/vnd.github+json"               -H "X-GitHub-Api-Version: 2022-11-28"               "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip"               --output "$dest"
+          done
+          unzip -q evidence/pre.zip -d evidence/pre
+          unzip -q evidence/final.zip -d evidence/final
+
+      - name: Recover exact independent semantic reviews
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api             "repos/$GITHUB_REPOSITORY/contents/authoring/factory/real-benchmark/reviews/law.json?ref=$REVIEW_EVIDENCE_COMMIT"             --jq '.content' | tr -d '\n' | base64 --decode > evidence/reviews/law.json
+          gh api             "repos/$GITHUB_REPOSITORY/contents/authoring/factory/real-benchmark/benchmark-cases/history-v1-hold/review.json?ref=$REVIEW_EVIDENCE_COMMIT"             --jq '.content' | tr -d '\n' | base64 --decode > evidence/reviews/history-v1-hold.json
+          printf '%s  %s\n' "$LAW_REVIEW_SHA256" evidence/reviews/law.json | sha256sum --check --strict
+          printf '%s  %s\n' "$HISTORY_REVIEW_SHA256" evidence/reviews/history-v1-hold.json | sha256sum --check --strict
+
+      - name: Qualify real portable PASS handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/handoff.py prepare-review             --kit evidence/pre/candidates/law.json             --brief evidence/pre/briefs/law.json             --source govinfo_sman_117_constitution=evidence/pre/sources/law.pdf             --admission govinfo_sman_117_constitution=evidence/pre/admissions/law.json             --out out/law-pass-1.zip | tee out/law-prepare-1.json
+          python -B authoring/factory/handoff.py prepare-review             --kit evidence/pre/candidates/law.json             --brief evidence/pre/briefs/law.json             --source govinfo_sman_117_constitution=evidence/pre/sources/law.pdf             --admission govinfo_sman_117_constitution=evidence/pre/admissions/law.json             --out out/law-pass-2.zip | tee out/law-prepare-2.json
+          cmp out/law-pass-1.zip out/law-pass-2.zip
+          python -B authoring/factory/handoff.py verify-review             --handoff out/law-pass-1.zip | tee out/law-verify.json
+          python -B authoring/factory/handoff.py consume-review             --handoff out/law-pass-1.zip             --review evidence/reviews/law.json             --run-out out/law-run.json | tee out/law-consume.json
+          cmp out/law-run.json evidence/final/factory-runs/law.json
+
+      - name: Qualify real portable HOLD handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/handoff.py prepare-review             --kit evidence/pre/candidates/history.json             --brief evidence/pre/briefs/history.json             --source eduscol_abibac_democratie_france_allemagne_2022=evidence/pre/sources/history.pdf             --admission eduscol_abibac_democratie_france_allemagne_2022=evidence/pre/admissions/history.json             --out out/history-hold-1.zip | tee out/history-prepare-1.json
+          python -B authoring/factory/handoff.py prepare-review             --kit evidence/pre/candidates/history.json             --brief evidence/pre/briefs/history.json             --source eduscol_abibac_democratie_france_allemagne_2022=evidence/pre/sources/history.pdf             --admission eduscol_abibac_democratie_france_allemagne_2022=evidence/pre/admissions/history.json             --out out/history-hold-2.zip | tee out/history-prepare-2.json
+          cmp out/history-hold-1.zip out/history-hold-2.zip
+          python -B authoring/factory/handoff.py verify-review             --handoff out/history-hold-1.zip | tee out/history-verify.json
+          python -B authoring/factory/handoff.py consume-review             --handoff out/history-hold-1.zip             --review evidence/reviews/history-v1-hold.json             --run-out out/history-run.json | tee out/history-consume.json
+          cmp out/history-run.json evidence/final/factory-runs/history-v1-hold.json
+
+      - name: Assert PASS/HOLD semantics and write qualification report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          def load(path):
+              return json.loads(Path(path).read_text(encoding="utf-8"))
+
+          law_prepare = load("out/law-prepare-1.json")
+          law_verify = load("out/law-verify.json")
+          law_consume = load("out/law-consume.json")
+          law_run = load("out/law-run.json")
+          hist_prepare = load("out/history-prepare-1.json")
+          hist_verify = load("out/history-verify.json")
+          hist_consume = load("out/history-consume.json")
+          hist_run = load("out/history-run.json")
+
+          assert law_prepare["verdict"] == "PASS_REVIEW_HANDOFF_PREPARED_V1"
+          assert law_verify["verdict"] == "PASS_REVIEW_HANDOFF_VERIFICATION_V1"
+          assert law_consume["verdict"] == "PASS_REVIEW_HANDOFF_CONSUMED_V1"
+          assert law_consume["reviewVerdict"] == "PASS_SEMANTIC_REVIEW_V1"
+          assert law_consume["factoryDecision"] == "PASS_AI_KIT_FACTORY_V1"
+          assert law_run["runId"] == os.environ["LAW_RUN_ID"]
+          assert law_run["decision"]["verdict"] == "PASS_AI_KIT_FACTORY_V1"
+
+          assert hist_prepare["verdict"] == "PASS_REVIEW_HANDOFF_PREPARED_V1"
+          assert hist_verify["verdict"] == "PASS_REVIEW_HANDOFF_VERIFICATION_V1"
+          assert hist_consume["verdict"] == "PASS_REVIEW_HANDOFF_CONSUMED_V1"
+          assert hist_consume["reviewVerdict"] == "HOLD_SEMANTIC_REVIEW_V1"
+          assert hist_consume["factoryDecision"] == "HOLD_FACTORY_SEMANTIC_REVIEW"
+          assert hist_run["runId"] == os.environ["HISTORY_RUN_ID"]
+          assert hist_run["decision"]["verdict"] == "HOLD_FACTORY_SEMANTIC_REVIEW"
+          assert hist_run["decision"]["reasons"] == [
+              "DIMENSION_HOLD:validationTransfer",
+              "MAJOR_FINDING:HIST-M3.2.5-F01",
+          ]
+
+          def file_meta(path):
+              raw = Path(path).read_bytes()
+              return {
+                  "bytes": len(raw),
+                  "sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
+              }
+
+          report = {
+              "schema": "learnit.atlas.real_handoff_qualification.v1",
+              "stream": "C",
+              "productHead": os.environ["PRODUCT_HEAD"],
+              "result": "PASS",
+              "criteria": {
+                  "realPortablePass": True,
+                  "realPortableHold": True,
+                  "deterministicBundles": True,
+                  "factoryRunParityWithM3_2_5": True,
+                  "humanEscalationRequired": False,
+              },
+              "evidence": {
+                  "preRepairArtifactId": int(os.environ["PRE_REPAIR_ARTIFACT_ID"]),
+                  "finalBenchmarkArtifactId": int(os.environ["FINAL_BENCHMARK_ARTIFACT_ID"]),
+                  "reviewEvidenceCommit": os.environ["REVIEW_EVIDENCE_COMMIT"],
+              },
+              "cases": {
+                  "pass": {
+                      "domain": "law",
+                      "reviewVerdict": law_consume["reviewVerdict"],
+                      "factoryDecision": law_consume["factoryDecision"],
+                      "runId": law_run["runId"],
+                      "bundleDigest": law_prepare["bundleDigest"],
+                      "bundle": file_meta("out/law-pass-1.zip"),
+                  },
+                  "hold": {
+                      "domain": "history",
+                      "reviewVerdict": hist_consume["reviewVerdict"],
+                      "factoryDecision": hist_consume["factoryDecision"],
+                      "runId": hist_run["runId"],
+                      "reasons": hist_run["decision"]["reasons"],
+                      "bundleDigest": hist_prepare["bundleDigest"],
+                      "bundle": file_meta("out/history-hold-1.zip"),
+                  },
+              },
+          }
+          Path("out/qualification-report.json").write_text(
+              json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+              encoding="utf-8",
+          )
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m3-3-stream-c-real-handoff-qualification
+          path: |
+            out/qualification-report.json
+            out/law-pass-1.zip
+            out/history-hold-1.zip
+            out/law-run.json
+            out/history-run.json
+            out/law-consume.json
+            out/history-consume.json
+            evidence/reviews/law.json
+            evidence/reviews/history-v1-hold.json
+          if-no-files-found: error
+          retention-days: 30
