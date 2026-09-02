@@ -18,8 +18,8 @@
   },
   "developmentBaseline": {
     "status": "held",
-    "workPackage": "M3.4",
-    "candidate": "Scale and publishing",
+    "workPackage": "ATLAS-WP-020",
+    "candidate": "M3.4 Scale and Publishing arbitration/design",
     "sourceCommit": "c102ca81f3b144bea1140860ef633a0d01987d59",
     "authorityIssue": null,
     "note": "M3.4 is only the next possible product gate. No M3.4 implementation is authorized until fresh accountable-owner arbitration/design proves a bounded need for scale/publishing beyond the promoted local authoring and portable review flow."
@@ -249,7 +249,7 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "M3.4-ACCOUNTABLE-OWNER-ARBITRATION",
+    "id": "ATLAS-WP-020",
     "condition": "Before any M3.4 implementation, challenge whether batch scale/publishing is now the highest-value next capability, freeze exact evidence and publishing boundaries if justified, and create a bounded authority. Otherwise skip, redefine or continue with existing promoted capabilities."
   },
   "review": {
