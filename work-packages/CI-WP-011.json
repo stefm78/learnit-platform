@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-011",
+  "title": "Scope M3.3 exact-head validation to its governed pull-request head",
+  "status": "in-progress",
+  "changeClass": "ci-routing",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 324,
+    "triggerEvidencePullRequest": 323,
+    "predecessorCiWorkPackage": "CI-WP-010"
+  },
+  "purpose": "Prevent the historical M3.3 exact-head product validator from producing false failures on unrelated pull requests that touch shared factory documentation, while preserving its governed pull-request head and all push/workflow_dispatch behavior.",
+  "baseline": {
+    "baseCommit": "baa9eea87d58a960f834e1712b4bf64d65b2ab3d",
+    "branch": "ci/CI-WP-011-m3-3-readme-trigger"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml",
+      "work-packages/CI-WP-011.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/atlas-m3-4-release-set-ci.yml",
+      "work-packages/ATLAS-WP-019.json",
+      "work-packages/ATLAS-WP-021.json",
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "Only the M3.3 workflow routing guard and CI-WP-011 metadata change.",
+    "On pull_request, M3.3 exact-head validation executes only for atlas/ATLAS-WP-019-m3-3-review-handoff.",
+    "All M3.3 validation steps below the job guard remain byte-for-byte unchanged.",
+    "Push behavior remains unchanged.",
+    "workflow_dispatch behavior remains unchanged.",
+    "M3.4 product files remain unchanged.",
+    "No product/runtime/contract semantics or branch-protection behavior changes."
+  ],
+  "requiredEvidence": [
+    "Exact two-file diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "CI-WP-011 pull request shows M3.3 exact-head validation skipped rather than failed.",
+    "Static guard contains exactly the governed historical M3.3 head ref.",
+    "Static proof that job steps remain unchanged from baseline."
+  ],
+  "adversarialTests": [
+    "The unrelated M3.4 product pull-request head must not execute the M3.3 branch assertion.",
+    "An unknown pull-request head must not execute the M3.3 exact-head job.",
+    "The governed M3.3 head must still satisfy the guard.",
+    "A push event must still satisfy the guard regardless of head_ref.",
+    "A workflow_dispatch event must still satisfy the guard regardless of head_ref."
+  ],
+  "nonGoals": [
+    "Changing M3.3 handoff semantics.",
+    "Changing M3.4 product semantics.",
+    "Changing M3.3 validation commands.",
+    "Changing Learn-it Next routing.",
+    "Changing branch protection."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this two-file CI-only change.",
+    "The exact CI pull request must demonstrate neutral skip behavior for the historical M3.3 validator."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-011-m3-3-readme-trigger",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTATION_PREPARED",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the job-level pull-request head guard and CI-WP-011 metadata; historical false-failure behavior returns."
+}
