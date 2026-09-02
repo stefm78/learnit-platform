@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-09-02-M3-2-5-QUALIFIED",
-  "effectiveFromCommit": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
-  "reviewedBaselineCommit": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
+  "stateId": "GOV-STATE-2026-09-02-M3-3-PROMOTED",
+  "effectiveFromCommit": "c102ca81f3b144bea1140860ef633a0d01987d59",
+  "reviewedBaselineCommit": "c102ca81f3b144bea1140860ef633a0d01987d59",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m3-2-5-factory-reliability-qualified",
+    "id": "project-atlas-m3-3-portable-review-handoff-promoted",
     "status": "active",
-    "description": "M3.2 AI Kit Factory is promoted and M3.2.5 Factory Reliability is qualified on a real eight-domain benchmark: 8 distinct FactoryRuns, 6 PASS, 2 justified semantic HOLD, all required domains covered, zero human escalation, and PASS_FACTORY_BENCHMARK_V1. The learner runtime remains the exact promoted M2.2 artifact. M3.3 is only the next possible gate and remains HOLD pending fresh accountable-owner arbitration."
+    "description": "M3.3 Portable Review Handoff is promoted on top of the promoted M3.2/M3.2.5 factory. The provider-neutral handoff packages one exact candidate case for an independent reviewer, validates fail-closed re-entry, and yields self-verifying PASS/HOLD FactoryRuns. Independent QA and fresh separate-context real PASS/HOLD qualification both passed. The learner runtime remains the exact promoted M2.2 artifact."
   },
   "currentMain": {
-    "commit": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
-    "sourcePullRequest": 304,
-    "description": "Current main includes promoted M3.2/M3.2.5 factory reliability and the final bounded real-source snapshot infrastructure. Real benchmark qualification evidence is external/transient and was not merged as a repository corpus."
+    "commit": "c102ca81f3b144bea1140860ef633a0d01987d59",
+    "sourcePullRequest": 313,
+    "description": "Current main includes promoted M3.3 Portable Review Handoff plus the independently promoted CI-WP-010 Source Snapshot routing correction. M3.3 product evidence remains bound to frozen product HEAD d4fe01f94ce38b2cd4d884930555f2bce971f561."
   },
   "developmentBaseline": {
     "status": "held",
-    "workPackage": "ATLAS-WP-018",
-    "candidate": "Assisted authoring",
-    "sourceCommit": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
-    "authorityIssue": 308,
-    "note": "ATLAS-WP-018 authorizes arbitration and bounded design only. No M3.3 product implementation is authorized until that arbitration proves distinct value beyond the qualified M3.2/M3.2.5 AI Kit Factory."
+    "workPackage": "ATLAS-WP-020",
+    "candidate": "M3.4 Scale and Publishing arbitration/design",
+    "sourceCommit": "c102ca81f3b144bea1140860ef633a0d01987d59",
+    "authorityIssue": null,
+    "note": "M3.4 is only the next possible product gate. No M3.4 implementation is authorized until fresh accountable-owner arbitration/design proves a bounded need for scale/publishing beyond the promoted local authoring and portable review flow."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -195,15 +195,34 @@
         "domainsCovered": 8
       },
       "benchmarkCorpusPolicy": "evidence-not-repository-corpus"
+    },
+    "projectAtlasM3_3PortableReviewHandoff": {
+      "workPackage": "ATLAS-WP-019",
+      "status": "promoted",
+      "authorityIssue": 310,
+      "designIssue": 308,
+      "designMerge": "e00c25cbf63e0188c53f417ca4091033afcff2a5",
+      "frozenProductHead": "d4fe01f94ce38b2cd4d884930555f2bce971f561",
+      "productRun": 33612392221,
+      "independentQaWorkPackage": "QA-WP-023",
+      "acceptedQaHead": "f0be01c859f62d82104fd34744e09ef8d2458792",
+      "qaRun": 33614481867,
+      "qaVerdict": "PASS_QA_WP_023_EXACT_HEAD_CONTRADICTORY_QA",
+      "freshQualificationRun": 33617237648,
+      "freshQualificationArtifact": 9841432010,
+      "freshPassFactoryRun": "sha256:348a48f520ac148e497667c512fd31637aff11fb72bef616d73e25d15ebbfcb9",
+      "freshHoldFactoryRun": "sha256:2136d4db43678a6e39f47b193bf93a6f405fff6f9fc42bff2ede6053ea3ea2f3",
+      "promotionMerge": "c102ca81f3b144bea1140860ef633a0d01987d59",
+      "providerIntegration": "none",
+      "learnerRuntimeChange": "none"
     }
   },
   "authorizedWork": [
     "Repository maintenance, canonical-state alignment and evidence-preserving closeout may proceed under bounded authority.",
-    "M3.2/M3.2.5 regression fixes may proceed only under a new bounded authority that preserves the promoted learner runtime and factory contracts."
+    "M3.2/M3.2.5/M3.3 regression fixes may proceed only under a new bounded authority that preserves promoted learner runtime, factory contracts and reviewer independence."
   ],
   "heldWork": [
-    "M3.3 assisted authoring remains HOLD pending fresh accountable-owner arbitration proving distinct value beyond the qualified M3.2/M3.2.5 AI Kit Factory.",
-    "M3.4 scale/publishing remains HOLD until separately authorized.",
+    "M3.4 scale/publishing remains HOLD pending fresh accountable-owner arbitration and bounded design.",
     "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current evidence and require a new evidence-backed decision if proposed.",
     "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
     "Gate 3 repository-write capability remains HOLD unless separately authorized.",
@@ -230,14 +249,14 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "ATLAS-WP-018",
-    "condition": "Before any M3.3 product implementation, challenge whether Assisted Authoring is still a distinct useful milestone now that M3.2/M3.2.5 already support AI authoring, repair, independent semantic review and deterministic PASS/HOLD. If justified, create a bounded authority; otherwise skip or redefine M3.3."
+    "id": "ATLAS-WP-020",
+    "condition": "Before any M3.4 implementation, challenge whether batch scale/publishing is now the highest-value next capability, freeze exact evidence and publishing boundaries if justified, and create a bounded authority. Otherwise skip, redefine or continue with existing promoted capabilities."
   },
   "review": {
     "lastReviewedAt": "2026-09-02",
-    "lastReviewedBy": "Permanent Governor after M3.2 promotion and M3.2.5 real eight-domain qualification",
+    "lastReviewedBy": "Permanent Governor after M3.3 promotion, independent QA and fresh portable PASS/HOLD qualification",
     "decision": "GO_WITH_CONDITIONS",
-    "authorityIssue": 306,
-    "nextReviewTrigger": "fresh M3.3 accountable-owner arbitration, M3.2/M3.2.5 regression, source-ingestion proposal, model/vendor integration proposal, human UX debt #272 reactivation, Gate3/Gate4 request or M4+ proposal"
+    "authorityIssue": 318,
+    "nextReviewTrigger": "fresh M3.4 accountable-owner arbitration, M3.3 regression, publication proposal, model/vendor integration proposal, human UX debt #272 reactivation, Gate3/Gate4 request or M4+ proposal"
   }
 }

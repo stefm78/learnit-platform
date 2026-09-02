@@ -88,7 +88,9 @@ M3.2 **AI Kit Factory** est promu. Le projet a conservé l’architecture simple
 
 M3.2.5 **Factory Reliability** est également promu et qualifié. Le benchmark réel couvre les huit domaines requis avec 8 FactoryRuns distincts et auto-vérifiables : 6 PASS, 2 HOLD sémantiques justifiés, aucune escalade humaine et verdict final `PASS_FACTORY_BENCHMARK_V1`. Les sources, candidats et reviews du benchmark restent des artefacts d’évidence et ne deviennent pas un corpus Git.
 
-Aucun fournisseur de modèle, API IA, backend, changement du runtime apprenant ou extension de `learnit.kit.v2` n’est autorisé par ces milestones. M3.3 Assisted Authoring devient le prochain gate possible, mais reste HOLD jusqu’à une nouvelle arbitration démontrant une valeur distincte de la factory déjà qualifiée. M3.4 reste séparé.
+M3.3 **Portable Review Handoff** est promu. L’ancien concept "Assisted Authoring" a été redéfini pour éviter de dupliquer la factory : le milestone fournit un bundle déterministe par candidat, transporte exactement kit/brief/sources/admission/contexte/skill vers un reviewer indépendant, puis refuse toute re-entry stale ou non indépendante avant de reconstruire un FactoryRun auto-vérifiable. QA contradictoire et qualification réelle dans deux contextes reviewer séparés ont PASS avant le merge `c102ca81f3b144bea1140860ef633a0d01987d59`.
+
+Aucun fournisseur de modèle, API IA, backend, changement du runtime apprenant ou extension de `learnit.kit.v2` n’est autorisé par ces milestones. M3.4 Scale and Publishing devient le prochain gate possible, mais reste HOLD jusqu’à une nouvelle arbitration/design borné.
 
 ### M4 — Learn-it Everywhere
 
@@ -148,5 +150,6 @@ Gate courant :
 - dette de vue pédagogique humaine : #272, différée et non bloquante ;
 - M3.2 AI Kit Factory : promu sous `ATLAS-WP-014` / #286 ;
 - M3.2.5 Factory Reliability : promu et qualifié sous `ATLAS-WP-015` / #297, benchmark réel `PASS_FACTORY_BENCHMARK_V1` (8 runs, 6 PASS, 2 HOLD, 0 escalade humaine) ;
-- prochain gate possible : M3.3 Assisted Authoring, HOLD jusqu’à nouvelle arbitration ;
-- M3.4, Gate3, Gate4 et M4+ restent HOLD.
+- M3.3 Portable Review Handoff : promu sous `ATLAS-WP-019` / #310, QA indépendante PASS et qualification réelle PASS/HOLD en contextes séparés ;
+- prochain gate possible : M3.4 Scale and Publishing, HOLD jusqu’à nouvelle arbitration/design ;
+- Gate3, Gate4 et M4+ restent HOLD.
