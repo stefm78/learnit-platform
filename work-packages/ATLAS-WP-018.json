@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-018",
+  "title": "M3.3 Portable Review Handoff design",
+  "status": "in-progress",
+  "changeClass": "product-authoring-review-handoff-design",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 308,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.3-DESIGN"
+  },
+  "purpose": "Redefine M3.3 from redundant LLM assistance into a provider-neutral deterministic portable handoff and re-entry layer between author and independent reviewer contexts.",
+  "baseline": {
+    "baseCommit": "0957a38dd51cee0c94e2e99a43521caba83f4aca",
+    "m3_2PromotionMerge": "39775e83d029f780bf0fa21783ea597ab1abc6b5",
+    "m3_2_5ReliabilityPromotionMerge": "524cfc8b35654d7d54d3222a462fe582f4706a89",
+    "m3_2_5QualificationIssue": 297,
+    "m3_2_5BenchmarkHead": "d30a0dfbf1fa5900af51ca5e628c32ed5587c4fe",
+    "m3_2_5BenchmarkVerdict": "PASS_FACTORY_BENCHMARK_V1",
+    "canonicalStateAlignmentMerge": "0957a38dd51cee0c94e2e99a43521caba83f4aca"
+  },
+  "scope": {
+    "allowedPaths": [
+      "docs/atlas/M3_3_PORTABLE_REVIEW_HANDOFF_DESIGN.md",
+      "work-packages/ATLAS-WP-018.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "tools/**",
+      "governance/**",
+      "README.md",
+      "docs/architecture/**",
+      "docs/roadmap/**"
+    ]
+  },
+  "invariants": [
+    "M3.3 adds no new semantic authority; M3.2/M3.2.5 authorities remain upstream and read-only.",
+    "M3.3 contains no model/provider API, credential, chat runtime or learner-runtime AI.",
+    "Review handoffs are transient external evidence artifacts and are not a Git corpus.",
+    "Author scratchpad, hidden reasoning and active author context are excluded by interface design.",
+    "Exact admitted source bytes and exact FactoryContext hashes bind every handoff.",
+    "A candidate change invalidates the prior review and requires a fresh independent review.",
+    "M3.3 does not implement human graphical review debt #272.",
+    "M3.4, Gate3, Gate4 and M4+ remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact two-file design diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Design explicitly rejects redundant LLM/provider integration.",
+    "Design freezes prepare-review and consume-review responsibilities without duplicating semantic rules.",
+    "Design requires deterministic portable ZIP identity, path independence and exact skill/source/context binding.",
+    "Design freezes disjoint implementation and independent-QA scopes.",
+    "No product/runtime/workflow/contract change in the design PR."
+  ],
+  "adversarialTests": [
+    "Attempt to package source bytes whose SourceAdmission is HOLD.",
+    "Move identical inputs to different host paths.",
+    "Tamper candidate, brief, source, skill, request or manifest bytes.",
+    "Inject undeclared or traversal ZIP members.",
+    "Import a stale review after candidate repair.",
+    "Use review evidence source IDs outside the handoff allowlist.",
+    "Set authorScratchpadSeen or authorActiveContextReused to true.",
+    "Try to convert a semantic HOLD to PASS in the handoff layer.",
+    "Attempt to package author scratchpad/chat/log files.",
+    "Attempt to add model/provider or learner-runtime behavior."
+  ],
+  "nonGoals": [
+    "M3.3 product implementation",
+    "model/provider integration",
+    "chat UI",
+    "Source-to-Draft or OCR",
+    "automatic semantic repair",
+    "automatic publishing",
+    "repository source/kit corpus",
+    "human graphical overview #272",
+    "M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "Repository governance and PR scope verify the design-only boundary.",
+    "Future QA-WP-023 must be disjoint and non-repairing."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-018-m3-3-review-handoff-design",
+    "phase": "DESIGN_PREPARED",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "humanGateRequired": false,
+    "implementationGate": "ATLAS-WP-019",
+    "finalVerdict": "PASS_M3_3_PORTABLE_REVIEW_HANDOFF_DESIGN_TO_IMPLEMENTATION_GATE"
+  },
+  "rollback": "Revert the two design files only. Promoted M3.2/M3.2.5 behavior remains unchanged."
+}
