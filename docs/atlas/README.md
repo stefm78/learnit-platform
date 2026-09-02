@@ -84,9 +84,11 @@ Le studio reste séparé du runtime apprenant. Le learner publié reste exacteme
 
 Le gate humain M3.1 a validé l’approche AI-authoring. La faiblesse de compréhension globale pour un reviewer humain — absence de vue graphique du cycle objectif → pratique → correction → validations → transfert — est conservée comme dette non bloquante sous l’issue #272.
 
-M3.2 **AI Kit Factory** a son design accepté. Le projet renonce pour ce milestone à construire un pipeline générique Source-to-Draft : une IA auteur lit directement les documents fournis, produit le kit canonique, itère contre les validateurs et le moteur M3.1, puis une IA reviewer dans un contexte indépendant challenge fidélité aux sources, exactitude, ambiguïtés, couverture, validation/transfert et adéquation au brief apprenant. Un gate déterministe lie les preuves par hash et décide PASS/HOLD.
+M3.2 **AI Kit Factory** est promu. Le projet a conservé l’architecture simple : une IA auteur lit directement les documents fournis, produit le kit canonique, itère contre les validateurs et le moteur M3.1, puis une IA reviewer dans un contexte indépendant challenge fidélité aux sources, exactitude, ambiguïtés, couverture, validation/transfert et adéquation au brief apprenant. Un gate déterministe lie les preuves par hash et décide PASS/HOLD.
 
-Le prochain gate est l’implémentation bornée `ATLAS-WP-014`. Aucun fournisseur de modèle, API IA, backend, changement du runtime apprenant ou extension de `learnit.kit.v2` n’est autorisé par M3.2. M3.3 et M3.4 restent des gates séparés.
+M3.2.5 **Factory Reliability** est également promu et qualifié. Le benchmark réel couvre les huit domaines requis avec 8 FactoryRuns distincts et auto-vérifiables : 6 PASS, 2 HOLD sémantiques justifiés, aucune escalade humaine et verdict final `PASS_FACTORY_BENCHMARK_V1`. Les sources, candidats et reviews du benchmark restent des artefacts d’évidence et ne deviennent pas un corpus Git.
+
+Aucun fournisseur de modèle, API IA, backend, changement du runtime apprenant ou extension de `learnit.kit.v2` n’est autorisé par ces milestones. M3.3 Assisted Authoring devient le prochain gate possible, mais reste HOLD jusqu’à une nouvelle arbitration démontrant une valeur distincte de la factory déjà qualifiée. M3.4 reste séparé.
 
 ### M4 — Learn-it Everywhere
 
@@ -144,6 +146,7 @@ Gate courant :
 - M3.1 Pedagogical Quality Engine : promu, QA indépendante PASS, gate humain PASS pour l’approche AI-authoring ;
 - publication stable : `https://stefm78.github.io/learnit-platform/authoring/` ;
 - dette de vue pédagogique humaine : #272, différée et non bloquante ;
-- M3.2 AI Kit Factory : design accepté sous `ATLAS-WP-013` / #282 ;
-- prochain gate : implémentation bornée `ATLAS-WP-014`, sans pipeline Source-to-Draft ni API modèle ;
-- M3.3, M3.4, Gate3, Gate4 et M4+ restent HOLD.
+- M3.2 AI Kit Factory : promu sous `ATLAS-WP-014` / #286 ;
+- M3.2.5 Factory Reliability : promu et qualifié sous `ATLAS-WP-015` / #297, benchmark réel `PASS_FACTORY_BENCHMARK_V1` (8 runs, 6 PASS, 2 HOLD, 0 escalade humaine) ;
+- prochain gate possible : M3.3 Assisted Authoring, HOLD jusqu’à nouvelle arbitration ;
+- M3.4, Gate3, Gate4 et M4+ restent HOLD.

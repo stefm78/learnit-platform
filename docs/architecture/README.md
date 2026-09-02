@@ -25,7 +25,8 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - M3.1 Pedagogical Quality Engine is promoted with frozen product HEAD `6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2`, independent QA HEAD `6ff592af68e6cc95bd479911a09388293c5528f5`, promotion merge `be3d5b2635836e8ce0d9a6ecf42d573efc9ef749` and stable Pages publication merge `601cade1376e6f87e71351fe3f201833a9356697`.
 - The promoted learner runtime remains the exact M2.2 artifact: `366412` bytes, SHA-256 `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7`. M3 authoring does not redefine learner artifact identity.
 - Human sequence-level graphical review debt for AI-authored kits is tracked as issue `#272` and remains deferred/non-blocking.
-- M3.2 AI Kit Factory design is accepted under `ATLAS-WP-013` / issue `#282`. It rejects a generic Source-to-Draft pipeline for M3.2 and authorizes only direct source reading by an author AI, deterministic canonical/M3.1 structural gates, independent semantic/source-fidelity review and a deterministic final factory gate.
+- M3.2 AI Kit Factory is promoted under `ATLAS-WP-014` / issue `#286`, preserving the accepted direct-source author AI → deterministic structural gates → independent semantic review → deterministic PASS/HOLD architecture.
+- M3.2.5 Factory Reliability is promoted and real-source qualified under `ATLAS-WP-015` / issue `#297`: 8 distinct real FactoryRuns across all required domains, 6 PASS, 2 justified semantic HOLD, zero human escalations, final verdict `PASS_FACTORY_BENCHMARK_V1`.
 - Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
 ## Current decisions
@@ -58,11 +59,12 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 2. `../../work-packages/ATLAS-WP-005.json`, `ATLAS-WP-006.json` and `ATLAS-WP-007.json` for the unchanged promoted M2.2 learner baseline;
 3. `../../work-packages/ATLAS-WP-009.json`, `ATLAS-WP-010.json` and `ATLAS-WP-012.json` for promoted M3.0/M3.1 authoring;
 4. `../atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md` and `../../authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md`;
-5. `../atlas/M3_2_AI_KIT_FACTORY_DESIGN.md` and `../../work-packages/ATLAS-WP-013.json`;
-6. `../atlas/README.md`;
-7. `../atlas/CONTRACTS.md`;
-8. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
-9. `../../GOVERNANCE.md`.
+5. `../atlas/M3_2_AI_KIT_FACTORY_DESIGN.md`, `../../work-packages/ATLAS-WP-014.json` and `../../work-packages/ATLAS-WP-015.json`;
+6. `../../authoring/factory/benchmark_contract.json` and `../../authoring/factory/reliability.py`;
+7. `../atlas/README.md`;
+8. `../atlas/CONTRACTS.md`;
+9. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
+10. `../../GOVERNANCE.md`.
 
 Historical `reference-v1/` material remains non-canonical.
 
@@ -72,8 +74,8 @@ Atlas M1, M2 and M2.2 learner milestones are promoted historical steps. The exac
 
 M3.0 Authoring Foundation, M3.0 browser/Pages packaging and M3.1 Pedagogical Quality are promoted, independently tested and stably published under `/authoring/`.
 
-M3.2 **AI Kit Factory** design is accepted. The next mandatory gate is bounded implementation under `ATLAS-WP-014`, with no generic ingestion pipeline, no model/vendor API, no learner-runtime change and no canonical-kit contract extension.
+M3.2 **AI Kit Factory** is promoted and M3.2.5 **Factory Reliability** is qualified. The accepted architecture remains: source files + learner brief → author AI → canonical/M3.1 structural gates → independent semantic reviewer → deterministic factory PASS/HOLD.
 
-The accepted M3.2 architecture is: source files + learner brief → author AI → canonical/M3.1 structural gates → independent semantic reviewer → deterministic factory PASS/HOLD.
+The real qualification benchmark covers mathematics, physics, computer science, history, law, medicine, literature and management with 8 distinct self-verifying FactoryRuns, 6 PASS, 2 justified semantic HOLD, zero human escalations and verdict `PASS_FACTORY_BENCHMARK_V1`. Benchmark source/candidate/review payloads remain external evidence rather than a permanent Git corpus.
 
-Human graphical/context review debt remains open as issue `#272`. M3.3, M3.4, Gate3, Gate4 and M4+ platform evolution remain separately held.
+Human graphical/context review debt remains open as issue `#272`. M3.3 Assisted Authoring is the next possible gate but remains HOLD pending fresh accountable-owner arbitration; M3.4, Gate3, Gate4 and M4+ platform evolution remain separately held.

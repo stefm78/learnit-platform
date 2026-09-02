@@ -6,9 +6,9 @@ RC718 remains the frozen legacy standalone product. The successor is a distinct 
 
 The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
-> **Current status (post-Atlas M3.1):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation and M3.1 Pedagogical Quality are promoted. The learner runtime remains the exact M2.2 artifact; the separate M3.1 authoring surface is stably published under `/authoring/`. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
+> **Current status (post-Atlas M3.2.5):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation, M3.1 Pedagogical Quality and M3.2 AI Kit Factory are promoted. M3.2.5 Factory Reliability is qualified on a real eight-domain benchmark. The learner runtime remains the exact M2.2 artifact; the separate authoring surface remains under `/authoring/`. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
 
-## Active post-M3.1 roadmap — M3.2 design accepted
+## Active post-M3.2.5 roadmap — M3.3 arbitration pending
 
 ### P0 — canonical state alignment
 
@@ -49,7 +49,7 @@ Quality bands are non-numeric and do not claim learning effectiveness. The human
 
 Human sequence-level review remains weaker than desired because the Studio shows activities and diagnostics too locally. A future graphical overview of objective → practice → correction → validation 1 → validation 2 → transfer is tracked as non-blocking debt #272.
 
-### M3.2 — AI Kit Factory — **DESIGN ACCEPTED / IMPLEMENTATION AUTHORIZED**
+### M3.2 — AI Kit Factory — **PROMOTED**
 
 The owner explicitly rejected a generic Source-to-Draft pipeline as unnecessary complexity for this milestone.
 
@@ -70,11 +70,17 @@ The factory does not add a document-ingestion subsystem, intermediate draft cont
 
 Structural factory eligibility requires M3.1 `STRONG` or `EXCELLENT_BY_PROFILE`. Semantic release additionally requires a separate reviewer context bound to exact source/brief/kit hashes. The deterministic gate validates this evidence contract but does not claim semantic truth by itself.
 
-The next bounded implementation gate is `ATLAS-WP-014`.
+Implementation is promoted under `ATLAS-WP-014`. The factory remains provider-agnostic and outside the learner runtime.
+
+### M3.2.5 — Factory Reliability — **PROMOTED / QUALIFIED**
+
+The additive reliability layer is promoted under `ATLAS-WP-015`. Real-source qualification covers all eight required domains with distinct source content and self-verifying FactoryRuns.
+
+Final qualification evidence: 8 runs, 6 PASS, 2 justified semantic HOLD, 0 human escalations, all domains covered, `PASS_FACTORY_BENCHMARK_V1`. Source/candidate/review payloads are retained as evidence artifacts rather than a repository corpus.
 
 ### M3.3 — Assisted authoring — **HOLD**
 
-Optional LLM assistance outside the learner runtime. Suggestions must be reviewed and converted into canonical static content before distribution. Separate authority required.
+Optional LLM assistance outside the learner runtime. Because M3.2/M3.2.5 already provide AI authoring, repair, independent semantic review and deterministic qualification, M3.3 must first justify a distinct operator-facing product capability rather than duplicate the factory. Suggestions must remain reviewable and become canonical static content before distribution. Separate authority and fresh accountable-owner arbitration are required.
 
 ### M3.4 — Scale and publishing — **HOLD**
 
