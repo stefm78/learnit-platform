@@ -84,9 +84,9 @@
   ],
   "execution": {
     "branch": "gov/GOV-WP-035-m3-4-promoted-state",
-    "pullRequest": null,
+    "pullRequest": 336,
     "maximumChangedFiles": 6,
-    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "phase": "IMPLEMENTED_PENDING_GOVERNANCE",
     "humanGateRequired": false,
     "finalVerdict": null
   },
