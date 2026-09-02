@@ -292,3 +292,65 @@ python -B authoring/factory/reliability.py benchmark \
 ```
 
 M3.2.5 does not authorize source ingestion, OCR, model-provider integration, automatic publishing, learner-runtime AI, M3.3, M3.4, Gate3 or Gate4.
+
+## M3.3 portable review handoff
+
+M3.3 does not add a model API. It turns the already-promoted author/reviewer boundary into one deterministic portable artifact.
+
+Prepare one independent-review bundle:
+
+```bash
+python -B authoring/factory/handoff.py prepare-review \
+  --kit candidate.json \
+  --brief learner-brief.json \
+  --source cours=./cours.pdf \
+  --admission cours=./cours.source-admission.json \
+  --out ATLAS_REVIEW_COURS_V1.zip
+```
+
+The source must already have a `PASS_SOURCE_ADMISSION_V1` record from the current curated source catalog. The handoff command replays that admission against the exact source bytes before packaging.
+
+A bundle contains one case only:
+
+```text
+review-handoff.json
+REVIEW_REQUEST.md
+SKILL_ATLAS_KIT_REVIEW_V1.md
+candidate.json
+learner-brief.json
+factory-context.json
+quality-report.json
+source-catalog.json
+source-admission/<source-id>.json
+sources/<source-id>.<deterministic-extension>
+```
+
+The ZIP is byte-deterministic for identical logical inputs and does not contain host paths, author scratchpad, chat logs or active author context.
+
+The intended operator prompt can remain trivial:
+
+```text
+Review @ATLAS_REVIEW_COURS_V1.zip. Follow REVIEW_REQUEST.md.
+```
+
+Verify a received handoff before using it:
+
+```bash
+python -B authoring/factory/handoff.py verify-review \
+  --handoff ATLAS_REVIEW_COURS_V1.zip
+```
+
+Consume an independent semantic review:
+
+```bash
+python -B authoring/factory/handoff.py consume-review \
+  --handoff ATLAS_REVIEW_COURS_V1.zip \
+  --review semantic-review.json \
+  --run-out factory-run.json
+```
+
+Review re-entry fails closed on archive tampering, unsafe/duplicate/undeclared members, source/admission drift, stale target hashes, unknown evidence source IDs or reviewer independence declarations that are not `false/false`.
+
+A valid semantic PASS produces a self-verifying PASS FactoryRun. A justified semantic HOLD produces a self-verifying HOLD FactoryRun. Minor-only findings preserve the already-authorized M3.2 PASS semantics.
+
+The handoff layer does not repair kits, choose a model, publish content, change `learnit.kit.v2`, or run inside the learner.
