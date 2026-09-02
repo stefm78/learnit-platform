@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-024",
+  "title": "M3.4 Qualified Release Set contradictory QA",
+  "status": "hold",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 328,
+    "parentProductIssue": 322,
+    "parentProductPR": 323,
+    "frozenProductHead": "41f2245e56b42a2e541d185f39a3edb5d8b6f01b"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false,
+    "productFilesModified": false
+  },
+  "finding": {
+    "id": "QA-WP-024-F01",
+    "severity": "major",
+    "attackCase": 3,
+    "title": "Forged PASS FactoryRun can be admitted after digest recomputation",
+    "reproducible": true,
+    "observed": "A genuine semantic HOLD FactoryRun can have factoryEvidence.verdict, finalDecision and decision changed to PASS; after recomputing factoryEvidenceSha256, bundleSha256 and runId, reliability.verify_run accepts it and release_set.build_release_archive admits it.",
+    "expected": "Qualified Release Set admission must reject forged PASS decisions rather than trusting only internally self-consistent hashes.",
+    "affectedHead": "41f2245e56b42a2e541d185f39a3edb5d8b6f01b",
+    "productRepairPerformed": false
+  },
+  "verdict": "HOLD_QA_WP_024_FORGED_PASS_ADMISSION",
+  "promotionBoundary": "PR #323 remains blocked. Any product repair creates a new product HEAD and invalidates this exact-head QA verdict."
+}

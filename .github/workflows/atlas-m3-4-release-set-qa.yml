@@ -1,0 +1,38 @@
+name: Atlas M3.4 Qualified Release Set QA
+
+on:
+  pull_request:
+    paths:
+      - 'work-packages/QA-WP-024.json'
+      - 'authoring/factory/tests/qa_release_set.py'
+      - '.github/workflows/atlas-m3-4-release-set-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contradictory-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bind QA delta to exact frozen product head
+        shell: bash
+        env:
+          PRODUCT_HEAD: 41f2245e56b42a2e541d185f39a3edb5d8b6f01b
+        run: |
+          test "$(git merge-base "$PRODUCT_HEAD" HEAD)" = "$PRODUCT_HEAD"
+          git diff --name-only "$PRODUCT_HEAD"...HEAD | sort > /tmp/qa-paths.txt
+          cat > /tmp/expected-paths.txt <<'EOF'
+.github/workflows/atlas-m3-4-release-set-qa.yml
+authoring/factory/tests/qa_release_set.py
+work-packages/QA-WP-024.json
+EOF
+          diff -u /tmp/expected-paths.txt /tmp/qa-paths.txt
+      - name: Run independent contradictory QA
+        run: python authoring/factory/tests/qa_release_set.py
