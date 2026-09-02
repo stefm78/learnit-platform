@@ -18,11 +18,11 @@
   },
   "developmentBaseline": {
     "status": "held",
-    "workPackage": "M3.3",
+    "workPackage": "ATLAS-WP-018",
     "candidate": "Assisted authoring",
     "sourceCommit": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
-    "authorityIssue": null,
-    "note": "No M3.3 product work is authorized yet. Fresh accountable-owner arbitration must first determine whether a distinct Assisted Authoring milestone adds product value beyond the now-qualified M3.2/M3.2.5 AI Kit Factory."
+    "authorityIssue": 308,
+    "note": "ATLAS-WP-018 authorizes arbitration and bounded design only. No M3.3 product implementation is authorized until that arbitration proves distinct value beyond the qualified M3.2/M3.2.5 AI Kit Factory."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -230,13 +230,13 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "M3.3-ACCOUNTABLE-OWNER-ARBITRATION",
+    "id": "ATLAS-WP-018",
     "condition": "Before any M3.3 product implementation, challenge whether Assisted Authoring is still a distinct useful milestone now that M3.2/M3.2.5 already support AI authoring, repair, independent semantic review and deterministic PASS/HOLD. If justified, create a bounded authority; otherwise skip or redefine M3.3."
   },
   "review": {
     "lastReviewedAt": "2026-09-02",
     "lastReviewedBy": "Permanent Governor after M3.2 promotion and M3.2.5 real eight-domain qualification",
-    "decision": "M3_2_5_QUALIFIED_M3_3_HELD_PENDING_ARBITRATION",
+    "decision": "GO_WITH_CONDITIONS",
     "authorityIssue": 306,
     "nextReviewTrigger": "fresh M3.3 accountable-owner arbitration, M3.2/M3.2.5 regression, source-ingestion proposal, model/vendor integration proposal, human UX debt #272 reactivation, Gate3/Gate4 request or M4+ proposal"
   }
