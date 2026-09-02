@@ -398,3 +398,5 @@ Release identity and ZIP bytes are deterministic across input ordering and host-
 Rollback is intentionally simple: keep immutable release ZIPs and select a previously verified \`releaseSetId\`. M3.4 does not mutate a deployment pointer or publish remotely.
 
 Scale-100/Scale-500 tests are engineering fixtures only. They prove deterministic release-set mechanics, not semantic qualification of 100/500 real kits.
+
+Release-set verification proves deterministic internal integrity and exact binding to the supplied self-verifying FactoryRuns. The release ZIP is not cryptographically signed and does not authenticate a third-party publisher or origin. Any future origin-signing or remote-distribution trust model requires a separate gate.
