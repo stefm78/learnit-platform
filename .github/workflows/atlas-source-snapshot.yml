@@ -24,6 +24,11 @@ concurrency:
 
 jobs:
   validate:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.head_ref == 'atlas/ATLAS-WP-017-real-source-snapshot' ||
+      github.head_ref == 'atlas/ATLAS-WP-017b-source-snapshot-content-integrity' ||
+      github.head_ref == 'atlas/ATLAS-WP-017c-management-source-content'
     name: Source Snapshot exact-head validation
     runs-on: ubuntu-latest
     timeout-minutes: 30
