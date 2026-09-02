@@ -22,7 +22,9 @@ Current Atlas facts:
 - M3.0 Authoring Foundation and browser/Pages packaging are promoted as a separate authoring application;
 - M3.1 Pedagogical Quality Engine is promoted with frozen product HEAD `6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2`, independent QA HEAD `6ff592af68e6cc95bd479911a09388293c5528f5` and promotion merge `be3d5b2635836e8ce0d9a6ecf42d573efc9ef749`;
 - M3.1 stable authoring is published at https://stefm78.github.io/learnit-platform/authoring/ through main `601cade1376e6f87e71351fe3f201833a9356697`;
-- the M3.1 human gate accepted the AI-authoring orientation; sequence-level graphical human review remains deferred debt #272.
+- the M3.1 human gate accepted the AI-authoring orientation; sequence-level graphical human review remains deferred debt #272;
+- M3.2 AI Kit Factory is promoted via merge `39775e83d029f780bf0fa21783ea597ab1abc6b5`;
+- M3.2.5 Factory Reliability is promoted via merge `524cfc8b35654d7d54d3222a462fe582f4706a89` and qualified on a real eight-domain benchmark: 8 runs, 6 PASS, 2 justified HOLD, 0 human escalations, verdict `PASS_FACTORY_BENCHMARK_V1`.
 
 The legacy baseline is:
 
@@ -41,9 +43,10 @@ For current product work, read these sources in this order:
 2. [`ATLAS-WP-005`](work-packages/ATLAS-WP-005.json), [`ATLAS-WP-006`](work-packages/ATLAS-WP-006.json) and [`ATLAS-WP-007`](work-packages/ATLAS-WP-007.json) for the unchanged promoted learner M2.2 baseline;
 3. [`ATLAS-WP-009`](work-packages/ATLAS-WP-009.json), [`ATLAS-WP-010`](work-packages/ATLAS-WP-010.json) and [`ATLAS-WP-012`](work-packages/ATLAS-WP-012.json) for the promoted M3.0/M3.1 authoring product;
 4. [`docs/atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md`](docs/atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md) for the promoted M3.1 quality architecture;
-5. [`docs/atlas/M3_2_AI_KIT_FACTORY_DESIGN.md`](docs/atlas/M3_2_AI_KIT_FACTORY_DESIGN.md) and [`ATLAS-WP-013`](work-packages/ATLAS-WP-013.json) for the accepted M3.2 AI Kit Factory design;
-6. accepted architecture decisions under [`docs/architecture/decisions/`](docs/architecture/decisions/);
-7. [`GOVERNANCE.md`](GOVERNANCE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
+5. [`docs/atlas/M3_2_AI_KIT_FACTORY_DESIGN.md`](docs/atlas/M3_2_AI_KIT_FACTORY_DESIGN.md), [`ATLAS-WP-014`](work-packages/ATLAS-WP-014.json) and [`ATLAS-WP-015`](work-packages/ATLAS-WP-015.json) for the promoted and reliability-qualified M3.2 factory;
+6. [`authoring/factory/benchmark_contract.json`](authoring/factory/benchmark_contract.json) and [`authoring/factory/reliability.py`](authoring/factory/reliability.py) for the deterministic M3.2.5 qualification authority;
+7. accepted architecture decisions under [`docs/architecture/decisions/`](docs/architecture/decisions/);
+8. [`GOVERNANCE.md`](GOVERNANCE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 Historical work packages, reviews, handovers and roadmap stages remain evidence; they do not describe active work merely because they use terms such as “current” or “next gate”.
 
@@ -72,10 +75,10 @@ Historical work packages, reviews, handovers and roadmap stages remain evidence;
 
 Atlas M2.2 remains the promoted learner runtime baseline. M3.0 Authoring Foundation and M3.1 Pedagogical Quality are promoted and stably published as the separate authoring surface.
 
-M3.2 **AI Kit Factory** design is accepted. It deliberately rejects a generic Source-to-Draft/document-ingestion pipeline for this milestone. The authorized next gate is the bounded implementation: source files are read directly by an author AI, deterministic code gates canonical and structural pedagogical quality, and a logically independent reviewer AI gates semantic/source fidelity before a deterministic factory PASS/HOLD.
+M3.2 **AI Kit Factory** is promoted and M3.2.5 **Factory Reliability** is qualified. The real eight-domain benchmark produced 8 distinct self-verifying FactoryRuns: 6 PASS and 2 justified semantic HOLD, with all required domains covered, zero human escalation and final verdict `PASS_FACTORY_BENCHMARK_V1`.
 
-No model provider/API, learner-runtime AI, backend or canonical-kit contract change is authorized by M3.2.
+The factory still deliberately avoids a generic Source-to-Draft/document-ingestion subsystem, model-provider dependency, learner-runtime AI, backend and canonical-kit contract expansion. Real source/candidate/review corpora remain evidence artifacts rather than Git repository content.
 
 Human graphical/context review debt is tracked in #272 and remains non-blocking until human supervision becomes a first-class authoring workflow.
 
-M3.3, M3.4, Gate3, Gate4, M4+, backend, accounts, synchronization, remote catalog and runtime AI remain HOLD.
+M3.3 Assisted Authoring is the next possible product gate, but it remains HOLD pending fresh accountable-owner arbitration on whether it adds distinct value beyond the now-qualified factory. M3.4, Gate3, Gate4, M4+, backend, accounts, synchronization, remote catalog and runtime AI remain HOLD.

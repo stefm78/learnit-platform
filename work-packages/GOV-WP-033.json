@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-033",
+  "title": "Align canonical state after M3.2/M3.2.5 qualification",
+  "status": "in-progress",
+  "changeClass": "governance-canonical-state-alignment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 306,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.2.5-QUALIFIED"
+  },
+  "purpose": "Align machine-readable governor state and canonical top-level documentation with promoted M3.2 AI Kit Factory and qualified M3.2.5 Factory Reliability, without changing product code.",
+  "baseline": {
+    "baseCommit": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
+    "m3_2PromotionMerge": "39775e83d029f780bf0fa21783ea597ab1abc6b5",
+    "m3_2_5ReliabilityPromotionMerge": "524cfc8b35654d7d54d3222a462fe582f4706a89",
+    "finalSourceFreezeMerge": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
+    "realBenchmarkHead": "d30a0dfbf1fa5900af51ca5e628c32ed5587c4fe",
+    "realBenchmarkRun": 33602339398,
+    "realBenchmarkVerdict": "PASS_FACTORY_BENCHMARK_V1",
+    "humanUxDebtIssue": 272
+  },
+  "scope": {
+    "allowedPaths": [
+      "governance/governor-state.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "docs/atlas/README.md",
+      "work-packages/GOV-WP-033.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      ".github/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-014.json",
+      "work-packages/ATLAS-WP-015.json",
+      "work-packages/QA-WP-022.json"
+    ]
+  },
+  "invariants": [
+    "This package is documentation/governance only.",
+    "M3.2 AI Kit Factory is promoted; M3.2.5 Factory Reliability is promoted and real-source qualified.",
+    "Real benchmark evidence is recorded without adding source/candidate/review corpus payloads to Git.",
+    "The exact promoted M2.2 learner artifact remains unchanged.",
+    "No model/vendor API, backend, learner-runtime AI or canonical-kit contract change is authorized.",
+    "Human graphical/context review debt #272 remains deferred and non-blocking.",
+    "M3.3 remains HOLD pending fresh accountable-owner arbitration; M3.4, Gate3, Gate4 and M4+ remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact six-path diff.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Canonical state and top-level docs agree on M3.2 promoted and M3.2.5 qualified.",
+    "Benchmark facts agree: 8 runs, 6 PASS, 2 HOLD, 0 human escalations, all 8 domains, PASS_FACTORY_BENCHMARK_V1.",
+    "No product/runtime/workflow/contract path changed."
+  ],
+  "adversarialTests": [
+    "Reject wording that ATLAS-WP-014 is still the next active implementation gate.",
+    "Reject storing benchmark source/candidate/review payloads in Git as part of this alignment.",
+    "Reject implicit M3.3 authorization.",
+    "Reject closure or omission of debt #272.",
+    "Reject learner-runtime or canonical-contract changes.",
+    "Reject any diff outside the exact six allowed paths."
+  ],
+  "nonGoals": [
+    "M3.3 design or implementation",
+    "M3.4 scale/publishing",
+    "Human UX debt #272 implementation",
+    "Product/runtime/workflow/contract changes",
+    "Benchmark corpus storage in Git"
+  ],
+  "independentReview": [
+    "Repository governance and PR scope independently verify the metadata-only alignment."
+  ],
+  "execution": {
+    "branch": "gov/GOV-WP-033-m3-2-5-state",
+    "pullRequest": null,
+    "maximumChangedFiles": 6,
+    "phase": "CANONICAL_STATE_ALIGNMENT_PREPARED",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert only the six governance/documentation paths. Promoted M3.2/M3.2.5 code and external benchmark evidence remain authoritative."
+}
