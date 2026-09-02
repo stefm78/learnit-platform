@@ -18,12 +18,15 @@ from pathlib import Path
 import re
 import shutil
 import stat
+import sys
 import tempfile
 import unittest
 import uuid
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from authoring.factory import factory_gate as factory
 from authoring.factory import handoff
