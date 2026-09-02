@@ -1,0 +1,95 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:9dcdca76b2a0fc0c8e6cce93cc2d75adc033c4b05a7eb62dbdc69a095bb7d084",
+    "kitSha256": "sha256:9058a0d42c51ab5104d0f7852c4ea35caa4205e8118f591c2df47f5b85c5436c",
+    "sourceSetDigest": "sha256:67462089962c6f28ddc206b90288bf40cd4e06bd6782a9834508ff9e291ad67c",
+    "briefSha256": "sha256:aa0f4d8f60853d2663519fb5f6c5b4c910d5ffd8f25e8d91d661d1bc5ff84db0"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Le candidat reste fidèle à l'exercice 3 et à sa correction officielle. L'arbre complété reproduit correctement P(A)=0,8, P(Ā)=0,2, P(B|A)=0,6, P(B̄|A)=0,4, P(B|Ā)=0,1 et P(B̄|Ā)=0,9. Les probabilités et la variable X exploitées ensuite restent dans le périmètre exact des sources.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_math_specialite_examples_2024",
+          "locator": "PDF p. 6 (page imprimée 5), Exercice 3, Partie I, données initiales, définition de A et B et question 1",
+          "basis": "La source donne P(A)=0,8, P(B|A)=0,6 et P(B|Ā)=0,1 et définit A et B ; les autres poids de l'arbre sont leurs complémentaires, exactement comme dans le candidat."
+        },
+        {
+          "sourceId": "eduscol_math_specialite_correction_2024",
+          "locator": "PDF p. 4 (Correction p. 3/8), Exercice 3, Partie I, questions 1 à 5.a",
+          "basis": "La correction confirme l'arbre complété ainsi que P(A∩B)=0,48, P(B)=0,5, P(X=0)=0,18, P(X=2)=0,48 et P(X=1)=0,34."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Toutes les réponses ont été recalculées indépendamment et sont correctes. Le chemin A puis B lit 0,8 puis 0,6 et vaut 0,48 ; le chemin Ā puis B vaut 0,2×0,1=0,02 ; les deux chemins menant à B donnent P(B)=0,48+0,02=0,50 ; enfin P(X=1)=1−0,18−0,48=0,34.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_math_specialite_examples_2024",
+          "locator": "PDF p. 6 (page imprimée 5), Exercice 3, Partie I, données probabilistes et questions 2, 3 et 5.a",
+          "basis": "Les données de l'énoncé permettent de retrouver indépendamment les produits de chemins, la probabilité de B et les trois valeurs possibles de X."
+        },
+        {
+          "sourceId": "eduscol_math_specialite_correction_2024",
+          "locator": "PDF p. 4 (Correction p. 3/8), Exercice 3, Partie I, questions 2, 3 et 5.a",
+          "basis": "La correction donne explicitement 0,6×0,8=0,48, 0,6×0,8+0,2×0,1=0,5 et P(X=1)=0,34."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les stimuli fournissent désormais les informations nécessaires au moment où elles sont requises. L'arbre complet est présenté avant sa première lecture ; la validation sur Ā∩B fournit P(A)=0,8 et le poids 0,1 de la branche concernée ; les QCM ont une seule réponse mathématiquement défendable et les activités à compléter ont un jeton correct non équivalent aux distracteurs.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Le but du brief est couvert : le candidat fait réellement lire les poids d'un chemin de l'arbre, appliquer le produit sur ce chemin, traiter le chemin complémentaire puis réunir les deux chemins conduisant à une réponse correcte à Q2. Cette progression couvre la lecture de l'arbre et les probabilités associées à Q1 et Q2 sans exiger les autres questions de l'exercice.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_math_specialite_examples_2024",
+          "locator": "PDF p. 6 (page imprimée 5), Exercice 3, Partie I, questions 1 à 3",
+          "basis": "La source enchaîne précisément la complétion/lecture de l'arbre, la probabilité de réussir Q1 et Q2, puis la probabilité de réussir Q2 ; le candidat travaille ces mêmes notions dans le périmètre du brief."
+        },
+        {
+          "sourceId": "eduscol_math_specialite_correction_2024",
+          "locator": "PDF p. 4 (Correction p. 3/8), Exercice 3, Partie I, questions 1 à 3",
+          "basis": "La correction distingue la compétence de représentation de l'arbre puis les calculs P(A∩B) et P(B), tous effectivement travaillés par le candidat."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "pass",
+      "summary": "Les validations testent l'objectif sur des opérations distinctes plutôt que par répétition littérale : la première change de chemin et exige de déduire P(Ā)=0,2 avant le produit ; la seconde réunit deux chemins pour obtenir une probabilité totale. Le transfert passe ensuite de l'arbre à la variable de note X et à une autre représentation probabiliste, tout en restant explicitement supporté par la source.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_math_specialite_examples_2024",
+          "locator": "PDF p. 6 (page imprimée 5), Exercice 3, Partie I, questions 2, 3 et 5.a",
+          "basis": "La source permet successivement le calcul d'un chemin, la réunion des chemins conduisant à B puis le passage à la distribution de la note X."
+        },
+        {
+          "sourceId": "eduscol_math_specialite_correction_2024",
+          "locator": "PDF p. 4 (Correction p. 3/8), Exercice 3, Partie I, questions 2, 3 et 5.a",
+          "basis": "La correction confirme les trois cadres utilisés pour validation et transfert : P(A∩B)=0,48, P(B)=0,5 et la distribution de X avec P(X=1)=0,34."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le niveau de langage, les calculs et la progression sont adaptés à un élève de terminale générale en spécialité mathématiques. Les 21 minutes estimées respectent le budget de 25 minutes, et l'arbre est désormais présenté de façon suffisamment explicite pour permettre un travail autonome sur le but annoncé.",
+      "evidence": []
+    }
+  },
+  "findings": [],
+  "limitations": [
+    "La revue établit la fidélité sémantique, la correction des réponses, la couverture du brief et l'adéquation statique du kit ; elle ne démontre ni rétention, ni maîtrise durable, ni efficacité pédagogique mesurée."
+  ],
+  "verdict": "PASS_SEMANTIC_REVIEW_V1"
+}

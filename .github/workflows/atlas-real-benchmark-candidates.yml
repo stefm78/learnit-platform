@@ -217,6 +217,17 @@ jobs:
           python -B authoring/factory/reliability.py verify-run \
             --run "${EVD}/factory-runs/law.json"
 
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/mathematics/candidate.json \
+            --brief authoring/factory/real-benchmark/mathematics/learner-brief.json \
+            --review authoring/factory/real-benchmark/reviews/mathematics.json \
+            --resource eduscol_math_specialite_examples_2024@2024="${SRC}/math-exercises.pdf" \
+            --resource eduscol_math_specialite_correction_2024@2024="${SRC}/math-correction.pdf" \
+            > "${EVD}/factory-runs/mathematics.json"
+
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/mathematics.json"
+
           set +e
           python -B authoring/factory/reliability.py run \
             --kit authoring/factory/real-benchmark/benchmark-cases/computer-science-v1-hold/candidate.json \
