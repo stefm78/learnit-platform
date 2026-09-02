@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-021",
+  "title": "M3.4 Qualified Release Set implementation",
+  "status": "in-progress",
+  "changeClass": "product-authoring-qualified-release-set",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 322,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.4"
+  },
+  "purpose": "Implement a deterministic PASS-only release-set layer that composes exact canonical kits with self-verifying FactoryRuns, rejects cross-kit identity collisions, and proves 100/500-package engineering scale without remote publishing.",
+  "baseline": {
+    "baseCommit": "baa9eea87d58a960f834e1712b4bf64d65b2ab3d",
+    "designWorkPackage": "ATLAS-WP-020",
+    "designIssue": 320,
+    "designMerge": "baa9eea87d58a960f834e1712b4bf64d65b2ab3d",
+    "designVerdict": "PASS_M3_4_QUALIFIED_RELEASE_SET_DESIGN_TO_IMPLEMENTATION_GATE",
+    "m3_3PromotionMerge": "c102ca81f3b144bea1140860ef633a0d01987d59",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-021.json",
+      "authoring/factory/release_set.py",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_release_set.py",
+      ".github/workflows/atlas-m3-4-release-set-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/handoff.py",
+      "authoring/v2/**",
+      "authoring/skills/**",
+      "contracts/**",
+      "apps/**",
+      "governance/**",
+      "docs/**"
+    ]
+  },
+  "invariants": [
+    "Only self-verifying PASS FactoryRuns can enter a qualified release set.",
+    "Exact kit bytes must match FactoryRun generatedKit evidence.",
+    "Canonical Atlas validation is rerun only to trust embedded identity/digest claims; semantic review is not rerun.",
+    "One packageLineageId appears at most once per release set.",
+    "Revision ID reused with a different digest anywhere in the release set is a hard HOLD.",
+    "Release identity and ZIP bytes are independent of input order and host paths.",
+    "Release ZIP contains only release-set.json, exact kits and exact FactoryRuns.",
+    "Rollback is prior immutable release-set selection, not mutable deployment state.",
+    "Scale-100 and Scale-500 are engineering fixtures and make no semantic-quality claim.",
+    "No network, repository write, remote publication, catalog, backend, provider integration, asset contract or learner-runtime change is introduced."
+  ],
+  "requiredEvidence": [
+    "Exact five-path implementation delta.",
+    "Repository governance PASS and PR scope PASS.",
+    "M3.2, M3.2.5 and M3.3 regression suites remain green.",
+    "PASS-only release admission.",
+    "Exact kit/FactoryRun hash binding.",
+    "Deterministic order/path-independent release identity and ZIP.",
+    "Cross-kit revision collision rejection.",
+    "Archive extra/traversal/duplicate/tamper rejection.",
+    "Scale-100 deterministic build and verification PASS.",
+    "Scale-500 deterministic build and verification PASS.",
+    "Prior release remains verifiable after a newer release exists.",
+    "Static scan shows no network/repository-write/private review-context surface.",
+    "Independent contradictory QA binds one exact frozen product HEAD."
+  ],
+  "adversarialTests": [
+    "HOLD FactoryRun injection.",
+    "One-byte kit drift after FactoryRun.",
+    "Duplicate package lineage.",
+    "Same revision ID with different digest across packages.",
+    "Tampered release manifest.",
+    "Extra ZIP member.",
+    "Traversal or duplicate ZIP member.",
+    "Noncanonical ZIP encoding/metadata.",
+    "Input order reversal.",
+    "Host-path relocation.",
+    "Synthetic scale evidence mislabeled as semantic qualification."
+  ],
+  "nonGoals": [
+    "Remote publishing",
+    "GitHub Releases automation",
+    "Asset/media schema",
+    "Source/review corpus",
+    "Semantic batch review",
+    "Backend/catalog/accounts/sync/marketplace",
+    "Provider/model integration",
+    "Learner runtime",
+    "Human graphical review debt #272"
+  ],
+  "independentReview": [
+    "Product implementation is bounded to five paths.",
+    "A later disjoint QA package must attack the frozen product head and may not repair product files."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-021-m3-4-qualified-release-set",
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "pullRequest": null,
+    "maximumChangedFiles": 5,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the additive release-set module, tests/workflow/readme update and work-package metadata. Promoted M3.2/M3.2.5/M3.3 and learner runtime remain unchanged."
+}

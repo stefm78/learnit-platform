@@ -354,3 +354,51 @@ Review re-entry fails closed on archive tampering, unsafe/duplicate/undeclared m
 A valid semantic PASS produces a self-verifying PASS FactoryRun. A justified semantic HOLD produces a self-verifying HOLD FactoryRun. Minor-only findings preserve the already-authorized M3.2 PASS semantics.
 
 The handoff layer does not repair kits, choose a model, publish content, change `learnit.kit.v2`, or run inside the learner.
+
+
+## M3.4 qualified release sets
+
+M3.4 is a local deterministic scale/release layer, not a remote publishing system.
+
+Build one immutable qualified release set from already self-verifying PASS FactoryRuns and their exact canonical kits:
+
+\`\`\`bash
+python -B authoring/factory/release_set.py build \
+  --entry ./runs/math.json=./kits/math.json \
+  --entry ./runs/physics.json=./kits/physics.json \
+  --out LEARNIT_RELEASE_SET.zip
+\`\`\`
+
+Verify the portable artifact offline:
+
+\`\`\`bash
+python -B authoring/factory/release_set.py verify \
+  --release LEARNIT_RELEASE_SET.zip
+\`\`\`
+
+The release ZIP contains only:
+
+\`\`\`text
+release-set.json
+kits/<package-lineage-id>/<package-revision-id>.json
+factory-runs/<run-id-hex>.json
+\`\`\`
+
+Admission is fail-closed:
+
+- every FactoryRun must self-verify and have a PASS factory decision;
+- exact kit bytes must match the run's \`generatedKit.sha256\`;
+- canonical Atlas identity/revision digests must validate;
+- one package lineage may appear only once in a release set;
+- a revision ID reused with a different digest across the set is rejected;
+- archive traversal, duplicate/extra members and tampering are rejected.
+
+Release identity and ZIP bytes are deterministic across input ordering and host-path relocation.
+
+Rollback is intentionally simple: keep immutable release ZIPs and select a previously verified \`releaseSetId\`. M3.4 does not mutate a deployment pointer or publish remotely.
+
+Scale-100/Scale-500 tests are engineering fixtures only. They prove deterministic release-set mechanics, not semantic qualification of 100/500 real kits.
+
+Release-set verification proves deterministic internal integrity and exact binding to the supplied self-verifying FactoryRuns. Before release admission, M3.4 also fails closed if a self-verifying FactoryRun's embedded factory evidence contradicts an exact factory PASS: canonical evidence must be true, pedagogical quality must be STRONG/EXCELLENT_BY_PROFILE, semantic review must be PASS, and blocking/major semantic finding counts must be zero. Offline verification additionally requires `release-set.json` to be the exact canonical JSON byte representation, not merely a semantically equivalent JSON object.
+
+The release ZIP is not cryptographically signed and does not authenticate a third-party publisher or origin. Any future origin-signing or remote-distribution trust model requires a separate gate.
