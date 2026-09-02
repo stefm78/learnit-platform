@@ -290,6 +290,32 @@ class ReleaseSetTests(unittest.TestCase):
                     specs([(run_a, kit_a), (run_b, kit_b)]), root / "collision.zip"
                 )
 
+    def test_03b_package_revision_id_cannot_bind_different_exact_kit_bytes(self):
+        package_revision_id = fake_uuid("shared-package-revision")
+        package_revision_digest = "sha256:" + "1" * 64
+
+        def row(index: int, kit_sha: str):
+            entry = {
+                "packageLineageId": fake_uuid(f"lineage-{index}"),
+                "packageRevisionId": package_revision_id,
+                "packageRevisionDigest": package_revision_digest,
+                "kit": {"bytes": 1, "sha256": kit_sha},
+                "factoryRun": {"runId": "sha256:" + f"{index:064x}"},
+            }
+            revisions = [
+                ("package", package_revision_id, package_revision_digest),
+            ]
+            return (entry, {}, revisions)
+
+        with self.assertRaisesRegex(
+            release_set.ReleaseSetInputError,
+            "package revision exact-byte collision",
+        ):
+            release_set.collision_check([
+                row(1, "sha256:" + "2" * 64),
+                row(2, "sha256:" + "3" * 64),
+            ])
+
     def test_04_archive_tamper_extra_traversal_and_duplicate_members_fail(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
