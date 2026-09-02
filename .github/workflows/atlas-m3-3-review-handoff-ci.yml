@@ -29,6 +29,7 @@ concurrency:
 jobs:
   exact-head:
     name: M3.3 review-handoff exact-head evidence
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'atlas/ATLAS-WP-019-m3-3-review-handoff'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
