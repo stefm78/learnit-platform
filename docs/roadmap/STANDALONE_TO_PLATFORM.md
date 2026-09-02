@@ -6,9 +6,9 @@ RC718 remains the frozen legacy standalone product. The successor is a distinct 
 
 The roadmap is evidence-gated. Repository state, accepted ADRs and work packages override this document if they differ.
 
-> **Current status (post-Atlas M3.2.5):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation, M3.1 Pedagogical Quality and M3.2 AI Kit Factory are promoted. M3.2.5 Factory Reliability is qualified on a real eight-domain benchmark. The learner runtime remains the exact M2.2 artifact; the separate authoring surface remains under `/authoring/`. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
+> **Current status (post-Atlas M3.3):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation, M3.1 Pedagogical Quality, M3.2 AI Kit Factory and M3.3 Portable Review Handoff are promoted. M3.2.5 Factory Reliability remains qualified on a real eight-domain benchmark. The learner runtime remains the exact M2.2 artifact; the separate authoring/factory capabilities remain outside learner runtime. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
 
-## Active post-M3.2.5 roadmap — M3.3 arbitration pending
+## Active post-M3.3 roadmap — M3.4 held pending arbitration
 
 ### P0 — canonical state alignment
 
@@ -78,13 +78,26 @@ The additive reliability layer is promoted under `ATLAS-WP-015`. Real-source qua
 
 Final qualification evidence: 8 runs, 6 PASS, 2 justified semantic HOLD, 0 human escalations, all domains covered, `PASS_FACTORY_BENCHMARK_V1`. Source/candidate/review payloads are retained as evidence artifacts rather than a repository corpus.
 
-### M3.3 — Assisted authoring — **HOLD**
+### M3.3 — Portable Review Handoff — **PROMOTED**
 
-Optional LLM assistance outside the learner runtime. Because M3.2/M3.2.5 already provide AI authoring, repair, independent semantic review and deterministic qualification, M3.3 must first justify a distinct operator-facing product capability rather than duplicate the factory. Suggestions must remain reviewable and become canonical static content before distribution. Separate authority and fresh accountable-owner arbitration are required.
+The historical "optional LLM assistance" concept was challenged and redefined. M3.3 now productizes the provider-neutral transport/re-entry boundary around the existing independent semantic reviewer:
 
-### M3.4 — Scale and publishing — **HOLD**
+```text
+candidate + learner brief + admitted exact sources
+→ deterministic one-case review ZIP
+→ separate reviewer context
+→ learnit.atlas.semantic_review.v1
+→ fail-closed review re-entry
+→ self-verifying FactoryRun PASS/HOLD
+```
 
-Batch validation, asset handling, collision diagnostics, rollback and 100/500-kit scale evidence before any broader publishing model. Separate authority required.
+Promotion evidence: frozen product HEAD `d4fe01f94ce38b2cd4d884930555f2bce971f561`, contradictory QA PASS, fresh separate-context real PASS/HOLD qualification, promotion merge `c102ca81f3b144bea1140860ef633a0d01987d59`.
+
+No provider API, learner-runtime AI, source-ingestion/OCR layer, automatic semantic repair or automatic publication was added.
+
+### M3.4 — Scale and publishing — **HOLD / NEXT POSSIBLE GATE**
+
+Batch validation, asset handling, collision diagnostics, rollback and 100/500-kit scale evidence remain only a candidate direction. Before implementation, fresh accountable-owner arbitration must prove that scale/publishing is the next highest-value capability and freeze exact publishing/evidence boundaries. Separate authority required.
 
 ### M4+ — platform evolution
 

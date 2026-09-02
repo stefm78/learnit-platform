@@ -27,6 +27,7 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - Human sequence-level graphical review debt for AI-authored kits is tracked as issue `#272` and remains deferred/non-blocking.
 - M3.2 AI Kit Factory is promoted under `ATLAS-WP-014` / issue `#286`, preserving the accepted direct-source author AI → deterministic structural gates → independent semantic review → deterministic PASS/HOLD architecture.
 - M3.2.5 Factory Reliability is promoted and real-source qualified under `ATLAS-WP-015` / issue `#297`: 8 distinct real FactoryRuns across all required domains, 6 PASS, 2 justified semantic HOLD, zero human escalations, final verdict `PASS_FACTORY_BENCHMARK_V1`.
+- M3.3 Portable Review Handoff is promoted under `ATLAS-WP-019` / issue `#310`, frozen product HEAD `d4fe01f94ce38b2cd4d884930555f2bce971f561`, independent QA PASS and promotion merge `c102ca81f3b144bea1140860ef633a0d01987d59`.
 - Backend, accounts, synchronization, remote catalog, commerce, tenancy and marketplace remain held.
 
 ## Current decisions
@@ -61,10 +62,11 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 4. `../atlas/M3_1_PEDAGOGICAL_QUALITY_ENGINE_DESIGN.md` and `../../authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V1.md`;
 5. `../atlas/M3_2_AI_KIT_FACTORY_DESIGN.md`, `../../work-packages/ATLAS-WP-014.json` and `../../work-packages/ATLAS-WP-015.json`;
 6. `../../authoring/factory/benchmark_contract.json` and `../../authoring/factory/reliability.py`;
-7. `../atlas/README.md`;
-8. `../atlas/CONTRACTS.md`;
-9. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
-10. `../../GOVERNANCE.md`.
+7. `../atlas/M3_3_PORTABLE_REVIEW_HANDOFF_DESIGN.md`, `../../work-packages/ATLAS-WP-019.json` and `../../authoring/factory/handoff.py`;
+8. `../atlas/README.md`;
+9. `../atlas/CONTRACTS.md`;
+10. `decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md`;
+11. `../../GOVERNANCE.md`.
 
 Historical `reference-v1/` material remains non-canonical.
 
@@ -74,8 +76,8 @@ Atlas M1, M2 and M2.2 learner milestones are promoted historical steps. The exac
 
 M3.0 Authoring Foundation, M3.0 browser/Pages packaging and M3.1 Pedagogical Quality are promoted, independently tested and stably published under `/authoring/`.
 
-M3.2 **AI Kit Factory** is promoted and M3.2.5 **Factory Reliability** is qualified. The accepted architecture remains: source files + learner brief → author AI → canonical/M3.1 structural gates → independent semantic reviewer → deterministic factory PASS/HOLD.
+M3.2 **AI Kit Factory** is promoted, M3.2.5 **Factory Reliability** is qualified and M3.3 **Portable Review Handoff** is promoted. The accepted architecture remains: source files + learner brief → author AI → canonical/M3.1 structural gates → independent semantic reviewer → deterministic factory PASS/HOLD, with M3.3 adding deterministic portable transport/re-entry around that reviewer boundary.
 
-The real qualification benchmark covers mathematics, physics, computer science, history, law, medicine, literature and management with 8 distinct self-verifying FactoryRuns, 6 PASS, 2 justified semantic HOLD, zero human escalations and verdict `PASS_FACTORY_BENCHMARK_V1`. Benchmark source/candidate/review payloads remain external evidence rather than a permanent Git corpus.
+The real M3.3 promotion evidence binds frozen product HEAD `d4fe01f94ce38b2cd4d884930555f2bce971f561`, independent contradictory QA and fresh separate-context PASS/HOLD reviewer paths. The PASS path produced FactoryRun `sha256:348a48f520ac148e497667c512fd31637aff11fb72bef616d73e25d15ebbfcb9`; the justified HOLD path produced FactoryRun `sha256:2136d4db43678a6e39f47b193bf93a6f405fff6f9fc42bff2ede6053ea3ea2f3`.
 
-Human graphical/context review debt remains open as issue `#272`. M3.3 Assisted Authoring is the next possible gate but remains HOLD pending fresh accountable-owner arbitration; M3.4, Gate3, Gate4 and M4+ platform evolution remain separately held.
+Human graphical/context review debt remains open as issue `#272`. M3.4 Scale and Publishing is the next possible gate and remains HOLD pending fresh accountable-owner arbitration/design; Gate3, Gate4 and M4+ platform evolution remain separately held.
