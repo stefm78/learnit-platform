@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "QA-WP-024",
   "title": "M3.4 Qualified Release Set contradictory QA",
-  "status": "under-qa",
+  "status": "accepted",
   "changeClass": "independent-contradictory-qa",
   "riskClass": "high",
   "purpose": "Independently attack the exact frozen M3.4 Qualified Release Set product HEAD without modifying product code, and issue PASS only if all #328 fail-closed, determinism, scale, security and trust-boundary requirements survive.",
@@ -124,15 +124,28 @@
       "id": "QA-WP-024-F01",
       "severity": "blocking",
       "attackCase": 3,
-      "status": "pending-execution",
-      "summary": "A self-rehashed FactoryRun whose embedded semanticReview remains HOLD may be accepted after its top-level factory verdict/finalDecision are forged to PASS, because the frozen verifier appears to check hash consistency without re-deriving decision semantics."
+      "status": "confirmed",
+      "frozenProductHead": "41f2245e56b42a2e541d185f39a3edb5d8b6f01b",
+      "observed": "A genuine HOLD FactoryRun was mutated only at factoryEvidence.verdict/reasons, top-level decision and evidenceBundle.finalDecision, then all deterministic hashes/runId were recomputed. reliability.verify_run accepted the internally rehashed object and release_set.build_release_archive admitted it despite embedded factoryEvidence.semanticReview.verdict remaining HOLD.",
+      "expected": "M3.4 admission must reject a forged PASS decision that contradicts embedded semantic-review evidence.",
+      "reproduction": "python -B authoring/factory/tests/qa_release_set.py :: test_03_forged_pass_must_not_override_embedded_semantic_hold",
+      "evidenceRun": 33626592323,
+      "evidenceJob": 100235759276,
+      "failure": "ReleaseSetInputError not raised : QA-WP-024 attack #3: release_set accepted a forged PASS whose embedded semanticReview verdict is HOLD"
     },
     {
       "id": "QA-WP-024-F02",
       "severity": "major",
       "attackCase": "25/30",
-      "status": "pending-execution",
-      "summary": "A byte-only representation change to release-set.json may remain verifiable after deterministic ZIP reassembly, yielding different release ZIP bytes under the same releaseSetId because manifest raw bytes do not appear to be required to equal canonical(manifest)."
+      "status": "confirmed",
+      "frozenProductHead": "41f2245e56b42a2e541d185f39a3edb5d8b6f01b",
+      "observed": "release-set.json was changed only from canonical JSON bytes to a pretty-printed byte representation of the exact same JSON object, then repacked with deterministic ZIP metadata. The archive bytes changed, but verify_release_archive still returned PASS under the unchanged releaseSetId.",
+      "expected": "Offline verification must reject tampered/noncanonical release-set.json bytes so a releaseSetId cannot verify multiple byte-distinct release ZIPs.",
+      "reproduction": "python -B authoring/factory/tests/qa_release_set.py :: test_10_manifest_representation_tamper_must_fail_closed",
+      "evidenceRun": 33626592323,
+      "evidenceJob": 100235759276,
+      "reproducedReleaseSetId": "sha256:5b6834d162eb3af4589f48af53102114459fbfafc2100b883cb9c87e04aa8d38",
+      "failure": "ReleaseSetInputError not raised : QA-WP-024 attack #25/#30: verifier accepted noncanonical release-set.json bytes, allowing different ZIP bytes under the same releaseSetId"
     }
   ],
   "nonGoals": [
@@ -147,8 +160,25 @@
     "maximumChangedFiles": 3,
     "pullRequest": 330,
     "workflow": "Atlas M3.4 Qualified Release Set Contradictory QA",
-    "workflowRun": null,
-    "finalVerdict": null
+    "workflowRun": 33626592323,
+    "finalVerdict": "HOLD_QA_WP_024_EXACT_HEAD_CONTRADICTORY_QA",
+    "workflowJob": 100235759276,
+    "productRegression": {
+      "status": "PASS",
+      "tests": 11,
+      "durationSeconds": 49,
+      "note": "Frozen product test_release_set.py passed before the independent contradictory oracle."
+    },
+    "contradictoryOracle": {
+      "status": "HOLD",
+      "tests": 17,
+      "passed": 15,
+      "failed": 2,
+      "durationSeconds": 50.042
+    },
+    "repositoryGovernanceRun": 33626595291,
+    "repositoryGovernance": "PASS",
+    "promotionEffect": "PR #323 remains unmergeable by M3.4 project policy until the product lane repairs the confirmed defects, freezes a new product HEAD, reruns product CI, and obtains a fresh exact-head contradictory QA result."
   },
   "rollback": "Delete or revert only the three QA-WP-024 paths. No product or promoted upstream authority is modified.",
   "independentReview": [
