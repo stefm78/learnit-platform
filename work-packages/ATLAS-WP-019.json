@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-019",
+  "title": "M3.3 Portable Review Handoff implementation",
+  "status": "in-progress",
+  "changeClass": "product-authoring-review-handoff",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 310,
+    "program": "PROJECT-ATLAS",
+    "milestone": "M3.3"
+  },
+  "purpose": "Implement a deterministic provider-neutral one-case review bundle and fail-closed semantic-review re-entry around the promoted M3.2/M3.2.5 factory.",
+  "baseline": {
+    "baseCommit": "16bae3e7a5c58f667609e481d4d38f2b1b2fa584",
+    "designIssue": 308,
+    "designMerge": "e00c25cbf63e0188c53f417ca4091033afcff2a5",
+    "ciRouteIssue": 311,
+    "ciRouteMerge": "16bae3e7a5c58f667609e481d4d38f2b1b2fa584",
+    "m3_2PromotionMerge": "39775e83d029f780bf0fa21783ea597ab1abc6b5",
+    "m3_2_5ReliabilityPromotionMerge": "524cfc8b35654d7d54d3222a462fe582f4706a89"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-019.json",
+      "authoring/factory/handoff.py",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_review_handoff.py",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/source_admission.py",
+      "authoring/factory/benchmark_contract.json",
+      "authoring/factory/benchmark_sources_v1.json",
+      "authoring/skills/**",
+      "authoring/v2/**",
+      "contracts/**",
+      "apps/**",
+      "authoring/studio/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "M3.2 factory_gate.py, M3.2.5 reliability.py and SourceAdmission remain byte-unchanged upstream authorities.",
+    "One review bundle contains exactly one candidate case.",
+    "The bundle contains exact candidate, learner brief, FactoryContext, quality report, source catalog, SourceAdmission records, exact source bytes, exact reviewer skill and deterministic REVIEW_REQUEST.md.",
+    "Author scratchpad, hidden reasoning, chat logs and active author context have no input surface.",
+    "Review bundle identity and ZIP bytes are deterministic and independent of host input paths.",
+    "Only exact SourceAdmission PASS records reproducible from the current curated catalog and exact source bytes may be packaged.",
+    "Review re-entry requires exact target binding and false/false reviewer independence declarations.",
+    "Existing semantic PASS-with-minor behavior is preserved; the handoff layer cannot convert semantic HOLD to PASS.",
+    "FactoryRun creation delegates to promoted M3.2.5 reliability authority and self-verifies.",
+    "No network, provider API, source ingestion/OCR, learner runtime, Studio UI, automatic publication or repository source corpus is introduced.",
+    "M3.4, Gate3, Gate4 and M4+ remain HOLD."
+  ],
+  "requiredEvidence": [
+    "Exact five-path product diff.",
+    "Repository governance PASS and PR scope PASS.",
+    "Dedicated exact-head M3.3 workflow PASS.",
+    "Existing M3.2, M3.2.5 and SourceAdmission product tests remain PASS.",
+    "Two identical logical inputs at different host paths produce byte-identical review ZIPs.",
+    "Exact reviewer skill and deterministic REVIEW_REQUEST.md are included and hash-bound.",
+    "Source drift after admission fails closed.",
+    "SourceAdmission HOLD prevents packaging.",
+    "Tampered, duplicate, unsafe or undeclared ZIP members fail closed.",
+    "Stale review target and independence violations fail before FactoryRun creation.",
+    "PASS review yields a self-verifying PASS FactoryRun.",
+    "Justified semantic HOLD yields a self-verifying HOLD FactoryRun.",
+    "Minor-only finding preserves existing PASS semantics.",
+    "No network/provider primitive is introduced.",
+    "Input candidate, brief, source, admission, handoff and review files remain unmodified."
+  ],
+  "adversarialTests": [
+    "Same logical inputs at different physical paths.",
+    "One-byte source drift after SourceAdmission.",
+    "Pre-ingestion/permission HOLD admission.",
+    "Tampered candidate member.",
+    "Undeclared extra archive member.",
+    "Duplicate archive member.",
+    "Path traversal archive member.",
+    "Stale semantic review target.",
+    "authorScratchpadSeen=true.",
+    "authorActiveContextReused=true.",
+    "Unknown review evidence source ID.",
+    "Semantic major HOLD.",
+    "Semantic minor-only PASS.",
+    "Attempted provider/network primitive."
+  ],
+  "nonGoals": [
+    "Model/provider integration",
+    "Chat UI",
+    "Source-to-Draft or OCR",
+    "Automatic semantic repair",
+    "Automatic publishing",
+    "Repository source/kit corpus",
+    "Canonical kit schema change",
+    "Learner runtime change",
+    "Human graphical overview #272",
+    "M3.4/Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "QA-WP-023 must be disjoint and non-repairing.",
+    "Final independent QA must bind the exact frozen ATLAS-WP-019 product head.",
+    "At least one real portable PASS handoff and one real portable HOLD handoff are required before promotion."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-019-m3-3-review-handoff",
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "pullRequest": null,
+    "maximumChangedFiles": 5,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove the additive handoff module/tests/workflow, restore factory README and remove ATLAS-WP-019 metadata. Promoted M3.2/M3.2.5 authorities and learner runtime remain unchanged."
+}
