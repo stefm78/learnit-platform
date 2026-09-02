@@ -1,0 +1,142 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:1de535fab4fd04b37eae818c17b9580988934db3b1933dd70bb3c2101d13c88f",
+    "kitSha256": "sha256:c6be93498bbc9c8da856c0c892e03bd0aa1e94a0217e2d31480cf613b8eb5a39",
+    "sourceSetDigest": "sha256:896f01f8120fdf4e449302e4d5710fc04d125e1d982f6bb053b09f6f978d7685",
+    "briefSha256": "sha256:537785554e8bf775845d65a41fd1dd4415e847dfaf011114ee0709fa7d205cca"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les scénarios, erreurs médicamenteuses et principales mesures de prévention du kit sont fidèles au Flash HAS : erreur de posologie de lamotrigine, erreur de saisie de colchicine, erreur de jour d'administration du méthotrexate, interdiction de retranscription par un professionnel non habilité, analyse approfondie lorsqu'une copie par un prescripteur est nécessaire, support numérique unique et interopérabilité. Une formulation du transfert simplifie toutefois la préconisation relative aux droits d'accès et profils utilisateurs ; ce défaut limité est consigné comme mineur.",
+      "evidence": [
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 1, Évènement 1 — cause immédiate et causes profondes",
+          "basis": "La source décrit la retranscription ayant introduit 125 mg de lamotrigine dès l'initiation au lieu de la progression prescrite et la qualifie d'erreur de posologie."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 2, Évènements 2 et 3",
+          "basis": "La source indique respectivement la saisie de 5 mg de colchicine au lieu de 0,5 mg et l'administration du méthotrexate une semaine avant la date prescrite après une retranscription papier erronée."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 2, section « Pour que cela ne se reproduise pas »",
+          "basis": "La source interdit la retranscription par les professionnels non habilités à prescrire et exige, lorsqu'une copie par un prescripteur est nécessaire, une vérification approfondie incluant dosages, posologies, durées, voies d'administration et interactions."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 3, liste « Pour gérer les risques liés aux (re)transcriptions »",
+          "basis": "La source préconise un support unique numérique, l'interopérabilité, des droits d'accès restreints aux LAP et des profils utilisateurs adaptés."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Les réponses déclarées correctes sont bien les réponses soutenues par le Flash HAS. Les scénarios chiffrés correspondent aux évènements sources et aucune option concurrente ne constitue une seconde réponse correcte.",
+      "evidence": [
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 1, Évènement 1",
+          "basis": "Le passage de la progression 25 mg, 50 mg puis 75 mg à 125 mg dès l'initiation confirme l'erreur retenue dans la première activité."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 2, section « Pour que cela ne se reproduise pas »",
+          "basis": "La source confirme à la fois l'interdiction de retranscription par un professionnel non habilité et l'analyse approfondie requise lorsqu'une copie par un prescripteur est nécessaire."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 2, Évènement 2 et recommandation sur la vérification approfondie",
+          "basis": "La saisie de 5 mg au lieu de 0,5 mg est exacte et les dosages et posologies figurent explicitement parmi les éléments à vérifier."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 3, préconisations de gestion des risques",
+          "basis": "Le support unique numérique et l'interopérabilité figurent explicitement parmi les mesures recommandées, ce qui rend la réponse du transfert nettement préférable aux distracteurs contraires au texte."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les cinq activités déterminent une réponse unique dans le cadre du document source. Aucun distracteur n'est équivalent à la réponse déclarée correcte et les situations précisent suffisamment le rôle du professionnel et le contexte de la copie.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Dans le budget de 25 minutes, le kit mobilise les trois évènements du Flash et plusieurs catégories importantes de prévention : habilitation à prescrire, sécurisation d'une copie nécessaire, vérification des paramètres thérapeutiques et mesures organisationnelles ou numériques. Il n'est pas exhaustif sur toutes les préconisations du Flash, mais cette sélection ne compromet pas le but borné du learner brief.",
+      "evidence": [
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 1-2, Évènements 1 à 3",
+          "basis": "Les trois exemples sources couvrent une erreur de posologie, une erreur de saisie décimale et une erreur sur le jour d'administration ; ils sont tous mobilisés par le kit."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 2, section « Pour que cela ne se reproduise pas »",
+          "basis": "Le document fournit les règles centrales relatives à l'habilitation, à l'urgence et à l'analyse approfondie d'une copie nécessaire."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 3, liste des préconisations",
+          "basis": "Le document complète la prévention par des mesures organisationnelles, techniques et de formation, dont plusieurs sont reprises dans le transfert."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "pass",
+      "summary": "La première validation transpose la règle de vérification à une nouvelle instance clinique, la colchicine, avec un format de complétion ; la seconde réévalue la même règle sous forme de décision contextuelle lors d'une transition de soins. Le transfert change ensuite de niveau en demandant des mesures organisationnelles et numériques après un évènement analogue au méthotrexate. Ces activités restent source-supportées et sont suffisamment distinctes pour le profil statique examiné.",
+      "evidence": [
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 1-2, Évènements 1 et 2",
+          "basis": "Les deux évènements offrent des instances différentes d'erreurs introduites lors d'une retranscription, permettant de réappliquer la même règle de vérification à des médicaments et erreurs quantitatives différents."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 2, paragraphe sur la copie par les professionnels habilités à prescrire",
+          "basis": "La vérification approfondie avant validation constitue la connaissance commune testée par les deux validations sous des formulations et opérations de réponse différentes."
+        },
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 2-3, Évènement 3 et liste des préconisations",
+          "basis": "L'erreur de jour liée à une retranscription papier et les recommandations de support numérique unique, interopérabilité et contrôle des accès soutiennent le changement de cadrage du transfert vers la prévention au niveau des services."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le vocabulaire, la contextualisation clinique et la durée totale de 21 minutes conviennent à un professionnel ou étudiant en santé travaillant la sécurité médicamenteuse. Les explications restent centrées sur le Flash et n'exigent pas de connaissances médicales externes pour résoudre les activités.",
+      "evidence": []
+    }
+  },
+  "findings": [
+    {
+      "id": "MED-V3-F01",
+      "severity": "minor",
+      "dimension": "sourceFidelity",
+      "path": "$.courses[0].activities[4]",
+      "problem": "La réponse et l'explication du transfert parlent d'« adapter les droits d'accès ». Le Flash préconise plus précisément de mettre en place des droits d'accès restreints aux LAP et, séparément, des profils utilisateurs adaptés aux différents types de prescripteurs.",
+      "impact": "La reformulation conserve l'idée générale de contrôle des accès mais atténue la notion explicite de restriction et fusionne deux préconisations distinctes. Le reste de la réponse demeure correctement soutenu par la source.",
+      "fix": "Lors d'une révision ultérieure, reprendre fidèlement les deux éléments : droits d'accès restreints aux LAP et profils utilisateurs adaptés aux différents types de prescripteurs.",
+      "evidence": [
+        {
+          "sourceId": "has_flash_prescription_retranscription_2026",
+          "locator": "PDF p. 3, liste « Pour gérer les risques liés aux (re)transcriptions »",
+          "basis": "La source distingue explicitement « des droits d'accès restreints aux LAP » et « des profils utilisateurs adaptés aux différents types de prescripteurs »."
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "La revue porte sur la fidélité sémantique, la correction des réponses, la couverture et l'adéquation d'un kit statique ; elle ne démontre ni maîtrise durable, ni rétention, ni efficacité clinique ou pédagogique en situation réelle."
+  ],
+  "verdict": "PASS_SEMANTIC_REVIEW_V1"
+}

@@ -248,6 +248,16 @@ jobs:
           python -B authoring/factory/reliability.py verify-run \
             --run "${EVD}/factory-runs/management.json"
 
+          python -B authoring/factory/reliability.py run \
+            --kit authoring/factory/real-benchmark/medicine/candidate.json \
+            --brief authoring/factory/real-benchmark/medicine/learner-brief.json \
+            --review authoring/factory/real-benchmark/reviews/medicine.json \
+            --resource has_flash_prescription_retranscription_2026@2026-02="${SRC}/medicine.pdf" \
+            > "${EVD}/factory-runs/medicine.json"
+
+          python -B authoring/factory/reliability.py verify-run \
+            --run "${EVD}/factory-runs/medicine.json"
+
           set +e
           python -B authoring/factory/reliability.py run \
             --kit authoring/factory/real-benchmark/benchmark-cases/computer-science-v1-hold/candidate.json \
@@ -273,6 +283,49 @@ jobs:
           [[ "${hist_rc}" -eq 6 ]]
           python -B authoring/factory/reliability.py verify-run \
             --run "${EVD}/factory-runs/history-v1-hold.json"
+
+      - name: Run real eight-domain reliability benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVD="${RUNNER_TEMP}/real-benchmark-evidence"
+          cat > "${EVD}/benchmark-manifest.json" <<'JSON'
+          {
+            "schema": "learnit.atlas.factory_benchmark_manifest.v1",
+            "cases": [
+              {"caseId":"mathematics-v2-pass","domain":"mathematics","run":"__EVD__/factory-runs/mathematics.json","expectedDecision":"PASS","humanEscalation":false},
+              {"caseId":"physics-v2-pass","domain":"physics","run":"__EVD__/factory-runs/physics.json","expectedDecision":"PASS","humanEscalation":false},
+              {"caseId":"computer-science-v1-hold","domain":"computer-science","run":"__EVD__/factory-runs/computer-science-v1-hold.json","expectedDecision":"HOLD","humanEscalation":false},
+              {"caseId":"history-v1-hold","domain":"history","run":"__EVD__/factory-runs/history-v1-hold.json","expectedDecision":"HOLD","humanEscalation":false},
+              {"caseId":"law-v1-pass","domain":"law","run":"__EVD__/factory-runs/law.json","expectedDecision":"PASS","humanEscalation":false},
+              {"caseId":"medicine-v3-pass","domain":"medicine","run":"__EVD__/factory-runs/medicine.json","expectedDecision":"PASS","humanEscalation":false},
+              {"caseId":"literature-v2-pass","domain":"literature","run":"__EVD__/factory-runs/literature.json","expectedDecision":"PASS","humanEscalation":false},
+              {"caseId":"management-v2-pass","domain":"management","run":"__EVD__/factory-runs/management.json","expectedDecision":"PASS","humanEscalation":false}
+            ]
+          }
+          JSON
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          p=Path(os.environ['RUNNER_TEMP'])/'real-benchmark-evidence'/'benchmark-manifest.json'
+          text=p.read_text(encoding='utf-8').replace('__EVD__', str(p.parent))
+          p.write_text(text, encoding='utf-8')
+          PY
+          python -B authoring/factory/reliability.py benchmark \
+            --manifest "${EVD}/benchmark-manifest.json" \
+            --contract authoring/factory/benchmark_contract.json \
+            > "${EVD}/benchmark-report.json"
+          python - <<'PY'
+          from pathlib import Path
+          import json, os
+          p=Path(os.environ['RUNNER_TEMP'])/'real-benchmark-evidence'/'benchmark-report.json'
+          report=json.loads(p.read_text(encoding='utf-8'))
+          assert report['verdict']=='PASS_FACTORY_BENCHMARK_V1', report
+          assert report['metrics']['runs']==8, report
+          assert report['metrics']['pass']>=2, report
+          assert report['metrics']['hold']>=2, report
+          print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
+          PY
 
       - name: Assemble independent-review handoff
         shell: bash
