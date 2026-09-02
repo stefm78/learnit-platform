@@ -1,0 +1,154 @@
+name: Atlas M3.3 Fresh Independent Review Qualification
+
+on:
+  push:
+    branches:
+      - evidence/ATLAS-M3-3-fresh-independent-review
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  qualify:
+    name: Fresh independent PASS/HOLD review consumption
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PRODUCT_HEAD: d4fe01f94ce38b2cd4d884930555f2bce971f561
+      PRE_REPAIR_ARTIFACT_ID: "9810550596"
+      EXPECTED_LAW_BUNDLE_SHA256: 1e5210a121a2fa69d3ddd99756a285c9e6c2494a59fa7943a429e106eef4623c
+      EXPECTED_HISTORY_BUNDLE_SHA256: 2dcb407e4d91ecca53ab5e618d5a588a184d4caef0bbf760e2d542a6b322f421
+
+    steps:
+      - name: Capture evidence commit
+        shell: bash
+        run: echo "EVIDENCE_COMMIT=$GITHUB_SHA" >> "$GITHUB_ENV"
+
+      - name: Check out exact frozen product head
+        uses: actions/checkout@v4
+        with:
+          ref: d4fe01f94ce38b2cd4d884930555f2bce971f561
+          fetch-depth: 1
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Assert exact product head
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$PRODUCT_HEAD" ]]
+
+      - name: Download source/candidate evidence and fresh independent reviews
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/pre evidence/reviews out
+          curl --fail --silent --show-error --location             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$PRE_REPAIR_ARTIFACT_ID/zip"             --output evidence/pre.zip
+          unzip -q evidence/pre.zip -d evidence/pre
+          for name in law history; do
+            gh api               "repos/$GITHUB_REPOSITORY/contents/evidence/m3-3-fresh-reviews/$name.json?ref=$EVIDENCE_COMMIT"               --jq '.content' | tr -d '\n' | base64 --decode > "evidence/reviews/$name.json"
+          done
+
+      - name: Prepare and consume fresh Law review
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/handoff.py prepare-review             --kit evidence/pre/candidates/law.json             --brief evidence/pre/briefs/law.json             --source govinfo_sman_117_constitution=evidence/pre/sources/law.pdf             --admission govinfo_sman_117_constitution=evidence/pre/admissions/law.json             --out out/law.zip | tee out/law-prepare.json
+          printf '%s  %s\n' "$EXPECTED_LAW_BUNDLE_SHA256" out/law.zip | sha256sum --check --strict
+          python -B authoring/factory/handoff.py verify-review --handoff out/law.zip | tee out/law-verify.json
+          python -B authoring/factory/handoff.py consume-review             --handoff out/law.zip             --review evidence/reviews/law.json             --run-out out/law-run.json | tee out/law-consume.json
+          python -B authoring/factory/reliability.py verify-run out/law-run.json | tee out/law-run-verify.json
+
+      - name: Prepare and consume fresh History review
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/handoff.py prepare-review             --kit evidence/pre/candidates/history.json             --brief evidence/pre/briefs/history.json             --source eduscol_abibac_democratie_france_allemagne_2022=evidence/pre/sources/history.pdf             --admission eduscol_abibac_democratie_france_allemagne_2022=evidence/pre/admissions/history.json             --out out/history.zip | tee out/history-prepare.json
+          printf '%s  %s\n' "$EXPECTED_HISTORY_BUNDLE_SHA256" out/history.zip | sha256sum --check --strict
+          python -B authoring/factory/handoff.py verify-review --handoff out/history.zip | tee out/history-verify.json
+          python -B authoring/factory/handoff.py consume-review             --handoff out/history.zip             --review evidence/reviews/history.json             --run-out out/history-run.json | tee out/history-consume.json
+          python -B authoring/factory/reliability.py verify-run out/history-run.json | tee out/history-run-verify.json
+
+      - name: Assert fresh independent reviewer outcomes
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+
+          def load(p): return json.loads(Path(p).read_text(encoding="utf-8"))
+          law_r=load("evidence/reviews/law.json")
+          hist_r=load("evidence/reviews/history.json")
+          law_c=load("out/law-consume.json")
+          hist_c=load("out/history-consume.json")
+          law_run=load("out/law-run.json")
+          hist_run=load("out/history-run.json")
+
+          assert law_r["independence"] == {"authorScratchpadSeen": False, "authorActiveContextReused": False}
+          assert hist_r["independence"] == {"authorScratchpadSeen": False, "authorActiveContextReused": False}
+          assert law_r["verdict"] == "PASS_SEMANTIC_REVIEW_V1"
+          assert hist_r["verdict"] == "HOLD_SEMANTIC_REVIEW_V1"
+          assert law_c["reviewVerdict"] == "PASS_SEMANTIC_REVIEW_V1"
+          assert law_c["factoryDecision"]["verdict"] == "PASS_AI_KIT_FACTORY_V1"
+          assert hist_c["reviewVerdict"] == "HOLD_SEMANTIC_REVIEW_V1"
+          assert hist_c["factoryDecision"]["verdict"] == "HOLD_FACTORY_SEMANTIC_REVIEW"
+          assert hist_c["factoryDecision"]["reasons"] == [
+              "DIMENSION_HOLD:validationTransfer",
+              "MAJOR_FINDING:HIST-V1-F01",
+          ]
+
+          def meta(p):
+              raw=Path(p).read_bytes()
+              return {"bytes":len(raw),"sha256":"sha256:"+hashlib.sha256(raw).hexdigest()}
+
+          report={
+              "schema":"learnit.atlas.m3_3_fresh_independent_review_qualification.v1",
+              "productHead":os.environ["PRODUCT_HEAD"],
+              "evidenceCommit":os.environ["EVIDENCE_COMMIT"],
+              "result":"PASS",
+              "law":{
+                  "review":meta("evidence/reviews/law.json"),
+                  "reviewVerdict":law_r["verdict"],
+                  "factoryDecision":law_run["decision"],
+                  "runId":law_run["runId"],
+                  "bundle":meta("out/law.zip"),
+              },
+              "history":{
+                  "review":meta("evidence/reviews/history.json"),
+                  "reviewVerdict":hist_r["verdict"],
+                  "factoryDecision":hist_run["decision"],
+                  "runId":hist_run["runId"],
+                  "bundle":meta("out/history.zip"),
+              },
+          }
+          Path("out/fresh-independent-qualification.json").write_text(
+              json.dumps(report,ensure_ascii=False,sort_keys=True,separators=(",",":")),
+              encoding="utf-8"
+          )
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Upload fresh independent qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-m3-3-fresh-independent-review-qualification
+          path: |
+            out/fresh-independent-qualification.json
+            out/law.zip
+            out/history.zip
+            out/law-run.json
+            out/history-run.json
+            out/law-consume.json
+            out/history-consume.json
+            evidence/reviews/law.json
+            evidence/reviews/history.json
+          if-no-files-found: error
+          retention-days: 30

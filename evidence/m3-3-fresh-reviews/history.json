@@ -1,0 +1,132 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:c821ab77136aa2fc5b1fc48a3f98f24221718697f4a1a98a0342289b7b732013",
+    "kitSha256": "sha256:496861af925e00bf5716be597b2cd01386b2436a4e57f68edc71ad5d6eda191c",
+    "sourceSetDigest": "sha256:d3e75a34fc2f4cb948614e4838e7696b788b7c41a45add5a0a5c84c1b9cada9a",
+    "briefSha256": "sha256:bdbccec97b4c7df4759de8d1555083a2cb21bc20c2c7d8817891adb6d9663537"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les affirmations factuelles et historiographiques du kit restent dans le périmètre de la ressource : avancées de février 1848, reculs et libéralisations ultérieures, officialisation de la République en 1875, réformes démocratiques des années 1880 et mise à distance d'une lecture téléologique.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 4, section « 1848 et la IIe République, 1875 et la IIIe République : une construction politique longue et discontinue en France »",
+          "basis": "La ressource attribue à février 1848 la liberté de la presse, la liberté de réunion et le suffrage universel masculin, puis décrit les tensions, répressions et restrictions ultérieures ainsi que la libéralisation progressive du Second Empire."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 5, premiers paragraphes sur la Troisième République",
+          "basis": "La ressource indique que la République devient le régime officiel de la France en 1875 et associe aux années 1880 les lois sur la presse et l'éducation ainsi que les libertés de réunion et syndicale."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 7, « La remise en cause de visions jugées téléologiques » et « La mise en évidence d'un “siècle des possibles” »",
+          "basis": "La ressource souligne explicitement la non-linéarité des évolutions politiques du XIXe siècle et la remise en cause des lectures téléologiques."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Les réponses désignées comme correctes correspondent à la source : suffrage universel masculin en février 1848, construction démocratique longue et discontinue, officialisation républicaine en 1875, réformes des années 1880 et caractérisation non linéaire de la trajectoire.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 4, paragraphe sur la révolution de février 1848",
+          "basis": "Le suffrage universel masculin figure explicitement parmi les avancées démocratiques instaurées en février 1848."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 5, passage sur la stabilisation institutionnelle et les réformes des années 1880",
+          "basis": "La source fixe à 1875 l'officialisation de la République et cite les lois sur la presse et l'éducation ainsi que les libertés de réunion et syndicale."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 7, enjeux historiographiques",
+          "basis": "La source qualifie les évolutions politiques du siècle de non linéaires et écarte une lecture téléologique, ce qui soutient les réponses du kit sur la discontinuité de la démocratisation."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les formulations, choix et banques de jetons permettent une réponse unique ; aucun distracteur équivalent à la bonne réponse ni condition manquante matérielle n'a été relevé.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Dans le budget prévu, le kit couvre les jalons centraux de 1848 et 1875, les réformes démocratiques des années 1880 et l'idée structurante de non-linéarité. La chronologie intermédiaire n'est pas exhaustive, mais les reculs et libéralisations sont suffisamment présents dans les explications pour soutenir l'objectif borné du learner brief.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 4, développement sur la IIe République et le Second Empire",
+          "basis": "La source fournit les éléments nécessaires pour comprendre la discontinuité : avancées de 1848, raidissement conservateur, restrictions, coup d'État de 1851 puis libéralisation progressive du Second Empire."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 5, développement sur la Troisième République",
+          "basis": "Les jalons de 1875 et les réformes des années 1880 complètent la trajectoire institutionnelle visée par l'objectif."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 7, enjeux historiographiques",
+          "basis": "La non-linéarité et la critique d'une lecture téléologique constituent explicitement un axe d'interprétation de la ressource, repris par l'objectif du kit."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "hold",
+      "summary": "Les deux activités de validation portent sur des connaissances distinctes, 1875 puis les réformes des années 1880. En revanche, l'activité explicitement marquée « transfer » ne constitue pas un transfert réel : elle reformule lexicalement la même idée déjà travaillée dans l'activité de consolidation sur la progression non linéaire et fournit en plus l'indice « plutôt qu'une lecture téléologique ». La réussite peut donc reposer sur la reconnaissance plutôt que sur l'application du concept à une nouvelle configuration historique.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 4-5, section « 1848 et la IIe République, 1875 et la IIIe République : une construction politique longue et discontinue en France »",
+          "basis": "La source offre une séquence riche de changements de direction — avancées de 1848, restrictions et coup d'État de 1851, libéralisation des années 1860, stabilisation républicaine en 1875 et réformes des années 1880 — qui permettrait de tester l'application du concept à un stimulus nouveau."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 7, « La remise en cause de visions jugées téléologiques » et « La mise en évidence d'un “siècle des possibles” »",
+          "basis": "La ressource nomme explicitement la non-linéarité et la critique des visions téléologiques ; répéter ces mêmes marqueurs lexicaux ne démontre pas leur mobilisation sur une situation distincte."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le niveau de langue, les notions mobilisées, le périmètre historique et la durée estimée de 21 minutes sont adaptés à un élève de première et au budget de 25 minutes.",
+      "evidence": []
+    }
+  },
+  "findings": [
+    {
+      "id": "HIST-V1-F01",
+      "severity": "major",
+      "dimension": "validationTransfer",
+      "path": "$.courses[0].activities[4]",
+      "problem": "L'activité annoncée comme « transfer » ne change ni le concept ni réellement le cadre de raisonnement : après l'activité de consolidation qui fait déjà rejeter une « progression linéaire et sans recul », elle demande seulement de choisir « non linéaire », avec l'indice explicite « plutôt qu'une lecture téléologique ».",
+      "impact": "Un learner peut réussir par rappel lexical ou reconnaissance de la formulation précédente sans démontrer qu'il sait mobiliser l'idée de non-linéarité pour interpréter une nouvelle séquence ou un nouveau stimulus historique. La propriété de transfert revendiquée n'est donc pas établie.",
+      "fix": "Remplacer cette activité de transfert par un stimulus distinct tiré de la source, par exemple une courte séquence 1848 → restrictions et 1851 → libéralisation des années 1860 → stabilisation de 1875 et réformes des années 1880, puis demander d'inférer ou de justifier la non-linéarité sans fournir l'opposition « téléologique / non linéaire » dans l'énoncé.",
+      "evidence": [
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 4-5, section « 1848 et la IIe République, 1875 et la IIIe République : une construction politique longue et discontinue en France »",
+          "basis": "La source fournit plusieurs changements de direction exploitables pour un vrai transfert : avancées de février 1848, raidissement et restrictions, coup d'État de 1851, libéralisation du Second Empire, stabilisation républicaine en 1875 et réformes des années 1880."
+        },
+        {
+          "sourceId": "eduscol_abibac_democratie_france_allemagne_2022",
+          "locator": "p. 7, « La remise en cause de visions jugées téléologiques » et « La mise en évidence d'un “siècle des possibles” »",
+          "basis": "La ressource oppose explicitement les lectures téléologiques à la non-linéarité des évolutions politiques, concept déjà directement nommé dans le kit et qui doit donc être appliqué à un nouveau stimulus pour constituer un transfert."
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "La revue porte sur la fidélité sémantique, la correction des réponses, la couverture, le transfert revendiqué et l'adéquation statique du kit au learner brief et à la source fournie ; elle n'établit ni rétention, ni maîtrise durable, ni efficacité pédagogique en usage réel."
+  ],
+  "verdict": "HOLD_SEMANTIC_REVIEW_V1"
+}
