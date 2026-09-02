@@ -16,15 +16,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Bind exact frozen product head
+      - name: Bind QA delta to exact frozen product head
         shell: bash
+        env:
+          PRODUCT_HEAD: 41f2245e56b42a2e541d185f39a3edb5d8b6f01b
         run: |
-          test "$(git rev-parse HEAD^)" = "41f2245e56b42a2e541d185f39a3edb5d8b6f01b" || {
-            echo "QA branch is not based directly on frozen product HEAD" >&2
-            exit 2
-          }
+          test "$(git merge-base "$PRODUCT_HEAD" HEAD)" = "$PRODUCT_HEAD"
+          git diff --name-only "$PRODUCT_HEAD"...HEAD | sort > /tmp/qa-paths.txt
+          cat > /tmp/expected-paths.txt <<'EOF'
+.github/workflows/atlas-m3-4-release-set-qa.yml
+authoring/factory/tests/qa_release_set.py
+work-packages/QA-WP-024.json
+EOF
+          diff -u /tmp/expected-paths.txt /tmp/qa-paths.txt
       - name: Run independent contradictory QA
         run: python authoring/factory/tests/qa_release_set.py
