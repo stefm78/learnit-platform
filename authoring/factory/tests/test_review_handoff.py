@@ -388,6 +388,13 @@ class TransientPrepareReviewTests(unittest.TestCase):
                 verified["manifest"]["reviewEvidenceSourceIds"],
             )
 
+            review = root / "review.json"
+            run = root / "factory-run.json"
+            write_json(review, semantic_review(verified["context"], "Course"))
+            consumed = handoff.consume_review_bundle(bundle, review, run)
+            self.assertEqual(handoff.PASS_CONSUMED, consumed["verdict"])
+            reliability.verify_run(json.loads(run.read_text(encoding="utf-8")))
+
     def test_casefold_colliding_source_ids_are_rejected_before_materialization(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
