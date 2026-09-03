@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-023",
   "title": "Transient private user-source admission implementation",
-  "status": "in-progress",
+  "status": "under-qa",
   "changeClass": "product-authoring-transient-source-admission",
   "riskClass": "medium",
   "authority": {
@@ -115,7 +115,7 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
-    "phase": "REPAIR_QA_WP_026_F01_IN_PROGRESS",
+    "phase": "QA_WP_026_F01_REPAIRED_PENDING_FRESH_INDEPENDENT_QA",
     "pullRequest": 341,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
@@ -142,7 +142,14 @@
     },
     "repair": {
       "finding": "QA-WP-026-F01",
-      "strategy": "Keep transient sourceId as a strict subset of the promoted factory grammar and enforce 1..160 characters: ^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$. Do not widen M3.2/M3.3.",
+      "strategy": "Transient sourceId is now bounded to 1..160 characters with ^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$, a strict subset of the promoted factory grammar. M3.2/M3.3 remain unchanged.",
+      "repairedProductHeadBeforeFreeze": "fbb44d7fa540ae42c6ec5a9a8a5a1f70d5f66c22",
+      "productCi": {
+        "dedicatedProductRun": 33751561637,
+        "centralRouterRun": 33751561462,
+        "prScopeRun": 33751561596,
+        "repositoryGovernanceRun": 33751561598
+      },
       "requiresFreshIndependentQa": true
     },
     "qaRound2": {
