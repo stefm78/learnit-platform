@@ -936,6 +936,35 @@ export async function runAtlasSession({
           feedbackHtml: previousFeedback,
         });
 
+      const objectiveLabel =
+        learnerObjectiveLabels(context)[
+          item.objectiveRef.objectiveId
+        ] ?? 'Objectif courant';
+
+      const sessionHeader =
+        wrapper.querySelector(
+          '.atlas-session > header',
+        );
+
+      if (sessionHeader) {
+        sessionHeader.replaceChildren(
+          node('p', {
+            className: 'eyebrow',
+            text: context.title,
+          }),
+          node('p', {
+            className: 'atlas-session-objective',
+            text: `Objectif : ${objectiveLabel}`,
+          }),
+          node('h1', {
+            id: 'atlas-session-title',
+            text:
+              `Étape ${item.position + 1} `
+              + `sur ${activePlan.payload.items.length}`,
+          }),
+        );
+      }
+
       container.replaceChildren(wrapper);
 
       const submit =
