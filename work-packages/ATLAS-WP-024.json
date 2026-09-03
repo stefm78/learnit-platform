@@ -48,7 +48,7 @@
   ],
   "requiredEvidence": [
     "PR scope validates exactly against ATLAS-WP-024.",
-    "Learn-it Next CI runs the existing wave-a profile on the exact PR head.",
+    "Learn-it Next CI runs the bounded atlas-ux-convergence profile inside the existing workflow on the exact PR head, using only the current build and existing relevant tests.",
     "Existing Atlas integration and UX clarity tests cover Library routing, exclusive active surface, minimal learner context, contiguous prompt/answers and learner-copy cleanup.",
     "The deterministic Learn-it Next source manifest is rebound to every changed manifest-owned source.",
     "No learner usability PASS is declared before Stream 2 human observation."
