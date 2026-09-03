@@ -1,0 +1,154 @@
+name: Atlas Transient Source Admission Contradictory QA
+
+on:
+  push:
+    branches:
+      - 'qa/QA-WP-025-transient-user-source-admission'
+    paths:
+      - 'work-packages/QA-WP-025.json'
+      - 'authoring/factory/tests/qa_transient_source_admission.py'
+      - '.github/workflows/atlas-transient-source-admission-qa.yml'
+  pull_request:
+    branches:
+      - 'atlas/ATLAS-WP-023-transient-user-source-admission'
+    paths:
+      - 'work-packages/QA-WP-025.json'
+      - 'authoring/factory/tests/qa_transient_source_admission.py'
+      - '.github/workflows/atlas-transient-source-admission-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-transient-source-admission-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contradictory-qa:
+    name: QA-WP-025 exact-head contradictory oracle
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      QA_EXPECTED_PRODUCT_HEAD: 8ffff76ae32bb67c6840b75b274cd63566eb0bf4
+      QA_PRODUCT_BASE: e90940130b540f57abb999c56a24015c6b470249
+      QA_PRODUCT_BRANCH: atlas/ATLAS-WP-023-transient-user-source-admission
+      QA_PASS_VERDICT: PASS_QA_WP_025_EXACT_HEAD_CONTRADICTORY_QA
+      QA_HOLD_VERDICT: HOLD_QA_WP_025_EXACT_HEAD_CONTRADICTORY_QA
+    steps:
+      - name: Check out exact QA head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Bind fresh QA to exact frozen product HEAD and exact three-path scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin "${QA_PRODUCT_BRANCH}"
+          actual_product_head="$(git rev-parse "origin/${QA_PRODUCT_BRANCH}")"
+          [[ "${actual_product_head}" == "${QA_EXPECTED_PRODUCT_HEAD}" ]] || {
+            echo "Frozen product branch moved: expected ${QA_EXPECTED_PRODUCT_HEAD}, got ${actual_product_head}" >&2
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 2
+          }
+
+          merge_base="$(git merge-base "${QA_EXPECTED_PRODUCT_HEAD}" HEAD)"
+          [[ "${merge_base}" == "${QA_EXPECTED_PRODUCT_HEAD}" ]] || {
+            echo "QA-WP-025 is not based on the exact frozen product HEAD." >&2
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 2
+          }
+
+          first_qa_commit="$(git rev-list --reverse "${QA_EXPECTED_PRODUCT_HEAD}..HEAD" | head -n 1)"
+          [[ -n "${first_qa_commit}" ]] || {
+            echo "No fresh QA commit above frozen product HEAD." >&2
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 2
+          }
+          first_parent="$(git rev-parse "${first_qa_commit}^")"
+          [[ "${first_parent}" == "${QA_EXPECTED_PRODUCT_HEAD}" ]] || {
+            echo "Fresh QA direct-parent guard failed: expected ${QA_EXPECTED_PRODUCT_HEAD}, got ${first_parent}" >&2
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 2
+          }
+
+          actual="$(git diff --name-only "${QA_EXPECTED_PRODUCT_HEAD}" HEAD | sort)"
+          expected="$(printf '%s\n' \
+            '.github/workflows/atlas-transient-source-admission-qa.yml' \
+            'authoring/factory/tests/qa_transient_source_admission.py' \
+            'work-packages/QA-WP-025.json' | sort)"
+          [[ "${actual}" == "${expected}" ]] || {
+            echo "QA-WP-025 exact path set mismatch." >&2
+            diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 2
+          }
+
+          product_delta="$(git diff --name-only "${QA_PRODUCT_BASE}" "${QA_EXPECTED_PRODUCT_HEAD}" | sort)"
+          expected_product_delta="$(printf '%s\n' \
+            '.github/workflows/atlas-m3-3-review-handoff-ci.yml' \
+            'authoring/factory/README.md' \
+            'authoring/factory/handoff.py' \
+            'authoring/factory/tests/test_review_handoff.py' \
+            'authoring/factory/tests/test_transient_source_admission.py' \
+            'authoring/factory/transient_source_admission.py' \
+            'work-packages/ATLAS-WP-023.json' | sort)"
+          [[ "${product_delta}" == "${expected_product_delta}" ]] || {
+            echo "Frozen ATLAS-WP-023 product delta is no longer the authorized exact seven-path set." >&2
+            diff -u <(printf '%s\n' "${expected_product_delta}") <(printf '%s\n' "${product_delta}") || true
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 2
+          }
+
+          if printf '%s\n' "${product_delta}" | grep -Eq '^(apps/|contracts/|authoring/v2/)'; then
+            echo "Product delta touches learner runtime, canonical kit contract, or canonical content surface." >&2
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 2
+          fi
+
+      - name: Run promoted M3.2 M3.2.5 SourceAdmission and M3.3 regressions
+        shell: bash
+        run: |
+          set +e
+          python -B authoring/factory/tests/test_ai_kit_factory.py
+          rc1=$?
+          python -B authoring/factory/tests/test_factory_reliability.py
+          rc2=$?
+          python -B authoring/factory/tests/test_source_admission.py
+          rc3=$?
+          python -B authoring/factory/tests/test_transient_source_admission.py
+          rc4=$?
+          python -B authoring/factory/tests/test_review_handoff.py
+          rc5=$?
+          python tools/validate_repository.py
+          rc6=$?
+          set -e
+          if (( rc1 || rc2 || rc3 || rc4 || rc5 || rc6 )); then
+            echo "Promoted/product regression failure: ${rc1}/${rc2}/${rc3}/${rc4}/${rc5}/${rc6}" >&2
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit 3
+          fi
+
+      - name: Run fresh independent contradictory QA oracle
+        shell: bash
+        run: |
+          set +e
+          python -B authoring/factory/tests/qa_transient_source_admission.py
+          rc=$?
+          set -e
+          if [[ $rc -ne 0 ]]; then
+            echo "${QA_HOLD_VERDICT}" >&2
+            exit $rc
+          fi
+          echo "${QA_PASS_VERDICT}"
