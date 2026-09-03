@@ -73,7 +73,7 @@ jobs:
         run: python -B authoring/factory/tests/qa_transient_source_admission_r3.py
 
   windows-materialization:
-    name: Windows M3.3 reserved-name materialization attack
+    name: Windows M3.3 case-fold sourceId collision attack
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
@@ -83,6 +83,6 @@ jobs:
           python-version: "3.12"
       - name: Install deterministic Python dependency
         run: python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1
-      - name: Execute actual M3.3 passage with transient PASS sourceId CON
+      - name: Execute actual M3.3 passage with case-distinct transient PASS sourceIds
         shell: pwsh
-        run: python -B authoring/factory/tests/qa_transient_source_admission_r3.py QA027.test_02_windows_reserved_identifier_actual_m3_3 -v
+        run: python -B authoring/factory/tests/qa_transient_source_admission_r3.py QA027.test_02_windows_casefold_collision_actual_m3_3 -v
