@@ -841,7 +841,11 @@ def consume_review_bundle(
 
         resource_specs: list[str] = []
         for source_id in sorted(resources):
-            candidates = [name for name in members if name.startswith(f"sources/{source_id}.")]
+            candidates = [
+                candidate
+                for suffix in SOURCE_MEMBER_SUFFIXES
+                if (candidate := f"sources/{source_id}{suffix}") in members
+            ]
             if len(candidates) != 1:
                 raise HandoffInputError(f"source artifact path for {source_id} is not unique")
             source_path = temp / f"{source_id}.source"
