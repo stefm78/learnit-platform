@@ -59,6 +59,14 @@ REDISTRIBUTION = "prohibited"
 SOURCE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$")
 VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
+WINDOWS_RESERVED_SOURCE_STEMS = {
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    *{f"COM{i}" for i in range(1, 10)},
+    *{f"LPT{i}" for i in range(1, 10)},
+}
 
 
 class TransientSourceAdmissionError(ValueError):
@@ -126,6 +134,9 @@ def validate_declaration(value: Any) -> dict[str, Any]:
     version = nonempty(declaration["version"], "version")
     if not SOURCE_ID.fullmatch(source_id):
         raise TransientSourceAdmissionError("invalid sourceId")
+    source_stem = source_id.split(".", 1)[0].upper()
+    if source_stem in WINDOWS_RESERVED_SOURCE_STEMS:
+        raise TransientSourceAdmissionError("sourceId is not portable on Windows")
     if not VERSION.fullmatch(version):
         raise TransientSourceAdmissionError("invalid version")
     if not isinstance(declaration["userDeclarationAccepted"], bool):
