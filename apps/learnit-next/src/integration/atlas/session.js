@@ -879,6 +879,13 @@ export async function runAtlasSession({
           );
         }
 
+        wrapper.prepend(
+          node('p', {
+            className: 'eyebrow',
+            text: context.title,
+          }),
+        );
+
         const back = node(
           'button',
           {
