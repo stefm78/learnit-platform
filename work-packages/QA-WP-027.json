@@ -14,7 +14,10 @@
     "frozenProductHead": "723548f6dcc340aa9b4002cf8821f640a851bb2a",
     "productBranch": "atlas/ATLAS-WP-023-transient-user-source-admission",
     "productBase": "e90940130b540f57abb999c56a24015c6b470249",
-    "historicalQaOnly": ["QA-WP-025", "QA-WP-026"]
+    "historicalQaOnly": [
+      "QA-WP-025",
+      "QA-WP-026"
+    ]
   },
   "independence": {
     "freshQaContext": true,
@@ -45,15 +48,14 @@
   "finding": {
     "id": "QA-WP-027-F01",
     "severity": "major",
-    "status": "OPEN_PRODUCT_DEFECT",
-    "title": "Windows-reserved DOS device sourceIds can PASS transient admission but are unsafe for mandatory M3.3 local materialization",
-    "cause": "The transient sourceId regex accepts reserved DOS device basenames such as CON, NUL, AUX, PRN, COM1 and LPT1. M3.3 derives local temporary/archive filename components from sourceId, including <sourceId>.source and <sourceId>.json. These names are reserved on Windows even with extensions, so an admitted identity is not safely materializable across the local portable handoff boundary.",
-    "contractImpact": "Issue #348 requires every transient-PASS sourceId to be both M3.2/M3.3 binding-valid and safely materializable by M3.3. The historical examples are fixed, but another admitted identifier class violates the same cross-contract invariant.",
+    "status": "CANDIDATE_PENDING_WINDOWS_REPRODUCTION",
+    "title": "Case-distinct transient sourceIds can collide during mandatory M3.3 local materialization on case-insensitive filesystems",
+    "cause": "Transient admission and exact-string binding allow distinct sourceIds such as CourseA and coursea. M3.3 derives local temporary filenames <sourceId>.source for every resource, writes all sources, then rebuilds FactoryContext from those paths. On a case-insensitive Windows filesystem those two paths alias, so distinct admitted exact source bytes cannot both remain independently materialized.",
+    "contractImpact": "Issue #348 requires every transient-PASS sourceId to be safely materializable by M3.3 under the supported local processing model. A multi-source pair that is individually valid but aliases after M3.3 filename derivation violates that invariant.",
     "reproduction": [
-      "transient.SOURCE_ID.fullmatch('CON') succeeds",
-      "transient.build_admission(valid declaration sourceId='CON', exact bytes) yields PASS_TRANSIENT_SOURCE_ADMISSION_V1",
-      "PureWindowsPath('CON.source').is_reserved() is true",
-      "Windows CI independently attempts actual M3.3 prepare/verify with sourceId='CON'"
+      "Both CourseA and coursea satisfy transient.SOURCE_ID and independently produce PASS_TRANSIENT_SOURCE_ADMISSION_V1 for different exact bytes",
+      "PureWindowsPath('CourseA.source') equals PureWindowsPath('coursea.source') under Windows path semantics",
+      "Windows CI executes actual M3.3 prepare/verify with both IDs and distinct exact source bytes"
     ],
     "repairPerformedByQa": false
   },
@@ -84,6 +86,6 @@
     "pullRequest": null,
     "qaHead": null,
     "qaWorkflowRuns": [],
-    "finalVerdict": "HOLD_QA_WP_027_EXACT_HEAD_CONTRADICTORY_QA"
+    "finalVerdict": "PENDING_QA_WP_027_WINDOWS_CASEFOLD_REPRODUCTION"
   }
 }
