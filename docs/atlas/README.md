@@ -119,6 +119,16 @@ QA reste indépendante. INT assemble les heads acceptés sans réparer silencieu
 
 Les quatre interfaces partagées sont définies dans [`CONTRACTS.md`](CONTRACTS.md).
 
+## Méthode de challenge Dream Team
+
+La méthode itérative utilisée pour les arbitrages multidisciplinaires complexes est
+conservée dans [DREAM_TEAM_ITERATIVE_CHALLENGE.md](DREAM_TEAM_ITERATIVE_CHALLENGE.md).
+
+Elle formalise : critères construits par les experts, scoring indépendant, score
+composite non compensatoire, friction explicite, consensus, arbitrage Linus/Steve,
+re-scoring, anti-complexité et convergence avant implémentation. C'est une méthode
+de décision réutilisable, pas un nouveau gate obligatoire.
+
 ## Gouvernance minimale
 
 Pour M1 :
