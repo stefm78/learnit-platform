@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-014",
   "title": "Route ATLAS-WP-023 and isolate M3.4 delegated workflow",
-  "status": "complete",
+  "status": "accepted",
   "changeClass": "ci-routing",
   "riskClass": "low",
   "authority": {
