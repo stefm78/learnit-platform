@@ -125,6 +125,7 @@ jobs:
               atlas/ATLAS-WP-017-real-source-snapshot|atlas/ATLAS-WP-017b-source-snapshot-content-integrity|atlas/ATLAS-WP-017c-management-source-content) echo 'source-snapshot-delegated wave' ;;
               atlas/ATLAS-WP-019-m3-3-review-handoff) echo 'm3-3-review-handoff-delegated wave' ;;
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
+              stream1/issue-352-one-atlas-learning-journey) echo 'wave-a wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
               *) echo 'ci-router wave' ;;
             esac
