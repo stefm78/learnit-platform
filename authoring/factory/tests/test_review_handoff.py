@@ -304,6 +304,24 @@ class TransientPrepareReviewTests(unittest.TestCase):
             with self.assertRaises(handoff.HandoffInputError):
                 ws.prepare()
 
+    def test_transient_factory_compatible_source_id_crosses_m3_3_boundary(self):
+        with tempfile.TemporaryDirectory() as td:
+            ws = TransientWorkspace(Path(td))
+            ws.source_id = "user.private-course_01"
+            record = transient.build_admission(
+                transient_declaration(ws.source_id),
+                ws.source,
+            )
+            self.assertEqual(transient.PASS, record["decision"]["verdict"])
+            write_json(ws.admission, record)
+            result = ws.prepare()
+            self.assertEqual(handoff.PASS_PREPARED, result["verdict"])
+            verified = ws.verified()
+            self.assertEqual(
+                [ws.source_id],
+                verified["manifest"]["reviewEvidenceSourceIds"],
+            )
+
     def test_transient_bundle_consumes_normal_independent_review(self):
         with tempfile.TemporaryDirectory() as td:
             ws = TransientWorkspace(Path(td))
