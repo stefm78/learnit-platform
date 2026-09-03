@@ -1,0 +1,78 @@
+name: Atlas QA-WP-027 transient source admission contradictory QA R3
+
+on:
+  pull_request:
+    branches:
+      - atlas/ATLAS-WP-023-transient-user-source-admission
+    paths:
+      - work-packages/QA-WP-027.json
+      - authoring/factory/tests/qa_transient_source_admission_r3.py
+      - .github/workflows/atlas-transient-source-admission-qa-r3.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-wp-027-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  QA_FROZEN_PRODUCT_HEAD: 723548f6dcc340aa9b4002cf8821f640a851bb2a
+
+jobs:
+  contradictory-ubuntu:
+    name: Exact-head guard, regressions, contradictory matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prove fresh branch, exact frozen base, exact QA path delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          frozen="$QA_FROZEN_PRODUCT_HEAD"
+          expected_branch='qa/QA-WP-027-transient-user-source-admission-r3'
+          expected_base='atlas/ATLAS-WP-023-transient-user-source-admission'
+          [[ '${{ github.event_name }}' == 'pull_request' ]]
+          [[ '${{ github.event.pull_request.head.ref }}' == "$expected_branch" ]]
+          [[ '${{ github.event.pull_request.base.ref }}' == "$expected_base" ]]
+          git fetch --no-tags origin "refs/heads/${expected_base}:refs/remotes/origin/${expected_base}"
+          [[ "$(git rev-parse "refs/remotes/origin/${expected_base}")" == "$frozen" ]]
+          [[ "$(git merge-base "$frozen" HEAD)" == "$frozen" ]]
+          first="$(git rev-list --reverse "$frozen"..HEAD | head -n1)"
+          [[ -n "$first" ]]
+          [[ "$(git rev-parse "${first}^")" == "$frozen" ]]
+          actual="$(git diff --name-only "$frozen"...HEAD | sort)"
+          expected="$(printf '%s\n' \
+            '.github/workflows/atlas-transient-source-admission-qa-r3.yml' \
+            'authoring/factory/tests/qa_transient_source_admission_r3.py' \
+            'work-packages/QA-WP-027.json' | sort)"
+          [[ "$actual" == "$expected" ]] || { printf '%s\n' "$actual"; exit 1; }
+
+      - name: Replay current product regression authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/tests/test_ai_kit_factory.py
+          python -B authoring/factory/tests/test_factory_reliability.py
+          python -B authoring/factory/tests/test_source_admission.py
+          python -B authoring/factory/tests/test_transient_source_admission.py
+          python -B authoring/factory/tests/test_review_handoff.py
+          python -B authoring/factory/tests/test_release_set.py
+
+      - name: Run fresh contradictory QA oracle
+        shell: bash
+        run: python -B authoring/factory/tests/qa_transient_source_admission_r3.py
+
+  windows-materialization:
+    name: Windows M3.3 reserved-name materialization attack
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute actual M3.3 passage with transient PASS sourceId CON
+        shell: pwsh
+        run: python -B authoring/factory/tests/qa_transient_source_admission_r3.py QA027.test_02_windows_reserved_identifier_actual_m3_3 -v

@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-027",
+  "title": "Fresh contradictory QA after bounded transient sourceId repair",
+  "status": "hold",
+  "changeClass": "qa-contradictory-transient-source-admission-r3",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 348,
+    "productPullRequest": 341
+  },
+  "baseline": {
+    "frozenProductHead": "723548f6dcc340aa9b4002cf8821f640a851bb2a",
+    "productBranch": "atlas/ATLAS-WP-023-transient-user-source-admission",
+    "productBase": "e90940130b540f57abb999c56a24015c6b470249",
+    "historicalQaOnly": ["QA-WP-025", "QA-WP-026"]
+  },
+  "independence": {
+    "freshQaContext": true,
+    "reusedHistoricalQaBranch": false,
+    "reusedHistoricalQaOracle": false,
+    "reusedAuthorScratchpad": false,
+    "productFilesModified": false
+  },
+  "scope": {
+    "branch": "qa/QA-WP-027-transient-user-source-admission-r3",
+    "pullRequestBase": "atlas/ATLAS-WP-023-transient-user-source-admission",
+    "allowedPaths": [
+      "work-packages/QA-WP-027.json",
+      "authoring/factory/tests/qa_transient_source_admission_r3.py",
+      ".github/workflows/atlas-transient-source-admission-qa-r3.yml"
+    ]
+  },
+  "historicalReattacks": {
+    "colonGrammarMismatch": "PASS_REATTACK",
+    "unboundedSourceIdFilenameLength": "PASS_REATTACK",
+    "evidence": [
+      "user:private-course is rejected by transient admission before source-byte read",
+      "dot/dash/underscore identity crosses transient admission and M3.3 prepare/verify",
+      "1/159/160 character ASCII identities cross M3.3",
+      "0/161/254/255/256/300/512 character probes cannot yield transient PASS"
+    ]
+  },
+  "finding": {
+    "id": "QA-WP-027-F01",
+    "severity": "major",
+    "status": "OPEN_PRODUCT_DEFECT",
+    "title": "Windows-reserved DOS device sourceIds can PASS transient admission but are unsafe for mandatory M3.3 local materialization",
+    "cause": "The transient sourceId regex accepts reserved DOS device basenames such as CON, NUL, AUX, PRN, COM1 and LPT1. M3.3 derives local temporary/archive filename components from sourceId, including <sourceId>.source and <sourceId>.json. These names are reserved on Windows even with extensions, so an admitted identity is not safely materializable across the local portable handoff boundary.",
+    "contractImpact": "Issue #348 requires every transient-PASS sourceId to be both M3.2/M3.3 binding-valid and safely materializable by M3.3. The historical examples are fixed, but another admitted identifier class violates the same cross-contract invariant.",
+    "reproduction": [
+      "transient.SOURCE_ID.fullmatch('CON') succeeds",
+      "transient.build_admission(valid declaration sourceId='CON', exact bytes) yields PASS_TRANSIENT_SOURCE_ADMISSION_V1",
+      "PureWindowsPath('CON.source').is_reserved() is true",
+      "Windows CI independently attempts actual M3.3 prepare/verify with sourceId='CON'"
+    ],
+    "repairPerformedByQa": false
+  },
+  "matrix": {
+    "preIngestionPolicy": "COVERED",
+    "malformedSourceIdAndVersion": "COVERED",
+    "sourceAndDeclarationDrift": "COVERED",
+    "hostPathRelocationDeterminism": "COVERED",
+    "transientBenchmarkAuthorityConfusion": "COVERED",
+    "benchmarkCatalogExactness": "COVERED",
+    "transientCatalogAbsenceAndInjection": "COVERED",
+    "archiveTamperDuplicateUnsafeUndeclared": "COVERED",
+    "staleTargetReviewerSourceInjectionIndependenceFlags": "COVERED",
+    "factoryRunReentry": "COVERED",
+    "qualifiedReleaseSetSourceFree": "COVERED",
+    "networkProviderPersistentStoreStaticSurface": "COVERED",
+    "learnerRuntimeAndKitContractIsolation": "COVERED",
+    "productRegressionSuites": [
+      "test_ai_kit_factory.py",
+      "test_factory_reliability.py",
+      "test_source_admission.py",
+      "test_transient_source_admission.py",
+      "test_review_handoff.py",
+      "test_release_set.py"
+    ]
+  },
+  "execution": {
+    "pullRequest": null,
+    "qaHead": null,
+    "qaWorkflowRuns": [],
+    "finalVerdict": "HOLD_QA_WP_027_EXACT_HEAD_CONTRADICTORY_QA"
+  }
+}
