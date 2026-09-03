@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "QA-WP-027",
   "title": "Fresh contradictory QA after bounded transient sourceId repair",
-  "status": "hold",
+  "status": "under-qa",
   "changeClass": "qa-contradictory-transient-source-admission-r3",
   "riskClass": "medium",
   "authority": {
@@ -17,7 +17,8 @@
     "historicalQaOnly": [
       "QA-WP-025",
       "QA-WP-026"
-    ]
+    ],
+    "baseCommit": "723548f6dcc340aa9b4002cf8821f640a851bb2a"
   },
   "independence": {
     "freshQaContext": true,
@@ -33,6 +34,16 @@
       "work-packages/QA-WP-027.json",
       "authoring/factory/tests/qa_transient_source_admission_r3.py",
       ".github/workflows/atlas-transient-source-admission-qa-r3.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/transient_source_admission.py",
+      "authoring/factory/handoff.py",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/release_set.py",
+      "authoring/factory/source_admission.py",
+      "contracts/**",
+      "apps/**"
     ]
   },
   "historicalReattacks": {
@@ -93,5 +104,37 @@
     "id": "QA-WP-027-A02",
     "status": "PENDING_WINDOWS_EXECUTION",
     "title": "Case-distinct IDs CourseA/coursea may alias during M3.3 local temp materialization on a case-insensitive filesystem"
-  }
+  },
+  "purpose": "Execute fresh independent contradictory QA for issue #348 against exactly frozen product HEAD 723548f6dcc340aa9b4002cf8821f640a851bb2a, reattack both historical defects, and search for any other transient-PASS sourceId that cannot safely cross M3.3.",
+  "rollback": "Delete the QA-WP-027 branch and PR #349 if QA evidence itself must be discarded; no product rollback or product-file modification is authorized.",
+  "invariants": [
+    "QA branch starts directly from frozen product HEAD 723548f6dcc340aa9b4002cf8821f640a851bb2a.",
+    "Only the three QA-owned paths authorized by issue #348 may differ from the frozen product HEAD.",
+    "No product repair is performed by QA.",
+    "Every transient-PASS sourceId must remain M3.2/M3.3 binding-valid and safely materializable by M3.3."
+  ],
+  "requiredEvidence": [
+    "Exact frozen-head and three-path delta proof.",
+    "Independent reattack of historical colon grammar mismatch and bounded sourceId length.",
+    "Fresh sourceId/path collision attacks through actual M3.3 prepare/verify.",
+    "Full contradictory policy, drift, authority-separation, archive, review, FactoryRun, release-set and static-isolation matrix.",
+    "Current M3.2, M3.2.5, benchmark SourceAdmission, transient admission, M3.3 and M3.4 regression suites."
+  ],
+  "adversarialTests": [
+    "Reject user:private-course before source-byte read and exercise 0/1/159/160/161/254/255/256/300/512 lengths.",
+    "Exercise valid punctuation and exact 160-character identifiers through M3.3.",
+    "Prove Course plus Course.pdf are individually transient-PASS yet ambiguous in M3.3 source artifact lookup.",
+    "Exercise case-distinct CourseA/coursea with distinct bytes on Windows.",
+    "Attack malformed declarations, policy false-PASS, source/declaration drift, catalog confusion/injection, archive tamper/duplicate/traversal/extra members, stale review targets, source-ID injection and independence flags."
+  ],
+  "nonGoals": [
+    "Repairing product code.",
+    "Reusing QA-WP-025 or QA-WP-026 branches, QA files, scratchpads or active findings as current proof.",
+    "Changing learner runtime, kit contracts, publication behavior, provider integration or source storage."
+  ],
+  "independentReview": [
+    "QA-WP-027 uses a fresh branch created from the frozen product HEAD.",
+    "Historical QA-WP-025 and QA-WP-026 are treated only as history; their QA oracle files and branches are not reused.",
+    "Verdict is bound to the exact frozen product HEAD and to independently executed QA evidence."
+  ]
 }
