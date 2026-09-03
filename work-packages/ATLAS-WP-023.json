@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-023",
   "title": "Transient private user-source admission implementation",
-  "status": "in-progress",
+  "status": "under-qa",
   "changeClass": "product-authoring-transient-source-admission",
   "riskClass": "medium",
   "authority": {
@@ -113,11 +113,19 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
-    "phase": "IMPLEMENTED_PENDING_CI",
+    "phase": "IMPLEMENTED_PENDING_INDEPENDENT_QA",
     "pullRequest": 341,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
-    "finalVerdict": null
+    "finalVerdict": null,
+    "evidence": {
+      "ciPrerequisiteMerge": "e90940130b540f57abb999c56a24015c6b470249",
+      "repositoryGovernanceRun": 33740401811,
+      "prScopeRun": 33740401885,
+      "centralRouterRun": 33740401794,
+      "dedicatedProductRun": 33740401902,
+      "m3_4IsolationRun": 33740401773
+    }
   },
   "rollback": "Remove transient_source_admission.py and its tests, restore handoff.py/README/test/workflow to the promoted M3.3 behavior, and remove ATLAS-WP-023 metadata. Curated benchmark SourceAdmission, M3.2/M3.2.5, M3.4 and learner runtime remain unchanged."
 }
