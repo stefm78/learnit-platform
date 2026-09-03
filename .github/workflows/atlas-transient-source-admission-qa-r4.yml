@@ -1,0 +1,122 @@
+name: QA-WP-028 Fresh Contradictory QA R4
+
+on:
+  pull_request:
+    branches:
+      - atlas/ATLAS-WP-023-transient-user-source-admission
+    paths:
+      - work-packages/QA-WP-028.json
+      - authoring/factory/tests/qa_transient_source_admission_r4.py
+      - .github/workflows/atlas-transient-source-admission-qa-r4.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-wp-028-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  FROZEN_PRODUCT_HEAD: 5fd3667d3042963b1c0108c7c84e27bd14d4f7f6
+  PRODUCT_BASE_BRANCH: atlas/ATLAS-WP-023-transient-user-source-admission
+  QA_BRANCH: qa/QA-WP-028-transient-user-source-admission-r4
+
+jobs:
+  topology:
+    name: Exact frozen-head and three-path topology
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bind QA to issue 350 frozen product head
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          test "${EVENT_NAME}" = "pull_request"
+          test "${PR_BASE_REF}" = "${PRODUCT_BASE_BRANCH}"
+          test "${PR_BASE_SHA}" = "${FROZEN_PRODUCT_HEAD}"
+          test "${PR_HEAD_REF}" = "${QA_BRANCH}"
+
+          git cat-file -e "${FROZEN_PRODUCT_HEAD}^{commit}"
+          merge_base="$(git merge-base "${FROZEN_PRODUCT_HEAD}" HEAD)"
+          test "${merge_base}" = "${FROZEN_PRODUCT_HEAD}"
+
+          first_qa_commit="$(git rev-list --reverse "${FROZEN_PRODUCT_HEAD}..HEAD" | head -n 1)"
+          test -n "${first_qa_commit}"
+          first_parent="$(git rev-parse "${first_qa_commit}^")"
+          test "${first_parent}" = "${FROZEN_PRODUCT_HEAD}"
+
+          actual="$(git diff --name-only "${FROZEN_PRODUCT_HEAD}" HEAD | sort)"
+          expected="$(printf '%s\n' \
+            '.github/workflows/atlas-transient-source-admission-qa-r4.yml' \
+            'authoring/factory/tests/qa_transient_source_admission_r4.py' \
+            'work-packages/QA-WP-028.json' | sort)"
+          test "${actual}" = "${expected}" || {
+            echo "QA-WP-028 path-set mismatch" >&2
+            diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+            exit 1
+          }
+
+          product_delta="$(git diff --name-only e90940130b540f57abb999c56a24015c6b470249 "${FROZEN_PRODUCT_HEAD}")"
+          if printf '%s\n' "${product_delta}" | grep -E '^(apps/|contracts/|authoring/v2/)' >/dev/null; then
+            echo "Frozen product changes learner runtime or canonical kit-contract surfaces" >&2
+            printf '%s\n' "${product_delta}" >&2
+            exit 1
+          fi
+
+      - name: Confirm QA metadata authority
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          value = json.loads(pathlib.Path("work-packages/QA-WP-028.json").read_text(encoding="utf-8"))
+          assert value["id"] == "QA-WP-028"
+          assert value["authority"]["issue"] == 350
+          assert value["frozenProductHead"] == "5fd3667d3042963b1c0108c7c84e27bd14d4f7f6"
+          assert value["branch"] == "qa/QA-WP-028-transient-user-source-admission-r4"
+          assert value["prBase"] == "atlas/ATLAS-WP-023-transient-user-source-admission"
+          assert value["allowedPaths"] == [
+              "work-packages/QA-WP-028.json",
+              "authoring/factory/tests/qa_transient_source_admission_r4.py",
+              ".github/workflows/atlas-transient-source-admission-qa-r4.yml",
+          ]
+          PY
+
+  contradictory:
+    name: Contradictory matrix (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run fresh QA-WP-028 oracle
+        run: python -B authoring/factory/tests/qa_transient_source_admission_r4.py
+
+  regressions:
+    name: Frozen product regression authorities
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: M3.2 / M3.2.5 / source admission / transient / M3.3 / M3.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/tests/test_ai_kit_factory.py
+          python -B authoring/factory/tests/test_factory_reliability.py
+          python -B authoring/factory/tests/test_source_admission.py
+          python -B authoring/factory/tests/test_transient_source_admission.py
+          python -B authoring/factory/tests/test_review_handoff.py
+          python -B authoring/factory/tests/test_release_set.py
