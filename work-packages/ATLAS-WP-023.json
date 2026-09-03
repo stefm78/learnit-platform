@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-023",
   "title": "Transient private user-source admission implementation",
-  "status": "under-qa",
+  "status": "in-progress",
   "changeClass": "product-authoring-transient-source-admission",
   "riskClass": "medium",
   "authority": {
@@ -91,7 +91,8 @@
     "Source catalog embedded when no benchmark admission is present.",
     "Tampered/duplicate/unsafe/undeclared review ZIP member.",
     "Stale semantic review target.",
-    "authorScratchpadSeen=true or authorActiveContextReused=true."
+    "authorScratchpadSeen=true or authorActiveContextReused=true.",
+    "A transient sourceId accepted by admission must also be valid at the mandatory M3.3 SOURCE_ID=PATH boundary."
   ],
   "nonGoals": [
     "Legal-rights verification service",
@@ -113,7 +114,7 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
-    "phase": "IMPLEMENTED_PENDING_INDEPENDENT_QA",
+    "phase": "REPAIR_F01_IN_PROGRESS",
     "pullRequest": 341,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
@@ -125,6 +126,23 @@
       "centralRouterRun": 33740401794,
       "dedicatedProductRun": 33740401902,
       "m3_4IsolationRun": 33740401773
+    },
+    "qaRound1": {
+      "authorityIssue": 344,
+      "qaPullRequest": 345,
+      "frozenProductHead": "8ffff76ae32bb67c6840b75b274cd63566eb0bf4",
+      "qaHead": "e1e8af095a0ef7a8de70af2098449c6ec3f04953",
+      "qaRun": 33741814230,
+      "qaJob": 100605239541,
+      "verdict": "HOLD_QA_WP_025_EXACT_HEAD_CONTRADICTORY_QA",
+      "finding": "QA-WP-025-F01",
+      "severity": "major",
+      "cause": "Transient sourceId grammar accepted ':' while mandatory M3.2/M3.3 SOURCE_ID=PATH grammar rejected it."
+    },
+    "repair": {
+      "finding": "QA-WP-025-F01",
+      "strategy": "Narrow transient sourceId validation to the promoted factory.SOURCE_ID grammar; do not widen M3.2/M3.3.",
+      "requiresFreshIndependentQa": true
     }
   },
   "rollback": "Remove transient_source_admission.py and its tests, restore handoff.py/README/test/workflow to the promoted M3.3 behavior, and remove ATLAS-WP-023 metadata. Curated benchmark SourceAdmission, M3.2/M3.2.5, M3.4 and learner runtime remain unchanged."
