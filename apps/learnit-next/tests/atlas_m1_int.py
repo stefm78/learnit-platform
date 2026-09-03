@@ -10,6 +10,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[3]
 
 SURFACE = ROOT / "apps/learnit-next/src/integration/atlas/surface.js"
 SESSION = ROOT / "apps/learnit-next/src/integration/atlas/session.js"
+RENDER = ROOT / "apps/learnit-next/src/ui/render.js"
+SUMMARY = ROOT / "apps/learnit-next/src/ui/atlas_summary.js"
 MANIFEST = ROOT / "apps/learnit-next/source_manifest.json"
 
 
@@ -235,6 +237,71 @@ class AtlasM1Int(unittest.TestCase):
             "      const actionBox =",
             session,
         )
+
+
+    def test_library_atlas_learning_actions_use_atlas_entrypoint(self):
+        render = RENDER.read_text(encoding="utf-8")
+        surface = SURFACE.read_text(encoding="utf-8")
+
+        for token in (
+            "data-course-learning-action",
+            "data-course-install-id",
+            "learnit:show-library",
+        ):
+            self.assertIn(token, render)
+
+        for token in (
+            "atlasContextsByInstallId",
+            "openAtlasCourse",
+            "event.stopImmediatePropagation()",
+            "data-atlas-course-install-id",
+            "data-atlas-resume-session",
+            'data-atlas-duration="15"',
+        ):
+            self.assertIn(token, surface)
+
+    def test_active_session_hides_today_and_unrelated_atlas_courses(self):
+        session = SESSION.read_text(encoding="utf-8")
+
+        for token in (
+            "surfaceHeading.style.display = 'none'",
+            "courseTitle.style.display = 'none'",
+            "courseMeta.style.display = 'none'",
+            "otherAtlasCardDisplays",
+            "card.style.display = 'none'",
+            "surfaceHeading.style.display =",
+            "courseTitle.style.display =",
+            "courseMeta.style.display =",
+        ):
+            self.assertIn(token, session)
+
+    def test_active_session_keeps_minimal_learner_context_and_contiguous_answers(self):
+        session = SESSION.read_text(encoding="utf-8")
+
+        self.assertIn("text: context.title", session)
+        self.assertIn("text: `Objectif : ${objectiveLabel}`", session)
+        self.assertIn("id: 'atlas-session-title'", session)
+        self.assertIn("prompt\n      + '<fieldset class=\"answer-fieldset\">'", session)
+        self.assertNotIn("renderObjectiveProgressPanel", session)
+        self.assertNotIn("Prochaine action recommandée", session)
+
+    def test_primary_learner_copy_hides_internal_vocabulary(self):
+        learner_copy = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (RENDER, SURFACE, SUMMARY)
+        )
+
+        for forbidden in (
+            "Nouvelle génération isolée",
+            "Atlas M2",
+            "Importer un kit learnit.kit.v2",
+            "titre canonique",
+            "Les identités",
+            "preuves enregistrées",
+            "promesse de rétention durable",
+        ):
+            self.assertNotIn(forbidden, learner_copy)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
