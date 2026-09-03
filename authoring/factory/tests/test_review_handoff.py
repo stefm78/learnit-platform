@@ -20,12 +20,30 @@ from authoring.factory import factory_gate as factory
 from authoring.factory import handoff
 from authoring.factory import reliability
 from authoring.factory import source_admission
+from authoring.factory import transient_source_admission as transient
 
 SIGNALS = ROOT / "authoring/v2/atlas/signaux_electriques_atlas.json"
 
 
 def write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def transient_declaration(source_id: str, version: str = "epf-v1") -> dict:
+    return {
+        "schema": transient.DECLARATION_SCHEMA,
+        "profile": transient.DECLARATION_PROFILE,
+        "declarationVersion": transient.DECLARATION_VERSION,
+        "sourceId": source_id,
+        "version": version,
+        "provenance": transient.PROVENANCE,
+        "processingContext": transient.PROCESSING_CONTEXT,
+        "authorizationBasis": transient.AUTHORIZATION_BASIS,
+        "userDeclarationAccepted": True,
+        "retention": transient.RETENTION,
+        "redistribution": transient.REDISTRIBUTION,
+        "legalRightsVerified": False,
+    }
 
 
 def semantic_review(
@@ -240,6 +258,73 @@ class PrepareReviewTests(unittest.TestCase):
             before = hash_paths(paths)
             ws.prepare()
             self.assertEqual(before, hash_paths(paths))
+
+
+class TransientWorkspace(Workspace):
+    def __init__(self, root: Path):
+        super().__init__(root)
+        self.source_id = "private_user_source"
+        record = transient.build_admission(
+            transient_declaration(self.source_id),
+            self.source,
+        )
+        if record["decision"]["verdict"] != transient.PASS:
+            raise AssertionError(record)
+        write_json(self.admission, record)
+
+
+class TransientPrepareReviewTests(unittest.TestCase):
+    def test_transient_bundle_is_deterministic_and_has_no_benchmark_catalog(self):
+        with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+            ws_a = TransientWorkspace(Path(a))
+            ws_b = TransientWorkspace(Path(b))
+            result_a = ws_a.prepare()
+            result_b = ws_b.prepare()
+            self.assertEqual(result_a["bundleDigest"], result_b["bundleDigest"])
+            self.assertEqual(result_a["bundleSha256"], result_b["bundleSha256"])
+            self.assertEqual(ws_a.bundle.read_bytes(), ws_b.bundle.read_bytes())
+
+            verified = ws_a.verified()
+            self.assertNotIn(
+                handoff.OPTIONAL_ROLE_PATHS["source-catalog"],
+                verified["members"],
+            )
+            admission = json.loads(
+                verified["members"][
+                    f"source-admission/{ws_a.source_id}.json"
+                ].decode("utf-8")
+            )
+            self.assertEqual(transient.ADMISSION_SCHEMA, admission["schema"])
+            self.assertFalse(admission["declaration"]["legalRightsVerified"])
+
+    def test_transient_source_drift_after_admission_fails_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            ws = TransientWorkspace(Path(td))
+            ws.source.write_text("drifted bytes\n", encoding="utf-8")
+            with self.assertRaises(handoff.HandoffInputError):
+                ws.prepare()
+
+    def test_transient_bundle_consumes_normal_independent_review(self):
+        with tempfile.TemporaryDirectory() as td:
+            ws = TransientWorkspace(Path(td))
+            ws.prepare()
+            ws.write_review()
+            result = ws.consume()
+            self.assertEqual(handoff.PASS_CONSUMED, result["verdict"])
+            run = json.loads(ws.run.read_text(encoding="utf-8"))
+            reliability.verify_run(run)
+            self.assertEqual("PASS_AI_KIT_FACTORY_V1", run["decision"]["verdict"])
+
+    def test_benchmark_bundle_still_carries_exact_benchmark_catalog(self):
+        with tempfile.TemporaryDirectory() as td:
+            ws = Workspace(Path(td))
+            ws.prepare()
+            verified = ws.verified()
+            catalog_path = handoff.OPTIONAL_ROLE_PATHS["source-catalog"]
+            self.assertEqual(
+                handoff.CATALOG_PATH.read_bytes(),
+                verified["members"][catalog_path],
+            )
 
 
 class ArchiveAdversarialTests(unittest.TestCase):
