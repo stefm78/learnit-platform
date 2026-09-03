@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-09-02-M3-4-PROMOTED",
-  "effectiveFromCommit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
-  "reviewedBaselineCommit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
+  "stateId": "GOV-STATE-2026-09-03-POST-M3-4-STOP-OBSERVE",
+  "effectiveFromCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
+  "reviewedBaselineCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-m3-4-qualified-release-set-promoted",
+    "id": "project-atlas-post-m3-4-stop-and-observe",
     "status": "active",
-    "description": "M3.4 Qualified Release Set is promoted on top of the promoted M3.2/M3.2.5/M3.3 factory stack. Exact PASS FactoryRuns and canonical kit bytes can now be composed into one deterministic, content-addressed, offline-verifiable release ZIP with fail-closed collision/archive checks and engineering Scale-100/Scale-500 evidence. Independent contradictory QA R2 passed after F01/F02 repair. Remote publishing, signing, assets and learner-runtime changes remain outside M3.4."
+    "description": "M3.4 Qualified Release Set is promoted and no next product implementation is selected. Independent Linus architecture and Steve product/learning reviews converged on STOP_AND_OBSERVE: use the promoted local/static stack on real end-to-end cases, measure operator/distribution/learner friction, and reopen only the smallest gate justified by observed bottlenecks."
   },
   "currentMain": {
-    "commit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
-    "sourcePullRequest": 334,
-    "description": "Current main contains promoted M3.4 product merge b8337c785cbec995de5891080776c4c44dd99179 plus CI-WP-013 post-merge central-routing closeout. M3.4 product evidence remains bound to frozen product HEAD 870d69800dcb07fcfff9f1d232dd143c8eaa6486 and independent QA R2 HEAD 9c0e20ef176ee03532543d009f22979c95d0d748."
+    "commit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
+    "sourcePullRequest": 336,
+    "description": "Current main includes promoted M3.4 Qualified Release Set, CI-WP-013 post-merge routing closeout and GOV-WP-035 canonical-state alignment. M3.4 evidence remains bound to frozen product HEAD 870d69800dcb07fcfff9f1d232dd143c8eaa6486 and independent QA R2 HEAD 9c0e20ef176ee03532543d009f22979c95d0d748."
   },
   "developmentBaseline": {
-    "status": "held",
-    "workPackage": "GOV-WP-035",
-    "candidate": "Post-M3.4 accountable-owner arbitration",
-    "sourceCommit": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
-    "authorityIssue": 335,
-    "note": "No next product implementation is authorized. Fresh owner arbitration must compare controlled remote distribution/publishing, human pedagogical overview debt #272, further factory/operator automation, and stopping because the current local/static workflow is sufficient."
+    "status": "observe",
+    "workPackage": "GOV-WP-036",
+    "candidate": "Post-M3.4 real-use observation",
+    "sourceCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
+    "authorityIssue": 337,
+    "note": "No new product implementation is authorized. Run real end-to-end cases with the promoted stack and collect minimal evidence on operator toil/errors, distribution friction, learner friction and human pedagogical-overview effort. Reopen only the smallest gate supported by observed evidence."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -236,12 +236,13 @@
     }
   },
   "authorizedWork": [
-    "Repository maintenance, canonical-state alignment and evidence-preserving closeout may proceed under bounded authority.",
-    "Fresh post-M3.4 read-only/accountable-owner arbitration may compare controlled remote distribution/publishing, human pedagogical overview debt #272, further factory/operator automation, and stopping; it does not itself authorize implementation.",
-    "M3.2/M3.2.5/M3.3/M3.4 regression fixes may proceed only under a new bounded authority that preserves promoted learner runtime, factory contracts, qualified release-set integrity and reviewer independence."
+    "Use the existing promoted M3.0-M3.4 capabilities on real source/brief cases without changing product code.",
+    "Collect minimal observation evidence: operator active minutes/manual transfers/errors/recovery effort; release-to-learner steps/time; learner start/completion/transfer/reconfirmation friction; human sequence-overview effort.",
+    "Repository maintenance and regression fixes may proceed only under a new bounded authority that preserves promoted learner runtime, factory contracts, qualified release-set integrity and reviewer independence."
   ],
   "heldWork": [
-    "Post-M3.4 product implementation remains HOLD pending fresh accountable-owner arbitration; controlled remote distribution/publishing, human pedagogical overview debt #272, further factory/operator automation and stopping are all unselected options.",
+    "All post-M3.4 product implementation remains HOLD until real-use observation identifies a dominant bottleneck. Distribution, human overview #272 and factory/operator automation are trigger-based candidates, not selected work.",
+    "Remote publishing, signing/authentication, registry/catalog, asset/media contracts and provider/model orchestration remain HOLD without separate evidence-backed authority.",
     "Remote publishing, signing/authentication and any asset/media contract remain HOLD and require separate bounded design/authority.",
     "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current evidence and require a new evidence-backed decision if proposed.",
     "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
@@ -269,14 +270,14 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "ATLAS-WP-020",
-    "condition": "Before any M3.4 implementation, challenge whether batch scale/publishing is now the highest-value next capability, freeze exact evidence and publishing boundaries if justified, and create a bounded authority. Otherwise skip, redefine or continue with existing promoted capabilities."
+    "id": "GOV-WP-036",
+    "condition": "Keep this governance observation gate active while real end-to-end cases are run. Re-review when observed evidence shows a dominant distribution, human-review/context, operator-orchestration or learner bottleneck; otherwise continue STOP_AND_OBSERVE without opening product implementation."
   },
   "review": {
-    "lastReviewedAt": "2026-09-02",
-    "lastReviewedBy": "Permanent Governor after M3.3 promotion, independent QA and fresh portable PASS/HOLD qualification",
+    "lastReviewedAt": "2026-09-03",
+    "lastReviewedBy": "Project driver after independent Linus architecture and Steve product/learning reviews",
     "decision": "GO_WITH_CONDITIONS",
-    "authorityIssue": 318,
-    "nextReviewTrigger": "fresh M3.4 accountable-owner arbitration, M3.3 regression, publication proposal, model/vendor integration proposal, human UX debt #272 reactivation, Gate3/Gate4 request or M4+ proposal"
+    "authorityIssue": 337,
+    "nextReviewTrigger": "real-use evidence showing dominant distribution, human-review, operator-orchestration or learner friction; regression; or a separately proposed Gate3/Gate4/M4+ capability"
   }
 }

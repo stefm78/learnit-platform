@@ -87,4 +87,4 @@ The factory still deliberately avoids a generic Source-to-Draft/document-ingesti
 
 Human graphical/context review debt is tracked in #272 and remains non-blocking until human supervision becomes a first-class authoring workflow.
 
-There is now **no preselected next product milestone**. Fresh accountable-owner arbitration must compare at least controlled remote distribution/publishing, human pedagogical overview debt #272, further factory/operator automation, and stopping because the current local/static workflow is sufficient. Gate3, Gate4, M4+, backend, accounts, synchronization, remote catalog and runtime AI remain HOLD.
+Post-M3.4 arbitration has now converged on **STOP_AND_OBSERVE**. No new product implementation is authorized. The promoted stack should be used on real end-to-end cases and the next gate must be selected only from observed friction: distribution, human pedagogical overview #272, operator orchestration, or a different learner problem. If no dominant bottleneck appears, continue observing. Gate3, Gate4, M4+, backend, accounts, synchronization, remote catalog and runtime AI remain HOLD.
