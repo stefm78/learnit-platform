@@ -178,6 +178,16 @@ class TransientAdmissionTests(unittest.TestCase):
             record = transient.build_admission(value, source)
             self.assertEqual(transient.PASS, record["decision"]["verdict"])
 
+    def test_windows_reserved_source_ids_are_rejected_before_bytes(self):
+        missing = Path("/definitely/not/present/transient-reserved")
+        for source_id in ("CON", "con.pdf", "PRN", "AUX", "NUL", "COM1", "com9.notes", "LPT1", "lpt9"):
+            with self.subTest(source_id=source_id):
+                with self.assertRaisesRegex(
+                    transient.TransientSourceAdmissionError,
+                    "portable on Windows",
+                ):
+                    transient.build_admission(declaration(source_id=source_id), missing)
+
     def test_cli_admit_and_verify_exact_bytes(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
