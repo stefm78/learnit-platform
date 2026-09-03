@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-024",
+  "title": "Converge Learn-it Atlas on one learning journey",
+  "status": "approved",
+  "changeClass": "bounded-learner-ux-runtime-convergence",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 352,
+    "productSlice": "ONE_ATLAS_LEARNING_JOURNEY"
+  },
+  "purpose": "Implement the smallest coherent Phase A change authorized by issue #352 so every Atlas learning action converges on the existing Atlas session engine, an active activity owns the learner surface, learner-facing implementation jargon is removed, and persisted history, resume, review-needed, lineage, revisions, imports, storage and accessibility behavior remain intact.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "592d4fc92e7a891742be31045f7b92f4370afbed",
+    "candidateName": "one-atlas-learning-journey",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/ATLAS-WP-024.json",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/ui/atlas_summary.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/atlas_m1_int.py",
+      "apps/learnit-next/tests/atlas_m2_ux_clarity.py"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "docs/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "Atlas learning actions from Today and Library enter the same existing Atlas planner/session engine; no third runtime or learner mode is introduced.",
+    "An active Atlas activity hides Today chrome, the classic Library surface, unrelated Atlas course cards and replanning controls while keeping prompt and answers contiguous.",
+    "Atlas event commits, history, resume state, review-needed semantics, package/course/activity lineage, revision IDs/digests and import behavior are unchanged.",
+    "No storage schema, database version, migration, backend, account or sync behavior is introduced.",
+    "learnit.kit.v2 and all EPF kit payloads remain unchanged.",
+    "Keyboard/focus behavior remains based on the existing Atlas controls and focus assertions."
+  ],
+  "requiredEvidence": [
+    "PR scope validates exactly against ATLAS-WP-024.",
+    "Learn-it Next CI runs the existing wave-a profile on the exact PR head.",
+    "Existing Atlas integration and UX clarity tests cover Library routing, exclusive active surface, minimal learner context, contiguous prompt/answers and learner-copy cleanup.",
+    "The deterministic Learn-it Next source manifest is rebound to every changed manifest-owned source.",
+    "No learner usability PASS is declared before Stream 2 human observation."
+  ],
+  "adversarialTests": [
+    "apps/learnit-next/tests/atlas_m1_int.py checks that Atlas Library actions cannot fall through to the classic learning handler and that active sessions suppress competing surfaces.",
+    "apps/learnit-next/tests/atlas_m2_ux_clarity.py checks the revised learner-facing summary copy while retaining prior Atlas UX clarity coverage."
+  ],
+  "nonGoals": [
+    "Changing EPF kits or the learnit.kit.v2 contract.",
+    "Migrating or merging classic and Atlas storage.",
+    "Adding backend, accounts, sync, a theory/discovery mode, a third runtime or a dashboard redesign.",
+    "Creating a new contradictory-QA chain or declaring human usability PASS."
+  ],
+  "independentReview": [
+    "Issue #352 is the sole implementation authority and already contains the frozen Dream Team, Linus and Steve arbitration.",
+    "A future Stream 2 human observation owns the learner-usability verdict; this implementation stream must not self-certify UX PASS."
+  ],
+  "execution": {
+    "executionLane": "single-stream-product-implementation",
+    "branch": "stream1/issue-352-one-atlas-learning-journey",
+    "maximumProductFiles": 4,
+    "maximumChangedFiles": 9,
+    "requiresIndependentReviewBeforeIntegration": false
+  },
+  "rollback": "Close or revert PR #354. The baseline storage, contracts, EPF kits and pre-existing Atlas/classic persisted data remain unchanged."
+}
