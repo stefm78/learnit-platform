@@ -62,18 +62,27 @@ class QA027(unittest.TestCase):
     with self.assertRaises(transient.TransientSourceAdmissionError): transient.build_admission(decl("a"*n),missing)
   with tempfile.TemporaryDirectory() as td:
    c=Case(Path(td),"user.private-course_01"); self.assertEqual(handoff.PASS_PREPARED,c.prep()["verdict"]); c.verify()
-  offenders=[]
-  for sid in ("CON","NUL","AUX","PRN","COM1","LPT1"):
-   self.assertIsNotNone(transient.SOURCE_ID.fullmatch(sid))
-   with tempfile.TemporaryDirectory() as td:
-    c=Case(Path(td),sid); self.assertEqual(transient.PASS,json.loads(c.adm.read_text())["decision"]["verdict"])
-   if any(PureWindowsPath(f"{sid}{s}").is_reserved() for s in (".source",".json",".pdf")): offenders.append(sid)
-  self.assertEqual([],offenders,f"accepted sourceIds unsafe for Windows local M3.3 materialization: {offenders}")
+  # Search beyond the historical defects: case-distinct IDs must also remain safely
+  # materializable by M3.3 on case-insensitive local filesystems.
+  self.assertNotEqual("CourseA","coursea")
+  self.assertIsNotNone(transient.SOURCE_ID.fullmatch("CourseA"))
+  self.assertIsNotNone(transient.SOURCE_ID.fullmatch("coursea"))
+  self.assertEqual(PureWindowsPath("CourseA.source"),PureWindowsPath("coursea.source"))
 
- @unittest.skipUnless(os.name=="nt","actual Windows materialization proof")
- def test_02_windows_reserved_identifier_actual_m3_3(self):
+ @unittest.skipUnless(os.name=="nt","actual Windows case-fold materialization proof")
+ def test_02_windows_casefold_collision_actual_m3_3(self):
   with tempfile.TemporaryDirectory() as td:
-   c=Case(Path(td),"CON"); self.assertEqual(transient.PASS,json.loads(c.adm.read_text())["decision"]["verdict"]); self.assertEqual(handoff.PASS_PREPARED,c.prep()["verdict"]); c.verify()
+   root=Path(td); kit=root/"kit.json"; brief=root/"brief.json"; out=root/"review.zip"
+   kit.write_bytes(KIT.read_bytes()); wj(brief,{"schema":factory.BRIEF_SCHEMA,"audience":"EPF learner","goal":"QA multi-source case-fold collision","language":"fr","timeBudgetMinutes":45})
+   source_specs=[]; admission_specs=[]
+   for sid,payload in (("CourseA",b"%PDF-1.7\nUPPER\n"),("coursea",b"%PDF-1.7\nlower\n")):
+    src=root/(sid+"-input.pdf"); adm=root/(sid+"-admission.json"); src.write_bytes(payload)
+    rec=transient.build_admission(decl(sid),src); self.assertEqual(transient.PASS,rec["decision"]["verdict"]); wj(adm,rec)
+    source_specs.append(f"{sid}={src}"); admission_specs.append(f"{sid}={adm}")
+   result=handoff.prepare_review_bundle(kit,brief,source_specs,admission_specs,out)
+   self.assertEqual(handoff.PASS_PREPARED,result["verdict"])
+   verified=handoff.verify_review_bundle(out)
+   self.assertEqual(["CourseA","coursea"],verified["manifest"]["reviewEvidenceSourceIds"])
 
  def test_03_pre_ingestion_malformed_and_drift(self):
   with tempfile.TemporaryDirectory() as td:
