@@ -48,14 +48,15 @@
   "finding": {
     "id": "QA-WP-027-F01",
     "severity": "major",
-    "status": "CANDIDATE_PENDING_WINDOWS_REPRODUCTION",
-    "title": "Case-distinct transient sourceIds can collide during mandatory M3.3 local materialization on case-insensitive filesystems",
-    "cause": "Transient admission and exact-string binding allow distinct sourceIds such as CourseA and coursea. M3.3 derives local temporary filenames <sourceId>.source for every resource, writes all sources, then rebuilds FactoryContext from those paths. On a case-insensitive Windows filesystem those two paths alias, so distinct admitted exact source bytes cannot both remain independently materialized.",
-    "contractImpact": "Issue #348 requires every transient-PASS sourceId to be safely materializable by M3.3 under the supported local processing model. A multi-source pair that is individually valid but aliases after M3.3 filename derivation violates that invariant.",
+    "status": "OPEN_PRODUCT_DEFECT",
+    "title": "Valid transient sourceId extension-prefix pairs become ambiguous in M3.3 source artifact lookup",
+    "cause": "Transient admission accepts sourceIds such as Course and Course.pdf. With PDF source bytes M3.3 packages them as sources/Course.pdf and sources/Course.pdf.pdf. M3.3 verification locates each source using names that start with sources/<sourceId>.; therefore lookup for Course matches both artifacts and rejects the bundle as non-unique.",
+    "contractImpact": "Issue #348 requires every transient-PASS sourceId to remain M3.2/M3.3 binding-valid and safely materializable. Two independently admitted valid sourceIds can form a valid source set that cannot cross M3.3 solely because source identity is recovered from a filename prefix rather than an exact manifest binding.",
     "reproduction": [
-      "Both CourseA and coursea satisfy transient.SOURCE_ID and independently produce PASS_TRANSIENT_SOURCE_ADMISSION_V1 for different exact bytes",
-      "PureWindowsPath('CourseA.source') equals PureWindowsPath('coursea.source') under Windows path semantics",
-      "Windows CI executes actual M3.3 prepare/verify with both IDs and distinct exact source bytes"
+      "Course and Course.pdf both satisfy transient.SOURCE_ID and independently yield PASS_TRANSIENT_SOURCE_ADMISSION_V1 for exact PDF bytes",
+      "M3.3 emits sources/Course.pdf and sources/Course.pdf.pdf",
+      "verify_embedded_authorities searches candidates with startswith('sources/Course.')",
+      "prepare_review_bundle self-verification raises 'source artifact path for Course is not unique'"
     ],
     "repairPerformedByQa": false
   },
@@ -86,6 +87,11 @@
     "pullRequest": null,
     "qaHead": null,
     "qaWorkflowRuns": [],
-    "finalVerdict": "PENDING_QA_WP_027_WINDOWS_CASEFOLD_REPRODUCTION"
+    "finalVerdict": "HOLD_QA_WP_027_EXACT_HEAD_CONTRADICTORY_QA"
+  },
+  "additionalAttack": {
+    "id": "QA-WP-027-A02",
+    "status": "PENDING_WINDOWS_EXECUTION",
+    "title": "Case-distinct IDs CourseA/coursea may alias during M3.3 local temp materialization on a case-insensitive filesystem"
   }
 }
