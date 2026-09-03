@@ -121,9 +121,9 @@
   ],
   "execution": {
     "branch": "gov/GOV-WP-036-post-m3-4-stop-observe",
-    "pullRequest": null,
+    "pullRequest": 338,
     "maximumChangedFiles": 6,
-    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "phase": "IMPLEMENTED_PENDING_GOVERNANCE",
     "humanGateRequired": false,
     "finalVerdict": null
   },
