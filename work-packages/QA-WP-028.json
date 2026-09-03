@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "QA-WP-028",
   "title": "Fresh contradictory QA after M3.3 sourceId portability repairs",
-  "status": "under-qa",
+  "status": "rejected",
   "role": "independent-contradictory-qa",
   "authority": {
     "repository": "stefm78/learnit-platform",
@@ -41,8 +41,26 @@
     ],
     "continueMatrixAfterTestFailures": true
   },
-  "verdict": null,
-  "findings": [],
+  "verdict": "HOLD_QA_WP_028_EXACT_HEAD_CONTRADICTORY_QA",
+  "findings": [
+    {
+      "id": "QA-WP-028-F01",
+      "severity": "major",
+      "productHead": "5fd3667d3042963b1c0108c7c84e27bd14d4f7f6",
+      "title": "M3.3 consume-review retains loose sourceId prefix matching after exact verification repair",
+      "cause": "verify-review resolves source artifacts by exact deterministic sourceId plus known suffix, but consume_review_bundle still selects members with startswith('sources/<sourceId>.'), so a valid base ID and extension-like child ID become ambiguous during FactoryRun materialization.",
+      "reproduction": [
+        "Create two valid transient admissions for sourceIds Course and Course.pdf using PDF bytes.",
+        "prepare-review returns PASS_REVIEW_HANDOFF_PREPARED_V1.",
+        "verify-review succeeds and binds distinct exact members sources/Course.pdf and sources/Course.pdf.pdf.",
+        "consume-review for sourceId Course sees both members through loose prefix matching and raises HandoffInputError: source artifact path for Course is not unique.",
+        "The same failure is reproduced with extension-like child IDs Course.zip, Course.txt and Course.bin using suffix-interaction payloads.",
+        "Reproduced independently on ubuntu-latest and a real windows-latest runner."
+      ],
+      "impact": "Transient identities accepted by admission and accepted by M3.3 prepare/verify can still fail the mandatory M3.3 consume boundary, so the repaired product does not provide end-to-end portable review handoff for the admitted identity set.",
+      "productRepairAttempted": false
+    }
+  ],
   "purpose": "Independently attack the exact frozen ATLAS-WP-023 repaired product head for false transient PASS and M3.3 portability failures, without modifying any product file.",
   "rollback": "Close the QA PR and delete only the QA-WP-028 branch/files; the frozen product branch and product files remain unchanged.",
   "scope": {
@@ -112,5 +130,44 @@
   ],
   "baseline": {
     "baseCommit": "5fd3667d3042963b1c0108c7c84e27bd14d4f7f6"
+  },
+  "evidence": {
+    "qaPullRequest": 351,
+    "qaBranch": "qa/QA-WP-028-transient-user-source-admission-r4",
+    "frozenProductHead": "5fd3667d3042963b1c0108c7c84e27bd14d4f7f6",
+    "contradictoryRun": 33763770608,
+    "topologyJob": {
+      "id": 100676295378,
+      "conclusion": "success"
+    },
+    "ubuntuJob": {
+      "id": 100676295319,
+      "conclusion": "failure",
+      "expectedProductFinding": "QA-WP-028-F01"
+    },
+    "windowsJob": {
+      "id": 100676294989,
+      "conclusion": "failure",
+      "expectedProductFinding": "QA-WP-028-F01"
+    },
+    "regressionsJob": {
+      "id": 100676295298,
+      "conclusion": "success"
+    },
+    "repositoryGovernanceRun": 33763770612,
+    "repositoryGovernanceConclusion": "success",
+    "matrixSummary": {
+      "freshOracleTestsPerPlatform": 20,
+      "extensionInteractionErrorsPerPlatform": 4,
+      "allOtherFreshOracleTests": "pass",
+      "regressionAuthorities": [
+        "M3.2 AI Kit Factory",
+        "M3.2.5 Factory Reliability",
+        "benchmark SourceAdmission",
+        "transient SourceAdmission",
+        "M3.3 Review Handoff",
+        "M3.4 Qualified Release Set"
+      ]
+    }
   }
 }
