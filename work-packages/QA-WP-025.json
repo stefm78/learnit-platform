@@ -23,6 +23,21 @@
       "authoring/factory/tests/qa_transient_source_admission.py",
       ".github/workflows/atlas-transient-source-admission-qa.yml"
     ],
+    "forbiddenPaths": [
+      "work-packages/ATLAS-WP-023.json",
+      "authoring/factory/transient_source_admission.py",
+      "authoring/factory/handoff.py",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_transient_source_admission.py",
+      "authoring/factory/tests/test_review_handoff.py",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/source_admission.py",
+      "authoring/v2/**",
+      "contracts/**",
+      "apps/**"
+    ],
     "maximumChangedFiles": 3,
     "productRepairAllowed": false
   },
@@ -33,6 +48,26 @@
     "priorAuthorTestRationaleUsedAsEvidence": false,
     "productFilesReadOnly": true
   },
+  "invariants": [
+    "Every QA verdict is bound to frozen product HEAD 8ffff76ae32bb67c6840b75b274cd63566eb0bf4.",
+    "The first QA commit is a direct child of the frozen product HEAD and the complete QA diff remains exactly within the three paths authorized by issue #344.",
+    "No product file may be repaired or modified by QA-WP-025.",
+    "Policy-invalid transient declarations must HOLD before source-byte ingestion.",
+    "PASS transient admission requires explicit user declaration, user-provided provenance, private-personal-learning context, transient-only retention, prohibited redistribution and legalRightsVerified=false.",
+    "Exact source bytes and the exact declaration are deterministically bound; drift must fail closed.",
+    "Benchmark SourceAdmission authority and transient user-source authority remain disjoint and cannot silently substitute for one another.",
+    "M3.3 handoff remains deterministic, exact-source review capable, fail-closed on tamper and independent-review violations.",
+    "Exact source bytes are review evidence only and do not enter Qualified Release Set output.",
+    "No learner runtime, canonical kit contract, network/provider integration or persistent private-source store is introduced."
+  ],
+  "requiredEvidence": [
+    "Fresh branch ancestry proof from exact frozen product HEAD.",
+    "Exact three-path QA delta proof.",
+    "Fresh promoted M3.2, M3.2.5, benchmark SourceAdmission, transient admission and M3.3 handoff regression execution.",
+    "Fresh independent contradictory oracle execution covering every minimum attack class in issue #344.",
+    "Actions run/job/log evidence bound to the exact final QA HEAD.",
+    "Any product defect is reported with deterministic reproduction and HOLD, without repair."
+  ],
   "requiredAttackClasses": [
     "False transient PASS: upload presence without declaration, declaration false, provenance, authorization basis, context, retention, redistribution, legalRightsVerified, malformed identity/version.",
     "Pre-ingestion: every policy-invalid declaration HOLDs before source bytes are read, including absent/unreadable source cases.",
@@ -41,6 +76,37 @@
     "M3.3 handoff: admission tamper, source/admission mismatch, archive attacks, target drift, stale review, evidence source injection and reviewer-independence flags.",
     "Qualified Release Set boundary: exact reviewer source remains in review handoff but source bytes do not enter release-set output.",
     "Regression: promoted M3.2, M3.2.5, benchmark SourceAdmission and M3.3 suites remain green; product delta contains no learner runtime or kit-contract changes; no network/provider/persistent source store is introduced."
+  ],
+  "adversarialTests": [
+    "Upload/file presence without declaration.",
+    "userDeclarationAccepted=false.",
+    "provenance other than user-provided.",
+    "authorizationBasis other than user-declaration.",
+    "processingContext other than private-personal-learning.",
+    "retention other than transient-only.",
+    "redistribution allowed or requested.",
+    "legalRightsVerified=true.",
+    "Malformed or missing sourceId/version.",
+    "Policy-invalid declaration with a byte source that raises if read.",
+    "Policy-invalid declaration with absent source path.",
+    "Policy-valid declaration without bytes.",
+    "One-byte source drift.",
+    "Declaration policy drift with deterministic identifiers recomputed.",
+    "Frozen sourceId and version drift.",
+    "Host path relocation and deterministic replay.",
+    "Transient PASS identity transported across the M3.3 SOURCE_ID=PATH grammar boundary.",
+    "Transient/benchmark schema masquerade in both directions.",
+    "Transient-only bundle catalog omission and coherently rehashed catalog injection.",
+    "Benchmark exact-catalog verification and tamper.",
+    "Malformed transient admission inside a coherently rehashed handoff.",
+    "Duplicate, undeclared and unsafe ZIP members.",
+    "Coherently rehashed handoff target drift.",
+    "Stale semantic review target.",
+    "Review evidence source-ID injection.",
+    "authorScratchpadSeen=true.",
+    "authorActiveContextReused=true.",
+    "Exact source present for reviewer but absent from Qualified Release Set.",
+    "Static no-network/no-provider/no-persistent-store surface checks."
   ],
   "independentAttacks": [
     "Policy-invalid matrix uses a source object whose read_bytes raises, proving no hidden pre-ingestion byte access.",
@@ -69,10 +135,21 @@
     "authoring/factory/tests/test_review_handoff.py",
     "tools/validate_repository.py"
   ],
+  "nonGoals": [
+    "Repairing transient_source_admission.py, handoff.py or any product path.",
+    "Reusing author scratchpad, hidden reasoning, active author context or prior author test rationale as evidence.",
+    "Changing benchmark catalog semantics, learner runtime, canonical kit contract, publishing, signing, provider/model integration or source storage.",
+    "Authorizing product merge or promotion from an unexecuted or stale QA result."
+  ],
+  "independentReview": [
+    "QA-WP-025 is an independent non-repairing lane under issue #344 only.",
+    "The oracle is authored from the public contract and implementation surface and adds attacks beyond product regression tests.",
+    "A PASS is valid only on fresh exact-head Actions evidence; any reproducible product defect forces HOLD_QA_WP_025_EXACT_HEAD_CONTRADICTORY_QA."
+  ],
   "execution": {
     "authorityIssue": 344,
     "branch": "qa/QA-WP-025-transient-user-source-admission",
-    "pullRequest": null,
+    "pullRequest": 345,
     "workflow": "Atlas Transient Source Admission Contradictory QA",
     "status": "PENDING_FRESH_ACTIONS_EXECUTION",
     "evidenceHead": null,
