@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-026",
+  "title": "Fresh contradictory QA after transient sourceId F01 repair",
+  "status": "under-qa",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "medium",
+  "purpose": "Fresh independent contradictory qualification of the repaired transient private user-source admission boundary, with mandatory re-attack of QA-WP-025-F01 and full M3.2/M3.2.5/benchmark/transient/M3.3/M3.4 regression coverage.",
+  "authority": {
+    "issue": 346,
+    "productPullRequest": 341,
+    "frozenProductHead": "9e95fc79d84828da264c70b334719c31aa93e792",
+    "productBase": "e90940130b540f57abb999c56a24015c6b470249",
+    "historicalQaOnly": "QA-WP-025 / issue #344"
+  },
+  "independence": {
+    "freshContext": true,
+    "reusedQaWp025Branch": false,
+    "reusedQaWp025QaFilesAsProof": false,
+    "productRepairPerformed": false
+  },
+  "execution": {
+    "branch": "qa/QA-WP-026-transient-user-source-admission-r2",
+    "pullRequestBase": "atlas/ATLAS-WP-023-transient-user-source-admission",
+    "expectedQaCommitParent": "9e95fc79d84828da264c70b334719c31aa93e792",
+    "allowedPaths": [
+      "work-packages/QA-WP-026.json",
+      "authoring/factory/tests/qa_transient_source_admission_r2.py",
+      ".github/workflows/atlas-transient-source-admission-qa-r2.yml"
+    ],
+    "workflow": ".github/workflows/atlas-transient-source-admission-qa-r2.yml"
+  },
+  "mandatoryF01Reattack": {
+    "colonCase": "user:private-course",
+    "expected": "Rejected by transient declaration validation before source-byte ingestion",
+    "result": "PASS_REATTACK",
+    "promotedFactoryGrammar": "^[A-Za-z0-9._-]+$",
+    "nonTrivialPassingIdentity": "user.private-course_01"
+  },
+  "finding": {
+    "id": "QA-WP-026-F01",
+    "severity": "major",
+    "status": "CONFIRMED_PRODUCT_DEFECT",
+    "title": "Unbounded accepted transient sourceId can PASS admission but fail M3.3 filesystem materialization",
+    "reproduction": {
+      "sourceId": "300 ASCII 'a' characters",
+      "transientDeclarationValidation": "accepted",
+      "transientAdmission": "PASS_TRANSIENT_SOURCE_ADMISSION_V1",
+      "m3_2SourceGrammar": "accepted",
+      "m3_3BindingGrammar": "accepted",
+      "m3_3Failure": "verify_embedded_authorities materializes temp/<sourceId>.source; filename component exceeds common 255-byte filesystem limit and raises OSError ENAMETOOLONG"
+    },
+    "requirementViolation": "Issue #346 requires every transient sourceId accepted by the new authority to be compatible with mandatory downstream M3.2/M3.3 and explicitly requires HOLD if another accepted transient sourceId cannot cross M3.3.",
+    "repairScope": "No product repair attempted by QA."
+  },
+  "contradictoryMatrix": [
+    "mandatory historical F01 colon re-attack",
+    "accepted sourceId edge and long-component attacks",
+    "false PASS declaration/provenance/context/retention/redistribution/legal-rights attacks",
+    "pre-ingestion source-byte boundary",
+    "source-byte drift",
+    "declaration/sourceId/version drift",
+    "host-path relocation and deterministic replay",
+    "benchmark/transient authority confusion",
+    "benchmark catalog requirement",
+    "transient-only bundle catalog exclusion",
+    "M3.3 archive tamper/duplicate/unsafe/undeclared members",
+    "stale semantic-review target",
+    "reviewer evidence source-ID injection",
+    "authorScratchpadSeen=true",
+    "authorActiveContextReused=true",
+    "reviewer source availability versus Qualified Release Set source exclusion",
+    "M3.2/M3.2.5/benchmark SourceAdmission/transient/M3.3/M3.4 regressions",
+    "no network/provider/persistent transient source-store surface",
+    "no learner-runtime or canonical kit-contract product delta"
+  ],
+  "verdict": "HOLD_QA_WP_026_EXACT_HEAD_CONTRADICTORY_QA",
+  "verdictBinding": "9e95fc79d84828da264c70b334719c31aa93e792",
+  "rollback": "Revert only the three QA-WP-026 paths; no product file or product history is modified.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-026.json",
+      "authoring/factory/tests/qa_transient_source_admission_r2.py",
+      ".github/workflows/atlas-transient-source-admission-qa-r2.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/transient_source_admission.py",
+      "authoring/factory/handoff.py",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/source_admission.py",
+      "authoring/factory/release_set.py",
+      "authoring/v2/**",
+      "apps/**",
+      "packages/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "QA evidence is bound only to frozen product HEAD 9e95fc79d84828da264c70b334719c31aa93e792.",
+    "The final QA branch contains exactly one QA commit whose parent is the frozen product HEAD.",
+    "The QA delta contains exactly the three paths authorized by issue #346.",
+    "No product implementation, learner runtime, canonical kit contract, benchmark authority, or promoted M3.2/M3.3 grammar is modified by QA."
+  ],
+  "requiredEvidence": [
+    "The historical colon case user:private-course is rejected by transient declaration validation before source-byte ingestion.",
+    "A nontrivial dot/dash/underscore sourceId crosses transient PASS, M3.3 prepare-review, and verify-review.",
+    "Every accepted transient sourceId attack is exercised against actual M3.3 materialization rather than parser-only acceptance.",
+    "The full contradictory matrix executes independently and all promoted regression suites execute even when a contradictory test fails.",
+    "The exact-head guard proves one direct QA commit and exactly three authorized changed paths."
+  ],
+  "adversarialTests": [
+    "Reject false PASS mutants for provenance, authorization basis, declaration acceptance, processing context, retention, redistribution, and legal-rights claim before ingestion.",
+    "Reject source-byte drift and declaration/sourceId/version drift.",
+    "Prove host relocation determinism and attack benchmark/transient authority confusion and catalog boundaries.",
+    "Reject M3.3 tamper, duplicate member, unsafe member, undeclared member, stale review target, reviewer sourceId injection, scratchpad reuse, and active-context reuse.",
+    "Attack accepted sourceId edge cases including a long filesystem component and require successful M3.3 crossing for every accepted identity."
+  ],
+  "nonGoals": [
+    "Repairing any product file.",
+    "Changing promoted M3.2, M3.2.5, benchmark SourceAdmission, M3.3, M3.4, learner runtime, or kit contracts.",
+    "Reusing QA-WP-025 active context, scratchpad, branch, or QA files as authoritative evidence.",
+    "Performing semantic review of learner content beyond the handoff-isolation boundary."
+  ],
+  "independentReview": [
+    "Treat QA-WP-025/#344 only as historical defect description and rederive all current evidence from the frozen HEAD.",
+    "A PASS is forbidden if any transient sourceId accepted by the authority cannot cross mandatory M3.3.",
+    "Product regression suites are supporting regression evidence only, never a substitute for the contradictory matrix.",
+    "Any HOLD must be reproducible on the exact frozen product HEAD and must not be repaired by this QA lane."
+  ],
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "9e95fc79d84828da264c70b334719c31aa93e792",
+    "productBase": "e90940130b540f57abb999c56a24015c6b470249",
+    "authorityIssue": 346,
+    "productPullRequest": 341
+  }
+}

@@ -1,0 +1,150 @@
+name: Atlas QA-WP-026 transient source admission R2
+
+on:
+  pull_request:
+    branches:
+      - atlas/ATLAS-WP-023-transient-user-source-admission
+    paths:
+      - 'work-packages/QA-WP-026.json'
+      - 'authoring/factory/tests/qa_transient_source_admission_r2.py'
+      - '.github/workflows/atlas-transient-source-admission-qa-r2.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-wp-026-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contradictory-qa:
+    name: QA-WP-026 exact-head contradictory QA
+    if: github.event.pull_request.head.ref == 'qa/QA-WP-026-transient-user-source-admission-r2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout QA head with history
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Exact frozen-head and three-path guard
+        env:
+          PRODUCT_HEAD: 9e95fc79d84828da264c70b334719c31aa93e792
+          PRODUCT_BASE: e90940130b540f57abb999c56a24015c6b470249
+          EXPECTED_BASE_REF: atlas/ATLAS-WP-023-transient-user-source-admission
+          EXPECTED_QA_REF: qa/QA-WP-026-transient-user-source-admission-r2
+          EVENT_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          [[ "${EVENT_BASE_REF}" == "${EXPECTED_BASE_REF}" ]]
+          [[ "${EVENT_HEAD_REF}" == "${EXPECTED_QA_REF}" ]]
+          [[ "${EVENT_BASE_SHA}" == "${PRODUCT_HEAD}" ]]
+          [[ "$(git rev-parse HEAD)" == "${EVENT_HEAD_SHA}" ]]
+          [[ "$(git rev-list --count "${PRODUCT_HEAD}"..HEAD)" == "1" ]]
+          [[ "$(git rev-parse HEAD^)" == "${PRODUCT_HEAD}" ]]
+          [[ "$(git merge-base "${PRODUCT_HEAD}" HEAD)" == "${PRODUCT_HEAD}" ]]
+
+          actual="$(git diff --name-only "${PRODUCT_HEAD}" HEAD | sort)"
+          expected="$(printf '%s\n' \
+            '.github/workflows/atlas-transient-source-admission-qa-r2.yml' \
+            'authoring/factory/tests/qa_transient_source_admission_r2.py' \
+            'work-packages/QA-WP-026.json' | sort)"
+          [[ "${actual}" == "${expected}" ]] || {
+            echo 'QA-WP-026 delta is not exactly the three authorized QA paths.' >&2
+            diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+            exit 1
+          }
+
+          product_actual="$(git diff --name-only "${PRODUCT_BASE}" "${PRODUCT_HEAD}" | sort)"
+          product_expected="$(printf '%s\n' \
+            '.github/workflows/atlas-m3-3-review-handoff-ci.yml' \
+            'authoring/factory/README.md' \
+            'authoring/factory/handoff.py' \
+            'authoring/factory/tests/test_review_handoff.py' \
+            'authoring/factory/tests/test_transient_source_admission.py' \
+            'authoring/factory/transient_source_admission.py' \
+            'work-packages/ATLAS-WP-023.json' | sort)"
+          [[ "${product_actual}" == "${product_expected}" ]] || {
+            echo 'Frozen product delta no longer matches the seven-path ATLAS-WP-023 scope.' >&2
+            diff -u <(printf '%s\n' "${product_expected}") <(printf '%s\n' "${product_actual}") || true
+            exit 1
+          }
+
+          for path in \
+            authoring/factory/factory_gate.py \
+            authoring/factory/reliability.py \
+            authoring/factory/source_admission.py \
+            authoring/factory/release_set.py
+          do
+            [[ "$(git rev-parse "${PRODUCT_BASE}:${path}")" == "$(git rev-parse "${PRODUCT_HEAD}:${path}")" ]]
+          done
+
+      - name: Run independent contradictory matrix
+        id: contradictory
+        continue-on-error: true
+        run: python -B authoring/factory/tests/qa_transient_source_admission_r2.py
+
+      - name: Regress promoted M3.2 AI Kit Factory
+        id: m32
+        continue-on-error: true
+        run: python -B authoring/factory/tests/test_ai_kit_factory.py
+
+      - name: Regress promoted M3.2.5 Factory Reliability
+        id: m325
+        continue-on-error: true
+        run: python -B authoring/factory/tests/test_factory_reliability.py
+
+      - name: Regress benchmark SourceAdmission
+        id: benchmark
+        continue-on-error: true
+        run: python -B authoring/factory/tests/test_source_admission.py
+
+      - name: Regress transient admission product oracle
+        id: transient_product
+        continue-on-error: true
+        run: python -B authoring/factory/tests/test_transient_source_admission.py
+
+      - name: Regress M3.3 review handoff
+        id: m33
+        continue-on-error: true
+        run: python -B authoring/factory/tests/test_review_handoff.py
+
+      - name: Regress M3.4 Qualified Release Set
+        id: m34
+        continue-on-error: true
+        run: python -B authoring/factory/tests/test_release_set.py
+
+      - name: Regress source snapshot boundary
+        id: snapshot
+        continue-on-error: true
+        run: python -B authoring/factory/tests/test_source_snapshot.py
+
+      - name: Aggregate QA verdict gate
+        if: always()
+        env:
+          CONTRADICTORY: ${{ steps.contradictory.outcome }}
+          M32: ${{ steps.m32.outcome }}
+          M325: ${{ steps.m325.outcome }}
+          BENCHMARK: ${{ steps.benchmark.outcome }}
+          TRANSIENT_PRODUCT: ${{ steps.transient_product.outcome }}
+          M33: ${{ steps.m33.outcome }}
+          M34: ${{ steps.m34.outcome }}
+          SNAPSHOT: ${{ steps.snapshot.outcome }}
+        run: |
+          set -euo pipefail
+          printf 'contradictory=%s\nm32=%s\nm325=%s\nbenchmark=%s\ntransient_product=%s\nm33=%s\nm34=%s\nsnapshot=%s\n' \
+            "${CONTRADICTORY}" "${M32}" "${M325}" "${BENCHMARK}" \
+            "${TRANSIENT_PRODUCT}" "${M33}" "${M34}" "${SNAPSHOT}"
+          [[ "${CONTRADICTORY}" == success ]]
+          [[ "${M32}" == success ]]
+          [[ "${M325}" == success ]]
+          [[ "${BENCHMARK}" == success ]]
+          [[ "${TRANSIENT_PRODUCT}" == success ]]
+          [[ "${M33}" == success ]]
+          [[ "${M34}" == success ]]
+          [[ "${SNAPSHOT}" == success ]]
