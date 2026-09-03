@@ -69,8 +69,20 @@ class QA027(unittest.TestCase):
   self.assertIsNotNone(transient.SOURCE_ID.fullmatch("coursea"))
   self.assertEqual(PureWindowsPath("CourseA.source"),PureWindowsPath("coursea.source"))
 
+ def test_02_source_id_extension_prefix_collision_is_rejected_by_m3_3(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); kit=root/"kit.json"; brief=root/"brief.json"; out=root/"review.zip"
+   kit.write_bytes(KIT.read_bytes()); wj(brief,{"schema":factory.BRIEF_SCHEMA,"audience":"EPF learner","goal":"QA sourceId prefix collision","language":"fr","timeBudgetMinutes":45})
+   source_specs=[]; admission_specs=[]
+   for sid,payload in (("Course",b"%PDF-1.7\nbase\n"),("Course.pdf",b"%PDF-1.7\nextension-id\n")):
+    src=root/(sid.replace(".","_")+"-input.pdf"); adm=root/(sid.replace(".","_")+"-admission.json"); src.write_bytes(payload)
+    rec=transient.build_admission(decl(sid),src); self.assertEqual(transient.PASS,rec["decision"]["verdict"]); wj(adm,rec)
+    source_specs.append(f"{sid}={src}"); admission_specs.append(f"{sid}={adm}")
+   with self.assertRaisesRegex(handoff.HandoffInputError,"source artifact path for Course is not unique"):
+    handoff.prepare_review_bundle(kit,brief,source_specs,admission_specs,out)
+
  @unittest.skipUnless(os.name=="nt","actual Windows case-fold materialization proof")
- def test_02_windows_casefold_collision_actual_m3_3(self):
+ def test_02b_windows_casefold_collision_actual_m3_3(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); kit=root/"kit.json"; brief=root/"brief.json"; out=root/"review.zip"
    kit.write_bytes(KIT.read_bytes()); wj(brief,{"schema":factory.BRIEF_SCHEMA,"audience":"EPF learner","goal":"QA multi-source case-fold collision","language":"fr","timeBudgetMinutes":45})
