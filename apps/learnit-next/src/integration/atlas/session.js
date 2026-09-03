@@ -575,6 +575,45 @@ export async function runAtlasSession({
   const atlasCard =
     container.closest('.atlas-course-card');
 
+  const atlasSurface =
+    atlasCard?.closest('[data-atlas-int-surface]')
+    ?? null;
+
+  const surfaceHeading =
+    atlasSurface?.querySelector('.section-heading')
+    ?? null;
+
+  const otherAtlasCards =
+    atlasSurface
+      ? [...atlasSurface.querySelectorAll('.atlas-course-card')]
+        .filter(card => card !== atlasCard)
+      : [];
+
+  const courseTitle =
+    atlasCard?.querySelector('h3')
+    ?? null;
+
+  const courseMeta =
+    atlasCard?.querySelector('.course-meta')
+    ?? null;
+
+  const surfaceHeadingDisplay =
+    surfaceHeading?.style.display ?? '';
+
+  const courseTitleDisplay =
+    courseTitle?.style.display ?? '';
+
+  const courseMetaDisplay =
+    courseMeta?.style.display ?? '';
+
+  const otherAtlasCardDisplays =
+    new Map(
+      otherAtlasCards.map(card => [
+        card,
+        card.style.display,
+      ]),
+    );
+
   const plannerActions =
     atlasCard?.querySelector(
       '[data-atlas-planner-actions="true"]',
