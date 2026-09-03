@@ -124,9 +124,9 @@
     "branch": "gov/GOV-WP-036-post-m3-4-stop-observe",
     "pullRequest": 338,
     "maximumChangedFiles": 6,
-    "phase": "IMPLEMENTED_PENDING_GOVERNANCE",
+    "phase": "OBSERVATION_ACTIVE",
     "humanGateRequired": false,
-    "finalVerdict": null
+    "finalVerdict": "PASS_GOV_WP_036_POST_M3_4_STOP_AND_OBSERVE"
   },
   "rollback": "Revert the six metadata/documentation paths. Promoted M3.4 product bytes, QA evidence and learner runtime remain unchanged."
 }
