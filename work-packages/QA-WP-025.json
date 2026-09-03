@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-025",
+  "title": "Transient private user-source admission contradictory QA",
+  "status": "under-qa",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "high",
+  "purpose": "Fresh independent contradictory QA authorized only by issue #344 against frozen product HEAD 8ffff76ae32bb67c6840b75b274cd63566eb0bf4. Product paths are read-only and no author scratchpad, hidden reasoning, active author context or prior author test rationale is evidence.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "authorityIssue": 344,
+    "parentProductIssue": 340,
+    "parentProductPullRequest": 341,
+    "frozenProductHead": "8ffff76ae32bb67c6840b75b274cd63566eb0bf4",
+    "productBase": "e90940130b540f57abb999c56a24015c6b470249",
+    "productBranch": "atlas/ATLAS-WP-023-transient-user-source-admission",
+    "branch": "qa/QA-WP-025-transient-user-source-admission",
+    "baseCommit": "8ffff76ae32bb67c6840b75b274cd63566eb0bf4"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-025.json",
+      "authoring/factory/tests/qa_transient_source_admission.py",
+      ".github/workflows/atlas-transient-source-admission-qa.yml"
+    ],
+    "maximumChangedFiles": 3,
+    "productRepairAllowed": false
+  },
+  "independence": {
+    "context": "fresh-independent-qa",
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false,
+    "priorAuthorTestRationaleUsedAsEvidence": false,
+    "productFilesReadOnly": true
+  },
+  "requiredAttackClasses": [
+    "False transient PASS: upload presence without declaration, declaration false, provenance, authorization basis, context, retention, redistribution, legalRightsVerified, malformed identity/version.",
+    "Pre-ingestion: every policy-invalid declaration HOLDs before source bytes are read, including absent/unreadable source cases.",
+    "Exact binding: one-byte source drift, declaration drift, sourceId drift, version drift, path relocation and deterministic replay.",
+    "Authority confusion: benchmark and transient schemas cannot masquerade; benchmark retains exact catalog authority; transient-only handoff omits catalog; injected catalog fails closed.",
+    "M3.3 handoff: admission tamper, source/admission mismatch, archive attacks, target drift, stale review, evidence source injection and reviewer-independence flags.",
+    "Qualified Release Set boundary: exact reviewer source remains in review handoff but source bytes do not enter release-set output.",
+    "Regression: promoted M3.2, M3.2.5, benchmark SourceAdmission and M3.3 suites remain green; product delta contains no learner runtime or kit-contract changes; no network/provider/persistent source store is introduced."
+  ],
+  "independentAttacks": [
+    "Policy-invalid matrix uses a source object whose read_bytes raises, proving no hidden pre-ingestion byte access.",
+    "Policy-valid declaration without bytes must HOLD rather than infer authorization from upload presence.",
+    "Declaration policy tamper is recomputed through deterministic digests to ensure a forged outer PASS still fails semantic declaration policy.",
+    "A transient sourceId accepted by the transient grammar is driven across the M3.3 SOURCE_ID=PATH boundary to detect grammar split/false operational PASS.",
+    "Transient-only source-catalog injection refreshes artifact hashes and bundleDigest before verification, preventing a shallow digest mismatch from hiding authority confusion.",
+    "M3.3 target drift refreshes bundleDigest before verification, forcing comparison against the rebuilt embedded FactoryContext.",
+    "Exact transient source bytes are proven available in the reviewer bundle, then a consumed FactoryRun is passed into M3.4 and the release archive is proven source-free."
+  ],
+  "candidateFindings": [
+    {
+      "id": "QA-WP-025-F01",
+      "severity": "major",
+      "status": "PENDING_FRESH_EXECUTION",
+      "hypothesis": "The transient admission grammar accepts sourceId values containing ':' and may emit PASS_TRANSIENT_SOURCE_ADMISSION_V1 for an identity that the mandated M3.3 handoff/factory SOURCE_ID grammar rejects, creating a false operational PASS across the admitted workflow boundary.",
+      "reproductionTest": "ExactBindingTests.test_12_transient_pass_source_identity_must_cross_m3_3_boundary",
+      "productRepair": "FORBIDDEN_IN_QA"
+    }
+  ],
+  "regressions": [
+    "authoring/factory/tests/test_ai_kit_factory.py",
+    "authoring/factory/tests/test_factory_reliability.py",
+    "authoring/factory/tests/test_source_admission.py",
+    "authoring/factory/tests/test_transient_source_admission.py",
+    "authoring/factory/tests/test_review_handoff.py",
+    "tools/validate_repository.py"
+  ],
+  "execution": {
+    "authorityIssue": 344,
+    "branch": "qa/QA-WP-025-transient-user-source-admission",
+    "pullRequest": null,
+    "workflow": "Atlas Transient Source Admission Contradictory QA",
+    "status": "PENDING_FRESH_ACTIONS_EXECUTION",
+    "evidenceHead": null,
+    "workflowRun": null,
+    "workflowJob": null,
+    "productRegression": null,
+    "contradictoryOracle": null,
+    "finalVerdict": null
+  },
+  "requiredPassVerdict": "PASS_QA_WP_025_EXACT_HEAD_CONTRADICTORY_QA",
+  "requiredHoldVerdict": "HOLD_QA_WP_025_EXACT_HEAD_CONTRADICTORY_QA",
+  "rollback": "Delete or revert only the three QA-WP-025 paths. No product or promoted upstream authority is modified."
+}
