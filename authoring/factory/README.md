@@ -308,7 +308,42 @@ python -B authoring/factory/handoff.py prepare-review \
   --out ATLAS_REVIEW_COURS_V1.zip
 ```
 
-The source must already have a `PASS_SOURCE_ADMISSION_V1` record from the current curated source catalog. The handoff command replays that admission against the exact source bytes before packaging.
+The `--admission` input accepts one of two explicit authorities:
+
+- existing curated benchmark `PASS_SOURCE_ADMISSION_V1`, replayed against the frozen benchmark catalog and exact source bytes;
+- `PASS_TRANSIENT_SOURCE_ADMISSION_V1` for a user-provided source used only for private personal learning, with transient-only retention and source redistribution prohibited.
+
+The transient path is deliberately separate from the benchmark catalog. A transient PASS does **not** mean Learn-it verified copyright, ownership, licence or redistribution rights. It means the required user declaration and private/transient processing context are explicit and the exact caller-bound source bytes/version are hash-bound.
+
+Create a transient declaration:
+
+```json
+{
+  "schema": "learnit.atlas.transient_source_declaration.v1",
+  "profile": "atlas.user-provided-private-learning.v1",
+  "declarationVersion": "learnit.private-source-user-declaration.v1",
+  "sourceId": "cours",
+  "version": "2026-09",
+  "provenance": "user-provided",
+  "processingContext": "private-personal-learning",
+  "authorizationBasis": "user-declaration",
+  "userDeclarationAccepted": true,
+  "retention": "transient-only",
+  "redistribution": "prohibited",
+  "legalRightsVerified": false
+}
+```
+
+Bind that declaration to the exact source bytes:
+
+```bash
+python -B authoring/factory/transient_source_admission.py admit \
+  --declaration cours.transient-declaration.json \
+  --file ./cours.pdf \
+  > cours.source-admission.json
+```
+
+The source bytes may exist in the caller workspace, the temporary review ZIP and the reviewer workspace while processing is active. This authority introduces no persistent source catalog, repository corpus or durable source store. Durable factory evidence may retain only non-reconstructive source identity such as sourceId, version, byte count and SHA-256 plus the declaration/admission record.
 
 A bundle contains one case only:
 
@@ -320,8 +355,8 @@ candidate.json
 learner-brief.json
 factory-context.json
 quality-report.json
-source-catalog.json
-source-admission/<source-id>.json
+source-catalog.json                 # present only when a benchmark SourceAdmission is used
+source-admission/<source-id>.json    # benchmark or transient admission
 sources/<source-id>.<deterministic-extension>
 ```
 
