@@ -546,40 +546,40 @@ jobs:
             export ARTIFACT_SHA="${artifact_sha}" ARTIFACT_BYTES="${artifact_bytes}"
             mkdir -p apps/learnit-next/.agent-result
             python - <<'PY'
-import json, os
-from pathlib import Path
-target=os.environ["TARGET"]
-payload={
-    "schema":"learnit.next.ci.atlas-ux-convergence.v1",
-    "workPackage":"ATLAS-WP-024",
-    "authorityIssue":352,
-    "targetHead":target,
-    "result":"PASS",
-    "verdict":"READY_FOR_HUMAN_OBSERVATION",
-    "tests":[
-        "build.py",
-        "node --check render.js",
-        "node --check atlas/surface.js",
-        "node --check atlas/session.js",
-        "node --check atlas_summary.js",
-        "contract_v2.py",
-        "storage_isolation.py",
-        "atlas_m1_core.py",
-        "atlas_m1_learning.py",
-        "atlas_m1_experience.py",
-        "atlas_m1_int.py",
-        "atlas_m2_ux_clarity.py",
-    ],
-    "artifact":{
-        "path":"apps/learnit-next/dist/learnit-next.html",
-        "bytes":int(os.environ["ARTIFACT_BYTES"]),
-        "sha256":os.environ["ARTIFACT_SHA"],
-    },
-}
-out=Path("apps/learnit-next/.agent-result/run_checks.json")
-out.write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n",encoding="utf-8")
-print(json.dumps(payload,indent=2,sort_keys=True))
-PY
+          import json, os
+          from pathlib import Path
+          target=os.environ["TARGET"]
+          payload={
+              "schema":"learnit.next.ci.atlas-ux-convergence.v1",
+              "workPackage":"ATLAS-WP-024",
+              "authorityIssue":352,
+              "targetHead":target,
+              "result":"PASS",
+              "verdict":"READY_FOR_HUMAN_OBSERVATION",
+              "tests":[
+                  "build.py",
+                  "node --check render.js",
+                  "node --check atlas/surface.js",
+                  "node --check atlas/session.js",
+                  "node --check atlas_summary.js",
+                  "contract_v2.py",
+                  "storage_isolation.py",
+                  "atlas_m1_core.py",
+                  "atlas_m1_learning.py",
+                  "atlas_m1_experience.py",
+                  "atlas_m1_int.py",
+                  "atlas_m2_ux_clarity.py",
+              ],
+              "artifact":{
+                  "path":"apps/learnit-next/dist/learnit-next.html",
+                  "bytes":int(os.environ["ARTIFACT_BYTES"]),
+                  "sha256":os.environ["ARTIFACT_SHA"],
+              },
+          }
+          out=Path("apps/learnit-next/.agent-result/run_checks.json")
+          out.write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(json.dumps(payload,indent=2,sort_keys=True))
+          PY
             exit 0
           fi
           if [[ "${PROFILE}" == source-snapshot-delegated ]]; then
