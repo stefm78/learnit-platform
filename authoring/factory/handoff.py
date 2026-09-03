@@ -55,6 +55,7 @@ Return only the final learnit.atlas.semantic_review.v1 JSON.
 
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 FILE_MODE = stat.S_IFREG | 0o644
+SOURCE_MEMBER_SUFFIXES = (".pdf", ".zip", ".txt", ".bin")
 
 ROLE_PATHS = {
     "candidate": "candidate.json",
@@ -121,6 +122,7 @@ def parse_bindings(specs: list[str], label: str) -> dict[str, Path]:
     if not specs:
         raise HandoffInputError(f"at least one --{label} SOURCE_ID=PATH is required")
     out: dict[str, Path] = {}
+    folded: dict[str, str] = {}
     for spec in specs:
         if "=" not in spec:
             raise HandoffInputError(f"invalid {label} binding {spec!r}; expected SOURCE_ID=PATH")
@@ -129,6 +131,14 @@ def parse_bindings(specs: list[str], label: str) -> dict[str, Path]:
             raise HandoffInputError(f"invalid sourceId {source_id!r}")
         if source_id in out:
             raise HandoffInputError(f"duplicate {label} sourceId {source_id!r}")
+        folded_id = source_id.casefold()
+        prior = folded.get(folded_id)
+        if prior is not None and prior != source_id:
+            raise HandoffInputError(
+                f"{label} sourceIds collide on case-insensitive filesystems: "
+                f"{prior!r} vs {source_id!r}"
+            )
+        folded[folded_id] = source_id
         if not raw_path:
             raise HandoffInputError(f"{label} path must be non-empty")
         out[source_id] = Path(raw_path)
@@ -629,7 +639,11 @@ def verify_embedded_authorities(
     resources = {row["resourceId"]: row for row in manifest["resources"]}
     source_member_by_id: dict[str, str] = {}
     for source_id in resources:
-        candidates = [name for name in members if name.startswith(f"sources/{source_id}.")]
+        candidates = [
+            candidate
+            for suffix in SOURCE_MEMBER_SUFFIXES
+            if (candidate := f"sources/{source_id}{suffix}") in members
+        ]
         if len(candidates) != 1:
             raise HandoffInputError(f"source artifact path for {source_id} is not unique")
         source_member = candidates[0]
