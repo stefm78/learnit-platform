@@ -157,6 +157,27 @@ class TransientAdmissionTests(unittest.TestCase):
             record = transient.build_admission(value, source)
             self.assertEqual(transient.PASS, record["decision"]["verdict"])
 
+    def test_source_id_over_160_chars_is_rejected(self):
+        value = declaration(source_id="a" * 161)
+        self.assertIsNone(transient.SOURCE_ID.fullmatch(value["sourceId"]))
+        with self.assertRaises(transient.TransientSourceAdmissionError):
+            transient.build_admission(value, None)
+
+    def test_very_long_source_id_is_rejected(self):
+        value = declaration(source_id="a" * 300)
+        self.assertIsNone(transient.SOURCE_ID.fullmatch(value["sourceId"]))
+        with self.assertRaises(transient.TransientSourceAdmissionError):
+            transient.build_admission(value, None)
+
+    def test_source_id_exactly_160_chars_is_accepted(self):
+        with tempfile.TemporaryDirectory() as td:
+            source = Path(td) / "source.pdf"
+            source.write_bytes(b"%PDF-1.7\nsource\n")
+            value = declaration(source_id="a" * 160)
+            self.assertIsNotNone(transient.SOURCE_ID.fullmatch(value["sourceId"]))
+            record = transient.build_admission(value, source)
+            self.assertEqual(transient.PASS, record["decision"]["verdict"])
+
     def test_cli_admit_and_verify_exact_bytes(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
