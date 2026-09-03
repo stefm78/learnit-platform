@@ -125,7 +125,7 @@ jobs:
               atlas/ATLAS-WP-017-real-source-snapshot|atlas/ATLAS-WP-017b-source-snapshot-content-integrity|atlas/ATLAS-WP-017c-management-source-content) echo 'source-snapshot-delegated wave' ;;
               atlas/ATLAS-WP-019-m3-3-review-handoff) echo 'm3-3-review-handoff-delegated wave' ;;
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
-              stream1/issue-352-one-atlas-learning-journey) echo 'wave-a wave' ;;
+              stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
               *) echo 'ci-router wave' ;;
             esac
@@ -367,6 +367,11 @@ jobs:
             [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]]
             [[ "${BRANCH}" == main ]]
             [[ "${POST_MERGE}" == true ]]
+          elif [[ "${PROFILE}" == atlas-ux-convergence ]]; then
+            [[ "${EVENT}" == pull_request ]]
+            [[ "${BRANCH}" == stream1/issue-352-one-atlas-learning-journey ]]
+            [[ "${BASE}" == "${WAVE_A_BASE}" ]]
+            [[ "${POST_MERGE}" == false ]]
           elif [[ "${PROFILE}" == atlas-learning || "${PROFILE}" == atlas-core || "${PROFILE}" == atlas-experience || "${PROFILE}" == atlas-content || "${PROFILE}" == atlas-int || "${PROFILE}" == atlas-qa ]]; then
             case "${BRANCH}" in
               *-corrective-0-3|agent/ATLAS-WP-001-qa-0-3|agent/ATLAS-WP-001-m1-0-3-int) [[ "${BASE}" == "${CORRECTIVE_COMMON_BASELINE}" ]] ;;
@@ -509,6 +514,74 @@ jobs:
               [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
           }
 
+          if [[ "${PROFILE}" == atlas-ux-convergence ]]; then
+            [[ "${EVENT}" == pull_request ]]
+            [[ "${BRANCH}" == stream1/issue-352-one-atlas-learning-journey ]]
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+
+            checks=(
+              "python -B apps/learnit-next/build.py"
+              "node --check apps/learnit-next/src/ui/render.js"
+              "node --check apps/learnit-next/src/integration/atlas/surface.js"
+              "node --check apps/learnit-next/src/integration/atlas/session.js"
+              "node --check apps/learnit-next/src/ui/atlas_summary.js"
+              "python -B apps/learnit-next/tests/contract_v2.py -v"
+              "python -B apps/learnit-next/tests/storage_isolation.py -v"
+              "python -B apps/learnit-next/tests/atlas_m1_core.py -v"
+              "python -B apps/learnit-next/tests/atlas_m1_learning.py -v"
+              "python -B apps/learnit-next/tests/atlas_m1_experience.py -v"
+              "python -B apps/learnit-next/tests/atlas_m1_int.py -v"
+              "python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v"
+            )
+            for check in "${checks[@]}"; do
+              echo "::group::${check}"
+              eval "${check}"
+              echo "::endgroup::"
+            done
+
+            artifact="apps/learnit-next/dist/learnit-next.html"
+            [[ -f "${artifact}" ]]
+            artifact_sha="$(sha256sum "${artifact}" | awk '{print $1}')"
+            artifact_bytes="$(wc -c < "${artifact}" | tr -d ' ')"
+            export ARTIFACT_SHA="${artifact_sha}" ARTIFACT_BYTES="${artifact_bytes}"
+            mkdir -p apps/learnit-next/.agent-result
+            python - <<'PY'
+import json, os
+from pathlib import Path
+target=os.environ["TARGET"]
+payload={
+    "schema":"learnit.next.ci.atlas-ux-convergence.v1",
+    "workPackage":"ATLAS-WP-024",
+    "authorityIssue":352,
+    "targetHead":target,
+    "result":"PASS",
+    "verdict":"READY_FOR_HUMAN_OBSERVATION",
+    "tests":[
+        "build.py",
+        "node --check render.js",
+        "node --check atlas/surface.js",
+        "node --check atlas/session.js",
+        "node --check atlas_summary.js",
+        "contract_v2.py",
+        "storage_isolation.py",
+        "atlas_m1_core.py",
+        "atlas_m1_learning.py",
+        "atlas_m1_experience.py",
+        "atlas_m1_int.py",
+        "atlas_m2_ux_clarity.py",
+    ],
+    "artifact":{
+        "path":"apps/learnit-next/dist/learnit-next.html",
+        "bytes":int(os.environ["ARTIFACT_BYTES"]),
+        "sha256":os.environ["ARTIFACT_SHA"],
+    },
+}
+out=Path("apps/learnit-next/.agent-result/run_checks.json")
+out.write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+print(json.dumps(payload,indent=2,sort_keys=True))
+PY
+            exit 0
+          fi
           if [[ "${PROFILE}" == source-snapshot-delegated ]]; then
             [[ "${EVENT}" == pull_request ]] || {
               echo "Source snapshot delegated route is valid only for the exact product pull request." >&2
@@ -1199,4 +1272,6 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
-          path: apps/learnit-next/.agent-result/run_checks.json
+          path: |
+            apps/learnit-next/.agent-result/run_checks.json
+            apps/learnit-next/dist/learnit-next.html
