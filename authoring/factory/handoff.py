@@ -27,6 +27,7 @@ if str(ROOT) not in sys.path:
 from authoring.factory import factory_gate as factory
 from authoring.factory import reliability
 from authoring.factory import source_admission
+from authoring.factory import transient_source_admission
 from authoring.v2.atlas import pedagogical_quality as quality
 
 HANDOFF_SCHEMA = "learnit.atlas.review_handoff.v1"
@@ -54,17 +55,20 @@ Return only the final learnit.atlas.semantic_review.v1 JSON.
 
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 FILE_MODE = stat.S_IFREG | 0o644
+SOURCE_MEMBER_SUFFIXES = (".pdf", ".zip", ".txt", ".bin")
 
 ROLE_PATHS = {
     "candidate": "candidate.json",
     "learner-brief": "learner-brief.json",
     "factory-context": "factory-context.json",
     "quality-report": "quality-report.json",
-    "source-catalog": "source-catalog.json",
     "reviewer-skill": "SKILL_ATLAS_KIT_REVIEW_V1.md",
     "review-request": "REVIEW_REQUEST.md",
 }
-SINGLETON_ROLES = set(ROLE_PATHS)
+OPTIONAL_ROLE_PATHS = {
+    "source-catalog": "source-catalog.json",
+}
+SINGLETON_ROLES = set(ROLE_PATHS) | set(OPTIONAL_ROLE_PATHS)
 MULTI_ROLES = {"source-admission", "source"}
 ALL_ROLES = SINGLETON_ROLES | MULTI_ROLES
 
@@ -118,6 +122,7 @@ def parse_bindings(specs: list[str], label: str) -> dict[str, Path]:
     if not specs:
         raise HandoffInputError(f"at least one --{label} SOURCE_ID=PATH is required")
     out: dict[str, Path] = {}
+    folded: dict[str, str] = {}
     for spec in specs:
         if "=" not in spec:
             raise HandoffInputError(f"invalid {label} binding {spec!r}; expected SOURCE_ID=PATH")
@@ -126,6 +131,14 @@ def parse_bindings(specs: list[str], label: str) -> dict[str, Path]:
             raise HandoffInputError(f"invalid sourceId {source_id!r}")
         if source_id in out:
             raise HandoffInputError(f"duplicate {label} sourceId {source_id!r}")
+        folded_id = source_id.casefold()
+        prior = folded.get(folded_id)
+        if prior is not None and prior != source_id:
+            raise HandoffInputError(
+                f"{label} sourceIds collide on case-insensitive filesystems: "
+                f"{prior!r} vs {source_id!r}"
+            )
+        folded[folded_id] = source_id
         if not raw_path:
             raise HandoffInputError(f"{label} path must be non-empty")
         out[source_id] = Path(raw_path)
@@ -191,17 +204,15 @@ def target_from_context(context: dict[str, Any]) -> dict[str, str]:
 def source_admission_rows(
     source_paths: dict[str, Path],
     admission_paths: dict[str, Path],
-) -> tuple[list[dict[str, Any]], dict[str, bytes], bytes]:
+) -> tuple[list[dict[str, Any]], dict[str, bytes], bytes | None]:
     if set(source_paths) != set(admission_paths):
         raise HandoffInputError(
             f"source/admission IDs mismatch; sources={sorted(source_paths)} admissions={sorted(admission_paths)}"
         )
 
-    try:
-        catalog, catalog_sha = source_admission.load_catalog(CATALOG_PATH)
-        catalog_raw = CATALOG_PATH.read_bytes()
-    except (OSError, source_admission.SourceAdmissionError) as exc:
-        raise HandoffInputError(f"source catalog: {exc}") from exc
+    catalog: dict[str, Any] | None = None
+    catalog_sha: str | None = None
+    catalog_raw: bytes | None = None
 
     rows: list[dict[str, Any]] = []
     admission_bytes: dict[str, bytes] = {}
@@ -210,37 +221,72 @@ def source_admission_rows(
         source_data = load_path(source_path, f"source {source_id}")
         raw_admission = load_path(admission_paths[source_id], f"admission {source_id}")
         record = load_json_bytes(raw_admission, f"admission {source_id}")
-        try:
-            record = source_admission.verify_admission(record)
-        except source_admission.SourceAdmissionError as exc:
-            raise HandoffInputError(f"admission {source_id}: {exc}") from exc
+        schema = record.get("schema") if isinstance(record, dict) else None
 
-        admission_source_id = record["source"]["sourceId"]
-        if record["catalogSha256"] != catalog_sha:
-            raise HandoffInputError(f"admission {source_id}: catalogSha256 mismatch")
-        if record["decision"]["verdict"] != source_admission.PASS:
-            raise HandoffInputError(
-                f"admission {source_id}: source is not admitted ({record['decision']['verdict']})"
-            )
-        if record["content"] is None:
-            raise HandoffInputError(f"admission {source_id}: admitted source has no content binding")
-        version = record["source"]["version"]
-        if not isinstance(version, str) or not reliability.VERSION.fullmatch(version):
-            raise HandoffInputError(f"admission {source_id}: invalid resource version")
+        if schema == source_admission.ADMISSION_SCHEMA:
+            if catalog is None:
+                try:
+                    catalog, catalog_sha = source_admission.load_catalog(CATALOG_PATH)
+                    catalog_raw = CATALOG_PATH.read_bytes()
+                except (OSError, source_admission.SourceAdmissionError) as exc:
+                    raise HandoffInputError(f"source catalog: {exc}") from exc
+            try:
+                record = source_admission.verify_admission(record)
+            except source_admission.SourceAdmissionError as exc:
+                raise HandoffInputError(f"admission {source_id}: {exc}") from exc
 
-        rebuilt = source_admission.build_admission(
-            catalog,
-            catalog_sha,
-            admission_source_id,
-            record["useContext"],
-            source_path,
-            list(record["acceptedConditions"]),
-            version,
-        )
-        if rebuilt != record:
-            raise HandoffInputError(
-                f"admission {source_id}: record is not reproducible from current catalog and exact bytes"
+            admission_source_id = record["source"]["sourceId"]
+            if record["catalogSha256"] != catalog_sha:
+                raise HandoffInputError(f"admission {source_id}: catalogSha256 mismatch")
+            if record["decision"]["verdict"] != source_admission.PASS:
+                raise HandoffInputError(
+                    f"admission {source_id}: source is not admitted ({record['decision']['verdict']})"
+                )
+            if record["content"] is None:
+                raise HandoffInputError(f"admission {source_id}: admitted source has no content binding")
+            version = record["source"]["version"]
+            if not isinstance(version, str) or not reliability.VERSION.fullmatch(version):
+                raise HandoffInputError(f"admission {source_id}: invalid resource version")
+
+            rebuilt = source_admission.build_admission(
+                catalog,
+                catalog_sha,
+                admission_source_id,
+                record["useContext"],
+                source_path,
+                list(record["acceptedConditions"]),
+                version,
             )
+            if rebuilt != record:
+                raise HandoffInputError(
+                    f"admission {source_id}: record is not reproducible from current catalog and exact bytes"
+                )
+        elif schema == transient_source_admission.ADMISSION_SCHEMA:
+            try:
+                record = transient_source_admission.verify_admission(record)
+            except transient_source_admission.TransientSourceAdmissionError as exc:
+                raise HandoffInputError(f"admission {source_id}: {exc}") from exc
+            if record["decision"]["verdict"] != transient_source_admission.PASS:
+                raise HandoffInputError(
+                    f"admission {source_id}: source is not admitted ({record['decision']['verdict']})"
+                )
+            declaration = record["declaration"]
+            if declaration["sourceId"] != source_id:
+                raise HandoffInputError(
+                    f"admission {source_id}: transient declaration sourceId mismatch"
+                )
+            version = declaration["version"]
+            if not reliability.VERSION.fullmatch(version):
+                raise HandoffInputError(f"admission {source_id}: invalid resource version")
+            try:
+                transient_source_admission.reproduce_admission(record, source_path)
+            except transient_source_admission.TransientSourceAdmissionError as exc:
+                raise HandoffInputError(f"admission {source_id}: {exc}") from exc
+        else:
+            raise HandoffInputError(
+                f"admission {source_id}: unsupported admission schema {schema!r}"
+            )
+
         if record["content"] != {"bytes": len(source_data), "sha256": sha(source_data)}:
             raise HandoffInputError(f"admission {source_id}: exact source byte binding mismatch")
 
@@ -316,7 +362,6 @@ def prepare_review_bundle(
         ROLE_PATHS["learner-brief"]: brief_raw,
         ROLE_PATHS["factory-context"]: context_raw,
         ROLE_PATHS["quality-report"]: quality_raw,
-        ROLE_PATHS["source-catalog"]: catalog_raw,
         ROLE_PATHS["reviewer-skill"]: reviewer_skill,
         ROLE_PATHS["review-request"]: review_request,
     }
@@ -325,10 +370,13 @@ def prepare_review_bundle(
         artifact("learner-brief", ROLE_PATHS["learner-brief"], brief_raw),
         artifact("factory-context", ROLE_PATHS["factory-context"], context_raw),
         artifact("quality-report", ROLE_PATHS["quality-report"], quality_raw),
-        artifact("source-catalog", ROLE_PATHS["source-catalog"], catalog_raw),
         artifact("reviewer-skill", ROLE_PATHS["reviewer-skill"], reviewer_skill),
         artifact("review-request", ROLE_PATHS["review-request"], review_request),
     ]
+    if catalog_raw is not None:
+        catalog_path = OPTIONAL_ROLE_PATHS["source-catalog"]
+        members[catalog_path] = catalog_raw
+        records.append(artifact("source-catalog", catalog_path, catalog_raw))
 
     for resource in resources:
         source_id = resource["resourceId"]
@@ -498,6 +546,12 @@ def validate_manifest(value: Any) -> dict[str, Any]:
     for role, expected_path in ROLE_PATHS.items():
         if roles.get(role) != [expected_path]:
             raise HandoffInputError(f"artifact role {role} must map exactly to {expected_path}")
+    for role, expected_path in OPTIONAL_ROLE_PATHS.items():
+        actual_paths = roles.get(role, [])
+        if actual_paths not in ([], [expected_path]):
+            raise HandoffInputError(
+                f"optional artifact role {role} must be absent or map exactly to {expected_path}"
+            )
     if len(roles.get("source", [])) != len(resources):
         raise HandoffInputError("source artifact count must match resources")
     if len(roles.get("source-admission", [])) != len(resources):
@@ -567,21 +621,29 @@ def verify_embedded_authorities(
         raise HandoffInputError("embedded reviewer skill differs from repository authority")
     if members[ROLE_PATHS["review-request"]] != REVIEW_REQUEST.encode("utf-8"):
         raise HandoffInputError("embedded REVIEW_REQUEST.md differs from deterministic template")
-    if members[ROLE_PATHS["source-catalog"]] != load_path(CATALOG_PATH, "source catalog"):
-        raise HandoffInputError("embedded source catalog differs from repository authority")
 
-    catalog_raw = members[ROLE_PATHS["source-catalog"]]
-    catalog = load_json_bytes(catalog_raw, "source-catalog.json")
-    try:
-        catalog = source_admission.validate_catalog(catalog)
-    except source_admission.SourceAdmissionError as exc:
-        raise HandoffInputError(f"embedded source catalog: {exc}") from exc
-    catalog_sha = sha(catalog_raw)
+    catalog_path = OPTIONAL_ROLE_PATHS["source-catalog"]
+    catalog: dict[str, Any] | None = None
+    catalog_sha: str | None = None
+    if catalog_path in members:
+        if members[catalog_path] != load_path(CATALOG_PATH, "source catalog"):
+            raise HandoffInputError("embedded source catalog differs from repository authority")
+        catalog_raw = members[catalog_path]
+        catalog_value = load_json_bytes(catalog_raw, "source-catalog.json")
+        try:
+            catalog = source_admission.validate_catalog(catalog_value)
+        except source_admission.SourceAdmissionError as exc:
+            raise HandoffInputError(f"embedded source catalog: {exc}") from exc
+        catalog_sha = sha(catalog_raw)
 
     resources = {row["resourceId"]: row for row in manifest["resources"]}
     source_member_by_id: dict[str, str] = {}
     for source_id in resources:
-        candidates = [name for name in members if name.startswith(f"sources/{source_id}.")]
+        candidates = [
+            candidate
+            for suffix in SOURCE_MEMBER_SUFFIXES
+            if (candidate := f"sources/{source_id}{suffix}") in members
+        ]
         if len(candidates) != 1:
             raise HandoffInputError(f"source artifact path for {source_id} is not unique")
         source_member = candidates[0]
@@ -594,6 +656,7 @@ def verify_embedded_authorities(
             raise HandoffInputError(f"resource/source binding mismatch for {source_id}")
         source_member_by_id[source_id] = source_member
 
+    benchmark_admissions = 0
     with tempfile.TemporaryDirectory() as td:
         temp = Path(td)
         kit_path = temp / "candidate.json"
@@ -608,31 +671,63 @@ def verify_embedded_authorities(
             source_paths[source_id] = source_path
 
             admission_path = f"source-admission/{source_id}.json"
-            record = load_json_bytes(members[admission_path], admission_path)
-            try:
-                record = source_admission.verify_admission(record)
-            except source_admission.SourceAdmissionError as exc:
-                raise HandoffInputError(f"{admission_path}: {exc}") from exc
-            if members[admission_path] != canonical(record):
-                raise HandoffInputError(f"{admission_path} must use canonical JSON bytes")
-            if record["catalogSha256"] != catalog_sha:
-                raise HandoffInputError(f"{admission_path}: catalog binding mismatch")
-            if record["decision"]["verdict"] != source_admission.PASS:
-                raise HandoffInputError(f"{admission_path}: source admission is not PASS")
-            admission_source_id = record["source"]["sourceId"]
-            if record["source"]["version"] != resource["version"]:
-                raise HandoffInputError(f"{admission_path}: resource version mismatch")
-            rebuilt = source_admission.build_admission(
-                catalog,
-                catalog_sha,
-                admission_source_id,
-                record["useContext"],
-                source_path,
-                list(record["acceptedConditions"]),
-                record["source"]["version"],
+            record_value = load_json_bytes(members[admission_path], admission_path)
+            schema = record_value.get("schema") if isinstance(record_value, dict) else None
+
+            if schema == source_admission.ADMISSION_SCHEMA:
+                benchmark_admissions += 1
+                if catalog is None or catalog_sha is None:
+                    raise HandoffInputError(
+                        f"{admission_path}: benchmark admission requires embedded source catalog"
+                    )
+                try:
+                    record = source_admission.verify_admission(record_value)
+                except source_admission.SourceAdmissionError as exc:
+                    raise HandoffInputError(f"{admission_path}: {exc}") from exc
+                if members[admission_path] != canonical(record):
+                    raise HandoffInputError(f"{admission_path} must use canonical JSON bytes")
+                if record["catalogSha256"] != catalog_sha:
+                    raise HandoffInputError(f"{admission_path}: catalog binding mismatch")
+                if record["decision"]["verdict"] != source_admission.PASS:
+                    raise HandoffInputError(f"{admission_path}: source admission is not PASS")
+                admission_source_id = record["source"]["sourceId"]
+                if record["source"]["version"] != resource["version"]:
+                    raise HandoffInputError(f"{admission_path}: resource version mismatch")
+                rebuilt = source_admission.build_admission(
+                    catalog,
+                    catalog_sha,
+                    admission_source_id,
+                    record["useContext"],
+                    source_path,
+                    list(record["acceptedConditions"]),
+                    record["source"]["version"],
+                )
+                if rebuilt != record:
+                    raise HandoffInputError(f"{admission_path}: admission does not reproduce")
+            elif schema == transient_source_admission.ADMISSION_SCHEMA:
+                try:
+                    record = transient_source_admission.verify_admission(record_value)
+                    transient_source_admission.reproduce_admission(record, source_path)
+                except transient_source_admission.TransientSourceAdmissionError as exc:
+                    raise HandoffInputError(f"{admission_path}: {exc}") from exc
+                if members[admission_path] != canonical(record):
+                    raise HandoffInputError(f"{admission_path} must use canonical JSON bytes")
+                if record["decision"]["verdict"] != transient_source_admission.PASS:
+                    raise HandoffInputError(f"{admission_path}: transient source admission is not PASS")
+                declaration = record["declaration"]
+                if declaration["sourceId"] != source_id:
+                    raise HandoffInputError(f"{admission_path}: sourceId mismatch")
+                if declaration["version"] != resource["version"]:
+                    raise HandoffInputError(f"{admission_path}: resource version mismatch")
+            else:
+                raise HandoffInputError(
+                    f"{admission_path}: unsupported admission schema {schema!r}"
+                )
+
+        if benchmark_admissions == 0 and catalog is not None:
+            raise HandoffInputError(
+                "source-catalog.json is forbidden when no benchmark SourceAdmission is present"
             )
-            if rebuilt != record:
-                raise HandoffInputError(f"{admission_path}: admission does not reproduce")
 
         try:
             rebuilt_context = factory.build_context(
@@ -746,7 +841,11 @@ def consume_review_bundle(
 
         resource_specs: list[str] = []
         for source_id in sorted(resources):
-            candidates = [name for name in members if name.startswith(f"sources/{source_id}.")]
+            candidates = [
+                candidate
+                for suffix in SOURCE_MEMBER_SUFFIXES
+                if (candidate := f"sources/{source_id}{suffix}") in members
+            ]
             if len(candidates) != 1:
                 raise HandoffInputError(f"source artifact path for {source_id} is not unique")
             source_path = temp / f"{source_id}.source"

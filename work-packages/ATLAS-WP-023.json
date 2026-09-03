@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-023",
+  "title": "Transient private user-source admission implementation",
+  "status": "under-qa",
+  "changeClass": "product-authoring-transient-source-admission",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 340,
+    "program": "PROJECT-ATLAS",
+    "milestone": "POST-M3.4-OBSERVATION"
+  },
+  "purpose": "Add a separate fail-closed transient admission authority for user-provided private learning sources and allow M3.3 review handoff to consume it without weakening or modifying curated benchmark SourceAdmission.",
+  "baseline": {
+    "baseCommit": "e90940130b540f57abb999c56a24015c6b470249",
+    "designWorkPackage": "ATLAS-WP-022",
+    "designIssue": 339,
+    "designVerdict": "PASS_ATLAS_WP_022_REAL_SOURCE_ADMISSION_DESIGN_TO_IMPLEMENTATION_GATE",
+    "observationIssue": 337,
+    "promotedM3_3Merge": "c102ca81f3b144bea1140860ef633a0d01987d59",
+    "promotedM3_4Merge": "b8337c785cbec995de5891080776c4c44dd99179"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-023.json",
+      "authoring/factory/transient_source_admission.py",
+      "authoring/factory/handoff.py",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_transient_source_admission.py",
+      "authoring/factory/tests/test_review_handoff.py",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/source_admission.py",
+      "authoring/factory/benchmark_sources_v1.json",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/release_set.py",
+      "authoring/v2/**",
+      "authoring/skills/**",
+      "contracts/**",
+      "apps/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "Curated benchmark SourceAdmission and benchmark_sources_v1.json remain byte-unchanged upstream authorities.",
+    "Transient admission is a separate authority and never infers permission, provenance or legal rights from upload presence, filename, URL, institution or document content.",
+    "Transient PASS requires explicit user declaration, user-provided provenance, private-personal-learning context, transient-only retention, prohibited source redistribution and legalRightsVerified=false.",
+    "Transient PASS states only that the declared private/transient processing contract is complete and exact source bytes/version are bound; it does not certify copyright, ownership, licence or legal redistribution rights.",
+    "Policy-invalid transient declarations hold before source bytes are read.",
+    "Exact source bytes and declaration are bound by deterministic SHA-256 identities and admission reproduction is host-path independent.",
+    "M3.3 prepare-review accepts either current benchmark SourceAdmission or transient user-source admission through the same --admission boundary.",
+    "Transient M3.3 handoffs contain no source-catalog.json unless at least one benchmark SourceAdmission is also present.",
+    "Reviewer independence, exact target binding, deterministic ZIP semantics and FactoryRun re-entry remain unchanged.",
+    "No persistent source catalog, source repository corpus, backend, network call, provider integration, OCR, learner-runtime change or kit-schema change is introduced.",
+    "Qualified Release Set remains source-free."
+  ],
+  "requiredEvidence": [
+    "Exact seven-path implementation delta.",
+    "Repository governance PASS and PR scope PASS.",
+    "Dedicated exact-head M3.3/transient-source workflow PASS.",
+    "Existing M3.2, M3.2.5, benchmark SourceAdmission and M3.3 regression suites remain PASS.",
+    "Explicit valid transient declaration plus exact bytes yields PASS_TRANSIENT_SOURCE_ADMISSION_V1.",
+    "Invalid declaration policy holds before bytes are read.",
+    "Same declaration and bytes at different host paths yield identical admissionId.",
+    "One-byte source drift and declaration drift fail closed.",
+    "Transient review handoff is byte-deterministic under host-path relocation.",
+    "Transient handoff omits benchmark source catalog and verifies exact admission/source binding.",
+    "Benchmark review handoff still embeds and verifies the exact benchmark catalog.",
+    "Transient review handoff consumes an independent semantic review into a self-verifying FactoryRun.",
+    "Static scan shows no network/provider/persistent source-store primitive.",
+    "Independent contradictory QA binds the exact frozen product HEAD."
+  ],
+  "adversarialTests": [
+    "userDeclarationAccepted=false.",
+    "processingContext other than private-personal-learning.",
+    "retention other than transient-only.",
+    "redistribution other than prohibited.",
+    "legalRightsVerified=true.",
+    "provenance other than user-provided.",
+    "authorizationBasis other than user-declaration.",
+    "Missing or invalid version.",
+    "Valid declaration with missing source bytes.",
+    "One-byte source drift after transient admission.",
+    "Declaration tamper after admission.",
+    "Transient admission sourceId differs from handoff binding.",
+    "Transient admission attempts to masquerade as benchmark SourceAdmission.",
+    "Benchmark admission without embedded benchmark source catalog.",
+    "Source catalog embedded when no benchmark admission is present.",
+    "Tampered/duplicate/unsafe/undeclared review ZIP member.",
+    "Stale semantic review target.",
+    "authorScratchpadSeen=true or authorActiveContextReused=true.",
+    "A transient sourceId accepted by admission must also be valid at the mandatory M3.3 SOURCE_ID=PATH boundary.",
+    "Transient sourceId length must be bounded so every admitted identity can be materialized by M3.3 without exceeding common filename-component limits.",
+    "M3.3 must resolve each source artifact by exact deterministic member path, never loose sourceId prefix matching.",
+    "Multi-source M3.3 bindings must reject sourceIds that collide under case folding before temporary materialization.",
+    "Transient admission must reject Windows reserved device stems before reading source bytes."
+  ],
+  "nonGoals": [
+    "Legal-rights verification service",
+    "Persistent source library/catalog",
+    "Public source redistribution",
+    "Remote publication",
+    "Model/provider integration",
+    "Source ingestion/OCR",
+    "Automatic semantic repair",
+    "Canonical kit schema change",
+    "Learner runtime change",
+    "Backend/accounts/sync/catalog/marketplace",
+    "Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "A new disjoint QA package must attack the exact frozen ATLAS-WP-023 product head and may not repair product files.",
+    "QA must explicitly attack false PASS, byte/declaration drift, benchmark-regression and handoff-context confusion.",
+    "Promotion requires at least one exact transient user-source handoff path and one unchanged benchmark handoff path."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
+    "phase": "QA_WP_027_PORTABILITY_REPAIRED_PENDING_FRESH_INDEPENDENT_QA",
+    "pullRequest": 341,
+    "maximumChangedFiles": 7,
+    "humanGateRequired": false,
+    "finalVerdict": null,
+    "evidence": {
+      "ciPrerequisiteMerge": "e90940130b540f57abb999c56a24015c6b470249",
+      "repositoryGovernanceRun": 33740401811,
+      "prScopeRun": 33740401885,
+      "centralRouterRun": 33740401794,
+      "dedicatedProductRun": 33740401902,
+      "m3_4IsolationRun": 33740401773
+    },
+    "qaRound1": {
+      "authorityIssue": 344,
+      "qaPullRequest": 345,
+      "frozenProductHead": "8ffff76ae32bb67c6840b75b274cd63566eb0bf4",
+      "qaHead": "e1e8af095a0ef7a8de70af2098449c6ec3f04953",
+      "qaRun": 33741814230,
+      "qaJob": 100605239541,
+      "verdict": "HOLD_QA_WP_025_EXACT_HEAD_CONTRADICTORY_QA",
+      "finding": "QA-WP-025-F01",
+      "severity": "major",
+      "cause": "Transient sourceId grammar accepted ':' while mandatory M3.2/M3.3 SOURCE_ID=PATH grammar rejected it."
+    },
+    "repair": {
+      "findings": [
+        "QA-WP-027-F01",
+        "QA-WP-027-A02"
+      ],
+      "strategy": "M3.3 now resolves each source by exact deterministic source member names; handoff bindings reject case-insensitive sourceId collisions before materialization; transient admission rejects Windows reserved device stems; bounded transient grammar remains unchanged.",
+      "repairedProductHeadBeforeFreeze": "ce3d8b172b7e5cae7148e71b9b6c1ade996d83c0",
+      "productCi": {
+        "dedicatedProductRun": 33757318153,
+        "centralRouterRun": 33757318064,
+        "prScopeRun": 33757318106,
+        "repositoryGovernanceRun": 33757318051
+      },
+      "requiresFreshIndependentQa": true
+    },
+    "qaRound2": {
+      "authorityIssue": 346,
+      "qaPullRequest": 347,
+      "frozenProductHead": "9e95fc79d84828da264c70b334719c31aa93e792",
+      "qaHead": "60ebf66338586e85633be25dbdc708b6d25352bb",
+      "qaRun": 33747998821,
+      "repositoryGovernanceRun": 33747998814,
+      "verdict": "HOLD_QA_WP_026_EXACT_HEAD_CONTRADICTORY_QA",
+      "finding": "QA-WP-026-F01",
+      "severity": "major",
+      "cause": "Unbounded sourceId grammar permits a 300-character identifier that passes transient admission and M3.2/M3.3 parsing but fails M3.3 temporary file materialization with ENAMETOOLONG."
+    },
+    "qaRound3": {
+      "authorityIssue": 348,
+      "qaPullRequest": 349,
+      "frozenProductHead": "723548f6dcc340aa9b4002cf8821f640a851bb2a",
+      "qaHead": "f963890286e89e1598a82bbcf796d634f8ab8d99",
+      "qaRun": 33754675688,
+      "repositoryGovernanceRun": 33754675692,
+      "verdict": "HOLD_QA_WP_027_EXACT_HEAD_CONTRADICTORY_QA",
+      "findings": [
+        {
+          "id": "QA-WP-027-F01",
+          "severity": "major",
+          "cause": "M3.3 source artifact verification used loose startswith(sourceId) lookup, so valid IDs Course and Course.pdf became ambiguous for PDF source members."
+        },
+        {
+          "id": "QA-WP-027-A02",
+          "severity": "major",
+          "cause": "Actual Windows QA reproduced case-fold aliasing for CourseA/coursea during M3.3 temporary source materialization, causing FactoryContext rebuild mismatch."
+        }
+      ]
+    }
+  },
+  "rollback": "Remove transient_source_admission.py and its tests, restore handoff.py/README/test/workflow to the promoted M3.3 behavior, and remove ATLAS-WP-023 metadata. Curated benchmark SourceAdmission, M3.2/M3.2.5, M3.4 and learner runtime remain unchanged."
+}

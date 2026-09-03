@@ -1,10 +1,12 @@
-name: Atlas M3.3 Portable Review Handoff CI
+name: Atlas M3.3 Review Handoff and Transient Source Admission CI
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'work-packages/ATLAS-WP-019.json'
+      - 'work-packages/ATLAS-WP-023.json'
+      - 'authoring/factory/transient_source_admission.py'
+      - 'authoring/factory/tests/test_transient_source_admission.py'
       - 'authoring/factory/handoff.py'
       - 'authoring/factory/README.md'
       - 'authoring/factory/tests/test_review_handoff.py'
@@ -12,7 +14,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'work-packages/ATLAS-WP-019.json'
+      - 'work-packages/ATLAS-WP-023.json'
+      - 'authoring/factory/transient_source_admission.py'
+      - 'authoring/factory/tests/test_transient_source_admission.py'
       - 'authoring/factory/handoff.py'
       - 'authoring/factory/README.md'
       - 'authoring/factory/tests/test_review_handoff.py'
@@ -28,8 +32,8 @@ concurrency:
 
 jobs:
   exact-head:
-    name: M3.3 review-handoff exact-head evidence
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'atlas/ATLAS-WP-019-m3-3-review-handoff'
+    name: M3.3 transient-source review-handoff exact-head evidence
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'atlas/ATLAS-WP-023-transient-user-source-admission'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -55,7 +59,7 @@ jobs:
           BRANCH: ${{ github.event.pull_request.head.ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
-          PRODUCT_BASE: 16bae3e7a5c58f667609e481d4d38f2b1b2fa584
+          PRODUCT_BASE: e90940130b540f57abb999c56a24015c6b470249
         run: |
           set -euo pipefail
           [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
@@ -73,7 +77,7 @@ jobs:
             }
           done
           if [[ "${EVENT}" == pull_request ]]; then
-            [[ "${BRANCH}" == atlas/ATLAS-WP-019-m3-3-review-handoff ]]
+            [[ "${BRANCH}" == atlas/ATLAS-WP-023-transient-user-source-admission ]]
             git fetch --force --no-tags origin "${BASE_SHA}"
             compare_base="$(git merge-base "${BASE_SHA}" "${TARGET}")"
             actual="$(git diff --name-only "${compare_base}" "${TARGET}" | sort)"
@@ -81,8 +85,10 @@ jobs:
               '.github/workflows/atlas-m3-3-review-handoff-ci.yml' \
               'authoring/factory/README.md' \
               'authoring/factory/handoff.py' \
+              'authoring/factory/transient_source_admission.py' \
               'authoring/factory/tests/test_review_handoff.py' \
-              'work-packages/ATLAS-WP-019.json' | sort)"
+              'authoring/factory/tests/test_transient_source_admission.py' \
+              'work-packages/ATLAS-WP-023.json' | sort)"
             [[ "${actual}" == "${expected}" ]] || {
               echo "M3.3 exact path set mismatch." >&2
               diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
@@ -91,14 +97,16 @@ jobs:
           fi
           python - <<'PY'
           import json, pathlib
-          wp=json.loads(pathlib.Path("work-packages/ATLAS-WP-019.json").read_text(encoding="utf-8"))
-          assert wp["id"]=="ATLAS-WP-019"
-          assert wp["authority"]["issue"]==310
-          assert wp["baseline"]["baseCommit"]=="16bae3e7a5c58f667609e481d4d38f2b1b2fa584"
+          wp=json.loads(pathlib.Path("work-packages/ATLAS-WP-023.json").read_text(encoding="utf-8"))
+          assert wp["id"]=="ATLAS-WP-023"
+          assert wp["authority"]["issue"]==340
+          assert wp["baseline"]["baseCommit"]=="e90940130b540f57abb999c56a24015c6b470249"
           assert wp["scope"]["allowedPaths"]==[
-              "work-packages/ATLAS-WP-019.json",
+              "work-packages/ATLAS-WP-023.json",
+              "authoring/factory/transient_source_admission.py",
               "authoring/factory/handoff.py",
               "authoring/factory/README.md",
+              "authoring/factory/tests/test_transient_source_admission.py",
               "authoring/factory/tests/test_review_handoff.py",
               ".github/workflows/atlas-m3-3-review-handoff-ci.yml",
           ]
@@ -111,9 +119,10 @@ jobs:
           python -B authoring/factory/tests/test_factory_reliability.py
           python -B authoring/factory/tests/test_source_admission.py
 
-      - name: Run M3.3 portable review-handoff oracle
+      - name: Run transient source-admission and M3.3 handoff oracles
         run: |
           set -euo pipefail
+          python -B authoring/factory/tests/test_transient_source_admission.py
           python -B authoring/factory/tests/test_review_handoff.py
 
       - name: Repository governance mirror
