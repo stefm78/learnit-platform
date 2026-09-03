@@ -87,8 +87,8 @@ class QA027(unittest.TestCase):
    root=Path(td); kit=root/"kit.json"; brief=root/"brief.json"; out=root/"review.zip"
    kit.write_bytes(KIT.read_bytes()); wj(brief,{"schema":factory.BRIEF_SCHEMA,"audience":"EPF learner","goal":"QA multi-source case-fold collision","language":"fr","timeBudgetMinutes":45})
    source_specs=[]; admission_specs=[]
-   for sid,payload in (("CourseA",b"%PDF-1.7\nUPPER\n"),("coursea",b"%PDF-1.7\nlower\n")):
-    src=root/(sid+"-input.pdf"); adm=root/(sid+"-admission.json"); src.write_bytes(payload)
+   for tag,sid,payload in (("upper","CourseA",b"%PDF-1.7\nUPPER\n"),("lower","coursea",b"%PDF-1.7\nlower\n")):
+    src=root/(tag+"-input.pdf"); adm=root/(tag+"-admission.json"); src.write_bytes(payload)
     rec=transient.build_admission(decl(sid),src); self.assertEqual(transient.PASS,rec["decision"]["verdict"]); wj(adm,rec)
     source_specs.append(f"{sid}={src}"); admission_specs.append(f"{sid}={adm}")
    result=handoff.prepare_review_bundle(kit,brief,source_specs,admission_specs,out)
