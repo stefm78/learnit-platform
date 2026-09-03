@@ -28,7 +28,8 @@
     "m3_4QaVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
     "m3_4PromotionMerge": "b8337c785cbec995de5891080776c4c44dd99179",
     "learnerArtifactBytes": 366412,
-    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "baseCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d"
   },
   "scope": {
     "allowedPaths": [
