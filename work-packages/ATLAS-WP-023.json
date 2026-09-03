@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-023",
   "title": "Transient private user-source admission implementation",
-  "status": "under-qa",
+  "status": "in-progress",
   "changeClass": "product-authoring-transient-source-admission",
   "riskClass": "medium",
   "authority": {
@@ -92,7 +92,8 @@
     "Tampered/duplicate/unsafe/undeclared review ZIP member.",
     "Stale semantic review target.",
     "authorScratchpadSeen=true or authorActiveContextReused=true.",
-    "A transient sourceId accepted by admission must also be valid at the mandatory M3.3 SOURCE_ID=PATH boundary."
+    "A transient sourceId accepted by admission must also be valid at the mandatory M3.3 SOURCE_ID=PATH boundary.",
+    "Transient sourceId length must be bounded so every admitted identity can be materialized by M3.3 without exceeding common filename-component limits."
   ],
   "nonGoals": [
     "Legal-rights verification service",
@@ -114,7 +115,7 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
-    "phase": "F01_REPAIRED_PENDING_FRESH_INDEPENDENT_QA",
+    "phase": "REPAIR_QA_WP_026_F01_IN_PROGRESS",
     "pullRequest": 341,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
@@ -140,16 +141,21 @@
       "cause": "Transient sourceId grammar accepted ':' while mandatory M3.2/M3.3 SOURCE_ID=PATH grammar rejected it."
     },
     "repair": {
-      "finding": "QA-WP-025-F01",
-      "strategy": "Transient sourceId validation now reuses the promoted factory.SOURCE_ID grammar; M3.2/M3.3 grammar remains unchanged.",
-      "repairedProductHeadBeforeFreeze": "4aff53c82970fb24db42552fbf2c96eac629dc8f",
-      "productCi": {
-        "dedicatedProductRun": 33745894014,
-        "centralRouterRun": 33745894005,
-        "prScopeRun": 33745893879,
-        "repositoryGovernanceRun": 33745893968
-      },
+      "finding": "QA-WP-026-F01",
+      "strategy": "Keep transient sourceId as a strict subset of the promoted factory grammar and enforce 1..160 characters: ^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$. Do not widen M3.2/M3.3.",
       "requiresFreshIndependentQa": true
+    },
+    "qaRound2": {
+      "authorityIssue": 346,
+      "qaPullRequest": 347,
+      "frozenProductHead": "9e95fc79d84828da264c70b334719c31aa93e792",
+      "qaHead": "60ebf66338586e85633be25dbdc708b6d25352bb",
+      "qaRun": 33747998821,
+      "repositoryGovernanceRun": 33747998814,
+      "verdict": "HOLD_QA_WP_026_EXACT_HEAD_CONTRADICTORY_QA",
+      "finding": "QA-WP-026-F01",
+      "severity": "major",
+      "cause": "Unbounded sourceId grammar permits a 300-character identifier that passes transient admission and M3.2/M3.3 parsing but fails M3.3 temporary file materialization with ENAMETOOLONG."
     }
   },
   "rollback": "Remove transient_source_admission.py and its tests, restore handoff.py/README/test/workflow to the promoted M3.3 behavior, and remove ATLAS-WP-023 metadata. Curated benchmark SourceAdmission, M3.2/M3.2.5, M3.4 and learner runtime remain unchanged."
