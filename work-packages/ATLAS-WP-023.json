@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-023",
   "title": "Transient private user-source admission implementation",
-  "status": "under-qa",
+  "status": "in-progress",
   "changeClass": "product-authoring-transient-source-admission",
   "riskClass": "medium",
   "authority": {
@@ -93,7 +93,10 @@
     "Stale semantic review target.",
     "authorScratchpadSeen=true or authorActiveContextReused=true.",
     "A transient sourceId accepted by admission must also be valid at the mandatory M3.3 SOURCE_ID=PATH boundary.",
-    "Transient sourceId length must be bounded so every admitted identity can be materialized by M3.3 without exceeding common filename-component limits."
+    "Transient sourceId length must be bounded so every admitted identity can be materialized by M3.3 without exceeding common filename-component limits.",
+    "M3.3 must resolve each source artifact by exact deterministic member path, never loose sourceId prefix matching.",
+    "Multi-source M3.3 bindings must reject sourceIds that collide under case folding before temporary materialization.",
+    "Transient admission must reject Windows reserved device stems before reading source bytes."
   ],
   "nonGoals": [
     "Legal-rights verification service",
@@ -115,7 +118,7 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
-    "phase": "QA_WP_026_F01_REPAIRED_PENDING_FRESH_INDEPENDENT_QA",
+    "phase": "REPAIR_QA_WP_027_PORTABILITY_DEFECTS_IN_PROGRESS",
     "pullRequest": 341,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
@@ -141,15 +144,11 @@
       "cause": "Transient sourceId grammar accepted ':' while mandatory M3.2/M3.3 SOURCE_ID=PATH grammar rejected it."
     },
     "repair": {
-      "finding": "QA-WP-026-F01",
-      "strategy": "Transient sourceId is now bounded to 1..160 characters with ^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$, a strict subset of the promoted factory grammar. M3.2/M3.3 remain unchanged.",
-      "repairedProductHeadBeforeFreeze": "fbb44d7fa540ae42c6ec5a9a8a5a1f70d5f66c22",
-      "productCi": {
-        "dedicatedProductRun": 33751561637,
-        "centralRouterRun": 33751561462,
-        "prScopeRun": 33751561596,
-        "repositoryGovernanceRun": 33751561598
-      },
+      "findings": [
+        "QA-WP-027-F01",
+        "QA-WP-027-A02"
+      ],
+      "strategy": "Resolve M3.3 source artifacts only by exact deterministic member names; reject case-insensitive sourceId collisions at binding parse time; reject Windows reserved transient source stems before admission; preserve bounded transient grammar and all benchmark authorities.",
       "requiresFreshIndependentQa": true
     },
     "qaRound2": {
@@ -163,6 +162,27 @@
       "finding": "QA-WP-026-F01",
       "severity": "major",
       "cause": "Unbounded sourceId grammar permits a 300-character identifier that passes transient admission and M3.2/M3.3 parsing but fails M3.3 temporary file materialization with ENAMETOOLONG."
+    },
+    "qaRound3": {
+      "authorityIssue": 348,
+      "qaPullRequest": 349,
+      "frozenProductHead": "723548f6dcc340aa9b4002cf8821f640a851bb2a",
+      "qaHead": "f963890286e89e1598a82bbcf796d634f8ab8d99",
+      "qaRun": 33754675688,
+      "repositoryGovernanceRun": 33754675692,
+      "verdict": "HOLD_QA_WP_027_EXACT_HEAD_CONTRADICTORY_QA",
+      "findings": [
+        {
+          "id": "QA-WP-027-F01",
+          "severity": "major",
+          "cause": "M3.3 source artifact verification used loose startswith(sourceId) lookup, so valid IDs Course and Course.pdf became ambiguous for PDF source members."
+        },
+        {
+          "id": "QA-WP-027-A02",
+          "severity": "major",
+          "cause": "Actual Windows QA reproduced case-fold aliasing for CourseA/coursea during M3.3 temporary source materialization, causing FactoryContext rebuild mismatch."
+        }
+      ]
     }
   },
   "rollback": "Remove transient_source_admission.py and its tests, restore handoff.py/README/test/workflow to the promoted M3.3 behavior, and remove ATLAS-WP-023 metadata. Curated benchmark SourceAdmission, M3.2/M3.2.5, M3.4 and learner runtime remain unchanged."
