@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-023",
   "title": "Transient private user-source admission implementation",
-  "status": "in-progress",
+  "status": "under-qa",
   "changeClass": "product-authoring-transient-source-admission",
   "riskClass": "medium",
   "authority": {
@@ -118,7 +118,7 @@
   ],
   "execution": {
     "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
-    "phase": "REPAIR_QA_WP_027_PORTABILITY_DEFECTS_IN_PROGRESS",
+    "phase": "QA_WP_027_PORTABILITY_REPAIRED_PENDING_FRESH_INDEPENDENT_QA",
     "pullRequest": 341,
     "maximumChangedFiles": 7,
     "humanGateRequired": false,
@@ -148,7 +148,14 @@
         "QA-WP-027-F01",
         "QA-WP-027-A02"
       ],
-      "strategy": "Resolve M3.3 source artifacts only by exact deterministic member names; reject case-insensitive sourceId collisions at binding parse time; reject Windows reserved transient source stems before admission; preserve bounded transient grammar and all benchmark authorities.",
+      "strategy": "M3.3 now resolves each source by exact deterministic source member names; handoff bindings reject case-insensitive sourceId collisions before materialization; transient admission rejects Windows reserved device stems; bounded transient grammar remains unchanged.",
+      "repairedProductHeadBeforeFreeze": "ce3d8b172b7e5cae7148e71b9b6c1ade996d83c0",
+      "productCi": {
+        "dedicatedProductRun": 33757318153,
+        "centralRouterRun": 33757318064,
+        "prScopeRun": 33757318106,
+        "repositoryGovernanceRun": 33757318051
+      },
       "requiresFreshIndependentQa": true
     },
     "qaRound2": {
