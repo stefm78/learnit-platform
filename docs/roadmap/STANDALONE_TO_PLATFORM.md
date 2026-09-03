@@ -8,11 +8,11 @@ The roadmap is evidence-gated. Repository state, accepted ADRs and work packages
 
 > **Current status (post-Atlas M3.4):** Learning Loop V2, Atlas M1, Atlas M2 memory/reconfirmation, Atlas M2.2 transfer/clarity, M3.0 Authoring Foundation, M3.1 Pedagogical Quality, M3.2 AI Kit Factory, M3.3 Portable Review Handoff and M3.4 Qualified Release Set are promoted. M3.2.5 Factory Reliability remains qualified on a real eight-domain benchmark. The learner runtime remains the exact M2.2 artifact; the separate authoring/factory/release-set capabilities remain outside learner runtime. Human sequence-level graphical review debt is tracked as #272. The C1–C7 sequence below remains historical planning evidence; the active roadmap is the evidence-gated sequence immediately below.
 
-## Active post-M3.4 roadmap — next product direction held pending arbitration
+## Active post-M3.4 roadmap — STOP_AND_OBSERVE
 
 ### P0 — canonical state alignment
 
-Canonical state alignment is completed through GOV-WP-035: machine-readable governor state, architecture status, project README and roadmap describe the promoted M3.4 facts without changing product code.
+Canonical state alignment is completed through GOV-WP-036: machine-readable governor state, architecture status, project README and roadmap record the promoted M3.4 facts and the post-M3.4 STOP_AND_OBSERVE decision without changing product code.
 
 ### M3.0 — Authoring Foundation — **PROMOTED**
 
@@ -119,16 +119,28 @@ Promotion evidence:
 
 Scale-100 and Scale-500 remain engineering-only evidence and do not claim semantic qualification of synthetic fixtures. M3.4 adds no remote publisher, signing/authentication, asset/media contract, backend, provider dependency or learner-runtime behavior.
 
-### Post-M3.4 owner arbitration — **HOLD / NEXT DECISION**
+### Post-M3.4 — **STOP_AND_OBSERVE**
 
-There is no preselected next implementation milestone. Fresh accountable-owner arbitration must compare at least:
+Independent architecture and product/learning reviews converged: do not open a new product milestone now.
 
-1. controlled remote distribution/publishing;
-2. human pedagogical overview debt #272;
-3. further factory/operator automation;
-4. stopping because the current local/static workflow is sufficient.
+The operating loop is:
 
-This comparison is a decision gate, not implementation authority. Any selected direction requires a new bounded design/work package. Gate3 repository-write capability, Gate4 parallel runtime and M4+ remain held.
+```text
+use promoted M3.0-M3.4 capabilities
+→ observe real operator / distribution / learner friction
+→ decide from evidence
+```
+
+The current stack should be exercised on a small number of real end-to-end cases. Measure only the evidence needed to identify the next bottleneck: operator active time/manual transfers/errors/recovery effort; Qualified Release Set PASS → learner-start steps/time; learner start/completion/transfer/reconfirmation friction; and the effort required for a responsible human to explain the pedagogical sequence.
+
+Reopen rules:
+- distribution friction dominates → consider minimal append-only distribution;
+- human review/context friction dominates → consider read-only #272 pedagogical overview;
+- operator orchestration toil/errors dominate → consider minimal local stateless artifact-driven automation;
+- a different learner problem dominates → define a gate around that actual learner problem;
+- no dominant bottleneck → continue STOP_AND_OBSERVE.
+
+No remote publishing, registry, signing, asset subsystem, provider orchestration, #272 implementation, learner-runtime change, Gate3, Gate4 or M4+ capability is authorized by this decision.
 
 ### M4+ — platform evolution
 
