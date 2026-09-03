@@ -639,6 +639,22 @@ export async function runAtlasSession({
     classicMain.setAttribute('inert', '');
   }
 
+  if (surfaceHeading) {
+    surfaceHeading.style.display = 'none';
+  }
+
+  if (courseTitle) {
+    courseTitle.style.display = 'none';
+  }
+
+  if (courseMeta) {
+    courseMeta.style.display = 'none';
+  }
+
+  for (const card of otherAtlasCards) {
+    card.style.display = 'none';
+  }
+
   if (plannerActions) {
     /*
      * A frozen Atlas plan owns the active session.
@@ -658,6 +674,25 @@ export async function runAtlasSession({
       if (!classicWasInert) {
         classicMain.removeAttribute('inert');
       }
+    }
+
+    if (surfaceHeading) {
+      surfaceHeading.style.display =
+        surfaceHeadingDisplay;
+    }
+
+    if (courseTitle) {
+      courseTitle.style.display =
+        courseTitleDisplay;
+    }
+
+    if (courseMeta) {
+      courseMeta.style.display =
+        courseMetaDisplay;
+    }
+
+    for (const [card, display] of otherAtlasCardDisplays) {
+      card.style.display = display;
     }
 
     if (plannerActions) {
