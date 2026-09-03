@@ -315,7 +315,7 @@ The `--admission` input accepts one of two explicit authorities:
 
 The transient path is deliberately separate from the benchmark catalog. A transient PASS does **not** mean Learn-it verified copyright, ownership, licence or redistribution rights. It means the required user declaration and private/transient processing context are explicit and the exact caller-bound source bytes/version are hash-bound.
 
-For end-to-end compatibility, transient `sourceId` uses the already-promoted M3.2/M3.3 source identity grammar: `[A-Za-z0-9._-]+`. Identifiers outside that grammar (for example `user:private-course`) are rejected before admission so a transient PASS cannot later fail only at the M3.3 `SOURCE_ID=PATH` boundary.
+For end-to-end compatibility, transient `sourceId` is a deliberately narrower subset of the promoted M3.2/M3.3 source identity grammar: `[A-Za-z0-9][A-Za-z0-9._-]{0,159}`. The 160-character cap keeps the sourceId-derived temporary/archive filename components below the common 255-byte component limit. Identifiers outside that grammar (for example `user:private-course`) and overlong identifiers are rejected before admission so a transient PASS cannot later fail only at the M3.3 boundary.
 
 Create a transient declaration:
 
