@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-014",
+  "title": "Route ATLAS-WP-023 and isolate M3.4 delegated workflow",
+  "status": "accepted",
+  "changeClass": "ci-routing",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 342,
+    "triggerProductIssue": 340,
+    "triggerProductPullRequest": 341,
+    "predecessorCiWorkPackage": "CI-WP-013"
+  },
+  "purpose": "Teach the central Learn-it Next router to recognize the ATLAS-WP-023 transient user-source admission product branch and prevent the historical M3.4 exact-head workflow from running on unrelated pull requests that only touch shared factory documentation.",
+  "baseline": {
+    "baseCommit": "d95b9fe39ac33f88460ff5d71954364b69c8c50c",
+    "branch": "ci/CI-WP-014-atlas-wp-023-route",
+    "observedProductHead": "3d8fe17ae0db70a6b1f34cf55a8ab0aa76d30891",
+    "failedLearnitNextRun": 33739456103,
+    "failedLearnitNextJob": 100597697115,
+    "failedM3_4Run": 33739456027,
+    "failedM3_4Job": 100597696057
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/atlas-m3-4-release-set-ci.yml",
+      "work-packages/CI-WP-014.json"
+    ],
+    "forbiddenPaths": [
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-023.json",
+      "work-packages/ATLAS-WP-021.json"
+    ]
+  },
+  "invariants": [
+    "Only the central router, the historical M3.4 workflow guard and CI-WP-014 metadata change.",
+    "atlas/ATLAS-WP-023-transient-user-source-admission maps to one dedicated delegated profile.",
+    "The ATLAS-WP-023 delegated profile accepts exactly the seven product paths authorized by ATLAS-WP-023.",
+    "The ATLAS-WP-023 delegated profile rejects changes to benchmark SourceAdmission, benchmark catalog, factory gate, reliability, release set, canonical kit contract, authoring-v2 and learner runtime.",
+    "The M3.4 exact-head job remains unchanged for its exact product branch and all push executions.",
+    "The M3.4 exact-head job skips unrelated pull-request branches.",
+    "Existing delegated branch mappings and unknown-branch fail-closed behavior remain unchanged.",
+    "No learner/product/runtime/authoring/contract semantics change."
+  ],
+  "requiredEvidence": [
+    "Exact three-file CI-WP-014 pull-request delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Generic ci-router audit accepts this CI-only route change.",
+    "Static route maps atlas/ATLAS-WP-023-transient-user-source-admission to m3-3-transient-source-delegated.",
+    "Delegated route requires exactly the seven ATLAS-WP-023 product paths and exact work-package authority.",
+    "M3.4 workflow skips CI-WP-014 and ATLAS-WP-023 pull-request branches while retaining push behavior.",
+    "After CI-WP-014 merge and product rebase, ATLAS-WP-023 product PR reaches delegated central route PASS and no historical M3.4 false failure."
+  ],
+  "adversarialTests": [
+    "Unknown branch still reaches generic ci-router and requires a workflow audit change.",
+    "ATLAS-WP-023 delegated profile rejects non-pull-request execution.",
+    "ATLAS-WP-023 delegated profile rejects an unexpected branch.",
+    "ATLAS-WP-023 delegated profile rejects path deficit, excess or forbidden upstream authority change.",
+    "ATLAS-WP-023 delegated profile rejects work-package baseline that differs from PR base.",
+    "M3.4 exact-head job continues to run for atlas/ATLAS-WP-021-m3-4-qualified-release-set.",
+    "M3.4 push behavior is not skipped."
+  ],
+  "nonGoals": [
+    "Changing ATLAS-WP-023 product code.",
+    "Changing transient source admission semantics.",
+    "Changing M3.4 release-set product semantics.",
+    "Changing learner runtime.",
+    "Changing branch protection.",
+    "Remote publishing or M4+."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this CI-only three-file change.",
+    "The rebased ATLAS-WP-023 product PR is the acceptance target for the new delegated route."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-014-atlas-wp-023-route",
+    "pullRequest": 343,
+    "maximumChangedFiles": 3,
+    "phase": "COMPLETE",
+    "humanGateRequired": false,
+    "finalVerdict": "PASS_CI_WP_014_ATLAS_WP_023_ROUTE_AND_M3_4_ISOLATION",
+    "evidence": {
+      "repositoryGovernanceRun": 33739992862,
+      "prScopeRun": 33739992836,
+      "learnitNextCiRun": 33739992874,
+      "m3_4IsolationRun": 33739992913
+    }
+  },
+  "rollback": "Revert the CI-WP-014 three-file change. Product code remains untouched; the central router returns to rejecting ATLAS-WP-023 and the historical M3.4 workflow returns to its prior broad PR trigger."
+}

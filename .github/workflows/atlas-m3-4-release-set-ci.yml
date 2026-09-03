@@ -29,6 +29,7 @@ concurrency:
 jobs:
   exact-head:
     name: M3.4 qualified-release-set exact-head evidence
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'atlas/ATLAS-WP-021-m3-4-qualified-release-set'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
