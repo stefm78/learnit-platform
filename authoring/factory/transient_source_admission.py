@@ -56,7 +56,7 @@ AUTHORIZATION_BASIS = "user-declaration"
 RETENTION = "transient-only"
 REDISTRIBUTION = "prohibited"
 
-SOURCE_ID = factory.SOURCE_ID
+SOURCE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$")
 VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 
