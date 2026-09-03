@@ -84,4 +84,4 @@ M3.4 binds exact canonical kit bytes to self-verifying PASS FactoryRuns, recheck
 
 Human graphical/context review debt remains open as issue `#272`. No remote distribution backend, publisher authentication/signature, asset/media contract or learner-runtime capability is implied by M3.4.
 
-The next product direction is **HOLD pending fresh accountable-owner arbitration**. At minimum that arbitration must compare controlled remote distribution/publishing, debt #272, further factory/operator automation, and stopping because the current local/static workflow is sufficient. Gate3, Gate4 and M4+ platform evolution remain separately held.
+The post-M3.4 arbitration is resolved as **STOP_AND_OBSERVE**. This is an architectural decision to preserve the current local, content-addressed, offline-verifiable, provider-neutral and reviewer-independent shape until real use produces a demonstrated bottleneck. Reopen only the smallest gate supported by observed distribution friction, human-review/context friction, operator toil/errors, or a different learner problem. Gate3, Gate4 and M4+ platform evolution remain separately held.
