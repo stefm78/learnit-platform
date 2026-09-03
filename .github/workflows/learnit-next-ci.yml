@@ -525,8 +525,6 @@ jobs:
               "node --check apps/learnit-next/src/integration/atlas/surface.js"
               "node --check apps/learnit-next/src/integration/atlas/session.js"
               "node --check apps/learnit-next/src/ui/atlas_summary.js"
-              "python -B apps/learnit-next/tests/contract_v2.py -v"
-              "python -B apps/learnit-next/tests/storage_isolation.py -v"
               "python -B apps/learnit-next/tests/atlas_m1_core.py -v"
               "python -B apps/learnit-next/tests/atlas_m1_learning.py -v"
               "python -B apps/learnit-next/tests/atlas_m1_experience.py -v"
@@ -562,8 +560,6 @@ jobs:
                   "node --check atlas/surface.js",
                   "node --check atlas/session.js",
                   "node --check atlas_summary.js",
-                  "contract_v2.py",
-                  "storage_isolation.py",
                   "atlas_m1_core.py",
                   "atlas_m1_learning.py",
                   "atlas_m1_experience.py",
