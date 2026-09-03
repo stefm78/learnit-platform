@@ -102,8 +102,9 @@
   },
   "additionalAttack": {
     "id": "QA-WP-027-A02",
-    "status": "PENDING_WINDOWS_EXECUTION",
-    "title": "Case-distinct IDs CourseA/coursea may alias during M3.3 local temp materialization on a case-insensitive filesystem"
+    "status": "PENDING_CORRECTED_WINDOWS_EXECUTION",
+    "title": "Case-distinct IDs CourseA/coursea may alias during M3.3 local temp materialization on a case-insensitive filesystem",
+    "fixtureIsolation": "Physical QA input/admission filenames use explicit upper/lower tags, so only internal M3.3 sourceId-derived paths can case-fold."
   },
   "purpose": "Execute fresh independent contradictory QA for issue #348 against exactly frozen product HEAD 723548f6dcc340aa9b4002cf8821f640a851bb2a, reattack both historical defects, and search for any other transient-PASS sourceId that cannot safely cross M3.3.",
   "rollback": "Delete the QA-WP-027 branch and PR #349 if QA evidence itself must be discarded; no product rollback or product-file modification is authorized.",
