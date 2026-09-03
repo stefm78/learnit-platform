@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "QA-WP-028",
+  "title": "Fresh contradictory QA after M3.3 sourceId portability repairs",
+  "status": "under-qa",
+  "role": "independent-contradictory-qa",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 350
+  },
+  "frozenProductHead": "5fd3667d3042963b1c0108c7c84e27bd14d4f7f6",
+  "branch": "qa/QA-WP-028-transient-user-source-admission-r4",
+  "prBase": "atlas/ATLAS-WP-023-transient-user-source-admission",
+  "allowedPaths": [
+    "work-packages/QA-WP-028.json",
+    "authoring/factory/tests/qa_transient_source_admission_r4.py",
+    ".github/workflows/atlas-transient-source-admission-qa-r4.yml"
+  ],
+  "independence": {
+    "historicalRoundsOnly": ["QA-WP-025", "QA-WP-026", "QA-WP-027"],
+    "historicalQaArtifactsReusedAsProof": false,
+    "productFilesWritable": false
+  },
+  "requiredReattacks": [
+    "character-and-length-boundaries",
+    "exact-source-member-binding-and-extension-like-sourceIds",
+    "case-insensitive-portability-on-real-Windows",
+    "Windows-reserved-names-and-nearby-legal-names",
+    "full-contradictory-matrix-from-issue-350",
+    "M3.2-M3.2.5-benchmark-transient-M3.3-M3.4-regressions"
+  ],
+  "oracle": {
+    "path": "authoring/factory/tests/qa_transient_source_admission_r4.py",
+    "platforms": ["ubuntu-latest", "windows-latest"],
+    "continueMatrixAfterTestFailures": true
+  },
+  "verdict": null,
+  "findings": []
+}
