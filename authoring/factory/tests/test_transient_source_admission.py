@@ -142,6 +142,21 @@ class TransientAdmissionTests(unittest.TestCase):
         with self.assertRaises(transient.TransientSourceAdmissionError):
             transient.build_admission(value, None)
 
+    def test_source_id_outside_factory_binding_grammar_is_rejected(self):
+        value = declaration(source_id="user:private-course")
+        self.assertIsNone(transient.SOURCE_ID.fullmatch(value["sourceId"]))
+        with self.assertRaises(transient.TransientSourceAdmissionError):
+            transient.build_admission(value, None)
+
+    def test_factory_compatible_source_id_still_passes(self):
+        with tempfile.TemporaryDirectory() as td:
+            source = Path(td) / "source.pdf"
+            source.write_bytes(b"%PDF-1.7\nsource\n")
+            value = declaration(source_id="user.private-course_01")
+            self.assertIsNotNone(transient.SOURCE_ID.fullmatch(value["sourceId"]))
+            record = transient.build_admission(value, source)
+            self.assertEqual(transient.PASS, record["decision"]["verdict"])
+
     def test_cli_admit_and_verify_exact_bytes(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
