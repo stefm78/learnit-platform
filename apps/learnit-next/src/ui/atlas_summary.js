@@ -99,7 +99,7 @@ function renderSummary({ evidence = [], completed = false, objectiveLabels = {} 
   if (!Array.isArray(evidence) || typeof completed !== 'boolean') fail('INVALID_SUMMARY');
   const title = completed ? 'Séance terminée' : 'État de la séance';
   const cards = evidence.map(item => renderObjectiveCard(item, objectiveLabels)).join('');
-  return `<section class="atlas-m1 atlas-summary" aria-labelledby="atlas-summary-title"><h1 id="atlas-summary-title">${title}</h1><p>Ces éléments décrivent les preuves enregistrées. Ils ne constituent ni une certification ni une promesse de rétention durable.</p><div class="atlas-objective-grid">${cards}</div></section>`;
+  return `<section class="atlas-m1 atlas-summary" aria-labelledby="atlas-summary-title"><h1 id="atlas-summary-title">${title}</h1><p>Voici votre bilan par objectif.</p><div class="atlas-objective-grid">${cards}</div></section>`;
 }
 
 module.exports = Object.freeze({
