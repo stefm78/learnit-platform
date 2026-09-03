@@ -715,23 +715,7 @@ jobs:
               echo "ATLAS-WP-023 must not change canonical authoring-v2 paths." >&2
               exit 2
             }
-            python - <<'PY'
-import json, os, pathlib
-wp=json.loads(pathlib.Path("work-packages/ATLAS-WP-023.json").read_text(encoding="utf-8"))
-expected=[
-    "work-packages/ATLAS-WP-023.json",
-    "authoring/factory/transient_source_admission.py",
-    "authoring/factory/handoff.py",
-    "authoring/factory/README.md",
-    "authoring/factory/tests/test_transient_source_admission.py",
-    "authoring/factory/tests/test_review_handoff.py",
-    ".github/workflows/atlas-m3-3-review-handoff-ci.yml",
-]
-assert wp["id"]=="ATLAS-WP-023"
-assert wp["authority"]["issue"]==340
-assert wp["baseline"]["baseCommit"]==os.environ["PR_BASE_SHA"]
-assert wp["scope"]["allowedPaths"]==expected
-PY
+            python -c "import json,os,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-023.json').read_text(encoding='utf-8')); expected=['work-packages/ATLAS-WP-023.json','authoring/factory/transient_source_admission.py','authoring/factory/handoff.py','authoring/factory/README.md','authoring/factory/tests/test_transient_source_admission.py','authoring/factory/tests/test_review_handoff.py','.github/workflows/atlas-m3-3-review-handoff-ci.yml']; assert wp['id']=='ATLAS-WP-023'; assert wp['authority']['issue']==340; assert wp['baseline']['baseCommit']==os.environ['PR_BASE_SHA']; assert wp['scope']['allowedPaths']==expected"
             echo "M3_3_TRANSIENT_SOURCE_DELEGATED_ROUTE=PASS"
             echo "M3_3_TRANSIENT_SOURCE_WORKFLOW=.github/workflows/atlas-m3-3-review-handoff-ci.yml"
             exit 0
