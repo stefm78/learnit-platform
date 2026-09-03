@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-014",
   "title": "Route ATLAS-WP-023 and isolate M3.4 delegated workflow",
-  "status": "in-progress",
+  "status": "complete",
   "changeClass": "ci-routing",
   "riskClass": "low",
   "authority": {
@@ -84,9 +84,15 @@
     "branch": "ci/CI-WP-014-atlas-wp-023-route",
     "pullRequest": 343,
     "maximumChangedFiles": 3,
-    "phase": "IMPLEMENTED_PENDING_CI",
+    "phase": "COMPLETE",
     "humanGateRequired": false,
-    "finalVerdict": null
+    "finalVerdict": "PASS_CI_WP_014_ATLAS_WP_023_ROUTE_AND_M3_4_ISOLATION",
+    "evidence": {
+      "repositoryGovernanceRun": 33739992862,
+      "prScopeRun": 33739992836,
+      "learnitNextCiRun": 33739992874,
+      "m3_4IsolationRun": 33739992913
+    }
   },
   "rollback": "Revert the CI-WP-014 three-file change. Product code remains untouched; the central router returns to rejecting ATLAS-WP-023 and the historical M3.4 workflow returns to its prior broad PR trigger."
 }
