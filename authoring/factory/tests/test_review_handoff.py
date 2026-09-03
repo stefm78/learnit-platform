@@ -340,6 +340,70 @@ class TransientPrepareReviewTests(unittest.TestCase):
                 verified["manifest"]["reviewEvidenceSourceIds"],
             )
 
+    def test_source_id_extension_prefix_pair_has_exact_m3_3_bindings(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            kit = root / "kit.json"
+            brief = root / "brief.json"
+            bundle = root / "review.zip"
+            kit.write_bytes(SIGNALS.read_bytes())
+            write_json(brief, {
+                "schema": factory.BRIEF_SCHEMA,
+                "audience": "élève ingénieur",
+                "goal": "Vérifier deux sources transitoires distinctes",
+                "language": "fr",
+                "timeBudgetMinutes": 45,
+            })
+            source_specs = []
+            admission_specs = []
+            for tag, source_id, payload in (
+                ("base", "Course", b"%PDF-1.7\nbase\n"),
+                ("extension", "Course.pdf", b"%PDF-1.7\nextension\n"),
+            ):
+                source = root / f"{tag}.pdf"
+                admission = root / f"{tag}.json"
+                source.write_bytes(payload)
+                record = transient.build_admission(
+                    transient_declaration(source_id),
+                    source,
+                )
+                self.assertEqual(transient.PASS, record["decision"]["verdict"])
+                write_json(admission, record)
+                source_specs.append(f"{source_id}={source}")
+                admission_specs.append(f"{source_id}={admission}")
+
+            result = handoff.prepare_review_bundle(
+                kit,
+                brief,
+                source_specs,
+                admission_specs,
+                bundle,
+            )
+            self.assertEqual(handoff.PASS_PREPARED, result["verdict"])
+            verified = handoff.verify_review_bundle(bundle)
+            self.assertIn("sources/Course.pdf", verified["members"])
+            self.assertIn("sources/Course.pdf.pdf", verified["members"])
+            self.assertEqual(
+                ["Course", "Course.pdf"],
+                verified["manifest"]["reviewEvidenceSourceIds"],
+            )
+
+    def test_casefold_colliding_source_ids_are_rejected_before_materialization(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            upper = root / "upper.pdf"
+            lower = root / "lower.pdf"
+            upper.write_bytes(b"%PDF-1.7\nUPPER\n")
+            lower.write_bytes(b"%PDF-1.7\nlower\n")
+            with self.assertRaisesRegex(
+                handoff.HandoffInputError,
+                "case-insensitive filesystems",
+            ):
+                handoff.parse_bindings(
+                    [f"CourseA={upper}", f"coursea={lower}"],
+                    "source",
+                )
+
     def test_transient_bundle_consumes_normal_independent_review(self):
         with tempfile.TemporaryDirectory() as td:
             ws = TransientWorkspace(Path(td))
