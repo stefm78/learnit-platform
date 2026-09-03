@@ -158,11 +158,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
   const objectiveUi = assertObjectiveUi(objectiveUiIntegration);
 
   const header = node('header', { className: 'app-header' }, [
-    node('div', {}, [
-      node('p', { className: 'eyebrow', text: 'Nouvelle génération isolée' }),
-      node('h1', { text: 'Learn-it Next' }),
-    ]),
-    node('p', { className: 'contract-badge', text: runtime.contractVersion }),
+    node('h1', { text: 'Learn-it' }),
   ]);
   const main = node('main', { className: 'app-main' });
   const liveRegion = node('div', {
@@ -172,6 +168,14 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     'aria-atomic': 'true',
   });
   root.replaceChildren(header, main, liveRegion);
+
+  root.addEventListener('learnit:show-library', () => {
+    main.replaceChildren(node('p', {
+      role: 'status',
+      text: 'Ouverture de la bibliothèque…',
+    }));
+    void renderLibrary();
+  });
 
   function setBusy(value) {
     busy = value;
@@ -242,7 +246,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       node('p', {
         id: helpId,
         className: 'help',
-        text: 'Ce nom est local. Les identités et le titre canonique du kit restent inchangés.',
+        text: 'Ce nom est utilisé uniquement sur cet appareil.',
       }),
     ]);
     form.addEventListener('submit', (event) => {
@@ -264,14 +268,14 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       container.replaceChildren(node('button', {
         type: 'button',
         className: 'danger-quiet',
-        text: 'Réinitialiser Learn-it Next',
+        text: 'Réinitialiser les données locales',
         onclick: () => {
           const confirmButton = node('button', {
             type: 'button',
             className: 'danger-quiet',
             text: 'Confirmer la réinitialisation',
             onclick: () => run(() => runtime.resetNextData(), () => {
-              const message = 'Les données de Learn-it Next ont été supprimées.';
+              const message = 'Les données locales ont été supprimées.';
               notice = renderNotice([message], 'success');
               return renderLibrary({ announcement: message });
             }),
@@ -348,8 +352,8 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
 
     importForm.append(
       node('div', {}, [
-        node('label', { for: 'kit-file', className: 'field-label', text: 'Importer un kit learnit.kit.v2' }),
-        node('p', { className: 'help', text: 'Les packages legacy ou invalides sont rejetés avant toute écriture d’import.' }),
+        node('label', { for: 'kit-file', className: 'field-label', text: 'Importer un cours' }),
+        node('p', { className: 'help', text: 'Le fichier est vérifié avant l’import.' }),
         fileStatus,
       ]),
       fileInput,
@@ -382,6 +386,8 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             type: 'button',
             className: 'primary',
             text: course.progress.completed === 0 ? 'Commencer' : 'Reprendre',
+            'data-course-learning-action': 'learn',
+            'data-course-install-id': course.courseInstallId,
             onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
           });
         const reviewAction = reviewQueue.total === 0
@@ -392,6 +398,8 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
               type: 'button',
               className: 'secondary',
               text: 'Ouvrir À revoir',
+              'data-course-learning-action': 'review',
+              'data-course-install-id': course.courseInstallId,
               onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
             }),
           ]);
@@ -400,7 +408,10 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           courseObjectives: course.objectives,
           progress: course.progress,
         });
-        list.append(node('article', { className: 'course-card' }, [
+        list.append(node('article', {
+          className: 'course-card',
+          'data-course-install-id': course.courseInstallId,
+        }, [
           node('div', {}, [
             node('h3', { text: course.title }),
             course.subtitle ? node('p', { text: course.subtitle }) : null,
