@@ -82,9 +82,9 @@
   ],
   "execution": {
     "branch": "ci/CI-WP-014-atlas-wp-023-route",
-    "pullRequest": null,
+    "pullRequest": 343,
     "maximumChangedFiles": 3,
-    "phase": "IMPLEMENTATION_PREPARED",
+    "phase": "IMPLEMENTED_PENDING_CI",
     "humanGateRequired": false,
     "finalVerdict": null
   },
