@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-036",
+  "title": "Post-M3.4 STOP_AND_OBSERVE arbitration",
+  "status": "in-progress",
+  "changeClass": "governance-state-alignment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 337,
+    "predecessor": "GOV-WP-035",
+    "baselineCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
+    "m3_4ProductIssue": 322,
+    "m3_4ProductPullRequest": 323
+  },
+  "purpose": "Record the converged post-M3.4 Linus/Steve arbitration: stop product expansion, use the promoted stack on real cases, observe operator/distribution/learner friction, and reopen only the smallest gate justified by measured bottlenecks.",
+  "decision": {
+    "verdict": "POST_M3_4_STOP_AND_OBSERVE",
+    "linus": "STOP; use the current factory on real new kits and let observed bottlenecks create the next requirement.",
+    "steve": "STEVE_RECOMMEND_STOP_AND_OBSERVE",
+    "operatingLoop": "use → observe → decide",
+    "productImplementationAuthorized": false
+  },
+  "baseline": {
+    "currentMain": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
+    "m3_4AcceptedProductHead": "870d69800dcb07fcfff9f1d232dd143c8eaa6486",
+    "m3_4AcceptedQaHead": "9c0e20ef176ee03532543d009f22979c95d0d748",
+    "m3_4QaVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
+    "m3_4PromotionMerge": "b8337c785cbec995de5891080776c4c44dd99179",
+    "learnerArtifactBytes": 366412,
+    "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+  },
+  "scope": {
+    "allowedPaths": [
+      "governance/governor-state.json",
+      "README.md",
+      "docs/architecture/README.md",
+      "docs/roadmap/STANDALONE_TO_PLATFORM.md",
+      "docs/atlas/README.md",
+      "work-packages/GOV-WP-036.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "observationProtocol": {
+    "operator": [
+      "active operator minutes per kit",
+      "manual transfer/association count",
+      "wrong file/hash/context/version errors",
+      "interrupted-run recovery effort"
+    ],
+    "distribution": [
+      "active minutes and steps from Qualified Release Set PASS to learner start",
+      "wrong-version, location and import confusion"
+    ],
+    "learner": [
+      "ability to start without assistance",
+      "completion and abandonment points",
+      "transfer performance and visible misunderstandings",
+      "revision/reconfirmation usability"
+    ],
+    "humanOverview": [
+      "time/effort needed for the responsible human to explain the learner journey and pedagogical progression"
+    ]
+  },
+  "reopenConditions": [
+    "dominant remote/distribution friction => propose minimal append-only distribution gate",
+    "dominant human review/context friction => propose read-only #272 pedagogical overview gate",
+    "dominant operator orchestration toil/errors => propose minimal local stateless artifact-driven automation gate",
+    "different learner problem => propose a gate centered on that observed learner problem",
+    "no dominant friction => continue STOP_AND_OBSERVE"
+  ],
+  "invariants": [
+    "No new product implementation is authorized by this arbitration.",
+    "M3.4 Qualified Release Set remains the promoted factory/release-set boundary.",
+    "The learner runtime remains exactly the promoted M2.2 artifact.",
+    "Reviewer independence remains explicit; author and reviewer contexts are not collapsed.",
+    "Remote publishing, registry/catalog, signing/authentication, assets and provider integration remain deferred.",
+    "Human overview debt #272 remains visible and non-blocking until evidence triggers it.",
+    "Gate3, Gate4 and M4+ remain HOLD.",
+    "Only observed evidence may reopen a product gate."
+  ],
+  "requiredEvidence": [
+    "Exact six-path governance/documentation delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Canonical state no longer says post-M3.4 arbitration is pending.",
+    "Canonical state records STOP_AND_OBSERVE and the reopen conditions.",
+    "Learner M2.2 artifact identity remains unchanged.",
+    "No product, workflow, contract, factory or learner-runtime path changes."
+  ],
+  "adversarialTests": [
+    "Any statement authorizing a new product implementation must fail review.",
+    "Any preselection of distribution, #272 or automation without observed evidence must fail review.",
+    "Any authorization of remote publishing, registry, signing, assets, provider integration, Gate3, Gate4 or M4+ must fail review.",
+    "Any change to the M2.2 learner artifact identity must fail review.",
+    "Any changed path outside the exact six-path governance/documentation scope must fail review."
+  ],
+  "nonGoals": [
+    "new product implementation",
+    "remote publishing or GitHub Releases productization",
+    "registry or catalog",
+    "signing or publisher authentication",
+    "asset/media subsystem",
+    "factory orchestration",
+    "provider/model integration",
+    "#272 implementation",
+    "learner-runtime change",
+    "analytics/backend",
+    "Gate3, Gate4 or M4+ activation"
+  ],
+  "independentReview": [
+    "Linus and Steve reviews were produced independently and read-only against the same baseline.",
+    "Repository governance and PR scope must independently verify this bounded state-alignment change."
+  ],
+  "execution": {
+    "branch": "gov/GOV-WP-036-post-m3-4-stop-observe",
+    "pullRequest": null,
+    "maximumChangedFiles": 6,
+    "phase": "IMPLEMENTATION_IN_PROGRESS",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert the six metadata/documentation paths. Promoted M3.4 product bytes, QA evidence and learner runtime remain unchanged."
+}
