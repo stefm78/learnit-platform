@@ -17,7 +17,11 @@
     ".github/workflows/atlas-transient-source-admission-qa-r4.yml"
   ],
   "independence": {
-    "historicalRoundsOnly": ["QA-WP-025", "QA-WP-026", "QA-WP-027"],
+    "historicalRoundsOnly": [
+      "QA-WP-025",
+      "QA-WP-026",
+      "QA-WP-027"
+    ],
     "historicalQaArtifactsReusedAsProof": false,
     "productFilesWritable": false
   },
@@ -31,9 +35,82 @@
   ],
   "oracle": {
     "path": "authoring/factory/tests/qa_transient_source_admission_r4.py",
-    "platforms": ["ubuntu-latest", "windows-latest"],
+    "platforms": [
+      "ubuntu-latest",
+      "windows-latest"
+    ],
     "continueMatrixAfterTestFailures": true
   },
   "verdict": null,
-  "findings": []
+  "findings": [],
+  "purpose": "Independently attack the exact frozen ATLAS-WP-023 repaired product head for false transient PASS and M3.3 portability failures, without modifying any product file.",
+  "rollback": "Close the QA PR and delete only the QA-WP-028 branch/files; the frozen product branch and product files remain unchanged.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/QA-WP-028.json",
+      "authoring/factory/tests/qa_transient_source_admission_r4.py",
+      ".github/workflows/atlas-transient-source-admission-qa-r4.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/transient_source_admission.py",
+      "authoring/factory/handoff.py",
+      "authoring/factory/source_admission.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/release_set.py",
+      "authoring/v2/**",
+      "apps/**",
+      "contracts/**"
+    ]
+  },
+  "invariants": [
+    "QA is fresh and bound only to issue #350 and frozen product HEAD 5fd3667d3042963b1c0108c7c84e27bd14d4f7f6.",
+    "QA-WP-025, QA-WP-026 and QA-WP-027 artifacts remain historical only and are not reused as current proof.",
+    "No product file is modified by QA-WP-028.",
+    "Any HOLD requires deterministic product reproduction rather than a QA helper or runner failure.",
+    "A transient identity that PASSes admission must remain portable through actual M3.3 prepare, verify and consume boundaries.",
+    "Real Windows execution is required for case-insensitive portability evidence."
+  ],
+  "requiredEvidence": [
+    "Exact parent and merge-base equal frozen product HEAD.",
+    "QA delta contains exactly the three issue #350 authorized paths.",
+    "Fresh contradictory oracle on ubuntu-latest.",
+    "Fresh contradictory oracle on windows-latest.",
+    "Character and length boundary re-attacks.",
+    "Exact source-member and extension interaction re-attacks.",
+    "Case-insensitive collision re-attacks before materialization.",
+    "Windows reserved-name and nearby legal-name re-attacks.",
+    "Declaration, byte, sourceId and version drift re-attacks.",
+    "Benchmark/transient catalog and authority separation re-attacks.",
+    "Archive, semantic-review independence and Qualified Release Set re-attacks.",
+    "M3.2, M3.2.5, benchmark SourceAdmission, transient admission, M3.3 and M3.4 regression suites."
+  ],
+  "adversarialTests": [
+    "Invalid or missing declaration and source identity.",
+    "Policy-invalid declaration fields must hold before byte ingestion.",
+    "Lengths 1, 159, 160 versus 161, 254, 255, 256, 300 and 512.",
+    "Course with Course.pdf and .zip/.txt/.bin sourceId suffix interactions.",
+    "Case-fold collisions including dot, dash and underscore variants.",
+    "Windows reserved names and nearby legal names.",
+    "Source bytes, declaration sourceId and version drift.",
+    "Host-path relocation and deterministic replay.",
+    "Transient/benchmark authority masquerading and catalog confusion.",
+    "Archive tamper, duplicate, unsafe and undeclared members.",
+    "Stale semantic-review target, sourceId injection and independence flag violations.",
+    "Exact source present in review handoff but absent from Qualified Release Set.",
+    "No network/provider/persistent source-store primitive and no learner runtime/kit contract change."
+  ],
+  "nonGoals": [
+    "Repair product code.",
+    "Reuse historical QA oracles as proof.",
+    "Change learner runtime or canonical kit contracts.",
+    "Add source storage, provider integration or network behavior."
+  ],
+  "independentReview": [
+    "This QA package is disjoint from QA-WP-025/026/027 active context and files.",
+    "Product findings are reproduced directly against the frozen product APIs.",
+    "Runner or QA-oracle defects are repaired only inside the three authorized QA paths and are not classified as product findings."
+  ],
+  "baseline": {
+    "baseCommit": "5fd3667d3042963b1c0108c7c84e27bd14d4f7f6"
+  }
 }
