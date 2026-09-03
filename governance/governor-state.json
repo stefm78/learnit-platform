@@ -270,13 +270,13 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "POST-M3-4-OBSERVATION-REVIEW",
-    "condition": "After a small set of real end-to-end uses, or sooner if one bottleneck is clearly dominant, review observed evidence. Dominant distribution friction may justify a minimal append-only distribution gate; dominant human review/context friction may justify read-only #272 overview; dominant operator toil/errors may justify minimal local stateless artifact-driven automation; a different learner problem should define its own gate; no dominant friction means continue STOP_AND_OBSERVE."
+    "id": "GOV-WP-036",
+    "condition": "Keep this governance observation gate active while real end-to-end cases are run. Re-review when observed evidence shows a dominant distribution, human-review/context, operator-orchestration or learner bottleneck; otherwise continue STOP_AND_OBSERVE without opening product implementation."
   },
   "review": {
     "lastReviewedAt": "2026-09-03",
     "lastReviewedBy": "Project driver after independent Linus architecture and Steve product/learning reviews",
-    "decision": "POST_M3_4_STOP_AND_OBSERVE",
+    "decision": "GO_WITH_CONDITIONS",
     "authorityIssue": 337,
     "nextReviewTrigger": "real-use evidence showing dominant distribution, human-review, operator-orchestration or learner friction; regression; or a separately proposed Gate3/Gate4/M4+ capability"
   }
