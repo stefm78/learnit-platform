@@ -429,9 +429,8 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   }, [
     node('div', {className: 'section-heading'}, [
       node('div', {}, [
-        node('p', {className: 'eyebrow', text: 'Atlas M2'}),
         node('h2', {id: 'atlas-int-title', text: 'Aujourd’hui'}),
-        node('p', {text: 'Choisissez votre temps. Atlas privilégie ce qui mérite votre attention maintenant.'}),
+        node('p', {text: 'Choisissez votre cours et le temps disponible.'}),
       ]),
       node('button', {
         type: 'button',
@@ -451,6 +450,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   const classicWasInert = appMain?.hasAttribute('inert') ?? false;
   const libraryToggle = surface.querySelector('[data-atlas-library-toggle="true"]');
   let libraryVisible = false;
+  let atlasContextsByInstallId = new Map();
 
   function setClassicVisible(visible) {
     libraryVisible = Boolean(visible);
@@ -471,8 +471,54 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   }
 
   libraryToggle?.addEventListener('click', () => {
-    setClassicVisible(!libraryVisible);
+    const nextVisible = !libraryVisible;
+    if (nextVisible) {
+      root.dispatchEvent(new CustomEvent('learnit:show-library'));
+    }
+    setClassicVisible(nextVisible);
   });
+
+  function atlasCardFor(courseInstallId) {
+    return [...content.querySelectorAll('[data-atlas-course-install-id]')]
+      .find(card => (
+        card.getAttribute('data-atlas-course-install-id') === courseInstallId
+      )) ?? null;
+  }
+
+  async function openAtlasCourse(courseInstallId) {
+    setClassicVisible(false);
+    let card = atlasCardFor(courseInstallId);
+    if (!card) {
+      await refresh();
+      card = atlasCardFor(courseInstallId);
+    }
+    if (!card) return;
+
+    const resumeButton = card.querySelector('[data-atlas-resume-session="true"]');
+    if (resumeButton) {
+      resumeButton.click();
+      return;
+    }
+
+    const durationButton = (
+      card.querySelector('[data-atlas-duration="15"]')
+      ?? card.querySelector('[data-atlas-duration]')
+    );
+    card.scrollIntoView?.({block: 'start'});
+    durationButton?.focus();
+  }
+
+  root.addEventListener('click', event => {
+    const action = event.target instanceof Element
+      ? event.target.closest('[data-course-learning-action][data-course-install-id]')
+      : null;
+    const courseInstallId = action?.getAttribute('data-course-install-id');
+    if (!courseInstallId || !atlasContextsByInstallId.has(courseInstallId)) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    void openAtlasCourse(courseInstallId);
+  }, true);
 
   async function refresh() {
     const courses = await runtime.listCourses();
@@ -485,6 +531,10 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         // Non-Atlas or incomplete local course remains handled by the classic UI.
       }
     }
+
+    atlasContextsByInstallId = new Map(
+      atlasCourses.map(context => [context.courseInstallId, context]),
+    );
 
     if (!atlasCourses.length) {
       if (appMain) {
@@ -584,7 +634,10 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         actions.append(button);
       }
 
-      cards.push(node('article', {className: 'course-card atlas-course-card'}, [
+      cards.push(node('article', {
+        className: 'course-card atlas-course-card',
+        'data-atlas-course-install-id': context.courseInstallId,
+      }, [
         node('h3', {text: context.title}),
         node('p', {className: 'course-meta', text: `${context.course.objectives.length} objectif(s) · ${context.course.activities.length} activité(s)`}),
         actions,
