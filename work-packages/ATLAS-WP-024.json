@@ -26,6 +26,7 @@
       "apps/learnit-next/src/integration/atlas/surface.js",
       "apps/learnit-next/src/ui/atlas_summary.js",
       "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/atlas_m1_experience.py",
       "apps/learnit-next/tests/atlas_m1_int.py",
       "apps/learnit-next/tests/atlas_m2_ux_clarity.py"
     ],
@@ -50,6 +51,7 @@
     "PR scope validates exactly against ATLAS-WP-024.",
     "Learn-it Next CI runs the bounded atlas-ux-convergence profile inside the existing workflow on the exact PR head, using only the current build and existing relevant tests.",
     "Existing Atlas integration and UX clarity tests cover Library routing, exclusive active surface, minimal learner context, contiguous prompt/answers and learner-copy cleanup.",
+    "The existing Atlas experience regression is aligned with the #352 learner-copy requirement while preserving its controller/focus and runtime assertions.",
     "The deterministic Learn-it Next source manifest is rebound to every changed manifest-owned source.",
     "No learner usability PASS is declared before Stream 2 human observation."
   ],
@@ -71,7 +73,7 @@
     "executionLane": "single-stream-product-implementation",
     "branch": "stream1/issue-352-one-atlas-learning-journey",
     "maximumProductFiles": 4,
-    "maximumChangedFiles": 9,
+    "maximumChangedFiles": 10,
     "requiresIndependentReviewBeforeIntegration": false
   },
   "rollback": "Close or revert PR #354. The baseline storage, contracts, EPF kits and pre-existing Atlas/classic persisted data remain unchanged."
