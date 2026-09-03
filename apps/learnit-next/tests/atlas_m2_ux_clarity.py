@@ -108,7 +108,8 @@ const html = S.renderSummary({
 assert.match(html,/Objectif : Conjugué/);
 assert.match(html,/Objectif : Module/);
 assert.doesNotMatch(html,/2026-08-29T15:24:48\.965Z/);
-assert.match(html,/ni une certification ni une promesse de rétention durable/);
+assert.match(html,/Voici votre bilan par objectif/);
+assert.doesNotMatch(html,/preuves enregistrées|certification|rétention durable/i);
 const readable = S.formatLearnerTimestamp(stamp, new Date('2026-08-29T16:00:00.000Z'));
 assert.ok(!readable.includes('T15:24:48.965Z'));
 console.log(JSON.stringify({ok:true,readable}));
