@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-023",
+  "title": "Transient private user-source admission implementation",
+  "status": "in-progress",
+  "changeClass": "product-authoring-transient-source-admission",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 340,
+    "program": "PROJECT-ATLAS",
+    "milestone": "POST-M3.4-OBSERVATION"
+  },
+  "purpose": "Add a separate fail-closed transient admission authority for user-provided private learning sources and allow M3.3 review handoff to consume it without weakening or modifying curated benchmark SourceAdmission.",
+  "baseline": {
+    "baseCommit": "e90940130b540f57abb999c56a24015c6b470249",
+    "designWorkPackage": "ATLAS-WP-022",
+    "designIssue": 339,
+    "designVerdict": "PASS_ATLAS_WP_022_REAL_SOURCE_ADMISSION_DESIGN_TO_IMPLEMENTATION_GATE",
+    "observationIssue": 337,
+    "promotedM3_3Merge": "c102ca81f3b144bea1140860ef633a0d01987d59",
+    "promotedM3_4Merge": "b8337c785cbec995de5891080776c4c44dd99179"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-023.json",
+      "authoring/factory/transient_source_admission.py",
+      "authoring/factory/handoff.py",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_transient_source_admission.py",
+      "authoring/factory/tests/test_review_handoff.py",
+      ".github/workflows/atlas-m3-3-review-handoff-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "authoring/factory/source_admission.py",
+      "authoring/factory/benchmark_sources_v1.json",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/release_set.py",
+      "authoring/v2/**",
+      "authoring/skills/**",
+      "contracts/**",
+      "apps/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "Curated benchmark SourceAdmission and benchmark_sources_v1.json remain byte-unchanged upstream authorities.",
+    "Transient admission is a separate authority and never infers permission, provenance or legal rights from upload presence, filename, URL, institution or document content.",
+    "Transient PASS requires explicit user declaration, user-provided provenance, private-personal-learning context, transient-only retention, prohibited source redistribution and legalRightsVerified=false.",
+    "Transient PASS states only that the declared private/transient processing contract is complete and exact source bytes/version are bound; it does not certify copyright, ownership, licence or legal redistribution rights.",
+    "Policy-invalid transient declarations hold before source bytes are read.",
+    "Exact source bytes and declaration are bound by deterministic SHA-256 identities and admission reproduction is host-path independent.",
+    "M3.3 prepare-review accepts either current benchmark SourceAdmission or transient user-source admission through the same --admission boundary.",
+    "Transient M3.3 handoffs contain no source-catalog.json unless at least one benchmark SourceAdmission is also present.",
+    "Reviewer independence, exact target binding, deterministic ZIP semantics and FactoryRun re-entry remain unchanged.",
+    "No persistent source catalog, source repository corpus, backend, network call, provider integration, OCR, learner-runtime change or kit-schema change is introduced.",
+    "Qualified Release Set remains source-free."
+  ],
+  "requiredEvidence": [
+    "Exact seven-path implementation delta.",
+    "Repository governance PASS and PR scope PASS.",
+    "Dedicated exact-head M3.3/transient-source workflow PASS.",
+    "Existing M3.2, M3.2.5, benchmark SourceAdmission and M3.3 regression suites remain PASS.",
+    "Explicit valid transient declaration plus exact bytes yields PASS_TRANSIENT_SOURCE_ADMISSION_V1.",
+    "Invalid declaration policy holds before bytes are read.",
+    "Same declaration and bytes at different host paths yield identical admissionId.",
+    "One-byte source drift and declaration drift fail closed.",
+    "Transient review handoff is byte-deterministic under host-path relocation.",
+    "Transient handoff omits benchmark source catalog and verifies exact admission/source binding.",
+    "Benchmark review handoff still embeds and verifies the exact benchmark catalog.",
+    "Transient review handoff consumes an independent semantic review into a self-verifying FactoryRun.",
+    "Static scan shows no network/provider/persistent source-store primitive.",
+    "Independent contradictory QA binds the exact frozen product HEAD."
+  ],
+  "adversarialTests": [
+    "userDeclarationAccepted=false.",
+    "processingContext other than private-personal-learning.",
+    "retention other than transient-only.",
+    "redistribution other than prohibited.",
+    "legalRightsVerified=true.",
+    "provenance other than user-provided.",
+    "authorizationBasis other than user-declaration.",
+    "Missing or invalid version.",
+    "Valid declaration with missing source bytes.",
+    "One-byte source drift after transient admission.",
+    "Declaration tamper after admission.",
+    "Transient admission sourceId differs from handoff binding.",
+    "Transient admission attempts to masquerade as benchmark SourceAdmission.",
+    "Benchmark admission without embedded benchmark source catalog.",
+    "Source catalog embedded when no benchmark admission is present.",
+    "Tampered/duplicate/unsafe/undeclared review ZIP member.",
+    "Stale semantic review target.",
+    "authorScratchpadSeen=true or authorActiveContextReused=true."
+  ],
+  "nonGoals": [
+    "Legal-rights verification service",
+    "Persistent source library/catalog",
+    "Public source redistribution",
+    "Remote publication",
+    "Model/provider integration",
+    "Source ingestion/OCR",
+    "Automatic semantic repair",
+    "Canonical kit schema change",
+    "Learner runtime change",
+    "Backend/accounts/sync/catalog/marketplace",
+    "Gate3/Gate4/M4+"
+  ],
+  "independentReview": [
+    "A new disjoint QA package must attack the exact frozen ATLAS-WP-023 product head and may not repair product files.",
+    "QA must explicitly attack false PASS, byte/declaration drift, benchmark-regression and handoff-context confusion.",
+    "Promotion requires at least one exact transient user-source handoff path and one unchanged benchmark handoff path."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-023-transient-user-source-admission",
+    "phase": "IMPLEMENTED_PENDING_CI",
+    "pullRequest": 341,
+    "maximumChangedFiles": 7,
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Remove transient_source_admission.py and its tests, restore handoff.py/README/test/workflow to the promoted M3.3 behavior, and remove ATLAS-WP-023 metadata. Curated benchmark SourceAdmission, M3.2/M3.2.5, M3.4 and learner runtime remain unchanged."
+}
