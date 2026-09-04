@@ -422,16 +422,15 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   if (previous) previous.remove();
 
   const content = node('div', {'data-atlas-int-content': 'true'});
+  const surfaceTitle = node('h2', {id: 'atlas-int-title', text: 'Aujourd’hui'});
+  const surfaceDescription = node('p', {text: 'Choisissez votre cours et le temps disponible.'});
   const surface = node('section', {
     className: 'atlas-m1 atlas-int-surface',
     'aria-labelledby': 'atlas-int-title',
     'data-atlas-int-surface': 'ready',
   }, [
     node('div', {className: 'section-heading'}, [
-      node('div', {}, [
-        node('h2', {id: 'atlas-int-title', text: 'Aujourd’hui'}),
-        node('p', {text: 'Choisissez votre cours et le temps disponible.'}),
-      ]),
+      node('div', {}, [surfaceTitle, surfaceDescription]),
       node('button', {
         type: 'button',
         className: 'secondary',
@@ -457,13 +456,19 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     if (!appMain || !libraryToggle) return;
 
     if (libraryVisible) {
+      content.style.display = 'none';
+      surfaceTitle.textContent = 'Bibliothèque';
+      surfaceDescription.textContent = 'Gérez vos cours et consultez votre progression.';
       appMain.style.display = classicDisplay;
       if (!classicWasInert) appMain.removeAttribute('inert');
-      libraryToggle.textContent = 'Masquer la bibliothèque';
+      libraryToggle.textContent = 'Retour à Aujourd’hui';
       libraryToggle.setAttribute('aria-expanded', 'true');
       return;
     }
 
+    content.style.display = '';
+    surfaceTitle.textContent = 'Aujourd’hui';
+    surfaceDescription.textContent = 'Choisissez votre cours et le temps disponible.';
     appMain.style.display = 'none';
     appMain.setAttribute('inert', '');
     libraryToggle.textContent = 'Afficher la bibliothèque';
@@ -537,6 +542,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     );
 
     if (!atlasCourses.length) {
+      content.style.display = '';
       if (appMain) {
         appMain.style.display = classicDisplay;
         if (!classicWasInert) appMain.removeAttribute('inert');
@@ -570,6 +576,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
           'data-atlas-resume-session': 'true',
         });
         resumeButton.addEventListener('click', async () => {
+          setClassicVisible(false);
           resumeButton.disabled = true;
           preview.replaceChildren(node('p', {role: 'status', text: 'Reprise de la séance…'}));
           try {
@@ -590,6 +597,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
           'data-atlas-duration': duration,
         });
         button.addEventListener('click', async () => {
+          setClassicVisible(false);
           actions.querySelectorAll('button').forEach(item => { item.disabled = true; });
           preview.replaceChildren(node('p', {role: 'status', text: `Préparation de la séance de ${duration} minutes…`}));
           try {
