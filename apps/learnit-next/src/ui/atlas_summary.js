@@ -89,7 +89,7 @@ function nextStepForEvidence(evidence, objective) {
     case 'training': return `Continuer à s’entraîner sur ${target}.`;
     case 'review-needed': return `Reprendre ${target} avec une activité ciblée.`;
     case 'ready-for-validation': return `Valider ${target} sans aide.`;
-    case 'validated-recently': return `Poursuivre avec un autre objectif du cours.`;
+    case 'validated-recently': return 'Poursuivre avec un autre objectif du cours.';
     default: fail('UNKNOWN_EVIDENCE_STATE');
   }
 }
@@ -99,7 +99,7 @@ function renderObjectiveCard(evidence, objectiveLabels = {}) {
   const label = evidenceLabel(evidence);
   const objective = objectiveLabelFor(evidence, objectiveLabels);
   const objectiveHtml = objective
-    ? `<h2 class="atlas-objective-name">${T.esc(objective)}</h2>`
+    ? `<h2 class="atlas-objective-name">Objectif : ${T.esc(objective)}</h2>`
     : '<h2 class="atlas-objective-name">Objectif</h2>';
   const reinforce = evidence.state === 'review-needed' && objective
     ? `<p class="atlas-objective-reinforce"><strong>À renforcer :</strong> ${T.esc(objective)}</p>`
