@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-024",
+  "title": "Converge Learn-it Atlas on one learning journey",
+  "status": "approved",
+  "changeClass": "bounded-learner-ux-runtime-convergence",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 352,
+    "productSlice": "ONE_ATLAS_LEARNING_JOURNEY"
+  },
+  "purpose": "Complete the evidence-backed R5 successor correction explicitly authorized after Human Replay R4: preserve the single existing Atlas learning journey while reducing per-course action competition and translating existing Atlas evidence/recommendations into learner-facing state and next-step semantics. Preserve persisted history, resume, review-needed, lineage, revisions, imports, storage and accessibility behavior.",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "592d4fc92e7a891742be31045f7b92f4370afbed",
+    "candidateName": "one-atlas-learning-journey",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/ATLAS-WP-024.json",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/ui/atlas_summary.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/tests/dev_learning_loop_v2_ui.py",
+      "apps/learnit-next/tests/atlas_m1_experience.py",
+      "apps/learnit-next/tests/atlas_m1_int.py",
+      "apps/learnit-next/tests/atlas_m2_ux_clarity.py"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "docs/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "Atlas learning actions from Today and Library enter the same existing Atlas planner/session engine; no third runtime or learner mode is introduced.",
+    "An active Atlas activity hides Today chrome, the classic Library surface, unrelated Atlas course rows and replanning controls while keeping prompt and answers contiguous.",
+    "R5 changes only action hierarchy and learner-facing projections: each Atlas course exposes one dominant learning action, 5/15/30 remains available through one compact duration selector when a new plan is needed, and resume remains a single direct action when a resumable session exists.",
+    "Learner-facing course state and next-step copy are derived only from the existing Atlas objective evidence and existing recommendation ranking; no new scoring, planning or persistence algorithm is introduced.",
+    "Detailed objective evidence remains available on demand; the default summary emphasizes objective state, what needs reinforcement when applicable, and the next learner action before historical counts/dates.",
+    "The final activity remains visible with its own feedback and an explicit Voir le bilan action before the summary is rendered.",
+    "Atlas event commits, history, resume state, review-needed semantics, package/course/activity lineage, revision IDs/digests and import behavior are unchanged.",
+    "No storage schema, database version, migration, backend, account or sync behavior is introduced.",
+    "learnit.kit.v2 and all EPF kit payloads remain unchanged.",
+    "Keyboard/focus behavior remains based on the existing Atlas controls and focus assertions, with native select/button semantics and minimum target sizing preserved."
+  ],
+  "requiredEvidence": [
+    "PR scope validates exactly against ATLAS-WP-024.",
+    "Learn-it Next CI runs the bounded atlas-ux-convergence profile inside the existing workflow on the exact PR head, using only the current build and existing relevant tests.",
+    "Existing Atlas integration and UX clarity tests cover Library routing, exclusive active surface, one-primary-action course hierarchy, compact duration selection, Atlas-derived learner state/next step, final feedback before Voir le bilan, action-oriented summary disclosure and compacted learner-facing import presentation.",
+    "The deterministic Learn-it Next source manifest is rebound to every changed manifest-owned source.",
+    "Before/after evidence is prepared for Today action count, Library action count, learner-facing course state/next step, summary meaning, final feedback-to-bilan separation and import density.",
+    "No learner usability PASS is declared before the R5 human replay."
+  ],
+  "adversarialTests": [
+    "apps/learnit-next/tests/atlas_m1_int.py checks that Atlas Library actions cannot fall through to the classic learning handler, active sessions suppress competing surfaces, R5 action hierarchy remains bound to the existing Atlas entrypoint, and learner-facing progress semantics do not alter runtime ownership.",
+    "apps/learnit-next/tests/atlas_m2_ux_clarity.py checks one-primary-action course presentation, compact duration selection, objective-labelled next-step summary semantics and the final-feedback-to-bilan transition while retaining prior Atlas UX clarity coverage."
+  ],
+  "nonGoals": [
+    "Changing EPF kits or the learnit.kit.v2 contract.",
+    "Migrating or merging classic and Atlas storage.",
+    "Adding backend, accounts, sync, a theory/discovery mode, a third runtime or a broad dashboard redesign.",
+    "Adding search, filtering, sorting, shelves/collections, new navigation architecture or unrelated visual polish.",
+    "Changing Atlas recommendation ranking, planner policy, evidence state transitions or learning-event semantics.",
+    "Creating a new contradictory-QA chain or declaring human usability PASS."
+  ],
+  "independentReview": [
+    "Issue #352 remains the implementation authority; the user explicitly authorized GO_R5_BOUNDED_ACTION_HIERARCHY_LEARNER_PROGRESS_SEMANTICS after the completed Human Replay R4.",
+    "Human Replay R4 on exact candidate 271a4f2dd9e4403771607c2d84c037fa2e7bd2f3 is the evidence basis: course-list topology improved, while action competition and learner comprehension of progress/summary remained material frictions.",
+    "A short R5 human replay owns the learner-usability verdict; this implementation stream must not self-certify UX PASS."
+  ],
+  "execution": {
+    "executionLane": "single-stream-product-implementation",
+    "branch": "stream1/issue-352-one-atlas-learning-journey",
+    "maximumProductFiles": 6,
+    "maximumChangedFiles": 13,
+    "requiresIndependentReviewBeforeIntegration": false
+  },
+  "rollback": "Close or revert PR #354. The baseline storage, contracts, EPF kits and pre-existing Atlas/classic persisted data remain unchanged."
+}
