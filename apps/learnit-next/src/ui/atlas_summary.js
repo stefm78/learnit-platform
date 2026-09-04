@@ -82,25 +82,41 @@ function objectiveLabelFor(evidence, objectiveLabels) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function nextStepForEvidence(evidence, objective) {
+  const target = objective || 'cet objectif';
+  switch (evidence.state) {
+    case 'not-started': return `Commencer ${target}.`;
+    case 'training': return `Continuer à s’entraîner sur ${target}.`;
+    case 'review-needed': return `Reprendre ${target} avec une activité ciblée.`;
+    case 'ready-for-validation': return `Valider ${target} sans aide.`;
+    case 'validated-recently': return `Poursuivre avec un autre objectif du cours.`;
+    default: fail('UNKNOWN_EVIDENCE_STATE');
+  }
+}
+
 function renderObjectiveCard(evidence, objectiveLabels = {}) {
   validateEvidence(evidence);
   const label = evidenceLabel(evidence);
   const objective = objectiveLabelFor(evidence, objectiveLabels);
   const objectiveHtml = objective
-    ? `<p class="atlas-objective-name"><strong>Objectif : ${T.esc(objective)}</strong></p>`
+    ? `<h2 class="atlas-objective-name">${T.esc(objective)}</h2>`
+    : '<h2 class="atlas-objective-name">Objectif</h2>';
+  const reinforce = evidence.state === 'review-needed' && objective
+    ? `<p class="atlas-objective-reinforce"><strong>À renforcer :</strong> ${T.esc(objective)}</p>`
     : '';
+  const next = nextStepForEvidence(evidence, objective);
   const last = evidence.lastEvidenceAt
     ? `Dernière activité : ${formatLearnerTimestamp(evidence.lastEvidenceAt)}`
     : 'Aucune activité enregistrée';
   const detail = `<details class="atlas-objective-details"><summary>Voir le détail</summary><div><p>${T.esc(last)}</p><dl><div><dt>Essais d’entraînement</dt><dd>${evidence.practiceAttempts}</dd></div><div><dt>Corrections</dt><dd>${evidence.correctionsCompleted}</dd></div><div><dt>Validations</dt><dd>${evidence.validationAttempts}</dd></div></dl></div></details>`;
-  return `<article class="atlas-objective-card">${objectiveHtml}<h2>${T.esc(label)}</h2>${detail}</article>`;
+  return `<article class="atlas-objective-card">${objectiveHtml}<p class="atlas-objective-status"><strong>État :</strong> ${T.esc(label)}</p>${reinforce}<p class="atlas-objective-next"><strong>Prochaine étape :</strong> ${T.esc(next)}</p>${detail}</article>`;
 }
 
 function renderSummary({ evidence = [], completed = false, objectiveLabels = {} }) {
   if (!Array.isArray(evidence) || typeof completed !== 'boolean') fail('INVALID_SUMMARY');
   const title = completed ? 'Séance terminée' : 'État de la séance';
   const cards = evidence.map(item => renderObjectiveCard(item, objectiveLabels)).join('');
-  return `<section class="atlas-m1 atlas-summary" aria-labelledby="atlas-summary-title"><h1 id="atlas-summary-title">${title}</h1><p>Voici votre bilan par objectif.</p><div class="atlas-objective-grid">${cards}</div></section>`;
+  return `<section class="atlas-m1 atlas-summary" aria-labelledby="atlas-summary-title"><h1 id="atlas-summary-title">${title}</h1><p>Voici votre bilan par objectif.</p><p>L’essentiel d’abord : où vous en êtes et quoi faire ensuite.</p><div class="atlas-objective-grid">${cards}</div></section>`;
 }
 
 module.exports = Object.freeze({
@@ -108,6 +124,7 @@ module.exports = Object.freeze({
   validateEvidence,
   formatLearnerTimestamp,
   objectiveLabelFor,
+  nextStepForEvidence,
   renderObjectiveCard,
   renderSummary
 });
