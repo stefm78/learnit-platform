@@ -13,6 +13,7 @@ SESSION = ROOT / "apps/learnit-next/src/integration/atlas/session.js"
 RENDER = ROOT / "apps/learnit-next/src/ui/render.js"
 SUMMARY = ROOT / "apps/learnit-next/src/ui/atlas_summary.js"
 MANIFEST = ROOT / "apps/learnit-next/source_manifest.json"
+STYLES = ROOT / "apps/learnit-next/src/styles.css"
 
 
 def blob_sha1(path):
@@ -105,6 +106,8 @@ class AtlasM1Int(unittest.TestCase):
                 0,
                 result.stderr,
             )
+
+
 
 
 
@@ -293,8 +296,12 @@ class AtlasM1Int(unittest.TestCase):
         for token in (
             "renderLibraryObjectiveDetails",
             "data-library-objective-details",
+            "course-progress-details",
+            "course-row-main",
+            "course-row-actions",
             "Voir la progression détaillée",
             "runtime.importPackage(payload)",
+            "Choisissez un fichier de cours à importer.",
         ):
             self.assertIn(token, render)
 
@@ -306,6 +313,39 @@ class AtlasM1Int(unittest.TestCase):
             "setClassicVisible(false);",
         ):
             self.assertIn(token, surface)
+
+    def test_r4_compact_course_list_and_progressive_disclosure_are_wired(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        session = SESSION.read_text(encoding="utf-8")
+        summary = SUMMARY.read_text(encoding="utf-8")
+        styles = STYLES.read_text(encoding="utf-8")
+
+        for token in (
+            "buildCourseProgressSummary",
+            "renderCourseProgressSummary",
+            "course-progress-compact",
+            "atlas-duration-control",
+            "course-list-row",
+        ):
+            self.assertIn(token, surface)
+
+        self.assertIn("grid-template-columns: 1fr", styles)
+        self.assertIn(".course-progress-details", styles)
+        self.assertIn(".atlas-duration-control", styles)
+
+        self.assertIn("'Voir le bilan'", session)
+        self.assertIn("lastLifecycle?.kind", session)
+        self.assertIn("'session-completed'", session)
+        self.assertIn("nextLabel = 'Activité suivante'", session)
+        self.assertNotIn(
+            "await renderCurrent(\n                outcomeFeedback,",
+            session,
+        )
+
+        self.assertIn('class="atlas-objective-details"', summary)
+        self.assertIn("<summary>Voir le détail</summary>", summary)
+        self.assertIn("Dernière activité", summary)
+        self.assertNotIn("Dernière preuve", summary)
 
     def test_primary_learner_copy_hides_internal_vocabulary(self):
         learner_copy = "\n".join(
@@ -321,6 +361,7 @@ class AtlasM1Int(unittest.TestCase):
             "Les identités",
             "preuves enregistrées",
             "promesse de rétention durable",
+            "Sélectionnez un fichier JSON à importer.",
         ):
             self.assertNotIn(forbidden, learner_copy)
 

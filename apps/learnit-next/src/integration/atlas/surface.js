@@ -343,6 +343,54 @@ function validationProvenance(recommendation, context, modules) {
   });
 }
 
+async function buildCourseProgressSummary(context, atlasRuntime) {
+  const modules = atlasRuntime.modules;
+  const E = modules.evidence;
+  const content = buildContentIndex(context, modules);
+  const state = await atlasState(modules);
+  const admissibleIds = admissibleValidationIds(state, modules);
+  const projected = modules.projection.projectObjectiveEvidence(
+    state.learningEvents,
+    state.scoredExecutions,
+    execution => admissibleIds.has(execution.executionId),
+  );
+  const evidenceByObjective = new Map(
+    projected.map(evidence => [E.canonicalRefKey(evidence.objectiveRef), evidence]),
+  );
+  const evidence = content.objectiveRefs.map(objectiveRef => (
+    evidenceByObjective.get(E.canonicalRefKey(objectiveRef)) ?? emptyEvidence(objectiveRef)
+  ));
+  const total = evidence.length;
+  const started = evidence.filter(item => item.state !== 'not-started').length;
+  const reviewNeeded = evidence.filter(item => item.state === 'review-needed').length;
+  const ready = evidence.filter(item => item.state === 'ready-for-validation').length;
+  const validated = evidence.filter(item => item.state === 'validated-recently').length;
+
+  let label = 'Pas encore commencé';
+  if (reviewNeeded > 0) {
+    label = `${reviewNeeded} objectif${reviewNeeded > 1 ? 's' : ''} à reprendre`;
+  } else if (ready > 0) {
+    label = `${ready} objectif${ready > 1 ? 's' : ''} prêt${ready > 1 ? 's' : ''} à valider`;
+  } else if (validated === total && total > 0) {
+    label = 'Objectifs validés récemment';
+  } else if (started > 0) {
+    label = `${started}/${total} objectifs travaillés`;
+  }
+
+  return Object.freeze({started, total, label});
+}
+
+function renderCourseProgressSummary(summary) {
+  return node('div', {className: 'course-progress-compact'}, [
+    node('progress', {
+      max: summary.total,
+      value: summary.started,
+      'aria-label': `${summary.started} objectifs travaillés sur ${summary.total}`,
+    }),
+    node('span', {text: summary.label}),
+  ]);
+}
+
 async function buildPreview(context, durationMinutes, atlasRuntime) {
   const modules = atlasRuntime.modules;
   const E = modules.evidence;
@@ -550,7 +598,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       if (libraryToggle) libraryToggle.style.display = 'none';
       content.replaceChildren(node('div', {className: 'empty-state'}, [
         node('h3', {text: 'Aucun parcours Atlas installé'}),
-        node('p', {text: 'Importez un kit Atlas dans la bibliothèque Learn-it pour préparer une séance de 5, 15 ou 30 minutes.'}),
+        node('p', {text: 'Importez un cours dans la bibliothèque pour préparer une séance de 5, 15 ou 30 minutes.'}),
       ]));
       return;
     }
@@ -561,8 +609,9 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     const cards = [];
     for (const context of atlasCourses) {
       const preview = node('div', {className: 'atlas-int-preview', 'aria-live': 'polite'});
+      const progressSummary = await buildCourseProgressSummary(context, atlasRuntime);
       const actions = node('div', {
-        className: 'atlas-actions',
+        className: 'atlas-actions atlas-course-actions',
         role: 'group',
         'aria-label': `Durée pour ${context.title}`,
         'data-atlas-planner-actions': 'true',
@@ -592,7 +641,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       for (const duration of DURATIONS) {
         const button = node('button', {
           type: 'button',
-          className: 'atlas-primary',
+          className: 'atlas-primary atlas-duration-control',
           text: `${duration} min`,
           'data-atlas-duration': duration,
         });
@@ -643,11 +692,14 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       }
 
       cards.push(node('article', {
-        className: 'course-card atlas-course-card',
+        className: 'course-card atlas-course-card course-list-row',
         'data-atlas-course-install-id': context.courseInstallId,
       }, [
-        node('h3', {text: context.title}),
-        node('p', {className: 'course-meta', text: `${context.course.objectives.length} objectif(s) · ${context.course.activities.length} activité(s)`}),
+        node('div', {className: 'course-row-main'}, [
+          node('h3', {text: context.title}),
+          node('p', {className: 'course-meta', text: `${context.course.objectives.length} objectif(s) · ${context.course.activities.length} activité(s)`}),
+          renderCourseProgressSummary(progressSummary),
+        ]),
         actions,
         preview,
       ]));

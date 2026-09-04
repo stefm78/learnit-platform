@@ -177,3 +177,171 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+/* #352 R4 — compact course list + progressive disclosure */
+.course-grid {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.course-card {
+  align-content: initial;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 16px 18px;
+}
+
+.course-row-main {
+  min-width: 0;
+}
+
+.course-row-main .progress-summary,
+.course-progress-compact {
+  margin-top: 10px;
+}
+
+.course-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.course-row-actions > p,
+.course-row-actions > div,
+.course-row-actions > .course-complete {
+  margin: 0;
+}
+
+.course-row-actions > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.course-row-actions > div > p {
+  margin: 0;
+}
+
+.course-settings-details,
+.course-progress-details,
+.atlas-int-preview {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.course-settings-details,
+.course-progress-details {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.course-settings-details > summary,
+.course-progress-details > summary,
+.atlas-objective-details > summary {
+  width: fit-content;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.course-progress-details[open] {
+  padding-top: 14px;
+}
+
+.course-progress-details[open] > .objective-progress-panel {
+  margin-top: 10px;
+}
+
+.course-progress-details .objective-progress,
+.course-progress-details .objective-recommendation {
+  box-shadow: none;
+}
+
+.atlas-int-surface .atlas-course-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.atlas-int-surface .atlas-course-card > .course-row-main {
+  align-self: center;
+}
+
+.atlas-int-surface .atlas-course-actions {
+  margin-top: 0;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.atlas-int-surface .atlas-actions .atlas-duration-control {
+  min-width: 64px;
+  background: var(--surface);
+  color: #162d50;
+  border-color: #162d50;
+  font-weight: 700;
+}
+
+.course-progress-compact {
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.course-progress-compact progress {
+  width: 100%;
+}
+
+.atlas-m1.atlas-summary .atlas-objective-grid {
+  grid-template-columns: 1fr;
+}
+
+.atlas-m1.atlas-summary .atlas-objective-card {
+  padding: 14px 16px;
+}
+
+.atlas-m1.atlas-summary .atlas-objective-card h2 {
+  margin: 6px 0 0;
+  font-size: 1.15rem;
+}
+
+.atlas-objective-details {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.atlas-objective-details > div {
+  padding-top: 8px;
+}
+
+.atlas-objective-details p {
+  color: var(--muted);
+}
+
+.atlas-feedback-transition {
+  margin-top: 18px;
+}
+
+@media (max-width: 720px) {
+  .course-card,
+  .atlas-int-surface .atlas-course-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .course-row-actions,
+  .atlas-int-surface .atlas-course-actions {
+    justify-content: flex-start;
+  }
+
+  .course-progress-compact {
+    grid-template-columns: 1fr;
+  }
+}

@@ -75,7 +75,10 @@ function renderObjectiveSurface(objectiveUi, model) {
 
 function renderLibraryObjectiveDetails(objectiveSurface) {
   if (!objectiveSurface) return null;
-  return node('details', { 'data-library-objective-details': 'true' }, [
+  return node('details', {
+    className: 'course-progress-details',
+    'data-library-objective-details': 'true',
+  }, [
     node('summary', { text: 'Voir la progression détaillée' }),
     objectiveSurface,
   ]);
@@ -299,7 +302,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           container.setAttribute('role', 'group');
           container.setAttribute('aria-label', 'Confirmer la réinitialisation');
           container.replaceChildren(confirmButton, cancelButton);
-          announce('Confirmez la réinitialisation des données de Learn-it Next.');
+          announce('Confirmez la réinitialisation des données de Learn-it.');
           focusAfterRender(confirmButton);
         },
       }));
@@ -327,7 +330,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       role: 'status',
       'aria-live': 'polite',
       'aria-atomic': 'true',
-      text: 'Sélectionnez un fichier JSON à importer.',
+      text: 'Choisissez un fichier de cours à importer.',
     });
     let selectionVersion = 0;
     let selectedFileText = null;
@@ -339,7 +342,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       importButton.disabled = true;
       const file = fileInput.files?.[0];
       if (!file) {
-        fileStatus.textContent = 'Sélectionnez un fichier JSON à importer.';
+        fileStatus.textContent = 'Choisissez un fichier de cours à importer.';
         return;
       }
 
@@ -382,7 +385,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     if (courses.length === 0) {
       section.append(node('div', { className: 'empty-state' }, [
         node('h3', { text: 'Bibliothèque vide' }),
-        node('p', { text: 'Importez un kit conforme pour commencer un cours.' }),
+        node('p', { text: 'Importez un cours pour commencer.' }),
       ]));
     } else {
       const list = node('div', { className: 'course-grid' });
@@ -417,27 +420,32 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           progress: course.progress,
         });
         const objectiveDetails = renderLibraryObjectiveDetails(objectiveSurface);
+        const settingsDetails = node('details', { className: 'course-settings-details' }, [
+          node('summary', { text: 'Options du cours' }),
+          renderCourseLabelForm(course),
+        ]);
         list.append(node('article', {
-          className: 'course-card',
+          className: 'course-card course-list-row',
           'data-course-install-id': course.courseInstallId,
         }, [
-          node('div', {}, [
+          node('div', { className: 'course-row-main' }, [
             node('h3', { text: course.title }),
             course.subtitle ? node('p', { text: course.subtitle }) : null,
             node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
+            renderProgress(course.progress),
           ]),
-          renderCourseLabelForm(course),
-          renderProgress(course.progress),
+          node('div', { className: 'course-row-actions' }, [
+            courseAction,
+            reviewAction,
+          ]),
+          settingsDetails,
           objectiveDetails,
-          courseAction,
-          reviewAction,
         ]));
       }
       section.append(list);
     }
     shell(section, { focusTarget: focus ? libraryTitle : null, announcement });
   }
-
   async function submitAnswer(activityRevisionId, answer) {
     await run(() => runtime.answer(activityRevisionId, answer), renderFeedback);
   }

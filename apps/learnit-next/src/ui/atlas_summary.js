@@ -90,9 +90,10 @@ function renderObjectiveCard(evidence, objectiveLabels = {}) {
     ? `<p class="atlas-objective-name"><strong>Objectif : ${T.esc(objective)}</strong></p>`
     : '';
   const last = evidence.lastEvidenceAt
-    ? `Dernière preuve : ${formatLearnerTimestamp(evidence.lastEvidenceAt)}`
-    : 'Aucune preuve enregistrée';
-  return `<article class="atlas-objective-card">${objectiveHtml}<h2>${T.esc(label)}</h2><p>${T.esc(last)}</p><dl><div><dt>Essais d’entraînement</dt><dd>${evidence.practiceAttempts}</dd></div><div><dt>Corrections</dt><dd>${evidence.correctionsCompleted}</dd></div><div><dt>Validations</dt><dd>${evidence.validationAttempts}</dd></div></dl></article>`;
+    ? `Dernière activité : ${formatLearnerTimestamp(evidence.lastEvidenceAt)}`
+    : 'Aucune activité enregistrée';
+  const detail = `<details class="atlas-objective-details"><summary>Voir le détail</summary><div><p>${T.esc(last)}</p><dl><div><dt>Essais d’entraînement</dt><dd>${evidence.practiceAttempts}</dd></div><div><dt>Corrections</dt><dd>${evidence.correctionsCompleted}</dd></div><div><dt>Validations</dt><dd>${evidence.validationAttempts}</dd></div></dl></div></details>`;
+  return `<article class="atlas-objective-card">${objectiveHtml}<h2>${T.esc(label)}</h2>${detail}</article>`;
 }
 
 function renderSummary({ evidence = [], completed = false, objectiveLabels = {} }) {

@@ -109,7 +109,10 @@ assert.match(html,/Objectif : Conjugué/);
 assert.match(html,/Objectif : Module/);
 assert.doesNotMatch(html,/2026-08-29T15:24:48\.965Z/);
 assert.match(html,/Voici votre bilan par objectif/);
-assert.doesNotMatch(html,/preuves enregistrées|certification|rétention durable/i);
+assert.match(html,/class="atlas-objective-details"/);
+assert.match(html,/<summary>Voir le détail<\/summary>/);
+assert.match(html,/Dernière activité/);
+assert.doesNotMatch(html,/Dernière preuve|preuves enregistrées|certification|rétention durable/i);
 const readable = S.formatLearnerTimestamp(stamp, new Date('2026-08-29T16:00:00.000Z'));
 assert.ok(!readable.includes('T15:24:48.965Z'));
 console.log(JSON.stringify({ok:true,readable}));
@@ -143,7 +146,7 @@ console.log(JSON.stringify({ok:true,readable}));
         transition = session[start:end]
 
         self.assertIn("data-atlas-feedback-transition", transition)
-        self.assertIn("Activité suivante", transition)
+        self.assertIn("nextLabel = 'Activité suivante'", transition)
         self.assertIn(".querySelectorAll('input, select')", transition)
         self.assertIn("control.disabled = true", transition)
         self.assertIn("sessionActions.remove()", transition)
@@ -153,7 +156,23 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertIn("await showFeedbackTransition(", session)
         self.assertIn("wrapper,\n                sessionActions,", session)
         self.assertIn("await renderCurrent();", session)
+        self.assertIn("'Voir le bilan'", session)
+        self.assertIn("lastLifecycle?.kind", session)
+        self.assertIn("'session-completed'", session)
+        self.assertNotIn(
+            "await renderCurrent(\n                outcomeFeedback,",
+            session,
+        )
         self.assertNotIn("await renderCurrent(\n              feedbackHtml(", session)
+
+    def test_r4_today_exposes_compact_atlas_progress_without_classic_progress(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        self.assertIn("buildCourseProgressSummary", surface)
+        self.assertIn("renderCourseProgressSummary", surface)
+        self.assertIn("course-progress-compact", surface)
+        self.assertIn("atlas-duration-control", surface)
+        self.assertIn("course-list-row", surface)
+        self.assertNotIn("course.progress", surface)
 
     def test_session_keeps_transfer_semantics_and_classic_surface_hidden_while_active(self):
         session = SESSION.read_text(encoding="utf-8")

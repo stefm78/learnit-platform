@@ -310,6 +310,7 @@ async function showFeedbackTransition(
   sessionActions,
   feedbackMarkup,
   onContinue,
+  nextLabel = 'Activité suivante',
 ) {
   /*
    * Keep activity N visible while its own feedback is read.
@@ -349,7 +350,7 @@ async function showFeedbackTransition(
     {
       type: 'button',
       className: 'atlas-primary',
-      text: 'Activité suivante',
+      text: nextLabel,
       'data-atlas-feedback-next': 'true',
     },
   );
@@ -1140,8 +1141,31 @@ export async function runAtlasSession({
               nextCheckpoint.nextItemPosition
               >= activePlan.payload.items.length
             ) {
-              await renderCurrent(
+              const lastLifecycle =
+                lifecycleEvents(
+                  storage,
+                  sessionRef.sessionId,
+                ).at(-1);
+
+              if (
+                lastLifecycle?.kind
+                !== 'session-completed'
+              ) {
+                await core.lifecycle(
+                  sessionRef.sessionId,
+                  'session-completed',
+                );
+              }
+
+              await showFeedbackTransition(
+                container,
+                wrapper,
+                sessionActions,
                 outcomeFeedback,
+                async () => {
+                  await renderCurrent();
+                },
+                'Voir le bilan',
               );
             } else {
               await showFeedbackTransition(
