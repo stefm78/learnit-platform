@@ -73,6 +73,14 @@ function renderObjectiveSurface(objectiveUi, model) {
   throw new TypeError('renderObjectiveProgress() must return a Node, an array of Nodes, or null');
 }
 
+function renderLibraryObjectiveDetails(objectiveSurface) {
+  if (!objectiveSurface) return null;
+  return node('details', { 'data-library-objective-details': 'true' }, [
+    node('summary', { text: 'Voir la progression détaillée' }),
+    objectiveSurface,
+  ]);
+}
+
 function renderQcmForm(activity, submit) {
   const fieldset = node('fieldset', { className: 'answer-fieldset' });
   fieldset.append(node('legend', { text: 'Choisissez une réponse' }));
@@ -307,7 +315,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
     section.append(node('div', { className: 'section-heading' }, [
-      node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque locale' }), libraryTitle]),
+      node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque' }), libraryTitle]),
       renderResetAction(),
     ]));
 
@@ -408,6 +416,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           courseObjectives: course.objectives,
           progress: course.progress,
         });
+        const objectiveDetails = renderLibraryObjectiveDetails(objectiveSurface);
         list.append(node('article', {
           className: 'course-card',
           'data-course-install-id': course.courseInstallId,
@@ -419,7 +428,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           ]),
           renderCourseLabelForm(course),
           renderProgress(course.progress),
-          objectiveSurface,
+          objectiveDetails,
           courseAction,
           reviewAction,
         ]));
