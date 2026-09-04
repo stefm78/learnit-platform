@@ -77,29 +77,29 @@ console.log(JSON.stringify({ok:true}));
 """)
         self.assertTrue(result["ok"])
 
-    def test_summary_identifies_objectives_and_hides_raw_iso(self):
+    def test_summary_identifies_objectives_hides_raw_iso_and_exposes_next_step(self):
         result = run_node(r"""
 const assert = require('node:assert/strict');
 const S = require('./src/ui/atlas_summary.js');
 const courseRef = {packageLineageId:'pkg',courseLineageId:'course'};
-function evidence(objectiveId, at) {
+function evidence(objectiveId, at, state='validated-recently') {
   return {
     evidenceVersion:'atlas.objective-evidence.v1',
     objectiveRef:{courseRef,objectiveId},
     practiceAttempts:2,
     correctionsCompleted:0,
-    validationAttempts:1,
+    validationAttempts:state === 'validated-recently' ? 1 : 0,
     latestPracticeCorrect:true,
-    latestValidationCorrect:true,
-    lastValidationAt:at,
+    latestValidationCorrect:state === 'validated-recently' ? true : null,
+    lastValidationAt:state === 'validated-recently' ? at : null,
     lastEvidenceAt:at,
-    state:'validated-recently',
+    state,
   };
 }
 const stamp = '2026-08-29T15:24:48.965Z';
 const html = S.renderSummary({
   completed:true,
-  evidence:[evidence('objective-a', stamp), evidence('objective-b', stamp)],
+  evidence:[evidence('objective-a', stamp), evidence('objective-b', stamp, 'review-needed')],
   objectiveLabels:{
     'objective-a':'Conjugué',
     'objective-b':'Module',
@@ -109,6 +109,9 @@ assert.match(html,/Objectif : Conjugué/);
 assert.match(html,/Objectif : Module/);
 assert.doesNotMatch(html,/2026-08-29T15:24:48\.965Z/);
 assert.match(html,/Voici votre bilan par objectif/);
+assert.match(html,/Prochaine étape :/);
+assert.match(html,/À renforcer :/);
+assert.match(html,/Reprendre Module avec une activité ciblée/);
 assert.match(html,/class="atlas-objective-details"/);
 assert.match(html,/<summary>Voir le détail<\/summary>/);
 assert.match(html,/Dernière activité/);
@@ -138,6 +141,7 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Prochaine reconfirmation au plus tôt le", surface)
         self.assertIn("Une reconfirmation est disponible.", surface)
         self.assertIn("Prochaine reconfirmation à partir du", surface)
+        self.assertIn("Prochaine étape :", surface)
 
     def test_feedback_keeps_completed_activity_visible_before_next_activity(self):
         session = SESSION.read_text(encoding="utf-8")
@@ -165,12 +169,17 @@ console.log(JSON.stringify({ok:true,readable}));
         )
         self.assertNotIn("await renderCurrent(\n              feedbackHtml(", session)
 
-    def test_r4_today_exposes_compact_atlas_progress_without_classic_progress(self):
+    def test_r5_today_uses_one_primary_action_and_compact_duration_selector(self):
         surface = SURFACE.read_text(encoding="utf-8")
         self.assertIn("buildCourseProgressSummary", surface)
         self.assertIn("renderCourseProgressSummary", surface)
+        self.assertIn("learnerStateCopy", surface)
         self.assertIn("course-progress-compact", surface)
-        self.assertIn("atlas-duration-control", surface)
+        self.assertIn("atlas-duration-select", surface)
+        self.assertIn("data-atlas-course-start", surface)
+        self.assertIn("applyLibraryActionHierarchy", surface)
+        self.assertIn("compactImportPanel", surface)
+        self.assertNotIn("atlas-duration-control", surface)
         self.assertIn("course-list-row", surface)
         self.assertNotIn("course.progress", surface)
 

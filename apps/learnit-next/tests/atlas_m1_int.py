@@ -107,12 +107,6 @@ class AtlasM1Int(unittest.TestCase):
                 result.stderr,
             )
 
-
-
-
-
-
-
     def test_active_session_hides_competing_surfaces(self):
         session = SESSION.read_text(encoding="utf-8")
 
@@ -141,7 +135,6 @@ class AtlasM1Int(unittest.TestCase):
             session,
         )
 
-
     def test_session_controls_are_exposed(self):
         session = SESSION.read_text(
             encoding="utf-8"
@@ -161,7 +154,6 @@ class AtlasM1Int(unittest.TestCase):
             "data-atlas-help",
             session,
         )
-
 
     def test_surface_ownership_is_scoped_to_run_session(self):
         session = SESSION.read_text(encoding="utf-8")
@@ -209,7 +201,6 @@ class AtlasM1Int(unittest.TestCase):
             session,
         )
 
-
     def test_active_controls_are_deterministically_composed(self):
         surface = SURFACE.read_text(encoding="utf-8")
         session = SESSION.read_text(encoding="utf-8")
@@ -242,7 +233,6 @@ class AtlasM1Int(unittest.TestCase):
             session,
         )
 
-
     def test_library_atlas_learning_actions_use_atlas_entrypoint(self):
         render = RENDER.read_text(encoding="utf-8")
         surface = SURFACE.read_text(encoding="utf-8")
@@ -260,7 +250,8 @@ class AtlasM1Int(unittest.TestCase):
             "event.stopImmediatePropagation()",
             "data-atlas-course-install-id",
             "data-atlas-resume-session",
-            'data-atlas-duration="15"',
+            "atlas-duration-select",
+            "data-atlas-course-start",
         ):
             self.assertIn(token, surface)
 
@@ -308,13 +299,15 @@ class AtlasM1Int(unittest.TestCase):
         for token in (
             "content.style.display = 'none'",
             "surfaceTitle.textContent = 'Bibliothèque'",
-            "surfaceDescription.textContent = 'Gérez vos cours et consultez votre progression.'",
+            "surfaceDescription.textContent = 'Choisissez un cours, consultez sa prochaine étape ou gérez votre bibliothèque.'",
             "libraryToggle.textContent = 'Retour à Aujourd’hui'",
             "setClassicVisible(false);",
+            "compactImportPanel",
+            "data-atlas-import-r5",
         ):
             self.assertIn(token, surface)
 
-    def test_r4_compact_course_list_and_progressive_disclosure_are_wired(self):
+    def test_r5_action_hierarchy_and_learner_progress_semantics_are_wired(self):
         surface = SURFACE.read_text(encoding="utf-8")
         session = SESSION.read_text(encoding="utf-8")
         summary = SUMMARY.read_text(encoding="utf-8")
@@ -323,15 +316,18 @@ class AtlasM1Int(unittest.TestCase):
         for token in (
             "buildCourseProgressSummary",
             "renderCourseProgressSummary",
-            "course-progress-compact",
-            "atlas-duration-control",
+            "learnerStateCopy",
+            "Prochaine étape :",
+            "atlas-duration-select",
+            "data-atlas-course-start",
             "course-list-row",
+            "applyLibraryActionHierarchy",
         ):
             self.assertIn(token, surface)
 
+        self.assertNotIn("atlas-duration-control", surface)
         self.assertIn("grid-template-columns: 1fr", styles)
         self.assertIn(".course-progress-details", styles)
-        self.assertIn(".atlas-duration-control", styles)
 
         self.assertIn("'Voir le bilan'", session)
         self.assertIn("lastLifecycle?.kind", session)
@@ -345,6 +341,8 @@ class AtlasM1Int(unittest.TestCase):
         self.assertIn('class="atlas-objective-details"', summary)
         self.assertIn("<summary>Voir le détail</summary>", summary)
         self.assertIn("Dernière activité", summary)
+        self.assertIn("Prochaine étape :", summary)
+        self.assertIn("À renforcer :", summary)
         self.assertNotIn("Dernière preuve", summary)
 
     def test_primary_learner_copy_hides_internal_vocabulary(self):
