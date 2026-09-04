@@ -220,6 +220,7 @@ class AtlasM1Int(unittest.TestCase):
             '[data-atlas-planner-actions="true"]',
             "data-atlas-session-actions",
             "data-atlas-pause-session",
+            "data-atlas-help",
             "data-atlas-control",
             "assertAtlasControlVisible",
             "ATLAS_SESSION_CONTROL_NOT_VISIBLE",
@@ -284,6 +285,27 @@ class AtlasM1Int(unittest.TestCase):
         self.assertIn("prompt\n      + '<fieldset class=\"answer-fieldset\">'", session)
         self.assertNotIn("renderObjectiveProgressPanel", session)
         self.assertNotIn("Prochaine action recommandée", session)
+
+    def test_library_is_separate_and_detailed_progress_is_collapsed(self):
+        render = RENDER.read_text(encoding="utf-8")
+        surface = SURFACE.read_text(encoding="utf-8")
+
+        for token in (
+            "renderLibraryObjectiveDetails",
+            "data-library-objective-details",
+            "Voir la progression détaillée",
+            "runtime.importPackage(payload)",
+        ):
+            self.assertIn(token, render)
+
+        for token in (
+            "content.style.display = 'none'",
+            "surfaceTitle.textContent = 'Bibliothèque'",
+            "surfaceDescription.textContent = 'Gérez vos cours et consultez votre progression.'",
+            "libraryToggle.textContent = 'Retour à Aujourd’hui'",
+            "setClassicVisible(false);",
+        ):
+            self.assertIn(token, surface)
 
     def test_primary_learner_copy_hides_internal_vocabulary(self):
         learner_copy = "\n".join(
