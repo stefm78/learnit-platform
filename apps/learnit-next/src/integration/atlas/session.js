@@ -471,6 +471,131 @@ function lifecycleEvents(storage, sessionId) {
     );
 }
 
+function eventForExecution(state, executionId) {
+  return state.learningEvents.find(event => (
+    event.kind === 'activity-attempt'
+    && event.executionId === executionId
+  )) ?? null;
+}
+
+function claimDetailsForExecution(
+  state,
+  execution,
+  modules,
+) {
+  const session =
+    state.atlasMeta.sessions[
+      execution.sessionRef.sessionId
+    ];
+
+  const planItem =
+    session?.plan?.payload?.items?.[
+      execution.itemPosition
+    ];
+
+  if (
+    !planItem
+    || ![
+      'attempt-validation',
+      'maintain-recent-validation',
+    ].includes(planItem.action)
+  ) {
+    return null;
+  }
+
+  const sourceEvent =
+    state.learningEvents.find(
+      event =>
+        event.eventId
+        === planItem.validationBasisEventId,
+    );
+
+  const sourceExecution =
+    sourceEvent
+      ? state.scoredExecutions.find(
+        item =>
+          item.executionId
+          === sourceEvent.executionId,
+      )
+      : null;
+
+  if (!sourceEvent || !sourceExecution) {
+    return null;
+  }
+
+  const details = {
+    objectiveRef: execution.objectiveRef,
+    sourceActivityRef:
+      sourceExecution.activityRef,
+    targetActivityRef: execution.activityRef,
+    sourceEvent,
+    sourceExecution,
+    targetExecution: execution,
+    contentRevisionRef:
+      execution.contentRevisionRef,
+    independenceClaimId:
+      planItem.independenceClaimId,
+  };
+
+  return modules.claimAuthority
+    .validateRuntimeClaim(
+      planItem,
+      details,
+    )
+    ? Object.freeze({
+      planItem,
+      sourceEvent,
+      sourceExecution,
+    })
+    : null;
+}
+
+function admissibleValidationIds(state, modules) {
+  const result = new Set();
+
+  for (const execution of state.scoredExecutions) {
+    if (execution.executionClass !== 'validation') {
+      continue;
+    }
+
+    if (
+      claimDetailsForExecution(
+        state,
+        execution,
+        modules,
+      )
+    ) {
+      result.add(execution.executionId);
+    }
+  }
+
+  return result;
+}
+
+function projectCourseEvidence(
+  storage,
+  expectedCourseRef,
+  modules,
+) {
+  const state = storage.snapshot();
+  const admissibleIds =
+    admissibleValidationIds(state, modules);
+
+  return modules.projection
+    .projectObjectiveEvidence(
+      state.learningEvents,
+      state.scoredExecutions,
+      execution =>
+        admissibleIds.has(execution.executionId),
+    )
+    .filter(item =>
+      modules.today.sameCanonical(
+        item.objectiveRef.courseRef,
+        expectedCourseRef,
+      ));
+}
+
+
 export async function findResumableAtlasSession(
   context,
   atlasRuntime,
@@ -852,12 +977,10 @@ export async function runAtlasSession({
         }
 
         const evidence =
-          core.evidence().filter(
-            item =>
-              modules.today.sameCanonical(
-                item.objectiveRef.courseRef,
-                activePlan.payload.courseRef,
-              ),
+          projectCourseEvidence(
+            storage,
+            activePlan.payload.courseRef,
+            modules,
           );
 
         const wrapper = node('div');

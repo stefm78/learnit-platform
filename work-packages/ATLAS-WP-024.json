@@ -10,7 +10,7 @@
     "issue": 352,
     "productSlice": "ONE_ATLAS_LEARNING_JOURNEY"
   },
-  "purpose": "Complete the evidence-backed R6 correction authorized by the user's explicit /audit /solve /build instruction after Human Replay R5: preserve the single existing Atlas learning journey while making objective progress visually legible, translating the existing recommendation action into an explicit learner action, and visually composing duration with the dominant session action. Preserve persisted history, resume, review-needed, lineage, revisions, imports, storage and accessibility behavior.",
+  "purpose": "Promote the evidence-backed R7 runtime recovery after Human Replay R6 exposed a blocking ACTIVE_ACTIVITY_NOT_FOUND on summary rendering and Human Replay R7 verified the bounded fix. Preserve the single existing Atlas learning journey while making summary evidence projection course-scoped so one course can render its committed evidence without requiring activities from other installed courses in the active session registry. Preserve persisted history, scoring, planner, resume, review-needed, lineage, revisions, imports, storage and accessibility behavior. R6 learner-facing progress/wording findings remain open and are not declared resolved by R7.",
   "baseline": {
     "sourceRepository": "stefm78/learnit-platform",
     "baseCommit": "592d4fc92e7a891742be31045f7b92f4370afbed",
@@ -51,6 +51,8 @@
     "The 5/15/30 planner duration policy is unchanged; native duration selection and the primary action are only visually composed into one control group.",
     "For Atlas courses, Library removes the redundant number-heavy classic objective panel from the visible learner projection and replaces it with a visual objective-state list; persisted evidence/history is unchanged and detailed attempt/date history remains available in the session summary disclosure.",
     "The final activity remains visible with its own feedback and an explicit Voir le bilan action before the summary is rendered.",
+    "R7 summary evidence is projected from the already-committed Atlas state and then scoped to the active course; it no longer calls core.evidence() through the active course-only registry, preventing unrelated historical course activities from causing ACTIVE_ACTIVITY_NOT_FOUND.",
+    "R7 preserves the same validation-claim authority used by the existing Atlas presentation projection when deciding which validation executions are admissible.",
     "Atlas event commits, history, resume state, review-needed semantics, package/course/activity lineage, revision IDs/digests and import behavior are unchanged.",
     "No storage schema, database version, migration, backend, account or sync behavior is introduced.",
     "learnit.kit.v2 and all EPF kit payloads remain unchanged.",
@@ -59,15 +61,16 @@
   "requiredEvidence": [
     "PR scope validates exactly against ATLAS-WP-024.",
     "Learn-it Next CI runs the bounded atlas-ux-convergence profile inside the existing workflow on the exact PR head, using only the current build and existing relevant tests.",
-    "Existing Atlas integration and UX clarity tests cover Library routing, exclusive active surface, visual objective-state projection, plain learner state vocabulary, action semantics derived from existing recommendation action, composite duration/action presentation, simplified Atlas Library objective disclosure and learner-facing summary semantics.",
     "The deterministic Learn-it Next source manifest is rebound to every changed manifest-owned source.",
-    "Human Replay R5 is bound by SHA-256 a573554ddd904739f6cd77f60d2822932b3cd89cbaa7bc0daedc0a897216c7ef and classified before implementation.",
-    "Before/after evidence is prepared for Today progress legibility, action semantics, composite session control, Library objective overview, summary meaning and explicit rename affordance.",
-    "No learner usability PASS is declared before the R6 human replay."
+    "Human Replay R7 is complete 4/4 on the bounded recovery candidate and its exported result is bound by SHA-256 495257875ec4abad83e20b1ec5b9535350456a227fcfe2c4ca6cc7b574ffa273.",
+    "Human Replay R7 reports no further ACTIVE_ACTIVITY_NOT_FOUND, verifies summary opening on more than one installed course, preserves prior progress/history, and verifies return/restart without refresh or local-data reset.",
+    "The R7 repository delta remains restricted to course-scoped summary projection plus required manifest/work-package rebinding; no learner-facing R6 finding is silently folded into the runtime recovery.",
+    "No learner usability PASS is declared by this implementation stream; the unresolved R6 learner-facing findings remain driver-owned evidence."
   ],
   "adversarialTests": [
-    "apps/learnit-next/tests/atlas_m1_int.py checks that Atlas Library actions cannot fall through to the classic learning handler, active sessions suppress competing surfaces, R6 presentation remains bound to the existing Atlas entrypoint, and no new learner progress model is introduced.",
-    "apps/learnit-next/tests/atlas_m2_ux_clarity.py checks plain objective state vocabulary, visual objective state projection, action semantics derived from existing actionForEvidence, composite duration/session control and simplified summary meaning while retaining prior Atlas UX clarity coverage."
+    "Existing Atlas integration and UX-clarity suites must remain green on the exact R7 repository head.",
+    "Human Replay R7 specifically replays the previously failing final-answer -> Voir le bilan path with multiple installed Atlas courses and requires absence of ACTIVE_ACTIVITY_NOT_FOUND.",
+    "The exact repository delta must not modify Atlas storage, planner, evidence transitions, claim-authority modules, kit contracts or import behavior."
   ],
   "nonGoals": [
     "Changing EPF kits or the learnit.kit.v2 contract.",
@@ -76,15 +79,18 @@
     "Adding search, filtering, sorting, shelves/collections, new navigation architecture or unrelated visual polish.",
     "Changing Atlas recommendation ranking, planner duration policy, evidence state transitions or learning-event semantics.",
     "Adding 60-minute or unlimited sessions without separate pedagogical/runtime evidence.",
-    "Adding pre-import kit preview, duplicate detection or import validation UX in this correction; Human Replay R5 identifies that as a separate enhancement, not the current blocker.",
-    "Adding hidden double-click rename behavior; the existing explicit rename flow is only relabelled for clarity.",
+    "Adding pre-import kit preview, duplicate detection or import validation UX in this correction.",
+    "Changing Today into a ranked 2-3 item recommendation feed in the R7 runtime recovery.",
+    "Changing the R6 objective-state colors, hover/detail affordances, wording/motivation copy or course rename interaction in the R7 runtime recovery.",
     "Creating a new contradictory-QA chain or declaring human usability PASS."
   ],
   "independentReview": [
-    "Issue #352 remains the implementation authority; the user supplied Human Replay R5 and explicitly requested /audit /solve /build.",
-    "Human Replay R5 on exact candidate 1e3bff2dbaabaa1ddc0aa2d309285be3e6e3912f is the evidence basis: action count improved, while progress-at-a-glance and summary interpretation remained blocking and duration/action composition remained incomplete.",
-    "R6 deliberately rejects a fake percentage bar, planner-duration expansion, pre-import inspection and double-click rename as out-of-scope or insufficiently evidenced.",
-    "A short R6 human replay owns the learner-usability verdict; this implementation stream must not self-certify UX PASS."
+    "Issue #352 remains the implementation authority; the user supplied Human Replay R7 and explicitly requested /solve /build.",
+    "Human Replay R6 on exact candidate 3d5b05a146007177361dca4079349dd35871472c exposed a blocking ACTIVE_ACTIVITY_NOT_FOUND after a correct final answer when opening the summary in a multi-course state.",
+    "Root cause is bounded to summary reconstruction: core.evidence() validates the entire persisted Atlas state with the active course-only runtime registry, so an execution from another installed course can fail registry activity lookup.",
+    "The bounded R7 recovery candidate replaces only that summary evidence path with course-scoped projection while preserving the existing runtime claim-authority check.",
+    "Human Replay R7 classifies the blocker as resolved: no further activity-not-found error, multi-course switching works, history persists, and return/restart is operational.",
+    "Human Replay R7 also records separate unresolved UX evidence about progress-code comprehension, color dependence, scalability of long objective lists and learner-facing wording; those findings are not part of the runtime-recovery patch and remain HOLD items for later driver arbitration."
   ],
   "execution": {
     "executionLane": "single-stream-product-implementation",
