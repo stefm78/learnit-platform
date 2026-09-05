@@ -307,7 +307,7 @@ class AtlasM1Int(unittest.TestCase):
         ):
             self.assertIn(token, surface)
 
-    def test_r5_action_hierarchy_and_learner_progress_semantics_are_wired(self):
+    def test_r6_visual_progress_action_semantics_and_composite_control_are_wired(self):
         surface = SURFACE.read_text(encoding="utf-8")
         session = SESSION.read_text(encoding="utf-8")
         summary = SUMMARY.read_text(encoding="utf-8")
@@ -316,18 +316,28 @@ class AtlasM1Int(unittest.TestCase):
         for token in (
             "buildCourseProgressSummary",
             "renderCourseProgressSummary",
-            "learnerStateCopy",
-            "Prochaine étape :",
+            "learnerStateLabel",
+            "learnerActionCopy",
+            "learnerOverview",
+            "actionForEvidence",
+            "course-objective-track",
+            "course-objective-status-list",
+            "À faire maintenant :",
             "atlas-duration-select",
+            "data-atlas-session-start-control",
             "data-atlas-course-start",
             "course-list-row",
             "applyLibraryActionHierarchy",
+            "Voir les objectifs",
+            "Renommer le cours",
         ):
             self.assertIn(token, surface)
 
         self.assertNotIn("atlas-duration-control", surface)
-        self.assertIn("grid-template-columns: 1fr", styles)
-        self.assertIn(".course-progress-details", styles)
+        self.assertIn(".course-objective-track", styles)
+        self.assertIn(".course-objective-status-list", styles)
+        self.assertIn(".atlas-session-start-control", styles)
+        self.assertIn(".atlas-summary-overview", styles)
 
         self.assertIn("'Voir le bilan'", session)
         self.assertIn("lastLifecycle?.kind", session)
@@ -341,8 +351,11 @@ class AtlasM1Int(unittest.TestCase):
         self.assertIn('class="atlas-objective-details"', summary)
         self.assertIn("<summary>Voir le détail</summary>", summary)
         self.assertIn("Dernière activité", summary)
-        self.assertIn("Prochaine étape :", summary)
-        self.assertIn("À renforcer :", summary)
+        self.assertIn("Acquis récemment", summary)
+        self.assertIn("À renforcer", summary)
+        self.assertIn("Rien à faire maintenant", summary)
+        self.assertNotIn("Validation autonome récente", summary)
+        self.assertNotIn("L’essentiel d’abord", summary)
         self.assertNotIn("Dernière preuve", summary)
 
     def test_primary_learner_copy_hides_internal_vocabulary(self):
