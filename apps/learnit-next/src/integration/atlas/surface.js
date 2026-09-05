@@ -343,15 +343,50 @@ function validationProvenance(recommendation, context, modules) {
   });
 }
 
-function learnerStateCopy(state) {
+function learnerStateLabel(state) {
   switch (state) {
-    case 'not-started': return Object.freeze({stateLabel: 'À commencer', actionLabel: 'Commencer', verb: 'Commencer'});
-    case 'training': return Object.freeze({stateLabel: 'En cours', actionLabel: 'Continuer', verb: 'Continuer'});
-    case 'review-needed': return Object.freeze({stateLabel: 'À reprendre', actionLabel: 'Reprendre', verb: 'Reprendre'});
-    case 'ready-for-validation': return Object.freeze({stateLabel: 'Prêt à valider', actionLabel: 'Continuer', verb: 'Valider'});
-    case 'validated-recently': return Object.freeze({stateLabel: 'À jour', actionLabel: 'Continuer', verb: 'Poursuivre'});
-    default: return Object.freeze({stateLabel: 'En cours', actionLabel: 'Continuer', verb: 'Continuer'});
+    case 'not-started': return 'À découvrir';
+    case 'training': return 'En apprentissage';
+    case 'review-needed': return 'À renforcer';
+    case 'ready-for-validation': return 'À confirmer';
+    case 'validated-recently': return 'Acquis récemment';
+    default: return 'En apprentissage';
   }
+}
+
+function learnerActionCopy(action, objectiveLabel) {
+  const target = objectiveLabel || 'cet objectif';
+  switch (action) {
+    case 'start-practice':
+      return Object.freeze({actionLabel: 'Commencer', nextStep: `Découvrir : ${target}`});
+    case 'continue-practice':
+      return Object.freeze({actionLabel: 'Continuer', nextStep: `S’entraîner : ${target}`});
+    case 'correct-practice':
+      return Object.freeze({actionLabel: 'Corriger', nextStep: `Corriger : ${target}`});
+    case 'attempt-validation':
+      return Object.freeze({actionLabel: 'Se tester', nextStep: `Confirmer sans aide : ${target}`});
+    case 'maintain-recent-validation':
+      return Object.freeze({actionLabel: 'Réviser', nextStep: `Consolider : ${target}`});
+    case 'attempt-transfer':
+      return Object.freeze({actionLabel: 'Approfondir', nextStep: `Réutiliser dans un nouvel exercice : ${target}`});
+    default:
+      return Object.freeze({actionLabel: 'Continuer', nextStep: `S’entraîner : ${target}`});
+  }
+}
+
+function learnerOverview(objectiveStates) {
+  const order = [
+    ['validated-recently', 'acquis récemment'],
+    ['ready-for-validation', 'à confirmer'],
+    ['training', 'en apprentissage'],
+    ['review-needed', 'à renforcer'],
+    ['not-started', 'à découvrir'],
+  ];
+  const parts = order
+    .map(([state, label]) => [objectiveStates.filter(item => item.state === state).length, label])
+    .filter(([count]) => count > 0)
+    .map(([count, label]) => `${count} ${label}`);
+  return parts.length ? parts.join(' · ') : 'Aucun objectif';
 }
 
 async function buildCourseProgressSummary(context, atlasRuntime) {
@@ -375,23 +410,69 @@ async function buildCourseProgressSummary(context, atlasRuntime) {
   const ranked = modules.recommendation.rankRecommendations(rows, state.learningEvents);
   const next = ranked[0] ?? rows[0] ?? null;
   const labels = learnerObjectiveLabels(context);
-  const nextLabel = next ? labels[next.objectiveRef.objectiveId] ?? null : null;
-  const copy = learnerStateCopy(next?.evidence?.state);
-  const nextStep = nextLabel
-    ? `${copy.verb} : ${nextLabel}`
-    : copy.verb;
+  const objectiveStates = rows.map(row => Object.freeze({
+    objectiveId: row.objectiveRef.objectiveId,
+    label: labels[row.objectiveRef.objectiveId] ?? 'Objectif',
+    state: row.evidence.state,
+    stateLabel: learnerStateLabel(row.evidence.state),
+  }));
+
+  let action = 'continue-practice';
+  let nextLabel = null;
+  if (next) {
+    nextLabel = labels[next.objectiveRef.objectiveId] ?? null;
+    const detail = recommendationContext(
+      context,
+      state,
+      next,
+      admissibleIds,
+      new Date().toISOString(),
+      modules,
+    );
+    [action] = modules.recommendation.actionForEvidence(next.evidence, detail);
+  }
+  const copy = learnerActionCopy(action, nextLabel);
   return Object.freeze({
-    stateLabel: copy.stateLabel,
     actionLabel: copy.actionLabel,
-    nextStep,
+    nextStep: copy.nextStep,
+    overviewText: learnerOverview(objectiveStates),
+    objectiveStates: Object.freeze(objectiveStates),
   });
+}
+
+function renderStateTrack(summary) {
+  return node('div', {
+    className: 'course-objective-track',
+    role: 'img',
+    'aria-label': summary.overviewText,
+  }, summary.objectiveStates.map(item => node('span', {
+    className: `course-objective-segment course-objective-segment--${item.state}`,
+    'aria-hidden': 'true',
+  })));
 }
 
 function renderCourseProgressSummary(summary) {
   return node('div', {className: 'course-progress-compact'}, [
-    node('strong', {text: summary.stateLabel}),
-    node('span', {text: `Prochaine étape : ${summary.nextStep}`}),
+    node('div', {className: 'course-progress-at-glance'}, [
+      node('span', {className: 'course-progress-caption', text: 'Progression'}),
+      renderStateTrack(summary),
+      node('span', {className: 'course-progress-text', text: summary.overviewText}),
+    ]),
+    node('strong', {className: 'course-next-step', text: `À faire maintenant : ${summary.nextStep}`}),
   ]);
+}
+
+function renderObjectiveStateList(summary) {
+  return node('ul', {
+    className: 'course-objective-status-list',
+    'aria-label': 'État des objectifs',
+  }, summary.objectiveStates.map(item => node('li', {
+    className: `course-objective-status-item course-objective-status-item--${item.state}`,
+  }, [
+    node('span', {className: 'course-objective-state-marker', 'aria-hidden': 'true'}),
+    node('span', {text: item.label}),
+    node('strong', {text: item.stateLabel}),
+  ])));
 }
 
 async function buildPreview(context, durationMinutes, atlasRuntime) {
@@ -482,6 +563,13 @@ function durationSelect(courseTitle, value = 15) {
   return select;
 }
 
+function sessionStartControl(select, button) {
+  return node('div', {
+    className: 'atlas-session-start-control',
+    'data-atlas-session-start-control': 'true',
+  }, [select, button]);
+}
+
 export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   if (!root || !runtime || !atlasRuntime?.ready) throw new Error('ATLAS_SURFACE_DEPENDENCY_MISSING');
   const previous = root.querySelector('[data-atlas-int-surface]');
@@ -544,14 +632,23 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     for (const [courseInstallId] of atlasContextsByInstallId) {
       const card = [...appMain.querySelectorAll('.course-card[data-course-install-id]')]
         .find(item => item.getAttribute('data-course-install-id') === courseInstallId);
-      if (!card || card.getAttribute('data-atlas-library-r5') === 'true') continue;
+      if (!card || card.getAttribute('data-atlas-library-r6') === 'true') continue;
       const summary = progressByInstallId.get(courseInstallId);
       if (!summary) continue;
-      card.setAttribute('data-atlas-library-r5', 'true');
+      card.setAttribute('data-atlas-library-r6', 'true');
 
       card.querySelector('.course-row-main .progress-summary')?.remove();
       const main = card.querySelector('.course-row-main');
       main?.append(renderCourseProgressSummary(summary));
+
+      const progressDetails = card.querySelector('[data-library-objective-details="true"]');
+      if (progressDetails) {
+        const disclosure = progressDetails.querySelector('summary') ?? node('summary');
+        disclosure.textContent = 'Voir les objectifs';
+        progressDetails.replaceChildren(disclosure, renderObjectiveStateList(summary));
+      }
+      const settingsDisclosure = card.querySelector('.course-settings-details > summary');
+      if (settingsDisclosure) settingsDisclosure.textContent = 'Renommer le cours';
 
       const actions = card.querySelector('.course-row-actions');
       if (!actions) continue;
@@ -582,8 +679,9 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
 
       const todayCard = atlasCardFor(courseInstallId);
       const resumable = Boolean(todayCard?.querySelector('[data-atlas-resume-session="true"]'));
-      if (!resumable && !actions.querySelector('.atlas-duration-select')) {
-        actions.prepend(durationSelect(atlasContextsByInstallId.get(courseInstallId)?.title ?? 'ce cours'));
+      if (!resumable && !actions.querySelector('[data-atlas-session-start-control="true"]')) {
+        const select = durationSelect(atlasContextsByInstallId.get(courseInstallId)?.title ?? 'ce cours');
+        primary.replaceWith(sessionStartControl(select, primary));
       }
     }
   }
@@ -780,7 +878,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
           if (!DURATIONS.includes(duration)) return;
           void startDuration(context, actions, preview, duration);
         });
-        actions.append(select, startButton);
+        actions.append(sessionStartControl(select, startButton));
       }
 
       cards.push(node('article', {
