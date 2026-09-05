@@ -77,7 +77,7 @@ console.log(JSON.stringify({ok:true}));
 """)
         self.assertTrue(result["ok"])
 
-    def test_summary_identifies_objectives_hides_raw_iso_and_exposes_next_step(self):
+    def test_r6_summary_uses_plain_states_visual_overview_and_secondary_history(self):
         result = run_node(r"""
 const assert = require('node:assert/strict');
 const S = require('./src/ui/atlas_summary.js');
@@ -105,17 +105,20 @@ const html = S.renderSummary({
     'objective-b':'Module',
   },
 });
-assert.match(html,/Objectif : Conjugué/);
-assert.match(html,/Objectif : Module/);
+assert.match(html,/Conjugué/);
+assert.match(html,/Module/);
 assert.doesNotMatch(html,/2026-08-29T15:24:48\.965Z/);
-assert.match(html,/Voici votre bilan par objectif/);
-assert.match(html,/Prochaine étape :/);
-assert.match(html,/À renforcer :/);
-assert.match(html,/Reprendre Module avec une activité ciblée/);
+assert.match(html,/Votre progression après cette séance/);
+assert.match(html,/1 acquis récemment · 1 à renforcer/);
+assert.match(html,/course-objective-track/);
+assert.match(html,/Acquis récemment/);
+assert.match(html,/À renforcer/);
+assert.match(html,/Rien à faire maintenant/);
+assert.match(html,/Reprendre avec un exercice ciblé/);
 assert.match(html,/class="atlas-objective-details"/);
 assert.match(html,/<summary>Voir le détail<\/summary>/);
 assert.match(html,/Dernière activité/);
-assert.doesNotMatch(html,/Dernière preuve|preuves enregistrées|certification|rétention durable/i);
+assert.doesNotMatch(html,/Validation autonome récente|L’essentiel d’abord|Dernière preuve|preuves enregistrées|certification|rétention durable/i);
 const readable = S.formatLearnerTimestamp(stamp, new Date('2026-08-29T16:00:00.000Z'));
 assert.ok(!readable.includes('T15:24:48.965Z'));
 console.log(JSON.stringify({ok:true,readable}));
@@ -141,7 +144,9 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Prochaine reconfirmation au plus tôt le", surface)
         self.assertIn("Une reconfirmation est disponible.", surface)
         self.assertIn("Prochaine reconfirmation à partir du", surface)
-        self.assertIn("Prochaine étape :", surface)
+        self.assertIn("À faire maintenant :", surface)
+        self.assertIn("À découvrir", surface)
+        self.assertIn("Acquis récemment", surface)
 
     def test_feedback_keeps_completed_activity_visible_before_next_activity(self):
         session = SESSION.read_text(encoding="utf-8")
@@ -169,18 +174,32 @@ console.log(JSON.stringify({ok:true,readable}));
         )
         self.assertNotIn("await renderCurrent(\n              feedbackHtml(", session)
 
-    def test_r5_today_uses_one_primary_action_and_compact_duration_selector(self):
+    def test_r6_today_uses_visual_objective_states_action_semantics_and_composite_control(self):
         surface = SURFACE.read_text(encoding="utf-8")
-        self.assertIn("buildCourseProgressSummary", surface)
-        self.assertIn("renderCourseProgressSummary", surface)
-        self.assertIn("learnerStateCopy", surface)
-        self.assertIn("course-progress-compact", surface)
-        self.assertIn("atlas-duration-select", surface)
-        self.assertIn("data-atlas-course-start", surface)
-        self.assertIn("applyLibraryActionHierarchy", surface)
-        self.assertIn("compactImportPanel", surface)
+        for token in (
+            "buildCourseProgressSummary",
+            "renderCourseProgressSummary",
+            "learnerStateLabel",
+            "learnerActionCopy",
+            "learnerOverview",
+            "actionForEvidence",
+            "course-objective-track",
+            "course-objective-status-list",
+            "atlas-duration-select",
+            "data-atlas-session-start-control",
+            "data-atlas-course-start",
+            "Voir les objectifs",
+            "Renommer le cours",
+            "applyLibraryActionHierarchy",
+            "compactImportPanel",
+            "course-list-row",
+        ):
+            self.assertIn(token, surface)
+        self.assertIn("Consolider :", surface)
+        self.assertIn("Réutiliser dans un nouvel exercice :", surface)
         self.assertNotIn("atlas-duration-control", surface)
-        self.assertIn("course-list-row", surface)
+        self.assertNotIn("stateLabel: 'À jour'", surface)
+        self.assertNotIn("Validation autonome récente", surface)
         self.assertNotIn("course.progress", surface)
 
     def test_session_keeps_transfer_semantics_and_classic_surface_hidden_while_active(self):

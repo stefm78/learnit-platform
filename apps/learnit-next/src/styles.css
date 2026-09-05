@@ -345,3 +345,167 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
     grid-template-columns: 1fr;
   }
 }
+
+/* #352 R6 — visual objective states + composite session action */
+.course-progress-compact {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.course-progress-at-glance {
+  display: grid;
+  grid-template-columns: auto minmax(150px, 1fr);
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.course-progress-caption {
+  color: var(--text);
+  font-weight: 750;
+}
+
+.course-progress-text {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.course-next-step {
+  color: var(--text);
+  font-size: .95rem;
+}
+
+.course-objective-track {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: min(100%, 360px);
+  min-height: 12px;
+}
+
+.course-objective-segment {
+  flex: 1 1 0;
+  min-width: 8px;
+  height: 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+}
+.course-objective-segment--not-started { background: #d8deea; }
+.course-objective-segment--training { background: #3156d3; border-color: #3156d3; }
+.course-objective-segment--review-needed { background: #9a2d2d; border-color: #9a2d2d; }
+.course-objective-segment--ready-for-validation { background: #6441a5; border-color: #6441a5; }
+.course-objective-segment--validated-recently { background: #17683b; border-color: #17683b; }
+
+.course-objective-status-list {
+  display: grid;
+  gap: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.course-objective-status-item {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.course-objective-state-marker {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--muted);
+}
+.course-objective-status-item--training .course-objective-state-marker { background: #3156d3; }
+.course-objective-status-item--review-needed .course-objective-state-marker { background: #9a2d2d; }
+.course-objective-status-item--ready-for-validation .course-objective-state-marker { background: #6441a5; }
+.course-objective-status-item--validated-recently .course-objective-state-marker { background: #17683b; }
+
+.atlas-session-start-control {
+  display: inline-flex !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  flex-wrap: nowrap !important;
+}
+
+.atlas-session-start-control .atlas-duration-select {
+  min-width: 92px;
+  padding: 9px 30px 9px 10px;
+  border: 1px solid var(--accent);
+  border-inline-end: 0;
+  border-radius: 10px 0 0 10px;
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.atlas-session-start-control > .primary,
+.atlas-session-start-control > .atlas-primary {
+  margin: 0;
+  border-radius: 0 10px 10px 0;
+}
+
+.atlas-summary-overview {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.atlas-summary-overview p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.atlas-objective-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.atlas-objective-status {
+  margin: 0;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-weight: 750;
+  background: var(--surface-soft);
+}
+.atlas-objective-status--training { border-color: #3156d3; }
+.atlas-objective-status--review-needed { border-color: #9a2d2d; }
+.atlas-objective-status--ready-for-validation { border-color: #6441a5; }
+.atlas-objective-status--validated-recently { border-color: #17683b; }
+
+@media (max-width: 720px) {
+  .course-progress-at-glance {
+    grid-template-columns: 1fr;
+  }
+  .course-progress-text {
+    grid-column: auto;
+  }
+  .atlas-session-start-control {
+    width: 100%;
+  }
+  .atlas-session-start-control .atlas-duration-select {
+    flex: 0 0 104px;
+  }
+  .atlas-session-start-control > .primary,
+  .atlas-session-start-control > .atlas-primary {
+    flex: 1 1 auto;
+  }
+  .course-objective-status-item {
+    grid-template-columns: 12px minmax(0, 1fr);
+  }
+  .course-objective-status-item > strong {
+    grid-column: 2;
+  }
+}

@@ -274,7 +274,11 @@ process.stdout.write(JSON.stringify(html));
             state:'validated-recently'
           };
           const summaryHtml=U.renderSummary({evidence:[evidence],completed:true});
-          assert(summaryHtml.includes('Voici votre bilan par objectif'));
+          assert(summaryHtml.includes('Votre progression après cette séance.'));
+          assert(summaryHtml.includes('Acquis récemment'));
+          assert(summaryHtml.includes('Rien à faire maintenant.'));
+          assert(summaryHtml.includes('course-objective-track'));
+          assert(!summaryHtml.includes('Validation autonome récente'));
           assert(!summaryHtml.includes('ni une certification'));
           assert(!summaryHtml.includes('rétention durable'));
           assert.throws(() => U.validateEvidence({...evidence,latestPracticeCorrect:'yes'}), /INVALID_EVIDENCE/);
