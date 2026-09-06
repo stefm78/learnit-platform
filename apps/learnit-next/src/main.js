@@ -251,6 +251,160 @@ function waitForInitialRender(root) {
   });
 }
 
+function atlasR8StateFromSegment(segment) {
+  const prefix = 'course-objective-segment--';
+  const token = [...segment.classList].find(value => value.startsWith(prefix));
+  return token ? token.slice(prefix.length) : 'training';
+}
+
+function atlasR8GroupForState(state) {
+  if (state === 'validated-recently') return 'acquired';
+  if (state === 'ready-for-validation') return 'confirm';
+  return 'work';
+}
+
+function atlasR8StateLabel(state) {
+  switch (state) {
+    case 'not-started': return 'À découvrir';
+    case 'training': return 'En apprentissage';
+    case 'review-needed': return 'À renforcer';
+    case 'ready-for-validation': return 'À confirmer';
+    case 'validated-recently': return 'Acquis récemment';
+    default: return 'En apprentissage';
+  }
+}
+
+function atlasR8WhyNow(state) {
+  switch (state) {
+    case 'review-needed': return 'Cet objectif mérite d’être renforcé avant d’aller plus loin.';
+    case 'ready-for-validation': return 'Cet objectif est prêt à être confirmé sans aide.';
+    case 'validated-recently': return 'Cet acquis peut maintenant être consolidé ou réutilisé.';
+    case 'not-started': return 'Cet objectif reste à découvrir.';
+    default: return 'Cet objectif est encore en apprentissage.';
+  }
+}
+
+function atlasR8Node(tag, attributes = {}, children = []) {
+  const element = document.createElement(tag);
+  for (const [name, value] of Object.entries(attributes)) {
+    if (name === 'className') element.className = value;
+    else if (name === 'text') element.textContent = String(value);
+    else element.setAttribute(name, String(value));
+  }
+  for (const child of Array.isArray(children) ? children : [children]) {
+    if (child == null) continue;
+    element.append(child instanceof Node ? child : document.createTextNode(String(child)));
+  }
+  return element;
+}
+
+async function enhanceAtlasR8LearningMap(root, runtime) {
+  const today = root.querySelector('[data-atlas-int-content="true"]');
+  if (!today) return;
+  const cards = [...today.querySelectorAll('[data-atlas-course-install-id]')];
+
+  for (const card of cards) {
+    if (card.getAttribute('data-atlas-r8-enhanced') === 'true') continue;
+    const courseInstallId = card.getAttribute('data-atlas-course-install-id');
+    if (!courseInstallId) continue;
+
+    let context;
+    try {
+      context = await runtime.getAtlasCourseContext(courseInstallId);
+    } catch {
+      continue;
+    }
+
+    const segments = [...card.querySelectorAll('.course-objective-segment')];
+    if (segments.length !== context.course.objectives.length) continue;
+
+    const objectiveStates = context.course.objectives.map((objective, index) => ({
+      objectiveId: objective.objectiveId,
+      label: objective.label,
+      state: atlasR8StateFromSegment(segments[index]),
+    }));
+    const groups = {
+      work: objectiveStates.filter(item => atlasR8GroupForState(item.state) === 'work'),
+      confirm: objectiveStates.filter(item => atlasR8GroupForState(item.state) === 'confirm'),
+      acquired: objectiveStates.filter(item => atlasR8GroupForState(item.state) === 'acquired'),
+    };
+
+    const progress = card.querySelector('.course-progress-compact');
+    if (!progress) continue;
+    const currentNext = progress.querySelector('.course-next-step')?.textContent?.trim() ?? '';
+    const target = objectiveStates.find(item => currentNext.includes(item.label)) ?? objectiveStates[0] ?? null;
+    const situation = `${groups.acquired.length} acquis · ${groups.confirm.length} à confirmer · ${groups.work.length} à travailler`;
+
+    progress.replaceChildren(
+      atlasR8Node('div', {className: 'course-progress-at-glance'}, [
+        atlasR8Node('span', {className: 'course-progress-caption', text: 'Votre situation'}),
+        atlasR8Node('strong', {className: 'course-progress-text', text: situation}),
+      ]),
+      currentNext ? atlasR8Node('strong', {className: 'course-next-step', text: currentNext}) : null,
+      target ? atlasR8Node('span', {className: 'help', text: atlasR8WhyNow(target.state)}) : null,
+    );
+    progress.setAttribute('data-atlas-progress-situation', 'true');
+
+    const map = atlasR8Node('div', {
+      className: 'course-learning-map',
+      'data-atlas-learning-map': 'true',
+      'aria-label': 'Détail de votre progression par objectif',
+    }, [
+      atlasR8Node('p', {className: 'course-progress-caption', text: 'Voir le détail par objectif'}),
+    ]);
+
+    const groupSpecs = [
+      ['work', 'À travailler'],
+      ['confirm', 'À confirmer'],
+      ['acquired', 'Acquis'],
+    ];
+    for (const [groupKey, groupLabel] of groupSpecs) {
+      const objectives = groups[groupKey];
+      if (!objectives.length) continue;
+      const details = atlasR8Node('details', {
+        className: `course-learning-group course-learning-group--${groupKey}`,
+        'data-atlas-progress-group': groupKey,
+      }, [
+        atlasR8Node('summary', {
+          text: `${groupLabel} — ${objectives.length}`,
+          'aria-label': `${groupLabel}, ${objectives.length} objectif${objectives.length > 1 ? 's' : ''}`,
+        }),
+        atlasR8Node('ul', {
+          className: 'course-objective-status-list',
+          'aria-label': groupLabel,
+        }, objectives.map(item => atlasR8Node('li', {
+          className: `course-objective-status-item course-objective-status-item--${item.state}`,
+          'data-atlas-objective-state': item.state,
+        }, [
+          atlasR8Node('span', {text: item.label}),
+          atlasR8Node('strong', {text: atlasR8StateLabel(item.state)}),
+        ]))),
+      ]);
+      map.append(details);
+    }
+
+    progress.after(map);
+    card.setAttribute('data-atlas-r8-enhanced', 'true');
+  }
+}
+
+function installAtlasR8LearningMap(root, runtime) {
+  const today = root.querySelector('[data-atlas-int-content="true"]');
+  if (!today) return;
+  let queued = false;
+  const enhance = () => {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(async () => {
+      queued = false;
+      await enhanceAtlasR8LearningMap(root, runtime);
+    });
+  };
+  const observer = new MutationObserver(enhance);
+  observer.observe(today, {childList: true, subtree: true});
+  enhance();
+}
+
 async function boot() {
   const root = document.getElementById('app');
   if (!root) throw new Error('Missing #app mount point');
@@ -266,6 +420,7 @@ async function boot() {
     runtime,
     atlasRuntime,
   });
+  installAtlasR8LearningMap(root, runtime);
 
   globalThis.__LEARNIT_NEXT_TEST__ = Object.freeze({
     contractVersion: runtime.contractVersion,
@@ -293,3 +448,5 @@ if (typeof document !== 'undefined' && document.querySelector('[data-learnit-nex
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
 }
+
+// ATLAS_R8_DERIVED_PROGRESS_GROUPING_WIRED
