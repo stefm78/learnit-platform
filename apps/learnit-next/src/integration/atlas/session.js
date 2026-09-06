@@ -310,6 +310,7 @@ async function showFeedbackTransition(
   sessionActions,
   feedbackMarkup,
   onContinue,
+  nextLabel = 'Activité suivante',
 ) {
   /*
    * Keep activity N visible while its own feedback is read.
@@ -349,7 +350,7 @@ async function showFeedbackTransition(
     {
       type: 'button',
       className: 'atlas-primary',
-      text: 'Activité suivante',
+      text: nextLabel,
       'data-atlas-feedback-next': 'true',
     },
   );
@@ -470,6 +471,131 @@ function lifecycleEvents(storage, sessionId) {
     );
 }
 
+function eventForExecution(state, executionId) {
+  return state.learningEvents.find(event => (
+    event.kind === 'activity-attempt'
+    && event.executionId === executionId
+  )) ?? null;
+}
+
+function claimDetailsForExecution(
+  state,
+  execution,
+  modules,
+) {
+  const session =
+    state.atlasMeta.sessions[
+      execution.sessionRef.sessionId
+    ];
+
+  const planItem =
+    session?.plan?.payload?.items?.[
+      execution.itemPosition
+    ];
+
+  if (
+    !planItem
+    || ![
+      'attempt-validation',
+      'maintain-recent-validation',
+    ].includes(planItem.action)
+  ) {
+    return null;
+  }
+
+  const sourceEvent =
+    state.learningEvents.find(
+      event =>
+        event.eventId
+        === planItem.validationBasisEventId,
+    );
+
+  const sourceExecution =
+    sourceEvent
+      ? state.scoredExecutions.find(
+        item =>
+          item.executionId
+          === sourceEvent.executionId,
+      )
+      : null;
+
+  if (!sourceEvent || !sourceExecution) {
+    return null;
+  }
+
+  const details = {
+    objectiveRef: execution.objectiveRef,
+    sourceActivityRef:
+      sourceExecution.activityRef,
+    targetActivityRef: execution.activityRef,
+    sourceEvent,
+    sourceExecution,
+    targetExecution: execution,
+    contentRevisionRef:
+      execution.contentRevisionRef,
+    independenceClaimId:
+      planItem.independenceClaimId,
+  };
+
+  return modules.claimAuthority
+    .validateRuntimeClaim(
+      planItem,
+      details,
+    )
+    ? Object.freeze({
+      planItem,
+      sourceEvent,
+      sourceExecution,
+    })
+    : null;
+}
+
+function admissibleValidationIds(state, modules) {
+  const result = new Set();
+
+  for (const execution of state.scoredExecutions) {
+    if (execution.executionClass !== 'validation') {
+      continue;
+    }
+
+    if (
+      claimDetailsForExecution(
+        state,
+        execution,
+        modules,
+      )
+    ) {
+      result.add(execution.executionId);
+    }
+  }
+
+  return result;
+}
+
+function projectCourseEvidence(
+  storage,
+  expectedCourseRef,
+  modules,
+) {
+  const state = storage.snapshot();
+  const admissibleIds =
+    admissibleValidationIds(state, modules);
+
+  return modules.projection
+    .projectObjectiveEvidence(
+      state.learningEvents,
+      state.scoredExecutions,
+      execution =>
+        admissibleIds.has(execution.executionId),
+    )
+    .filter(item =>
+      modules.today.sameCanonical(
+        item.objectiveRef.courseRef,
+        expectedCourseRef,
+      ));
+}
+
+
 export async function findResumableAtlasSession(
   context,
   atlasRuntime,
@@ -575,6 +701,45 @@ export async function runAtlasSession({
   const atlasCard =
     container.closest('.atlas-course-card');
 
+  const atlasSurface =
+    atlasCard?.closest('[data-atlas-int-surface]')
+    ?? null;
+
+  const surfaceHeading =
+    atlasSurface?.querySelector('.section-heading')
+    ?? null;
+
+  const otherAtlasCards =
+    atlasSurface
+      ? [...atlasSurface.querySelectorAll('.atlas-course-card')]
+        .filter(card => card !== atlasCard)
+      : [];
+
+  const courseTitle =
+    atlasCard?.querySelector('h3')
+    ?? null;
+
+  const courseMeta =
+    atlasCard?.querySelector('.course-meta')
+    ?? null;
+
+  const surfaceHeadingDisplay =
+    surfaceHeading?.style.display ?? '';
+
+  const courseTitleDisplay =
+    courseTitle?.style.display ?? '';
+
+  const courseMetaDisplay =
+    courseMeta?.style.display ?? '';
+
+  const otherAtlasCardDisplays =
+    new Map(
+      otherAtlasCards.map(card => [
+        card,
+        card.style.display,
+      ]),
+    );
+
   const plannerActions =
     atlasCard?.querySelector(
       '[data-atlas-planner-actions="true"]',
@@ -600,6 +765,22 @@ export async function runAtlasSession({
     classicMain.setAttribute('inert', '');
   }
 
+  if (surfaceHeading) {
+    surfaceHeading.style.display = 'none';
+  }
+
+  if (courseTitle) {
+    courseTitle.style.display = 'none';
+  }
+
+  if (courseMeta) {
+    courseMeta.style.display = 'none';
+  }
+
+  for (const card of otherAtlasCards) {
+    card.style.display = 'none';
+  }
+
   if (plannerActions) {
     /*
      * A frozen Atlas plan owns the active session.
@@ -619,6 +800,25 @@ export async function runAtlasSession({
       if (!classicWasInert) {
         classicMain.removeAttribute('inert');
       }
+    }
+
+    if (surfaceHeading) {
+      surfaceHeading.style.display =
+        surfaceHeadingDisplay;
+    }
+
+    if (courseTitle) {
+      courseTitle.style.display =
+        courseTitleDisplay;
+    }
+
+    if (courseMeta) {
+      courseMeta.style.display =
+        courseMetaDisplay;
+    }
+
+    for (const [card, display] of otherAtlasCardDisplays) {
+      card.style.display = display;
     }
 
     if (plannerActions) {
@@ -777,12 +977,10 @@ export async function runAtlasSession({
         }
 
         const evidence =
-          core.evidence().filter(
-            item =>
-              modules.today.sameCanonical(
-                item.objectiveRef.courseRef,
-                activePlan.payload.courseRef,
-              ),
+          projectCourseEvidence(
+            storage,
+            activePlan.payload.courseRef,
+            modules,
           );
 
         const wrapper = node('div');
@@ -804,6 +1002,13 @@ export async function runAtlasSession({
             ...feedback.childNodes,
           );
         }
+
+        wrapper.prepend(
+          node('p', {
+            className: 'eyebrow',
+            text: context.title,
+          }),
+        );
 
         const back = node(
           'button',
@@ -861,6 +1066,35 @@ export async function runAtlasSession({
             ),
           feedbackHtml: previousFeedback,
         });
+
+      const objectiveLabel =
+        learnerObjectiveLabels(context)[
+          item.objectiveRef.objectiveId
+        ] ?? 'Objectif courant';
+
+      const sessionHeader =
+        wrapper.querySelector(
+          '.atlas-session > header',
+        );
+
+      if (sessionHeader) {
+        sessionHeader.replaceChildren(
+          node('p', {
+            className: 'eyebrow',
+            text: context.title,
+          }),
+          node('p', {
+            className: 'atlas-session-objective',
+            text: `Objectif : ${objectiveLabel}`,
+          }),
+          node('h1', {
+            id: 'atlas-session-title',
+            text:
+              `Étape ${item.position + 1} `
+              + `sur ${activePlan.payload.items.length}`,
+          }),
+        );
+      }
 
       container.replaceChildren(wrapper);
 
@@ -1030,8 +1264,31 @@ export async function runAtlasSession({
               nextCheckpoint.nextItemPosition
               >= activePlan.payload.items.length
             ) {
-              await renderCurrent(
+              const lastLifecycle =
+                lifecycleEvents(
+                  storage,
+                  sessionRef.sessionId,
+                ).at(-1);
+
+              if (
+                lastLifecycle?.kind
+                !== 'session-completed'
+              ) {
+                await core.lifecycle(
+                  sessionRef.sessionId,
+                  'session-completed',
+                );
+              }
+
+              await showFeedbackTransition(
+                container,
+                wrapper,
+                sessionActions,
                 outcomeFeedback,
+                async () => {
+                  await renderCurrent();
+                },
+                'Voir le bilan',
               );
             } else {
               await showFeedbackTransition(
