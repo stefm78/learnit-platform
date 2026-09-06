@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[3]
 APP = ROOT / "apps/learnit-next"
 SURFACE = APP / "src/integration/atlas/surface.js"
 SESSION = APP / "src/integration/atlas/session.js"
+MAIN = APP / "src/main.js"
 
 
 def run_node(script: str):
@@ -201,6 +202,29 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("stateLabel: 'À jour'", surface)
         self.assertNotIn("Validation autonome récente", surface)
         self.assertNotIn("course.progress", surface)
+
+    def test_r8_today_uses_derived_groups_explained_action_and_progressive_disclosure(self):
+        main = MAIN.read_text(encoding="utf-8")
+        for token in (
+            "atlasR8GroupForState",
+            "atlasR8WhyNow",
+            "enhanceAtlasR8LearningMap",
+            "installAtlasR8LearningMap",
+            "data-atlas-progress-situation",
+            "data-atlas-learning-map",
+            "data-atlas-progress-group",
+            "Votre situation",
+            "À travailler",
+            "À confirmer",
+            "Acquis",
+            "Voir le détail par objectif",
+        ):
+            self.assertIn(token, main)
+        self.assertIn("${groups.acquired.length} acquis · ${groups.confirm.length} à confirmer · ${groups.work.length} à travailler", main)
+        self.assertIn("context.course.objectives.map", main)
+        self.assertIn("progress.after(map)", main)
+        self.assertNotIn("progressPercent", main)
+        self.assertNotIn("Math.round(", main)
 
     def test_session_keeps_transfer_semantics_and_classic_surface_hidden_while_active(self):
         session = SESSION.read_text(encoding="utf-8")
