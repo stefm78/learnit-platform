@@ -77,6 +77,11 @@
     "Declaring learner usability PASS.",
     "General redesign of GitHub Pages."
   ],
+  "independentReview": [
+    "Exact current replay bytes and SHA-256 are checked before any deployment.",
+    "Prior replay and stable root identities are independently rechecked in the assembled site.",
+    "After main-only deployment, HTTPS smoke rechecks current replay, prior replay, fixture and stable root identities."
+  ],
   "execution": {
     "branch": "ops/OPS-WP-018-atlas-r11-human-replay",
     "maximumChangedFiles": 2,
