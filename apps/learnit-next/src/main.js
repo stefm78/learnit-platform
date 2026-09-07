@@ -231,7 +231,6 @@ export function createLearnitRuntime(
       atlasM1: atlasRuntime.status(),
     }),
 
-    // Visible UI helpers use the same domain services as the bounded diagnostic surface.
     resumeActiveCourse: () => sessions.resumeActiveCourse(),
     getSession: () => sessions.getSession(),
   };
@@ -251,19 +250,19 @@ function waitForInitialRender(root) {
   });
 }
 
-function atlasR8StateFromSegment(segment) {
+function atlasR9StateFromSegment(segment) {
   const prefix = 'course-objective-segment--';
   const token = [...segment.classList].find(value => value.startsWith(prefix));
   return token ? token.slice(prefix.length) : 'training';
 }
 
-function atlasR8GroupForState(state) {
+function atlasR9GroupForState(state) {
   if (state === 'validated-recently') return 'acquired';
   if (state === 'ready-for-validation') return 'confirm';
   return 'work';
 }
 
-function atlasR8StateLabel(state) {
+function atlasR9StateLabel(state) {
   switch (state) {
     case 'not-started': return 'À découvrir';
     case 'training': return 'En apprentissage';
@@ -274,17 +273,13 @@ function atlasR8StateLabel(state) {
   }
 }
 
-function atlasR8WhyNow(state) {
-  switch (state) {
-    case 'review-needed': return 'Cet objectif mérite d’être renforcé avant d’aller plus loin.';
-    case 'ready-for-validation': return 'Cet objectif est prêt à être confirmé sans aide.';
-    case 'validated-recently': return 'Cet acquis peut maintenant être consolidé ou réutilisé.';
-    case 'not-started': return 'Cet objectif reste à découvrir.';
-    default: return 'Cet objectif est encore en apprentissage.';
-  }
+function atlasR9SymbolForState(state) {
+  if (state === 'validated-recently') return '✓';
+  if (state === 'ready-for-validation') return '◇';
+  return '!';
 }
 
-function atlasR8Node(tag, attributes = {}, children = []) {
+function atlasR9Node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
   for (const [name, value] of Object.entries(attributes)) {
     if (name === 'className') element.className = value;
@@ -298,13 +293,53 @@ function atlasR8Node(tag, attributes = {}, children = []) {
   return element;
 }
 
-async function enhanceAtlasR8LearningMap(root, runtime) {
+function atlasR9InstallStyles() {
+  if (document.getElementById('atlas-r9-visual-progress-style')) return;
+  const style = document.createElement('style');
+  style.id = 'atlas-r9-visual-progress-style';
+  style.textContent = `
+    .atlas-r9-progress{display:grid;gap:.65rem;margin:.55rem 0 .2rem}
+    .atlas-r9-overview{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}
+    .atlas-r9-stat{display:inline-flex;gap:.3rem;align-items:center;font-weight:800;font-size:.88rem;padding:.28rem .48rem;border:1px solid #8090a8;border-radius:999px;background:#fff}
+    .atlas-r9-stat-symbol{display:inline-grid;place-items:center;width:1.15rem;height:1.15rem;font-weight:900}
+    .atlas-r9-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(2rem,1fr));gap:.38rem;max-width:42rem}
+    .atlas-r9-objective{position:relative;min-width:2rem;height:2rem;border:2px solid #4f6078;border-radius:.45rem;background:#fff;color:#11213a;font-weight:900;cursor:pointer}
+    .atlas-r9-objective[data-atlas-r9-group="confirm"]{border-style:double;border-width:3px}
+    .atlas-r9-objective[data-atlas-r9-group="acquired"]{border-radius:999px}
+    .atlas-r9-objective[data-atlas-r9-priority="true"]{outline:3px solid #111827;outline-offset:2px;transform:translateY(-1px)}
+    .atlas-r9-priority-mark{position:absolute;right:-.3rem;top:-.65rem;font-size:.78rem;background:#fff;line-height:1}
+    .atlas-r9-action{display:grid;grid-template-columns:auto 1fr;gap:.25rem .55rem;align-items:center;padding:.6rem .7rem;border-left:5px solid #162b4e;background:#f7f9fc;border-radius:.35rem}
+    .atlas-r9-action-kicker{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;font-weight:900}
+    .atlas-r9-action-verb{font-size:1rem;font-weight:900}
+    .atlas-r9-action-target{grid-column:1/-1;font-size:.93rem;font-weight:700;line-height:1.25}
+    .atlas-r9-inspector{min-height:2.5rem;padding:.45rem .6rem;border:1px solid #c7d0dc;border-radius:.4rem;background:#fff}
+    .atlas-r9-inspector[hidden]{display:none}
+    .atlas-r9-inspector-state{font-size:.8rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+    .atlas-r9-inspector-label{margin:.15rem 0 0;font-weight:700}
+    .atlas-r9-hint{font-size:.78rem;color:#4d5a6e;margin:0}
+    @media (max-width:700px){.atlas-r9-map{grid-template-columns:repeat(10,minmax(1.85rem,1fr))}.atlas-r9-action{grid-template-columns:1fr}}
+  `;
+  document.head.append(style);
+}
+
+function atlasR9ParseAction(currentNext, target) {
+  const cleaned = String(currentNext || '').replace(/^À faire maintenant\s*:\s*/i, '').trim();
+  if (!cleaned) return { verb: 'Continuer', target: target?.label ?? '' };
+  const separator = cleaned.indexOf(':');
+  if (separator < 0) return { verb: cleaned, target: target?.label ?? '' };
+  return {
+    verb: cleaned.slice(0, separator).trim(),
+    target: cleaned.slice(separator + 1).trim() || target?.label || '',
+  };
+}
+
+async function enhanceAtlasR9VisualProgress(root, runtime) {
   const today = root.querySelector('[data-atlas-int-content="true"]');
   if (!today) return;
   const cards = [...today.querySelectorAll('[data-atlas-course-install-id]')];
 
   for (const card of cards) {
-    if (card.getAttribute('data-atlas-r8-enhanced') === 'true') continue;
+    if (card.getAttribute('data-atlas-r9-enhanced') === 'true') continue;
     const courseInstallId = card.getAttribute('data-atlas-course-install-id');
     if (!courseInstallId) continue;
 
@@ -321,74 +356,97 @@ async function enhanceAtlasR8LearningMap(root, runtime) {
     const objectiveStates = context.course.objectives.map((objective, index) => ({
       objectiveId: objective.objectiveId,
       label: objective.label,
-      state: atlasR8StateFromSegment(segments[index]),
+      state: atlasR9StateFromSegment(segments[index]),
     }));
     const groups = {
-      work: objectiveStates.filter(item => atlasR8GroupForState(item.state) === 'work'),
-      confirm: objectiveStates.filter(item => atlasR8GroupForState(item.state) === 'confirm'),
-      acquired: objectiveStates.filter(item => atlasR8GroupForState(item.state) === 'acquired'),
+      work: objectiveStates.filter(item => atlasR9GroupForState(item.state) === 'work'),
+      confirm: objectiveStates.filter(item => atlasR9GroupForState(item.state) === 'confirm'),
+      acquired: objectiveStates.filter(item => atlasR9GroupForState(item.state) === 'acquired'),
     };
 
     const progress = card.querySelector('.course-progress-compact');
     if (!progress) continue;
     const currentNext = progress.querySelector('.course-next-step')?.textContent?.trim() ?? '';
-    const target = objectiveStates.find(item => currentNext.includes(item.label)) ?? objectiveStates[0] ?? null;
-    const situation = `${groups.acquired.length} acquis · ${groups.confirm.length} à confirmer · ${groups.work.length} à travailler`;
+    const target = objectiveStates.find(item => currentNext.includes(item.label)) ?? objectiveStates.find(item => item.state === 'review-needed') ?? objectiveStates.find(item => item.state === 'ready-for-validation') ?? objectiveStates[0] ?? null;
+    const action = atlasR9ParseAction(currentNext, target);
 
-    progress.replaceChildren(
-      atlasR8Node('div', {className: 'course-progress-at-glance'}, [
-        atlasR8Node('span', {className: 'course-progress-caption', text: 'Votre situation'}),
-        atlasR8Node('strong', {className: 'course-progress-text', text: situation}),
+    const overview = atlasR9Node('div', {className: 'atlas-r9-overview', 'aria-label': 'Vue rapide de votre progression'}, [
+      atlasR9Node('span', {className: 'atlas-r9-stat', 'data-atlas-r9-stat': 'work'}, [
+        atlasR9Node('span', {className: 'atlas-r9-stat-symbol', text: '!'}),
+        `${groups.work.length} à travailler`,
       ]),
-      currentNext ? atlasR8Node('strong', {className: 'course-next-step', text: currentNext}) : null,
-      target ? atlasR8Node('span', {className: 'help', text: atlasR8WhyNow(target.state)}) : null,
-    );
-    progress.setAttribute('data-atlas-progress-situation', 'true');
-
-    const map = atlasR8Node('div', {
-      className: 'course-learning-map',
-      'data-atlas-learning-map': 'true',
-      'aria-label': 'Détail de votre progression par objectif',
-    }, [
-      atlasR8Node('p', {className: 'course-progress-caption', text: 'Voir le détail par objectif'}),
+      atlasR9Node('span', {className: 'atlas-r9-stat', 'data-atlas-r9-stat': 'confirm'}, [
+        atlasR9Node('span', {className: 'atlas-r9-stat-symbol', text: '◇'}),
+        `${groups.confirm.length} à confirmer`,
+      ]),
+      atlasR9Node('span', {className: 'atlas-r9-stat', 'data-atlas-r9-stat': 'acquired'}, [
+        atlasR9Node('span', {className: 'atlas-r9-stat-symbol', text: '✓'}),
+        `${groups.acquired.length} acquis`,
+      ]),
     ]);
 
-    const groupSpecs = [
-      ['work', 'À travailler'],
-      ['confirm', 'À confirmer'],
-      ['acquired', 'Acquis'],
-    ];
-    for (const [groupKey, groupLabel] of groupSpecs) {
-      const objectives = groups[groupKey];
-      if (!objectives.length) continue;
-      const details = atlasR8Node('details', {
-        className: `course-learning-group course-learning-group--${groupKey}`,
-        'data-atlas-progress-group': groupKey,
-      }, [
-        atlasR8Node('summary', {
-          text: `${groupLabel} — ${objectives.length}`,
-          'aria-label': `${groupLabel}, ${objectives.length} objectif${objectives.length > 1 ? 's' : ''}`,
-        }),
-        atlasR8Node('ul', {
-          className: 'course-objective-status-list',
-          'aria-label': groupLabel,
-        }, objectives.map(item => atlasR8Node('li', {
-          className: `course-objective-status-item course-objective-status-item--${item.state}`,
-          'data-atlas-objective-state': item.state,
-        }, [
-          atlasR8Node('span', {text: item.label}),
-          atlasR8Node('strong', {text: atlasR8StateLabel(item.state)}),
-        ]))),
-      ]);
-      map.append(details);
-    }
+    const inspectorState = atlasR9Node('div', {className: 'atlas-r9-inspector-state'});
+    const inspectorLabel = atlasR9Node('p', {className: 'atlas-r9-inspector-label'});
+    const inspector = atlasR9Node('div', {
+      className: 'atlas-r9-inspector',
+      'data-atlas-r9-inspector': 'true',
+      'aria-live': 'polite',
+      hidden: 'hidden',
+    }, [inspectorState, inspectorLabel]);
 
-    progress.after(map);
-    card.setAttribute('data-atlas-r8-enhanced', 'true');
+    const showObjective = (item) => {
+      inspector.hidden = false;
+      inspector.removeAttribute('hidden');
+      inspectorState.textContent = atlasR9StateLabel(item.state);
+      inspectorLabel.textContent = item.label;
+    };
+
+    const map = atlasR9Node('div', {
+      className: 'atlas-r9-map',
+      'data-atlas-r9-visual-map': 'true',
+      role: 'group',
+      'aria-label': `${objectiveStates.length} objectifs. Point d’exclamation : à travailler. Losange : à confirmer. Coche : acquis. Étoile : priorité actuelle.`,
+    });
+    objectiveStates.forEach((item, index) => {
+      const isPriority = target?.objectiveId === item.objectiveId;
+      const button = atlasR9Node('button', {
+        type: 'button',
+        className: 'atlas-r9-objective',
+        'data-atlas-r9-objective': item.objectiveId,
+        'data-atlas-r9-group': atlasR9GroupForState(item.state),
+        'data-atlas-r9-priority': String(isPriority),
+        'aria-label': `${index + 1}. ${item.label}. ${atlasR9StateLabel(item.state)}${isPriority ? '. Priorité actuelle' : ''}`,
+        title: `${item.label} — ${atlasR9StateLabel(item.state)}`,
+      }, [atlasR9SymbolForState(item.state)]);
+      if (isPriority) button.append(atlasR9Node('span', {className: 'atlas-r9-priority-mark', 'aria-hidden': 'true', text: '★'}));
+      button.addEventListener('click', () => showObjective(item));
+      button.addEventListener('focus', () => showObjective(item));
+      button.addEventListener('mouseenter', () => showObjective(item));
+      map.append(button);
+    });
+
+    const actionBox = atlasR9Node('div', {className: 'atlas-r9-action', 'data-atlas-r9-next-action': 'true'}, [
+      atlasR9Node('span', {className: 'atlas-r9-action-kicker', text: 'Priorité ★'}),
+      atlasR9Node('strong', {className: 'atlas-r9-action-verb', text: action.verb || 'Continuer'}),
+      atlasR9Node('div', {className: 'atlas-r9-action-target', text: action.target || target?.label || ''}),
+    ]);
+
+    progress.replaceChildren(
+      atlasR9Node('div', {className: 'atlas-r9-progress', 'data-atlas-r9-progress': 'true'}, [
+        overview,
+        map,
+        actionBox,
+        atlasR9Node('p', {className: 'atlas-r9-hint', text: 'Touchez, survolez ou parcourez les repères pour voir l’objectif.'}),
+        inspector,
+      ]),
+    );
+    card.querySelector('.course-learning-map')?.remove();
+    card.setAttribute('data-atlas-r9-enhanced', 'true');
   }
 }
 
-function installAtlasR8LearningMap(root, runtime) {
+function installAtlasR9VisualProgress(root, runtime) {
+  atlasR9InstallStyles();
   const today = root.querySelector('[data-atlas-int-content="true"]');
   if (!today) return;
   let queued = false;
@@ -397,7 +455,7 @@ function installAtlasR8LearningMap(root, runtime) {
     queued = true;
     queueMicrotask(async () => {
       queued = false;
-      await enhanceAtlasR8LearningMap(root, runtime);
+      await enhanceAtlasR9VisualProgress(root, runtime);
     });
   };
   const observer = new MutationObserver(enhance);
@@ -420,7 +478,7 @@ async function boot() {
     runtime,
     atlasRuntime,
   });
-  installAtlasR8LearningMap(root, runtime);
+  installAtlasR9VisualProgress(root, runtime);
 
   globalThis.__LEARNIT_NEXT_TEST__ = Object.freeze({
     contractVersion: runtime.contractVersion,
@@ -449,4 +507,4 @@ if (typeof document !== 'undefined' && document.querySelector('[data-learnit-nex
   else boot();
 }
 
-// ATLAS_R8_DERIVED_PROGRESS_GROUPING_WIRED
+// ATLAS_R9_VISUAL_PROGRESS_AT_A_GLANCE_WIRED

@@ -203,28 +203,35 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Validation autonome récente", surface)
         self.assertNotIn("course.progress", surface)
 
-    def test_r8_today_uses_derived_groups_explained_action_and_progressive_disclosure(self):
+    def test_r9_today_uses_visual_map_non_color_symbols_priority_and_single_objective_inspector(self):
         main = MAIN.read_text(encoding="utf-8")
         for token in (
-            "atlasR8GroupForState",
-            "atlasR8WhyNow",
-            "enhanceAtlasR8LearningMap",
-            "installAtlasR8LearningMap",
-            "data-atlas-progress-situation",
-            "data-atlas-learning-map",
-            "data-atlas-progress-group",
-            "Votre situation",
-            "À travailler",
-            "À confirmer",
-            "Acquis",
-            "Voir le détail par objectif",
+            "atlasR9SymbolForState",
+            "atlasR9ParseAction",
+            "enhanceAtlasR9VisualProgress",
+            "installAtlasR9VisualProgress",
+            "data-atlas-r9-visual-map",
+            "data-atlas-r9-priority",
+            "data-atlas-r9-inspector",
+            "data-atlas-r9-next-action",
+            "Point d’exclamation",
+            "Losange",
+            "Coche",
+            "Étoile",
+            "Priorité ★",
+            "Touchez, survolez ou parcourez",
         ):
             self.assertIn(token, main)
-        self.assertIn("${groups.acquired.length} acquis · ${groups.confirm.length} à confirmer · ${groups.work.length} à travailler", main)
-        self.assertIn("context.course.objectives.map", main)
-        self.assertIn("progress.after(map)", main)
+        self.assertIn("return '✓'", main)
+        self.assertIn("return '◇'", main)
+        self.assertIn("return '!'", main)
+        self.assertIn("button.addEventListener('click'", main)
+        self.assertIn("button.addEventListener('focus'", main)
+        self.assertIn("button.addEventListener('mouseenter'", main)
+        self.assertIn("objectiveStates.length", main)
         self.assertNotIn("progressPercent", main)
         self.assertNotIn("Math.round(", main)
+        self.assertNotIn("progress.after(map)", main)
 
     def test_session_keeps_transfer_semantics_and_classic_surface_hidden_while_active(self):
         session = SESSION.read_text(encoding="utf-8")
