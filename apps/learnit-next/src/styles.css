@@ -509,3 +509,48 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
     grid-column: 2;
   }
 }
+
+/* #352 R9/R10 — visual progress lives in the stylesheet, never injected at runtime. */
+.atlas-r9-progress{display:grid;gap:.65rem;margin:.55rem 0 .2rem}
+.atlas-r9-overview{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}
+.atlas-r9-stat{display:inline-flex;gap:.3rem;align-items:center;font-weight:800;font-size:.88rem;padding:.28rem .48rem;border:1px solid #8090a8;border-radius:999px;background:#fff}
+.atlas-r9-stat-symbol{display:inline-grid;place-items:center;width:1.15rem;height:1.15rem;font-weight:900}
+.atlas-r9-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(2rem,1fr));gap:.38rem;max-width:42rem}
+.atlas-r9-objective{position:relative;min-width:2rem;height:2rem;border:2px solid #4f6078;border-radius:.45rem;background:#fff;color:#11213a;font-weight:900;cursor:pointer}
+.atlas-r9-objective[data-atlas-r9-group="confirm"]{border-style:double;border-width:3px}
+.atlas-r9-objective[data-atlas-r9-group="acquired"]{border-radius:999px}
+.atlas-r9-objective[data-atlas-r9-priority="true"]{outline:3px solid #111827;outline-offset:2px;transform:translateY(-1px)}
+.atlas-r9-priority-mark{position:absolute;right:-.3rem;top:-.65rem;font-size:.78rem;background:#fff;line-height:1}
+.atlas-r9-action{display:grid;grid-template-columns:auto 1fr;gap:.25rem .55rem;align-items:center;padding:.6rem .7rem;border-left:5px solid #162b4e;background:#f7f9fc;border-radius:.35rem}
+.atlas-r9-action-kicker{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;font-weight:900}
+.atlas-r9-action-verb{font-size:1rem;font-weight:900}
+.atlas-r9-action-target{grid-column:1/-1;font-size:.93rem;font-weight:700;line-height:1.25}
+.atlas-r9-inspector{min-height:2.5rem;padding:.45rem .6rem;border:1px solid #c7d0dc;border-radius:.4rem;background:#fff}
+.atlas-r9-inspector[hidden]{display:none}
+.atlas-r9-inspector-state{font-size:.8rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.atlas-r9-inspector-label{margin:.15rem 0 0;font-weight:700}
+.atlas-r9-hint{font-size:.78rem;color:#4d5a6e;margin:0}
+
+/* Exact build identity for human verification. */
+.learnit-build-identity {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 240;
+  max-width: min(46vw, 22rem);
+  padding: 3px 6px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: color-mix(in srgb, var(--text) 58%, transparent);
+  font: 600 10px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .01em;
+  opacity: .72;
+  user-select: text;
+}
+
+@media (max-width:700px){
+  .atlas-r9-map{grid-template-columns:repeat(10,minmax(1.85rem,1fr))}
+  .atlas-r9-action{grid-template-columns:1fr}
+  .learnit-build-identity { right: 5px; bottom: 5px; max-width: 60vw; }
+}
