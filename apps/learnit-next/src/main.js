@@ -250,6 +250,33 @@ function waitForInitialRender(root) {
   });
 }
 
+function resolveBuildIdentity(locationRef = globalThis.location, explicitValue = globalThis.__LEARNIT_BUILD_ID__) {
+  const explicit = typeof explicitValue === 'string' ? explicitValue.trim() : '';
+  if (/^[0-9a-f]{40}$/i.test(explicit)) return explicit.toLowerCase();
+
+  const pathname = String(locationRef?.pathname ?? '');
+  const replayMatch = pathname.match(/\/human-replay\/([0-9a-f]{40})(?:\/|$)/i);
+  return replayMatch ? replayMatch[1].toLowerCase() : null;
+}
+
+function installBuildIdentityBadge(documentRef = globalThis.document) {
+  if (!documentRef?.body) return null;
+  const existing = documentRef.querySelector('[data-learnit-build-identity]');
+  if (existing) return existing;
+
+  const identity = resolveBuildIdentity();
+  const badge = documentRef.createElement('div');
+  badge.className = 'learnit-build-identity';
+  badge.setAttribute('data-learnit-build-identity', identity ?? 'unbound');
+  badge.setAttribute('aria-label', identity ? `Build Learn-it ${identity}` : 'Build Learn-it non vérifiable');
+  badge.title = identity
+    ? `Build exact : ${identity}`
+    : 'Build non lié à une identité immuable. Utilisez une URL Human Replay pour vérifier le SHA exact.';
+  badge.textContent = identity ? `build ${identity.slice(0, 8)}` : 'build unbound';
+  documentRef.body.append(badge);
+  return badge;
+}
+
 function atlasR9StateFromSegment(segment) {
   const prefix = 'course-objective-segment--';
   const token = [...segment.classList].find(value => value.startsWith(prefix));
@@ -291,35 +318,6 @@ function atlasR9Node(tag, attributes = {}, children = []) {
     element.append(child instanceof Node ? child : document.createTextNode(String(child)));
   }
   return element;
-}
-
-function atlasR9InstallStyles() {
-  if (document.getElementById('atlas-r9-visual-progress-style')) return;
-  const style = document.createElement('style');
-  style.id = 'atlas-r9-visual-progress-style';
-  style.textContent = `
-    .atlas-r9-progress{display:grid;gap:.65rem;margin:.55rem 0 .2rem}
-    .atlas-r9-overview{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}
-    .atlas-r9-stat{display:inline-flex;gap:.3rem;align-items:center;font-weight:800;font-size:.88rem;padding:.28rem .48rem;border:1px solid #8090a8;border-radius:999px;background:#fff}
-    .atlas-r9-stat-symbol{display:inline-grid;place-items:center;width:1.15rem;height:1.15rem;font-weight:900}
-    .atlas-r9-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(2rem,1fr));gap:.38rem;max-width:42rem}
-    .atlas-r9-objective{position:relative;min-width:2rem;height:2rem;border:2px solid #4f6078;border-radius:.45rem;background:#fff;color:#11213a;font-weight:900;cursor:pointer}
-    .atlas-r9-objective[data-atlas-r9-group="confirm"]{border-style:double;border-width:3px}
-    .atlas-r9-objective[data-atlas-r9-group="acquired"]{border-radius:999px}
-    .atlas-r9-objective[data-atlas-r9-priority="true"]{outline:3px solid #111827;outline-offset:2px;transform:translateY(-1px)}
-    .atlas-r9-priority-mark{position:absolute;right:-.3rem;top:-.65rem;font-size:.78rem;background:#fff;line-height:1}
-    .atlas-r9-action{display:grid;grid-template-columns:auto 1fr;gap:.25rem .55rem;align-items:center;padding:.6rem .7rem;border-left:5px solid #162b4e;background:#f7f9fc;border-radius:.35rem}
-    .atlas-r9-action-kicker{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;font-weight:900}
-    .atlas-r9-action-verb{font-size:1rem;font-weight:900}
-    .atlas-r9-action-target{grid-column:1/-1;font-size:.93rem;font-weight:700;line-height:1.25}
-    .atlas-r9-inspector{min-height:2.5rem;padding:.45rem .6rem;border:1px solid #c7d0dc;border-radius:.4rem;background:#fff}
-    .atlas-r9-inspector[hidden]{display:none}
-    .atlas-r9-inspector-state{font-size:.8rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
-    .atlas-r9-inspector-label{margin:.15rem 0 0;font-weight:700}
-    .atlas-r9-hint{font-size:.78rem;color:#4d5a6e;margin:0}
-    @media (max-width:700px){.atlas-r9-map{grid-template-columns:repeat(10,minmax(1.85rem,1fr))}.atlas-r9-action{grid-template-columns:1fr}}
-  `;
-  document.head.append(style);
 }
 
 function atlasR9ParseAction(currentNext, target) {
@@ -446,7 +444,6 @@ async function enhanceAtlasR9VisualProgress(root, runtime) {
 }
 
 function installAtlasR9VisualProgress(root, runtime) {
-  atlasR9InstallStyles();
   const today = root.querySelector('[data-atlas-int-content="true"]');
   if (!today) return;
   let queued = false;
@@ -471,6 +468,7 @@ async function boot() {
   );
   const runtime = createLearnitRuntime(createIndexedDbStorage(), integrations);
   renderApp(root, runtime, integrations.objectiveUi);
+  installBuildIdentityBadge();
   await waitForInitialRender(root);
 
   await attachAtlasPreviewSurface({
