@@ -1,0 +1,245 @@
+name: Atlas R10 human replay deploy
+
+on:
+  push:
+    branches: [ops/OPS-WP-017-atlas-r10-human-replay]
+    paths:
+      - '.github/workflows/atlas-r10-human-replay-deploy.yml'
+      - 'work-packages/OPS-WP-017.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atlas-r10-human-replay
+  cancel-in-progress: false
+
+env:
+  PRODUCT_HEAD: 10fbe658175f634648baf86f7bf10320b88a3127
+  PRODUCT_EXPECTED_SHA256: c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89
+  PRODUCT_EXPECTED_BYTES: '405648'
+  STABLE_LEARNER_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
+  STABLE_LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  STABLE_LEARNER_BYTES: '366412'
+  STABLE_M3_1_MAIN: be3d5b2635836e8ce0d9a6ecf42d573efc9ef749
+  FROZEN_PRODUCT_HEAD: 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2
+  FROZEN_QA_HEAD: 6ff592af68e6cc95bd479911a09388293c5528f5
+
+jobs:
+  verify:
+    name: Verify exact R10 replay and preserve stable Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      site_artifact: ${{ steps.names.outputs.site_artifact }}
+      replay_path: ${{ steps.names.outputs.replay_path }}
+    steps:
+      - name: Checkout exact stable M3.1 Pages source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.STABLE_M3_1_MAIN }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Materialize exact stable learner and R10 product
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin "$STABLE_LEARNER_HEAD" "$PRODUCT_HEAD"
+          stable_learner="$RUNNER_TEMP/stable-learner"
+          r10="$RUNNER_TEMP/r10-product"
+          git worktree add --detach "$stable_learner" "$STABLE_LEARNER_HEAD"
+          git worktree add --detach "$r10" "$PRODUCT_HEAD"
+          [[ "$(git -C "$stable_learner" rev-parse HEAD)" == "$STABLE_LEARNER_HEAD" ]]
+          [[ "$(git -C "$r10" rev-parse HEAD)" == "$PRODUCT_HEAD" ]]
+          echo "STABLE_LEARNER_TREE=$stable_learner" >> "$GITHUB_ENV"
+          echo "R10_TREE=$r10" >> "$GITHUB_ENV"
+
+      - name: Assemble stable site plus immutable R10 replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          authoring_a="$RUNNER_TEMP/authoring-a"
+          authoring_b="$RUNNER_TEMP/authoring-b"
+          replay_a="$RUNNER_TEMP/replay-a.html"
+          replay_b="$RUNNER_TEMP/replay-b.html"
+          replay_dir="$site/human-replay/$PRODUCT_HEAD"
+          mkdir -p "$site" "$replay_dir/fixtures"
+
+          # Reconstruct the unchanged stable Pages root and authoring bundle.
+          python -B authoring/studio/pages/build_pages.py --output "$authoring_a"
+          python -B authoring/studio/pages/build_pages.py --output "$authoring_b"
+          diff -qr "$authoring_a" "$authoring_b"
+          cmp authoring/v2/atlas/pedagogical_quality.py \
+              "$authoring_a/_authority/authoring/v2/atlas/pedagogical_quality.py"
+
+          python -B "$STABLE_LEARNER_TREE/apps/learnit-next/build.py" --output "$site/index.html"
+          cp "$site/index.html" "$site/learnit-next.html"
+          stable_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
+          stable_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
+          [[ "$stable_sha" == "$STABLE_LEARNER_SHA256" ]]
+          [[ "$stable_bytes" == "$STABLE_LEARNER_BYTES" ]]
+          cmp "$site/index.html" "$site/learnit-next.html"
+          cp -a "$authoring_a" "$site/authoring"
+
+          quality_sha="$(sha256sum authoring/v2/atlas/pedagogical_quality.py | awk '{print $1}')"
+          authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
+          cat > "$site/deployment-evidence.json" <<EOF
+          {
+            "schema": "learnit.next.pages.deployment.v3",
+            "learnerPromotedHead": "$STABLE_LEARNER_HEAD",
+            "learnerArtifactBytes": $STABLE_LEARNER_BYTES,
+            "learnerArtifactSha256": "$STABLE_LEARNER_SHA256",
+            "m3_1PromotedMain": "$STABLE_M3_1_MAIN",
+            "frozenProductHead": "$FROZEN_PRODUCT_HEAD",
+            "frozenQaHead": "$FROZEN_QA_HEAD",
+            "qualityEngineSha256": "$quality_sha",
+            "authoringIndexSha256": "$authoring_sha",
+            "authoringPath": "/authoring/",
+            "learnerIndexByteIdentity": "PASS",
+            "stableAuthoringPublication": true,
+            "humanUxDebtIssue": 272,
+            "runtimeBackendDependencyAdded": false
+          }
+          EOF
+
+          # Materialize the exact R10 candidate twice and require deterministic identity.
+          python -B "$R10_TREE/apps/learnit-next/build.py" --output "$replay_a"
+          python -B "$R10_TREE/apps/learnit-next/build.py" --output "$replay_b"
+          cmp "$replay_a" "$replay_b"
+          replay_sha="$(sha256sum "$replay_a" | awk '{print $1}')"
+          replay_bytes="$(wc -c < "$replay_a" | tr -d ' ')"
+          [[ "$replay_sha" == "$PRODUCT_EXPECTED_SHA256" ]]
+          [[ "$replay_bytes" == "$PRODUCT_EXPECTED_BYTES" ]]
+          cp "$replay_a" "$replay_dir/index.html"
+          cp "$replay_a" "$replay_dir/learnit-next.html"
+          cmp "$replay_dir/index.html" "$replay_dir/learnit-next.html"
+
+          cp "$R10_TREE/authoring/v2/golden/signaux_electriques.json" \
+             "$replay_dir/fixtures/signaux_electriques.json"
+          fixture_sha="$(sha256sum "$replay_dir/fixtures/signaux_electriques.json" | awk '{print $1}')"
+          cat > "$replay_dir/identity.json" <<EOF
+          {
+            "schema": "learnit.atlas.human-replay.v1",
+            "issue": 352,
+            "pullRequest": 354,
+            "productHead": "$PRODUCT_HEAD",
+            "learnerArtifactBytes": $PRODUCT_EXPECTED_BYTES,
+            "learnerArtifactSha256": "$PRODUCT_EXPECTED_SHA256",
+            "fixture": "fixtures/signaux_electriques.json",
+            "fixtureSha256": "$fixture_sha",
+            "promotion": false,
+            "humanGateRequired": true,
+            "learnerUxPass": false
+          }
+          EOF
+
+          echo "SITE=$site" >> "$GITHUB_ENV"
+          echo "FIXTURE_SHA=$fixture_sha" >> "$GITHUB_ENV"
+
+      - name: Name immutable verification artifact
+        id: names
+        shell: bash
+        run: |
+          echo "site_artifact=atlas-r10-human-replay-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "replay_path=human-replay/${PRODUCT_HEAD}/" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified site
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.site_artifact }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ env.SITE }}
+
+  deploy:
+    name: Deploy exact R10 human replay
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}human-replay/${{ env.PRODUCT_HEAD }}/
+    steps:
+      - name: Download immutable verified site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.site_artifact }}
+          path: ${{ runner.temp }}/site
+
+      - name: Recheck downloaded identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          [[ "$(sha256sum "$site/index.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]]
+          [[ "$(wc -c < "$site/index.html" | tr -d ' ')" == "$STABLE_LEARNER_BYTES" ]]
+          replay="$site/human-replay/$PRODUCT_HEAD/index.html"
+          [[ "$(sha256sum "$replay" | awk '{print $1}')" == "$PRODUCT_EXPECTED_SHA256" ]]
+          [[ "$(wc -c < "$replay" | tr -d ' ')" == "$PRODUCT_EXPECTED_BYTES" ]]
+          grep -q '"productHead": "'"$PRODUCT_HEAD"'"' "$site/human-replay/$PRODUCT_HEAD/identity.json"
+          grep -q '"promotion": false' "$site/human-replay/$PRODUCT_HEAD/identity.json"
+          grep -q '"humanGateRequired": true' "$site/human-replay/$PRODUCT_HEAD/identity.json"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+
+      - name: Deploy verified site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Live post-deploy identity smoke
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          replay_url="${PAGE_URL}human-replay/${PRODUCT_HEAD}/"
+          identity_url="${replay_url}identity.json"
+          fixture_url="${replay_url}fixtures/signaux_electriques.json"
+          ok=0
+          for attempt in $(seq 1 20); do
+            rm -f "$RUNNER_TEMP/live-root.html" "$RUNNER_TEMP/live-replay.html" \
+                  "$RUNNER_TEMP/live-identity.json" "$RUNNER_TEMP/live-fixture.json"
+            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/live-root.html" \
+              && curl --fail --silent --show-error "$replay_url" -o "$RUNNER_TEMP/live-replay.html" \
+              && curl --fail --silent --show-error "$identity_url" -o "$RUNNER_TEMP/live-identity.json" \
+              && curl --fail --silent --show-error "$fixture_url" -o "$RUNNER_TEMP/live-fixture.json"; then
+              root_sha="$(sha256sum "$RUNNER_TEMP/live-root.html" | awk '{print $1}')"
+              replay_sha="$(sha256sum "$RUNNER_TEMP/live-replay.html" | awk '{print $1}')"
+              fixture_sha="$(sha256sum "$RUNNER_TEMP/live-fixture.json" | awk '{print $1}')"
+              expected_fixture_sha="$(python - "$RUNNER_TEMP/live-identity.json" <<'PY'
+          import json,sys
+          data=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert data['productHead']=='10fbe658175f634648baf86f7bf10320b88a3127'
+          assert data['learnerArtifactSha256']=='c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89'
+          assert data['promotion'] is False
+          assert data['humanGateRequired'] is True
+          assert data['learnerUxPass'] is False
+          print(data['fixtureSha256'])
+          PY
+          )"
+              if [[ "$root_sha" == "$STABLE_LEARNER_SHA256" \
+                    && "$replay_sha" == "$PRODUCT_EXPECTED_SHA256" \
+                    && "$fixture_sha" == "$expected_fixture_sha" ]]; then
+                ok=1
+                break
+              fi
+            fi
+            sleep 3
+          done
+          [[ "$ok" == 1 ]]
+          echo "R10_REPLAY_URL=$replay_url" >> "$GITHUB_STEP_SUMMARY"
+          echo "R10_IDENTITY_URL=$identity_url" >> "$GITHUB_STEP_SUMMARY"
+          echo "R10_FIXTURE_URL=$fixture_url" >> "$GITHUB_STEP_SUMMARY"
+          echo "R10_REPLAY_SHA256=$PRODUCT_EXPECTED_SHA256" >> "$GITHUB_STEP_SUMMARY"
+          echo "STABLE_ROOT_SHA256=$STABLE_LEARNER_SHA256" >> "$GITHUB_STEP_SUMMARY"
