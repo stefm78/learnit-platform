@@ -233,6 +233,103 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Math.round(", main)
         self.assertNotIn("progress.after(map)", main)
 
+    def test_r10_recommendation_full_ties_preserve_course_input_order(self):
+        result = run_node(r"""
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const R = require('./src/core/atlas_recommendation.js');
+
+const courseRef = {packageLineageId:'pkg',courseLineageId:'course'};
+const ref = objectiveId => ({courseRef,objectiveId});
+const row = (objectiveId,state='not-started') => {
+  const objectiveRef=ref(objectiveId);
+  return {objectiveRef,evidence:{objectiveRef,state}};
+};
+const ids = rows => R.rankRecommendations(rows).map(item=>item.objectiveRef.objectiveId);
+
+assert.deepEqual(
+  ids([row('z-first'),row('a-second'),row('m-third')]),
+  ['z-first','a-second','m-third'],
+);
+
+assert.equal(
+  R.rankRecommendations([row('z-first'),row('a-review','review-needed')])[0].objectiveRef.objectiveId,
+  'a-review',
+);
+
+const event = (eventId,occurredAt,objectiveIds) => ({
+  kind:'session-started',
+  eventId,
+  occurredAt,
+  selectedItems:objectiveIds.map(objectiveId=>({objectiveRef:ref(objectiveId)})),
+});
+
+const lastSelectedEvents = [
+  event('event-1','2026-01-01T00:00:00.000Z',['z-first']),
+  event('event-2','2026-01-02T00:00:00.000Z',['a-second']),
+];
+assert.equal(
+  R.rankRecommendations([row('a-second'),row('z-first')],lastSelectedEvents)[0].objectiveRef.objectiveId,
+  'z-first',
+);
+
+const recentCountEvents = [
+  event('event-1','2026-01-01T00:00:00.000Z',['a-second']),
+  event('event-2','2026-01-02T00:00:00.000Z',['a-second']),
+  event('event-3','2026-01-03T00:00:00.000Z',['z-first','a-second']),
+];
+assert.equal(
+  R.rankRecommendations([row('a-second'),row('z-first')],recentCountEvents)[0].objectiveRef.objectiveId,
+  'z-first',
+);
+
+const kit = JSON.parse(fs.readFileSync(
+  path.resolve('../../authoring/v2/golden/signaux_electriques.json'),
+  'utf8',
+));
+const course = kit.courses[0];
+const realCourseRef = {
+  packageLineageId:kit.packageLineageId,
+  courseLineageId:course.courseLineageId,
+};
+const realRows = course.objectives.map(objective => {
+  const objectiveRef={courseRef:realCourseRef,objectiveId:objective.objectiveId};
+  return {objectiveRef,evidence:{objectiveRef,state:'not-started'}};
+});
+assert.equal(course.objectives[0].objectiveId,'e6a159cb-cd4d-4565-9d61-eda32db9002e');
+assert.equal(course.objectives[1].objectiveId,'324ec962-5ca9-4ed2-8737-654020805939');
+assert.equal(
+  R.rankRecommendations(realRows)[0].objectiveRef.objectiveId,
+  course.objectives[0].objectiveId,
+);
+
+assert.throws(
+  () => R.rankRecommendations([
+    {objectiveRef:{courseRef},evidence:{state:'not-started'}},
+    row('valid'),
+  ]),
+  /MISSING_FIELD|UNQUALIFIED_REFERENCE/,
+);
+
+console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId}));
+""")
+        self.assertTrue(result["ok"])
+        self.assertEqual(
+            result["realFirst"],
+            "e6a159cb-cd4d-4565-9d61-eda32db9002e",
+        )
+
+    def test_r10_today_summary_and_preview_share_the_same_ranked_sequence(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        ranking_call = (
+            "const ranked = modules.recommendation."
+            "rankRecommendations(rows, state.learningEvents);"
+        )
+        self.assertEqual(surface.count(ranking_call), 2)
+        self.assertIn("const next = ranked[0] ?? rows[0] ?? null;", surface)
+        self.assertIn("const recommendations = ranked.map(row => {", surface)
+
     def test_session_keeps_transfer_semantics_and_classic_surface_hidden_while_active(self):
         session = SESSION.read_text(encoding="utf-8")
         self.assertIn("classicMain.style.display = 'none'", session)

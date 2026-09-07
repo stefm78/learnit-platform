@@ -28,14 +28,17 @@ function lastSelectionStats(objectiveRef, startedEvents=[]) {
   return {lastSelectedAt,recentCount,key};
 }
 function rankRecommendations(rows, startedEvents=[]) {
-  return [...rows].sort((a,b)=>{
-    const unresolvedA=a.evidence.state==='review-needed'?0:1, unresolvedB=b.evidence.state==='review-needed'?0:1;
-    if(unresolvedA!==unresolvedB)return unresolvedA-unresolvedB;
-    const A=lastSelectionStats(a.objectiveRef,startedEvents),B=lastSelectionStats(b.objectiveRef,startedEvents);
-    if(A.lastSelectedAt!==B.lastSelectedAt)return compareCanonicalCodePoints(A.lastSelectedAt||'',B.lastSelectedAt||'');
-    if(A.recentCount!==B.recentCount)return A.recentCount-B.recentCount;
-    return compareCanonicalCodePoints(A.key,B.key);
-  });
+  return [...rows]
+    .map((row,inputIndex)=>({row,inputIndex}))
+    .sort((a,b)=>{
+      const unresolvedA=a.row.evidence.state==='review-needed'?0:1, unresolvedB=b.row.evidence.state==='review-needed'?0:1;
+      if(unresolvedA!==unresolvedB)return unresolvedA-unresolvedB;
+      const A=lastSelectionStats(a.row.objectiveRef,startedEvents),B=lastSelectionStats(b.row.objectiveRef,startedEvents);
+      if(A.lastSelectedAt!==B.lastSelectedAt)return compareCanonicalCodePoints(A.lastSelectedAt||'',B.lastSelectedAt||'');
+      if(A.recentCount!==B.recentCount)return A.recentCount-B.recentCount;
+      return a.inputIndex-b.inputIndex;
+    })
+    .map(item=>item.row);
 }
 function actionForEvidence(evidence, context={}) {
   switch(evidence.state){
