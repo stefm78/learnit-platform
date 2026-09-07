@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-017",
+  "title": "Atlas #352 R10 immutable human-replay publication",
+  "status": "in-progress",
+  "changeClass": "operations-human-gate-pages-deployment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 352,
+    "productPullRequest": 354,
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Publish the exact machine-qualified #352 R10 learner candidate at an immutable GitHub Pages subpath for human replay without changing product code, merging PR #354, or promoting the candidate.",
+  "baseline": {
+    "baseCommit": "592d4fc92e7a891742be31045f7b92f4370afbed",
+    "productHead": "10fbe658175f634648baf86f7bf10320b88a3127",
+    "productArtifactRun": 34113382023,
+    "productArtifactId": 10015247770,
+    "productArtifactZipDigest": "sha256:be267c897f775f7c5de12137e1b7e4a6cc8ed8c44c410443d343bcd12ab06d92",
+    "learnerArtifactBytes": 405648,
+    "learnerArtifactSha256": "c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89",
+    "stableLearnerHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "stableLearnerBytes": 366412,
+    "stableLearnerSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "stableM3_1Main": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-017.json",
+      ".github/workflows/atlas-r10-human-replay-deploy.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-024.json",
+      ".github/workflows/learnit-next-pages.yml"
+    ]
+  },
+  "invariants": [
+    "No product file from PR #354 is modified.",
+    "The replay learner is rebuilt from exact product HEAD 10fbe658175f634648baf86f7bf10320b88a3127.",
+    "The rebuilt replay learner must be exactly 405648 bytes and SHA-256 c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89.",
+    "The existing stable learner root is reconstructed from exact stable learner HEAD 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4 and must remain exactly 366412 bytes with SHA-256 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7.",
+    "Stable M3.1 authoring is reconstructed from exact main be3d5b2635836e8ce0d9a6ecf42d573efc9ef749 before the replay subtree is added.",
+    "The R10 subtree contains index.html, learnit-next.html, identity.json and the exact golden signaux_electriques.json fixture.",
+    "Live post-deploy smoke must prove exact replay HTML bytes/SHA, stable root bytes/SHA and identity binding.",
+    "Publication explicitly states promotion=false and humanGateRequired=true.",
+    "No merge of PR #354 and no learner usability PASS is performed."
+  ],
+  "requiredEvidence": [
+    "Exact two-path OPS delta.",
+    "Repository governance and PR-scope compatibility where applicable.",
+    "Deterministic replay build equality across two builds.",
+    "Exact replay learner bytes and SHA-256 match the previously qualified CI artifact.",
+    "Exact stable root learner bytes and SHA-256 remain unchanged.",
+    "Live HTTPS replay URL returns the exact qualified HTML.",
+    "Live identity.json binds productHead, learner SHA-256, fixture SHA-256, promotion=false and humanGateRequired=true."
+  ],
+  "adversarialTests": [
+    "Product HEAD differs from the frozen R10 SHA.",
+    "Replay build differs across two materializations.",
+    "Replay HTML differs by one byte from the frozen CI identity.",
+    "Stable root differs by one byte from the frozen stable learner identity.",
+    "Live Pages serves stale or mismatched replay content.",
+    "Any product path is changed by this OPS work package."
+  ],
+  "nonGoals": [
+    "Changing ranking semantics or any product behavior.",
+    "Changing kits or learnit.kit.v2.",
+    "Merging or promoting PR #354.",
+    "Declaring learner usability PASS.",
+    "General redesign of GitHub Pages or the stable publisher."
+  ],
+  "independentReview": [
+    "Exact build identity is checked before deployment and again over HTTPS after deployment.",
+    "Stable root identity is checked before deployment and again over HTTPS after deployment."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-017-atlas-r10-human-replay",
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTING",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Re-run the unchanged stable Learn-it Next Pages publisher from main; no product source rollback is required."
+}
