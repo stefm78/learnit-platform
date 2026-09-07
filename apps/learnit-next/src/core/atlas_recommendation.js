@@ -29,11 +29,15 @@ function lastSelectionStats(objectiveRef, startedEvents=[]) {
 }
 function rankRecommendations(rows, startedEvents=[]) {
   return [...rows]
-    .map((row,inputIndex)=>({row,inputIndex}))
+    .map((row,inputIndex)=>{
+      const stats=lastSelectionStats(row.objectiveRef,startedEvents);
+      compareCanonicalCodePoints(stats.key,stats.key);
+      return {row,inputIndex,stats};
+    })
     .sort((a,b)=>{
       const unresolvedA=a.row.evidence.state==='review-needed'?0:1, unresolvedB=b.row.evidence.state==='review-needed'?0:1;
       if(unresolvedA!==unresolvedB)return unresolvedA-unresolvedB;
-      const A=lastSelectionStats(a.row.objectiveRef,startedEvents),B=lastSelectionStats(b.row.objectiveRef,startedEvents);
+      const A=a.stats,B=b.stats;
       if(A.lastSelectedAt!==B.lastSelectedAt)return compareCanonicalCodePoints(A.lastSelectedAt||'',B.lastSelectedAt||'');
       if(A.recentCount!==B.recentCount)return A.recentCount-B.recentCount;
       return a.inputIndex-b.inputIndex;
