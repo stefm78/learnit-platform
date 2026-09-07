@@ -116,8 +116,8 @@ jobs:
           build_replay "$PREVIOUS_TREE" "$PREVIOUS_HEAD" "$PREVIOUS_SHA256" "$PREVIOUS_BYTES"
           build_replay "$CURRENT_TREE" "$PRODUCT_HEAD" "$PRODUCT_EXPECTED_SHA256" "$PRODUCT_EXPECTED_BYTES"
 
-          grep -q "build \\${identity.slice(0, 8)}" "$site/human-replay/$PRODUCT_HEAD/index.html"
-          grep -q 'data-learnit-build-identity' "$site/human-replay/$PRODUCT_HEAD/index.html"
+          grep -Fq 'identity.slice(0, 8)' "$site/human-replay/$PRODUCT_HEAD/index.html"
+          grep -Fq 'data-learnit-build-identity' "$site/human-replay/$PRODUCT_HEAD/index.html"
           echo "SITE=$site" >> "$GITHUB_ENV"
 
       - name: Name immutable verification artifact
