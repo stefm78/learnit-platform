@@ -20,10 +20,13 @@ function node(tag, attributes = {}, children = []) {
   return element;
 }
 
-function compatibleAtlasCourse(context) {
+function compatibleAtlasCourse(context, atlasRuntime) {
   const course = context?.course;
+  const authority = atlasRuntime?.modules?.claimAuthority;
   return Boolean(
     course
+    && typeof authority?.contextAccepted === 'function'
+    && authority.contextAccepted(context)
     && Array.isArray(course.objectives)
     && course.objectives.length > 0
     && Array.isArray(course.activities)
@@ -416,27 +419,54 @@ async function buildCourseProgressSummary(context, atlasRuntime) {
     state: row.evidence.state,
     stateLabel: learnerStateLabel(row.evidence.state),
   }));
+  const now = new Date().toISOString();
+  const details = new Map(rows.map(row => [
+    E.canonicalRefKey(row.objectiveRef),
+    recommendationContext(context, state, row, admissibleIds, now, modules),
+  ]));
+  const deferredUntil = ranked.map(row => {
+    if (row.evidence.state !== 'validated-recently') return null;
+    const detail = details.get(E.canonicalRefKey(row.objectiveRef));
+    const [candidateAction] = modules.recommendation.actionForEvidence(row.evidence, detail);
+    return candidateAction === 'continue-practice'
+      && detail?.memory?.dueAt
+      && !detail.memory.due
+      ? detail.memory.dueAt
+      : null;
+  });
+  const sessionAvailableNow = !(
+    ranked.length > 0
+    && deferredUntil.length === ranked.length
+    && deferredUntil.every(Boolean)
+  );
+  const nextAvailableAt = sessionAvailableNow
+    ? null
+    : deferredUntil.slice().sort()[0];
 
   let action = 'continue-practice';
   let nextLabel = null;
   if (next) {
     nextLabel = labels[next.objectiveRef.objectiveId] ?? null;
-    const detail = recommendationContext(
-      context,
-      state,
-      next,
-      admissibleIds,
-      new Date().toISOString(),
-      modules,
-    );
+    const detail = details.get(E.canonicalRefKey(next.objectiveRef));
     [action] = modules.recommendation.actionForEvidence(next.evidence, detail);
   }
-  const copy = learnerActionCopy(action, nextLabel);
+  const defaultCopy = learnerActionCopy(action, nextLabel);
+  const readableNext = nextAvailableAt ? learnerDateTime(nextAvailableAt) : null;
+  const copy = sessionAvailableNow
+    ? defaultCopy
+    : Object.freeze({
+      actionLabel: 'À jour pour aujourd’hui',
+      nextStep: readableNext
+        ? `Pour consolider dans la durée, revenez à partir du ${readableNext}.`
+        : 'Bon travail. Revenez plus tard pour confirmer durablement ces acquis.',
+    });
   return Object.freeze({
     actionLabel: copy.actionLabel,
     nextStep: copy.nextStep,
     overviewText: learnerOverview(objectiveStates),
     objectiveStates: Object.freeze(objectiveStates),
+    sessionAvailableNow,
+    nextAvailableAt,
   });
 }
 
@@ -447,6 +477,7 @@ function renderStateTrack(summary) {
     'aria-label': summary.overviewText,
   }, summary.objectiveStates.map(item => node('span', {
     className: `course-objective-segment course-objective-segment--${item.state}`,
+    title: `${item.label} — ${item.stateLabel}`,
     'aria-hidden': 'true',
   })));
 }
@@ -458,7 +489,12 @@ function renderCourseProgressSummary(summary) {
       renderStateTrack(summary),
       node('span', {className: 'course-progress-text', text: summary.overviewText}),
     ]),
-    node('strong', {className: 'course-next-step', text: `À faire maintenant : ${summary.nextStep}`}),
+    node('strong', {
+      className: 'course-next-step',
+      text: summary.sessionAvailableNow
+        ? `À faire maintenant : ${summary.nextStep}`
+        : summary.nextStep,
+    }),
   ]);
 }
 
@@ -647,8 +683,10 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         disclosure.textContent = 'Voir les objectifs';
         progressDetails.replaceChildren(disclosure, renderObjectiveStateList(summary));
       }
-      const settingsDisclosure = card.querySelector('.course-settings-details > summary');
-      if (settingsDisclosure) settingsDisclosure.textContent = 'Renommer le cours';
+      const settingsDetails = card.querySelector('.course-settings-details');
+      const settingsDisclosure = settingsDetails?.querySelector(':scope > summary');
+      if (settingsDetails) settingsDetails.classList.add('atlas-library-rename');
+      if (settingsDisclosure) settingsDisclosure.textContent = 'Renommer';
 
       const actions = card.querySelector('.course-row-actions');
       if (!actions) continue;
@@ -662,6 +700,20 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         if (child.matches?.('.help') && child.textContent?.startsWith('À revoir')) child.remove();
       }
       actions.querySelector('.course-complete')?.remove();
+
+      if (!summary.sessionAvailableNow) {
+        actions.querySelector('[data-atlas-session-start-control="true"]')?.remove();
+        actions.querySelector('[data-course-learning-action="learn"]')?.remove();
+        if (!actions.querySelector('[data-atlas-rest-status="true"]')) {
+          actions.prepend(node('p', {
+            className: 'atlas-rest-status',
+            role: 'status',
+            'data-atlas-rest-status': 'true',
+            text: 'À jour pour aujourd’hui',
+          }));
+        }
+        continue;
+      }
 
       let primary = actions.querySelector('[data-course-learning-action="learn"]');
       if (!primary) {
@@ -731,6 +783,10 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         plan: result.plan,
         objectiveLabels: learnerObjectiveLabels(context),
       });
+      wrapper.prepend(node('div', {className: 'atlas-session-preview-intro'}, [
+        node('p', {className: 'eyebrow', text: `Séance de ${duration} min`}),
+        node('p', {text: 'Voici ce que vous allez travailler pendant cette séance.'}),
+      ]));
       if (result.memory?.dueAt) {
         const readableDueAt = learnerDateTime(result.memory.dueAt);
         wrapper.append(node('p', {
@@ -806,7 +862,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     for (const course of courses) {
       try {
         const context = await runtime.getAtlasCourseContext(course.courseInstallId);
-        if (compatibleAtlasCourse(context)) atlasCourses.push(context);
+        if (compatibleAtlasCourse(context, atlasRuntime)) atlasCourses.push(context);
       } catch {
         // Non-Atlas or incomplete local course remains handled by the classic UI.
       }
@@ -865,6 +921,13 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
           }
         });
         actions.append(resumeButton);
+      } else if (!progressSummary.sessionAvailableNow) {
+        actions.append(node('p', {
+          className: 'atlas-rest-status',
+          role: 'status',
+          'data-atlas-rest-status': 'true',
+          text: 'À jour pour aujourd’hui',
+        }));
       } else {
         const select = durationSelect(context.title);
         const startButton = node('button', {
