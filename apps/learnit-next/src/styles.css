@@ -554,3 +554,48 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
   .atlas-r9-action{grid-template-columns:1fr}
   .learnit-build-identity { right: 5px; bottom: 5px; max-width: 60vw; }
 }
+
+/* #352 R12 — Human Replay: focused activity, quieter chrome, explicit rest state. */
+.atlas-course-card:has(.atlas-int-preview[data-atlas-session-active="true"]) {
+  grid-template-columns: 1fr;
+}
+.atlas-course-card:has(.atlas-int-preview[data-atlas-session-active="true"]) > .course-row-main {
+  display: none;
+}
+.atlas-session-preview-intro {
+  margin: 0 0 .7rem;
+  padding: .7rem .8rem;
+  border-left: 4px solid var(--accent);
+  background: var(--surface-soft);
+  border-radius: .4rem;
+}
+.atlas-session-preview-intro p:last-child { margin-bottom: 0; }
+.atlas-library-rename { color: var(--muted); }
+.atlas-library-rename > summary {
+  min-height: 44px;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 600;
+}
+.atlas-rest-status {
+  margin: 0;
+  color: var(--success);
+  font-weight: 800;
+}
+.atlas-r9-progress { gap: .45rem; margin: .35rem 0 .1rem; }
+.atlas-r9-overview { gap: .35rem; }
+.atlas-r9-stat { gap: .2rem; padding: .2rem .38rem; font-size: .82rem; }
+.atlas-r9-stat-symbol { display: none; }
+.atlas-r9-map { counter-reset: atlas-objective; gap: .28rem; }
+.atlas-r9-objective {
+  counter-increment: atlas-objective;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  font-size: 0;
+}
+.atlas-r9-objective::before {
+  content: counter(atlas-objective);
+  font-size: .78rem;
+  line-height: 1;
+}
+.atlas-r9-action { padding: .5rem .6rem; }
