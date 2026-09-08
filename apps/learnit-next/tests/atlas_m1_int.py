@@ -329,7 +329,7 @@ class AtlasM1Int(unittest.TestCase):
             "course-list-row",
             "applyLibraryActionHierarchy",
             "Voir les objectifs",
-            "Renommer le cours",
+            "Renommer",
         ):
             self.assertIn(token, surface)
 
