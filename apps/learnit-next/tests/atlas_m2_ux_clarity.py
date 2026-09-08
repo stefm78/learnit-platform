@@ -9,6 +9,7 @@ APP = ROOT / "apps/learnit-next"
 SURFACE = APP / "src/integration/atlas/surface.js"
 SESSION = APP / "src/integration/atlas/session.js"
 MAIN = APP / "src/main.js"
+STYLES = APP / "src/styles.css"
 
 
 def run_node(script: str):
@@ -190,7 +191,7 @@ console.log(JSON.stringify({ok:true,readable}));
             "data-atlas-session-start-control",
             "data-atlas-course-start",
             "Voir les objectifs",
-            "Renommer le cours",
+            "Renommer",
             "applyLibraryActionHierarchy",
             "compactImportPanel",
             "course-list-row",
@@ -337,6 +338,38 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
         self.assertIn("modules.summary.renderSummary", session)
         self.assertIn("learnerObjectiveLabels(context)", session)
         self.assertNotIn("transfer-completed", session)
+
+    def test_r12_fails_closed_on_runtime_qualified_atlas_context(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        self.assertIn("authority.contextAccepted(context)", surface)
+        self.assertIn("compatibleAtlasCourse(context, atlasRuntime)", surface)
+
+    def test_r12_stops_same_day_repeat_when_every_objective_is_waiting(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        for token in (
+            "sessionAvailableNow",
+            "nextAvailableAt",
+            "À jour pour aujourd’hui",
+            "Pour consolider dans la durée, revenez à partir du",
+            "data-atlas-rest-status",
+        ):
+            self.assertIn(token, surface)
+        self.assertIn("detail.memory.due", surface)
+        self.assertIn("detail?.memory?.dueAt", surface)
+
+    def test_r12_library_hover_preview_and_active_session_focus_are_explicit(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        styles = STYLES.read_text(encoding="utf-8")
+        self.assertIn("title: `${item.label} — ${item.stateLabel}`", surface)
+        self.assertIn("Séance de ${duration} min", surface)
+        self.assertIn("Voici ce que vous allez travailler pendant cette séance.", surface)
+        self.assertIn("settingsDisclosure.textContent = 'Renommer'", surface)
+        self.assertIn('data-atlas-session-active="true"', styles)
+        self.assertIn("> .course-row-main", styles)
+        self.assertIn("display: none", styles)
+        self.assertIn(".atlas-r9-stat-symbol { display: none; }", styles)
+        self.assertIn("counter-reset: atlas-objective", styles)
+        self.assertNotIn("progressPercent", styles)
 
 
 if __name__ == "__main__":
