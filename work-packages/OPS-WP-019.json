@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-019",
+  "title": "Atlas #352 R12 immutable human-replay publication",
+  "status": "in-progress",
+  "changeClass": "operations-human-gate-pages-deployment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 352,
+    "productPullRequest": 354,
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Publish the exact machine-qualified #352 R12 candidate at an immutable GitHub Pages subpath for human replay, preserve R10/R11 and the stable learner root, and provide the exact qualified Atlas fixture plus a generated answer guide without merging or promoting PR #354.",
+  "baseline": {
+    "baseCommit": "b42d2aebe2e09da890e1db7eb1023794f1e0cce5",
+    "productHead": "01a5ca9b3e8a3abd5fb9692a001bb8533065b45f",
+    "learnerArtifactBytes": 411551,
+    "learnerArtifactSha256": "6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956",
+    "r11Head": "934e1c7193fc6d20d408339f8a962bca6aea51a6",
+    "r11Bytes": 407356,
+    "r11Sha256": "4f620a570fabb669165791f36db1977b744ac82c9eb5c95654c6c402deb4b173",
+    "r10Head": "10fbe658175f634648baf86f7bf10320b88a3127",
+    "r10Bytes": 405648,
+    "r10Sha256": "c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89",
+    "stableLearnerHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "stableLearnerBytes": 366412,
+    "stableLearnerSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "stableM3_1Main": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-019.json",
+      ".github/workflows/atlas-r10-human-replay-deploy.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-024.json",
+      ".github/workflows/learnit-next-pages.yml"
+    ]
+  },
+  "invariants": [
+    "No product file from PR #354 is modified by this OPS work package.",
+    "R12 is rebuilt from exact product HEAD 01a5ca9b3e8a3abd5fb9692a001bb8533065b45f.",
+    "R12 must be exactly 411551 bytes and SHA-256 6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956.",
+    "R10 and R11 remain published byte-identically.",
+    "The stable learner root remains exactly 366412 bytes with SHA-256 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7.",
+    "R12 publishes authoring/v2/atlas/nombres_complexes_atlas.json from the exact product tree and a deterministic answer guide derived from that fixture.",
+    "R12 HTML exposes the exact build identity from its immutable replay URL.",
+    "Live post-deploy smoke proves R12, R11, R10, stable root, fixture and answer-guide identities.",
+    "Publication explicitly states promotion=false, humanGateRequired=true and learnerUxPass=false.",
+    "PR #354 is neither merged nor promoted by this work package."
+  ],
+  "requiredEvidence": [
+    "Exact two-path OPS delta.",
+    "Repository governance and PR-scope compatibility.",
+    "Deterministic R12 build equality across two materializations.",
+    "Exact R12 bytes and SHA-256 match the frozen product candidate.",
+    "R10, R11 and stable root remain byte-identical.",
+    "Qualified Atlas fixture and deterministic answer guide are present and identity-bound.",
+    "Live HTTPS identity checks after main-only Pages deployment."
+  ],
+  "adversarialTests": [
+    "Product HEAD differs from the frozen R12 SHA.",
+    "R12 differs across two materializations.",
+    "R12 differs by one byte from the frozen identity.",
+    "R10 or R11 disappears or changes.",
+    "Stable root differs by one byte.",
+    "Fixture or answer guide identity differs after deployment.",
+    "Any product path is changed by this OPS work package."
+  ],
+  "nonGoals": [
+    "Changing product behavior.",
+    "Changing kits or learnit.kit.v2.",
+    "Changing Atlas memory policy.",
+    "Merging or promoting PR #354.",
+    "Declaring learner usability PASS.",
+    "General redesign of GitHub Pages."
+  ],
+  "independentReview": [
+    "Exact R12 bytes and SHA-256 are checked before deployment.",
+    "R10, R11 and stable root identities are rechecked in the assembled site.",
+    "Fixture and answer-guide hashes are bound into identity.json.",
+    "After main-only deployment, HTTPS smoke rechecks all published identities."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-019-atlas-r12-human-replay",
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTING",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Re-run the prior stable Pages publication; no product source rollback is required."
+}
