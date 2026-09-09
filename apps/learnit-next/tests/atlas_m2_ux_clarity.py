@@ -204,35 +204,52 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Validation autonome récente", surface)
         self.assertNotIn("course.progress", surface)
 
-    def test_r9_today_uses_visual_map_non_color_symbols_priority_and_single_objective_inspector(self):
+    def test_r13_visual_contract_uses_vertical_reservoirs_priority_outline_and_demand_detail(self):
         main = MAIN.read_text(encoding="utf-8")
         for token in (
-            "atlasR9SymbolForState",
-            "atlasR9ParseAction",
-            "enhanceAtlasR9VisualProgress",
-            "installAtlasR9VisualProgress",
-            "data-atlas-r9-visual-map",
-            "data-atlas-r9-priority",
-            "data-atlas-r9-inspector",
-            "data-atlas-r9-next-action",
-            "Point d’exclamation",
-            "Losange",
-            "Coche",
-            "Étoile",
-            "Priorité ★",
-            "Touchez, survolez ou parcourez",
+            "atlasR13StateFromSegment",
+            "atlasR13StateLabel",
+            "atlasR13VisualLevel",
+            "renderAtlasR13Progress",
+            "enhanceAtlasR13VisualProgress",
+            "installAtlasR13RuntimeBehavior",
+            "data-atlas-r13-group",
+            "objectifs-du-cours",
+            "Objectifs du cours",
+            "data-atlas-r13-priority",
+            "data-atlas-r13-detail",
+            "Priorité Learn-it",
+            "atlas-r13-reservoir--review-needed",
+            "repeating-linear-gradient",
+            "atlas-r13-group--consolidated",
         ):
             self.assertIn(token, main)
-        self.assertIn("return '✓'", main)
-        self.assertIn("return '◇'", main)
-        self.assertIn("return '!'", main)
-        self.assertIn("button.addEventListener('click'", main)
-        self.assertIn("button.addEventListener('focus'", main)
-        self.assertIn("button.addEventListener('mouseenter'", main)
-        self.assertIn("objectiveStates.length", main)
+        self.assertIn("reservoir.addEventListener('click'", main)
+        self.assertIn("reservoir.addEventListener('focus'", main)
+        self.assertNotIn("mouseenter", main)
         self.assertNotIn("progressPercent", main)
         self.assertNotIn("Math.round(", main)
-        self.assertNotIn("progress.after(map)", main)
+        self.assertNotIn("aria-valuenow", main)
+        self.assertNotIn("Séquence 1", main)
+        self.assertNotIn("Chapitre 1", main)
+
+    def test_r13_removes_intermediate_start_and_active_course_progress(self):
+        main = MAIN.read_text(encoding="utf-8")
+        self.assertIn(
+            '.atlas-int-preview [data-atlas-action="start"]:not([data-atlas-r13-auto-started])',
+            main,
+        )
+        self.assertIn("start.click()", main)
+        self.assertIn("data-atlas-r13-session-owned", main)
+        self.assertIn(
+            '.atlas-course-card[data-atlas-r13-session-owned="true"]>.course-row-main{display:none!important}',
+            main,
+        )
+        self.assertIn(
+            '.atlas-course-card[data-atlas-r13-session-owned="true"]>.atlas-course-actions{display:none!important}',
+            main,
+        )
+        self.assertIn("data-atlas-session-active", SESSION.read_text(encoding="utf-8"))
 
     def test_r10_recommendation_full_ties_preserve_course_input_order(self):
         result = run_node(r"""
@@ -370,6 +387,90 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
         self.assertIn(".atlas-r9-stat-symbol { display: none; }", styles)
         self.assertIn("counter-reset: atlas-objective", styles)
         self.assertNotIn("progressPercent", styles)
+
+    def test_r13_browser_dom_density_state_priority_focus_and_mobile(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError as exc:
+            self.fail(f"playwright required for R13 browser qualification: {exc}")
+
+        artifact = APP / "dist/learnit-next.html"
+        self.assertTrue(artifact.is_file(), "deterministic build artifact must exist before browser test")
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={"width": 390, "height": 844})
+            page.goto(artifact.as_uri(), wait_until="load")
+            page.wait_for_function(
+                "() => Boolean(window.__LEARNIT_NEXT_TEST__?.renderAtlasR13Fixture)"
+            )
+
+            for count in (5, 8, 12, 20):
+                states = [
+                    (
+                        "review-needed" if index == 1
+                        else "ready-for-validation" if index == 2
+                        else "validated-recently" if index % 4 == 3
+                        else "training"
+                    )
+                    for index in range(count)
+                ]
+                result = page.evaluate(
+                    """({states, priority}) => {
+                      const host = document.createElement('div');
+                      host.className = 'course-progress-compact';
+                      document.body.append(host);
+                      window.__LEARNIT_NEXT_TEST__.renderAtlasR13Fixture(host, states, priority);
+                      const reservoirs = [...host.querySelectorAll('[data-atlas-r13-objective]')];
+                      const detail = host.querySelector('[data-atlas-r13-detail]');
+                      const priorityEl = host.querySelector('[data-atlas-r13-priority=\"true\"]');
+                      const before = detail.hidden;
+                      priorityEl.focus();
+                      const after = detail.hidden;
+                      const strip = host.querySelector('.atlas-r13-reservoirs');
+                      const value = {
+                        count: reservoirs.length,
+                        group: host.querySelector('[data-atlas-r13-group]')?.textContent,
+                        before,
+                        after,
+                        priorityLabel: priorityEl.getAttribute('aria-label'),
+                        reinforceMark: host.querySelector('[data-atlas-r13-state=\"review-needed\"] .atlas-r13-state-mark')?.textContent,
+                        confirmMark: host.querySelector('[data-atlas-r13-state=\"ready-for-validation\"] .atlas-r13-state-mark')?.textContent,
+                        overflow: strip.scrollWidth >= strip.clientWidth,
+                      };
+                      host.remove();
+                      return value;
+                    }""",
+                    {"states": states, "priority": min(2, count - 1)},
+                )
+                self.assertEqual(result["count"], count)
+                self.assertIn("Objectifs du cours", result["group"])
+                self.assertTrue(result["before"])
+                self.assertFalse(result["after"])
+                self.assertIn("Priorité Learn-it", result["priorityLabel"])
+                self.assertEqual(result["reinforceMark"], "↺")
+                self.assertEqual(result["confirmMark"], "◇")
+                if count == 20:
+                    self.assertTrue(result["overflow"])
+
+            consolidated = page.evaluate(
+                """() => {
+                  const host = document.createElement('div');
+                  host.className = 'course-progress-compact';
+                  document.body.append(host);
+                  window.__LEARNIT_NEXT_TEST__.renderAtlasR13Fixture(
+                    host,
+                    Array(8).fill('validated-recently'),
+                    0,
+                  );
+                  const value = host.querySelector('[data-atlas-r13-group]')
+                    ?.getAttribute('data-atlas-r13-consolidated');
+                  host.remove();
+                  return value;
+                }"""
+            )
+            self.assertEqual(consolidated, "true")
+            browser.close()
 
 
 if __name__ == "__main__":
