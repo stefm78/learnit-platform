@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import shutil
 import subprocess
 import unittest
 from pathlib import Path
@@ -396,9 +397,15 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
 
         artifact = APP / "dist/learnit-next.html"
         self.assertTrue(artifact.is_file(), "deterministic build artifact must exist before browser test")
+        chrome = (
+            shutil.which("google-chrome")
+            or shutil.which("chromium")
+            or shutil.which("chromium-browser")
+        )
+        self.assertIsNotNone(chrome, "system Chromium/Chrome is required for R13 browser qualification")
 
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch()
+            browser = playwright.chromium.launch(executable_path=chrome)
             page = browser.new_page(viewport={"width": 390, "height": 844})
             page.goto(artifact.as_uri(), wait_until="load")
             page.wait_for_function(
