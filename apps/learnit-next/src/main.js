@@ -510,8 +510,9 @@ function installAtlasR13RuntimeBehavior(root, runtime) {
 
       for (const card of root.querySelectorAll('.atlas-course-card')) {
         const active = Boolean(card.querySelector('[data-atlas-session-active="true"]'));
-        if (active) card.setAttribute('data-atlas-r13-session-owned', 'true');
-        else card.removeAttribute('data-atlas-r13-session-owned');
+        const owned = card.getAttribute('data-atlas-r13-session-owned') === 'true';
+        if (active && !owned) card.setAttribute('data-atlas-r13-session-owned', 'true');
+        else if (!active && owned) card.removeAttribute('data-atlas-r13-session-owned');
       }
 
       for (const start of root.querySelectorAll(
