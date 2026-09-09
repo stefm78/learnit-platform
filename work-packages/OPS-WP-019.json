@@ -11,12 +11,12 @@
     "productPullRequest": 354,
     "program": "PROJECT-ATLAS"
   },
-  "purpose": "Publish the exact machine-qualified #352 R13 candidate at an immutable GitHub Pages subpath for human replay, preserve R10/R11/R12 and the stable learner root, and provide the exact qualified Atlas fixture plus a deterministic answer guide without merging or promoting PR #354.",
+  "purpose": "Publish the exact machine-qualified and session-hang-corrected #352 R13 candidate at one immutable GitHub Pages URL for human replay; preserve R10/R11/R12 and the stable learner root; provide the exact R13 Atlas fixture and answer guide; do not merge or promote PR #354.",
   "baseline": {
     "baseCommit": "cdac3dcc0f0ed0d2926380d73643b6196798e243",
-    "productHead": "93eb6cf3fa793f1b1145f508f48607c0d9d94c50",
-    "learnerArtifactBytes": 415246,
-    "learnerArtifactSha256": "a4c8bd75eefaf80cfe943dafa3c2dff9a26fdafcfa19c3378859414b54ee3851",
+    "productHead": "ca1f537ee435b31794282b3cf6b3c7589e736783",
+    "learnerArtifactBytes": 415361,
+    "learnerArtifactSha256": "6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18",
     "r12Head": "01a5ca9b3e8a3abd5fb9692a001bb8533065b45f",
     "r12Bytes": 411551,
     "r12Sha256": "6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956",
@@ -47,14 +47,14 @@
   },
   "invariants": [
     "No product file from PR #354 is modified by this OPS work package.",
-    "R13 is rebuilt from exact product HEAD 93eb6cf3fa793f1b1145f508f48607c0d9d94c50.",
-    "R13 must be exactly 415246 bytes and SHA-256 a4c8bd75eefaf80cfe943dafa3c2dff9a26fdafcfa19c3378859414b54ee3851.",
+    "R13 is rebuilt from exact product HEAD ca1f537ee435b31794282b3cf6b3c7589e736783.",
+    "R13 must be exactly 415361 bytes and SHA-256 6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18.",
     "R10, R11 and R12 remain published at their exact frozen HTML identities.",
     "The stable learner root remains exactly 366412 bytes with SHA-256 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7.",
-    "R12 and R13 publish authoring/v2/atlas/nombres_complexes_atlas.json from their exact product trees and deterministic answer guides derived from those fixtures.",
+    "R13 publishes authoring/v2/atlas/nombres_complexes_atlas.json from its exact product tree and a deterministic answer guide.",
     "R13 HTML exposes the exact build identity from its immutable replay URL.",
     "Live post-deploy smoke proves R13, R12, R11, R10, stable root, R13 fixture and R13 answer-guide identities.",
-    "Publication explicitly states promotion=false, humanGateRequired=true and learnerUxPass=false.",
+    "Publication states promotion=false, humanGateRequired=true and learnerUxPass=false.",
     "PR #354 is neither merged nor promoted by this work package."
   ],
   "requiredEvidence": [
@@ -63,13 +63,12 @@
     "Deterministic R13 build equality across two materializations.",
     "Exact R13 bytes and SHA-256 match the frozen product candidate.",
     "R10, R11, R12 and stable root remain at exact frozen HTML identities.",
-    "Qualified Atlas fixture and deterministic answer guide are present and identity-bound.",
+    "Qualified R13 Atlas fixture and deterministic answer guide are identity-bound.",
     "Live HTTPS identity checks after main-only Pages deployment."
   ],
   "adversarialTests": [
     "Product HEAD differs from the frozen R13 SHA.",
-    "R13 differs across two materializations.",
-    "R13 differs by one byte from the frozen identity.",
+    "R13 differs across two materializations or by one byte from the frozen identity.",
     "R10, R11 or R12 disappears or changes.",
     "Stable root differs by one byte.",
     "Fixture or answer guide identity differs after deployment.",
@@ -81,7 +80,7 @@
     "Changing Atlas memory policy.",
     "Merging or promoting PR #354.",
     "Declaring learner usability PASS.",
-    "General redesign of GitHub Pages."
+    "Requiring the learner to run a local ZIP, CMD script or local web server."
   ],
   "independentReview": [
     "Exact R13 bytes and SHA-256 are checked before deployment.",
