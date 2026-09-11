@@ -668,12 +668,13 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     for (const [courseInstallId] of atlasContextsByInstallId) {
       const card = [...appMain.querySelectorAll('.course-card[data-course-install-id]')]
         .find(item => item.getAttribute('data-course-install-id') === courseInstallId);
-      if (!card || card.getAttribute('data-atlas-library-r6') === 'true') continue;
+      if (!card) continue;
       const summary = progressByInstallId.get(courseInstallId);
       if (!summary) continue;
       card.setAttribute('data-atlas-library-r6', 'true');
 
       card.querySelector('.course-row-main .progress-summary')?.remove();
+      card.querySelector('.course-row-main .course-progress-compact')?.remove();
       const main = card.querySelector('.course-row-main');
       main?.append(renderCourseProgressSummary(summary));
 
@@ -715,6 +716,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         continue;
       }
 
+      actions.querySelector('[data-atlas-rest-status="true"]')?.remove();
       let primary = actions.querySelector('[data-course-learning-action="learn"]');
       if (!primary) {
         primary = node('button', {
@@ -977,7 +979,10 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
 
   await refresh();
   if (appMain) {
-    const observer = new MutationObserver(queueRefresh);
+    const observer = new MutationObserver(() => {
+      if (libraryVisible) queueMicrotask(applyLibraryActionHierarchy);
+      queueRefresh();
+    });
     observer.observe(appMain, {childList: true, subtree: true});
   }
   return Object.freeze({ready: true, durations: DURATIONS, memoryPolicy: 'atlas.memory-policy.v1'});
