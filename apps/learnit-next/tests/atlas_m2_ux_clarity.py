@@ -116,7 +116,8 @@ assert.match(html,/1 acquis récemment · 1 à renforcer/);
 assert.match(html,/course-objective-track/);
 assert.match(html,/Acquis récemment/);
 assert.match(html,/À renforcer/);
-assert.match(html,/Rien à faire maintenant/);
+assert.match(html,/Revenir à Aujourd’hui pour la prochaine étape/);
+assert.doesNotMatch(html,/Rien à faire maintenant/);
 assert.match(html,/Reprendre avec un exercice ciblé/);
 assert.match(html,/class="atlas-objective-details"/);
 assert.match(html,/<summary>Voir le détail<\/summary>/);
@@ -251,6 +252,29 @@ console.log(JSON.stringify({ok:true,readable}));
             main,
         )
         self.assertIn("data-atlas-session-active", SESSION.read_text(encoding="utf-8"))
+
+    def test_r13_final_projection_is_reentrant_and_build_badge_is_replay_only(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        main = MAIN.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "card.getAttribute('data-atlas-library-r6') === 'true'",
+            surface,
+        )
+        self.assertIn(
+            "card.querySelector('.course-row-main .course-progress-compact')?.remove()",
+            surface,
+        )
+        self.assertIn(
+            "actions.querySelector('[data-atlas-rest-status=\"true\"]')?.remove()",
+            surface,
+        )
+        self.assertIn(
+            "if (libraryVisible) queueMicrotask(applyLibraryActionHierarchy)",
+            surface,
+        )
+        self.assertIn("if (!identity) return null;", main)
+        self.assertNotIn("build unbound", main)
+        self.assertNotIn("Build Learn-it non vérifiable", main)
 
     def test_r10_recommendation_full_ties_preserve_course_input_order(self):
         result = run_node(r"""
@@ -477,6 +501,79 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
                 }"""
             )
             self.assertEqual(consolidated, "true")
+            browser.close()
+
+    def test_r13_browser_real_today_and_library_enter_same_atlas_session(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError as exc:
+            self.fail(f"playwright required for R13 browser qualification: {exc}")
+
+        artifact = APP / "dist/learnit-next.html"
+        fixture = ROOT / "authoring/v2/atlas/nombres_complexes_atlas.json"
+        self.assertTrue(artifact.is_file())
+        self.assertTrue(fixture.is_file())
+        chrome = (
+            shutil.which("google-chrome")
+            or shutil.which("chromium")
+            or shutil.which("chromium-browser")
+        )
+        self.assertIsNotNone(chrome)
+
+        def import_fixture(page):
+            page.goto(artifact.as_uri(), wait_until="load")
+            page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)")
+            self.assertEqual(page.locator('[data-learnit-build-identity]').count(), 0)
+            page.locator('#kit-file').set_input_files(str(fixture))
+            page.locator('.import-panel button[type="submit"]').click()
+            page.wait_for_selector('[data-atlas-course-install-id]', timeout=10000)
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(executable_path=chrome)
+
+            today_context = browser.new_context(viewport={"width": 900, "height": 900})
+            today_page = today_context.new_page()
+            import_fixture(today_page)
+            today_page.locator('[data-atlas-course-start="true"]').first.click()
+            today_page.wait_for_selector('[data-atlas-session-active="true"]', timeout=10000)
+            self.assertEqual(
+                today_page.locator('[data-atlas-session-active="true"] form').count(),
+                1,
+            )
+            today_context.close()
+
+            library_context = browser.new_context(viewport={"width": 900, "height": 900})
+            library_page = library_context.new_page()
+            import_fixture(library_page)
+            library_page.locator('[data-atlas-library-toggle="true"]').click()
+            library_page.wait_for_function(
+                """() => {
+                  const card = [...document.querySelectorAll('.course-card[data-course-install-id]')]
+                    .find(item => item.textContent.includes('Conjugué et module des nombres complexes'));
+                  if (!card) return false;
+                  const actions = card.querySelector('.course-row-actions');
+                  return Boolean(actions?.querySelector('[data-course-learning-action="learn"], [data-atlas-rest-status="true"]'));
+                }""",
+                timeout=10000,
+            )
+            action = library_page.locator(
+                '.course-card[data-course-install-id] [data-course-learning-action="learn"]'
+            ).first
+            if action.count():
+                action.click()
+                library_page.wait_for_selector('[data-atlas-session-active="true"]', timeout=10000)
+                self.assertEqual(
+                    library_page.locator('[data-atlas-session-active="true"] form').count(),
+                    1,
+                )
+            else:
+                self.assertEqual(
+                    library_page.locator(
+                        '.course-card[data-course-install-id] [data-atlas-rest-status="true"]'
+                    ).count(),
+                    1,
+                )
+            library_context.close()
             browser.close()
 
 
