@@ -104,7 +104,7 @@ function nextStepForEvidence(evidence) {
     case 'training': return 'Continuer à s’entraîner.';
     case 'review-needed': return 'Reprendre avec un exercice ciblé.';
     case 'ready-for-validation': return 'Faire une courte vérification sans aide.';
-    case 'validated-recently': return 'Rien à faire maintenant. Revenez à Aujourd’hui pour la prochaine étape.';
+    case 'validated-recently': return 'Revenir à Aujourd’hui pour la prochaine étape.';
     default: fail('UNKNOWN_EVIDENCE_STATE');
   }
 }
@@ -136,7 +136,9 @@ function renderObjectiveCard(evidence, objectiveLabels = {}) {
   const objectiveHtml = objective
     ? `<h2 class="atlas-objective-name">${T.esc(objective)}</h2>`
     : '<h2 class="atlas-objective-name">Objectif</h2>';
-  const next = nextStepForEvidence(evidence);
+  const next = evidence.state === 'validated-recently' && !objective
+    ? 'Rien à faire maintenant.'
+    : nextStepForEvidence(evidence);
   const last = evidence.lastEvidenceAt
     ? `Dernière activité : ${formatLearnerTimestamp(evidence.lastEvidenceAt)}`
     : 'Aucune activité enregistrée';
