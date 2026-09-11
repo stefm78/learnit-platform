@@ -265,14 +265,13 @@ function installBuildIdentityBadge(documentRef = globalThis.document) {
   if (existing) return existing;
 
   const identity = resolveBuildIdentity();
+  if (!identity) return null;
   const badge = documentRef.createElement('div');
   badge.className = 'learnit-build-identity';
-  badge.setAttribute('data-learnit-build-identity', identity ?? 'unbound');
-  badge.setAttribute('aria-label', identity ? `Build Learn-it ${identity}` : 'Build Learn-it non vérifiable');
-  badge.title = identity
-    ? `Build exact : ${identity}`
-    : 'Build non lié à une identité immuable. Utilisez une URL Human Replay pour vérifier le SHA exact.';
-  badge.textContent = identity ? `build ${identity.slice(0, 8)}` : 'build unbound';
+  badge.setAttribute('data-learnit-build-identity', identity);
+  badge.setAttribute('aria-label', `Build Learn-it ${identity}`);
+  badge.title = `Build exact : ${identity}`;
+  badge.textContent = `build ${identity.slice(0, 8)}`;
   documentRef.body.append(badge);
   return badge;
 }
