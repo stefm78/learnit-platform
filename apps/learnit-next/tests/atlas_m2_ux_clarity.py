@@ -535,7 +535,7 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             today_page = today_context.new_page()
             import_fixture(today_page)
             today_page.locator('[data-atlas-course-start="true"]').first.click()
-            today_page.wait_for_selector('[data-atlas-session-active="true"]', timeout=10000)
+            today_page.wait_for_selector('[data-atlas-session-active="true"] form', timeout=10000)
             self.assertEqual(
                 today_page.locator('[data-atlas-session-active="true"] form').count(),
                 1,
@@ -561,7 +561,7 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             ).first
             if action.count():
                 action.click()
-                library_page.wait_for_selector('[data-atlas-session-active="true"]', timeout=10000)
+                library_page.wait_for_selector('[data-atlas-session-active="true"] form', timeout=10000)
                 self.assertEqual(
                     library_page.locator('[data-atlas-session-active="true"] form').count(),
                     1,
