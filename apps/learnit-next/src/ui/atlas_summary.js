@@ -104,7 +104,7 @@ function nextStepForEvidence(evidence) {
     case 'training': return 'Continuer à s’entraîner.';
     case 'review-needed': return 'Reprendre avec un exercice ciblé.';
     case 'ready-for-validation': return 'Faire une courte vérification sans aide.';
-    case 'validated-recently': return 'Revenir à Aujourd’hui pour la prochaine étape.';
+    case 'validated-recently': return 'Rien à faire maintenant. Revenez à Aujourd’hui pour la prochaine étape.';
     default: fail('UNKNOWN_EVIDENCE_STATE');
   }
 }
