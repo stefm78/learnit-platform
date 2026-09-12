@@ -278,14 +278,6 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
   align-items: center;
 }
 
-.atlas-int-surface .atlas-actions .atlas-duration-control {
-  min-width: 64px;
-  background: var(--surface);
-  color: #162d50;
-  border-color: #162d50;
-  font-weight: 700;
-}
-
 .course-progress-compact {
   display: grid;
   grid-template-columns: minmax(120px, 220px) minmax(0, 1fr);
