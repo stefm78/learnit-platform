@@ -571,6 +571,36 @@ async function buildSessionPlan(context, durationMinutes, atlasRuntime) {
   return plan;
 }
 
+function planObjectiveIds(plan) {
+  return [...new Set(
+    (plan?.payload?.items ?? [])
+      .map(item => item?.objectiveRef?.objectiveId)
+      .filter(Boolean),
+  )];
+}
+
+function bindSessionProjection(card, summary, plan) {
+  if (!card || !summary || !plan) return;
+  const objectiveIds = planObjectiveIds(plan);
+  const firstObjectiveId = objectiveIds[0] ?? null;
+  if (firstObjectiveId) card.setAttribute('data-atlas-planned-first-objective', firstObjectiveId);
+  else card.removeAttribute('data-atlas-planned-first-objective');
+  card.setAttribute('data-atlas-session-objectives', JSON.stringify(objectiveIds));
+  card.setAttribute('data-atlas-session-before-states', JSON.stringify(Object.fromEntries(
+    summary.objectiveStates.map(item => [item.objectiveId, item.state]),
+  )));
+}
+
+async function previewPlannedPriority(card, context, duration, summary, atlasRuntime) {
+  if (!card || !DURATIONS.includes(duration)) return;
+  try {
+    const plan = await buildSessionPlan(context, duration, atlasRuntime);
+    bindSessionProjection(card, summary, plan);
+  } catch {
+    card.removeAttribute('data-atlas-planned-first-objective');
+  }
+}
+
 function renderError(container, error) {
   container.replaceChildren(
     node('div', {className: 'notice notice-error', role: 'alert'}, [
@@ -774,7 +804,9 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     actions.querySelectorAll('button, select').forEach(item => { item.disabled = true; });
     preview.replaceChildren(node('p', {role: 'status', text: `Préparation de la séance de ${duration} minutes…`}));
     try {
+      const beforeSummary = await buildCourseProgressSummary(context, atlasRuntime);
       const plan = await buildSessionPlan(context, duration, atlasRuntime);
+      bindSessionProjection(preview.closest('.atlas-course-card'), beforeSummary, plan);
       await runAtlasSession({
         container: preview,
         context,
@@ -805,7 +837,10 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     }
 
     const select = card.querySelector('.atlas-duration-select');
-    if (durationMinutes && select) select.value = String(durationMinutes);
+    if (durationMinutes && select) {
+      select.value = String(durationMinutes);
+      select.dispatchEvent(new Event('change', {bubbles: true}));
+    }
     const startButton = card.querySelector('[data-atlas-course-start="true"]');
     card.scrollIntoView?.({block: 'start'});
     if (durationMinutes) startButton?.click();
@@ -871,6 +906,8 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         'aria-label': `Action pour ${context.title}`,
         'data-atlas-planner-actions': 'true',
       });
+      let card = null;
+      let select = null;
       const resumable = await findResumableAtlasSession(context, atlasRuntime);
       if (resumable) {
         const resumeButton = node('button', {
@@ -882,6 +919,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         resumeButton.addEventListener('click', async () => {
           setClassicVisible(false);
           resumeButton.disabled = true;
+          bindSessionProjection(card, progressSummary, resumable.plan);
           preview.replaceChildren(node('p', {role: 'status', text: 'Reprise de la séance…'}));
           try {
             await runAtlasSession({container: preview, context, plan: resumable.plan, existing: resumable, atlasRuntime, onReturn: refresh});
@@ -899,7 +937,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
           text: 'À jour pour aujourd’hui',
         }));
       } else {
-        const select = durationSelect(context.title);
+        select = durationSelect(context.title);
         const startButton = node('button', {
           type: 'button',
           className: 'atlas-primary',
@@ -914,7 +952,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         actions.append(sessionStartControl(select, startButton));
       }
 
-      cards.push(node('article', {
+      card = node('article', {
         className: 'course-card atlas-course-card course-list-row',
         'data-atlas-course-install-id': context.courseInstallId,
       }, [
@@ -925,7 +963,26 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
         ]),
         actions,
         preview,
-      ]));
+      ]);
+      cards.push(card);
+
+      if (select) {
+        const syncPriority = () => {
+          const duration = Number(select.value);
+          if (!DURATIONS.includes(duration)) return;
+          void previewPlannedPriority(card, context, duration, progressSummary, atlasRuntime);
+        };
+        select.addEventListener('change', syncPriority);
+        await previewPlannedPriority(
+          card,
+          context,
+          Number(select.value),
+          progressSummary,
+          atlasRuntime,
+        );
+      } else if (resumable) {
+        bindSessionProjection(card, progressSummary, resumable.plan);
+      }
     }
     content.replaceChildren(node('div', {className: 'course-grid'}, cards));
     applyLibraryActionHierarchy();
@@ -958,3 +1015,4 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
 
 // ATLAS_SESSION_START_WIRED
 // ATLAS_M2_MEMORY_PROOF_LOOP_WIRED
+// ATLAS_R14_PLAN_BOUND_PRIORITY_WIRED
