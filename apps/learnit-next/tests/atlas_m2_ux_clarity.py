@@ -277,6 +277,8 @@ console.log(JSON.stringify({ok:true,readable}));
             "if (libraryVisible) queueMicrotask(applyLibraryActionHierarchy)",
             surface,
         )
+        self.assertIn("observer.observe(appMain, {childList: true});", surface)
+        self.assertNotIn("observer.observe(appMain, {childList: true, subtree: true});", surface)
         self.assertIn("if (!identity) return null;", main)
         self.assertNotIn("build unbound", main)
         self.assertNotIn("Build Learn-it non vérifiable", main)

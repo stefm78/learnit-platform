@@ -951,7 +951,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       if (libraryVisible) queueMicrotask(applyLibraryActionHierarchy);
       queueRefresh();
     });
-    observer.observe(appMain, {childList: true, subtree: true});
+    observer.observe(appMain, {childList: true});
   }
   return Object.freeze({ready: true, durations: DURATIONS, memoryPolicy: 'atlas.memory-policy.v1'});
 }
