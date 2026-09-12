@@ -564,9 +564,22 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             library_card = library_page.locator(
                 f'.course-card[data-course-install-id="{course_install_id}"]'
             )
-            library_card.locator(
+            library_state = library_card.locator(
                 '[data-course-learning-action="learn"], [data-atlas-rest-status="true"]'
-            ).wait_for(timeout=10000)
+            )
+            try:
+                library_state.wait_for(timeout=10000)
+            except Exception as error:
+                state = library_card.evaluate(
+                    """card => ({
+                      cardText: card.innerText,
+                      cardDisplay: getComputedStyle(card).display,
+                      mainDisplay: getComputedStyle(card.closest('.app-main')).display,
+                      mainInert: card.closest('.app-main').hasAttribute('inert'),
+                      actions: card.querySelector('.course-row-actions')?.innerHTML,
+                    })"""
+                )
+                self.fail(f"Library Atlas action unavailable; state={state!r}; timeout={error}")
             action = library_card.locator('[data-course-learning-action="learn"]').first
             if action.count():
                 action.click()
