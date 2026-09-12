@@ -657,6 +657,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       status.textContent = '';
     }
   }
+
   function applyLibraryActionHierarchy() {
     if (!appMain || !libraryVisible) return;
     compactImportPanel();
