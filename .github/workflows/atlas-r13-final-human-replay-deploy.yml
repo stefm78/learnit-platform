@@ -1,0 +1,366 @@
+name: Atlas R13 final human replay deploy
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-r13-final-human-replay-deploy.yml'
+      - 'work-packages/OPS-WP-020.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-r13-final-human-replay-deploy.yml'
+      - 'work-packages/OPS-WP-020.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atlas-human-replay
+  cancel-in-progress: false
+
+env:
+  PRODUCT_HEAD: 76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b
+  PRODUCT_EXPECTED_SHA256: 4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3
+  PRODUCT_EXPECTED_BYTES: '412825'
+  PREVIOUS_R13_HEAD: ca1f537ee435b31794282b3cf6b3c7589e736783
+  PREVIOUS_R13_SHA256: 6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18
+  PREVIOUS_R13_BYTES: '415361'
+  R12_HEAD: 01a5ca9b3e8a3abd5fb9692a001bb8533065b45f
+  R12_SHA256: 6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956
+  R12_BYTES: '411551'
+  R11_HEAD: 934e1c7193fc6d20d408339f8a962bca6aea51a6
+  R11_SHA256: 4f620a570fabb669165791f36db1977b744ac82c9eb5c95654c6c402deb4b173
+  R11_BYTES: '407356'
+  R10_HEAD: 10fbe658175f634648baf86f7bf10320b88a3127
+  R10_SHA256: c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89
+  R10_BYTES: '405648'
+  STABLE_LEARNER_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
+  STABLE_LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  STABLE_LEARNER_BYTES: '366412'
+  STABLE_M3_1_MAIN: be3d5b2635836e8ce0d9a6ecf42d573efc9ef749
+  FROZEN_PRODUCT_HEAD: 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2
+  FROZEN_QA_HEAD: 6ff592af68e6cc95bd479911a09388293c5528f5
+
+jobs:
+  verify:
+    name: Verify final R13 replay and preserve immutable history
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      site_artifact: ${{ steps.names.outputs.site_artifact }}
+    steps:
+      - name: Checkout exact stable M3.1 Pages source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.STABLE_M3_1_MAIN }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Materialize exact learner and replay products
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin \
+            "$STABLE_LEARNER_HEAD" "$PRODUCT_HEAD" "$PREVIOUS_R13_HEAD" \
+            "$R12_HEAD" "$R11_HEAD" "$R10_HEAD"
+          stable="$RUNNER_TEMP/stable-learner"
+          current="$RUNNER_TEMP/current-product"
+          previous_r13="$RUNNER_TEMP/previous-r13-product"
+          r12="$RUNNER_TEMP/r12-product"
+          r11="$RUNNER_TEMP/r11-product"
+          r10="$RUNNER_TEMP/r10-product"
+          git worktree add --detach "$stable" "$STABLE_LEARNER_HEAD"
+          git worktree add --detach "$current" "$PRODUCT_HEAD"
+          git worktree add --detach "$previous_r13" "$PREVIOUS_R13_HEAD"
+          git worktree add --detach "$r12" "$R12_HEAD"
+          git worktree add --detach "$r11" "$R11_HEAD"
+          git worktree add --detach "$r10" "$R10_HEAD"
+          [[ "$(git -C "$stable" rev-parse HEAD)" == "$STABLE_LEARNER_HEAD" ]]
+          [[ "$(git -C "$current" rev-parse HEAD)" == "$PRODUCT_HEAD" ]]
+          [[ "$(git -C "$previous_r13" rev-parse HEAD)" == "$PREVIOUS_R13_HEAD" ]]
+          [[ "$(git -C "$r12" rev-parse HEAD)" == "$R12_HEAD" ]]
+          [[ "$(git -C "$r11" rev-parse HEAD)" == "$R11_HEAD" ]]
+          [[ "$(git -C "$r10" rev-parse HEAD)" == "$R10_HEAD" ]]
+          echo "STABLE_TREE=$stable" >> "$GITHUB_ENV"
+          echo "CURRENT_TREE=$current" >> "$GITHUB_ENV"
+          echo "PREVIOUS_R13_TREE=$previous_r13" >> "$GITHUB_ENV"
+          echo "R12_TREE=$r12" >> "$GITHUB_ENV"
+          echo "R11_TREE=$r11" >> "$GITHUB_ENV"
+          echo "R10_TREE=$r10" >> "$GITHUB_ENV"
+
+      - name: Assemble stable site plus immutable replay history
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          authoring_a="$RUNNER_TEMP/authoring-a"
+          authoring_b="$RUNNER_TEMP/authoring-b"
+          mkdir -p "$site"
+
+          python -B authoring/studio/pages/build_pages.py --output "$authoring_a"
+          python -B authoring/studio/pages/build_pages.py --output "$authoring_b"
+          diff -qr "$authoring_a" "$authoring_b"
+          cp -a "$authoring_a" "$site/authoring"
+
+          python -B "$STABLE_TREE/apps/learnit-next/build.py" --output "$site/index.html"
+          cp "$site/index.html" "$site/learnit-next.html"
+          [[ "$(sha256sum "$site/index.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]]
+          [[ "$(wc -c < "$site/index.html" | tr -d ' ')" == "$STABLE_LEARNER_BYTES" ]]
+
+          quality_sha="$(sha256sum authoring/v2/atlas/pedagogical_quality.py | awk '{print $1}')"
+          authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
+          cat > "$site/deployment-evidence.json" <<EOF
+          {"schema":"learnit.next.pages.deployment.v3","learnerPromotedHead":"$STABLE_LEARNER_HEAD","learnerArtifactBytes":$STABLE_LEARNER_BYTES,"learnerArtifactSha256":"$STABLE_LEARNER_SHA256","m3_1PromotedMain":"$STABLE_M3_1_MAIN","frozenProductHead":"$FROZEN_PRODUCT_HEAD","frozenQaHead":"$FROZEN_QA_HEAD","qualityEngineSha256":"$quality_sha","authoringIndexSha256":"$authoring_sha","authoringPath":"/authoring/","learnerIndexByteIdentity":"PASS","stableAuthoringPublication":true,"humanUxDebtIssue":272,"runtimeBackendDependencyAdded":false}
+          EOF
+
+          build_legacy_replay() {
+            local tree="$1" head="$2" expected_sha="$3" expected_bytes="$4"
+            local dir="$site/human-replay/$head" a="$RUNNER_TEMP/$head-a.html" b="$RUNNER_TEMP/$head-b.html"
+            mkdir -p "$dir/fixtures"
+            python -B "$tree/apps/learnit-next/build.py" --output "$a"
+            python -B "$tree/apps/learnit-next/build.py" --output "$b"
+            cmp "$a" "$b"
+            [[ "$(sha256sum "$a" | awk '{print $1}')" == "$expected_sha" ]]
+            [[ "$(wc -c < "$a" | tr -d ' ')" == "$expected_bytes" ]]
+            cp "$a" "$dir/index.html"
+            cp "$a" "$dir/learnit-next.html"
+            cp "$tree/authoring/v2/golden/signaux_electriques.json" "$dir/fixtures/signaux_electriques.json"
+            fixture_sha="$(sha256sum "$dir/fixtures/signaux_electriques.json" | awk '{print $1}')"
+            cat > "$dir/identity.json" <<EOF
+          {"schema":"learnit.atlas.human-replay.v1","issue":352,"pullRequest":354,"productHead":"$head","learnerArtifactBytes":$expected_bytes,"learnerArtifactSha256":"$expected_sha","fixture":"fixtures/signaux_electriques.json","fixtureSha256":"$fixture_sha","promotion":false,"humanGateRequired":true,"learnerUxPass":false}
+          EOF
+          }
+
+          build_atlas_replay() {
+            local tree="$1" head="$2" expected_sha="$3" expected_bytes="$4" label="$5"
+            local dir="$site/human-replay/$head" a="$RUNNER_TEMP/$head-a.html" b="$RUNNER_TEMP/$head-b.html"
+            mkdir -p "$dir/fixtures"
+            python -B "$tree/apps/learnit-next/build.py" --output "$a"
+            python -B "$tree/apps/learnit-next/build.py" --output "$b"
+            cmp "$a" "$b"
+            [[ "$(sha256sum "$a" | awk '{print $1}')" == "$expected_sha" ]]
+            [[ "$(wc -c < "$a" | tr -d ' ')" == "$expected_bytes" ]]
+            cp "$a" "$dir/index.html"
+            cp "$a" "$dir/learnit-next.html"
+            cp "$tree/authoring/v2/atlas/nombres_complexes_atlas.json" "$dir/fixtures/nombres_complexes_atlas.json"
+            python - "$dir/fixtures/nombres_complexes_atlas.json" "$dir/fixtures/nombres_complexes_atlas-answer-guide.txt" "$label" <<'PY'
+          import json, sys
+          source, target, label = sys.argv[1:]
+          data = json.load(open(source, encoding='utf-8'))
+          lines = [
+              f'Guide de réponses — Human Replay Atlas {label}',
+              'Utilisez ce guide uniquement pour tester le parcours et la progression.',
+              'Pour tester la correction, répondez volontairement faux à une activité practice, puis reprenez le parcours.',
+              '',
+          ]
+          for course in data['courses']:
+              lines.append(course['title'])
+              lines.append('=' * len(course['title']))
+              for index, activity in enumerate(course['activities'], 1):
+                  lines.append(f"{index}. {activity['prompt']}")
+                  if activity['type'] == 'qcm':
+                      by_id = {choice['choiceId']: choice['label'] for choice in activity['choices']}
+                      answer = by_id[activity['correctChoiceId']]
+                  else:
+                      tokens = {token['tokenId']: token['label'] for token in activity['tokens']}
+                      answers = {answer['slotId']: tokens[answer['tokenId']] for answer in activity['answers']}
+                      answer = ' / '.join(answers[segment['slotId']] for segment in activity['segments'] if 'slotId' in segment)
+                  lines.append(f"   Réponse correcte : {answer}")
+                  lines.append('')
+          open(target, 'w', encoding='utf-8').write('\n'.join(lines) + '\n')
+          PY
+            fixture_sha="$(sha256sum "$dir/fixtures/nombres_complexes_atlas.json" | awk '{print $1}')"
+            guide_sha="$(sha256sum "$dir/fixtures/nombres_complexes_atlas-answer-guide.txt" | awk '{print $1}')"
+            cat > "$dir/identity.json" <<EOF
+          {"schema":"learnit.atlas.human-replay.v1","issue":352,"pullRequest":354,"productHead":"$head","learnerArtifactBytes":$expected_bytes,"learnerArtifactSha256":"$expected_sha","fixture":"fixtures/nombres_complexes_atlas.json","fixtureSha256":"$fixture_sha","answerGuide":"fixtures/nombres_complexes_atlas-answer-guide.txt","answerGuideSha256":"$guide_sha","promotion":false,"humanGateRequired":true,"learnerUxPass":false}
+          EOF
+          }
+
+          build_legacy_replay "$R10_TREE" "$R10_HEAD" "$R10_SHA256" "$R10_BYTES"
+          build_legacy_replay "$R11_TREE" "$R11_HEAD" "$R11_SHA256" "$R11_BYTES"
+          build_atlas_replay "$R12_TREE" "$R12_HEAD" "$R12_SHA256" "$R12_BYTES" R12
+          build_atlas_replay "$PREVIOUS_R13_TREE" "$PREVIOUS_R13_HEAD" "$PREVIOUS_R13_SHA256" "$PREVIOUS_R13_BYTES" R13-PREVIOUS
+          build_atlas_replay "$CURRENT_TREE" "$PRODUCT_HEAD" "$PRODUCT_EXPECTED_SHA256" "$PRODUCT_EXPECTED_BYTES" R13-FINAL
+
+          current_dir="$site/human-replay/$PRODUCT_HEAD"
+          grep -Fq 'identity.slice(0, 8)' "$current_dir/index.html"
+          grep -Fq 'data-learnit-build-identity' "$current_dir/index.html"
+          grep -Fq 'atlas-r13-reservoirs' "$current_dir/index.html"
+          grep -Fq 'data-atlas-r13-progress' "$current_dir/index.html"
+          python - "$current_dir/identity.json" <<'PY'
+          import json, sys
+          data=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert data['productHead']=='76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b'
+          assert data['learnerArtifactSha256']=='4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3'
+          assert data['fixture']=='fixtures/nombres_complexes_atlas.json'
+          assert data['promotion'] is False
+          assert data['humanGateRequired'] is True
+          assert data['learnerUxPass'] is False
+          PY
+          echo "SITE=$site" >> "$GITHUB_ENV"
+
+      - name: Install Chromium browser probe
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Real-browser proof of final R13 objective reservoirs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m http.server 8765 --directory "$SITE" >"$RUNNER_TEMP/replay-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+
+          head = os.environ['PRODUCT_HEAD']
+          fixture = Path(os.environ['CURRENT_TREE']) / 'authoring/v2/atlas/nombres_complexes_atlas.json'
+          data = json.loads(fixture.read_text(encoding='utf-8'))
+          expected = sum(len(course.get('objectives', [])) for course in data['courses'])
+          assert expected > 0
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              page = browser.new_page(viewport={'width': 1280, 'height': 900})
+              page.goto(f'http://127.0.0.1:8765/human-replay/{head}/', wait_until='load')
+              page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+              assert page.locator(f'[data-learnit-build-identity="{head}"]').count() == 1
+              page.locator('#kit-file').set_input_files(str(fixture))
+              page.locator('.import-panel button[type="submit"]').click()
+              page.wait_for_selector('[data-atlas-course-install-id]', timeout=10000)
+              page.wait_for_selector('[data-atlas-r13-progress="true"]', timeout=10000)
+              reservoirs = page.locator('[data-atlas-r13-progress="true"] .atlas-r13-reservoir')
+              assert reservoirs.count() == expected, (reservoirs.count(), expected)
+              box = reservoirs.first.bounding_box()
+              assert box and box['height'] > box['width'] * 2, box
+              fill = reservoirs.first.locator('.atlas-r13-fill')
+              assert fill.count() == 1
+              assert fill.evaluate("el => getComputedStyle(el).backgroundColor")
+              reservoirs.first.focus()
+              page.wait_for_function("() => !document.querySelector('[data-atlas-r13-detail]').hidden")
+              page.set_viewport_size({'width': 390, 'height': 844})
+              assert reservoirs.first.is_visible()
+              browser.close()
+          print('FINAL_R13_REAL_BROWSER_RESERVOIRS=PASS')
+          PY
+
+      - name: Name immutable verification artifact
+        id: names
+        shell: bash
+        run: echo "site_artifact=atlas-r13-final-human-replay-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified site
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.site_artifact }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ env.SITE }}
+
+  deploy:
+    name: Deploy final R13 human replay
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}human-replay/${{ env.PRODUCT_HEAD }}/
+    steps:
+      - name: Download immutable verified site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.site_artifact }}
+          path: ${{ runner.temp }}/site
+
+      - name: Recheck downloaded identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          [[ "$(sha256sum "$site/index.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]]
+          for row in \
+            "$R10_HEAD:$R10_SHA256:$R10_BYTES" \
+            "$R11_HEAD:$R11_SHA256:$R11_BYTES" \
+            "$R12_HEAD:$R12_SHA256:$R12_BYTES" \
+            "$PREVIOUS_R13_HEAD:$PREVIOUS_R13_SHA256:$PREVIOUS_R13_BYTES" \
+            "$PRODUCT_HEAD:$PRODUCT_EXPECTED_SHA256:$PRODUCT_EXPECTED_BYTES"; do
+            IFS=: read -r head expected_sha expected_bytes <<< "$row"
+            replay="$site/human-replay/$head/index.html"
+            [[ "$(sha256sum "$replay" | awk '{print $1}')" == "$expected_sha" ]]
+            [[ "$(wc -c < "$replay" | tr -d ' ')" == "$expected_bytes" ]]
+            grep -q "\"productHead\":\"$head\"" "$site/human-replay/$head/identity.json"
+          done
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+
+      - name: Deploy verified site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Live post-deploy identity smoke
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          current_url="${PAGE_URL}human-replay/${PRODUCT_HEAD}/"
+          previous_r13_url="${PAGE_URL}human-replay/${PREVIOUS_R13_HEAD}/"
+          r12_url="${PAGE_URL}human-replay/${R12_HEAD}/"
+          r11_url="${PAGE_URL}human-replay/${R11_HEAD}/"
+          r10_url="${PAGE_URL}human-replay/${R10_HEAD}/"
+          ok=0
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/root.html" \
+              && curl --fail --silent --show-error "$current_url" -o "$RUNNER_TEMP/current.html" \
+              && curl --fail --silent --show-error "$previous_r13_url" -o "$RUNNER_TEMP/previous-r13.html" \
+              && curl --fail --silent --show-error "$r12_url" -o "$RUNNER_TEMP/r12.html" \
+              && curl --fail --silent --show-error "$r11_url" -o "$RUNNER_TEMP/r11.html" \
+              && curl --fail --silent --show-error "$r10_url" -o "$RUNNER_TEMP/r10.html" \
+              && curl --fail --silent --show-error "${current_url}identity.json" -o "$RUNNER_TEMP/identity.json" \
+              && curl --fail --silent --show-error "${current_url}fixtures/nombres_complexes_atlas.json" -o "$RUNNER_TEMP/fixture.json" \
+              && curl --fail --silent --show-error "${current_url}fixtures/nombres_complexes_atlas-answer-guide.txt" -o "$RUNNER_TEMP/guide.txt"; then
+              readarray -t expected < <(python - "$RUNNER_TEMP/identity.json" <<'PY'
+          import json,sys
+          data=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert data['productHead']=='76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b'
+          assert data['learnerArtifactSha256']=='4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3'
+          assert data['promotion'] is False
+          assert data['humanGateRequired'] is True
+          assert data['learnerUxPass'] is False
+          print(data['fixtureSha256'])
+          print(data['answerGuideSha256'])
+          PY
+          )
+              if [[ "$(sha256sum "$RUNNER_TEMP/root.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" \
+                && "$(sha256sum "$RUNNER_TEMP/current.html" | awk '{print $1}')" == "$PRODUCT_EXPECTED_SHA256" \
+                && "$(sha256sum "$RUNNER_TEMP/previous-r13.html" | awk '{print $1}')" == "$PREVIOUS_R13_SHA256" \
+                && "$(sha256sum "$RUNNER_TEMP/r12.html" | awk '{print $1}')" == "$R12_SHA256" \
+                && "$(sha256sum "$RUNNER_TEMP/r11.html" | awk '{print $1}')" == "$R11_SHA256" \
+                && "$(sha256sum "$RUNNER_TEMP/r10.html" | awk '{print $1}')" == "$R10_SHA256" \
+                && "$(sha256sum "$RUNNER_TEMP/fixture.json" | awk '{print $1}')" == "${expected[0]}" \
+                && "$(sha256sum "$RUNNER_TEMP/guide.txt" | awk '{print $1}')" == "${expected[1]}" ]]; then
+                ok=1
+                break
+              fi
+            fi
+            sleep 3
+          done
+          [[ "$ok" == 1 ]]
+          echo "FINAL_R13_REPLAY_URL=$current_url" >> "$GITHUB_STEP_SUMMARY"
+          echo "FINAL_R13_IDENTITY_URL=${current_url}identity.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "FINAL_R13_FIXTURE_URL=${current_url}fixtures/nombres_complexes_atlas.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "FINAL_R13_ANSWER_GUIDE_URL=${current_url}fixtures/nombres_complexes_atlas-answer-guide.txt" >> "$GITHUB_STEP_SUMMARY"
