@@ -546,9 +546,18 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
                 today_page.wait_for_selector('[data-atlas-session-active="true"] form', timeout=10000)
             except Exception as error:
                 alerts = today_page.locator('[role="alert"]').all_text_contents()
+                state = today_page.evaluate(
+                    """() => ({
+                      surfaceText: document.querySelector('[data-atlas-int-surface]')?.innerText,
+                      activeCount: document.querySelectorAll('[data-atlas-session-active="true"]').length,
+                      startCount: document.querySelectorAll('[data-atlas-course-start="true"]').length,
+                      disabledStartCount: document.querySelectorAll('[data-atlas-course-start="true"]:disabled').length,
+                    })"""
+                )
                 self.fail(
                     "Today did not enter Atlas session; "
-                    f"alerts={alerts!r}; page_errors={today_page_errors!r}; timeout={error}"
+                    f"state={state!r}; alerts={alerts!r}; "
+                    f"page_errors={today_page_errors!r}; timeout={error}"
                 )
             self.assertEqual(
                 today_page.locator('[data-atlas-session-active="true"] form').count(),
