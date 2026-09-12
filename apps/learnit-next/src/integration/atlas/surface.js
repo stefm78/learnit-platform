@@ -657,7 +657,6 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       status.textContent = '';
     }
   }
-
   function applyLibraryActionHierarchy() {
     if (!appMain || !libraryVisible) return;
     compactImportPanel();
@@ -731,7 +730,7 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
       const resumable = Boolean(todayCard?.querySelector('[data-atlas-resume-session="true"]'));
       if (!resumable && !actions.querySelector('[data-atlas-session-start-control="true"]')) {
         const select = durationSelect(atlasContextsByInstallId.get(courseInstallId)?.title ?? 'ce cours');
-        primary.replaceWith(sessionStartControl(select, primary));
+        actions.prepend(sessionStartControl(select, primary));
       }
     }
   }
