@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-020",
+  "title": "Atlas #352 final R13 immutable human-replay publication",
+  "status": "in-progress",
+  "changeClass": "operations-human-gate-pages-deployment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 352,
+    "productPullRequest": 354,
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Publish the exact final machine-qualified #352 R13 candidate at one immutable GitHub Pages URL for human replay, preserve the previously published R13 plus R10/R11/R12 and the stable learner root, bind the exact Atlas Nombres Complexes fixture and answer guide, and prove in a real served browser that the vertical objective reservoirs render before deployment; do not modify, merge or promote PR #354.",
+  "baseline": {
+    "baseCommit": "c7631f24f0c02c10cfd673d10af927958f3c53b4",
+    "productHead": "76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b",
+    "learnerArtifactBytes": 412825,
+    "learnerArtifactSha256": "4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3",
+    "previousR13Head": "ca1f537ee435b31794282b3cf6b3c7589e736783",
+    "previousR13Bytes": 415361,
+    "previousR13Sha256": "6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18",
+    "r12Head": "01a5ca9b3e8a3abd5fb9692a001bb8533065b45f",
+    "r12Bytes": 411551,
+    "r12Sha256": "6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956",
+    "r11Head": "934e1c7193fc6d20d408339f8a962bca6aea51a6",
+    "r11Bytes": 407356,
+    "r11Sha256": "4f620a570fabb669165791f36db1977b744ac82c9eb5c95654c6c402deb4b173",
+    "r10Head": "10fbe658175f634648baf86f7bf10320b88a3127",
+    "r10Bytes": 405648,
+    "r10Sha256": "c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89",
+    "stableLearnerHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "stableLearnerBytes": 366412,
+    "stableLearnerSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "stableM3_1Main": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-020.json",
+      ".github/workflows/atlas-r13-final-human-replay-deploy.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-024.json",
+      ".github/workflows/learnit-next-pages.yml"
+    ]
+  },
+  "invariants": [
+    "No product file from PR #354 is modified by this OPS work package.",
+    "Final R13 is rebuilt from exact product HEAD 76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b.",
+    "Final R13 must be exactly 412825 bytes and SHA-256 4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3.",
+    "Previously published R13 ca1f537ee435b31794282b3cf6b3c7589e736783 remains published at its exact frozen identity.",
+    "R10, R11 and R12 remain published at their exact frozen HTML identities.",
+    "The stable learner root remains exactly 366412 bytes with SHA-256 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7.",
+    "Final R13 publishes authoring/v2/atlas/nombres_complexes_atlas.json from its exact product tree and a deterministic answer guide.",
+    "A real browser served over HTTP imports the exact final R13 Atlas fixture and observes data-atlas-r13-progress with one vertical atlas-r13-reservoir per course objective.",
+    "Final R13 HTML exposes the exact build identity from its immutable replay URL.",
+    "Live post-deploy smoke proves final R13, previous R13, R12, R11, R10, stable root, final fixture and final answer-guide identities.",
+    "Publication states promotion=false, humanGateRequired=true and learnerUxPass=false.",
+    "PR #354 is neither merged nor promoted by this work package."
+  ],
+  "requiredEvidence": [
+    "Exact two-path OPS delta.",
+    "Deterministic final R13 build equality across two materializations.",
+    "Exact final R13 bytes and SHA-256 match the frozen CI artifact identity.",
+    "Real-browser HTTP import of the canonical Nombres Complexes Atlas fixture renders vertical R13 objective reservoirs.",
+    "Previous R13, R10, R11, R12 and stable root remain at exact frozen HTML identities.",
+    "Final R13 Atlas fixture and deterministic answer guide are identity-bound.",
+    "Live HTTPS identity checks after main-only Pages deployment."
+  ],
+  "adversarialTests": [
+    "Product HEAD differs from the frozen final R13 SHA.",
+    "Final R13 differs across two materializations or by one byte from the frozen identity.",
+    "Canonical Atlas import succeeds but data-atlas-r13-progress or expected vertical reservoirs do not render.",
+    "Previously published R13, R10, R11 or R12 disappears or changes.",
+    "Stable root differs by one byte.",
+    "Fixture or answer guide identity differs after deployment.",
+    "Any product path is changed by this OPS work package."
+  ],
+  "nonGoals": [
+    "Changing product behavior.",
+    "Changing kits or learnit.kit.v2.",
+    "Changing Atlas memory policy.",
+    "Merging or promoting PR #354.",
+    "Declaring learner usability PASS.",
+    "Requiring the learner to run a local ZIP, CMD script or local web server."
+  ],
+  "independentReview": [
+    "Exact final R13 bytes and SHA-256 are checked before deployment against the independently produced exact-head CI artifact identity.",
+    "A served Chromium replay imports the canonical Atlas fixture and must observe the R13 objective-reservoir projection before deployment can proceed.",
+    "Previous R13, R12, R11, R10 and stable-root identities are rechecked so the new publication cannot silently erase immutable replay history.",
+    "Post-deploy HTTPS smoke rechecks final replay, historical replays, fixture and answer-guide identities before publication is considered usable."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-020-atlas-r13-final-human-replay",
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTING",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Re-run the prior R13 Pages publication from main commit c7631f24f0c02c10cfd673d10af927958f3c53b4; no product source rollback is required."
+}
