@@ -533,36 +533,22 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             page.locator('.import-panel button[type="submit"]').click()
             page.wait_for_selector('[data-atlas-course-install-id]', timeout=10000)
 
+        def assert_active_atlas_activity(page):
+            active = '[data-atlas-session-active="true"] .atlas-session'
+            page.wait_for_selector(f'{active} .atlas-activity', timeout=10000)
+            self.assertEqual(page.locator(f'{active} .atlas-activity').count(), 1)
+            self.assertEqual(page.locator(f'{active} [data-atlas-help="hint"]').count(), 1)
+            self.assertEqual(page.locator(f'{active} [data-atlas-submit]').count(), 1)
+            self.assertEqual(page.locator(f'{active} [data-atlas-pause-session]').count(), 1)
+
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(executable_path=chrome)
 
             today_context = browser.new_context(viewport={"width": 900, "height": 900})
             today_page = today_context.new_page()
-            today_page_errors = []
-            today_page.on("pageerror", lambda error: today_page_errors.append(str(error)))
             import_fixture(today_page)
             today_page.locator('[data-atlas-course-start="true"]').first.click()
-            try:
-                today_page.wait_for_selector('[data-atlas-session-active="true"] form', timeout=10000)
-            except Exception as error:
-                alerts = today_page.locator('[role="alert"]').all_text_contents()
-                state = today_page.evaluate(
-                    """() => ({
-                      surfaceText: document.querySelector('[data-atlas-int-surface]')?.innerText,
-                      activeCount: document.querySelectorAll('[data-atlas-session-active="true"]').length,
-                      startCount: document.querySelectorAll('[data-atlas-course-start="true"]').length,
-                      disabledStartCount: document.querySelectorAll('[data-atlas-course-start="true"]:disabled').length,
-                    })"""
-                )
-                self.fail(
-                    "Today did not enter Atlas session; "
-                    f"state={state!r}; alerts={alerts!r}; "
-                    f"page_errors={today_page_errors!r}; timeout={error}"
-                )
-            self.assertEqual(
-                today_page.locator('[data-atlas-session-active="true"] form').count(),
-                1,
-            )
+            assert_active_atlas_activity(today_page)
             today_context.close()
 
             library_context = browser.new_context(viewport={"width": 900, "height": 900})
@@ -584,11 +570,7 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             ).first
             if action.count():
                 action.click()
-                library_page.wait_for_selector('[data-atlas-session-active="true"] form', timeout=10000)
-                self.assertEqual(
-                    library_page.locator('[data-atlas-session-active="true"] form').count(),
-                    1,
-                )
+                assert_active_atlas_activity(library_page)
             else:
                 self.assertEqual(
                     library_page.locator(
