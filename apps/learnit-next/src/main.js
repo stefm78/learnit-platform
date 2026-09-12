@@ -329,9 +329,45 @@ function atlasR13PriorityTarget(currentNext, objectiveStates) {
     ?? null;
 }
 
-function renderAtlasR13Progress(progress, objectiveStates, target) {
+function atlasR13StatesFromProgress(progress, objectives) {
+  const reservoirs = [...progress.querySelectorAll('[data-atlas-r13-objective]')];
+  if (reservoirs.length === objectives.length && reservoirs.length > 0) {
+    const byId = new Map(reservoirs.map(item => [
+      item.getAttribute('data-atlas-r13-objective'),
+      item,
+    ]));
+    return objectives.map(objective => ({
+      objectiveId: objective.objectiveId,
+      label: objective.label,
+      state: byId.get(objective.objectiveId)?.getAttribute('data-atlas-r13-state') ?? 'not-started',
+    }));
+  }
+
+  const segments = [...progress.querySelectorAll('.course-objective-segment')];
+  if (segments.length !== objectives.length || !segments.length) return [];
+  return objectives.map((objective, index) => ({
+    objectiveId: objective.objectiveId,
+    label: objective.label,
+    state: atlasR13StateFromSegment(segments[index]),
+  }));
+}
+
+function atlasR13JsonAttribute(element, name, fallback) {
+  const raw = element?.getAttribute(name);
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function renderAtlasR13Progress(progress, objectiveStates, target, sessionProjection = null) {
   const allAcquired = objectiveStates.length > 0
     && objectiveStates.every(item => item.state === 'validated-recently');
+  const worked = new Set(sessionProjection?.workedObjectiveIds ?? []);
+  const changed = new Set(sessionProjection?.changedObjectiveIds ?? []);
+  const beforeStates = sessionProjection?.beforeStates ?? {};
 
   const groupLabel = atlasR13Node('span', {
     className: 'atlas-r13-group-label',
@@ -356,18 +392,29 @@ function renderAtlasR13Progress(progress, objectiveStates, target) {
   const showDetail = (item) => {
     detail.hidden = false;
     detailState.textContent = atlasR13StateLabel(item.state);
-    detailLabel.textContent = item.label;
+    if (!sessionProjection || !worked.has(item.objectiveId)) {
+      detailLabel.textContent = item.label;
+      return;
+    }
+    const before = beforeStates[item.objectiveId] ?? item.state;
+    detailLabel.textContent = changed.has(item.objectiveId)
+      ? `${item.label} · Cette séance : ${atlasR13StateLabel(before)} → ${atlasR13StateLabel(item.state)}`
+      : `${item.label} · Travaillé pendant cette séance, état inchangé`;
   };
 
   objectiveStates.forEach((item) => {
-    const isPriority = target?.objectiveId === item.objectiveId;
+    const isPriority = !sessionProjection && target?.objectiveId === item.objectiveId;
+    const wasWorked = worked.has(item.objectiveId);
+    const didChange = changed.has(item.objectiveId);
     const reservoir = atlasR13Node('button', {
       type: 'button',
       className: `atlas-r13-reservoir atlas-r13-reservoir--${item.state}`,
       'data-atlas-r13-objective': item.objectiveId,
       'data-atlas-r13-state': item.state,
       'data-atlas-r13-priority': String(isPriority),
-      'aria-label': `${item.label}. ${atlasR13StateLabel(item.state)}${isPriority ? '. Priorité Learn-it' : ''}`,
+      'data-atlas-r13-session-worked': String(wasWorked),
+      'data-atlas-r13-session-changed': String(didChange),
+      'aria-label': `${item.label}. ${atlasR13StateLabel(item.state)}${isPriority ? '. Priorité Learn-it' : ''}${wasWorked ? '. Travaillé pendant cette séance' : ''}${didChange ? '. État modifié pendant cette séance' : ''}`,
       title: `${item.label} — ${atlasR13StateLabel(item.state)}`,
     }, [
       atlasR13Node('span', {
@@ -394,27 +441,52 @@ function renderAtlasR13Progress(progress, objectiveStates, target) {
     'data-atlas-r13-consolidated': String(allAcquired),
   }, [groupLabel, reservoirs]);
 
-  const context = atlasR13Node('div', {
-    className: 'atlas-r13-context',
-    'data-atlas-r13-context': 'true',
-  }, [
-    atlasR13Node('span', {className: 'atlas-r13-context-kicker', text: 'Priorité Learn-it'}),
-    atlasR13Node('strong', {
-      className: 'atlas-r13-context-state',
-      text: target ? atlasR13StateLabel(target.state) : 'À jour',
-    }),
-    atlasR13Node('span', {
-      className: 'atlas-r13-context-target',
-      text: target?.label ?? 'Aucun objectif prioritaire',
-    }),
-  ]);
+  let context;
+  if (sessionProjection) {
+    const workedCount = worked.size;
+    const changedCount = changed.size;
+    context = atlasR13Node('div', {
+      className: 'atlas-r13-context atlas-r13-session-context',
+      'data-atlas-r13-context': 'true',
+    }, [
+      atlasR13Node('span', {className: 'atlas-r13-context-kicker', text: 'Cette séance'}),
+      atlasR13Node('strong', {
+        className: 'atlas-r13-context-state',
+        text: `${workedCount} objectif${workedCount > 1 ? 's' : ''} travaillé${workedCount > 1 ? 's' : ''}`,
+      }),
+      atlasR13Node('span', {
+        className: 'atlas-r13-context-target',
+        text: changedCount
+          ? `${changedCount} changement${changedCount > 1 ? 's' : ''} d’état visible${changedCount > 1 ? 's' : ''}`
+          : 'État global inchangé',
+      }),
+    ]);
+  } else {
+    context = atlasR13Node('div', {
+      className: 'atlas-r13-context',
+      'data-atlas-r13-context': 'true',
+    }, [
+      atlasR13Node('span', {className: 'atlas-r13-context-kicker', text: 'Priorité Learn-it'}),
+      atlasR13Node('strong', {
+        className: 'atlas-r13-context-state',
+        text: target ? atlasR13StateLabel(target.state) : 'À jour',
+      }),
+      atlasR13Node('span', {
+        className: 'atlas-r13-context-target',
+        text: target?.label ?? 'Aucun objectif prioritaire',
+      }),
+    ]);
+  }
 
   progress.replaceChildren(
     atlasR13Node('div', {
       className: 'atlas-r13-progress',
       'data-atlas-r13-progress': 'true',
+      'data-atlas-r13-summary-progress': String(Boolean(sessionProjection)),
     }, [group, context, detail]),
   );
+  if (target) progress.setAttribute('data-atlas-r13-target-objective', target.objectiveId);
+  else progress.removeAttribute('data-atlas-r13-target-objective');
 }
 
 async function enhanceAtlasR13VisualProgress(root, runtime) {
@@ -430,7 +502,14 @@ async function enhanceAtlasR13VisualProgress(root, runtime) {
     if (!courseInstallId) continue;
 
     const progress = card.querySelector('.course-progress-compact');
-    if (!progress || progress.getAttribute('data-atlas-r13-enhanced') === 'true') continue;
+    if (!progress) continue;
+    const enhanced = progress.getAttribute('data-atlas-r13-enhanced') === 'true';
+    const plannedObjectiveId = card.getAttribute('data-atlas-planned-first-objective');
+    if (enhanced && !plannedObjectiveId) continue;
+    if (
+      enhanced
+      && progress.getAttribute('data-atlas-r13-target-objective') === plannedObjectiveId
+    ) continue;
 
     let context;
     try {
@@ -439,20 +518,81 @@ async function enhanceAtlasR13VisualProgress(root, runtime) {
       continue;
     }
 
-    const segments = [...progress.querySelectorAll('.course-objective-segment')];
-    if (segments.length !== context.course.objectives.length || !segments.length) continue;
+    const objectiveStates = atlasR13StatesFromProgress(progress, context.course.objectives);
+    if (objectiveStates.length !== context.course.objectives.length || !objectiveStates.length) continue;
 
-    const objectiveStates = context.course.objectives.map((objective, index) => ({
-      objectiveId: objective.objectiveId,
-      label: objective.label,
-      state: atlasR13StateFromSegment(segments[index]),
-    }));
     const currentNext = progress.querySelector('.course-next-step')?.textContent?.trim() ?? '';
-    const target = atlasR13PriorityTarget(currentNext, objectiveStates);
+    const target = objectiveStates.find(item => item.objectiveId === plannedObjectiveId)
+      ?? atlasR13PriorityTarget(currentNext, objectiveStates);
 
     renderAtlasR13Progress(progress, objectiveStates, target);
     progress.setAttribute('data-atlas-r13-enhanced', 'true');
     card.querySelector('.course-learning-map')?.remove();
+  }
+}
+
+function atlasR13SummaryState(card) {
+  const status = card.querySelector('.atlas-objective-status');
+  if (!status) return null;
+  const prefix = 'atlas-objective-status--';
+  const token = [...status.classList].find(value => value.startsWith(prefix));
+  return token ? token.slice(prefix.length) : null;
+}
+
+async function enhanceAtlasR13SessionSummaries(root, runtime) {
+  const summaries = [
+    ...root.querySelectorAll('.atlas-summary-overview:not([data-atlas-r13-summary-enhanced="true"])'),
+  ];
+  for (const summary of summaries) {
+    const courseCard = summary.closest('[data-atlas-course-install-id]');
+    const courseInstallId = courseCard?.getAttribute('data-atlas-course-install-id');
+    if (!courseCard || !courseInstallId) continue;
+
+    let context;
+    try {
+      context = await runtime.getAtlasCourseContext(courseInstallId);
+    } catch {
+      continue;
+    }
+
+    const beforeStates = atlasR13JsonAttribute(
+      courseCard,
+      'data-atlas-session-before-states',
+      {},
+    );
+    const workedObjectiveIds = atlasR13JsonAttribute(
+      courseCard,
+      'data-atlas-session-objectives',
+      [],
+    );
+    const observedByLabel = new Map();
+    const summaryRoot = summary.closest('.atlas-summary');
+    for (const objectiveCard of summaryRoot?.querySelectorAll('.atlas-objective-card') ?? []) {
+      const label = objectiveCard.querySelector('.atlas-objective-name')?.textContent?.trim();
+      const state = atlasR13SummaryState(objectiveCard);
+      if (label && state) observedByLabel.set(label, state);
+    }
+
+    const objectiveStates = context.course.objectives.map(objective => ({
+      objectiveId: objective.objectiveId,
+      label: objective.label,
+      state: observedByLabel.get(objective.label)
+        ?? beforeStates[objective.objectiveId]
+        ?? 'not-started',
+    }));
+    const changedObjectiveIds = objectiveStates
+      .filter(item => (
+        workedObjectiveIds.includes(item.objectiveId)
+        && (beforeStates[item.objectiveId] ?? 'not-started') !== item.state
+      ))
+      .map(item => item.objectiveId);
+
+    renderAtlasR13Progress(summary, objectiveStates, null, {
+      workedObjectiveIds,
+      changedObjectiveIds,
+      beforeStates,
+    });
+    summary.setAttribute('data-atlas-r13-summary-enhanced', 'true');
   }
 }
 
@@ -466,14 +606,17 @@ function installAtlasR13Styles(documentRef = globalThis.document) {
     .atlas-r13-group--consolidated{border-color:#8eae94;background:#eef7f0}
     .atlas-r13-group-label{display:block;font-size:.78rem;font-weight:700;color:#586276;margin-bottom:.55rem}
     .atlas-r13-reservoirs{display:flex;gap:.42rem;align-items:flex-end;overflow-x:auto;padding:.25rem .18rem .38rem;scrollbar-width:thin}
-    .atlas-r13-reservoir{position:relative;flex:0 0 1.35rem;width:1.35rem;height:4.6rem;border:1.5px solid #99a3b1;border-radius:.45rem;background:#eef1f4;overflow:hidden;padding:0;min-width:1.35rem}
+    .atlas-r13-reservoir{position:relative;flex:0 0 1.35rem;width:1.35rem;height:4.6rem;border:2px solid #68778d;border-radius:.45rem;background:#f7f9fc;overflow:hidden;padding:0;min-width:1.35rem}
     .atlas-r13-reservoir:focus-visible{outline:3px solid #233f64;outline-offset:3px}
-    .atlas-r13-reservoir[data-atlas-r13-priority="true"]{outline:2px solid #3a5378;outline-offset:2px}
+    .atlas-r13-reservoir[data-atlas-r13-priority="true"]{outline:2px solid #233f64;outline-offset:2px}
+    .atlas-r13-reservoir--not-started{border-color:#52647c;background:#fff}
     .atlas-r13-fill{position:absolute;left:0;right:0;bottom:0;height:var(--atlas-r13-level);background:#738bac}
     .atlas-r13-reservoir--not-started .atlas-r13-fill{background:#dfe3e8}
     .atlas-r13-reservoir--ready-for-validation .atlas-r13-fill{background:#7775a2}
     .atlas-r13-reservoir--review-needed .atlas-r13-fill{background:repeating-linear-gradient(135deg,#b48a46 0 5px,#ead8b8 5px 10px)}
     .atlas-r13-reservoir--validated-recently .atlas-r13-fill{background:#648a69}
+    .atlas-r13-reservoir[data-atlas-r13-session-worked="true"]{box-shadow:0 0 0 2px #9bacc4}
+    .atlas-r13-reservoir[data-atlas-r13-session-changed="true"]{outline:3px solid #3156d3;outline-offset:2px;box-shadow:none}
     .atlas-r13-state-mark{position:absolute;inset:auto 0 .1rem;text-align:center;font-size:.7rem;font-weight:800;color:#172033;z-index:1}
     .atlas-r13-reservoir--validated-recently .atlas-r13-state-mark{color:#fff}
     .atlas-r13-context{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:.35rem .65rem;align-items:baseline;border-top:1px solid #e3e6eb;padding-top:.65rem}
@@ -487,6 +630,7 @@ function installAtlasR13Styles(documentRef = globalThis.document) {
     .atlas-course-card[data-atlas-r13-session-owned="true"]>.course-row-main{display:none!important}
     .atlas-course-card[data-atlas-r13-session-owned="true"]>.atlas-course-actions{display:none!important}
     .atlas-course-card[data-atlas-r13-session-owned="true"] .atlas-r13-progress{display:none!important}
+    .atlas-course-card[data-atlas-r13-session-owned="true"] .atlas-summary-overview .atlas-r13-progress{display:grid!important}
     @media(max-width:640px){
       .atlas-r13-group{padding:.58rem}
       .atlas-r13-reservoir{flex-basis:1.2rem;width:1.2rem;min-width:1.2rem;height:4.1rem}
@@ -504,13 +648,18 @@ function installAtlasR13RuntimeBehavior(root, runtime) {
     queued = true;
     queueMicrotask(async () => {
       queued = false;
-
       await enhanceAtlasR13VisualProgress(root, runtime);
+      await enhanceAtlasR13SessionSummaries(root, runtime);
     });
   };
 
   const observer = new MutationObserver(reconcile);
-  observer.observe(root, {childList: true, subtree: true});
+  observer.observe(root, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['data-atlas-planned-first-objective'],
+  });
   reconcile();
 }
 
@@ -572,4 +721,4 @@ if (typeof document !== 'undefined' && document.querySelector('[data-learnit-nex
   else boot();
 }
 
-// ATLAS_R13_COMPACT_BALANCED_VISUAL_CONTRACT
+// ATLAS_R14_SESSION_BOUND_OBJECTIVE_MAP
