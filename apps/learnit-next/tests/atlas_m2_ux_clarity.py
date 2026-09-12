@@ -538,9 +538,18 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
 
             today_context = browser.new_context(viewport={"width": 900, "height": 900})
             today_page = today_context.new_page()
+            today_page_errors = []
+            today_page.on("pageerror", lambda error: today_page_errors.append(str(error)))
             import_fixture(today_page)
             today_page.locator('[data-atlas-course-start="true"]').first.click()
-            today_page.wait_for_selector('[data-atlas-session-active="true"] form', timeout=10000)
+            try:
+                today_page.wait_for_selector('[data-atlas-session-active="true"] form', timeout=10000)
+            except Exception as error:
+                alerts = today_page.locator('[role="alert"]').all_text_contents()
+                self.fail(
+                    "Today did not enter Atlas session; "
+                    f"alerts={alerts!r}; page_errors={today_page_errors!r}; timeout={error}"
+                )
             self.assertEqual(
                 today_page.locator('[data-atlas-session-active="true"] form').count(),
                 1,
