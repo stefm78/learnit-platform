@@ -562,14 +562,6 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
 .atlas-course-card:has(.atlas-int-preview[data-atlas-session-active="true"]) > .course-row-main {
   display: none;
 }
-.atlas-session-preview-intro {
-  margin: 0 0 .7rem;
-  padding: .7rem .8rem;
-  border-left: 4px solid var(--accent);
-  background: var(--surface-soft);
-  border-radius: .4rem;
-}
-.atlas-session-preview-intro p:last-child { margin-bottom: 0; }
 .atlas-library-rename { color: var(--muted); }
 .atlas-library-rename > summary {
   min-height: 44px;

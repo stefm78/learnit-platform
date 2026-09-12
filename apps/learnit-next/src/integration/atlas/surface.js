@@ -511,7 +511,7 @@ function renderObjectiveStateList(summary) {
   ])));
 }
 
-async function buildPreview(context, durationMinutes, atlasRuntime) {
+async function buildSessionPlan(context, durationMinutes, atlasRuntime) {
   const modules = atlasRuntime.modules;
   const E = modules.evidence;
   const content = buildContentIndex(context, modules);
@@ -568,11 +568,7 @@ async function buildPreview(context, durationMinutes, atlasRuntime) {
     itemProvenance,
   });
 
-  return Object.freeze({
-    recommendation: recommendations[0],
-    plan,
-    memory: contexts.get(E.canonicalRefKey(recommendations[0].objectiveRef))?.memory ?? null,
-  });
+  return plan;
 }
 
 function renderError(container, error) {
@@ -778,42 +774,14 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     actions.querySelectorAll('button, select').forEach(item => { item.disabled = true; });
     preview.replaceChildren(node('p', {role: 'status', text: `Préparation de la séance de ${duration} minutes…`}));
     try {
-      const result = await buildPreview(context, duration, atlasRuntime);
-      const wrapper = node('div');
-      wrapper.innerHTML = atlasRuntime.modules.today.renderToday({
-        recommendation: result.recommendation,
-        plan: result.plan,
-        objectiveLabels: learnerObjectiveLabels(context),
+      const plan = await buildSessionPlan(context, duration, atlasRuntime);
+      await runAtlasSession({
+        container: preview,
+        context,
+        plan,
+        atlasRuntime,
+        onReturn: refresh,
       });
-      wrapper.prepend(node('div', {className: 'atlas-session-preview-intro'}, [
-        node('p', {className: 'eyebrow', text: `Séance de ${duration} min`}),
-        node('p', {text: 'Voici ce que vous allez travailler pendant cette séance.'}),
-      ]));
-      if (result.memory?.dueAt) {
-        const readableDueAt = learnerDateTime(result.memory.dueAt);
-        wrapper.append(node('p', {
-          className: 'help',
-          'data-atlas-memory-due': result.memory.dueAt,
-          text: result.memory.due
-            ? 'Une reconfirmation est disponible.'
-            : readableDueAt
-              ? `Prochaine reconfirmation à partir du ${readableDueAt}.`
-              : 'Une prochaine reconfirmation sera proposée au bon moment.',
-        }));
-      }
-      const start = wrapper.querySelector('[data-atlas-action="start"]');
-      if (!start) throw new Error('ATLAS_START_CONTROL_MISSING');
-      start.addEventListener('click', async () => {
-        start.disabled = true;
-        start.textContent = 'Démarrage…';
-        try {
-          await runAtlasSession({container: preview, context, plan: result.plan, atlasRuntime, onReturn: refresh});
-        } catch (error) {
-          renderError(preview, error);
-          start.disabled = false;
-        }
-      });
-      preview.replaceChildren(wrapper);
     } catch (error) {
       renderError(preview, error);
     } finally {

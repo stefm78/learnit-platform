@@ -506,26 +506,11 @@ function installAtlasR13RuntimeBehavior(root, runtime) {
       queued = false;
 
       await enhanceAtlasR13VisualProgress(root, runtime);
-
-      for (const card of root.querySelectorAll('.atlas-course-card')) {
-        const active = Boolean(card.querySelector('[data-atlas-session-active="true"]'));
-        const owned = card.getAttribute('data-atlas-r13-session-owned') === 'true';
-        if (active && !owned) card.setAttribute('data-atlas-r13-session-owned', 'true');
-        else if (!active && owned) card.removeAttribute('data-atlas-r13-session-owned');
-      }
-
-      for (const start of root.querySelectorAll(
-        '.atlas-int-preview [data-atlas-action="start"]:not([data-atlas-r13-auto-started])',
-      )) {
-        if (start.closest('[data-atlas-session-active="true"]')) continue;
-        start.setAttribute('data-atlas-r13-auto-started', 'true');
-        start.click();
-      }
     });
   };
 
   const observer = new MutationObserver(reconcile);
-  observer.observe(root, {childList: true, subtree: true, attributes: true});
+  observer.observe(root, {childList: true, subtree: true});
   reconcile();
 }
 

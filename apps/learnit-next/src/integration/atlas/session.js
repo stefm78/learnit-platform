@@ -749,6 +749,11 @@ export async function runAtlasSession({
   const plannerActionsDisplay =
     plannerActions?.style.display ?? '';
 
+  atlasCard?.setAttribute(
+    'data-atlas-r13-session-owned',
+    'true',
+  );
+
   container.setAttribute(
     'data-atlas-session-active',
     'true',
@@ -792,6 +797,10 @@ export async function runAtlasSession({
   function releaseAtlasSurface() {
     container.removeAttribute(
       'data-atlas-session-active',
+    );
+
+    atlasCard?.removeAttribute(
+      'data-atlas-r13-session-owned',
     );
 
     if (classicMain) {

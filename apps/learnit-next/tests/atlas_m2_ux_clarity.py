@@ -146,8 +146,8 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Plan Atlas calculé localement", surface)
         self.assertNotIn("Reconfirmation due selon", surface)
         self.assertNotIn("Prochaine reconfirmation au plus tôt le", surface)
-        self.assertIn("Une reconfirmation est disponible.", surface)
-        self.assertIn("Prochaine reconfirmation à partir du", surface)
+        self.assertNotIn("Une reconfirmation est disponible.", surface)
+        self.assertNotIn("Prochaine reconfirmation à partir du", surface)
         self.assertIn("À faire maintenant :", surface)
         self.assertIn("À découvrir", surface)
         self.assertIn("Acquis récemment", surface)
@@ -237,12 +237,17 @@ console.log(JSON.stringify({ok:true,readable}));
 
     def test_r13_removes_intermediate_start_and_active_course_progress(self):
         main = MAIN.read_text(encoding="utf-8")
+        surface = SURFACE.read_text(encoding="utf-8")
         self.assertIn(
-            '.atlas-int-preview [data-atlas-action="start"]:not([data-atlas-r13-auto-started])',
-            main,
+            "const plan = await buildSessionPlan(context, duration, atlasRuntime);",
+            surface,
         )
-        self.assertIn("start.click()", main)
-        self.assertIn("data-atlas-r13-session-owned", main)
+        self.assertIn("await runAtlasSession({", surface)
+        self.assertNotIn("atlasRuntime.modules.today.renderToday", surface)
+        self.assertNotIn("ATLAS_START_CONTROL_MISSING", surface)
+        self.assertNotIn("data-atlas-r13-auto-started", main)
+        self.assertNotIn("start.click()", main)
+        self.assertIn("data-atlas-r13-session-owned", SESSION.read_text(encoding="utf-8"))
         self.assertIn(
             '.atlas-course-card[data-atlas-r13-session-owned="true"]>.course-row-main{display:none!important}',
             main,
@@ -403,8 +408,8 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
         surface = SURFACE.read_text(encoding="utf-8")
         styles = STYLES.read_text(encoding="utf-8")
         self.assertIn("title: `${item.label} — ${item.stateLabel}`", surface)
-        self.assertIn("Séance de ${duration} min", surface)
-        self.assertIn("Voici ce que vous allez travailler pendant cette séance.", surface)
+        self.assertIn("Préparation de la séance de ${duration} minutes…", surface)
+        self.assertNotIn("Voici ce que vous allez travailler pendant cette séance.", surface)
         self.assertIn("settingsDisclosure.textContent = 'Renommer'", surface)
         self.assertIn('data-atlas-session-active="true"', styles)
         self.assertIn("> .course-row-main", styles)
