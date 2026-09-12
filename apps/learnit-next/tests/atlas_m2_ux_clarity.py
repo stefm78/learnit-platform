@@ -556,20 +556,18 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             library_context = browser.new_context(viewport={"width": 900, "height": 900})
             library_page = library_context.new_page()
             import_fixture(library_page)
+            course_install_id = library_page.locator(
+                '[data-atlas-course-install-id]'
+            ).first.get_attribute('data-atlas-course-install-id')
+            self.assertIsNotNone(course_install_id)
             library_page.locator('[data-atlas-library-toggle="true"]').click()
-            library_page.wait_for_function(
-                """() => {
-                  const card = [...document.querySelectorAll('.course-card[data-course-install-id]')]
-                    .find(item => item.textContent.includes('Conjugué et module des nombres complexes'));
-                  if (!card) return false;
-                  const actions = card.querySelector('.course-row-actions');
-                  return Boolean(actions?.querySelector('[data-course-learning-action="learn"], [data-atlas-rest-status="true"]'));
-                }""",
-                timeout=10000,
+            library_card = library_page.locator(
+                f'.course-card[data-course-install-id="{course_install_id}"]'
             )
-            action = library_page.locator(
-                '.course-card[data-course-install-id] [data-course-learning-action="learn"]'
-            ).first
+            library_card.locator(
+                '[data-course-learning-action="learn"], [data-atlas-rest-status="true"]'
+            ).wait_for(timeout=10000)
+            action = library_card.locator('[data-course-learning-action="learn"]').first
             if action.count():
                 action.click()
                 assert_active_atlas_activity(library_page)
