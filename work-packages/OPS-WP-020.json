@@ -88,6 +88,12 @@
     "Declaring learner usability PASS.",
     "Requiring the learner to run a local ZIP, CMD script or local web server."
   ],
+  "independentReview": [
+    "Exact final R13 bytes and SHA-256 are checked before deployment against the independently produced exact-head CI artifact identity.",
+    "A served Chromium replay imports the canonical Atlas fixture and must observe the R13 objective-reservoir projection before deployment can proceed.",
+    "Previous R13, R12, R11, R10 and stable-root identities are rechecked so the new publication cannot silently erase immutable replay history.",
+    "Post-deploy HTTPS smoke rechecks final replay, historical replays, fixture and answer-guide identities before publication is considered usable."
+  ],
   "execution": {
     "branch": "ops/OPS-WP-020-atlas-r13-final-human-replay",
     "maximumChangedFiles": 2,
