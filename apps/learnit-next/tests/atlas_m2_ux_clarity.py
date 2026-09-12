@@ -228,6 +228,10 @@ console.log(JSON.stringify({ok:true,readable}));
             self.assertIn(token, main)
         self.assertIn("reservoir.addEventListener('click'", main)
         self.assertIn("reservoir.addEventListener('focus'", main)
+        self.assertIn("data-atlas-r13-session-worked", main)
+        self.assertIn("data-atlas-r13-session-changed", main)
+        self.assertIn("enhanceAtlasR13SessionSummaries", main)
+        self.assertIn("border:2px solid #68778d", main)
         self.assertNotIn("mouseenter", main)
         self.assertNotIn("progressPercent", main)
         self.assertNotIn("Math.round(", main)
@@ -280,6 +284,10 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertIn("observer.observe(appMain, {childList: true});", surface)
         self.assertNotIn("observer.observe(appMain, {childList: true, subtree: true});", surface)
         self.assertIn("if (!identity) return null;", main)
+        self.assertIn("data-atlas-planned-first-objective", surface)
+        self.assertIn("bindSessionProjection", surface)
+        self.assertIn("previewPlannedPriority", surface)
+        self.assertIn("attributeFilter: ['data-atlas-planned-first-objective']", main)
         self.assertNotIn("build unbound", main)
         self.assertNotIn("Build Learn-it non vérifiable", main)
 
@@ -443,6 +451,39 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
                 "() => Boolean(window.__LEARNIT_NEXT_TEST__?.renderAtlasR13Fixture)"
             )
 
+            empty_visibility = page.evaluate(
+                """() => {
+                  const host = document.createElement('div');
+                  host.className = 'course-progress-compact';
+                  document.body.append(host);
+                  window.__LEARNIT_NEXT_TEST__.renderAtlasR13Fixture(
+                    host,
+                    ['not-started', 'not-started'],
+                    0,
+                  );
+                  const value = [...host.querySelectorAll('[data-atlas-r13-objective]')].map(item => {
+                    const style = getComputedStyle(item);
+                    const rect = item.getBoundingClientRect();
+                    return {
+                      width: rect.width,
+                      height: rect.height,
+                      borderWidth: parseFloat(style.borderLeftWidth),
+                      borderStyle: style.borderLeftStyle,
+                      borderColor: style.borderLeftColor,
+                    };
+                  });
+                  host.remove();
+                  return value;
+                }"""
+            )
+            self.assertEqual(len(empty_visibility), 2)
+            for reservoir in empty_visibility:
+                self.assertGreater(reservoir["width"], 10)
+                self.assertGreater(reservoir["height"], 50)
+                self.assertGreaterEqual(reservoir["borderWidth"], 2)
+                self.assertEqual(reservoir["borderStyle"], "solid")
+                self.assertNotIn("rgba(0, 0, 0, 0)", reservoir["borderColor"])
+
             for count in (5, 8, 12, 20):
                 states = [
                     (
@@ -534,6 +575,7 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             page.locator('#kit-file').set_input_files(str(fixture))
             page.locator('.import-panel button[type="submit"]').click()
             page.wait_for_selector('[data-atlas-course-install-id]', timeout=10000)
+            page.wait_for_selector('[data-atlas-r13-progress="true"]', timeout=10000)
 
         def assert_active_atlas_activity(page):
             active = '[data-atlas-session-active="true"] .atlas-session'
@@ -543,14 +585,71 @@ console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId})
             self.assertEqual(page.locator(f'{active} [data-atlas-submit]').count(), 1)
             self.assertEqual(page.locator(f'{active} [data-atlas-pause-session]').count(), 1)
 
+        def planned_priority_label(page, card):
+            page.wait_for_function(
+                "card => Boolean(card.getAttribute('data-atlas-planned-first-objective'))",
+                arg=card.element_handle(),
+            )
+            planned = card.get_attribute('data-atlas-planned-first-objective')
+            priority = card.locator(
+                f'[data-atlas-r13-objective="{planned}"][data-atlas-r13-priority="true"]'
+            )
+            priority.wait_for(timeout=10000)
+            return priority.get_attribute('title').split(' — ')[0]
+
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(executable_path=chrome)
 
             today_context = browser.new_context(viewport={"width": 900, "height": 900})
             today_page = today_context.new_page()
             import_fixture(today_page)
-            today_page.locator('[data-atlas-course-start="true"]').first.click()
+            today_card = today_page.locator('[data-atlas-course-install-id]').first
+            self.assertEqual(
+                today_card.locator('[data-atlas-r13-objective]').count(),
+                2,
+            )
+            today_card.locator('.atlas-duration-select').select_option('5')
+            first_priority_label = planned_priority_label(today_page, today_card)
+            today_card.locator('[data-atlas-course-start="true"]').click()
             assert_active_atlas_activity(today_page)
+            self.assertEqual(
+                today_page.locator('.atlas-session-objective').inner_text(),
+                f'Objectif : {first_priority_label}',
+            )
+
+            today_page.locator('[data-atlas-choice="true"]').first.check()
+            today_page.locator('[data-atlas-submit]').click()
+            feedback_next = today_page.locator('[data-atlas-feedback-next="true"]')
+            feedback_next.wait_for(timeout=10000)
+            self.assertEqual(feedback_next.inner_text(), 'Voir le bilan')
+            feedback_next.click()
+            today_page.wait_for_selector(
+                '[data-atlas-r13-summary-progress="true"]',
+                timeout=10000,
+            )
+            summary = today_page.locator('[data-atlas-r13-summary-progress="true"]')
+            self.assertEqual(summary.locator('[data-atlas-r13-objective]').count(), 2)
+            self.assertGreaterEqual(
+                summary.locator('[data-atlas-r13-session-worked="true"]').count(),
+                1,
+            )
+            self.assertGreaterEqual(
+                summary.locator('[data-atlas-r13-session-changed="true"]').count(),
+                1,
+            )
+            self.assertIn('Cette séance', summary.inner_text())
+
+            today_page.get_by_role('button', name='Retour à Aujourd’hui').click()
+            today_page.wait_for_selector('[data-atlas-course-install-id]', timeout=10000)
+            today_card = today_page.locator('[data-atlas-course-install-id]').first
+            today_card.locator('.atlas-duration-select').select_option('5')
+            second_priority_label = planned_priority_label(today_page, today_card)
+            today_card.locator('[data-atlas-course-start="true"]').click()
+            assert_active_atlas_activity(today_page)
+            self.assertEqual(
+                today_page.locator('.atlas-session-objective').inner_text(),
+                f'Objectif : {second_priority_label}',
+            )
             today_context.close()
 
             library_context = browser.new_context(viewport={"width": 900, "height": 900})
