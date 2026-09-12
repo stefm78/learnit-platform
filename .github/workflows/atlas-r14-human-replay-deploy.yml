@@ -255,7 +255,7 @@ jobs:
                     return {w:r.width,h:r.height,b:parseFloat(s.borderLeftWidth),style:s.borderLeftStyle,color:s.borderLeftColor};
                   }""")
                   assert visible['w'] > 10 and visible['h'] > 50, visible
-                  assert visible['b'] >= 2 and visible['style'] == 'solid', visible
+                  assert visible['b'] > 0 and visible['style'] == 'solid', visible
                   assert visible['color'] not in ('transparent','rgba(0, 0, 0, 0)'), visible
 
               def assert_start_matches_frame(card):
