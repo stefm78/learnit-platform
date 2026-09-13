@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "CI-WP-015",
   "title": "Prove accepted Atlas UX convergence merge after historical router false negative",
-  "status": "in-progress",
+  "status": "accepted",
   "changeClass": "ci-recovery",
   "riskClass": "low",
   "authority": {
@@ -102,11 +102,18 @@
   ],
   "execution": {
     "branch": "ci/CI-WP-015-atlas-ux-post-merge-route",
-    "pullRequest": null,
+    "pullRequest": 364,
     "maximumChangedFiles": 2,
-    "phase": "IMPLEMENTING",
+    "phase": "QUALIFIED_PENDING_MERGE",
     "humanGateRequired": false,
-    "finalVerdict": null
+    "mergeStatus": "not-merged",
+    "finalVerdict": "PASS_CI_WP_015_PR_HEAD_R15_POST_MERGE_RECOVERY",
+    "evidence": {
+      "repositoryGovernanceRun": 34749600575,
+      "prScopeRun": 34749600200,
+      "recoveryVerifierRun": 34749600242,
+      "recoveryVerifierJob": 103703553361
+    }
   },
   "rollback": "Revert the CI-WP-015 two-file recovery verifier. The accepted R15 product merge and immutable Human Replay remain unchanged."
 }
