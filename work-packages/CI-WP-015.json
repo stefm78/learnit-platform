@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-015",
+  "title": "Route accepted Atlas UX convergence merge post-merge CI",
+  "status": "in-progress",
+  "changeClass": "ci-routing",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 363,
+    "productIssue": 352,
+    "promotedProductPullRequest": 354,
+    "predecessorCiWorkPackage": "CI-WP-014"
+  },
+  "purpose": "Teach the central Learn-it Next router to recognize the exact already-accepted Atlas #352 R15 merge on main and verify its post-merge topology, accepted-head blob identity and learner-journey test suite without invoking historical generic Wave A topology semantics.",
+  "baseline": {
+    "baseCommit": "2b2914874caa6be1b5dca0ea1756837d47bc7c11",
+    "branch": "ci/CI-WP-015-atlas-ux-post-merge-route",
+    "acceptedProductHead": "88cad160714830462234970276c808c42b4a2579",
+    "promotionMerge": "2b2914874caa6be1b5dca0ea1756837d47bc7c11",
+    "acceptedArtifactBytes": 421487,
+    "acceptedArtifactSha256": "0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd",
+    "failedPostMergeRun": 34749055590,
+    "failedPostMergeJob": 103702122268,
+    "repositoryGovernanceRun": 34749055657
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/CI-WP-015.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-024.json"
+    ]
+  },
+  "invariants": [
+    "Only the central CI router and CI-WP-015 metadata change.",
+    "The exact #354 promotion first-parent delta maps to one dedicated Atlas UX post-merge profile.",
+    "The route requires exactly two parents and accepted second parent 88cad160714830462234970276c808c42b4a2579.",
+    "The exact first-parent delta is the fourteen paths carried by accepted PR #354.",
+    "Every promoted path blob at merge HEAD equals the accepted product-head blob.",
+    "The dedicated route reruns the same build, syntax, Atlas core, learning, experience, integration and UX-clarity suite used by atlas-ux-convergence.",
+    "The accepted product artifact is rebuilt from exact accepted head and remains 421487 bytes with SHA-256 0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd.",
+    "Unknown post-merge shapes preserve existing fail-closed/generic behavior.",
+    "No learner/product/runtime/contract/authoring semantics change."
+  ],
+  "expectedPromotionPaths": [
+    ".github/workflows/learnit-next-ci.yml",
+    "apps/learnit-next/source_manifest.json",
+    "apps/learnit-next/src/core/atlas_recommendation.js",
+    "apps/learnit-next/src/integration/atlas/session.js",
+    "apps/learnit-next/src/integration/atlas/surface.js",
+    "apps/learnit-next/src/main.js",
+    "apps/learnit-next/src/styles.css",
+    "apps/learnit-next/src/ui/atlas_summary.js",
+    "apps/learnit-next/src/ui/render.js",
+    "apps/learnit-next/tests/atlas_m1_experience.py",
+    "apps/learnit-next/tests/atlas_m1_int.py",
+    "apps/learnit-next/tests/atlas_m1_learning.py",
+    "apps/learnit-next/tests/atlas_m2_ux_clarity.py",
+    "work-packages/ATLAS-WP-024.json"
+  ],
+  "requiredEvidence": [
+    "Exact two-file CI-WP-015 pull-request delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Generic ci-router audit PASS for this CI-only PR.",
+    "Historical merge 2b2914874caa6be1b5dca0ea1756837d47bc7c11 satisfies the exact Atlas UX post-merge shape and accepted second parent.",
+    "Wrong second parent, path deficit, path excess and promoted blob mismatch fail closed.",
+    "The exact accepted R15 test suite passes when replayed against the historical merge tree.",
+    "The exact accepted product head rebuild remains byte-identical to the qualified R15 artifact.",
+    "After CI-WP-015 merge, current main reaches green CI without modifying product semantics."
+  ],
+  "adversarialTests": [
+    "Wrong accepted second parent is rejected.",
+    "Missing promoted path is rejected.",
+    "Extra promoted path is rejected.",
+    "Promoted blob mismatch is rejected.",
+    "A different merge topology cannot be mistaken for the #354 accepted promotion.",
+    "CI-WP-015 merge itself remains a CI-router maintenance merge rather than masquerading as the product promotion."
+  ],
+  "nonGoals": [
+    "Changing product code or the accepted R15 learner behavior.",
+    "Changing planner, scoring, evidence, memory, session semantics, kits or contracts.",
+    "Changing the immutable Human Replay.",
+    "Reopening the final human UX gate.",
+    "Integrating constructed-response.",
+    "General redesign of the CI topology."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this exact two-file CI-only change.",
+    "The immutable R15 Human Replay and accepted exact-head product CI remain the product-semantic authorities; this correction only repairs post-merge routing.",
+    "The historical failed run artifact is classified as a routing/topology false negative because it contains only `post-merge topology differs` while repository governance passed and the accepted exact-head product/replay evidence is green."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-015-atlas-ux-post-merge-route",
+    "pullRequest": null,
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTING",
+    "humanGateRequired": false,
+    "finalVerdict": null
+  },
+  "rollback": "Revert the CI-WP-015 two-file routing change. The accepted R15 product merge and immutable Human Replay remain unchanged."
+}
