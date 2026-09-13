@@ -1,20 +1,20 @@
-import { CONTRACT_VERSION } from './core/contract.js';
-import { installAtlasRuntime } from './integration/atlas/bootstrap.js';
-import { attachAtlasPreviewSurface } from './integration/atlas/surface.js';
-import { createAtlasCompatibleImportService } from './integration/atlas/import_adapter.js';
-import { createImportService } from './core/import.js';
-import { createLibraryService } from './core/library.js';
+import { CONTRACT_VERSION } from '__LEARNIT_MODULE_URL_0005__';
+import { installAtlasRuntime } from '__LEARNIT_MODULE_URL_0006__';
+import { attachAtlasPreviewSurface } from '__LEARNIT_MODULE_URL_0007__';
+import { createAtlasCompatibleImportService } from '__LEARNIT_MODULE_URL_0008__';
+import { createImportService } from '__LEARNIT_MODULE_URL_0009__';
+import { createLibraryService } from '__LEARNIT_MODULE_URL_0010__';
 import {
   createLearningLoopV2DomainAdapters,
   createProgressService,
-} from './core/progress.js';
-import { createSessionService } from './core/session.js';
-import * as objectiveProgressDomain from './core/objective_progress.js';
-import * as learningRecommendationDomain from './core/learning_recommendation.js';
-import { createIndexedDbStorage } from './adapters/indexeddb.js';
-import { assertStoragePort } from './ports/storage.js';
-import * as objectiveUiModule from './ui/objective_progress.js';
-import { renderApp } from './ui/render.js';
+} from '__LEARNIT_MODULE_URL_0011__';
+import { createSessionService } from '__LEARNIT_MODULE_URL_0012__';
+import * as objectiveProgressDomain from '__LEARNIT_MODULE_URL_0013__';
+import * as learningRecommendationDomain from '__LEARNIT_MODULE_URL_0014__';
+import { createIndexedDbStorage } from '__LEARNIT_MODULE_URL_0015__';
+import { assertStoragePort } from '__LEARNIT_MODULE_URL_0016__';
+import * as objectiveUiModule from '__LEARNIT_MODULE_URL_0017__';
+import { renderApp } from '__LEARNIT_MODULE_URL_0018__';
 
 export const LEARNING_LOOP_V2_COMPOSITION = Object.freeze({
   registry: '__LEARNIT_NEXT_WAVE_A__',
@@ -606,10 +606,10 @@ function installAtlasR13Styles(documentRef = globalThis.document) {
     .atlas-r13-group--consolidated{border-color:#8eae94;background:#eef7f0}
     .atlas-r13-group-label{display:block;font-size:.78rem;font-weight:700;color:#586276;margin-bottom:.55rem}
     .atlas-r13-reservoirs{display:flex;gap:.42rem;align-items:flex-end;overflow-x:auto;padding:.25rem .18rem .38rem;scrollbar-width:thin}
-    .atlas-r13-reservoir{position:relative;flex:0 0 1.35rem;width:1.35rem;height:4.6rem;border:2px solid #68778d;border-radius:.45rem;background:#f7f9fc;overflow:hidden;padding:0;min-width:1.35rem}
-    .atlas-r13-reservoir:focus-visible{outline:3px solid #233f64;outline-offset:3px}
+    button.atlas-r13-reservoir{position:relative;flex:0 0 1.35rem;width:1.35rem;height:4.6rem;border:2px solid #68778d;border-radius:.45rem;background:#f7f9fc;overflow:hidden;padding:0;min-width:1.35rem}
+    button.atlas-r13-reservoir:focus-visible{outline:3px solid #233f64;outline-offset:3px}
     .atlas-r13-reservoir[data-atlas-r13-priority="true"]{outline:2px solid #233f64;outline-offset:2px}
-    .atlas-r13-reservoir--not-started{border-color:#52647c;background:#fff}
+    button.atlas-r13-reservoir--not-started{border-color:#52647c;background:#fff}
     .atlas-r13-fill{position:absolute;left:0;right:0;bottom:0;height:var(--atlas-r13-level);background:#738bac}
     .atlas-r13-reservoir--not-started .atlas-r13-fill{background:#dfe3e8}
     .atlas-r13-reservoir--ready-for-validation .atlas-r13-fill{background:#7775a2}
@@ -633,7 +633,7 @@ function installAtlasR13Styles(documentRef = globalThis.document) {
     .atlas-course-card[data-atlas-r13-session-owned="true"] .atlas-summary-overview .atlas-r13-progress{display:grid!important}
     @media(max-width:640px){
       .atlas-r13-group{padding:.58rem}
-      .atlas-r13-reservoir{flex-basis:1.2rem;width:1.2rem;min-width:1.2rem;height:4.1rem}
+      button.atlas-r13-reservoir{flex-basis:1.2rem;width:1.2rem;min-width:1.2rem;height:4.1rem}
       .atlas-r13-context{grid-template-columns:1fr;gap:.18rem}
     }
   `;
