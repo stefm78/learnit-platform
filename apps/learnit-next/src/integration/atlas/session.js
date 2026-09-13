@@ -73,6 +73,45 @@ function sourceActivity(context, reference) {
   return activity;
 }
 
+export function projectAtlasActivityPresentation(activity) {
+  if (activity.type === 'qcm') {
+    return Object.freeze({
+      type: activity.type,
+      prompt: activity.prompt,
+      choices: Object.freeze(
+        activity.choices.map(choice => Object.freeze({
+          choiceId: choice.choiceId,
+          label: choice.label,
+        })),
+      ),
+    });
+  }
+
+  if (activity.type === 'fill') {
+    return Object.freeze({
+      type: activity.type,
+      prompt: activity.prompt,
+      tokens: Object.freeze(
+        activity.tokens.map(token => Object.freeze({
+          tokenId: token.tokenId,
+          label: token.label,
+        })),
+      ),
+      segments: Object.freeze(
+        activity.segments.map(segment => (
+          Object.hasOwn(segment, 'text')
+            ? Object.freeze({ text: segment.text })
+            : Object.freeze({ slotId: segment.slotId })
+        )),
+      ),
+    });
+  }
+
+  throw new Error(
+    `ATLAS_ACTIVITY_TYPE_UNSUPPORTED: ${activity.type}`,
+  );
+}
+
 function scoringAnswer(activity) {
   if (activity.type === 'qcm') {
     return activity.correctChoiceId;
@@ -932,6 +971,11 @@ export async function runAtlasSession({
           item.activityRef,
         );
 
+      const activityPresentation =
+        projectAtlasActivityPresentation(
+          activity,
+        );
+
       const wrapper = node('div');
 
       wrapper.innerHTML =
@@ -939,7 +983,7 @@ export async function runAtlasSession({
           plan: activePlan,
           resumeState: checkpoint,
           activityHtml:
-            renderAtlasActivityMarkup(activity),
+            renderAtlasActivityMarkup(activityPresentation),
           feedbackHtml: previousFeedback,
         });
 
@@ -1107,7 +1151,7 @@ export async function runAtlasSession({
 
           try {
             const rawResponse =
-              readAtlasActivityResponse(wrapper, activity);
+              readAtlasActivityResponse(wrapper, activityPresentation);
 
             const result =
               await controller.submit(

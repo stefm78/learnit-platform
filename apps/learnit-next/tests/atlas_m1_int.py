@@ -277,7 +277,7 @@ class AtlasM1Int(unittest.TestCase):
         self.assertIn("text: context.title", session)
         self.assertIn("text: `Objectif : ${objectiveLabel}`", session)
         self.assertIn("id: 'atlas-session-title'", session)
-        self.assertIn("renderAtlasActivityMarkup(activity)", session)
+        self.assertIn("renderAtlasActivityMarkup(activityPresentation)", session)
         self.assertIn("prompt\n      + '<fieldset class=\"answer-fieldset\">'", render)
         self.assertNotIn("renderObjectiveProgressPanel", session)
         self.assertNotIn("Prochaine action recommandée", session)
