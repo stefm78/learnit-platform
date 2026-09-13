@@ -273,7 +273,14 @@ process.stdout.write(JSON.stringify(html));
             lastEvidenceAt:'2026-01-01T00:00:00.000Z',
             state:'validated-recently'
           };
-          assert(U.renderSummary({evidence:[evidence],completed:true}).includes('ni une certification'));
+          const summaryHtml=U.renderSummary({evidence:[evidence],completed:true});
+          assert(summaryHtml.includes('Votre progression après cette séance.'));
+          assert(summaryHtml.includes('Acquis récemment'));
+          assert(summaryHtml.includes('Rien à faire maintenant.'));
+          assert(summaryHtml.includes('course-objective-track'));
+          assert(!summaryHtml.includes('Validation autonome récente'));
+          assert(!summaryHtml.includes('ni une certification'));
+          assert(!summaryHtml.includes('rétention durable'));
           assert.throws(() => U.validateEvidence({...evidence,latestPracticeCorrect:'yes'}), /INVALID_EVIDENCE/);
           assert.throws(() => U.validateEvidence({...evidence,latestValidationCorrect:7}), /INVALID_EVIDENCE/);
           assert.throws(() => U.validateEvidence({...evidence,lastEvidenceAt:'<script>not-a-time<\/script>'}), /INVALID_EVIDENCE/);

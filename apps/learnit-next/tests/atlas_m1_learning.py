@@ -184,7 +184,7 @@ class AtlasLearningTests(unittest.TestCase):
     self.assertEqual(cp.returncode,0,cp.stderr)
     self.assertRegex(cp.stdout,r'ATLAS_LEARNING_V3_NODE_PASS \d+/\d+')
 
-  def test_v4_unicode_code_point_tiebreak(self):
+  def test_v4_unicode_canonicalization_and_input_order_tiebreak(self):
     script=textwrap.dedent(r'''
       const assert=require('assert');
       const E=require(process.argv[1]+'/src/core/atlas_evidence.js');
@@ -215,6 +215,7 @@ class AtlasLearningTests(unittest.TestCase):
         const links=activities.map(activity=>({objectiveRef:activity.objectiveRef,activityRef:activity.activityRef,authorIndex:0}));
         const index=E.indexActivities(activities,links);
         const rows=[row(left),row(right)];
+        const reversedRows=[...rows].reverse();
         const journal=[sessionEvent('1',left),sessionEvent('2',right)];
         const snapshot=(inputRows,events)=>{
           const ranked=R.rankRecommendations(inputRows,events);
@@ -236,11 +237,15 @@ class AtlasLearningTests(unittest.TestCase):
             canonicalSerialization:P.canonicalJson({lastSelectionStats,ranking,recommendations,reasonCodes,selectedActivities,sessionPlan:plan,planId:plan.planId})
           };
         };
-        const expected=snapshot(rows,journal);
-        for(const inputRows of [rows,[...rows].reverse()]){
-          for(const events of [journal,[...journal].reverse()])check(()=>assert.deepStrictEqual(snapshot(inputRows,events),expected));
+        const forward=snapshot(rows,journal);
+        const reversed=snapshot(reversedRows,journal);
+        for(const events of [journal,[...journal].reverse()]){
+          check(()=>assert.deepStrictEqual(snapshot(rows,events),forward));
+          check(()=>assert.deepStrictEqual(snapshot(reversedRows,events),reversed));
         }
-        return expected;
+        check(()=>assert.deepStrictEqual(forward.ranking,[leftId,rightId]));
+        check(()=>assert.deepStrictEqual(reversed.ranking,[rightId,leftId]));
+        return {forward,reversed};
       };
 
       const zKey=E.canonicalRefKey(objective('z'));
@@ -254,15 +259,20 @@ class AtlasLearningTests(unittest.TestCase):
       let result;
       try{
         const zDiaeresis=pairSnapshot('z','ä');
-        check(()=>assert.deepStrictEqual(zDiaeresis.ranking,['z','ä']));
+        check(()=>assert.deepStrictEqual(zDiaeresis.forward.ranking,['z','ä']));
+        check(()=>assert.deepStrictEqual(zDiaeresis.reversed.ranking,['ä','z']));
         const caseOrder=pairSnapshot('a','A');
-        check(()=>assert.deepStrictEqual(caseOrder.ranking,['A','a']));
+        check(()=>assert.deepStrictEqual(caseOrder.forward.ranking,['a','A']));
+        check(()=>assert.deepStrictEqual(caseOrder.reversed.ranking,['A','a']));
         const supplementary=pairSnapshot('\uE000','\u{10000}');
-        check(()=>assert.deepStrictEqual(supplementary.ranking,['\uE000','\u{10000}']));
+        check(()=>assert.deepStrictEqual(supplementary.forward.ranking,['\uE000','\u{10000}']));
+        check(()=>assert.deepStrictEqual(supplementary.reversed.ranking,['\u{10000}','\uE000']));
         const prefix=pairSnapshot('prefix','prefix-more');
-        check(()=>assert.deepStrictEqual(prefix.ranking,['prefix','prefix-more']));
+        check(()=>assert.deepStrictEqual(prefix.forward.ranking,['prefix','prefix-more']));
+        check(()=>assert.deepStrictEqual(prefix.reversed.ranking,['prefix-more','prefix']));
         const ascii=pairSnapshot('obj-a','obj-b');
-        check(()=>assert.deepStrictEqual(ascii.ranking,['obj-a','obj-b']));
+        check(()=>assert.deepStrictEqual(ascii.forward.ranking,['obj-a','obj-b']));
+        check(()=>assert.deepStrictEqual(ascii.reversed.ranking,['obj-b','obj-a']));
 
         const composed=objective('é'),decomposed=objective('e\u0301');
         check(()=>assert.equal(E.canonicalRefKey(composed),E.canonicalRefKey(decomposed)));

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import shutil
 import subprocess
 import unittest
 from pathlib import Path
@@ -8,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[3]
 APP = ROOT / "apps/learnit-next"
 SURFACE = APP / "src/integration/atlas/surface.js"
 SESSION = APP / "src/integration/atlas/session.js"
+MAIN = APP / "src/main.js"
+STYLES = APP / "src/styles.css"
 
 
 def run_node(script: str):
@@ -77,38 +80,49 @@ console.log(JSON.stringify({ok:true}));
 """)
         self.assertTrue(result["ok"])
 
-    def test_summary_identifies_objectives_and_hides_raw_iso(self):
+    def test_r6_summary_uses_plain_states_visual_overview_and_secondary_history(self):
         result = run_node(r"""
 const assert = require('node:assert/strict');
 const S = require('./src/ui/atlas_summary.js');
 const courseRef = {packageLineageId:'pkg',courseLineageId:'course'};
-function evidence(objectiveId, at) {
+function evidence(objectiveId, at, state='validated-recently') {
   return {
     evidenceVersion:'atlas.objective-evidence.v1',
     objectiveRef:{courseRef,objectiveId},
     practiceAttempts:2,
     correctionsCompleted:0,
-    validationAttempts:1,
+    validationAttempts:state === 'validated-recently' ? 1 : 0,
     latestPracticeCorrect:true,
-    latestValidationCorrect:true,
-    lastValidationAt:at,
+    latestValidationCorrect:state === 'validated-recently' ? true : null,
+    lastValidationAt:state === 'validated-recently' ? at : null,
     lastEvidenceAt:at,
-    state:'validated-recently',
+    state,
   };
 }
 const stamp = '2026-08-29T15:24:48.965Z';
 const html = S.renderSummary({
   completed:true,
-  evidence:[evidence('objective-a', stamp), evidence('objective-b', stamp)],
+  evidence:[evidence('objective-a', stamp), evidence('objective-b', stamp, 'review-needed')],
   objectiveLabels:{
     'objective-a':'Conjugué',
     'objective-b':'Module',
   },
 });
-assert.match(html,/Objectif : Conjugué/);
-assert.match(html,/Objectif : Module/);
+assert.match(html,/Conjugué/);
+assert.match(html,/Module/);
 assert.doesNotMatch(html,/2026-08-29T15:24:48\.965Z/);
-assert.match(html,/ni une certification ni une promesse de rétention durable/);
+assert.match(html,/Votre progression après cette séance/);
+assert.match(html,/1 acquis récemment · 1 à renforcer/);
+assert.match(html,/course-objective-track/);
+assert.match(html,/Acquis récemment/);
+assert.match(html,/À renforcer/);
+assert.match(html,/Revenir à Aujourd’hui pour la prochaine étape/);
+assert.doesNotMatch(html,/Rien à faire maintenant/);
+assert.match(html,/Reprendre avec un exercice ciblé/);
+assert.match(html,/class="atlas-objective-details"/);
+assert.match(html,/<summary>Voir le détail<\/summary>/);
+assert.match(html,/Dernière activité/);
+assert.doesNotMatch(html,/Validation autonome récente|L’essentiel d’abord|Dernière preuve|preuves enregistrées|certification|rétention durable/i);
 const readable = S.formatLearnerTimestamp(stamp, new Date('2026-08-29T16:00:00.000Z'));
 assert.ok(!readable.includes('T15:24:48.965Z'));
 console.log(JSON.stringify({ok:true,readable}));
@@ -119,7 +133,8 @@ console.log(JSON.stringify({ok:true,readable}));
         surface = SURFACE.read_text(encoding="utf-8")
         self.assertIn("data-atlas-library-toggle", surface)
         self.assertIn("Afficher la bibliothèque", surface)
-        self.assertIn("Masquer la bibliothèque", surface)
+        self.assertIn("Retour à Aujourd’hui", surface)
+        self.assertIn("content.style.display = 'none'", surface)
         self.assertIn("appMain.style.display = 'none'", surface)
         self.assertIn("appMain.setAttribute('inert', '')", surface)
         self.assertIn("setClassicVisible(libraryVisible)", surface)
@@ -131,8 +146,11 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertNotIn("Plan Atlas calculé localement", surface)
         self.assertNotIn("Reconfirmation due selon", surface)
         self.assertNotIn("Prochaine reconfirmation au plus tôt le", surface)
-        self.assertIn("Une reconfirmation est disponible.", surface)
-        self.assertIn("Prochaine reconfirmation à partir du", surface)
+        self.assertNotIn("Une reconfirmation est disponible.", surface)
+        self.assertNotIn("Prochaine reconfirmation à partir du", surface)
+        self.assertIn("À faire maintenant :", surface)
+        self.assertIn("À découvrir", surface)
+        self.assertIn("Acquis récemment", surface)
 
     def test_feedback_keeps_completed_activity_visible_before_next_activity(self):
         session = SESSION.read_text(encoding="utf-8")
@@ -141,7 +159,7 @@ console.log(JSON.stringify({ok:true,readable}));
         transition = session[start:end]
 
         self.assertIn("data-atlas-feedback-transition", transition)
-        self.assertIn("Activité suivante", transition)
+        self.assertIn("nextLabel = 'Activité suivante'", transition)
         self.assertIn(".querySelectorAll('input, select')", transition)
         self.assertIn("control.disabled = true", transition)
         self.assertIn("sessionActions.remove()", transition)
@@ -151,7 +169,224 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertIn("await showFeedbackTransition(", session)
         self.assertIn("wrapper,\n                sessionActions,", session)
         self.assertIn("await renderCurrent();", session)
+        self.assertIn("'Voir le bilan'", session)
+        self.assertIn("lastLifecycle?.kind", session)
+        self.assertIn("'session-completed'", session)
+        self.assertNotIn(
+            "await renderCurrent(\n                outcomeFeedback,",
+            session,
+        )
         self.assertNotIn("await renderCurrent(\n              feedbackHtml(", session)
+
+    def test_r6_today_uses_visual_objective_states_action_semantics_and_composite_control(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        for token in (
+            "buildCourseProgressSummary",
+            "renderCourseProgressSummary",
+            "learnerStateLabel",
+            "learnerActionCopy",
+            "learnerOverview",
+            "actionForEvidence",
+            "course-objective-track",
+            "course-objective-status-list",
+            "atlas-duration-select",
+            "data-atlas-session-start-control",
+            "data-atlas-course-start",
+            "Voir les objectifs",
+            "Renommer",
+            "applyLibraryActionHierarchy",
+            "compactImportPanel",
+            "course-list-row",
+        ):
+            self.assertIn(token, surface)
+        self.assertIn("Consolider :", surface)
+        self.assertIn("Réutiliser dans un nouvel exercice :", surface)
+        self.assertNotIn("atlas-duration-control", surface)
+        self.assertNotIn("stateLabel: 'À jour'", surface)
+        self.assertNotIn("Validation autonome récente", surface)
+        self.assertNotIn("course.progress", surface)
+
+    def test_r13_visual_contract_uses_vertical_reservoirs_priority_outline_and_demand_detail(self):
+        main = MAIN.read_text(encoding="utf-8")
+        for token in (
+            "atlasR13StateFromSegment",
+            "atlasR13StateLabel",
+            "atlasR13VisualLevel",
+            "renderAtlasR13Progress",
+            "enhanceAtlasR13VisualProgress",
+            "installAtlasR13RuntimeBehavior",
+            "data-atlas-r13-group",
+            "objectifs-du-cours",
+            "Objectifs du cours",
+            "data-atlas-r13-priority",
+            "data-atlas-r13-detail",
+            "Priorité Learn-it",
+            "atlas-r13-reservoir--review-needed",
+            "repeating-linear-gradient",
+            "atlas-r13-group--consolidated",
+        ):
+            self.assertIn(token, main)
+        self.assertIn("reservoir.addEventListener('click'", main)
+        self.assertIn("reservoir.addEventListener('focus'", main)
+        self.assertIn("data-atlas-r13-session-worked", main)
+        self.assertIn("data-atlas-r13-session-changed", main)
+        self.assertIn("enhanceAtlasR13SessionSummaries", main)
+        self.assertIn("border:2px solid #68778d", main)
+        self.assertNotIn("mouseenter", main)
+        self.assertNotIn("progressPercent", main)
+        self.assertNotIn("Math.round(", main)
+        self.assertNotIn("aria-valuenow", main)
+        self.assertNotIn("Séquence 1", main)
+        self.assertNotIn("Chapitre 1", main)
+
+    def test_r13_removes_intermediate_start_and_active_course_progress(self):
+        main = MAIN.read_text(encoding="utf-8")
+        surface = SURFACE.read_text(encoding="utf-8")
+        self.assertIn(
+            "const plan = await buildSessionPlan(context, duration, atlasRuntime);",
+            surface,
+        )
+        self.assertIn("await runAtlasSession({", surface)
+        self.assertNotIn("atlasRuntime.modules.today.renderToday", surface)
+        self.assertNotIn("ATLAS_START_CONTROL_MISSING", surface)
+        self.assertNotIn("data-atlas-r13-auto-started", main)
+        self.assertNotIn("start.click()", main)
+        self.assertIn("data-atlas-r13-session-owned", SESSION.read_text(encoding="utf-8"))
+        self.assertIn(
+            '.atlas-course-card[data-atlas-r13-session-owned="true"]>.course-row-main{display:none!important}',
+            main,
+        )
+        self.assertIn(
+            '.atlas-course-card[data-atlas-r13-session-owned="true"]>.atlas-course-actions{display:none!important}',
+            main,
+        )
+        self.assertIn("data-atlas-session-active", SESSION.read_text(encoding="utf-8"))
+
+    def test_r13_final_projection_is_reentrant_and_build_badge_is_replay_only(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        main = MAIN.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "card.getAttribute('data-atlas-library-r6') === 'true'",
+            surface,
+        )
+        self.assertIn(
+            "card.querySelector('.course-row-main .course-progress-compact')?.remove()",
+            surface,
+        )
+        self.assertIn(
+            "actions.querySelector('[data-atlas-rest-status=\"true\"]')?.remove()",
+            surface,
+        )
+        self.assertIn(
+            "if (libraryVisible) queueMicrotask(applyLibraryActionHierarchy)",
+            surface,
+        )
+        self.assertIn("observer.observe(appMain, {childList: true});", surface)
+        self.assertNotIn("observer.observe(appMain, {childList: true, subtree: true});", surface)
+        self.assertIn("if (!identity) return null;", main)
+        self.assertIn("data-atlas-planned-first-objective", surface)
+        self.assertIn("bindSessionProjection", surface)
+        self.assertIn("previewPlannedPriority", surface)
+        self.assertIn("attributeFilter: ['data-atlas-planned-first-objective']", main)
+        self.assertNotIn("build unbound", main)
+        self.assertNotIn("Build Learn-it non vérifiable", main)
+
+    def test_r10_recommendation_full_ties_preserve_course_input_order(self):
+        result = run_node(r"""
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const R = require('./src/core/atlas_recommendation.js');
+
+const courseRef = {packageLineageId:'pkg',courseLineageId:'course'};
+const ref = objectiveId => ({courseRef,objectiveId});
+const row = (objectiveId,state='not-started') => {
+  const objectiveRef=ref(objectiveId);
+  return {objectiveRef,evidence:{objectiveRef,state}};
+};
+const ids = rows => R.rankRecommendations(rows).map(item=>item.objectiveRef.objectiveId);
+
+assert.deepEqual(
+  ids([row('z-first'),row('a-second'),row('m-third')]),
+  ['z-first','a-second','m-third'],
+);
+
+assert.equal(
+  R.rankRecommendations([row('z-first'),row('a-review','review-needed')])[0].objectiveRef.objectiveId,
+  'a-review',
+);
+
+const event = (eventId,occurredAt,objectiveIds) => ({
+  kind:'session-started',
+  eventId,
+  occurredAt,
+  selectedItems:objectiveIds.map(objectiveId=>({objectiveRef:ref(objectiveId)})),
+});
+
+const lastSelectedEvents = [
+  event('event-1','2026-01-01T00:00:00.000Z',['z-first']),
+  event('event-2','2026-01-02T00:00:00.000Z',['a-second']),
+];
+assert.equal(
+  R.rankRecommendations([row('a-second'),row('z-first')],lastSelectedEvents)[0].objectiveRef.objectiveId,
+  'z-first',
+);
+
+const recentCountEvents = [
+  event('event-1','2026-01-01T00:00:00.000Z',['a-second']),
+  event('event-2','2026-01-02T00:00:00.000Z',['a-second']),
+  event('event-3','2026-01-03T00:00:00.000Z',['z-first','a-second']),
+];
+assert.equal(
+  R.rankRecommendations([row('a-second'),row('z-first')],recentCountEvents)[0].objectiveRef.objectiveId,
+  'z-first',
+);
+
+const kit = JSON.parse(fs.readFileSync(
+  path.resolve('../../authoring/v2/golden/signaux_electriques.json'),
+  'utf8',
+));
+const course = kit.courses[0];
+const realCourseRef = {
+  packageLineageId:kit.packageLineageId,
+  courseLineageId:course.courseLineageId,
+};
+const realRows = course.objectives.map(objective => {
+  const objectiveRef={courseRef:realCourseRef,objectiveId:objective.objectiveId};
+  return {objectiveRef,evidence:{objectiveRef,state:'not-started'}};
+});
+assert.equal(course.objectives[0].objectiveId,'e6a159cb-cd4d-4565-9d61-eda32db9002e');
+assert.equal(course.objectives[1].objectiveId,'324ec962-5ca9-4ed2-8737-654020805939');
+assert.equal(
+  R.rankRecommendations(realRows)[0].objectiveRef.objectiveId,
+  course.objectives[0].objectiveId,
+);
+
+assert.throws(
+  () => R.rankRecommendations([
+    {objectiveRef:{courseRef},evidence:{state:'not-started'}},
+    row('valid'),
+  ]),
+  /MISSING_FIELD|UNQUALIFIED_REFERENCE/,
+);
+
+console.log(JSON.stringify({ok:true,realFirst:course.objectives[0].objectiveId}));
+""")
+        self.assertTrue(result["ok"])
+        self.assertEqual(
+            result["realFirst"],
+            "e6a159cb-cd4d-4565-9d61-eda32db9002e",
+        )
+
+    def test_r10_today_summary_and_preview_share_the_same_ranked_sequence(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        ranking_call = (
+            "const ranked = modules.recommendation."
+            "rankRecommendations(rows, state.learningEvents);"
+        )
+        self.assertEqual(surface.count(ranking_call), 2)
+        self.assertIn("const next = ranked[0] ?? rows[0] ?? null;", surface)
+        self.assertIn("const recommendations = ranked.map(row => {", surface)
 
     def test_session_keeps_transfer_semantics_and_classic_surface_hidden_while_active(self):
         session = SESSION.read_text(encoding="utf-8")
@@ -160,6 +395,303 @@ console.log(JSON.stringify({ok:true,readable}));
         self.assertIn("modules.summary.renderSummary", session)
         self.assertIn("learnerObjectiveLabels(context)", session)
         self.assertNotIn("transfer-completed", session)
+
+    def test_r12_fails_closed_on_runtime_qualified_atlas_context(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        self.assertIn("authority.contextAccepted(context)", surface)
+        self.assertIn("compatibleAtlasCourse(context, atlasRuntime)", surface)
+
+    def test_r12_stops_same_day_repeat_when_every_objective_is_waiting(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        for token in (
+            "sessionAvailableNow",
+            "nextAvailableAt",
+            "À jour pour aujourd’hui",
+            "Pour consolider dans la durée, revenez à partir du",
+            "data-atlas-rest-status",
+        ):
+            self.assertIn(token, surface)
+        self.assertIn("detail.memory.due", surface)
+        self.assertIn("detail?.memory?.dueAt", surface)
+
+    def test_r12_library_hover_preview_and_active_session_focus_are_explicit(self):
+        surface = SURFACE.read_text(encoding="utf-8")
+        styles = STYLES.read_text(encoding="utf-8")
+        self.assertIn("title: `${item.label} — ${item.stateLabel}`", surface)
+        self.assertIn("Préparation de la séance de ${duration} minutes…", surface)
+        self.assertNotIn("Voici ce que vous allez travailler pendant cette séance.", surface)
+        self.assertIn("settingsDisclosure.textContent = 'Renommer'", surface)
+        self.assertIn('data-atlas-session-active="true"', styles)
+        self.assertIn("> .course-row-main", styles)
+        self.assertIn("display: none", styles)
+        self.assertIn(".atlas-r9-stat-symbol { display: none; }", styles)
+        self.assertIn("counter-reset: atlas-objective", styles)
+        self.assertNotIn("progressPercent", styles)
+
+    def test_r13_browser_dom_density_state_priority_focus_and_mobile(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError as exc:
+            self.fail(f"playwright required for R13 browser qualification: {exc}")
+
+        artifact = APP / "dist/learnit-next.html"
+        self.assertTrue(artifact.is_file(), "deterministic build artifact must exist before browser test")
+        chrome = (
+            shutil.which("google-chrome")
+            or shutil.which("chromium")
+            or shutil.which("chromium-browser")
+        )
+        self.assertIsNotNone(chrome, "system Chromium/Chrome is required for R13 browser qualification")
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(executable_path=chrome)
+            page = browser.new_page(viewport={"width": 390, "height": 844})
+            page.goto(artifact.as_uri(), wait_until="load")
+            page.wait_for_function(
+                "() => Boolean(window.__LEARNIT_NEXT_TEST__?.renderAtlasR13Fixture)"
+            )
+
+            empty_visibility = page.evaluate(
+                """() => {
+                  const host = document.createElement('div');
+                  host.className = 'course-progress-compact';
+                  document.body.append(host);
+                  window.__LEARNIT_NEXT_TEST__.renderAtlasR13Fixture(
+                    host,
+                    ['not-started', 'not-started'],
+                    0,
+                  );
+                  const value = [...host.querySelectorAll('[data-atlas-r13-objective]')].map(item => {
+                    const style = getComputedStyle(item);
+                    const rect = item.getBoundingClientRect();
+                    return {
+                      width: rect.width,
+                      height: rect.height,
+                      borderWidth: parseFloat(style.borderLeftWidth),
+                      borderStyle: style.borderLeftStyle,
+                      borderColor: style.borderLeftColor,
+                    };
+                  });
+                  host.remove();
+                  return value;
+                }"""
+            )
+            self.assertEqual(len(empty_visibility), 2)
+            for reservoir in empty_visibility:
+                self.assertGreater(reservoir["width"], 10)
+                self.assertGreater(reservoir["height"], 50)
+                self.assertGreaterEqual(reservoir["borderWidth"], 2)
+                self.assertEqual(reservoir["borderStyle"], "solid")
+                self.assertNotIn("rgba(0, 0, 0, 0)", reservoir["borderColor"])
+
+            for count in (5, 8, 12, 20):
+                states = [
+                    (
+                        "review-needed" if index == 1
+                        else "ready-for-validation" if index == 2
+                        else "validated-recently" if index % 4 == 3
+                        else "training"
+                    )
+                    for index in range(count)
+                ]
+                result = page.evaluate(
+                    """({states, priority}) => {
+                      const host = document.createElement('div');
+                      host.className = 'course-progress-compact';
+                      document.body.append(host);
+                      window.__LEARNIT_NEXT_TEST__.renderAtlasR13Fixture(host, states, priority);
+                      const reservoirs = [...host.querySelectorAll('[data-atlas-r13-objective]')];
+                      const detail = host.querySelector('[data-atlas-r13-detail]');
+                      const priorityEl = host.querySelector('[data-atlas-r13-priority=\"true\"]');
+                      const before = detail.hidden;
+                      priorityEl.focus();
+                      const after = detail.hidden;
+                      const strip = host.querySelector('.atlas-r13-reservoirs');
+                      const value = {
+                        count: reservoirs.length,
+                        group: host.querySelector('[data-atlas-r13-group]')?.textContent,
+                        before,
+                        after,
+                        priorityLabel: priorityEl.getAttribute('aria-label'),
+                        reinforceMark: host.querySelector('[data-atlas-r13-state=\"review-needed\"] .atlas-r13-state-mark')?.textContent,
+                        confirmMark: host.querySelector('[data-atlas-r13-state=\"ready-for-validation\"] .atlas-r13-state-mark')?.textContent,
+                        overflow: strip.scrollWidth >= strip.clientWidth,
+                      };
+                      host.remove();
+                      return value;
+                    }""",
+                    {"states": states, "priority": min(2, count - 1)},
+                )
+                self.assertEqual(result["count"], count)
+                self.assertIn("Objectifs du cours", result["group"])
+                self.assertTrue(result["before"])
+                self.assertFalse(result["after"])
+                self.assertIn("Priorité Learn-it", result["priorityLabel"])
+                self.assertEqual(result["reinforceMark"], "↺")
+                self.assertEqual(result["confirmMark"], "◇")
+                if count == 20:
+                    self.assertTrue(result["overflow"])
+
+            consolidated = page.evaluate(
+                """() => {
+                  const host = document.createElement('div');
+                  host.className = 'course-progress-compact';
+                  document.body.append(host);
+                  window.__LEARNIT_NEXT_TEST__.renderAtlasR13Fixture(
+                    host,
+                    Array(8).fill('validated-recently'),
+                    0,
+                  );
+                  const value = host.querySelector('[data-atlas-r13-group]')
+                    ?.getAttribute('data-atlas-r13-consolidated');
+                  host.remove();
+                  return value;
+                }"""
+            )
+            self.assertEqual(consolidated, "true")
+            browser.close()
+
+    def test_r13_browser_real_today_and_library_enter_same_atlas_session(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError as exc:
+            self.fail(f"playwright required for R13 browser qualification: {exc}")
+
+        artifact = APP / "dist/learnit-next.html"
+        fixture = ROOT / "authoring/v2/atlas/nombres_complexes_atlas.json"
+        self.assertTrue(artifact.is_file())
+        self.assertTrue(fixture.is_file())
+        chrome = (
+            shutil.which("google-chrome")
+            or shutil.which("chromium")
+            or shutil.which("chromium-browser")
+        )
+        self.assertIsNotNone(chrome)
+
+        def import_fixture(page):
+            page.goto(artifact.as_uri(), wait_until="load")
+            page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)")
+            self.assertEqual(page.locator('[data-learnit-build-identity]').count(), 0)
+            page.locator('#kit-file').set_input_files(str(fixture))
+            page.locator('.import-panel button[type="submit"]').click()
+            page.wait_for_selector('[data-atlas-course-install-id]', timeout=10000)
+            page.wait_for_selector('[data-atlas-r13-progress="true"]', timeout=10000)
+
+        def assert_active_atlas_activity(page):
+            active = '[data-atlas-session-active="true"] .atlas-session'
+            page.wait_for_selector(f'{active} .atlas-activity', timeout=10000)
+            self.assertEqual(page.locator(f'{active} .atlas-activity').count(), 1)
+            self.assertEqual(page.locator(f'{active} [data-atlas-help="hint"]').count(), 1)
+            self.assertEqual(page.locator(f'{active} [data-atlas-submit]').count(), 1)
+            self.assertEqual(page.locator(f'{active} [data-atlas-pause-session]').count(), 1)
+
+        def planned_priority_label(page, card):
+            page.wait_for_function(
+                "card => Boolean(card.getAttribute('data-atlas-planned-first-objective'))",
+                arg=card.element_handle(),
+            )
+            planned = card.get_attribute('data-atlas-planned-first-objective')
+            priority = card.locator(
+                f'[data-atlas-r13-objective="{planned}"][data-atlas-r13-priority="true"]'
+            )
+            priority.wait_for(timeout=10000)
+            return priority.get_attribute('title').split(' — ')[0]
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(executable_path=chrome)
+
+            today_context = browser.new_context(viewport={"width": 900, "height": 900})
+            today_page = today_context.new_page()
+            import_fixture(today_page)
+            today_card = today_page.locator('[data-atlas-course-install-id]').first
+            self.assertEqual(
+                today_card.locator('[data-atlas-r13-objective]').count(),
+                2,
+            )
+            today_card.locator('.atlas-duration-select').select_option('5')
+            first_priority_label = planned_priority_label(today_page, today_card)
+            today_card.locator('[data-atlas-course-start="true"]').click()
+            assert_active_atlas_activity(today_page)
+            self.assertEqual(
+                today_page.locator('.atlas-session-objective').inner_text(),
+                f'Objectif : {first_priority_label}',
+            )
+
+            today_page.locator('[data-atlas-choice="true"]').first.check()
+            today_page.locator('[data-atlas-submit]').click()
+            feedback_next = today_page.locator('[data-atlas-feedback-next="true"]')
+            feedback_next.wait_for(timeout=10000)
+            self.assertEqual(feedback_next.inner_text(), 'Voir le bilan')
+            feedback_next.click()
+            today_page.wait_for_selector(
+                '[data-atlas-r13-summary-progress="true"]',
+                timeout=10000,
+            )
+            summary = today_page.locator('[data-atlas-r13-summary-progress="true"]')
+            self.assertEqual(summary.locator('[data-atlas-r13-objective]').count(), 2)
+            self.assertGreaterEqual(
+                summary.locator('[data-atlas-r13-session-worked="true"]').count(),
+                1,
+            )
+            self.assertGreaterEqual(
+                summary.locator('[data-atlas-r13-session-changed="true"]').count(),
+                1,
+            )
+            self.assertIn('Cette séance', summary.inner_text())
+
+            today_page.get_by_role('button', name='Retour à Aujourd’hui').click()
+            today_page.wait_for_selector('[data-atlas-course-install-id]', timeout=10000)
+            today_card = today_page.locator('[data-atlas-course-install-id]').first
+            today_card.locator('.atlas-duration-select').select_option('5')
+            second_priority_label = planned_priority_label(today_page, today_card)
+            today_card.locator('[data-atlas-course-start="true"]').click()
+            assert_active_atlas_activity(today_page)
+            self.assertEqual(
+                today_page.locator('.atlas-session-objective').inner_text(),
+                f'Objectif : {second_priority_label}',
+            )
+            today_context.close()
+
+            library_context = browser.new_context(viewport={"width": 900, "height": 900})
+            library_page = library_context.new_page()
+            import_fixture(library_page)
+            course_install_id = library_page.locator(
+                '[data-atlas-course-install-id]'
+            ).first.get_attribute('data-atlas-course-install-id')
+            self.assertIsNotNone(course_install_id)
+            library_page.locator('[data-atlas-library-toggle="true"]').click()
+            library_card = library_page.locator(
+                f'.course-card[data-course-install-id="{course_install_id}"]'
+            )
+            library_state = library_card.locator(
+                '[data-course-learning-action="learn"], [data-atlas-rest-status="true"]'
+            )
+            try:
+                library_state.wait_for(timeout=10000)
+            except Exception as error:
+                state = library_card.evaluate(
+                    """card => ({
+                      cardText: card.innerText,
+                      cardDisplay: getComputedStyle(card).display,
+                      mainDisplay: getComputedStyle(card.closest('.app-main')).display,
+                      mainInert: card.closest('.app-main').hasAttribute('inert'),
+                      actions: card.querySelector('.course-row-actions')?.innerHTML,
+                    })"""
+                )
+                self.fail(f"Library Atlas action unavailable; state={state!r}; timeout={error}")
+            action = library_card.locator('[data-course-learning-action="learn"]').first
+            if action.count():
+                action.click()
+                assert_active_atlas_activity(library_page)
+            else:
+                self.assertEqual(
+                    library_page.locator(
+                        '.course-card[data-course-install-id] [data-atlas-rest-status="true"]'
+                    ).count(),
+                    1,
+                )
+            library_context.close()
+            browser.close()
 
 
 if __name__ == "__main__":
