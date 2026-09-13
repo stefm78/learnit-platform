@@ -75,12 +75,31 @@
     "R14 and prior immutable replays plus stable root remain byte-identical.",
     "Live HTTPS identity checks pass after main-only Pages deployment."
   ],
+  "adversarialTests": [
+    "Reject publication if the exact product HEAD, bytes or SHA-256 differ from the machine-qualified R15 identity.",
+    "Reject publication if R15 differs across two deterministic materializations.",
+    "Reject publication if an empty authored objective is missing, visually collapsed, padded by the generic Atlas button rule, non-vertical, borderless, or has non-zero fill.",
+    "Reject publication if the pre-session framed objective differs from the actual first frozen-plan session objective on either the first or second start.",
+    "Reject publication if the completed-session map omits an objective or conflates worked objectives with state-changed objectives.",
+    "Reject publication if the 390px viewport introduces horizontal overflow or destroys the vertical reservoir geometry.",
+    "Reject publication if any R10-R14 immutable replay identity or stable learner root changes or disappears.",
+    "Reject publication if fixture or answer-guide identity drifts from the exact product tree.",
+    "Reject publication if this OPS lane changes any product path or if PR #354 is merged or promoted."
+  ],
   "nonGoals": [
     "Changing product behavior in the OPS lane.",
     "Changing kits, contracts, planner, scoring, evidence, recommendation, memory, session or storage semantics.",
     "Merging or promoting PR #354.",
     "Declaring final learner UX PASS.",
     "Creating a new activity runtime or integrating constructed-response."
+  ],
+  "independentReview": [
+    "The OPS lane consumes the exact machine-qualified R15 product identity rather than an unbound branch tip.",
+    "The served-browser replay starts from cleared origin storage and measures computed CSS geometry in the real Atlas Today context, so a source-token-only false PASS cannot qualify the visual fix.",
+    "The replay compares the planned objective identity with the actual first frozen-plan activity on two successive session starts and separately verifies worked versus changed summary markers.",
+    "The canonical Nombres Complexes fixture and deterministic answer guide are copied from the exact R15 product tree and identity-bound into the replay publication.",
+    "R14 and every prior immutable replay plus the stable learner root are rebuilt and byte-checked before publication, then rechecked through live HTTPS after deployment.",
+    "No product source is mutated in this OPS PR, and PR #354 remains independently gated by the human replay outcome."
   ],
   "execution": {
     "branch": "ops/OPS-WP-022-atlas-r15-human-replay",
