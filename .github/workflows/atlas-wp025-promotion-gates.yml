@@ -1,0 +1,59 @@
+name: Atlas WP-025 Promotion Gates
+
+on:
+  push:
+    branches:
+      - ops/atlas-wp025-promotion-gates
+    paths:
+      - '.github/workflows/atlas-wp025-promotion-gates.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-target:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      TARGET_HEAD: fbc11d091635718307505e1bb69d7218c89c016f
+      BASE: c05380eb145d2503354889dc8516d80d013db4e4
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Bind exact target
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "${TARGET_HEAD}^{commit}"
+          git worktree add --detach /tmp/target "${TARGET_HEAD}"
+      - name: Repository governance exact-head
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/target
+          python tools/validate_repository.py
+      - name: PR scope exact-head
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/target
+          python tools/test_validate_pr_scope.py
+          python - <<'PY'
+          import json, urllib.request
+          with urllib.request.urlopen('https://api.github.com/repos/stefm78/learnit-platform/pulls/365') as r:
+              body = json.load(r).get('body') or ''
+          open('/tmp/pr-body.md','w',encoding='utf-8').write(body)
+          PY
+          python tools/validate_pr_scope.py --base "${BASE}" --head "${TARGET_HEAD}" --body-file /tmp/pr-body.md --output /tmp/pr-scope-report.json
+      - name: Promotion gate verdict
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "REPOSITORY_GOVERNANCE=PASS"
+          echo "PR_SCOPE=PASS"
+          echo "PROMOTION_GATES_EXACT_HEAD=${TARGET_HEAD}"
