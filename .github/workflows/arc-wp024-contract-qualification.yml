@@ -1,0 +1,246 @@
+name: ARC-WP-024 exact contract qualification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/arc-wp024-contract-qualification.yml'
+      - 'work-packages/CI-WP-017.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/arc-wp024-contract-qualification.yml'
+      - 'work-packages/CI-WP-017.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SOVEREIGN_BASE: 38160d711c66c9cefcf5d69fc98c1808c1466a0c
+  ARCH_HEAD: 9fbd8519170b21398b85c283ef9919fc2a1d3915
+  ARCH_BRANCH: architecture/ARC-WP-024-constructed-response-contract
+
+jobs:
+  qualify:
+    name: Qualify exact ARC-WP-024 v3 contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out CI qualification authority
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned schema validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.26.0
+
+      - name: Bind immutable architecture candidate and scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin "$SOVEREIGN_BASE" "$ARCH_HEAD" "refs/heads/$ARCH_BRANCH:refs/remotes/origin/$ARCH_BRANCH"
+          git cat-file -e "${SOVEREIGN_BASE}^{commit}"
+          git cat-file -e "${ARCH_HEAD}^{commit}"
+          [[ "$(git rev-parse refs/remotes/origin/$ARCH_BRANCH)" == "$ARCH_HEAD" ]]
+
+          expected="$(printf '%s\n' \
+            'contracts/learnit-kit-v3.schema.json' \
+            'docs/architecture/clean-generation/CONSTRUCTED_RESPONSE_CONTRACT_V3.md' \
+            'work-packages/ARC-WP-024.json' | sort)"
+          actual="$(git diff --name-only "$SOVEREIGN_BASE" "$ARCH_HEAD" | sed '/^$/d' | sort)"
+          [[ "$actual" == "$expected" ]] || {
+            echo 'ARC-WP-024 exact path set differs.' >&2
+            diff -u <(printf '%s\n' "$expected") <(printf '%s\n' "$actual") || true
+            exit 2
+          }
+
+          base_v2="$(git rev-parse "$SOVEREIGN_BASE:contracts/learnit-kit-v2.schema.json")"
+          arch_v2="$(git rev-parse "$ARCH_HEAD:contracts/learnit-kit-v2.schema.json")"
+          [[ "$base_v2" == "$arch_v2" ]] || {
+            echo 'Frozen learnit.kit.v2 schema blob changed.' >&2
+            exit 2
+          }
+
+          echo "ARC_WP_024_EXACT_PATH_SET=PASS"
+          echo "LEARNIT_KIT_V2_BLOB_IDENTITY=PASS"
+          echo "V2_BLOB_SHA=$base_v2" >> "$GITHUB_ENV"
+
+      - name: Materialize exact architecture candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate="$RUNNER_TEMP/arc-wp-024-candidate"
+          git worktree add --detach "$candidate" "$ARCH_HEAD" >/dev/null
+          echo "CANDIDATE_TREE=$candidate" >> "$GITHUB_ENV"
+
+      - name: Validate v2 preservation and bounded v3 semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$CANDIDATE_TREE"
+          python - <<'PY'
+          import copy
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          from jsonschema.exceptions import ValidationError
+
+          v2_path = Path('contracts/learnit-kit-v2.schema.json')
+          v3_path = Path('contracts/learnit-kit-v3.schema.json')
+          fixture_path = Path('contracts/fixtures/llv2-valid-objective-loop.json')
+
+          v2 = json.loads(v2_path.read_text(encoding='utf-8'))
+          v3 = json.loads(v3_path.read_text(encoding='utf-8'))
+          fixture = json.loads(fixture_path.read_text(encoding='utf-8'))
+
+          Draft202012Validator.check_schema(v2)
+          Draft202012Validator.check_schema(v3)
+          v2_validator = Draft202012Validator(v2)
+          v3_validator = Draft202012Validator(v3)
+
+          def require_valid(validator, payload, label):
+              errors = sorted(validator.iter_errors(payload), key=lambda error: list(error.path))
+              if errors:
+                  rendered = '\n'.join(f'{list(error.path)}: {error.message}' for error in errors[:10])
+                  raise AssertionError(f'{label} unexpectedly invalid:\n{rendered}')
+
+          def require_invalid(validator, payload, label):
+              try:
+                  validator.validate(payload)
+              except ValidationError:
+                  return
+              raise AssertionError(f'{label} unexpectedly validated')
+
+          # Existing v2 remains valid under the frozen v2 authority.
+          require_valid(v2_validator, fixture, 'existing-v2-fixture')
+
+          # Existing qcm/fill shape is admitted by explicit v3 when only the discriminator changes.
+          v3_foundation = copy.deepcopy(fixture)
+          v3_foundation['contract'] = 'learnit.kit.v3'
+          require_valid(v3_validator, v3_foundation, 'v3-qcm-fill-foundation')
+
+          # Build one bounded constructed activity from an otherwise valid common activity.
+          constructed = copy.deepcopy(v3_foundation)
+          first = constructed['courses'][0]['activities'][0]
+          first.pop('choices')
+          first.pop('correctChoiceId')
+          first['type'] = 'constructed'
+          first['acceptedResponses'] = [
+              'Une réponse construite de référence.',
+              'Une variante déterministe.'
+          ]
+          require_valid(v3_validator, constructed, 'valid-v3-constructed')
+
+          # v2 cannot be silently widened with constructed.
+          v2_constructed = copy.deepcopy(constructed)
+          v2_constructed['contract'] = 'learnit.kit.v2'
+          require_invalid(v2_validator, v2_constructed, 'v2-constructed')
+
+          missing = copy.deepcopy(constructed)
+          missing['courses'][0]['activities'][0].pop('acceptedResponses')
+          require_invalid(v3_validator, missing, 'constructed-missing-acceptedResponses')
+
+          empty = copy.deepcopy(constructed)
+          empty['courses'][0]['activities'][0]['acceptedResponses'] = []
+          require_invalid(v3_validator, empty, 'constructed-empty-acceptedResponses')
+
+          qcm_leak = copy.deepcopy(constructed)
+          qcm_leak_activity = qcm_leak['courses'][0]['activities'][0]
+          qcm_leak_activity['choices'] = [
+              {'choiceId': 'e1111111-1111-4111-8111-111111111111', 'label': 'secret-shape'}
+          ]
+          qcm_leak_activity['correctChoiceId'] = 'e1111111-1111-4111-8111-111111111111'
+          require_invalid(v3_validator, qcm_leak, 'constructed-with-qcm-secret-fields')
+
+          unknown = copy.deepcopy(constructed)
+          unknown['courses'][0]['activities'][0]['type'] = 'essay-ai'
+          require_invalid(v3_validator, unknown, 'unknown-activity-family')
+
+          assert v2['properties']['contract']['const'] == 'learnit.kit.v2'
+          assert v3['properties']['contract']['const'] == 'learnit.kit.v3'
+          family_enum = set(v3['$defs']['activityCommon']['properties']['type']['enum'])
+          assert family_enum == {'qcm', 'fill', 'constructed'}, family_enum
+          refs = v3['$defs']['course']['properties']['activities']['items']['oneOf']
+          assert {item['$ref'] for item in refs} == {
+              '#/$defs/qcm', '#/$defs/fill', '#/$defs/constructed'
+          }
+          constructed_def = v3['$defs']['constructed']
+          serialized = json.dumps(v3, sort_keys=True).lower()
+          for forbidden in ('evaluator', 'rubric', 'plugin', 'network', 'runtime-registry', 'llm', 'modelprompt'):
+              assert forbidden not in serialized, forbidden
+          assert constructed_def['allOf'][1]['required'] == ['acceptedResponses']
+          accepted = constructed_def['allOf'][1]['properties']['acceptedResponses']
+          assert accepted['minItems'] == 1 and accepted['maxItems'] == 20
+          assert accepted['items']['maxLength'] == 4000
+
+          # Architecture text must bind the deterministic normalization rule explicitly.
+          design = Path('docs/architecture/clean-generation/CONSTRUCTED_RESPONSE_CONTRACT_V3.md').read_text(encoding='utf-8')
+          for phrase in ('normalize Unicode to NFC', 'collapse each run of Unicode whitespace', 'case-sensitively'):
+              assert phrase in design, phrase
+
+          print('DRAFT_2020_12_SCHEMA_CHECKS=PASS')
+          print('V2_EXISTING_FIXTURE=PASS')
+          print('V3_QCM_FILL_FOUNDATION=PASS')
+          print('V3_CONSTRUCTED_POSITIVE=PASS')
+          print('V3_CONSTRUCTED_ADVERSARIAL=PASS')
+          print('V3_ANTI_FRAMEWORK_SURFACE=PASS')
+          print('V3_SCHEMA_SHA256=' + hashlib.sha256(v3_path.read_bytes()).hexdigest())
+          PY
+
+      - name: Write exact qualification proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-wp-017
+          v3_sha="$(sha256sum "$CANDIDATE_TREE/contracts/learnit-kit-v3.schema.json" | awk '{print $1}')"
+          export V3_SHA="$v3_sha"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload = {
+              'schema': 'learnit.ci.arc-wp-024-contract-qualification.v1',
+              'workPackage': 'CI-WP-017',
+              'architectureWorkPackage': 'ARC-WP-024',
+              'architectureIssue': 369,
+              'architecturePullRequest': 370,
+              'sovereignBase': os.environ['SOVEREIGN_BASE'],
+              'architectureHead': os.environ['ARCH_HEAD'],
+              'v2BlobSha': os.environ['V2_BLOB_SHA'],
+              'v3SchemaSha256': os.environ['V3_SHA'],
+              'exactPathSet': 'PASS',
+              'v2BlobIdentity': 'PASS',
+              'draft202012SchemaChecks': 'PASS',
+              'v2ExistingFixture': 'PASS',
+              'v3QcmFillFoundation': 'PASS',
+              'v3ConstructedPositive': 'PASS',
+              'v3ConstructedAdversarial': 'PASS',
+              'antiFrameworkSurface': 'PASS',
+              'genericArchitectureRun': 34760249495,
+              'genericFailureClassification': 'CI_ROUTER_TOPOLOGY_UNKNOWN_BRANCH',
+              'result': 'PASS',
+              'verdict': 'PASS_CI_WP_017_ARC_WP_024_EXACT_HEAD_QUALIFICATION',
+          }
+          out = Path('.ci-wp-017/qualification.json')
+          out.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(payload, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload qualification proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-wp-017-arc-wp024-${{ env.ARCH_HEAD }}
+          path: .ci-wp-017/qualification.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-017",
+  "title": "Qualify exact ARC-WP-024 constructed-response contract candidate",
+  "status": "approved",
+  "changeClass": "ci-qualification",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 371,
+    "architectureIssue": 369,
+    "architecturePullRequest": 370,
+    "architectureWorkPackage": "ARC-WP-024"
+  },
+  "purpose": "Provide independent fail-closed exact-head evidence for ARC-WP-024 without mutating its architecture candidate, product/runtime code, authoring, existing contracts or the generic Learn-it Next CI router.",
+  "baseline": {
+    "baseCommit": "38160d711c66c9cefcf5d69fc98c1808c1466a0c",
+    "architectureHead": "9fbd8519170b21398b85c283ef9919fc2a1d3915",
+    "branch": "ci/CI-WP-017-arc-wp024-contract-qualification",
+    "genericArchitectureRun": 34760249495,
+    "genericFailureClassification": "CI_ROUTER_TOPOLOGY_UNKNOWN_BRANCH"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/arc-wp024-contract-qualification.yml",
+      "work-packages/CI-WP-017.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "The ARC-WP-024 architecture candidate remains exactly 9fbd8519170b21398b85c283ef9919fc2a1d3915 during qualification.",
+    "The architecture candidate differs from sovereign base only by ARC-WP-024.json, CONSTRUCTED_RESPONSE_CONTRACT_V3.md and learnit-kit-v3.schema.json.",
+    "The learnit.kit.v2 schema blob is identical at sovereign base and architecture candidate.",
+    "The verifier checks v2 and v3 with Draft202012Validator.check_schema and validates positive and adversarial documents.",
+    "No product, authoring, contract, architecture candidate or central router mutation is allowed in this work package.",
+    "A PASS from this CI package is qualification evidence only and does not authorize merge of ARC-WP-024."
+  ],
+  "requiredEvidence": [
+    "Exact two-file CI-WP-017 pull-request delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Dedicated exact-head ARC-WP-024 contract qualification PASS.",
+    "Exact three-path architecture delta and unchanged v2 blob identity are proven from Git objects.",
+    "Draft 2020-12 schema checks pass for both v2 and v3.",
+    "Existing v2 fixture validates unchanged against v2.",
+    "Positive v3 qcm/fill and constructed cases pass.",
+    "v2 constructed, missing/empty acceptedResponses, qcm-only fields on constructed, and unknown activity types fail closed.",
+    "Structural anti-framework inspection passes."
+  ],
+  "adversarialTests": [
+    "Wrong architecture head fails before schema testing.",
+    "Any extra or missing ARC-WP-024 path fails exact path-set comparison.",
+    "Any change to the v2 schema blob fails closed.",
+    "A constructed activity without acceptedResponses is rejected.",
+    "A constructed activity with an empty acceptedResponses array is rejected.",
+    "A constructed activity carrying qcm-only choices or correctChoiceId is rejected.",
+    "An unknown fourth activity family is rejected.",
+    "A v2 payload containing constructed is rejected.",
+    "Schema surface containing evaluator, rubric, plugin, network or runtime-registry authority fails inspection."
+  ],
+  "nonGoals": [
+    "Promoting or merging ARC-WP-024.",
+    "Implementing constructed responses in Learn-it Next.",
+    "Changing learnit.kit.v2 or any existing kit.",
+    "Updating authoring or Studio.",
+    "Repairing the generic Learn-it Next CI router."
+  ],
+  "independentReview": [
+    "This qualification runs from a separate CI-only branch and fetches the immutable architecture candidate by exact SHA.",
+    "The candidate's generic Learn-it Next CI failure is independently classified from logs as an unknown-branch router topology failure before product qualification.",
+    "Human architecture approval remains required after machine qualification because ARC-WP-024 changes canonical contract authority."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-017-arc-wp024-contract-qualification",
+    "maximumChangedFiles": 2,
+    "phase": "QUALIFICATION",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "finalVerdict": "PENDING_CI_WP_017_ARC_WP_024_QUALIFICATION"
+  },
+  "rollback": "Close this CI-only pull request and delete its branch. ARC-WP-024 and sovereign main remain unchanged."
+}
