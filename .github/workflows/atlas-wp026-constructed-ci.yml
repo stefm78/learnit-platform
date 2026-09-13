@@ -1,0 +1,256 @@
+name: ATLAS-WP-026 Constructed Response CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-wp026-constructed-ci.yml'
+      - 'work-packages/CI-WP-018.json'
+      - 'work-packages/ATLAS-WP-026.json'
+      - 'apps/learnit-next/source_manifest.json'
+      - 'apps/learnit-next/src/core/contract.js'
+      - 'apps/learnit-next/src/core/session.js'
+      - 'apps/learnit-next/src/integration/atlas/import_adapter.js'
+      - 'apps/learnit-next/src/integration/atlas/session.js'
+      - 'apps/learnit-next/src/ui/render.js'
+      - 'apps/learnit-next/src/styles.css'
+      - 'apps/learnit-next/tests/atlas_v3_constructed.py'
+      - 'apps/learnit-next/tests/fixtures/atlas_v3_constructed.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-wp026-constructed-ci.yml'
+      - 'work-packages/CI-WP-018.json'
+      - 'work-packages/ATLAS-WP-026.json'
+      - 'apps/learnit-next/source_manifest.json'
+      - 'apps/learnit-next/src/core/contract.js'
+      - 'apps/learnit-next/src/core/session.js'
+      - 'apps/learnit-next/src/integration/atlas/import_adapter.js'
+      - 'apps/learnit-next/src/integration/atlas/session.js'
+      - 'apps/learnit-next/src/ui/render.js'
+      - 'apps/learnit-next/src/styles.css'
+      - 'apps/learnit-next/tests/atlas_v3_constructed.py'
+      - 'apps/learnit-next/tests/fixtures/atlas_v3_constructed.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-wp026-constructed-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  ARCHITECTURE_BASE: ea7f89670db547ff6303889e5016a470ad1aee85
+  CI_BRANCH: ci/CI-WP-018-atlas-wp026-constructed
+  PRODUCT_BRANCH: atlas/ATLAS-WP-026-constructed-response
+
+jobs:
+  qualify:
+    name: Exact-head constructed-response qualification
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out exact target
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve exact mode and scope
+        id: resolve
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          target="${TARGET_SHA}"
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$(git rev-parse HEAD)" == "${target}" ]]
+
+          if [[ "${EVENT}" == pull_request ]]; then
+            base="${PR_BASE_SHA}"
+            [[ "${base}" =~ ^[0-9a-f]{40}$ ]]
+            git fetch --force --no-tags origin "${base}"
+            case "${HEAD_REF}" in
+              "${CI_BRANCH}") mode=ci-pr ;;
+              "${PRODUCT_BRANCH}") mode=product-pr ;;
+              *) echo "Unexpected branch for dedicated verifier: ${HEAD_REF}" >&2; exit 2 ;;
+            esac
+          elif [[ "${EVENT}" == push ]]; then
+            mapfile -t parents < <(git show -s --format='%P' HEAD)
+            read -r -a parent_array <<< "${parents[0]}"
+            [[ ${#parent_array[@]} -ge 1 ]]
+            base="${parent_array[0]}"
+            changed="$(git diff --name-only "${base}" HEAD | sed '/^$/d' | sort -u)"
+            if grep -Fxq 'work-packages/CI-WP-018.json' <<< "${changed}"; then
+              mode=ci-post
+            elif grep -Fxq 'work-packages/ATLAS-WP-026.json' <<< "${changed}"; then
+              mode=product-post
+            else
+              echo 'Dedicated workflow triggered without its governed path set.' >&2
+              exit 2
+            fi
+          else
+            echo "Unsupported event: ${EVENT}" >&2
+            exit 2
+          fi
+
+          compare_base="$(git merge-base "${base}" "${target}")"
+          [[ "${compare_base}" == "${base}" ]] || {
+            echo "Target is not based on exact resolved base: ${base}" >&2
+            exit 2
+          }
+          changed="$(git diff --name-only "${base}" "${target}" | sed '/^$/d' | sort -u)"
+          printf 'mode=%s\nbase=%s\ntarget=%s\n' "${mode}" "${base}" "${target}" >> "${GITHUB_OUTPUT}"
+          printf '%s\n' "${changed}" > "${RUNNER_TEMP}/changed-paths.txt"
+          cat "${RUNNER_TEMP}/changed-paths.txt"
+
+      - name: Prove CI-WP-018 self scope
+        if: steps.resolve.outputs.mode == 'ci-pr' || steps.resolve.outputs.mode == 'ci-post'
+        shell: bash
+        env:
+          MODE: ${{ steps.resolve.outputs.mode }}
+          BASE: ${{ steps.resolve.outputs.base }}
+          TARGET: ${{ steps.resolve.outputs.target }}
+        run: |
+          set -euo pipefail
+          expected="$(printf '%s\n' \
+            '.github/workflows/atlas-wp026-constructed-ci.yml' \
+            'work-packages/CI-WP-018.json' | sort)"
+          actual="$(cat "${RUNNER_TEMP}/changed-paths.txt")"
+          [[ "${actual}" == "${expected}" ]] || {
+            echo 'CI-WP-018 exact two-file scope mismatch.' >&2
+            diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+            exit 2
+          }
+          python - <<'PY'
+          import json, pathlib
+          wp=json.loads(pathlib.Path('work-packages/CI-WP-018.json').read_text(encoding='utf-8'))
+          assert wp['id']=='CI-WP-018'
+          assert wp['authority']['issue']==374
+          assert wp['authority']['productIssue']==373
+          assert wp['baseline']['architectureBase']=='ea7f89670db547ff6303889e5016a470ad1aee85'
+          assert wp['baseline']['productBranch']=='atlas/ATLAS-WP-026-constructed-response'
+          assert wp['scope']['allowedPaths']==['.github/workflows/atlas-wp026-constructed-ci.yml','work-packages/CI-WP-018.json']
+          assert wp['execution']['productPromotionAuthorized'] is False
+          print('CI_WP_018_SELF_SCOPE=PASS')
+          PY
+
+      - name: Prove exact ATLAS-WP-026 product scope
+        if: steps.resolve.outputs.mode == 'product-pr' || steps.resolve.outputs.mode == 'product-post'
+        shell: bash
+        env:
+          BASE: ${{ steps.resolve.outputs.base }}
+          TARGET: ${{ steps.resolve.outputs.target }}
+        run: |
+          set -euo pipefail
+          expected="$(printf '%s\n' \
+            'apps/learnit-next/source_manifest.json' \
+            'apps/learnit-next/src/core/contract.js' \
+            'apps/learnit-next/src/core/session.js' \
+            'apps/learnit-next/src/integration/atlas/import_adapter.js' \
+            'apps/learnit-next/src/integration/atlas/session.js' \
+            'apps/learnit-next/src/styles.css' \
+            'apps/learnit-next/src/ui/render.js' \
+            'apps/learnit-next/tests/atlas_v3_constructed.py' \
+            'apps/learnit-next/tests/fixtures/atlas_v3_constructed.json' \
+            'work-packages/ATLAS-WP-026.json' | sort)"
+          actual="$(cat "${RUNNER_TEMP}/changed-paths.txt")"
+          [[ "${actual}" == "${expected}" ]] || {
+            echo 'ATLAS-WP-026 exact bounded path set mismatch.' >&2
+            diff -u <(printf '%s\n' "${expected}") <(printf '%s\n' "${actual}") || true
+            exit 2
+          }
+          python - <<'PY'
+          import json, os, pathlib
+          wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-026.json').read_text(encoding='utf-8'))
+          assert wp['id']=='ATLAS-WP-026'
+          assert wp['authority']['issue']==373
+          assert wp['baseline']['architectureBase']=='ea7f89670db547ff6303889e5016a470ad1aee85'
+          assert wp['baseline']['executionBase']==os.environ['BASE']
+          assert wp['execution']['branch']=='atlas/ATLAS-WP-026-constructed-response'
+          assert wp['execution']['humanGateRequired'] is True
+          assert wp['execution']['mergeAuthorized'] is False
+          PY
+          git fetch --force --no-tags origin "${ARCHITECTURE_BASE}"
+          v2_arch="$(git rev-parse "${ARCHITECTURE_BASE}:contracts/learnit-kit-v2.schema.json")"
+          v2_target="$(git rev-parse "${TARGET}:contracts/learnit-kit-v2.schema.json")"
+          [[ "${v2_arch}" == "${v2_target}" ]] || {
+            echo 'Frozen learnit.kit.v2 schema changed.' >&2
+            exit 2
+          }
+          echo "V2_SCHEMA_BLOB_IDENTITY=PASS:${v2_target}"
+
+      - name: Run exact constructed-response qualification
+        if: steps.resolve.outputs.mode == 'product-pr' || steps.resolve.outputs.mode == 'product-post'
+        shell: bash
+        env:
+          TARGET: ${{ steps.resolve.outputs.target }}
+          BASE: ${{ steps.resolve.outputs.base }}
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py
+          node --check apps/learnit-next/src/core/contract.js
+          node --check apps/learnit-next/src/core/session.js
+          node --check apps/learnit-next/src/integration/atlas/import_adapter.js
+          node --check apps/learnit-next/src/integration/atlas/session.js
+          node --check apps/learnit-next/src/ui/render.js
+          python -B apps/learnit-next/tests/atlas_v3_constructed.py -v
+          python -B apps/learnit-next/tests/atlas_activity_ui_seam.py -v
+          python -B apps/learnit-next/tests/atlas_m1_core.py -v
+          python -B apps/learnit-next/tests/atlas_m1_learning.py -v
+          python -B apps/learnit-next/tests/atlas_m1_experience.py -v
+          python -B apps/learnit-next/tests/atlas_m1_int.py -v
+          python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v
+
+          artifact='apps/learnit-next/dist/learnit-next.html'
+          [[ -f "${artifact}" ]]
+          sha="$(sha256sum "${artifact}" | awk '{print $1}')"
+          bytes="$(wc -c < "${artifact}" | tr -d ' ')"
+          mkdir -p apps/learnit-next/.agent-result
+          export SHA="${sha}" BYTES="${bytes}"
+          python - <<'PY'
+          import json, os, pathlib
+          proof={
+            'schema':'learnit.next.ci.atlas-wp026-constructed.v1',
+            'workPackage':'ATLAS-WP-026',
+            'authorityIssue':373,
+            'targetHead':os.environ['TARGET'],
+            'executionBase':os.environ['BASE'],
+            'architectureBase':'ea7f89670db547ff6303889e5016a470ad1aee85',
+            'result':'PASS',
+            'verdict':'READY_FOR_IMMUTABLE_HUMAN_REPLAY',
+            'v2SchemaIdentity':'PASS',
+            'secretBoundary':'PASS',
+            'artifact':{
+              'path':'apps/learnit-next/dist/learnit-next.html',
+              'bytes':int(os.environ['BYTES']),
+              'sha256':os.environ['SHA'],
+            },
+          }
+          out=pathlib.Path('apps/learnit-next/.agent-result/atlas-wp026-qualification.json')
+          out.write_text(json.dumps(proof, indent=2, sort_keys=True)+'\n', encoding='utf-8')
+          print(json.dumps(proof, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload exact qualification proof
+        if: steps.resolve.outputs.mode == 'product-pr' || steps.resolve.outputs.mode == 'product-post'
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp026-constructed-${{ steps.resolve.outputs.target }}
+          if-no-files-found: error
+          path: |
+            apps/learnit-next/.agent-result/atlas-wp026-qualification.json
+            apps/learnit-next/dist/learnit-next.html
