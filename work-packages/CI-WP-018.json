@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-018",
+  "title": "Provide exact-head qualification for ATLAS-WP-026 constructed responses",
+  "status": "approved",
+  "changeClass": "ci-qualification-route",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 374,
+    "productIssue": 373,
+    "architectureWorkPackage": "ARC-WP-024",
+    "learningSeamWorkPackage": "ATLAS-WP-025"
+  },
+  "purpose": "Add a bounded dedicated exact-head verifier for the ATLAS-WP-026 constructed-response vertical slice without changing the historical generic Learn-it Next router or any learner/product semantics.",
+  "baseline": {
+    "architectureBase": "ea7f89670db547ff6303889e5016a470ad1aee85",
+    "branch": "ci/CI-WP-018-atlas-wp026-constructed",
+    "productBranch": "atlas/ATLAS-WP-026-constructed-response"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-wp026-constructed-ci.yml",
+      "work-packages/CI-WP-018.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-026.json"
+    ]
+  },
+  "productExpectedPaths": [
+    "apps/learnit-next/source_manifest.json",
+    "apps/learnit-next/src/core/contract.js",
+    "apps/learnit-next/src/core/session.js",
+    "apps/learnit-next/src/integration/atlas/import_adapter.js",
+    "apps/learnit-next/src/integration/atlas/session.js",
+    "apps/learnit-next/src/styles.css",
+    "apps/learnit-next/src/ui/render.js",
+    "apps/learnit-next/tests/atlas_v3_constructed.py",
+    "apps/learnit-next/tests/fixtures/atlas_v3_constructed.json",
+    "work-packages/ATLAS-WP-026.json"
+  ],
+  "invariants": [
+    "This work package changes exactly two CI-only paths.",
+    "The historical generic Learn-it Next router remains unchanged.",
+    "The verifier binds product qualification to the exact ATLAS-WP-026 pull-request head and dynamic pull-request base.",
+    "The product candidate changes exactly the ten declared product paths.",
+    "The learnit.kit.v2 schema Git blob is identical to the promoted ARC-WP-024 architecture baseline.",
+    "Constructed-response secrets never appear in learner-safe ActivityPresentation.",
+    "Existing qcm/fill and Atlas learner-journey regressions remain green.",
+    "The verifier emits exact candidate artifact bytes, SHA-256 and target commit SHA.",
+    "No learner/product/runtime/contract/authoring semantics change in CI-WP-018."
+  ],
+  "requiredEvidence": [
+    "Exact two-file CI-WP-018 pull-request delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Dedicated verifier self-check PASS on CI-WP-018.",
+    "Dedicated exact-head product qualification PASS on the future ATLAS-WP-026 candidate.",
+    "Machine-readable exact-head artifact proof for ATLAS-WP-026."
+  ],
+  "nonGoals": [
+    "Changing the central Learn-it Next CI router.",
+    "Changing learner runtime, contracts, authoring, planner, scoring, evidence, memory or persistence.",
+    "Promoting ATLAS-WP-026.",
+    "Replacing the later immutable served Human Replay gate."
+  ],
+  "execution": {
+    "humanGateRequired": false,
+    "maximumChangedFiles": 2,
+    "productPromotionAuthorized": false,
+    "nextGate": "MERGE_CI_ROUTE_THEN_BUILD_ATLAS_WP_026"
+  },
+  "rollback": "Revert the two CI-WP-018 files. No product or contract state is changed."
+}
