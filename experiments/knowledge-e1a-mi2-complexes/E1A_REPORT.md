@@ -2,11 +2,11 @@
 
 ## Executive summary
 
-E1A tested Source Map → Knowledge → Pedagogy against the current Direct AI Kit Factory route without changing `learnit.kit.v2` or the Player.
+E1A tests Source Map → Knowledge → Pedagogy against the current Direct AI Kit Factory route without changing `learnit.kit.v2` or the Player.
 
-Observed value: the separation helps **scope control, prerequisite declaration, reuse, and deterministic impact analysis**. It is not justified as a mandatory route. Section 1.2 can be teaching scope while 1.1 remains consultable prerequisite context and selected exercises from 1.4 remain assessment material.
+Observed value remains concrete for **scope control, prerequisite declaration, reuse, provenance and deterministic impact analysis**. The experiment continues to falsify “OKF everywhere”: the useful core is smaller than a general knowledge-management platform, and Direct AI Kit Factory remains the preferred fast path for isolated one-off work.
 
-The experiment falsifies “OKF everywhere”: a general knowledge-management layer is unnecessary. The useful core is smaller: stable source locators + compact concept bundle + typed Learn-it relations + pedagogical blueprints. OKF-like portability may be useful as interchange, not runtime dependency.
+The previously missing A/B authoring artifacts now exist: one frozen learner brief plus two fresh 40-minute `learnit.kit.v2` candidates for the exact same sections 1.2.3.2 + 1.2.4. Route A is direct-source authored; Route B is knowledge-assisted. They deliberately use separate identities and similar pedagogical breadth.
 
 ## Scenario results
 
@@ -15,35 +15,43 @@ The experiment falsifies “OKF everywhere”: a general knowledge-management la
 - C Same knowledge/different pedagogy: PASS at model level; knowledge identities remain unchanged.
 - D Figures/equations: PASS with locator caveat; PDF-page + numbered item locators suffice, extracted glyph offsets do not.
 - E Exercises: PASS; exercises are practice/assessment evidence, not concepts.
-- F Direct vs Knowledge A/B: **HOLD**; a fair pair of canonical `learnit.kit.v2` candidates has not yet passed the complete Factory qualification in this execution.
-- G Existing kit: product witness only; visible current course focuses on conjugate/module and is not semantic authority for the bounded 1.2 target.
+- F Direct vs Knowledge A/B: **PARTIAL / HOLD**. Two frozen candidates now exist. Author-side reconstructed checks pass for Atlas ordering, claim binding, revision digests, duration, interaction variety and transfer difficulty. However this execution surface could not run the repository canonical Python CLIs from an executable checkout, and the same author execution cannot truthfully provide an independent Factory semantic review.
+- G Existing kit: product witness only; it is not semantic authority for the bounded 1.2 target.
 - H Impact: PASS at model level; fixture change to `roots-of-unity` marks only dependent blueprints `REVIEW_REQUIRED`.
 - I Fast path: PASS; Direct AI Kit Factory remains preferred for small one-off non-reused scopes.
 
+## A/B artifacts
+
+- Prompt: `NEXT_PROMPT_E1A_AB_CANONICAL.md`.
+- Frozen brief: `ab/learner-brief.json`.
+- Route A: `ab/candidate-route-a.json`, package digest `sha256:0d03102d9bcb880f8114c1992ab512d2ecb28b6227d0a60867645013aaabfc83`.
+- Route B: `ab/candidate-route-b.json`, package digest `sha256:cb38f6773437f39b6b9287149d4e8da76af6938467fe5a60dc39a8f7a29dcaf7`.
+- Execution evidence and exact blocker: `ab/EXECUTION_STATUS.md`.
+
 ## Complexity ledger
 
-Added only: source manifest/map, compact knowledge bundle, typed relation sidecar, scope manifests, pedagogical blueprints, impact manifest. Not added: backend, graph/vector DB, OCR, Player/schema/learner-state changes, generic ingestion platform.
+Route B adds source manifest/map, compact knowledge bundle, typed relation sidecar, scope manifests, pedagogical blueprints and impact manifest. It does not add backend, graph/vector DB, OCR, Player/schema/learner-state changes, generic ingestion platform or runtime dependency.
 
-This complexity is proportionate only when reuse, selective scope or change-impact analysis is needed. For a one-shot kit it is overhead.
-
-## Uncovered risks
-
-Not proven: 200–300 page scale; multiple authoritative sources; conflicting editions; scan/OCR-heavy input; multilingual scale; catalogue/search performance; operational cost of independent A/B author/reviewer contexts.
+The final A/B kit structures are intentionally comparable. This is important: Knowledge Architecture does not win because it produces more metadata. Its value must appear in scope/provenance/reuse/change-management while final learner quality is non-degraded.
 
 ## Independent audit
 
-False PASS found: canonical A/B qualification is incomplete, so E1A cannot PASS. False FAIL also rejected: scope separation, reuse and impact targeting show concrete value. PDF remains semantic authority. No scale claim is made. Fast-path negative result is retained.
+A false PASS was rejected twice. First, the original run lacked actual A/B candidates. That defect is now repaired. Second, it would still be a false PASS to relabel locally reconstructed algorithm checks as execution of the canonical repository validators, or to let the author certify its own semantic review. Both claims remain explicitly withheld.
+
+A false FAIL is also rejected: Route B already demonstrates source-bound target/prerequisite separation and dependency-addressable impact analysis that Route A does not carry as durable authoring artifacts.
 
 ## FINAL VERDICT
 
 `HOLD_E1A_ARCHITECTURE_NEEDS_REWORK`
 
-### Minimum rework
+### Minimum remaining proof
 
-Do not redesign. Complete one narrow missing proof: generate two canonical kits for the same `1.2.3.2 + 1.2.4` learner brief; Route A gets PDF+brief; Route B gets Source Map+Knowledge Bundle+same brief with PDF still authoritative; run canonical validators, M3.1 quality, independent source-fidelity review and Factory gate on both; compare leakage, prerequisites, fidelity, quality, artifact count and reconstruction cost. PASS to E1B only if B is non-degraded and materially improves scope/provenance/reuse/impact while the fast path remains optional.
+Do not redesign. Run the two exact frozen candidates through the unchanged repository canonical validators and M3.1 quality engine, generate exact Factory contexts, then review each exact source/brief/kit tuple in genuinely clean reviewer contexts and run the unchanged Factory Gate. If either candidate needs semantic repair, allocate fresh revision identities/digests as required and repeat both deterministic and independent review gates honestly.
+
+PASS to E1B only if both routes obtain genuine `PASS_AI_KIT_FACTORY_V1`, Route B is non-degraded, and its scope/provenance/reuse/impact advantage remains material after accounting for the extra artifacts.
 
 ## Mandatory question
 
 > If Learn-it had to produce 20 kits from this course or a much longer course, would the added knowledge artifacts really reduce work, inconsistencies and evolution cost—or merely move complexity?
 
-Current answer: **probably reduce them when kits overlap or evolve independently, but this is not yet causally proven by the required canonical A/B run.** Reusable concept identities and explicit dependencies reduce repeated interpretation and enable impact targeting; the source map prevents chapter selection from becoming accidental full-course teaching. For isolated one-off kits they merely move complexity. E1A therefore stays HOLD until the narrow A/B proof is complete.
+Current answer: **the architecture is increasingly plausible for overlapping/evolving kits, but the experiment still lacks the independent Factory-qualified A/B evidence required to call that causal proof.** For isolated kits the extra layer remains overhead; therefore the Direct route must stay available.
