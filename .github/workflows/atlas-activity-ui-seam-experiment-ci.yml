@@ -69,10 +69,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --test --test-reporter=tap experiments/atlas-activity-ui-seam/prototype.test.mjs | tee activity-ui-seam-test.tap
-          grep -Eq '^# tests 21$' activity-ui-seam-test.tap
-          grep -Eq '^# pass 21$' activity-ui-seam-test.tap
-          grep -Eq '^# fail 0$' activity-ui-seam-test.tap
+          tap_file="${RUNNER_TEMP}/activity-ui-seam-test.tap"
+          node --test --test-reporter=tap experiments/atlas-activity-ui-seam/prototype.test.mjs | tee "${tap_file}"
+          grep -Eq '^# tests 21$' "${tap_file}"
+          grep -Eq '^# pass 21$' "${tap_file}"
+          grep -Eq '^# fail 0$' "${tap_file}"
           echo 'PREINTEGRATION_EVIDENCE=21_PASS_0_FAIL'
 
       - name: Prove no mutation during test
