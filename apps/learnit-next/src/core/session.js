@@ -57,6 +57,28 @@ function normalizeFillAnswer(activity, answer) {
   return Object.fromEntries(slotIds.map((slotId) => [slotId, assignments.get(slotId)]));
 }
 
+export function canonicalizeConstructedText(value) {
+  return value
+    .normalize('NFC')
+    .trim()
+    .replace(/\p{White_Space}+/gu, ' ');
+}
+
+function normalizeConstructedAnswer(answer) {
+  const text = answer?.text;
+  if (typeof text !== 'string') {
+    throw new AnswerValidationError('A constructed response must provide text', 'constructed_text_required');
+  }
+  if (Array.from(text).length > 4000) {
+    throw new AnswerValidationError('A constructed response must contain at most 4000 characters', 'constructed_text_too_long');
+  }
+  const normalized = canonicalizeConstructedText(text);
+  if (!normalized) {
+    throw new AnswerValidationError('A constructed response must not be blank', 'constructed_text_required');
+  }
+  return { text: normalized };
+}
+
 function evaluateAnswer(activity, answer) {
   if (activity.type === 'qcm') {
     const normalized = normalizeQcmAnswer(activity, answer);
@@ -67,6 +89,11 @@ function evaluateAnswer(activity, answer) {
     const expected = new Map(activity.answers.map((entry) => [entry.slotId, entry.tokenId]));
     const correct = Object.entries(normalized).every(([slotId, tokenId]) => expected.get(slotId) === tokenId);
     return { normalized, correct };
+  }
+  if (activity.type === 'constructed') {
+    const normalized = normalizeConstructedAnswer(answer);
+    const accepted = new Set(activity.acceptedResponses.map(canonicalizeConstructedText));
+    return { normalized, correct: accepted.has(normalized.text) };
   }
   throw new AnswerValidationError(`Unsupported activity type ${activity.type}`, 'unsupported_activity');
 }

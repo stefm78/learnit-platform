@@ -583,3 +583,25 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
   line-height: 1;
 }
 .atlas-r9-action { padding: .5rem .6rem; }
+
+/* #373 — bounded constructed response */
+.constructed-response {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+.constructed-response textarea {
+  width: 100%;
+  min-height: 10rem;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.constructed-response textarea:focus-visible {
+  outline: 3px solid #000000;
+  outline-offset: 2px;
+}

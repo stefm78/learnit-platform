@@ -107,6 +107,13 @@ export function projectAtlasActivityPresentation(activity) {
     });
   }
 
+  if (activity.type === 'constructed') {
+    return Object.freeze({
+      type: activity.type,
+      prompt: activity.prompt,
+    });
+  }
+
   throw new Error(
     `ATLAS_ACTIVITY_TYPE_UNSUPPORTED: ${activity.type}`,
   );
@@ -119,6 +126,10 @@ function scoringAnswer(activity) {
 
   if (activity.type === 'fill') {
     return structuredClone(activity.answers);
+  }
+
+  if (activity.type === 'constructed') {
+    return structuredClone(activity.acceptedResponses);
   }
 
   throw new Error(
@@ -142,7 +153,7 @@ function createRegistry(context) {
 
       if (!source) return null;
 
-      if (!['qcm', 'fill'].includes(source.type)) {
+      if (!['qcm', 'fill', 'constructed'].includes(source.type)) {
         throw new Error(
           `ATLAS_ACTIVITY_TYPE_UNSUPPORTED: ${source.type}`,
         );
@@ -155,8 +166,9 @@ function createRegistry(context) {
          * Learn-it remains the answer-evaluation authority.
          * Atlas consumes only the resulting boolean outcome.
          */
-        scoringRuleId:
-          `learnit.kit.v2.${source.type}.v1`,
+        scoringRuleId: source.type === 'constructed'
+          ? 'learnit.kit.v3.constructed.canonical-text-match-v1'
+          : `learnit.kit.v2.${source.type}.v1`,
 
         answer: scoringAnswer(source),
 
@@ -231,7 +243,7 @@ async function showFeedbackTransition(
   )?.remove();
 
   activityWrapper
-    .querySelectorAll('input, select')
+    .querySelectorAll('input, select, textarea')
     .forEach(control => {
       control.disabled = true;
     });
@@ -1117,7 +1129,9 @@ export async function runAtlasSession({
             const guidance =
               activity.type === 'qcm'
                 ? 'Relisez la règle demandée puis éliminez les propositions incompatibles.'
-                : 'Repérez la forme attendue dans la phrase avant de choisir chaque élément.';
+                : activity.type === 'fill'
+                  ? 'Repérez la forme attendue dans la phrase avant de choisir chaque élément.'
+                  : 'Répondez avec vos propres mots en restant précis et directement lié à la question.';
 
             wrapper.querySelector(
               '.atlas-activity',

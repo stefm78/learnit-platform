@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-026",
+  "title": "Bounded learnit.kit.v3 constructed-response vertical slice",
+  "status": "approved",
+  "changeClass": "bounded-product-vertical-slice",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 373,
+    "decision": "Human GO for learnit.kit.v3 architecture granted 2026-09-13"
+  },
+  "purpose": "Prove the smallest usable learnit.kit.v3 constructed-response flow end to end: explicit V3 admission, bounded free-text response, deterministic Learning-owned evaluation, learner-safe projection, existing persistence, deterministic build and exact-head qualification, while preserving frozen V2 semantics.",
+  "baseline": {
+    "baseCommit": "1e71271436fd4b7dd7d895cfec827833187630fe",
+    "architectureBase": "ea7f89670db547ff6303889e5016a470ad1aee85",
+    "executionBase": "1e71271436fd4b7dd7d895cfec827833187630fe",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/integration/atlas/import_adapter.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/atlas_v3_constructed.py",
+      "apps/learnit-next/tests/fixtures/atlas_v3_constructed.json",
+      "work-packages/ATLAS-WP-026.json"
+    ],
+    "forbiddenPaths": [
+      "contracts/learnit-kit-v2.schema.json",
+      "contracts/learnit-kit-v3.schema.json",
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/atlas-wp026-constructed-ci.yml",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/atlas_planner.js",
+      "apps/learnit-next/src/core/atlas_evidence.js",
+      "apps/learnit-next/src/core/atlas_recommendation.js",
+      "apps/learnit-next/src/core/atlas_memory.js",
+      "apps/learnit-next/src/core/atlas_transfer.js",
+      "apps/learnit-next/src/core/atlas_claim_authority.js",
+      "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "authoring/**"
+    ]
+  },
+  "invariants": [
+    "contracts/learnit-kit-v2.schema.json remains byte-identical to the promoted architecture baseline.",
+    "Existing qcm and fill validation, import, learner presentation, response capture, scoring, persistence, feedback and learner journey remain behaviorally unchanged.",
+    "Learning remains the canonical normalization and evaluation authority; UI and Atlas orchestration never score constructed responses.",
+    "Constructed ActivityPresentation contains only type and prompt; acceptedResponses and equivalent scoring secrets never cross the learner-facing boundary.",
+    "Constructed responses are bounded to 4000 Unicode code points, reject canonical blank text and are compared case-sensitively after NFC plus Unicode-whitespace canonicalization.",
+    "Existing progress persistence is reused through the learner-safe normalized response and boolean outcome; no new persistent schema is introduced.",
+    "No planner, evidence, recommendation, memory, transfer, claim-authority, storage architecture, authoring pipeline or central CI-router semantics are changed.",
+    "The source manifest is rebound only to actually changed product sources and its canonical self fingerprint."
+  ],
+  "requiredEvidence": [
+    "Exact product diff contains exactly the ten governed allowed paths and no others.",
+    "Dedicated exact-head constructed-response qualification passes on the candidate SHA.",
+    "Repository Governance and PR Scope pass on the same exact candidate SHA.",
+    "V2 schema Git blob identity equals the architecture baseline blob.",
+    "The V3 fixture has valid activity, course and package canonical digests and runs through explicit V3 import.",
+    "Constructed normalization proves NFC equivalence, Unicode whitespace collapse, case-sensitive comparison, blank rejection and the 4000-character bound.",
+    "ActivityPresentation and rendered learner markup contain no acceptedResponses, acceptedValues, evaluator, rubric, answer key or scoring-rule secret.",
+    "Existing Atlas qcm/fill core, learning, experience, integration and UX clarity regressions remain green.",
+    "Learn-it Next deterministic build succeeds and the exact built HTML artifact SHA-256 is captured for immutable Human Replay."
+  ],
+  "adversarialTests": [
+    "Reject blank or whitespace-only constructed responses before scoring.",
+    "Reject a constructed response longer than 4000 Unicode code points before scoring.",
+    "Accept canonically equivalent NFC and Unicode-whitespace variants but reject a case-only variant when the accepted response case differs.",
+    "Fail qualification if any constructed scoring secret appears in ActivityPresentation or learner markup.",
+    "Fail qualification if V3 import delegates to the legacy V2 base service.",
+    "Fail qualification if any path outside the exact ten-file product scope changes.",
+    "Fail qualification if frozen V2 schema blob identity changes or qcm/fill regression suites fail."
+  ],
+  "nonGoals": [
+    "LLM-as-a-judge, probabilistic scoring, embeddings or remote correction.",
+    "A generic rubric engine, scoring DSL, activity plugin runtime or universal activity framework.",
+    "A new event architecture, persistence database, storage schema or general version abstraction.",
+    "Changes to planner, evidence, recommendation, memory, transfer, claim authority or authoring.",
+    "Changes to the central Learn-it Next CI router.",
+    "Product merge or promotion before immutable Human Replay and explicit final human acceptance."
+  ],
+  "independentReview": [
+    "Dedicated CI must independently recompute exact changed-path scope and V2 schema identity from Git rather than trusting this work package.",
+    "Existing ActivityPresentation seam qualification remains an independent regression oracle for qcm/fill and learner-secret boundaries.",
+    "The new constructed-response test independently recomputes fixture digests and attacks normalization and secret-boundary failure modes.",
+    "Final product acceptance remains a separate human replay gate on the exact machine-qualified immutable artifact."
+  ],
+  "execution": {
+    "branch": "atlas/ATLAS-WP-026-constructed-response",
+    "maximumChangedFiles": 10,
+    "humanGateRequired": true,
+    "mergeAuthorized": false,
+    "productPromotionAuthorized": false,
+    "phase": "IMPLEMENTATION_AND_EXACT_HEAD_QUALIFICATION",
+    "finalVerdict": "NOT_YET_HUMAN_ACCEPTED"
+  },
+  "maximumChangedFiles": 10,
+  "humanGateRequired": true,
+  "productPromotionAuthorized": false,
+  "rollback": "Revert the single bounded product commit to exact execution baseline 1e71271436fd4b7dd7d895cfec827833187630fe. No V2 contract, persistent schema, authoring artifact or control-plane state is changed by this slice."
+}
