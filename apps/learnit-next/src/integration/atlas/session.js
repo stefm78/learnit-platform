@@ -1,4 +1,8 @@
 import { evaluateAnswer } from '../../core/session.js';
+import {
+  readAtlasActivityResponse,
+  renderAtlasActivityMarkup,
+} from '../../ui/render.js';
 
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
@@ -134,140 +138,6 @@ function createRegistry(context) {
       return false;
     },
   });
-}
-
-function renderActivity(activity, modules) {
-  const esc = modules.today.esc;
-
-  const prompt =
-    `<p class="atlas-question"><strong>${
-      esc(activity.prompt)
-    }</strong></p>`;
-
-  if (activity.type === 'qcm') {
-    const choices = activity.choices
-      .map(choice => {
-        const id =
-          `atlas-choice-${choice.choiceId}`;
-
-        return (
-          `<label class="choice-row" for="${esc(id)}">`
-          + `<input id="${esc(id)}" `
-          + 'type="radio" '
-          + 'name="atlas-qcm-choice" '
-          + `value="${esc(choice.choiceId)}" `
-          + 'data-atlas-choice="true">'
-          + `<span>${esc(choice.label)}</span>`
-          + '</label>'
-        );
-      })
-      .join('');
-
-    return (
-      prompt
-      + '<fieldset class="answer-fieldset">'
-      + '<legend>Choisissez une réponse</legend>'
-      + choices
-      + '</fieldset>'
-    );
-  }
-
-  if (activity.type === 'fill') {
-    const options = activity.tokens
-      .map(token => (
-        `<option value="${esc(token.tokenId)}">`
-        + `${esc(token.label)}</option>`
-      ))
-      .join('');
-
-    let slotNumber = 0;
-
-    const sentence = activity.segments
-      .map(segment => {
-        if (Object.hasOwn(segment, 'text')) {
-          return `<span>${esc(segment.text)}</span>`;
-        }
-
-        slotNumber += 1;
-
-        return (
-          '<label class="atlas-fill-slot">'
-          + `<span class="visually-hidden">Réponse ${
-            slotNumber
-          }</span>`
-          + `<select data-atlas-slot="${
-            esc(segment.slotId)
-          }">`
-          + '<option value="">Choisir…</option>'
-          + options
-          + '</select>'
-          + '</label>'
-        );
-      })
-      .join('');
-
-    return (
-      prompt
-      + '<fieldset class="answer-fieldset">'
-      + '<legend>Complétez la phrase</legend>'
-      + `<div class="fill-sentence">${sentence}</div>`
-      + '</fieldset>'
-    );
-  }
-
-  throw new Error(
-    `ATLAS_ACTIVITY_TYPE_UNSUPPORTED: ${activity.type}`,
-  );
-}
-
-function readResponse(container, activity) {
-  if (activity.type === 'qcm') {
-    const selected = container.querySelector(
-      '[data-atlas-choice="true"]:checked',
-    );
-
-    if (!selected) {
-      const error = new Error(
-        'Choisissez une réponse avant de valider.',
-      );
-
-      error.code = 'ATLAS_ANSWER_REQUIRED';
-      throw error;
-    }
-
-    return { choiceId: selected.value };
-  }
-
-  if (activity.type === 'fill') {
-    const answer = {};
-
-    const selects = [
-      ...container.querySelectorAll(
-        '[data-atlas-slot]',
-      ),
-    ];
-
-    for (const select of selects) {
-      if (!select.value) {
-        const error = new Error(
-          'Complétez toutes les réponses avant de valider.',
-        );
-
-        error.code = 'ATLAS_ANSWER_REQUIRED';
-        throw error;
-      }
-
-      answer[
-        select.getAttribute('data-atlas-slot')
-      ] = select.value;
-    }
-
-    return answer;
-  }
-
-  throw new Error(
-    `ATLAS_ACTIVITY_TYPE_UNSUPPORTED: ${activity.type}`,
-  );
 }
 
 function feedbackHtml(result, activity, modules) {
@@ -1069,10 +939,7 @@ export async function runAtlasSession({
           plan: activePlan,
           resumeState: checkpoint,
           activityHtml:
-            renderActivity(
-              activity,
-              modules,
-            ),
+            renderAtlasActivityMarkup(activity),
           feedbackHtml: previousFeedback,
         });
 
@@ -1240,10 +1107,7 @@ export async function runAtlasSession({
 
           try {
             const rawResponse =
-              readResponse(
-                wrapper,
-                activity,
-              );
+              readAtlasActivityResponse(wrapper, activity);
 
             const result =
               await controller.submit(

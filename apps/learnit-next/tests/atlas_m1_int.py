@@ -272,11 +272,13 @@ class AtlasM1Int(unittest.TestCase):
 
     def test_active_session_keeps_minimal_learner_context_and_contiguous_answers(self):
         session = SESSION.read_text(encoding="utf-8")
+        render = RENDER.read_text(encoding="utf-8")
 
         self.assertIn("text: context.title", session)
         self.assertIn("text: `Objectif : ${objectiveLabel}`", session)
         self.assertIn("id: 'atlas-session-title'", session)
-        self.assertIn("prompt\n      + '<fieldset class=\"answer-fieldset\">'", session)
+        self.assertIn("renderAtlasActivityMarkup(activity)", session)
+        self.assertIn("prompt\n      + '<fieldset class=\"answer-fieldset\">'", render)
         self.assertNotIn("renderObjectiveProgressPanel", session)
         self.assertNotIn("Prochaine action recommandée", session)
 
