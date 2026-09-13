@@ -1,0 +1,83 @@
+name: Atlas Activity UI Seam Experiment CI
+
+on:
+  push:
+    branches:
+      - experiment/atlas-activity-ui-seam-r14
+    paths:
+      - 'experiments/atlas-activity-ui-seam/**'
+      - '.github/workflows/atlas-activity-ui-seam-experiment-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  preintegration-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove exact head identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "GITHUB_SHA=${GITHUB_SHA}"
+          echo "ACTUAL_HEAD=${actual}"
+          node --version
+          test "${actual}" = "${GITHUB_SHA}"
+
+      - name: Fail-closed experiment scope guard
+        shell: bash
+        env:
+          BASELINE_R14: 8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9
+        run: |
+          set -euo pipefail
+          git cat-file -e "${BASELINE_R14}^{commit}"
+          mapfile -t changed < <(git diff --name-only "${BASELINE_R14}" "${GITHUB_SHA}")
+          printf 'Changed paths from R14 baseline:\n'
+          printf '%s\n' "${changed[@]}"
+          test "${#changed[@]}" -gt 0
+          for path in "${changed[@]}"; do
+            case "${path}" in
+              experiments/atlas-activity-ui-seam/*) ;;
+              .github/workflows/atlas-activity-ui-seam-experiment-ci.yml) ;;
+              *)
+                echo "OUT_OF_SCOPE_PATH=${path}" >&2
+                exit 1
+                ;;
+            esac
+          done
+
+      - name: Check experiment syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check experiments/atlas-activity-ui-seam/prototype.mjs
+          node --check experiments/atlas-activity-ui-seam/prototype.test.mjs
+
+      - name: Run 21 falsification tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test --test-reporter=tap experiments/atlas-activity-ui-seam/prototype.test.mjs | tee activity-ui-seam-test.tap
+          grep -Eq '^# tests 21$' activity-ui-seam-test.tap
+          grep -Eq '^# pass 21$' activity-ui-seam-test.tap
+          grep -Eq '^# fail 0$' activity-ui-seam-test.tap
+          echo 'PREINTEGRATION_EVIDENCE=21_PASS_0_FAIL'
+
+      - name: Prove no mutation during test
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
