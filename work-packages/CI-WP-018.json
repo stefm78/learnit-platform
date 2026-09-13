@@ -14,6 +14,7 @@
   },
   "purpose": "Add a bounded dedicated exact-head verifier for the ATLAS-WP-026 constructed-response vertical slice without changing the historical generic Learn-it Next router or any learner/product semantics.",
   "baseline": {
+    "baseCommit": "ea7f89670db547ff6303889e5016a470ad1aee85",
     "architectureBase": "ea7f89670db547ff6303889e5016a470ad1aee85",
     "branch": "ci/CI-WP-018-atlas-wp026-constructed",
     "productBranch": "atlas/ATLAS-WP-026-constructed-response"
@@ -65,11 +66,27 @@
     "Dedicated exact-head product qualification PASS on the future ATLAS-WP-026 candidate.",
     "Machine-readable exact-head artifact proof for ATLAS-WP-026."
   ],
+  "adversarialTests": [
+    "Reject any CI-WP-018 pull request that changes a third path.",
+    "Reject any ATLAS-WP-026 candidate whose changed path set differs from the exact ten-path budget.",
+    "Reject any ATLAS-WP-026 candidate that changes the frozen learnit.kit.v2 schema blob.",
+    "Reject any product candidate whose work-package executionBase differs from the actual pull-request base.",
+    "Reject any constructed implementation that leaks acceptedResponses, evaluator data, rubric data or scoring rules through learner-safe presentation.",
+    "Reject any qcm/fill or existing Atlas learner-journey regression.",
+    "Reject any candidate whose deterministic build or exact artifact proof fails."
+  ],
   "nonGoals": [
     "Changing the central Learn-it Next CI router.",
     "Changing learner runtime, contracts, authoring, planner, scoring, evidence, memory or persistence.",
     "Promoting ATLAS-WP-026.",
     "Replacing the later immutable served Human Replay gate."
+  ],
+  "independentReview": [
+    "Repository governance validates this work-package structure independently of the dedicated verifier.",
+    "PR scope validates that only the declared CI workflow and CI work-package paths change.",
+    "The dedicated verifier self-check proves its own exact two-file scope on the CI pull request.",
+    "Future ATLAS-WP-026 exact-head qualification is bound to a separate product branch and exact target SHA.",
+    "Human acceptance remains required later on an immutable served replay before product promotion."
   ],
   "execution": {
     "humanGateRequired": false,
