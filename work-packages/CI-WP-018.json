@@ -8,6 +8,7 @@
   "authority": {
     "repository": "stefm78/learnit-platform",
     "issue": 374,
+    "pullRequest": 375,
     "productIssue": 373,
     "architectureWorkPackage": "ARC-WP-024",
     "learningSeamWorkPackage": "ATLAS-WP-025"
@@ -92,7 +93,13 @@
     "humanGateRequired": false,
     "maximumChangedFiles": 2,
     "productPromotionAuthorized": false,
-    "nextGate": "MERGE_CI_ROUTE_THEN_BUILD_ATLAS_WP_026"
+    "nextGate": "MERGE_CI_ROUTE_THEN_BUILD_ATLAS_WP_026",
+    "evidence": {
+      "initialSelfVerifierRun": 34761930980,
+      "initialRepositoryGovernanceRun": 34761930988,
+      "initialPrScopeRun": 34761930971,
+      "initialPrScopeFailureClassification": "PR_BODY_MULTIPLE_WORK_PACKAGE_IDENTIFIERS_FIXED_WITHOUT_SCOPE_CHANGE"
+    }
   },
   "rollback": "Revert the two CI-WP-018 files. No product or contract state is changed."
 }
