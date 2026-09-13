@@ -8,6 +8,7 @@
   "authority": {
     "repository": "stefm78/learnit-platform",
     "issue": 367,
+    "pullRequest": 368,
     "promotedProductPullRequest": 365,
     "promotedProductWorkPackage": "ATLAS-WP-025",
     "predecessorCiWorkPackage": "CI-WP-015"
@@ -92,15 +93,23 @@
   "independentReview": [
     "Repository governance and PR scope gate this exact two-file CI-only recovery change.",
     "The exact-head repaired seam qualification and UX PASS remain the product-semantic authorities; this verifier only reconciles the historical post-merge CI false negative.",
-    "The post-merge generic run demonstrably routed the unrecognized six-path seam merge to legacy Wave A while repository governance passed, so recovery must not reopen product semantics."
+    "The post-merge generic run demonstrably routed the unrecognized six-path seam merge to legacy Wave A while repository governance passed, so recovery must not reopen product semantics.",
+    "The first dedicated recovery run 34758460387 passed all topology, blob, secret-boundary, artifact and learner-journey proofs; the first PR-scope run failed only because the PR body named two work-package identifiers and the body was corrected without changing code."
   ],
   "execution": {
     "branch": "ci/CI-WP-016-atlas-wp025-post-merge-recovery",
+    "pullRequest": 368,
     "maximumChangedFiles": 2,
-    "phase": "QUALIFICATION",
+    "phase": "QUALIFIED_PENDING_OFFICIAL_GATES",
     "humanGateRequired": false,
     "mergeStatus": "not-merged",
-    "finalVerdict": "PENDING_CI_WP_016_POST_MERGE_RECOVERY"
+    "finalVerdict": "PASS_CI_WP_016_RECOVERY_EVIDENCE_PENDING_FINAL_HEAD_GATES",
+    "evidence": {
+      "initialRecoveryVerifierRun": 34758460387,
+      "initialRepositoryGovernanceRun": 34758460382,
+      "initialPrScopeRun": 34758460444,
+      "initialPrScopeFailureClassification": "PR_BODY_MULTIPLE_WORK_PACKAGE_IDENTIFIERS_FIXED"
+    }
   },
   "rollback": "Revert the CI-WP-016 two-file recovery verifier. The promoted ATLAS-WP-025 product merge remains unchanged."
 }
