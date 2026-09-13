@@ -1,20 +1,20 @@
-import { CONTRACT_VERSION } from '__LEARNIT_MODULE_URL_0005__';
-import { installAtlasRuntime } from '__LEARNIT_MODULE_URL_0006__';
-import { attachAtlasPreviewSurface } from '__LEARNIT_MODULE_URL_0007__';
-import { createAtlasCompatibleImportService } from '__LEARNIT_MODULE_URL_0008__';
-import { createImportService } from '__LEARNIT_MODULE_URL_0009__';
-import { createLibraryService } from '__LEARNIT_MODULE_URL_0010__';
+import { CONTRACT_VERSION } from './core/contract.js';
+import { installAtlasRuntime } from './integration/atlas/bootstrap.js';
+import { attachAtlasPreviewSurface } from './integration/atlas/surface.js';
+import { createAtlasCompatibleImportService } from './integration/atlas/import_adapter.js';
+import { createImportService } from './core/import.js';
+import { createLibraryService } from './core/library.js';
 import {
   createLearningLoopV2DomainAdapters,
   createProgressService,
-} from '__LEARNIT_MODULE_URL_0011__';
-import { createSessionService } from '__LEARNIT_MODULE_URL_0012__';
-import * as objectiveProgressDomain from '__LEARNIT_MODULE_URL_0013__';
-import * as learningRecommendationDomain from '__LEARNIT_MODULE_URL_0014__';
-import { createIndexedDbStorage } from '__LEARNIT_MODULE_URL_0015__';
-import { assertStoragePort } from '__LEARNIT_MODULE_URL_0016__';
-import * as objectiveUiModule from '__LEARNIT_MODULE_URL_0017__';
-import { renderApp } from '__LEARNIT_MODULE_URL_0018__';
+} from './core/progress.js';
+import { createSessionService } from './core/session.js';
+import * as objectiveProgressDomain from './core/objective_progress.js';
+import * as learningRecommendationDomain from './core/learning_recommendation.js';
+import { createIndexedDbStorage } from './adapters/indexeddb.js';
+import { assertStoragePort } from './ports/storage.js';
+import * as objectiveUiModule from './ui/objective_progress.js';
+import { renderApp } from './ui/render.js';
 
 export const LEARNING_LOOP_V2_COMPOSITION = Object.freeze({
   registry: '__LEARNIT_NEXT_WAVE_A__',
