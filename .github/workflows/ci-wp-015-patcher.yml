@@ -1,0 +1,341 @@
+name: CI-WP-015 one-shot router patcher
+
+on:
+  push:
+    branches:
+      - ci/CI-WP-015-atlas-ux-post-merge-route
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ci/CI-WP-015-atlas-ux-post-merge-route
+          fetch-depth: 0
+      - name: Apply exact fail-closed router patch and remove patcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path=Path('.github/workflows/learnit-next-ci.yml')
+          text=path.read_text(encoding='utf-8')
+
+          def replace_once(old,new,label):
+              global text
+              count=text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one anchor, found {count}')
+              text=text.replace(old,new,1)
+
+          old="""            expected_m3_4=\"$(printf '%s\\n' \\
+              '.github/workflows/atlas-m3-4-release-set-ci.yml' \\
+              'authoring/factory/README.md' \\
+              'authoring/factory/release_set.py' \\
+              'authoring/factory/tests/test_release_set.py' \\
+              'work-packages/ATLAS-WP-021.json' | sort -u)\"
+
+            if [[ \"${workflow_changed}\" == true && \"${product_relevant}\" == false ]]; then
+"""
+          new="""            expected_m3_4=\"$(printf '%s\\n' \\
+              '.github/workflows/atlas-m3-4-release-set-ci.yml' \\
+              'authoring/factory/README.md' \\
+              'authoring/factory/release_set.py' \\
+              'authoring/factory/tests/test_release_set.py' \\
+              'work-packages/ATLAS-WP-021.json' | sort -u)\"
+
+            expected_atlas_ux=\"$(printf '%s\\n' \\
+              '.github/workflows/learnit-next-ci.yml' \\
+              'apps/learnit-next/source_manifest.json' \\
+              'apps/learnit-next/src/core/atlas_recommendation.js' \\
+              'apps/learnit-next/src/integration/atlas/session.js' \\
+              'apps/learnit-next/src/integration/atlas/surface.js' \\
+              'apps/learnit-next/src/main.js' \\
+              'apps/learnit-next/src/styles.css' \\
+              'apps/learnit-next/src/ui/atlas_summary.js' \\
+              'apps/learnit-next/src/ui/render.js' \\
+              'apps/learnit-next/tests/atlas_m1_experience.py' \\
+              'apps/learnit-next/tests/atlas_m1_int.py' \\
+              'apps/learnit-next/tests/atlas_m1_learning.py' \\
+              'apps/learnit-next/tests/atlas_m2_ux_clarity.py' \\
+              'work-packages/ATLAS-WP-024.json' | sort -u)\"
+
+            if [[ \"${workflow_changed}\" == true && \"${product_relevant}\" == false ]]; then
+"""
+          replace_once(old,new,'resolver-path-set')
+
+          old="""            elif [[ \"${actual}\" == \"${expected_m3_4}\" ]]; then
+              profile=m3-4-release-set-post-merge
+              branch=main
+              base=\"${parents[0]}\"
+              post_merge=true
+            else
+"""
+          new="""            elif [[ \"${actual}\" == \"${expected_m3_4}\" ]]; then
+              profile=m3-4-release-set-post-merge
+              branch=main
+              base=\"${parents[0]}\"
+              post_merge=true
+            elif [[ \"${actual}\" == \"${expected_atlas_ux}\" && \"${parents[1]}\" == 88cad160714830462234970276c808c42b4a2579 ]]; then
+              profile=atlas-ux-convergence-post-merge
+              branch=main
+              base=\"${parents[0]}\"
+              post_merge=true
+            else
+"""
+          replace_once(old,new,'resolver-route')
+
+          old="""          elif [[ \"${PROFILE}\" == atlas-ux-convergence ]]; then
+            [[ \"${EVENT}\" == pull_request ]]
+            [[ \"${BRANCH}\" == stream1/issue-352-one-atlas-learning-journey ]]
+            [[ \"${BASE}\" == \"${WAVE_A_BASE}\" ]]
+            [[ \"${POST_MERGE}\" == false ]]
+          elif [[ \"${PROFILE}\" == atlas-learning || \"${PROFILE}\" == atlas-core || \"${PROFILE}\" == atlas-experience || \"${PROFILE}\" == atlas-content || \"${PROFILE}\" == atlas-int || \"${PROFILE}\" == atlas-qa ]]; then
+"""
+          new="""          elif [[ \"${PROFILE}\" == atlas-ux-convergence ]]; then
+            [[ \"${EVENT}\" == pull_request ]]
+            [[ \"${BRANCH}\" == stream1/issue-352-one-atlas-learning-journey ]]
+            [[ \"${BASE}\" == \"${WAVE_A_BASE}\" ]]
+            [[ \"${POST_MERGE}\" == false ]]
+          elif [[ \"${PROFILE}\" == atlas-ux-convergence-post-merge ]]; then
+            [[ \"${EVENT}\" == push ]]
+            [[ \"${BRANCH}\" == main ]]
+            [[ \"${POST_MERGE}\" == true ]]
+          elif [[ \"${PROFILE}\" == atlas-learning || \"${PROFILE}\" == atlas-core || \"${PROFILE}\" == atlas-experience || \"${PROFILE}\" == atlas-content || \"${PROFILE}\" == atlas-int || \"${PROFILE}\" == atlas-qa ]]; then
+"""
+          replace_once(old,new,'authority-route')
+
+          old="""          m3_4_post_merge_shape_ok() {
+            local actual=\"$1\" second_parent=\"$2\"
+            local expected
+            expected=\"$(m3_4_promotion_paths)\"
+            [[ \"${actual}\" == \"${expected}\" ]] &&
+              [[ \"${second_parent}\" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
+          }
+
+          if [[ \"${PROFILE}\" == atlas-ux-convergence ]]; then
+"""
+          new="""          m3_4_post_merge_shape_ok() {
+            local actual=\"$1\" second_parent=\"$2\"
+            local expected
+            expected=\"$(m3_4_promotion_paths)\"
+            [[ \"${actual}\" == \"${expected}\" ]] &&
+              [[ \"${second_parent}\" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
+          }
+
+          atlas_ux_promotion_paths() {
+            printf '%s\\n' \\
+              '.github/workflows/learnit-next-ci.yml' \\
+              'apps/learnit-next/source_manifest.json' \\
+              'apps/learnit-next/src/core/atlas_recommendation.js' \\
+              'apps/learnit-next/src/integration/atlas/session.js' \\
+              'apps/learnit-next/src/integration/atlas/surface.js' \\
+              'apps/learnit-next/src/main.js' \\
+              'apps/learnit-next/src/styles.css' \\
+              'apps/learnit-next/src/ui/atlas_summary.js' \\
+              'apps/learnit-next/src/ui/render.js' \\
+              'apps/learnit-next/tests/atlas_m1_experience.py' \\
+              'apps/learnit-next/tests/atlas_m1_int.py' \\
+              'apps/learnit-next/tests/atlas_m1_learning.py' \\
+              'apps/learnit-next/tests/atlas_m2_ux_clarity.py' \\
+              'work-packages/ATLAS-WP-024.json' | sort -u
+          }
+
+          atlas_ux_post_merge_shape_ok() {
+            local actual=\"$1\" second_parent=\"$2\"
+            local expected
+            expected=\"$(atlas_ux_promotion_paths)\"
+            [[ \"${actual}\" == \"${expected}\" ]] &&
+              [[ \"${second_parent}\" == 88cad160714830462234970276c808c42b4a2579 ]]
+          }
+
+          if [[ \"${PROFILE}\" == atlas-ux-convergence ]]; then
+"""
+          replace_once(old,new,'shape-functions')
+
+          marker="""          if [[ \"${PROFILE}\" == source-snapshot-delegated ]]; then
+"""
+          block="""          if [[ \"${PROFILE}\" == atlas-ux-convergence-post-merge ]]; then
+            [[ \"${EVENT}\" == push ]] || {
+              echo \"Atlas UX post-merge route is valid only for a push to main.\" >&2
+              exit 2
+            }
+            parents=( $(git show -s --format=%P HEAD) )
+            [[ ${#parents[@]} -eq 2 ]] || {
+              echo \"Atlas UX promotion merge must have exactly two parents.\" >&2
+              exit 2
+            }
+            [[ \"${parents[0]}\" == \"${BASE}\" ]] || {
+              echo \"Atlas UX promotion first parent differs from resolved base.\" >&2
+              exit 2
+            }
+            accepted=88cad160714830462234970276c808c42b4a2579
+            [[ \"${parents[1]}\" == \"${accepted}\" ]] || {
+              echo \"Atlas UX promotion second parent differs from accepted R15 head.\" >&2
+              exit 2
+            }
+            actual=\"$(git diff --name-only \"${parents[0]}\" HEAD | sed '/^$/d' | sort -u)\"
+            atlas_ux_post_merge_shape_ok \"${actual}\" \"${parents[1]}\" || {
+              echo \"Atlas UX post-merge path/head shape differs.\" >&2
+              diff -u <(atlas_ux_promotion_paths) <(printf '%s\\n' \"${actual}\") || true
+              exit 2
+            }
+            while IFS= read -r promoted_path; do
+              [[ -z \"${promoted_path}\" ]] && continue
+              [[ \"$(git rev-parse \"HEAD:${promoted_path}\")\" == \"$(git rev-parse \"${accepted}:${promoted_path}\")\" ]] || {
+                echo \"Promoted Atlas UX blob differs from accepted R15 head: ${promoted_path}\" >&2
+                exit 2
+              }
+            done < <(atlas_ux_promotion_paths)
+            python -c \"import json,pathlib; wp=json.loads(pathlib.Path('work-packages/ATLAS-WP-024.json').read_text(encoding='utf-8')); assert wp['id']=='ATLAS-WP-024'; assert wp['authority']['issue']==352\"
+
+            checks=(
+              \"python -B apps/learnit-next/build.py\"
+              \"node --check apps/learnit-next/src/ui/render.js\"
+              \"node --check apps/learnit-next/src/integration/atlas/surface.js\"
+              \"node --check apps/learnit-next/src/integration/atlas/session.js\"
+              \"node --check apps/learnit-next/src/ui/atlas_summary.js\"
+              \"python -B apps/learnit-next/tests/atlas_m1_core.py -v\"
+              \"python -B apps/learnit-next/tests/atlas_m1_learning.py -v\"
+              \"python -B apps/learnit-next/tests/atlas_m1_experience.py -v\"
+              \"python -B apps/learnit-next/tests/atlas_m1_int.py -v\"
+              \"python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v\"
+            )
+            for check in \"${checks[@]}\"; do
+              echo \"::group::${check}\"
+              eval \"${check}\"
+              echo \"::endgroup::\"
+            done
+
+            accepted_tree=\"${RUNNER_TEMP}/atlas-ux-r15-accepted\"
+            git worktree add --detach \"${accepted_tree}\" \"${accepted}\" >/dev/null
+            trap 'git worktree remove --force \"${accepted_tree}\" >/dev/null 2>&1 || true' EXIT
+            accepted_html=\"${RUNNER_TEMP}/atlas-ux-r15-accepted.html\"
+            (cd \"${accepted_tree}\" && python -B apps/learnit-next/build.py --output \"${accepted_html}\")
+            accepted_sha=\"$(sha256sum \"${accepted_html}\" | awk '{print $1}')\"
+            accepted_bytes=\"$(wc -c < \"${accepted_html}\" | tr -d ' ')\"
+            [[ \"${accepted_sha}\" == 0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd ]]
+            [[ \"${accepted_bytes}\" == 421487 ]]
+
+            artifact=\"apps/learnit-next/dist/learnit-next.html\"
+            merge_sha=\"$(sha256sum \"${artifact}\" | awk '{print $1}')\"
+            merge_bytes=\"$(wc -c < \"${artifact}\" | tr -d ' ')\"
+            export ACCEPTED_HEAD=\"${accepted}\" ACCEPTED_SHA=\"${accepted_sha}\" ACCEPTED_BYTES=\"${accepted_bytes}\" MERGE_SHA=\"${merge_sha}\" MERGE_BYTES=\"${merge_bytes}\"
+            mkdir -p apps/learnit-next/.agent-result
+            python - <<'PY2'
+          import json,os
+          from pathlib import Path
+          payload={
+            'schema':'learnit.next.ci.atlas-ux-post-merge.v1',
+            'workPackage':'CI-WP-015',
+            'productWorkPackage':'ATLAS-WP-024',
+            'authorityIssue':352,
+            'postMergeHead':os.environ['TARGET'],
+            'acceptedProductHead':os.environ['ACCEPTED_HEAD'],
+            'acceptedArtifact':{'bytes':int(os.environ['ACCEPTED_BYTES']),'sha256':os.environ['ACCEPTED_SHA']},
+            'mergeArtifact':{'bytes':int(os.environ['MERGE_BYTES']),'sha256':os.environ['MERGE_SHA']},
+            'promotedBlobIdentity':'PASS',
+            'result':'PASS',
+            'verdict':'PASS_POST_MERGE_ATLAS_UX_CONVERGENCE'
+          }
+          Path('apps/learnit-next/.agent-result/run_checks.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\\n',encoding='utf-8')
+          print(json.dumps(payload,indent=2,sort_keys=True))
+          PY2
+            exit 0
+          fi
+
+"""
+          replace_once(marker,block+marker,'post-merge-profile')
+
+          old="""            if [[ \"${BRANCH}\" == ci/CI-WP-013-m3-4-post-merge-route ]]; then
+              promotion=b8337c785cbec995de5891080776c4c44dd99179
+              accepted=870d69800dcb07fcfff9f1d232dd143c8eaa6486
+              promotion_parents=( $(git show -s --format=%P \"${promotion}\") )
+              [[ ${#promotion_parents[@]} -eq 2 ]]
+              [[ \"${promotion_parents[1]}\" == \"${accepted}\" ]]
+              promotion_actual=\"$(git diff --name-only \"${promotion_parents[0]}\" \"${promotion}\" | sed '/^$/d' | sort -u)\"
+              m3_4_post_merge_shape_ok \"${promotion_actual}\" \"${promotion_parents[1]}\"
+              ! m3_4_post_merge_shape_ok \"${promotion_actual}\" 0000000000000000000000000000000000000000
+              missing=\"$(printf '%s\\n' \"${promotion_actual}\" | sed '1d')\"
+              ! m3_4_post_merge_shape_ok \"${missing}\" \"${accepted}\"
+              extra=\"$(printf '%s\\nunexpected/path' \"${promotion_actual}\")\"
+              ! m3_4_post_merge_shape_ok \"${extra}\" \"${accepted}\"
+              while IFS= read -r path; do
+                [[ \"$(git rev-parse \"${promotion}:${path}\")\" == \"$(git rev-parse \"${accepted}:${path}\")\" ]]
+              done < <(m3_4_promotion_paths)
+              grep -Fq 'Promoted M3.4 blob differs from accepted product head' .github/workflows/learnit-next-ci.yml
+              echo \"CI_WP_013_M3_4_POST_MERGE_SELF_TEST=PASS\"
+            fi
+
+            echo \"CI_ROUTER_RENAME_MATRIX=PASS\"
+"""
+          new=old.replace("\n\n            echo \"CI_ROUTER_RENAME_MATRIX=PASS\"\n","""
+
+            if [[ \"${BRANCH}\" == ci/CI-WP-015-atlas-ux-post-merge-route ]]; then
+              promotion=2b2914874caa6be1b5dca0ea1756837d47bc7c11
+              accepted=88cad160714830462234970276c808c42b4a2579
+              promotion_parents=( $(git show -s --format=%P \"${promotion}\") )
+              [[ ${#promotion_parents[@]} -eq 2 ]]
+              [[ \"${promotion_parents[1]}\" == \"${accepted}\" ]]
+              promotion_actual=\"$(git diff --name-only \"${promotion_parents[0]}\" \"${promotion}\" | sed '/^$/d' | sort -u)\"
+              atlas_ux_post_merge_shape_ok \"${promotion_actual}\" \"${promotion_parents[1]}\"
+              ! atlas_ux_post_merge_shape_ok \"${promotion_actual}\" 0000000000000000000000000000000000000000
+              missing=\"$(printf '%s\\n' \"${promotion_actual}\" | sed '1d')\"
+              ! atlas_ux_post_merge_shape_ok \"${missing}\" \"${accepted}\"
+              extra=\"$(printf '%s\\nunexpected/path' \"${promotion_actual}\")\"
+              ! atlas_ux_post_merge_shape_ok \"${extra}\" \"${accepted}\"
+              while IFS= read -r promoted_path; do
+                [[ \"$(git rev-parse \"${promotion}:${promoted_path}\")\" == \"$(git rev-parse \"${accepted}:${promoted_path}\")\" ]]
+              done < <(atlas_ux_promotion_paths)
+
+              historical_tree=\"${RUNNER_TEMP}/atlas-ux-historical-merge\"
+              accepted_tree=\"${RUNNER_TEMP}/atlas-ux-accepted-r15\"
+              cleanup_r15() {
+                git worktree remove --force \"${historical_tree}\" >/dev/null 2>&1 || true
+                git worktree remove --force \"${accepted_tree}\" >/dev/null 2>&1 || true
+              }
+              trap cleanup_r15 EXIT
+              git worktree add --detach \"${historical_tree}\" \"${promotion}\" >/dev/null
+              git worktree add --detach \"${accepted_tree}\" \"${accepted}\" >/dev/null
+              python -m playwright install --with-deps chromium
+              for check in \\
+                'python -B apps/learnit-next/build.py' \\
+                'node --check apps/learnit-next/src/ui/render.js' \\
+                'node --check apps/learnit-next/src/integration/atlas/surface.js' \\
+                'node --check apps/learnit-next/src/integration/atlas/session.js' \\
+                'node --check apps/learnit-next/src/ui/atlas_summary.js' \\
+                'python -B apps/learnit-next/tests/atlas_m1_core.py -v' \\
+                'python -B apps/learnit-next/tests/atlas_m1_learning.py -v' \\
+                'python -B apps/learnit-next/tests/atlas_m1_experience.py -v' \\
+                'python -B apps/learnit-next/tests/atlas_m1_int.py -v' \\
+                'python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v'; do
+                (cd \"${historical_tree}\" && eval \"${check}\")
+              done
+              accepted_html=\"${RUNNER_TEMP}/ci-wp-015-accepted.html\"
+              (cd \"${accepted_tree}\" && python -B apps/learnit-next/build.py --output \"${accepted_html}\")
+              [[ \"$(sha256sum \"${accepted_html}\" | awk '{print $1}')\" == 0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd ]]
+              [[ \"$(wc -c < \"${accepted_html}\" | tr -d ' ')\" == 421487 ]]
+              grep -Fq 'Promoted Atlas UX blob differs from accepted R15 head' .github/workflows/learnit-next-ci.yml
+              echo \"CI_WP_015_ATLAS_UX_POST_MERGE_SELF_TEST=PASS\"
+            fi
+
+            echo \"CI_ROUTER_RENAME_MATRIX=PASS\"
+""")
+          replace_once(old,new,'ci-router-self-test')
+
+          path.write_text(text,encoding='utf-8')
+          PY
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/learnit-next-ci.yml
+          git rm .github/workflows/ci-wp-015-patcher.yml
+          git diff --cached --check
+          git commit -m 'ci: route accepted Atlas UX merge post-merge'
+          git push origin HEAD:ci/CI-WP-015-atlas-ux-post-merge-route
