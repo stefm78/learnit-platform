@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-016",
+  "title": "Prove promoted ATLAS-WP-025 seam merge after historical router false negative",
+  "status": "approved",
+  "changeClass": "ci-recovery",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 367,
+    "pullRequest": 368,
+    "promotedProductPullRequest": 365,
+    "promotedProductWorkPackage": "ATLAS-WP-025",
+    "predecessorCiWorkPackage": "CI-WP-015"
+  },
+  "purpose": "Close the already-authorized ATLAS-WP-025 promotion cleanly by independently proving the exact accepted seam merge topology, promoted blob identity, repaired learner-safe UI boundary, accepted artifact identity and learner-journey regressions after the generic historical Wave A post-merge router produced a false negative. The product merge is already historical and immutable, so this work package adds a bounded recovery verifier instead of permanent one-off routing code.",
+  "baseline": {
+    "baseCommit": "55378d4d361c864ce3d0969a1c4f219451e9416b",
+    "branch": "ci/CI-WP-016-atlas-wp025-post-merge-recovery",
+    "acceptedProductHead": "0888192c90698a1acf73e4ec59616c9d763131be",
+    "boundaryRepairHead": "fbc11d091635718307505e1bb69d7218c89c016f",
+    "promotionMerge": "55378d4d361c864ce3d0969a1c4f219451e9416b",
+    "acceptedArtifactBytes": 422812,
+    "acceptedArtifactSha256": "27c462f4bab4e9fe8d6451950b51564c4676ff9b1c6da49a142770b35b6cbbdc",
+    "failedPostMergeRun": 34758288238,
+    "repositoryGovernanceRun": 34758288143,
+    "preMergeBoundaryQualificationRun": 34757313174,
+    "preMergePromotionGateRun": 34758167926
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-wp025-post-merge-recovery.yml",
+      "work-packages/CI-WP-016.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-025.json"
+    ]
+  },
+  "invariants": [
+    "Only the dedicated recovery verifier and CI-WP-016 metadata change.",
+    "The verifier is bound to historical promotion merge 55378d4d361c864ce3d0969a1c4f219451e9416b and accepted PR head 0888192c90698a1acf73e4ec59616c9d763131be.",
+    "The promotion requires exactly two parents and accepted second parent 0888192c90698a1acf73e4ec59616c9d763131be.",
+    "The exact first-parent delta is the six paths carried by promoted PR #365.",
+    "Every promoted path blob at merge HEAD equals the accepted PR-head blob.",
+    "The verifier reruns the causal learner-safe secret-boundary proof plus qcm/fill, Atlas core, learning, experience, integration and UX-clarity regressions against the merge tree.",
+    "Both accepted PR head and promotion merge rebuild to exactly 422812 bytes with SHA-256 27c462f4bab4e9fe8d6451950b51564c4676ff9b1c6da49a142770b35b6cbbdc.",
+    "The historical failed generic Wave A run remains evidence of a CI topology false negative and is not rewritten or hidden.",
+    "No learner/product/runtime/contract/authoring semantics change."
+  ],
+  "expectedPromotionPaths": [
+    "apps/learnit-next/source_manifest.json",
+    "apps/learnit-next/src/integration/atlas/session.js",
+    "apps/learnit-next/src/ui/render.js",
+    "apps/learnit-next/tests/atlas_activity_ui_seam.py",
+    "apps/learnit-next/tests/atlas_m1_int.py",
+    "work-packages/ATLAS-WP-025.json"
+  ],
+  "requiredEvidence": [
+    "Exact two-file CI-WP-016 pull-request delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Dedicated recovery verifier PASS on the pull-request head.",
+    "Historical merge 55378d4d361c864ce3d0969a1c4f219451e9416b has the exact expected six-path first-parent delta and accepted second parent.",
+    "Every promoted path blob equals the accepted PR-head blob.",
+    "The causal secret-boundary proof reports UX_SECRET_BOUNDARY_PROVEN on the promotion merge tree.",
+    "The exact repaired seam regression suite passes against the historical promotion merge tree.",
+    "Accepted head and promotion merge artifacts are both byte-identical to the qualified repaired identity.",
+    "After CI-WP-016 merge, the dedicated recovery verifier passes again from main without modifying product semantics."
+  ],
+  "adversarialTests": [
+    "Wrong accepted second parent fails the verifier.",
+    "Missing or extra promoted path fails exact path-set comparison.",
+    "Promoted blob mismatch fails closed.",
+    "Any scoring-secret field crossing the learner-safe UI projection fails the causal seam test.",
+    "Accepted artifact byte or SHA mismatch fails closed.",
+    "Promotion merge artifact byte or SHA mismatch fails closed.",
+    "Any qcm/fill or Atlas learner-journey regression fails the verifier."
+  ],
+  "nonGoals": [
+    "Changing product code or the promoted ATLAS-WP-025 seam behavior.",
+    "Changing the central Learn-it Next router for a promotion that has already happened.",
+    "Changing planner, scoring, evidence, memory, session semantics, kits or contracts.",
+    "Integrating constructed-response.",
+    "General redesign of the CI topology."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this exact two-file CI-only recovery change.",
+    "The exact-head repaired seam qualification and UX PASS remain the product-semantic authorities; this verifier only reconciles the historical post-merge CI false negative.",
+    "The post-merge generic run demonstrably routed the unrecognized six-path seam merge to legacy Wave A while repository governance passed, so recovery must not reopen product semantics.",
+    "The first dedicated recovery run 34758460387 passed all topology, blob, secret-boundary, artifact and learner-journey proofs; the first PR-scope run failed only because the PR body named two work-package identifiers and the body was corrected without changing code."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-016-atlas-wp025-post-merge-recovery",
+    "pullRequest": 368,
+    "maximumChangedFiles": 2,
+    "phase": "QUALIFIED_PENDING_OFFICIAL_GATES",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "finalVerdict": "PASS_CI_WP_016_RECOVERY_EVIDENCE_PENDING_FINAL_HEAD_GATES",
+    "evidence": {
+      "initialRecoveryVerifierRun": 34758460387,
+      "initialRepositoryGovernanceRun": 34758460382,
+      "initialPrScopeRun": 34758460444,
+      "initialPrScopeFailureClassification": "PR_BODY_MULTIPLE_WORK_PACKAGE_IDENTIFIERS_FIXED"
+    }
+  },
+  "rollback": "Revert the CI-WP-016 two-file recovery verifier. The promoted ATLAS-WP-025 product merge remains unchanged."
+}
