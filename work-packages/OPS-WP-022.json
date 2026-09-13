@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-022",
+  "title": "Atlas #352 R15 immutable human-replay publication",
+  "status": "in-progress",
+  "changeClass": "operations-human-gate-pages-deployment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 352,
+    "productPullRequest": 354,
+    "program": "PROJECT-ATLAS"
+  },
+  "purpose": "Publish exact machine-qualified R15 visual-polish product HEAD 88cad160714830462234970276c808c42b4a2579 at an immutable GitHub Pages Human Replay URL, preserve stable root and all R10-R14 immutable replay identities, and independently prove the empty-objective reservoir presentation plus the already accepted R14 session/objective invariants in served Chromium. Do not modify, merge or promote PR #354.",
+  "baseline": {
+    "baseCommit": "f3bcea5cc7a111b9485a7bcaa9180525868a4764",
+    "productHead": "88cad160714830462234970276c808c42b4a2579",
+    "learnerArtifactBytes": 421487,
+    "learnerArtifactSha256": "0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd",
+    "r14Head": "8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9",
+    "r14Bytes": 421465,
+    "r14Sha256": "0e616367600141b34ddc7ca3248bdecea67744dcd32d6008d376853c101df68d",
+    "finalR13Head": "76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b",
+    "finalR13Bytes": 412825,
+    "finalR13Sha256": "4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3",
+    "previousR13Head": "ca1f537ee435b31794282b3cf6b3c7589e736783",
+    "previousR13Bytes": 415361,
+    "previousR13Sha256": "6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18",
+    "r12Head": "01a5ca9b3e8a3abd5fb9692a001bb8533065b45f",
+    "r12Bytes": 411551,
+    "r12Sha256": "6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956",
+    "r11Head": "934e1c7193fc6d20d408339f8a962bca6aea51a6",
+    "r11Bytes": 407356,
+    "r11Sha256": "4f620a570fabb669165791f36db1977b744ac82c9eb5c95654c6c402deb4b173",
+    "r10Head": "10fbe658175f634648baf86f7bf10320b88a3127",
+    "r10Bytes": 405648,
+    "r10Sha256": "c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89",
+    "stableLearnerHead": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "stableLearnerBytes": 366412,
+    "stableLearnerSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "stableM3_1Main": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/OPS-WP-022.json",
+      ".github/workflows/atlas-r15-human-replay-deploy.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "work-packages/ATLAS-WP-024.json",
+      ".github/workflows/learnit-next-pages.yml",
+      ".github/workflows/atlas-r14-human-replay-deploy.yml"
+    ]
+  },
+  "invariants": [
+    "No product file from PR #354 is modified by this OPS work package.",
+    "R15 is rebuilt from exact product HEAD 88cad160714830462234970276c808c42b4a2579 and must be exactly 421487 bytes with SHA-256 0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd.",
+    "R14 and all prior R10-R13 immutable replay identities remain published byte-identically.",
+    "The stable learner root remains exactly 366412 bytes with SHA-256 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7.",
+    "R15 publishes the canonical Nombres Complexes Atlas fixture and deterministic answer guide from its exact product tree.",
+    "A served Chromium replay with cleared origin storage observes every empty objective as a visible vertical bordered shell, with zero fill and without the generic Atlas button padding winning the cascade.",
+    "For 5-minute sessions the framed objective before Start equals the objective rendered by the actual first session activity on first and second starts.",
+    "The completed-session summary exposes the complete objective map and separates worked objectives from state-changed objectives.",
+    "Publication states promotion=false, humanGateRequired=true and learnerUxPass=false.",
+    "PR #354 remains open, unmerged and unpromoted."
+  ],
+  "requiredEvidence": [
+    "Exact two-path OPS delta.",
+    "Deterministic R15 build equality across two materializations and exact identity match to Learn-it Next CI run 34742641653.",
+    "Repository governance run 34742641675 and PR scope run 34742641663 remain successful for the exact product head.",
+    "Served Chromium canonical Nombres Complexes replay proves empty shell visibility/zero fill, frame-to-question identity twice, complete summary map, worked/changed separation and mobile non-overflow.",
+    "R14 and prior immutable replays plus stable root remain byte-identical.",
+    "Live HTTPS identity checks pass after main-only Pages deployment."
+  ],
+  "adversarialTests": [
+    "Reject publication if the exact product HEAD, bytes or SHA-256 differ from the machine-qualified R15 identity.",
+    "Reject publication if R15 differs across two deterministic materializations.",
+    "Reject publication if an empty authored objective is missing, visually collapsed, padded by the generic Atlas button rule, non-vertical, borderless, or has non-zero fill.",
+    "Reject publication if the pre-session framed objective differs from the actual first frozen-plan session objective on either the first or second start.",
+    "Reject publication if the completed-session map omits an objective or conflates worked objectives with state-changed objectives.",
+    "Reject publication if the 390px viewport introduces horizontal overflow or destroys the vertical reservoir geometry.",
+    "Reject publication if any R10-R14 immutable replay identity or stable learner root changes or disappears.",
+    "Reject publication if fixture or answer-guide identity drifts from the exact product tree.",
+    "Reject publication if this OPS lane changes any product path or if PR #354 is merged or promoted."
+  ],
+  "nonGoals": [
+    "Changing product behavior in the OPS lane.",
+    "Changing kits, contracts, planner, scoring, evidence, recommendation, memory, session or storage semantics.",
+    "Merging or promoting PR #354.",
+    "Declaring final learner UX PASS.",
+    "Creating a new activity runtime or integrating constructed-response."
+  ],
+  "independentReview": [
+    "The OPS lane consumes the exact machine-qualified R15 product identity rather than an unbound branch tip.",
+    "The served-browser replay starts from cleared origin storage and measures computed CSS geometry in the real Atlas Today context, so a source-token-only false PASS cannot qualify the visual fix.",
+    "The replay compares the planned objective identity with the actual first frozen-plan activity on two successive session starts and separately verifies worked versus changed summary markers.",
+    "The canonical Nombres Complexes fixture and deterministic answer guide are copied from the exact R15 product tree and identity-bound into the replay publication.",
+    "R14 and every prior immutable replay plus the stable learner root are rebuilt and byte-checked before publication, then rechecked through live HTTPS after deployment.",
+    "No product source is mutated in this OPS PR, and PR #354 remains independently gated by the human replay outcome."
+  ],
+  "execution": {
+    "branch": "ops/OPS-WP-022-atlas-r15-human-replay",
+    "maximumChangedFiles": 2,
+    "phase": "IMPLEMENTING",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Re-run the exact R14 Pages publication from main commit f3bcea5cc7a111b9485a7bcaa9180525868a4764; no product source rollback is required."
+}
