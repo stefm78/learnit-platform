@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "ARC-WP-024",
+  "title": "Authorize explicit contract evolution for constructed responses",
+  "status": "proposed",
+  "changeClass": "architecture-contract-evolution",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 369,
+    "predecessorArchitectureWorkPackage": "ARC-WP-022",
+    "predecessorProductWorkPackage": "ATLAS-WP-025"
+  },
+  "purpose": "Define the smallest explicit successor contract needed for a bounded constructed-response product slice without mutating the frozen learnit.kit.v2 meaning in place, without weakening the learner-safe UI boundary promoted by ATLAS-WP-025, and without introducing a generic activity runtime or nondeterministic scoring authority.",
+  "baseline": {
+    "sovereignMain": "38160d711c66c9cefcf5d69fc98c1808c1466a0c",
+    "promotedSeamMerge": "55378d4d361c864ce3d0969a1c4f219451e9416b",
+    "promotedRecoveryMerge": "38160d711c66c9cefcf5d69fc98c1808c1466a0c",
+    "frozenContract": "learnit.kit.v2"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ARC-WP-024.json",
+      "docs/architecture/clean-generation/CONSTRUCTED_RESPONSE_CONTRACT_V3.md",
+      "contracts/learnit-kit-v3.schema.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/learnit-kit-v2.schema.json",
+      "contracts/fixtures/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "decision": {
+    "preserveV2ByteIdentity": true,
+    "successorContract": "learnit.kit.v3",
+    "newActivityFamily": "constructed",
+    "firstEvaluationSemantics": "canonical-text-match-v1",
+    "runtimeImplementationAuthorizedInThisWorkPackage": false
+  },
+  "invariants": [
+    "contracts/learnit-kit-v2.schema.json remains byte-unchanged and learnit.kit.v2 keeps exactly its existing qcm/fill meaning.",
+    "learnit.kit.v3 is opt-in and is a strict successor superset for new content; no existing v2 package is rewritten, migrated or re-digested by this work package.",
+    "The only new v3 activity family is constructed.",
+    "Constructed v1 accepts learner free text but uses only deterministic local canonical-text matching against authored acceptedResponses.",
+    "acceptedResponses are scoring secrets owned by Learning and must never cross the learner-safe UI presentation boundary.",
+    "The learner-safe presentation for constructed contains only type and prompt in the first product slice.",
+    "The learner response shape is exactly {text:string}; blank-after-normalization responses fail closed.",
+    "Canonical text normalization is NFC, trim, and collapse Unicode whitespace; comparison is case-sensitive and otherwise exact.",
+    "No remote AI, LLM, rubric engine, evaluator registry, plugin system, event bus, new persistent schema or new execution class is authorized here.",
+    "ATLAS-WP-026 remains blocked until this architecture work package is accepted and merged."
+  ],
+  "requiredEvidence": [
+    "ARC-WP-022 is cited as the authority requiring a new architecture work package for any contract change.",
+    "The v2 schema blob is unchanged from sovereign main.",
+    "The v3 schema is syntactically valid Draft 2020-12 JSON Schema and differs from v2 only by contract identity plus the bounded constructed family.",
+    "A representative existing v2 payload remains a v2 payload and is not silently reclassified as v3.",
+    "A minimal valid constructed v3 activity requires acceptedResponses and rejects qcm/fill scoring-secret fields that do not belong to it.",
+    "The design explicitly separates ActivityPresentation -> ActivityResponse -> Evaluation and keeps acceptedResponses behind Evaluation.",
+    "Repository governance and PR scope pass on the exact architecture PR head."
+  ],
+  "adversarialTests": [
+    "Any edit to contracts/learnit-kit-v2.schema.json fails scope.",
+    "Any product/runtime implementation in apps/** fails scope.",
+    "Any constructed schema that permits acceptedResponses to be presented as learner UI data fails the boundary review.",
+    "Any network-dependent or nondeterministic scoring rule fails this work package.",
+    "Any generic evaluator registry or activity-runtime abstraction fails the anti-complexity gate.",
+    "Any implicit migration or rewriting of existing v2 packages fails compatibility review.",
+    "Any second new activity family fails scope."
+  ],
+  "nonGoals": [
+    "Implementing constructed response in Learn-it Next.",
+    "Updating authoring Studio or AI Kit Factory.",
+    "Changing qcm/fill behavior or existing v2 validators.",
+    "Defining rubric, semantic, LLM or human-review scoring.",
+    "General activity-framework design.",
+    "Changing planner, evidence, memory, storage or recommendation semantics.",
+    "Repairing the generic Learn-it Next CI router."
+  ],
+  "independentReview": [
+    "The main alternative, mutating learnit.kit.v2 in place, is rejected because ARC-WP-022 froze that contract and older v2 readers would reject newly-valid v2 constructed payloads.",
+    "An internal-only constructed activity is rejected because it would not prove the real kit -> import -> learner path.",
+    "A generic evaluation object is deferred because the first observed need is one deterministic text matcher, not an evaluator framework.",
+    "A successor discriminator keeps old kits stable while making capability negotiation explicit."
+  ],
+  "execution": {
+    "branch": "architecture/ARC-WP-024-constructed-response-contract",
+    "maximumChangedFiles": 3,
+    "phase": "ARCHITECTURE_REVIEW",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "nextProductWorkPackage": "ATLAS-WP-026",
+    "finalVerdict": "PENDING_ARCHITECTURE_QUALIFICATION"
+  },
+  "rollback": "Close the architecture PR and delete its branch. Sovereign main, frozen learnit.kit.v2, promoted ATLAS-WP-025 seam and all learner data remain unchanged."
+}
