@@ -1,0 +1,199 @@
+name: Atlas UX R15 post-merge recovery
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-ux-r15-post-merge-recovery.yml'
+      - 'work-packages/CI-WP-015.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/atlas-ux-r15-post-merge-recovery.yml'
+      - 'work-packages/CI-WP-015.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PROMOTION_MERGE: 2b2914874caa6be1b5dca0ea1756837d47bc7c11
+  ACCEPTED_HEAD: 88cad160714830462234970276c808c42b4a2579
+  ACCEPTED_SHA256: 0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd
+  ACCEPTED_BYTES: '421487'
+
+jobs:
+  verify:
+    name: Verify exact accepted R15 promotion
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out recovery authority
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install declared browser-test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Prove promotion topology, path set and accepted blob identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin "$PROMOTION_MERGE" "$ACCEPTED_HEAD"
+          git cat-file -e "${PROMOTION_MERGE}^{commit}"
+          git cat-file -e "${ACCEPTED_HEAD}^{commit}"
+
+          mapfile -t parents < <(git show -s --format='%P' "$PROMOTION_MERGE" | tr ' ' '\n')
+          [[ ${#parents[@]} -eq 2 ]]
+          [[ "${parents[1]}" == "$ACCEPTED_HEAD" ]]
+          first_parent="${parents[0]}"
+
+          python - "$first_parent" "$PROMOTION_MERGE" <<'PY'
+          import json, subprocess, sys
+          from pathlib import Path
+
+          first_parent, promotion = sys.argv[1:]
+          wp = json.loads(Path('work-packages/CI-WP-015.json').read_text(encoding='utf-8'))
+          assert wp['id'] == 'CI-WP-015'
+          assert wp['authority']['issue'] == 363
+          assert wp['baseline']['promotionMerge'] == promotion
+          expected = sorted(wp['expectedPromotionPaths'])
+          actual = sorted(filter(None, subprocess.check_output(
+              ['git', 'diff', '--name-only', first_parent, promotion], text=True
+          ).splitlines()))
+          if actual != expected:
+              print('EXPECTED:')
+              print('\n'.join(expected))
+              print('ACTUAL:')
+              print('\n'.join(actual))
+              raise SystemExit('exact promotion path set differs')
+          print('CI_WP_015_EXACT_PROMOTION_PATH_SET=PASS')
+          PY
+
+          python - "$PROMOTION_MERGE" "$ACCEPTED_HEAD" <<'PY'
+          import json, subprocess, sys
+          from pathlib import Path
+
+          promotion, accepted = sys.argv[1:]
+          wp = json.loads(Path('work-packages/CI-WP-015.json').read_text(encoding='utf-8'))
+          for path in wp['expectedPromotionPaths']:
+              promoted = subprocess.check_output(['git', 'rev-parse', f'{promotion}:{path}'], text=True).strip()
+              accepted_blob = subprocess.check_output(['git', 'rev-parse', f'{accepted}:{path}'], text=True).strip()
+              if promoted != accepted_blob:
+                  raise SystemExit(f'promoted blob differs from accepted head: {path}')
+          print('CI_WP_015_PROMOTED_BLOB_IDENTITY=PASS')
+          PY
+
+      - name: Materialize accepted and promoted trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          accepted_tree="$RUNNER_TEMP/r15-accepted"
+          promotion_tree="$RUNNER_TEMP/r15-promotion"
+          git worktree add --detach "$accepted_tree" "$ACCEPTED_HEAD" >/dev/null
+          git worktree add --detach "$promotion_tree" "$PROMOTION_MERGE" >/dev/null
+          echo "ACCEPTED_TREE=$accepted_tree" >> "$GITHUB_ENV"
+          echo "PROMOTION_TREE=$promotion_tree" >> "$GITHUB_ENV"
+
+      - name: Replay accepted Atlas learner-journey qualification on merge tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$PROMOTION_TREE"
+          checks=(
+            "python -B apps/learnit-next/build.py"
+            "node --check apps/learnit-next/src/ui/render.js"
+            "node --check apps/learnit-next/src/integration/atlas/surface.js"
+            "node --check apps/learnit-next/src/integration/atlas/session.js"
+            "node --check apps/learnit-next/src/ui/atlas_summary.js"
+            "python -B apps/learnit-next/tests/atlas_m1_core.py -v"
+            "python -B apps/learnit-next/tests/atlas_m1_learning.py -v"
+            "python -B apps/learnit-next/tests/atlas_m1_experience.py -v"
+            "python -B apps/learnit-next/tests/atlas_m1_int.py -v"
+            "python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v"
+          )
+          for check in "${checks[@]}"; do
+            echo "::group::$check"
+            eval "$check"
+            echo "::endgroup::"
+          done
+          echo "CI_WP_015_MERGE_TREE_LEARNER_JOURNEY=PASS"
+
+      - name: Prove accepted and merge artifacts are byte-identical to qualified R15
+        shell: bash
+        run: |
+          set -euo pipefail
+          accepted_html="$RUNNER_TEMP/r15-accepted.html"
+          promotion_html="$RUNNER_TEMP/r15-promotion.html"
+          (cd "$ACCEPTED_TREE" && python -B apps/learnit-next/build.py --output "$accepted_html")
+          (cd "$PROMOTION_TREE" && python -B apps/learnit-next/build.py --output "$promotion_html")
+          cmp "$accepted_html" "$promotion_html"
+
+          accepted_sha="$(sha256sum "$accepted_html" | awk '{print $1}')"
+          accepted_bytes="$(wc -c < "$accepted_html" | tr -d ' ')"
+          promotion_sha="$(sha256sum "$promotion_html" | awk '{print $1}')"
+          promotion_bytes="$(wc -c < "$promotion_html" | tr -d ' ')"
+
+          [[ "$accepted_sha" == "$ACCEPTED_SHA256" ]]
+          [[ "$accepted_bytes" == "$ACCEPTED_BYTES" ]]
+          [[ "$promotion_sha" == "$ACCEPTED_SHA256" ]]
+          [[ "$promotion_bytes" == "$ACCEPTED_BYTES" ]]
+
+          export ACCEPTED_ACTUAL_SHA="$accepted_sha"
+          export ACCEPTED_ACTUAL_BYTES="$accepted_bytes"
+          export PROMOTION_ACTUAL_SHA="$promotion_sha"
+          export PROMOTION_ACTUAL_BYTES="$promotion_bytes"
+          mkdir -p "$GITHUB_WORKSPACE/.ci-wp-015"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload = {
+              'schema': 'learnit.ci.r15-post-merge-recovery.v1',
+              'workPackage': 'CI-WP-015',
+              'productIssue': 352,
+              'promotionMerge': os.environ['PROMOTION_MERGE'],
+              'acceptedProductHead': os.environ['ACCEPTED_HEAD'],
+              'acceptedArtifact': {
+                  'bytes': int(os.environ['ACCEPTED_ACTUAL_BYTES']),
+                  'sha256': os.environ['ACCEPTED_ACTUAL_SHA'],
+              },
+              'promotionArtifact': {
+                  'bytes': int(os.environ['PROMOTION_ACTUAL_BYTES']),
+                  'sha256': os.environ['PROMOTION_ACTUAL_SHA'],
+              },
+              'topology': 'PASS',
+              'promotedBlobIdentity': 'PASS',
+              'learnerJourneyReplay': 'PASS',
+              'historicalFailedRun': 34749055590,
+              'historicalFailureClassification': 'CI_ROUTER_TOPOLOGY_FALSE_NEGATIVE',
+              'result': 'PASS',
+              'verdict': 'PASS_CI_WP_015_ATLAS_UX_R15_POST_MERGE_RECOVERY',
+          }
+          out = Path(os.environ['GITHUB_WORKSPACE']) / '.ci-wp-015' / 'recovery.json'
+          out.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(payload, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload exact recovery proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-wp-015-r15-post-merge-recovery-${{ github.sha }}
+          path: .ci-wp-015/recovery.json
+          if-no-files-found: error
+          retention-days: 30

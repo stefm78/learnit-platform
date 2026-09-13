@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "id": "CI-WP-015",
+  "title": "Prove accepted Atlas UX convergence merge after historical router false negative",
+  "status": "accepted",
+  "changeClass": "ci-recovery",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 363,
+    "productIssue": 352,
+    "promotedProductPullRequest": 354,
+    "predecessorCiWorkPackage": "CI-WP-014"
+  },
+  "purpose": "Close the already-completed Atlas #352 promotion cleanly by independently proving the exact accepted R15 merge topology, promoted blob identity, accepted artifact identity and learner-journey suite after the generic historical Wave A post-merge router produced a false negative. The exact promotion is historical and immutable, so this work package deliberately adds a bounded recovery verifier instead of permanent one-off routing code.",
+  "baseline": {
+    "baseCommit": "2b2914874caa6be1b5dca0ea1756837d47bc7c11",
+    "branch": "ci/CI-WP-015-atlas-ux-post-merge-route",
+    "acceptedProductHead": "88cad160714830462234970276c808c42b4a2579",
+    "promotionMerge": "2b2914874caa6be1b5dca0ea1756837d47bc7c11",
+    "acceptedArtifactBytes": 421487,
+    "acceptedArtifactSha256": "0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd",
+    "failedPostMergeRun": 34749055590,
+    "failedPostMergeJob": 103702122268,
+    "repositoryGovernanceRun": 34749055657
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-ux-r15-post-merge-recovery.yml",
+      "work-packages/CI-WP-015.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**",
+      "tests/**",
+      "work-packages/ATLAS-WP-024.json"
+    ]
+  },
+  "invariants": [
+    "Only the dedicated recovery verifier and CI-WP-015 metadata change.",
+    "The verifier is bound to historical promotion merge 2b2914874caa6be1b5dca0ea1756837d47bc7c11 and accepted R15 product head 88cad160714830462234970276c808c42b4a2579.",
+    "The promotion requires exactly two parents and accepted second parent 88cad160714830462234970276c808c42b4a2579.",
+    "The exact first-parent delta is the fourteen paths carried by accepted PR #354.",
+    "Every promoted path blob at merge HEAD equals the accepted product-head blob.",
+    "The verifier reruns the same build, syntax, Atlas core, learning, experience, integration and UX-clarity suite used by atlas-ux-convergence against the merge tree.",
+    "Both accepted product head and promotion merge rebuild to exactly 421487 bytes with SHA-256 0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd.",
+    "The historical failed generic Wave A run remains evidence of a CI topology false negative and is not rewritten or hidden.",
+    "No learner/product/runtime/contract/authoring semantics change."
+  ],
+  "expectedPromotionPaths": [
+    ".github/workflows/learnit-next-ci.yml",
+    "apps/learnit-next/source_manifest.json",
+    "apps/learnit-next/src/core/atlas_recommendation.js",
+    "apps/learnit-next/src/integration/atlas/session.js",
+    "apps/learnit-next/src/integration/atlas/surface.js",
+    "apps/learnit-next/src/main.js",
+    "apps/learnit-next/src/styles.css",
+    "apps/learnit-next/src/ui/atlas_summary.js",
+    "apps/learnit-next/src/ui/render.js",
+    "apps/learnit-next/tests/atlas_m1_experience.py",
+    "apps/learnit-next/tests/atlas_m1_int.py",
+    "apps/learnit-next/tests/atlas_m1_learning.py",
+    "apps/learnit-next/tests/atlas_m2_ux_clarity.py",
+    "work-packages/ATLAS-WP-024.json"
+  ],
+  "requiredEvidence": [
+    "Exact two-file CI-WP-015 pull-request delta.",
+    "Repository governance PASS.",
+    "PR scope PASS.",
+    "Dedicated recovery verifier PASS on the pull-request head.",
+    "Historical merge 2b2914874caa6be1b5dca0ea1756837d47bc7c11 has the exact expected fourteen-path first-parent delta and accepted second parent.",
+    "Every promoted path blob equals the accepted R15 product-head blob.",
+    "The exact accepted R15 test suite passes against the historical promotion merge tree.",
+    "Accepted head and promotion merge artifacts are both byte-identical to the qualified R15 identity.",
+    "After CI-WP-015 merge, the dedicated recovery verifier passes again from main without modifying product semantics."
+  ],
+  "adversarialTests": [
+    "Wrong accepted second parent fails the verifier.",
+    "Missing or extra promoted path fails exact path-set comparison.",
+    "Promoted blob mismatch fails closed.",
+    "Accepted artifact byte or SHA mismatch fails closed.",
+    "Promotion merge artifact byte or SHA mismatch fails closed.",
+    "Any learner-journey regression in build, syntax, core, learning, experience, integration or UX clarity fails the verifier."
+  ],
+  "nonGoals": [
+    "Changing product code or the accepted R15 learner behavior.",
+    "Changing the central Learn-it Next router for a promotion that has already happened.",
+    "Changing planner, scoring, evidence, memory, session semantics, kits or contracts.",
+    "Changing the immutable Human Replay.",
+    "Reopening the final human UX gate.",
+    "Integrating constructed-response.",
+    "General redesign of the CI topology."
+  ],
+  "independentReview": [
+    "Repository governance and PR scope gate this exact two-file CI-only recovery change.",
+    "The immutable R15 Human Replay and accepted exact-head product CI remain the product-semantic authorities; this verifier only reconciles the historical post-merge CI false negative.",
+    "The historical failure artifact contains only `post-merge topology differs`, while repository governance passed and all accepted exact-head product/replay evidence was green before merge."
+  ],
+  "execution": {
+    "branch": "ci/CI-WP-015-atlas-ux-post-merge-route",
+    "pullRequest": 364,
+    "maximumChangedFiles": 2,
+    "phase": "QUALIFIED_PENDING_MERGE",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "finalVerdict": "PASS_CI_WP_015_PR_HEAD_R15_POST_MERGE_RECOVERY",
+    "evidence": {
+      "repositoryGovernanceRun": 34749600575,
+      "prScopeRun": 34749600200,
+      "recoveryVerifierRun": 34749600242,
+      "recoveryVerifierJob": 103703553361
+    }
+  },
+  "rollback": "Revert the CI-WP-015 two-file recovery verifier. The accepted R15 product merge and immutable Human Replay remain unchanged."
+}
