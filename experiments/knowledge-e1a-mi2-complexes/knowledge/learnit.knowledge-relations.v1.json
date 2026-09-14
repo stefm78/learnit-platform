@@ -1,0 +1,14 @@
+{
+  "schema": "learnit.knowledge-relations.v1",
+  "relations": [
+    ["complex-square-roots","requires","complex-modulus"],
+    ["complex-square-roots","requires","complex-argument"],
+    ["complex-square-roots","uses","exponential-form"],
+    ["complex-quadratic","requires","complex-square-roots"],
+    ["nth-roots","requires","complex-modulus"],
+    ["nth-roots","requires","complex-argument"],
+    ["nth-roots","uses","exponential-form"],
+    ["roots-of-unity","specializes","nth-roots"],
+    ["regular-polygon-representation","represents","roots-of-unity"]
+  ]
+}

@@ -1,0 +1,238 @@
+name: E1A Canonical A-B Qualification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'experiments/knowledge-e1a-mi2-complexes/**'
+      - '.github/workflows/e1a-canonical-ab-qualification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e1a-canonical-ab-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  qualify:
+    name: E1A frozen A-B canonical qualification
+    if: github.head_ref == 'experiment/e1a-knowledge-architecture-mi2-complexes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout exact experiment head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind frozen experiment and authority baseline
+        shell: bash
+        env:
+          EXPECTED_BASE: 1e71271436fd4b7dd7d895cfec827833187630fe
+          EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          A='experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-a.json'
+          B='experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-b.json'
+          BRIEF='experiments/knowledge-e1a-mi2-complexes/ab/learner-brief.json'
+
+          [[ "$(git rev-parse HEAD)" == "$EVENT_HEAD" ]]
+          [[ "$EVENT_BASE" == "$EXPECTED_BASE" ]]
+          git cat-file -e "$EXPECTED_BASE^{commit}"
+          [[ "$(git merge-base "$EXPECTED_BASE" HEAD)" == "$EXPECTED_BASE" ]]
+
+          [[ "$(git hash-object "$A")" == '7a6a7299d2a77cde3956d2576e5de868a36da984' ]]
+          [[ "$(git hash-object "$B")" == 'ead95f56d5fb37bfbe73edbe370426d03418b458' ]]
+          [[ "$(git hash-object "$BRIEF")" == 'f8affc7dcac77430e8f0794a63aa276d8ed408dc' ]]
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          expected = {
+              'candidate-route-a.json': 'sha256:0d03102d9bcb880f8114c1992ab512d2ecb28b6227d0a60867645013aaabfc83',
+              'candidate-route-b.json': 'sha256:cb38f6773437f39b6b9287149d4e8da76af6938467fe5a60dc39a8f7a29dcaf7',
+          }
+          base = Path('experiments/knowledge-e1a-mi2-complexes/ab')
+          for name, digest in expected.items():
+              value = json.loads((base / name).read_text(encoding='utf-8'))
+              assert value['packageRevisionDigest'] == digest, (name, value['packageRevisionDigest'])
+          print('E1A_FROZEN_INPUTS=PASS')
+          PY
+
+      - name: Prove canonical authorities unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=1e71271436fd4b7dd7d895cfec827833187630fe
+          git diff --exit-code "$BASE"...HEAD -- \
+            contracts/learnit-kit-v2.schema.json \
+            authoring/v2/validate_kit.py \
+            authoring/v2/atlas/validate_atlas_content.py \
+            authoring/v2/atlas/pedagogical_quality.py \
+            authoring/factory/factory_gate.py \
+            authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md \
+            authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install declared test dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Run canonical learnit.kit.v2 validator on frozen A-B pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/e1a"
+          mkdir -p "$OUT"
+          python -B authoring/v2/validate_kit.py \
+            experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-a.json \
+            experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-b.json \
+            --format json > "$OUT/validate-kit.json"
+
+      - name: Run canonical Atlas arbitrary-package validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/e1a"
+          python -B - <<'PY' > "$OUT/atlas-validation.json"
+          import json
+          from pathlib import Path
+          from authoring.v2.atlas.validate_atlas_content import validate_packages
+
+          base = Path('experiments/knowledge-e1a-mi2-complexes/ab')
+          paths = [base / 'candidate-route-a.json', base / 'candidate-route-b.json']
+          packages = [json.loads(path.read_text(encoding='utf-8')) for path in paths]
+          validate_packages(packages)
+          print(json.dumps({
+              'schema': 'learnit.e1a.atlas-canonical-validation.v1',
+              'result': 'PASS',
+              'authority': 'authoring/v2/atlas/validate_atlas_content.py::validate_packages',
+              'inputs': [str(path) for path in paths],
+          }, sort_keys=True, separators=(',', ':')))
+          PY
+
+      - name: Run canonical M3.1 pedagogical quality
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/e1a"
+          python -B authoring/v2/atlas/pedagogical_quality.py \
+            experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-a.json --json \
+            > "$OUT/route-a-quality.json"
+          python -B authoring/v2/atlas/pedagogical_quality.py \
+            experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-b.json --json \
+            > "$OUT/route-b-quality.json"
+
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          out = Path(os.environ['RUNNER_TEMP']) / 'e1a'
+          for route in ('a', 'b'):
+              report = json.loads((out / f'route-{route}-quality.json').read_text(encoding='utf-8'))
+              assert report['canonicalValid'] is True, (route, report)
+              assert report['qualityBand'] in {'STRONG', 'EXCELLENT_BY_PROFILE'}, (route, report['qualityBand'])
+              print(f'ROUTE_{route.upper()}_QUALITY={report["qualityBand"]}')
+          PY
+
+      - name: Write deterministic qualification manifest
+        shell: bash
+        env:
+          EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+
+          root = Path('.')
+          out = Path(os.environ['RUNNER_TEMP']) / 'e1a'
+          ab = root / 'experiments/knowledge-e1a-mi2-complexes/ab'
+          authorities = [
+              'contracts/learnit-kit-v2.schema.json',
+              'authoring/v2/validate_kit.py',
+              'authoring/v2/atlas/validate_atlas_content.py',
+              'authoring/v2/atlas/pedagogical_quality.py',
+              'authoring/factory/factory_gate.py',
+              'authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md',
+          ]
+          def sha256(path):
+              return 'sha256:' + hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          def blob(path):
+              return subprocess.check_output(['git', 'hash-object', str(path)], text=True).strip()
+
+          route_a = json.loads((ab / 'candidate-route-a.json').read_text(encoding='utf-8'))
+          route_b = json.loads((ab / 'candidate-route-b.json').read_text(encoding='utf-8'))
+          quality_a = json.loads((out / 'route-a-quality.json').read_text(encoding='utf-8'))
+          quality_b = json.loads((out / 'route-b-quality.json').read_text(encoding='utf-8'))
+          validation = json.loads((out / 'validate-kit.json').read_text(encoding='utf-8'))
+          assert validation['ok'] is True
+
+          manifest = {
+              'schema': 'learnit.e1a.canonical-ab-qualification.v1',
+              'result': 'PASS_DETERMINISTIC_CANONICAL_QUALIFICATION',
+              'prNumber': int(os.environ['PR_NUMBER']),
+              'baseCommit': os.environ['EVENT_BASE'],
+              'headCommit': os.environ['EVENT_HEAD'],
+              'inputs': {
+                  'routeA': {
+                      'path': str(ab / 'candidate-route-a.json'),
+                      'gitBlobSha1': blob(ab / 'candidate-route-a.json'),
+                      'packageRevisionDigest': route_a['packageRevisionDigest'],
+                      'qualityBand': quality_a['qualityBand'],
+                  },
+                  'routeB': {
+                      'path': str(ab / 'candidate-route-b.json'),
+                      'gitBlobSha1': blob(ab / 'candidate-route-b.json'),
+                      'packageRevisionDigest': route_b['packageRevisionDigest'],
+                      'qualityBand': quality_b['qualityBand'],
+                  },
+                  'learnerBrief': {
+                      'path': str(ab / 'learner-brief.json'),
+                      'gitBlobSha1': blob(ab / 'learner-brief.json'),
+                  },
+                  'sourcePdf': {
+                      'sha256': 'sha256:a197b2a17743752a79ec77caa4543b791cfcf246a2e8a749ffcb2677c3b05c26',
+                      'repositoryRetention': 'FORBIDDEN',
+                      'availableInCi': False,
+                  },
+              },
+              'authorities': {path: sha256(path) for path in authorities},
+              'canonicalChecks': {
+                  'learnitKitV2': 'PASS',
+                  'atlasValidatePackages': 'PASS',
+                  'routeAQualityBand': quality_a['qualityBand'],
+                  'routeBQualityBand': quality_b['qualityBand'],
+              },
+              'remainingBoundaries': [
+                  'FACTORY_CONTEXT_SOURCE_BYTES_UNAVAILABLE_IN_CI',
+                  'INDEPENDENT_REVIEW_UNAVAILABLE',
+              ],
+              'factoryPassClaimed': False,
+          }
+          (out / 'qualification-manifest.json').write_text(
+              json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(',', ':')) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(manifest, indent=2, sort_keys=True))
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check 1e71271436fd4b7dd7d895cfec827833187630fe...HEAD
+
+      - name: Upload exact E1A deterministic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: e1a-canonical-ab-${{ github.event.pull_request.head.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/e1a/*

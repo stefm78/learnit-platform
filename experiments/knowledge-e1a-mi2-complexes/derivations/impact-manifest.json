@@ -1,0 +1,9 @@
+{
+  "schema":"learnit.e1a.impact-manifest.v1",
+  "fixture":"NOT_AUTHORITATIVE_SOURCE_DELTA_FIXTURE",
+  "changedConcepts":["roots-of-unity"],
+  "disposition":"REVIEW_REQUIRED",
+  "impactedBlueprints":["kit-b-roots","same-knowledge-learning","same-knowledge-revision"],
+  "notImpactedBlueprints":["kit-a-forms"],
+  "automaticInvalidation":false
+}
