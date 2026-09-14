@@ -1,0 +1,26 @@
+{
+  "schema":"learnit.e1a.source-map.v1",
+  "sourceSha256":"a197b2a17743752a79ec77caa4543b791cfcf246a2e8a749ffcb2677c3b05c26",
+  "sections":[
+    {"id":"1.1","title":"Construction et Propriétés Elémentaires","pdfPages":[5,14],"printedPages":[1,10],"roles":["definitions","properties","figures","prerequisites-for-1.2"]},
+    {"id":"1.2","title":"Equations Polynomiales","pdfPages":[15,20],"printedPages":[11,16],"children":[
+      {"id":"1.2.3.2","title":"Polynôme à Coefficients Complexes","pdfPages":[18,20],"printedPages":[14,16],"items":["Proposition 1.52","Equation 1.2","two square-root strategies"]},
+      {"id":"1.2.4","title":"Racines de l’Unité","pdfPages":[20,21],"printedPages":[16,17],"items":["Théorème 1.53","Exemple 1.54","Remarque 1.55","Théorème 1.56","Exemple 1.57"]}
+    ]},
+    {"id":"1.3","title":"Géométrie Plane","pdfPages":[21,23],"printedPages":[17,19],"roles":["geometric-interpretation"]},
+    {"id":"1.4","title":"Exercices de Travaux Dirigés","pdfPages":[23,28],"printedPages":[19,24],"roles":["practice","assessment-source"],"relevantExercises":[
+      {"id":"1.5","difficulty":"**","pdfPage":24,"supports":["complex-square-roots"]},
+      {"id":"1.6","difficulty":"***","pdfPages":[24,25],"supports":["complex-square-roots","trigonometry-transfer"]},
+      {"id":"1.7","difficulty":"***","pdfPage":25,"supports":["polynomial-equations","complex-square-roots"]},
+      {"id":"1.8","difficulty":"**","pdfPage":25,"supports":["nth-roots"]},
+      {"id":"1.9","difficulty":"**","pdfPage":25,"supports":["roots-of-unity"]},
+      {"id":"1.10","difficulty":"**","pdfPage":25,"supports":["roots-of-unity"]},
+      {"id":"1.11","difficulty":"**","pdfPage":26,"supports":["complex-coefficient-polynomial"]},
+      {"id":"1.14","difficulty":"***","pdfPage":27,"supports":["roots-of-unity","geometric-transfer"]}
+    ]}
+  ],
+  "ambiguities":[
+    "PDF page 21 begins with Theorem 1.56, semantically part of 1.2.4, although the running header changes to 1.3; preserve item identity plus page.",
+    "Extracted text can degrade mathematical glyphs; prefer PDF page plus numbered proposition/theorem over text-offset locators."
+  ]
+}

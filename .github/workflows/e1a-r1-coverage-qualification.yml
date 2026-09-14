@@ -1,0 +1,106 @@
+name: E1A-R1 Coverage Preservation Qualification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'experiments/knowledge-e1a-mi2-complexes/r1/**'
+      - '.github/workflows/e1a-r1-coverage-qualification.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    name: E1A-R1 deterministic qualification
+    if: github.head_ref == 'experiment/e1a-r1-coverage-preservation-mi2-complexes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Bind frozen baseline and authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=1e71271436fd4b7dd7d895cfec827833187630fe
+          E1A=cd42098c6ea3e48e5610e197a94797835f6b540c
+          A='experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-a.json'
+          B='experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-b.json'
+          BRIEF='experiments/knowledge-e1a-mi2-complexes/ab/learner-brief.json'
+          [[ "$(git hash-object "$A")" == '7a6a7299d2a77cde3956d2576e5de868a36da984' ]]
+          [[ "$(git hash-object "$B")" == 'ead95f56d5fb37bfbe73edbe370426d03418b458' ]]
+          [[ "$(git hash-object "$BRIEF")" == 'f8affc7dcac77430e8f0794a63aa276d8ed408dc' ]]
+          git cat-file -e "$BASE^{commit}"
+          git cat-file -e "$E1A^{commit}"
+          git diff --exit-code "$BASE"...HEAD -- \
+            contracts/learnit-kit-v2.schema.json \
+            authoring/v2/validate_kit.py \
+            authoring/v2/atlas/validate_atlas_content.py \
+            authoring/v2/atlas/pedagogical_quality.py \
+            authoring/factory/factory_gate.py \
+            authoring/skills/SKILL_ATLAS_KIT_REVIEW_V1.md
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+
+      - name: Coverage mechanism tests
+        working-directory: experiments/knowledge-e1a-mi2-complexes/r1
+        run: |
+          python -B -m unittest -v test_coverage_check.py
+          python -B coverage_check.py coverage-ledger.json knowledge-bundle-r1.json
+          set +e
+          python -B coverage_check.py coverage-ledger.json ../knowledge/knowledge-bundle.json
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+
+      - name: Canonical learnit.kit.v2 validation
+        run: |
+          python -B authoring/v2/validate_kit.py \
+            experiments/knowledge-e1a-mi2-complexes/r1/candidate-b-r1.json \
+            --format json > /tmp/r1-validate-kit.json
+
+      - name: Canonical Atlas arbitrary-package validation
+        run: |
+          python -B - <<'PY' > /tmp/r1-atlas-validation.json
+          import json
+          from pathlib import Path
+          from authoring.v2.atlas.validate_atlas_content import validate_packages
+          p=Path('experiments/knowledge-e1a-mi2-complexes/r1/candidate-b-r1.json')
+          package=json.loads(p.read_text(encoding='utf-8'))
+          validate_packages([package])
+          print(json.dumps({'result':'PASS','authority':'validate_packages','input':str(p)},sort_keys=True,separators=(',',':')))
+          PY
+
+      - name: Canonical M3.1 pedagogical quality
+        run: |
+          python -B authoring/v2/atlas/pedagogical_quality.py \
+            experiments/knowledge-e1a-mi2-complexes/r1/candidate-b-r1.json --json \
+            > /tmp/r1-quality.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r1-quality.json',encoding='utf-8'))
+          assert r['canonicalValid'] is True, r
+          assert r['qualityBand'] in {'STRONG','EXCELLENT_BY_PROFILE'}, r
+          print('R1_QUALITY='+r['qualityBand'])
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check 1e71271436fd4b7dd7d895cfec827833187630fe...HEAD
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e1a-r1-qualification-${{ github.event.pull_request.head.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            /tmp/r1-validate-kit.json
+            /tmp/r1-atlas-validation.json
+            /tmp/r1-quality.json

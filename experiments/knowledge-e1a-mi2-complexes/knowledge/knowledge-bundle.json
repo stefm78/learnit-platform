@@ -1,0 +1,15 @@
+{
+  "schema": "learnit.e1a.knowledge-bundle.v1",
+  "sourceSha256": "a197b2a17743752a79ec77caa4543b791cfcf246a2e8a749ffcb2677c3b05c26",
+  "concepts": [
+    {"id":"complex-modulus","label":"Module","provenance":["section:1.1","pdf-page:11-12"],"scopeRole":"consultable-prerequisite"},
+    {"id":"complex-argument","label":"Argument","provenance":["section:1.1","pdf-page:12-13"],"scopeRole":"consultable-prerequisite"},
+    {"id":"exponential-form","label":"Forme exponentielle","provenance":["section:1.1","pdf-page:13-14"],"scopeRole":"consultable-prerequisite"},
+    {"id":"complex-square-roots","label":"Racines carrées complexes","provenance":["section:1.2.3.2","pdf-page:18-20"],"scopeRole":"target"},
+    {"id":"complex-quadratic","label":"Polynôme de degré 2 à coefficients complexes","provenance":["section:1.2.3.2","proposition:1.52","pdf-page:18"],"scopeRole":"target"},
+    {"id":"nth-roots","label":"Racines n-ièmes d’un complexe","provenance":["section:1.2.4","pdf-page:20"],"scopeRole":"target"},
+    {"id":"roots-of-unity","label":"Racines n-ièmes de l’unité","provenance":["section:1.2.4","theorem:1.53","pdf-page:20-21"],"scopeRole":"target"},
+    {"id":"regular-polygon-representation","label":"Représentation polygonale des racines","provenance":["remark:1.55","pdf-page:20"],"scopeRole":"target"}
+  ],
+  "externalPrerequisites": [{"id":"basic-trigonometry","label":"Trigonométrie de base","status":"assumed-not-taught","provenance":["introduction","pdf-page:5"]}]
+}

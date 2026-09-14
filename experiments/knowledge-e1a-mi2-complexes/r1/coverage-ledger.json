@@ -1,0 +1,102 @@
+{
+  "schema": "learnit.knowledge-coverage.v1-experimental",
+  "source": {
+    "sourceId": "mi2-nombres-complexes",
+    "sha256": "a197b2a17743752a79ec77caa4543b791cfcf246a2e8a749ffcb2677c3b05c26",
+    "sourceMapGitBlob": "b9561162a2213305d23a83be0ba68272b87d37c3"
+  },
+  "targetScope": {
+    "sections": [
+      "1.2.3.2",
+      "1.2.4"
+    ],
+    "learnerBriefGitBlob": "f8affc7dcac77430e8f0794a63aa276d8ed408dc",
+    "timeBudgetMinutes": 40
+  },
+  "items": [
+    {
+      "sourceItemId": "proposition-1.52",
+      "locator": "section:1.2.3.2; pdf-page:18; Proposition 1.52",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-quadratic"
+      ]
+    },
+    {
+      "sourceItemId": "equation-1.2",
+      "locator": "section:1.2.3.2; pdf-page:18-20; Equation (1.2)",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-square-roots"
+      ]
+    },
+    {
+      "sourceItemId": "square-root-strategy-argument",
+      "locator": "section:1.2.3.2; pdf-page:18; 1re Méthode",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-square-roots"
+      ]
+    },
+    {
+      "sourceItemId": "square-root-strategy-algebraic",
+      "locator": "section:1.2.3.2; pdf-page:18-20; 2e Méthode",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-square-roots"
+      ]
+    },
+    {
+      "sourceItemId": "theorem-1.53",
+      "locator": "section:1.2.4; pdf-page:20; Théorème 1.53",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "roots-of-unity"
+      ]
+    },
+    {
+      "sourceItemId": "example-1.54",
+      "locator": "section:1.2.4; pdf-page:20; Exemple 1.54",
+      "scopeRole": "CONTEXT_ONLY"
+    },
+    {
+      "sourceItemId": "nth-roots-general-formula",
+      "locator": "section:1.2.4; pdf-page:20; paragraph after Exemple 1.54",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "nth-roots"
+      ]
+    },
+    {
+      "sourceItemId": "remark-1.55",
+      "locator": "section:1.2.4; pdf-page:20; Remarque 1.55",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "regular-polygon-representation"
+      ]
+    },
+    {
+      "sourceItemId": "theorem-1.56",
+      "locator": "section:1.2.4; pdf-page:21; Théorème 1.56",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "REPRESENTED",
+      "knowledgeRefs": [
+        "roots-of-unity#zero-sum-property"
+      ]
+    },
+    {
+      "sourceItemId": "example-1.57",
+      "locator": "section:1.2.4; pdf-page:21; Exemple 1.57",
+      "scopeRole": "TARGET_COVERAGE",
+      "coverageDisposition": "EXPLICITLY_EXCLUDED",
+      "reason": "Illustration redondante : le Théorème 1.56 est conservé et évalué dans le budget de 40 minutes."
+    }
+  ]
+}
