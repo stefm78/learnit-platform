@@ -1,0 +1,33 @@
+{
+  "schema": "learnit.e1a-r1.pedagogical-derivation.v1-experimental",
+  "sourceMap": {
+    "gitBlob": "b9561162a2213305d23a83be0ba68272b87d37c3"
+  },
+  "knowledge": {
+    "frozenGitBlob": "3ffb2162e4c4b091a2b6ba5a23322fbd58e53ddf",
+    "r1Path": "knowledge-bundle-r1.json"
+  },
+  "learnerBrief": {
+    "gitBlob": "f8affc7dcac77430e8f0794a63aa276d8ed408dc",
+    "sha256Canonical": "sha256:74e7b2b555f240f8f805c866c5d51bb7c22809caba809135afd46744b819292e",
+    "timeBudgetMinutes": 40
+  },
+  "changes": [
+    {
+      "candidateElement": "objective-2 correction activity",
+      "reason": "integrate theorem-1.56 within existing 40-minute budget",
+      "replaces": "redundant U4 root-count correction practice from B_E1A",
+      "preserves": [
+        "theorem-1.53",
+        "nth-roots-general-formula",
+        "remark-1.55"
+      ]
+    }
+  ],
+  "candidate": {
+    "path": "candidate-b-r1.json",
+    "packageRevisionId": "b8440411-5a04-4881-8c15-8c5b643c66b4",
+    "packageRevisionDigest": "sha256:47724cff565e776cb85dc7a83e957510e89826dd6011a2a1474898168beb8fb3",
+    "kitSha256": "sha256:3bcbf01ce98de5faf06cd4ebfcded11acb161a64f4c2816cf88acf16fd83b574"
+  }
+}
