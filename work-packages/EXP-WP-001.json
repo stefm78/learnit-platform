@@ -11,7 +11,7 @@
   },
   "purpose": "Govern the existing cumulative E1A/E1A-R1 MI2 Nombres Complexes experimental qualification diff, close repository/PR-scope mechanics, and preauthorize only the bounded clean semantic-review closure evidence needed to decide R1. This work package does not promote the experiment, change product/runtime authority, or authorize E1B.",
   "baseline": {
-    "main": "1e71271436fd4b7dd7d895cfec827833187630fe",
+    "baseCommit": "1e71271436fd4b7dd7d895cfec827833187630fe",
     "e1aFrozenParent": "cd42098c6ea3e48e5610e197a94797835f6b540c",
     "r1PreGovernanceHead": "4196a2b2664db8c6a495c29ead24ee2bbd6e54b4",
     "sourceSha256": "a197b2a17743752a79ec77caa4543b791cfcf246a2e8a749ffcb2677c3b05c26"
