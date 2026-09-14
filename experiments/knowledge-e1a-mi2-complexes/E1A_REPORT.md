@@ -2,74 +2,116 @@
 
 ## Executive summary
 
-E1A tests Source Map → Knowledge → Pedagogy against the current Direct AI Kit Factory route without changing `learnit.kit.v2` or the Player.
+E1A compares a Direct AI Kit Factory route with a Source Map -> Knowledge -> Pedagogy route on the same MI2 source scope and learner brief, without changing `learnit.kit.v2` or the Player.
 
-Observed value remains concrete for **scope control, prerequisite declaration, reuse, provenance and deterministic impact analysis**. The experiment continues to falsify “OKF everywhere”: the useful core is smaller than a general knowledge-management platform, and Direct AI Kit Factory remains the preferred fast path for isolated one-off work.
+The deterministic comparison is closed: both frozen candidates pass the unchanged canonical validators and both are `EXCELLENT_BY_PROFILE` at M3.1. Exact source-bound Factory contexts now also exist for both routes.
 
-The A/B authoring and deterministic qualification gaps are now closed. One frozen learner brief plus two fresh 40-minute `learnit.kit.v2` candidates target the exact same sections 1.2.3.2 + 1.2.4. Route A is direct-source authored; Route B is knowledge-assisted. On the unchanged canonical deterministic authorities both are valid and both achieve `EXCELLENT_BY_PROFILE`.
+The independent semantic phase changes the result materially: **both routes are semantic HOLD**. Route A under-covers general n-th-root construction and also omits Theorem 1.56. Route B does cover the general n-th-root formula, so the Knowledge route is semantically stronger on this witness, but Route B also omits Theorem 1.56 and therefore cannot obtain `PASS_AI_KIT_FACTORY_V1`.
 
-E1A is **not yet a PASS** because the experiment still lacks genuinely independent, exact-source-bound semantic reviews and therefore cannot honestly run the final Factory Gate for either route.
+The most important architecture finding is causal and localized: the Source Map correctly contained Theorem 1.56, but the Knowledge Bundle did not preserve it. E1A therefore exposes a real Source Map -> Knowledge coverage-loss failure.
 
-## Scenario results
+## Frozen A/B evidence
 
-- A Scope selector: PASS at model level.
-- B Reuse: PASS at model level; module/argument/exponential form are shared dependencies.
-- C Same knowledge/different pedagogy: PASS at model level; knowledge identities remain unchanged.
-- D Figures/equations: PASS with locator caveat; PDF-page + numbered item locators suffice, extracted glyph offsets do not.
-- E Exercises: PASS; exercises are practice/assessment evidence, not concepts.
-- F Direct vs Knowledge A/B: **PARTIAL / HOLD, materially advanced**. The two exact frozen candidates were executed in GitHub Actions against the unchanged canonical `learnit.kit.v2` validator, Atlas `validate_packages()` authority and M3.1 pedagogical-quality engine. Both pass; both are `canonicalValid=true`; both are `EXCELLENT_BY_PROFILE`. Route A has zero generic-validator warnings. Route B has one non-blocking generic warning for an unusually short explanation, retained without repair. Independent semantic review and final Factory Gate remain unproven.
-- G Existing kit: product witness only; it is not semantic authority for the bounded 1.2 target.
-- H Impact: PASS at model level; fixture change to `roots-of-unity` marks only dependent blueprints `REVIEW_REQUIRED`.
-- I Fast path: PASS; Direct AI Kit Factory remains preferred for small one-off non-reused scopes.
+- baseline `main`: `1e71271436fd4b7dd7d895cfec827833187630fe`;
+- experiment branch pre-semantic-evidence HEAD: `ee5e5fc50579723bd8722162afebcc6d28ee8c1d`;
+- draft qualification PR: `#377`, explicitly not for merge;
+- Route A package digest: `sha256:0d03102d9bcb880f8114c1992ab512d2ecb28b6227d0a60867645013aaabfc83`;
+- Route B package digest: `sha256:cb38f6773437f39b6b9287149d4e8da76af6938467fe5a60dc39a8f7a29dcaf7`;
+- exact source PDF SHA-256: `a197b2a17743752a79ec77caa4543b791cfcf246a2e8a749ffcb2677c3b05c26`.
 
-## A/B artifacts and canonical evidence
+Canonical deterministic run `34768852674` / job `103754617726` produced `PASS_DETERMINISTIC_CANONICAL_QUALIFICATION`; both routes are canonically valid and `EXCELLENT_BY_PROFILE`.
 
-- Original A/B prompt: `NEXT_PROMPT_E1A_AB_CANONICAL.md`.
-- Final qualification prompt: `NEXT_PROMPT_E1A_FINAL_QUALIFICATION.md`.
-- Frozen brief: `ab/learner-brief.json`.
-- Route A: `ab/candidate-route-a.json`, package digest `sha256:0d03102d9bcb880f8114c1992ab512d2ecb28b6227d0a60867645013aaabfc83`.
-- Route B: `ab/candidate-route-b.json`, package digest `sha256:cb38f6773437f39b6b9287149d4e8da76af6938467fe5a60dc39a8f7a29dcaf7`.
-- Read-only qualification workflow: `.github/workflows/e1a-canonical-ab-qualification.yml`.
-- Draft qualification PR: `#377`, explicitly not for merge.
-- Canonical run: `34768852674`, job `103754617726`, qualified HEAD `6f05ac1677b070c60488dc08616d855eddaf2996`.
-- Actions artifact: `10321675054`, digest `sha256:10cd159b9e479ef116e4369638d9ecf7e6986fdd9f7056c7b4ddbbf3f761d45d`.
-- Persisted compact evidence: `ab/canonical-qualification/`.
-- Current exact blockers: `ab/EXECUTION_STATUS.md`.
+## Exact Factory binding
 
-## Deterministic qualification result
+Route A:
 
-`PASS_DETERMINISTIC_CANONICAL_QUALIFICATION`
+- kitSha256 `sha256:c3bc513fbb3b003edfcdd06fe82aea886934bf4be71b80fe90525176a6a38b88`;
+- contextDigest `sha256:a6c99a600a0134dc6e4c658f864228ac344f78051ffa27e6121a59017192c390`.
 
-The canonical generic validator reports `ok=true` and no cross-file errors. Route A has zero errors/warnings. Route B has zero errors plus one non-blocking warning that its U₃ explanation is unusually short. The canonical Atlas arbitrary-package validator passes both candidates. M3.1 reports `EXCELLENT_BY_PROFILE` for both with 0 blocking / 0 warning / 0 advice.
+Route B:
 
-This closes the earlier concern that author-side reconstructed checks might have diverged from the repository authorities. They did not materially diverge on validity or M3.1 outcome, although the real generic validator surfaced the retained Route B short-explanation warning that the earlier local summary did not expose.
+- kitSha256 `sha256:4ce65c0de6520aae74b29ba89da4e8ef00023fed0b499216b6c1c765791afaec`;
+- contextDigest `sha256:8d19e9fb88f25037ef584c7257b16e9bbd7906142a9da3d403252d220d1951d5`.
+
+Both bind the same exact source bytes and learner brief.
+
+## Independent semantic qualification
+
+### Route A — semantic HOLD, schema resubmission required
+
+The independent reviewer reports three major semantic defects:
+
+- the kit never requires determination of all n-th roots of a general nonzero complex number;
+- Theorem 1.56, the zero-sum property of roots of unity, is omitted;
+- the second-objective validation pair therefore under-tests the stated objective.
+
+The review content is source-supported, but the response profile/field names do not match the exact Factory review schema. It is retained as audit evidence, not treated as canonical Factory input. A clean-context reviewer must re-emit the same independently reached review in the exact `learnit.atlas.semantic_review.v1` shape.
+
+### Route B — canonical semantic HOLD
+
+The Route B review is structurally and cryptographically bound to the exact Factory context. It reports:
+
+- `objectiveCoverage = hold` because Theorem 1.56 is absent;
+- one major finding for that omission;
+- one minor ambiguity because the correct general n-th-root QCM label omits the explicit `k=0,...,n-1` range although its explanation restores it.
+
+The semantic verdict is `HOLD_SEMANTIC_REVIEW_V1`. Therefore the unchanged Factory Gate cannot return `PASS_AI_KIT_FACTORY_V1`; its semantic branch resolves to `HOLD_FACTORY_SEMANTIC_REVIEW`.
+
+## A/B semantic comparison
+
+Route A and Route B are not semantically tied anymore.
+
+Route A covers square roots, complex quadratics, roots of unity, root count, and geometry, but it does not make the learner determine general n-th roots.
+
+Route B adds an explicit validation for the general n-th-root formula of a nonzero complex number. That is a material improvement aligned with the learner brief. The Knowledge route therefore shows a real scope/coverage benefit over Direct on this witness.
+
+However, both routes omit Theorem 1.56. Route B's omission is particularly informative because the Source Map had already identified the theorem.
+
+## Root cause in the Knowledge architecture
+
+`source/source-map.json` lists under section 1.2.4:
+
+- Theorem 1.53;
+- Example 1.54;
+- Remark 1.55;
+- Theorem 1.56;
+- Example 1.57.
+
+It also records that PDF page 21 begins with Theorem 1.56 despite the running header changing to 1.3, so the source-boundary ambiguity was already understood correctly.
+
+`knowledge/knowledge-bundle.json`, however, retains only target units for:
+
+- complex square roots;
+- complex quadratic equations;
+- n-th roots;
+- roots of unity;
+- regular-polygon representation.
+
+There is no retained knowledge property/claim for the zero-sum theorem. `pedagogy/scope-ab.json` then consumes that reduced target set. The omission therefore occurs specifically at Source Map -> Knowledge, and the learner kit faithfully inherits the loss.
+
+This falsifies the assumption that a concept-only knowledge inventory is sufficient to preserve a bounded source scope. Some important source knowledge is proposition/property shaped rather than concept shaped.
 
 ## Complexity ledger
 
-Route B adds source manifest/map, compact knowledge bundle, typed relation sidecar, scope manifests, pedagogical blueprints and impact manifest. It does not add backend, graph/vector DB, OCR, Player/schema/learner-state changes, generic ingestion platform or runtime dependency.
+Route B still adds useful durable structure for source mapping, target-vs-prerequisite separation, typed dependency relations, reuse and impact analysis. It does not require a graph database, OCR platform, backend or learner-runtime AI.
 
-The final A/B kit structures are intentionally comparable. This is important: Knowledge Architecture does not win because it produces more metadata. Its value must appear in scope/provenance/reuse/change-management while final learner quality is non-degraded. The deterministic qualification now shows non-degradation at the canonical structural/M3.1 layer; semantic non-degradation remains to be independently established.
+The new evidence shows the missing minimal capability: **coverage preservation for in-scope source items**. The smallest credible repair is not a general knowledge-management system. It is an explicit coverage ledger or claim layer that requires every in-scope numbered source item to be one of:
 
-## Independent audit
+- represented by a Knowledge unit/property/claim;
+- explicitly excluded with a source-bound rationale.
 
-The experiment no longer relies on local reconstructed validator claims: the frozen pair has now been run by the actual repository authorities in CI, bound to exact blobs and authority hashes.
-
-A false PASS is still rejected. The source PDF bytes were not present in the CI environment, so an exact Factory context was not generated there. The active author execution has also seen the authoring context and both candidates, so it cannot truthfully act as an independent reviewer. Consequently neither `PASS_SEMANTIC_REVIEW_V1` nor `PASS_AI_KIT_FACTORY_V1` is claimed.
-
-A false FAIL is likewise rejected. Both routes are canonically valid and M3.1-equivalent at `EXCELLENT_BY_PROFILE`, while Route B already demonstrates source-bound target/prerequisite separation and dependency-addressable impact analysis that Route A does not carry as durable authoring artifacts.
+Silent disappearance must be invalid.
 
 ## FINAL VERDICT
 
 `HOLD_E1A_ARCHITECTURE_NEEDS_REWORK`
 
-### Minimum remaining proof
+E1A does not justify E1B scale testing yet because neither frozen route obtains a genuine Factory PASS. Route B is semantically stronger than Route A, so the Knowledge architecture is not falsified outright; but its own intermediate representation silently drops a source theorem that the Source Map knew about.
 
-Do not redesign and do not rerun authoring. Present the exact source PDF bytes, frozen learner brief and exact Route A candidate to one clean semantic-review execution, then do the same independently for Route B. Generate the exact Factory contexts and run the unchanged Factory Gate only after each genuine independent review exists.
-
-PASS to E1B only if both routes obtain genuine `PASS_AI_KIT_FACTORY_V1`, Route B remains semantically non-degraded, and its scope/provenance/reuse/impact advantage remains material after accounting for the extra artifacts.
+The frozen A/B pair must remain unchanged as evidence. Any repair must be a fresh iteration with new candidate identities and a targeted Source Map -> Knowledge coverage-preservation mechanism.
 
 ## Mandatory question
 
 > If Learn-it had to produce 20 kits from this course or a much longer course, would the added knowledge artifacts really reduce work, inconsistencies and evolution cost—or merely move complexity?
 
-Current answer: **the architecture is increasingly plausible for overlapping/evolving kits, and deterministic learner-quality non-degradation is now proven at the canonical M3.1 layer. The remaining causal proof is semantic and independent, not structural.** For isolated kits the extra layer remains overhead; therefore the Direct route must stay available.
+Current answer: **they can reduce work and inconsistencies, but only if the Knowledge layer is coverage-preserving. E1A shows both sides: Route B preserves general n-th-root scope better than Direct, yet it silently loses Theorem 1.56 between Source Map and Knowledge. Without an explicit coverage invariant, the architecture can move complexity and create a new omission surface. With a lightweight coverage ledger/claim layer, the reuse/provenance/impact benefits remain plausible enough to justify a targeted repair experiment before any scale test.**
