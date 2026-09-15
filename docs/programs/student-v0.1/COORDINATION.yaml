@@ -6,7 +6,7 @@ architecture:
   work_package: ARC-WP-025
   source_main: 1e71271436fd4b7dd7d895cfec827833187630fe
   branch: architecture/ARC-WP-025-student-v0-1-richness
-  draft_pr: PENDING_CREATION
+  draft_pr: 382
   contract: learnit.kit.v4
   contract_path: contracts/learnit-kit-v4.schema.json
   human_gate_required: true
