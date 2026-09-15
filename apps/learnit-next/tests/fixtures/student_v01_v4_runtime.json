@@ -1,0 +1,273 @@
+{
+  "contract": "learnit.kit.v4",
+  "packageLineageId": "00000001-0001-4001-8001-000000000001",
+  "packageRevisionId": "00000002-0002-4002-8002-000000000002",
+  "packageRevisionDigest": "sha256:3ae2c3d90b6483e618bf15f1914d7decfe3af808825fec3322ee25f00715a0d4",
+  "title": "Student V0.1 v4 runtime",
+  "versionLabel": "student-v0.1",
+  "language": "fr-FR",
+  "assets": [
+    {
+      "assetId": "00000006-0006-4006-8006-000000000006",
+      "type": "image",
+      "format": "svg",
+      "alt": "Schéma pédagogique",
+      "caption": "Exemple sûr",
+      "pedagogicalRole": "question_stimulus",
+      "data": "<svg viewBox=\"0 0 10 10\"><rect width=\"10\" height=\"10\" fill=\"#fff\"/></svg>"
+    }
+  ],
+  "courses": [
+    {
+      "courseLineageId": "00000003-0003-4003-8003-000000000003",
+      "courseRevisionId": "00000004-0004-4004-8004-000000000004",
+      "courseRevisionDigest": "sha256:2fc639cadb762e5b75e2389c6d0afe37a54aca6ed26fdcc2b0cadcb82ec69db6",
+      "title": "Student V0.1 runtime fixture",
+      "estimatedMinutes": 20,
+      "objectives": [
+        {
+          "objectiveId": "00000005-0005-4005-8005-000000000005",
+          "label": "Tester la richesse"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "00000007-0007-4007-8007-000000000007",
+          "activityRevisionId": "00000008-0008-4008-8008-000000000008",
+          "activityRevisionDigest": "sha256:a23237289f3bcafa1a5132989a3f9f7efb1b82221e14ee54ec37db23309624e5",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "qcm",
+          "learningPhase": "application",
+          "prompt": "Prompt qcm",
+          "explanation": "Explication qcm",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "choices": [
+            {
+              "choiceId": "00000009-0009-4009-8009-000000000009",
+              "label": "A"
+            },
+            {
+              "choiceId": "0000000a-000a-400a-800a-00000000000a",
+              "label": "B"
+            }
+          ],
+          "correctChoiceId": "0000000a-000a-400a-800a-00000000000a"
+        },
+        {
+          "activityLineageId": "0000000b-000b-400b-800b-00000000000b",
+          "activityRevisionId": "0000000c-000c-400c-800c-00000000000c",
+          "activityRevisionDigest": "sha256:aa283333dcd6038669322b3d93f2da1b19e8b80cba9fb1377e4d78f7a079dcc5",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "fill",
+          "learningPhase": "application",
+          "prompt": "Prompt fill",
+          "explanation": "Explication fill",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "segments": [
+            {
+              "text": "Valeur "
+            },
+            {
+              "slotId": "0000000d-000d-400d-800d-00000000000d"
+            }
+          ],
+          "tokens": [
+            {
+              "tokenId": "0000000e-000e-400e-800e-00000000000e",
+              "label": "x",
+              "maxUses": 1
+            }
+          ],
+          "answers": [
+            {
+              "slotId": "0000000d-000d-400d-800d-00000000000d",
+              "tokenId": "0000000e-000e-400e-800e-00000000000e"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "0000000f-000f-400f-800f-00000000000f",
+          "activityRevisionId": "00000010-0010-4010-8010-000000000010",
+          "activityRevisionDigest": "sha256:3d2f0ce194bed1f93ac4a3a4b4cf5fb1111c5b76258cb63843fa7061ab94820e",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "constructed",
+          "learningPhase": "application",
+          "prompt": "Prompt constructed",
+          "explanation": "Explication constructed",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "acceptedResponses": [
+            "Réponse exacte",
+            "reponse bis"
+          ],
+          "media": [
+            {
+              "assetId": "00000006-0006-4006-8006-000000000006",
+              "placement": "prompt",
+              "display": "contained",
+              "zoomable": false
+            }
+          ]
+        },
+        {
+          "activityLineageId": "00000011-0011-4011-8011-000000000011",
+          "activityRevisionId": "00000012-0012-4012-8012-000000000012",
+          "activityRevisionDigest": "sha256:aa5da6c0f3e2722e2996d3c931b4778e5f046e8db6eae5f362d61d18a395e743",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "lesson",
+          "learningPhase": "comprehension",
+          "title": "Notion",
+          "body": "Corps de leçon",
+          "keyPoints": [
+            "Point clé"
+          ],
+          "contextNote": "Contexte"
+        },
+        {
+          "activityLineageId": "00000013-0013-4013-8013-000000000013",
+          "activityRevisionId": "00000014-0014-4014-8014-000000000014",
+          "activityRevisionDigest": "sha256:cb266a5c35c2214cbbde70d4314d906ff7cd5cbe6872c67239ed3d94dc7b9f21",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "flashcard",
+          "learningPhase": "consolidation",
+          "front": "Recto",
+          "back": "Verso",
+          "explanation": "Pourquoi"
+        },
+        {
+          "activityLineageId": "00000015-0015-4015-8015-000000000015",
+          "activityRevisionId": "00000016-0016-4016-8016-000000000016",
+          "activityRevisionDigest": "sha256:4b1317d62b0becb4b4f66b9232bb38299606cf322b4b32d1d96c3e9f9f15ea31",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "matching",
+          "learningPhase": "application",
+          "prompt": "Prompt matching",
+          "explanation": "Explication matching",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "leftItems": [
+            {
+              "itemId": "00000017-0017-4017-8017-000000000017",
+              "label": "L1"
+            },
+            {
+              "itemId": "00000018-0018-4018-8018-000000000018",
+              "label": "L2"
+            }
+          ],
+          "rightItems": [
+            {
+              "itemId": "00000019-0019-4019-8019-000000000019",
+              "label": "R1"
+            },
+            {
+              "itemId": "0000001a-001a-401a-801a-00000000001a",
+              "label": "R2"
+            }
+          ],
+          "matches": [
+            {
+              "leftItemId": "00000017-0017-4017-8017-000000000017",
+              "rightItemId": "00000019-0019-4019-8019-000000000019"
+            },
+            {
+              "leftItemId": "00000018-0018-4018-8018-000000000018",
+              "rightItemId": "0000001a-001a-401a-801a-00000000001a"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "0000001b-001b-401b-801b-00000000001b",
+          "activityRevisionId": "0000001c-001c-401c-801c-00000000001c",
+          "activityRevisionDigest": "sha256:5aeec116b1eeba9d09cd306fb7e2d3e5e2a09b6906096d8128d882ea7aac9d99",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "order",
+          "learningPhase": "application",
+          "prompt": "Prompt order",
+          "explanation": "Explication order",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "items": [
+            {
+              "itemId": "0000001d-001d-401d-801d-00000000001d",
+              "label": "1"
+            },
+            {
+              "itemId": "0000001e-001e-401e-801e-00000000001e",
+              "label": "2"
+            },
+            {
+              "itemId": "0000001f-001f-401f-801f-00000000001f",
+              "label": "3"
+            }
+          ],
+          "correctOrder": [
+            "0000001e-001e-401e-801e-00000000001e",
+            "0000001d-001d-401d-801d-00000000001d",
+            "0000001f-001f-401f-801f-00000000001f"
+          ]
+        },
+        {
+          "activityLineageId": "00000020-0020-4020-8020-000000000020",
+          "activityRevisionId": "00000021-0021-4021-8021-000000000021",
+          "activityRevisionDigest": "sha256:52dcddf9990a6dc10f48615b4c29989105d1d93eadfd58b3c3727627d4a19166",
+          "objectiveIds": [
+            "00000005-0005-4005-8005-000000000005"
+          ],
+          "type": "classify",
+          "learningPhase": "application",
+          "prompt": "Prompt classify",
+          "explanation": "Explication classify",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "buckets": [
+            {
+              "bucketId": "00000022-0022-4022-8022-000000000022",
+              "label": "B1"
+            },
+            {
+              "bucketId": "00000023-0023-4023-8023-000000000023",
+              "label": "B2"
+            }
+          ],
+          "items": [
+            {
+              "itemId": "00000024-0024-4024-8024-000000000024",
+              "label": "I1"
+            },
+            {
+              "itemId": "00000025-0025-4025-8025-000000000025",
+              "label": "I2"
+            }
+          ],
+          "assignments": [
+            {
+              "itemId": "00000024-0024-4024-8024-000000000024",
+              "bucketId": "00000023-0023-4023-8023-000000000023"
+            },
+            {
+              "itemId": "00000025-0025-4025-8025-000000000025",
+              "bucketId": "00000022-0022-4022-8022-000000000022"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
