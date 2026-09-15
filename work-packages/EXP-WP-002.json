@@ -1,18 +1,64 @@
 {
-  "schemaVersion": 1,
-  "id": "EXP-WP-002",
-  "title": "E1B long-source scale, reuse and amortization experiment",
-  "status": "approved",
-  "changeClass": "experimental-knowledge-scale-reuse",
-  "owner": "E1B temporary experiment owner",
-  "purpose": "Execute E1B on the exact 163-page EPF energy/climate source using isolated artifacts, eight frozen canonical candidates, coverage preservation, reuse/change-impact metrics and a stacked draft PR. No product/runtime/schema integration is authorized.",
+  "adversarialTests": [
+    "Fail if any changed path lies outside the allowlist.",
+    "Fail if source PDF or any binary/archive payload is committed.",
+    "Fail if any canonical validator/schema/runtime/Factory authority is modified.",
+    "Fail if PR #378 is merged or ceases to be DRAFT during closure.",
+    "Fail if non-independent comparative review is represented as independent semantic PASS.",
+    "Fail if Knowledge becomes mandatory for one-off Direct generation."
+  ],
   "baseline": {
-    "productMain": "1e71271436fd4b7dd7d895cfec827833187630fe",
+    "baseCommit": "a760ce1f8bb1098f122a66beb73ce5d8c6e257b5",
     "experimentalParentBranch": "experiment/e1a-r1-coverage-preservation-mi2-complexes",
     "experimentalParentHead": "a760ce1f8bb1098f122a66beb73ce5d8c6e257b5",
-    "upstreamWorkPackage": "EXP-WP-001",
-    "upstreamReservation": "INDEPENDENCE_DEGRADED"
+    "productMain": "1e71271436fd4b7dd7d895cfec827833187630fe",
+    "sourceSha256": "cc411ddb76a904a684a44ce85be15b67a9ef9f2bc75288697a4981a62a4b0c73",
+    "upstreamReservation": "INDEPENDENCE_DEGRADED",
+    "upstreamWorkPackage": "EXP-WP-001"
   },
+  "changeClass": "experimental-knowledge-scale-reuse",
+  "execution": {
+    "branch": "experiment/e1b-energy-climate-scale-reuse",
+    "humanGateRequired": false,
+    "maximumChangedFiles": 80,
+    "mergeAuthorized": false,
+    "mergeStatus": "draft-do-not-merge",
+    "pullRequestBase": "experiment/e1a-r1-coverage-preservation-mi2-complexes",
+    "pullRequestMode": "DRAFT_STACKED_EXPERIMENT_ONLY"
+  },
+  "id": "EXP-WP-002",
+  "independentReview": [
+    "Repository governance and PR-scope checks independently enforce repository mechanics.",
+    "GitHub Actions must qualify the exact draft-PR head with current canonical validators.",
+    "Semantic reviews in this job are explicitly non-independent comparative evidence and cannot certify semantic PASS."
+  ],
+  "invariants": [
+    "PR #378 remains DRAFT and unmerged.",
+    "Source PDF is never committed.",
+    "Canonical validators, Factory Gate, contract and runtime remain read-only.",
+    "Knowledge path remains optional and Direct path remains valid.",
+    "No automatic merge or promotion."
+  ],
+  "nonGoals": [
+    "Merging or promoting E1B or PR #378.",
+    "Changing learnit.kit.v2, validators, Factory Gate, Player or Learn-it Next runtime.",
+    "Building generic ingestion/OCR/vector/graph infrastructure.",
+    "Claiming direct evidence for 200–300 page scale.",
+    "Replacing the source PDF as semantic authority."
+  ],
+  "purpose": "Execute and close E1B on the exact 163-page EPF energy/climate source using isolated experimental artifacts, eight frozen canonical candidates, coverage preservation, reuse/change-impact metrics and a stacked draft PR. No product/runtime/schema integration is authorized.",
+  "requiredEvidence": [
+    "Exact source manifest and whole-document lightweight map.",
+    "K1-K4 scope/coverage artifacts and eight frozen learnit.kit.v2 candidates.",
+    "Exact-head canonical, Atlas and M3.1 qualification.",
+    "Explicit non-independent semantic-comparison reservation and Factory HOLD semantics.",
+    "Reuse/complexity/break-even and localized change-impact evidence.",
+    "K4 narrow-scope, visual/equation and Direct fast-path controls.",
+    "Final E1B report."
+  ],
+  "riskClass": "low",
+  "rollback": "Delete or revert the E1B experiment branch/PR commits. Product main, PR #378, canonical authorities and source bytes remain unchanged.",
+  "schemaVersion": 1,
   "scope": {
     "allowedPaths": [
       "work-packages/EXP-WP-002.json",
@@ -27,33 +73,8 @@
       "governance/**",
       "tools/**",
       "tests/**"
-    ],
-    "maximumChangedFiles": 80
+    ]
   },
-  "invariants": [
-    "product main remains authority",
-    "PR #378 remains unmerged",
-    "source PDF is never committed",
-    "runtime/schema/validators are read-only",
-    "Knowledge path remains optional",
-    "no automatic merge"
-  ],
-  "requiredEvidence": [
-    "exact source manifest and byte verification",
-    "whole-document lightweight source map",
-    "K1-K4 scope/coverage artifacts",
-    "eight frozen learnit.kit.v2 candidates",
-    "current-authority deterministic qualification",
-    "non-independent semantic-comparison reservation",
-    "reuse/complexity/break-even metrics",
-    "change-impact fixtures/report",
-    "K4 narrow-scope and fast-path controls",
-    "final E1B report"
-  ],
-  "execution": {
-    "branch": "experiment/e1b-energy-climate-scale-reuse",
-    "pullRequestBase": "experiment/e1a-r1-coverage-preservation-mi2-complexes",
-    "pullRequestMode": "DRAFT_STACKED_EXPERIMENT_ONLY",
-    "mergeAuthorized": false
-  }
+  "status": "approved",
+  "title": "E1B long-source scale, reuse and amortization experiment"
 }
