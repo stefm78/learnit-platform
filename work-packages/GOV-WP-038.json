@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-038",
+  "title": "Coordinate Student V0.1 Wave 1 targeted R1 rework",
+  "status": "proposed",
+  "changeClass": "governance-corrective-coordination",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 380
+  },
+  "baseline": {
+    "baseCommit": "27846dff52fde9b83434bca29bd8732ea42834bf",
+    "job02AcceptedHead": "6c91346d07c934cfb2917799084647b13e4fb931",
+    "job03HeldHead": "a90ba85857dded331e5e3952c2f181cbe2e6d689",
+    "job01DurableHead": "ffdefe4c187814c56bf3cfd8102f046255f76b6e"
+  },
+  "purpose": "Persist the minimum corrective coordination after Wave 1 role results: freeze the accepted JOB 02 head, require durable publication for JOB 01, and require exact V2-regression requalification for JOB 03 before FAN-IN A. This package changes coordination/docs only and does not repair product code itself.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-038.json",
+      "docs/programs/student-v0.1/COORDINATION.yaml",
+      "docs/programs/student-v0.1/jobs/JOB_01_R1_PUBLISH_RESULT.md",
+      "docs/programs/student-v0.1/jobs/JOB_03_R1_V2_REGRESSION.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "JOB 02 exact accepted head 6c91346d07c934cfb2917799084647b13e4fb931 remains frozen and is not reworked.",
+    "JOB 01 cannot enter FAN-IN A with RESULT_SHA NOT_PUBLISHED or with PR metadata that does not identify PR 387.",
+    "JOB 01 R1 is publication/evidence rework first; semantic redesign is forbidden unless exact rerun evidence proves a semantic defect.",
+    "JOB 03 R1 must distinguish an actual V2 regression from the generic Learn-it Next CI router failure on an unrecognized branch.",
+    "JOB 03 must not edit .github workflows or central routing to make its role CI green; such integration routing remains FAN-IN ownership.",
+    "No role branch is merged by this coordination package.",
+    "FAN-IN A remains blocked until JOB 01 and JOB 03 both return exact durable PASS heads."
+  ],
+  "requiredEvidence": [
+    "Repository governance passes on the exact R1-control head.",
+    "PR scope passes against GOV-WP-038.",
+    "JOB 01 R1 returns a 40-hex RESULT_SHA present on PR 387 and proves changed paths stay within ATLAS-WP-027.",
+    "JOB 03 R1 returns a 40-hex RESULT_SHA present on PR 389 and reports the exact V2 regression command/result separately from generic CI routing.",
+    "JOB 02 accepted head remains byte-identical to the head already reported by PR 388."
+  ],
+  "adversarialTests": [
+    "A narrative PASS without a published JOB 01 commit remains HOLD.",
+    "A JOB 01 result naming PR 385 instead of PR 387 remains invalid metadata.",
+    "A JOB 03 fix that edits .github or broadens its role scope fails rework qualification.",
+    "A generic CI-router failure must not be silently relabeled as a V2 semantic regression or vice versa.",
+    "Any mutation to accepted JOB 02 before FAN-IN invalidates the frozen-head assumption and requires requalification."
+  ],
+  "nonGoals": [
+    "Implementing JOB 01 or JOB 03 code in the control stream.",
+    "Merging PR 387, 388 or 389.",
+    "Starting FAN-IN A while a role is held.",
+    "Changing learnit.kit.v4, prior v2/v3 semantics or the Wave 1 interface freeze.",
+    "Repairing central CI routing before the integration role owns that decision."
+  ],
+  "independentReview": [
+    "Exact PR heads and changed paths are read from GitHub rather than accepted from worker narration alone.",
+    "Repository governance and PR-scope automation independently qualify this coordination-only package.",
+    "JOB 04 will independently bind only exact role PASS heads and will not consume held or unpublished results."
+  ],
+  "execution": {
+    "branch": "student-v01/wave1-r1-control",
+    "phase": "WAVE1_TARGETED_R1_REWORK",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB01_JOB03_R1_PASS",
+    "finalVerdict": "PENDING_R1_REWORK_QUALIFICATION"
+  },
+  "rollback": "Close the R1-control PR and delete its branch. Product role branches remain unchanged and FAN-IN A remains blocked."
+}
