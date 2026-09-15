@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-028",
   "title": "Student V0.1 Wave 1 — Activity presentation/UI",
-  "status": "approved-for-parallel-implementation-after-launch-merge",
+  "status": "proposed",
   "changeClass": "bounded-learner-ui-expansion",
   "riskClass": "high",
   "authority": {
@@ -54,6 +54,25 @@
     "Keyboard and touch-safe alternatives exist for matching/order/classify.",
     "Unsafe SVG/active media fails closed.",
     "changed paths are a subset of allowedPaths."
+  ],
+  "adversarialTests": [
+    "Any UI dependency on correctChoiceId, fill answers, acceptedResponses, matching solution, correctOrder or classify assignments fails the secret-boundary gate.",
+    "Matching/order/classify that require drag-and-drop as the only interaction fail accessibility qualification.",
+    "Flashcard back content visible before explicit reveal fails qualification.",
+    "Unsafe or active SVG/media content must fail closed without network fallback.",
+    "Any write outside allowedPaths fails scope."
+  ],
+  "nonGoals": [
+    "Owning correctness, scoring or Learning/session progression semantics.",
+    "Changing contracts or authoring/Factory behavior.",
+    "Redesigning the whole application shell.",
+    "Adding remote media, a plugin system, event bus or evaluator callback framework.",
+    "Editing central build, source-manifest or workflow routing before JOB 04."
+  ],
+  "independentReview": [
+    "JOB 01 owns Learning semantics independently and must not be modified to accommodate UI shortcuts.",
+    "JOB 05 contradictory QA will independently test accessibility and secret isolation after FAN-IN A.",
+    "JOB 04 integrates reviewed exact role heads without silently repairing JOB 02 code."
   ],
   "rollback": "Drop the JOB 02 commits/branch. No Learning semantics, contracts, persisted learner data or authoring assets are changed."
 }
