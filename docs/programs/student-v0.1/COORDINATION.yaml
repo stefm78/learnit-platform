@@ -1,0 +1,27 @@
+program: LEARNIT_STUDENT_V0_1
+schema: learnit.student.program.coordination.v1
+authority_issue: 380
+observed_main: 1e71271436fd4b7dd7d895cfec827833187630fe
+architecture:
+  work_package: ARC-WP-025
+  branch: architecture/ARC-WP-025-student-v01-activity-richness
+  status: CANDIDATE_PREPARED
+  human_gate: REQUIRED
+contract:
+  successor: learnit.kit.v4
+  status: CANDIDATE_FROZEN_PENDING_HUMAN_GATE
+critical_path:
+  knowledge_assisted_authoring: OUTSIDE
+jobs:
+  JOB_00: {role: architecture_freeze, status: EXECUTED_PENDING_HUMAN_GATE}
+  JOB_01: {role: learning_runtime, status: BLOCKED_BY_G0}
+  JOB_02: {role: activity_presentation_ui, status: BLOCKED_BY_G0}
+  JOB_03: {role: authoring_factory, status: BLOCKED_BY_G0}
+  JOB_04: {role: wave1_integrator, status: BLOCKED}
+  JOB_05: {role: contradictory_qa, status: BLOCKED}
+  JOB_06: {role: showcase_kit, status: BLOCKED}
+  JOB_07: {role: pilot_packaging_ux, status: BLOCKED}
+  JOB_08: {role: final_integrator, status: BLOCKED}
+  JOB_09: {role: human_student_readiness, status: BLOCKED}
+student_candidate:
+  status: NOT_READY
