@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-028",
+  "title": "Student V0.1 Wave 1 — Activity presentation/UI",
+  "status": "proposed",
+  "changeClass": "bounded-learner-ui-expansion",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 384,
+    "parentIssue": 380,
+    "architectureWorkPackage": "ARC-WP-025"
+  },
+  "baseline": {
+    "architectureMerge": "0d1e400d95a371898e79335501d5f989677bdb0e",
+    "requiredCommonWave1Base": "TO_BE_REBOUND_TO_WAVE1_LAUNCH_MERGE"
+  },
+  "purpose": "Implement accessible learner-safe presentation and response extraction for the frozen v4 activity presentations, including bounded embedded media, without owning correctness or Learning/session semantics.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-028.json",
+      "docs/programs/student-v0.1/jobs/JOB_02_ACTIVITY_PRESENTATION_UI.md",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/tests/student_v01_activity_presentation.py",
+      "apps/learnit-next/tests/browser_student_v01_activity_presentation.py"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "contracts/**",
+      "authoring/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/core/**",
+      "apps/learnit-next/src/integration/**",
+      "apps/learnit-next/src/main.js"
+    ]
+  },
+  "invariants": [
+    "UI receives only WAVE1_INTERFACE_FREEZE learner-safe shapes.",
+    "UI never receives or derives correctChoiceId, fill answers, acceptedResponses, matching solution, correctOrder or classify assignments.",
+    "lesson is readable non-scored exposition and flashcard hides reveal content until learner action.",
+    "matching, order and classify are usable without drag-and-drop and must support keyboard/touch interaction.",
+    "qcm/fill current visible behavior remains regression-safe.",
+    "embedded media is sanitized/fail-closed and no remote URL fetch is added.",
+    "No source-manifest or workflow edit occurs before JOB 04 fan-in."
+  ],
+  "requiredEvidence": [
+    "Exact common Wave 1 base is proven.",
+    "Static secret-boundary tests prove no forbidden scoring fields are rendered or required by UI helpers.",
+    "Browser tests exercise lesson, flashcard, matching, order, classify, constructed and qcm/fill regression.",
+    "Keyboard and touch-safe alternatives exist for matching/order/classify.",
+    "Unsafe SVG/active media fails closed.",
+    "changed paths are a subset of allowedPaths."
+  ],
+  "adversarialTests": [
+    "Any UI dependency on correctChoiceId, fill answers, acceptedResponses, matching solution, correctOrder or classify assignments fails the secret-boundary gate.",
+    "Matching/order/classify that require drag-and-drop as the only interaction fail accessibility qualification.",
+    "Flashcard back content visible before explicit reveal fails qualification.",
+    "Unsafe or active SVG/media content must fail closed without network fallback.",
+    "Any write outside allowedPaths fails scope."
+  ],
+  "nonGoals": [
+    "Owning correctness, scoring or Learning/session progression semantics.",
+    "Changing contracts or authoring/Factory behavior.",
+    "Redesigning the whole application shell.",
+    "Adding remote media, a plugin system, event bus or evaluator callback framework.",
+    "Editing central build, source-manifest or workflow routing before JOB 04."
+  ],
+  "independentReview": [
+    "JOB 01 owns Learning semantics independently and must not be modified to accommodate UI shortcuts.",
+    "JOB 05 contradictory QA will independently test accessibility and secret isolation after FAN-IN A.",
+    "JOB 04 integrates reviewed exact role heads without silently repairing JOB 02 code."
+  ],
+  "rollback": "Drop the JOB 02 commits/branch. No Learning semantics, contracts, persisted learner data or authoring assets are changed."
+}

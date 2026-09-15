@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-027",
+  "title": "Student V0.1 Wave 1 — Learning/runtime semantics",
+  "status": "proposed",
+  "changeClass": "bounded-runtime-contract-admission",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 383,
+    "parentIssue": 380,
+    "architectureWorkPackage": "ARC-WP-025"
+  },
+  "baseline": {
+    "architectureMerge": "0d1e400d95a371898e79335501d5f989677bdb0e",
+    "requiredCommonWave1Base": "TO_BE_REBOUND_TO_WAVE1_LAUNCH_MERGE"
+  },
+  "purpose": "Implement v4 Learning/runtime semantics, explicit v2/v3/v4 admission, learner-safe projection and non-scored lesson/flashcard session completion without owning UI rendering or authoring/factory behavior.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-027.json",
+      "docs/programs/student-v0.1/jobs/JOB_01_LEARNING_RUNTIME.md",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/integration/atlas/import_adapter.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/tests/student_v01_learning_runtime.py",
+      "apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "contracts/**",
+      "authoring/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/ui/**",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/atlas.css"
+    ]
+  },
+  "invariants": [
+    "v2 qcm/fill behavior remains unchanged.",
+    "v3 qcm/fill/constructed meaning remains unchanged.",
+    "v4 admission is explicit and fail-closed.",
+    "lesson and flashcard advance session state without correctness, validation, mastery, transfer or spaced-review evidence.",
+    "qcm/fill/constructed/matching/order/classify scoring secrets never cross learner-safe ActivityPresentation.",
+    "No UI markup or raw DOM response reading is implemented in this role.",
+    "No new persistent schema is introduced solely to count lesson/flashcard exposure.",
+    "No source-manifest or workflow edit occurs before JOB 04 fan-in."
+  ],
+  "requiredEvidence": [
+    "Exact common Wave 1 base is proven.",
+    "v2 regression tests pass.",
+    "v3 constructed semantics pass independently of PR #376 history.",
+    "v4 matching/order/classify positive and adversarial evaluation tests pass.",
+    "lesson/flashcard completion advances the active session and produces no correctness/mastery evidence.",
+    "learner-safe projections match WAVE1_INTERFACE_FREEZE.md and contain no secrets.",
+    "changed paths are a subset of allowedPaths."
+  ],
+  "adversarialTests": [
+    "Unknown contract or activity type must fail closed.",
+    "Duplicate, unknown, omitted or extra IDs in matching/order/classify responses must be rejected.",
+    "Any scoring secret present in learner-safe ActivityPresentation fails the boundary test.",
+    "Any lesson/flashcard success, failure, validation, mastery, transfer or spaced-review evidence fails qualification.",
+    "Any write outside allowedPaths fails scope."
+  ],
+  "nonGoals": [
+    "Rendering learner UI or CSS.",
+    "Changing the frozen v4 schema.",
+    "Changing authoring or Factory behavior.",
+    "Adding backend, accounts, remote scoring, new persistence schema or plugin infrastructure.",
+    "Editing central build, source-manifest or workflow routing before JOB 04."
+  ],
+  "independentReview": [
+    "JOB 02 owns UI mechanics independently and must not be used to self-certify Learning semantics.",
+    "JOB 05 contradictory QA will independently attack the integrated result after FAN-IN A.",
+    "JOB 04 integrates reviewed exact role heads without silently repairing JOB 01 code."
+  ],
+  "rollback": "Drop the JOB 01 commits/branch. The merged v4 architecture remains design authority and no learner data migration is required."
+}

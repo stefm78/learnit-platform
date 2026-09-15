@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-037",
+  "title": "Authorize Student V0.1 Wave 1 launch package",
+  "status": "proposed",
+  "changeClass": "governance-parallel-work-coordination",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 380,
+    "accountableOwnerDecision": "PASS_STUDENT_V0_1_ARCHITECTURE_READY_FOR_HUMAN_GATE"
+  },
+  "baseline": {
+    "baseCommit": "0d1e400d95a371898e79335501d5f989677bdb0e",
+    "architectureStatus": "accepted-merged"
+  },
+  "purpose": "Persist the shared interface freeze, subordinate Wave 1 work packages, execution prompts and coordination state needed to launch three disjoint Student V0.1 implementation workers from one exact post-launch base without changing product, contract, authoring or workflow implementation.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-037.json",
+      "work-packages/ATLAS-WP-027.json",
+      "work-packages/ATLAS-WP-028.json",
+      "work-packages/ATLAS-WP-029.json",
+      "docs/programs/student-v0.1/COORDINATION.yaml",
+      "docs/programs/student-v0.1/WAVE1_INTERFACE_FREEZE.md",
+      "docs/programs/student-v0.1/jobs/JOB_01_LEARNING_RUNTIME.md",
+      "docs/programs/student-v0.1/jobs/JOB_02_ACTIVITY_PRESENTATION_UI.md",
+      "docs/programs/student-v0.1/jobs/JOB_03_AUTHORING_FACTORY.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "No product/runtime/UI/authoring/contract/workflow implementation changes in this work package.",
+    "All three Wave 1 workers use the same exact launch merge as their implementation base.",
+    "Wave 1 role write scopes are disjoint; shared architecture and v4 contract files are read-only.",
+    "Integration-only build, source-manifest and workflow paths remain reserved to the later fan-in integrator.",
+    "No Wave 1 worker may merge itself or silently repair another role.",
+    "The Student V0.1 student candidate remains NOT_READY after this launch package."
+  ],
+  "requiredEvidence": [
+    "Repository governance passes on the exact launch-package head.",
+    "PR scope passes against this exact coordination work package.",
+    "Diff contains coordination/docs/work-packages only.",
+    "The three subordinate prompts cite the same frozen interface and require exact-base rebinding before implementation.",
+    "No overlapping writable implementation path exists between the three subordinate work packages."
+  ],
+  "adversarialTests": [
+    "Any apps, authoring, contracts, workflow, governance-state or tools change fails launch-package scope.",
+    "Any child package made executable before binding the exact post-launch base fails governance.",
+    "Any shared writable implementation path across child roles blocks launch.",
+    "Any child permission to edit source_manifest or central workflows before fan-in blocks launch."
+  ],
+  "nonGoals": [
+    "Implementing any Student V0.1 product capability.",
+    "Qualifying or promoting a learner candidate.",
+    "Merging child implementation work.",
+    "Changing the frozen v4 contract or prior v2/v3 meanings.",
+    "Starting real student sessions."
+  ],
+  "independentReview": [
+    "Repository governance validates the durable work-package structure independently of the prompt author.",
+    "PR-scope automation validates the exact changed-path boundary.",
+    "The later fan-in integrator must independently verify exact child heads and path disjointness before combination."
+  ],
+  "execution": {
+    "branch": "student-v01/wave1-launch",
+    "phase": "WAVE1_LAUNCH_COORDINATION",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "WAVE1_COMMON_BASE_REBIND",
+    "finalVerdict": "PENDING_LAUNCH_QUALIFICATION"
+  },
+  "rollback": "Close the launch PR and delete the launch branch. The accepted Student V0.1 architecture remains on main, while all Wave 1 implementation roles remain unstarted."
+}

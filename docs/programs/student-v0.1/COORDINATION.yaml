@@ -1,23 +1,45 @@
 program: LEARNIT_STUDENT_V0_1
 schema: learnit.student.program.coordination.v1
 authority_issue: 380
-observed_main: 1e71271436fd4b7dd7d895cfec827833187630fe
 architecture:
   work_package: ARC-WP-025
-  branch: architecture/ARC-WP-025-student-v01-activity-richness
-  status: CANDIDATE_PREPARED
-  human_gate: REQUIRED
+  merge: 0d1e400d95a371898e79335501d5f989677bdb0e
+  status: ACCEPTED_MERGED
+  human_gate: PASS_STUDENT_V0_1_ARCHITECTURE_READY_FOR_HUMAN_GATE
 contract:
   successor: learnit.kit.v4
-  status: CANDIDATE_FROZEN_PENDING_HUMAN_GATE
+  status: FROZEN_FOR_WAVE1
 critical_path:
   knowledge_assisted_authoring: OUTSIDE
+wave1:
+  status: LAUNCH_PACKAGE_PREPARED
+  common_base: TO_BE_REBOUND_TO_WAVE1_LAUNCH_MERGE
+  interface: docs/programs/student-v0.1/WAVE1_INTERFACE_FREEZE.md
+  maximum_parallel_workers: 3
 jobs:
-  JOB_00: {role: architecture_freeze, status: EXECUTED_PENDING_HUMAN_GATE}
-  JOB_01: {role: learning_runtime, status: BLOCKED_BY_G0}
-  JOB_02: {role: activity_presentation_ui, status: BLOCKED_BY_G0}
-  JOB_03: {role: authoring_factory, status: BLOCKED_BY_G0}
-  JOB_04: {role: wave1_integrator, status: BLOCKED}
+  JOB_00:
+    role: architecture_freeze
+    status: PASS_MERGED
+    pr: 381
+  JOB_01:
+    role: learning_runtime
+    status: READY_AFTER_LAUNCH_MERGE
+    issue: 383
+    work_package: ATLAS-WP-027
+    branch: student-v01/wave1-learning-runtime
+  JOB_02:
+    role: activity_presentation_ui
+    status: READY_AFTER_LAUNCH_MERGE
+    issue: 384
+    work_package: ATLAS-WP-028
+    branch: student-v01/wave1-presentation-ui
+  JOB_03:
+    role: authoring_factory
+    status: READY_AFTER_LAUNCH_MERGE
+    issue: 385
+    work_package: ATLAS-WP-029
+    branch: student-v01/wave1-authoring-factory
+  JOB_04: {role: wave1_integrator, status: BLOCKED_BY_JOB_01_02_03}
   JOB_05: {role: contradictory_qa, status: BLOCKED}
   JOB_06: {role: showcase_kit, status: BLOCKED}
   JOB_07: {role: pilot_packaging_ux, status: BLOCKED}
