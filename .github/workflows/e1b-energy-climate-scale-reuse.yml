@@ -6,13 +6,22 @@ on:
       - "experiments/knowledge-e1b-energy-climate/**"
       - "work-packages/EXP-WP-002.json"
       - ".github/workflows/e1b-energy-climate-scale-reuse.yml"
-  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   qualify-e1b:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact PR head checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
