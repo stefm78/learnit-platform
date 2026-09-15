@@ -1,0 +1,121 @@
+schema: learnit.student-v0.1.coordination.v1
+status: ARCHITECTURE_GATE_PENDING_HUMAN
+repository: stefm78/learnit-platform
+owner_issue: 380
+architecture:
+  work_package: ARC-WP-025
+  source_main: 1e71271436fd4b7dd7d895cfec827833187630fe
+  branch: architecture/ARC-WP-025-student-v0-1-richness
+  draft_pr: PENDING_CREATION
+  contract: learnit.kit.v4
+  contract_path: contracts/learnit-kit-v4.schema.json
+  human_gate_required: true
+  merge_authorized: false
+  wave1_authorized: false
+  student_use_authorized: false
+frozen_predecessors:
+  learnit.kit.v2:
+    path: contracts/learnit-kit-v2.schema.json
+    git_blob_sha: a0e0ea43bfe27e3bf42597a551fb04b5156f6185
+    must_remain_unchanged: true
+  learnit.kit.v3:
+    path: contracts/learnit-kit-v3.schema.json
+    git_blob_sha: 643c7406b9eaffdd119ea8237416a6ce02c31537
+    must_remain_unchanged: true
+reference_only:
+  pull_requests:
+    - 376
+critical_path:
+  - architecture_human_acceptance
+  - architecture_merge
+  - wave1
+  - fan_in_a
+  - wave2
+  - fan_in_b
+  - human_replay
+  - first_5_6_student_sessions
+excluded_from_critical_path:
+  - knowledge_assisted_authoring
+wave1:
+  max_parallel: 3
+  common_base: RESOLVE_EXACT_MAIN_COMMIT_AFTER_ACCEPTED_ARC_WP_025_MERGE
+  contract_frozen: true
+  jobs:
+    JOB-01:
+      role: learning_runtime_semantics
+      writable_paths:
+        - apps/learnit-next/src/integration/atlas/import_adapter.js
+        - apps/learnit-next/src/integration/atlas/session.js
+        - apps/learnit-next/src/core/student_activity_semantics.js
+        - apps/learnit-next/tests/student_v0_1_contract_semantics.py
+        - apps/learnit-next/tests/student_v0_1_learning_semantics.py
+      forbidden_shared_paths:
+        - apps/learnit-next/source_manifest.json
+        - apps/learnit-next/build.py
+        - .github/workflows/**
+        - contracts/learnit-kit-v4.schema.json
+    JOB-02:
+      role: activity_presentation_ui
+      writable_paths:
+        - apps/learnit-next/src/ui/render.js
+        - apps/learnit-next/src/ui/student_activity_presenters.js
+        - apps/learnit-next/src/styles.css
+        - apps/learnit-next/src/atlas.css
+        - apps/learnit-next/tests/student_v0_1_activity_ui.py
+        - apps/learnit-next/tests/student_v0_1_activity_accessibility.py
+      forbidden_shared_paths:
+        - apps/learnit-next/source_manifest.json
+        - apps/learnit-next/build.py
+        - .github/workflows/**
+        - contracts/learnit-kit-v4.schema.json
+    JOB-03:
+      role: authoring_factory_quality
+      writable_paths:
+        - authoring/v4/**
+        - authoring/factory/factory_gate.py
+        - authoring/factory/README.md
+        - authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V3.md
+        - authoring/tests/student_v0_1_authoring.py
+        - authoring/tests/student_v0_1_quality.py
+      forbidden_shared_paths:
+        - apps/learnit-next/**
+        - .github/workflows/**
+        - contracts/learnit-kit-v4.schema.json
+fan_in_a:
+  job: JOB-04
+  base: EXACT_ACCEPTED_JOB_01_02_03_RESULT_SET
+  owns_shared_integration_paths:
+    - apps/learnit-next/source_manifest.json
+    - apps/learnit-next/build.py
+    - apps/learnit-next/dev/run_checks.py
+    - .github/workflows/learnit-next-ci.yml
+  silent_repairs: forbidden
+  defect_return_to_owner: required
+wave2:
+  max_parallel: 3
+  common_base: EXACT_JOB_04_FAN_IN_A_HEAD
+  jobs:
+    JOB-05:
+      role: contradictory_qa
+    JOB-06:
+      role: real_student_showcase_kit
+    JOB-07:
+      role: student_pilot_packaging_ux
+fan_in_b:
+  job: JOB-08
+  common_base: EXACT_ACCEPTED_JOB_05_06_07_RESULT_SET
+  purpose: exact_candidate_integration_and_qualification
+human_gate:
+  job: JOB-09
+  purpose: human_replay_and_student_readiness_acceptance
+  required_before_student_sessions: true
+post_gate:
+  first_student_sessions: 5-6
+invariants:
+  - all_parallel_workers_share_one_exact_base
+  - wave1_write_scopes_are_pairwise_disjoint
+  - frozen_contract_not_worker_writable
+  - shared_build_manifest_workflow_paths_are_integrator_owned
+  - no_silent_repairs
+  - exact_result_commits_required
+  - human_can_stop_or_narrow_program
