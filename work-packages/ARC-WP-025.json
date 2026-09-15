@@ -82,6 +82,26 @@
     "Any generic plugin/evaluator runtime fails anti-complexity review.",
     "Any overlapping Wave 1 writable path without an explicit preparatory seam blocks parallel execution."
   ],
+  "nonGoals": [
+    "Implement learner/runtime code in this architecture work package.",
+    "Modify Authoring Studio or AI Kit Factory implementation in this architecture work package.",
+    "Change the learnit.kit.v2 or learnit.kit.v3 schema or published meaning.",
+    "Merge, cherry-pick or supersede PR #376 as part of this architecture work package.",
+    "Define LLM, rubric or semantic scoring for constructed responses.",
+    "Reintroduce RC718 migration, compatibility or shared learner-state behavior.",
+    "Build a generic plugin loader, evaluator registry, event bus or marketplace architecture.",
+    "Introduce backend, accounts, synchronization, cloud catalog or remote media dependencies.",
+    "Start Wave 1 implementation before the G0 human architecture gate."
+  ],
+  "independentReview": [
+    "Silently expanding learnit.kit.v3 is rejected because an already-published discriminator must not change meaning according to reader age.",
+    "An out-of-band plugin or capability payload is rejected because it would split canonical learning semantics across authorities instead of keeping one explicit kit contract.",
+    "lesson is separate from flashcard because exposition/completion and active-recall/reveal are different learner interactions and neither should be disguised as scored evidence.",
+    "classify is admitted as a new family because assigning many items to named buckets is not cleanly represented by one-to-one matching without distorting the learner interaction.",
+    "The presenter abstraction is deliberately limited to a typed internal seam; a dynamic plugin framework remains unjustified.",
+    "Embedded-only media is selected for the first student slice to preserve deterministic offline behavior and bounded security; remote media is deferred.",
+    "This v4 package is architecture evidence only: Wave 1 remains blocked until explicit human acceptance and exact-head repository/scope qualification."
+  ],
   "execution": {
     "branch": "architecture/ARC-WP-025-student-v01-activity-richness",
     "maximumChangedFiles": 7,
