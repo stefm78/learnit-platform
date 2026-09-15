@@ -2,81 +2,18 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-029",
   "title": "Student V0.1 Wave 1 — Authoring/Factory/quality",
-  "status": "proposed",
+  "status": "approved",
   "changeClass": "bounded-authoring-contract-support",
   "riskClass": "high",
-  "authority": {
-    "repository": "stefm78/learnit-platform",
-    "issue": 385,
-    "parentIssue": 380,
-    "architectureWorkPackage": "ARC-WP-025"
-  },
-  "baseline": {
-    "architectureMerge": "0d1e400d95a371898e79335501d5f989677bdb0e",
-    "requiredCommonWave1Base": "TO_BE_REBOUND_TO_WAVE1_LAUNCH_MERGE"
-  },
+  "authority": {"repository":"stefm78/learnit-platform","issue":385,"parentIssue":380,"architectureWorkPackage":"ARC-WP-025"},
+  "baseline": {"baseCommit":"27846dff52fde9b83434bca29bd8732ea42834bf","architectureMerge":"0d1e400d95a371898e79335501d5f989677bdb0e","requiredCommonWave1Base":"27846dff52fde9b83434bca29bd8732ea42834bf"},
   "purpose": "Add explicit v4 authoring validation, AI Kit Factory guidance/support and pedagogical-quality rules for richer activity families while preserving source fidelity and leaving learner runtime/UI untouched.",
-  "scope": {
-    "allowedPaths": [
-      "work-packages/ATLAS-WP-029.json",
-      "docs/programs/student-v0.1/jobs/JOB_03_AUTHORING_FACTORY.md",
-      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V4.md",
-      "authoring/v4/README.md",
-      "authoring/v4/validate_kit.py",
-      "authoring/v4/tests/test_validate_v4.py",
-      "authoring/v2/atlas/pedagogical_quality.py",
-      "authoring/v2/atlas/tests/test_pedagogical_quality.py",
-      "authoring/factory/README.md",
-      "authoring/factory/factory_gate.py",
-      "authoring/factory/tests/test_student_v01_v4.py"
-    ],
-    "forbiddenPaths": [
-      ".github/**",
-      "contracts/**",
-      "apps/**",
-      "apps/learnit-next/source_manifest.json",
-      "authoring/v2/validate_kit.py",
-      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md"
-    ]
-  },
-  "invariants": [
-    "The frozen v4 schema is consumed, never changed, by this role.",
-    "Existing v2 authoring validator and V2 skill remain unchanged.",
-    "A new explicit V4 authoring path is introduced rather than silently redefining V2 authoring.",
-    "Activity family choice is pedagogical, not quota-driven; no requirement to use every type.",
-    "lesson and flashcard are treated as non-scored learning units and cannot satisfy validation evidence.",
-    "order authoring must not expose the correct sequence as the initial item order.",
-    "classify v1 must enforce exactly one valid bucket per item and complete assignment coverage.",
-    "matching/order/classify hidden solutions and media integrity are validated fail-closed.",
-    "No runtime/UI or workflow edit occurs before JOB 04 fan-in."
-  ],
-  "requiredEvidence": [
-    "Exact common Wave 1 base is proven.",
-    "V4 canonical validation passes representative positive fixtures and rejects adversarial ones.",
-    "Pedagogical quality distinguishes non-scored learning exposure from assessment/validation evidence.",
-    "Factory gate can consume a v4 candidate without weakening semantic review/source-fidelity requirements.",
-    "Skill V4 explains when lesson/flashcard/matching/order/classify are appropriate and when simpler qcm/fill/constructed is better.",
-    "v2 authoring regression remains green.",
-    "changed paths are a subset of allowedPaths."
-  ],
-  "adversarialTests": [
-    "Order with initial item sequence identical to correctOrder must be rejected.",
-    "Classify with missing, duplicate, unknown or multi-label assignments must be rejected.",
-    "Matching with incomplete, duplicate or unknown pair references must be rejected.",
-    "Lesson or flashcard counted as validation evidence fails pedagogical-quality qualification.",
-    "Unsafe/remote media or any write outside allowedPaths fails qualification."
-  ],
-  "nonGoals": [
-    "Changing learner runtime, UI or persistence.",
-    "Changing the frozen v4 schema or existing V2 contract/skill/validator semantics.",
-    "Creating activity-type quotas or requiring every rich type in every kit.",
-    "Introducing Knowledge as a mandatory authoring stage, remote AI scoring or automatic publication.",
-    "Editing central build, source-manifest or workflow routing before JOB 04."
-  ],
-  "independentReview": [
-    "JOB 01 and JOB 02 are independent consumers of the frozen v4 semantics and are not used to self-certify authoring output.",
-    "JOB 05 contradictory QA will independently attack canonical and pedagogical claims after FAN-IN A.",
-    "JOB 04 integrates reviewed exact role heads without silently repairing JOB 03 code."
-  ],
-  "rollback": "Drop the JOB 03 commits/branch. Existing V2 authoring/factory behavior and learner runtime remain unchanged."
+  "scope": {"allowedPaths":["work-packages/ATLAS-WP-029.json","docs/programs/student-v0.1/jobs/JOB_03_AUTHORING_FACTORY.md","authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V4.md","authoring/v4/README.md","authoring/v4/validate_kit.py","authoring/v4/tests/test_validate_v4.py","authoring/v2/atlas/pedagogical_quality.py","authoring/v2/atlas/tests/test_pedagogical_quality.py","authoring/factory/README.md","authoring/factory/factory_gate.py","authoring/factory/tests/test_student_v01_v4.py"],"forbiddenPaths":[".github/**","contracts/**","apps/**","apps/learnit-next/source_manifest.json","authoring/v2/validate_kit.py","authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V2.md"]},
+  "invariants":["The frozen v4 schema is consumed, never changed, by this role.","Existing v2 authoring validator and V2 skill remain unchanged.","A new explicit V4 authoring path is introduced rather than silently redefining V2 authoring.","Activity family choice is pedagogical, not quota-driven; no requirement to use every type.","lesson and flashcard are treated as non-scored learning units and cannot satisfy validation evidence.","order authoring must not expose the correct sequence as the initial item order.","classify v1 must enforce exactly one valid bucket per item and complete assignment coverage.","matching/order/classify hidden solutions and media integrity are validated fail-closed.","No runtime/UI or workflow edit occurs before JOB 04 fan-in."],
+  "requiredEvidence":["Exact common Wave 1 base is proven.","V4 canonical validation passes representative positive fixtures and rejects adversarial ones.","Pedagogical quality distinguishes non-scored learning exposure from assessment/validation evidence.","Factory gate can consume a v4 candidate without weakening semantic review/source-fidelity requirements.","Skill V4 explains when lesson/flashcard/matching/order/classify are appropriate and when simpler qcm/fill/constructed is better.","v2 authoring regression remains green.","changed paths are a subset of allowedPaths."],
+  "adversarialTests":["Order with initial item sequence identical to correctOrder must be rejected.","Classify with missing, duplicate, unknown or multi-label assignments must be rejected.","Matching with incomplete, duplicate or unknown pair references must be rejected.","Lesson or flashcard counted as validation evidence fails pedagogical-quality qualification.","Unsafe/remote media or any write outside allowedPaths fails qualification."],
+  "nonGoals":["Changing learner runtime, UI or persistence.","Changing the frozen v4 schema or existing V2 contract/skill/validator semantics.","Creating activity-type quotas or requiring every rich type in every kit.","Introducing Knowledge as a mandatory authoring stage, remote AI scoring or automatic publication.","Editing central build, source-manifest or workflow routing before JOB 04."],
+  "independentReview":["JOB 01 and JOB 02 are independent consumers of the frozen v4 semantics and are not used to self-certify authoring output.","JOB 05 contradictory QA will independently attack canonical and pedagogical claims after FAN-IN A.","JOB 04 integrates reviewed exact role heads without silently repairing JOB 03 code."],
+  "execution":{"branch":"student-v01/wave1-authoring-factory","phase":"PARALLEL_IMPLEMENTATION_AUTHORIZED","humanGateRequired":false,"mergeStatus":"not-merged","nextGate":"JOB03_EXACT_HEAD_ROLE_REVIEW","finalVerdict":"PENDING_IMPLEMENTATION_QUALIFICATION"},
+  "rollback":"Drop the JOB 03 commits/branch. Existing V2 authoring/factory behavior and learner runtime remain unchanged."
 }
