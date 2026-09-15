@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-027",
   "title": "Student V0.1 Wave 1 — Learning/runtime semantics",
-  "status": "approved-for-parallel-implementation-after-launch-merge",
+  "status": "proposed",
   "changeClass": "bounded-runtime-contract-admission",
   "riskClass": "high",
   "authority": {
@@ -59,6 +59,25 @@
     "lesson/flashcard completion advances the active session and produces no correctness/mastery evidence.",
     "learner-safe projections match WAVE1_INTERFACE_FREEZE.md and contain no secrets.",
     "changed paths are a subset of allowedPaths."
+  ],
+  "adversarialTests": [
+    "Unknown contract or activity type must fail closed.",
+    "Duplicate, unknown, omitted or extra IDs in matching/order/classify responses must be rejected.",
+    "Any scoring secret present in learner-safe ActivityPresentation fails the boundary test.",
+    "Any lesson/flashcard success, failure, validation, mastery, transfer or spaced-review evidence fails qualification.",
+    "Any write outside allowedPaths fails scope."
+  ],
+  "nonGoals": [
+    "Rendering learner UI or CSS.",
+    "Changing the frozen v4 schema.",
+    "Changing authoring or Factory behavior.",
+    "Adding backend, accounts, remote scoring, new persistence schema or plugin infrastructure.",
+    "Editing central build, source-manifest or workflow routing before JOB 04."
+  ],
+  "independentReview": [
+    "JOB 02 owns UI mechanics independently and must not be used to self-certify Learning semantics.",
+    "JOB 05 contradictory QA will independently attack the integrated result after FAN-IN A.",
+    "JOB 04 integrates reviewed exact role heads without silently repairing JOB 01 code."
   ],
   "rollback": "Drop the JOB 01 commits/branch. The merged v4 architecture remains design authority and no learner data migration is required."
 }
