@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "EXP-WP-002",
+  "title": "E1B long-source scale, reuse and amortization experiment",
+  "status": "approved",
+  "changeClass": "experimental-knowledge-scale-reuse",
+  "owner": "E1B temporary experiment owner",
+  "purpose": "Execute E1B on the exact 163-page EPF energy/climate source using isolated artifacts, eight frozen canonical candidates, coverage preservation, reuse/change-impact metrics and a stacked draft PR. No product/runtime/schema integration is authorized.",
+  "baseline": {
+    "productMain": "1e71271436fd4b7dd7d895cfec827833187630fe",
+    "experimentalParentBranch": "experiment/e1a-r1-coverage-preservation-mi2-complexes",
+    "experimentalParentHead": "a760ce1f8bb1098f122a66beb73ce5d8c6e257b5",
+    "upstreamWorkPackage": "EXP-WP-001",
+    "upstreamReservation": "INDEPENDENCE_DEGRADED"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/EXP-WP-002.json",
+      ".github/workflows/e1b-energy-climate-scale-reuse.yml",
+      "experiments/knowledge-e1b-energy-climate/**"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "tools/**",
+      "tests/**"
+    ],
+    "maximumChangedFiles": 80
+  },
+  "invariants": [
+    "product main remains authority",
+    "PR #378 remains unmerged",
+    "source PDF is never committed",
+    "runtime/schema/validators are read-only",
+    "Knowledge path remains optional",
+    "no automatic merge"
+  ],
+  "requiredEvidence": [
+    "exact source manifest and byte verification",
+    "whole-document lightweight source map",
+    "K1-K4 scope/coverage artifacts",
+    "eight frozen learnit.kit.v2 candidates",
+    "current-authority deterministic qualification",
+    "non-independent semantic-comparison reservation",
+    "reuse/complexity/break-even metrics",
+    "change-impact fixtures/report",
+    "K4 narrow-scope and fast-path controls",
+    "final E1B report"
+  ],
+  "execution": {
+    "branch": "experiment/e1b-energy-climate-scale-reuse",
+    "pullRequestBase": "experiment/e1a-r1-coverage-preservation-mi2-complexes",
+    "pullRequestMode": "DRAFT_STACKED_EXPERIMENT_ONLY",
+    "mergeAuthorized": false
+  }
+}
