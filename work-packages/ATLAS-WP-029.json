@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-029",
   "title": "Student V0.1 Wave 1 — Authoring/Factory/quality",
-  "status": "approved-for-parallel-implementation-after-launch-merge",
+  "status": "proposed",
   "changeClass": "bounded-authoring-contract-support",
   "riskClass": "high",
   "authority": {
@@ -58,6 +58,25 @@
     "Skill V4 explains when lesson/flashcard/matching/order/classify are appropriate and when simpler qcm/fill/constructed is better.",
     "v2 authoring regression remains green.",
     "changed paths are a subset of allowedPaths."
+  ],
+  "adversarialTests": [
+    "Order with initial item sequence identical to correctOrder must be rejected.",
+    "Classify with missing, duplicate, unknown or multi-label assignments must be rejected.",
+    "Matching with incomplete, duplicate or unknown pair references must be rejected.",
+    "Lesson or flashcard counted as validation evidence fails pedagogical-quality qualification.",
+    "Unsafe/remote media or any write outside allowedPaths fails qualification."
+  ],
+  "nonGoals": [
+    "Changing learner runtime, UI or persistence.",
+    "Changing the frozen v4 schema or existing V2 contract/skill/validator semantics.",
+    "Creating activity-type quotas or requiring every rich type in every kit.",
+    "Introducing Knowledge as a mandatory authoring stage, remote AI scoring or automatic publication.",
+    "Editing central build, source-manifest or workflow routing before JOB 04."
+  ],
+  "independentReview": [
+    "JOB 01 and JOB 02 are independent consumers of the frozen v4 semantics and are not used to self-certify authoring output.",
+    "JOB 05 contradictory QA will independently attack canonical and pedagogical claims after FAN-IN A.",
+    "JOB 04 integrates reviewed exact role heads without silently repairing JOB 03 code."
   ],
   "rollback": "Drop the JOB 03 commits/branch. Existing V2 authoring/factory behavior and learner runtime remain unchanged."
 }
