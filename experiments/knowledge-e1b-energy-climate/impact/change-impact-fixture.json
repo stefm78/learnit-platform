@@ -1,0 +1,1 @@
+{"authority":"NOT_AUTHORITATIVE_SOURCE_DELTA_FIXTURE","deltas":[{"changedKnowledge":["KTH-03","KTH-04"],"expectedImpactedKits":["K1","K2"],"id":"DELTA-CARNOT-REV"},{"changedKnowledge":["KCOND-04"],"expectedImpactedKits":["K3"],"id":"DELTA-K3-RTH"}],"schema":"learnit.e1b.change_fixture.v1"}

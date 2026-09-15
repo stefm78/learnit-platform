@@ -1,0 +1,43 @@
+name: E1B Energy/Climate Scale-Reuse
+
+on:
+  pull_request:
+    paths:
+      - "experiments/knowledge-e1b-energy-climate/**"
+      - "work-packages/EXP-WP-002.json"
+      - ".github/workflows/e1b-energy-climate-scale-reuse.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  qualify-e1b:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact PR head checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "jsonschema>=4.18"
+      - name: Verify E1B with current canonical authorities
+        run: python -B experiments/knowledge-e1b-energy-climate/verify_e1b.py
+      - name: Verify isolated delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          git diff --name-only "$BASE"...HEAD | tee /tmp/e1b-files.txt
+          python - <<'PY2'
+          from pathlib import Path
+          allowed_prefix='experiments/knowledge-e1b-energy-climate/'
+          allowed_exact={'work-packages/EXP-WP-002.json','.github/workflows/e1b-energy-climate-scale-reuse.yml'}
+          bad=[p for p in Path('/tmp/e1b-files.txt').read_text().splitlines() if p not in allowed_exact and not p.startswith(allowed_prefix)]
+          if bad: raise SystemExit('E1B_OUT_OF_SCOPE:'+repr(bad))
+          PY2

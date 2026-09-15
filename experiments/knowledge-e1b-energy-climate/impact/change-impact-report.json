@@ -1,0 +1,1 @@
+{"globalInvalidation":false,"results":[{"action":"REVIEW_REQUIRED","deltaId":"DELTA-CARNOT-REV","falseNegative":[],"falsePositive":[],"observedImpactedKits":["K1","K2"]},{"action":"REVIEW_REQUIRED","deltaId":"DELTA-K3-RTH","falseNegative":[],"falsePositive":[],"observedImpactedKits":["K3"]}],"schema":"learnit.e1b.change_impact_report.v1","verdict":"PASS_LOCALIZED_IMPACT"}

@@ -1,0 +1,17 @@
+{
+  "authors": [
+    "Antonin Bourgeois",
+    "Winston Fairbairn"
+  ],
+  "bytes": 3042017,
+  "commitPolicy": "SOURCE_BYTES_READ_ONLY_NOT_COMMITTED",
+  "course": "Cours de physique du S3 – EPF FGE2",
+  "encrypted": false,
+  "filename": "EPF_Cours Energie et enjeux climatiques.pdf",
+  "pageCount": 163,
+  "schema": "learnit.e1b.source_manifest.v1",
+  "sha256": "cc411ddb76a904a684a44ce85be15b67a9ef9f2bc75288697a4981a62a4b0c73",
+  "sourceId": "epf-energie-climat",
+  "title": "UXFGE2108 — Énergie et enjeux climatiques",
+  "versionDate": "2026-08-26"
+}
