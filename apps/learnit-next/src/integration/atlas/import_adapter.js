@@ -1,4 +1,4 @@
-import { validatePackageObject } from '../../core/contract.js';
+import { validatePackageObject, validatePackageV3Object } from '../../core/contract.js';
 import { buildInstallationPlan } from '../../core/import.js';
 import { sha256Canonical } from '../../core/canonical_json.js';
 
@@ -263,6 +263,19 @@ async function validateAtlasPackage(payload, storage) {
   };
 }
 
+async function validateV3Package(payload, storage) {
+  const errors = [];
+  validateExtensions(payload, errors);
+  const existingRevisionDigests = await storage.getRevisionDigestIndex();
+  const contract = await validatePackageV3Object(payload, { existingRevisionDigests });
+  errors.push(...contract.errors);
+  return {
+    ok: errors.length === 0,
+    contractVersion: 'learnit.kit.v3',
+    errors,
+  };
+}
+
 function fail(result) {
   const error = new Error(
     result.errors[0]?.message ?? 'Atlas kit validation failed',
@@ -303,6 +316,7 @@ export function createAtlasCompatibleImportService(storage, base) {
         return base.validatePackage(payload);
       }
 
+      if (value.contract === 'learnit.kit.v3') return validateV3Package(value, storage);
       if (!isAtlasKit(value)) return base.validatePackage(value);
 
       return validateAtlasPackage(value, storage);
@@ -311,6 +325,11 @@ export function createAtlasCompatibleImportService(storage, base) {
     async previewImport(payload) {
       const value = parse(payload);
 
+      if (value.contract === 'learnit.kit.v3') {
+        const result = await validateV3Package(value, storage);
+        if (!result.ok) fail(result);
+        return summary(value);
+      }
       if (!isAtlasKit(value)) return base.previewImport(value);
 
       const result = await validateAtlasPackage(value, storage);
@@ -322,6 +341,22 @@ export function createAtlasCompatibleImportService(storage, base) {
     async importPackage(payload) {
       const value = parse(payload);
 
+      if (value.contract === 'learnit.kit.v3') {
+        const result = await validateV3Package(value, storage);
+        if (!result.ok) fail(result);
+        const plan = buildInstallationPlan(value);
+        await storage.commitImport(plan);
+        return {
+          ...summary(value),
+          packageInstallId: plan.package.packageInstallId,
+          courses: plan.courses.map(course => ({
+            courseInstallId: course.courseInstallId,
+            courseLineageId: course.courseLineageId,
+            courseRevisionId: course.courseRevisionId,
+            displayLabel: course.displayLabel,
+          })),
+        };
+      }
       if (!isAtlasKit(value)) return base.importPackage(value);
 
       const result = await validateAtlasPackage(value, storage);

@@ -1,0 +1,65 @@
+{
+  "contract": "learnit.kit.v3",
+  "packageLineageId": "8a111111-1111-4111-8111-111111111111",
+  "packageRevisionId": "8a111111-1111-4111-8111-111111111112",
+  "packageRevisionDigest": "sha256:348c174bd999a156a16164e25d5f54ede7f81959f7da0cf391ab4c81e3187212",
+  "title": "Réponses construites — qualification V3",
+  "description": "Fixture produit réelle pour le premier vertical slice learnit.kit.v3.",
+  "versionLabel": "3.0-constructed-slice",
+  "language": "fr",
+  "courses": [
+    {
+      "courseLineageId": "8b222222-2222-4222-8222-222222222222",
+      "courseRevisionId": "8b222222-2222-4222-8222-222222222223",
+      "courseRevisionDigest": "sha256:a9eb88378caa5613b4bf7f80310b24db5831202017b255452c6b6a79228eaae5",
+      "title": "Répondre avec ses propres mots",
+      "subtitle": "Deux réponses construites dans un parcours court",
+      "estimatedMinutes": 6,
+      "objectives": [
+        {
+          "objectiveId": "8c333333-3333-4333-8333-333333333333",
+          "label": "Formuler une réponse précise"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "8d444444-4444-4444-8444-444444444441",
+          "activityRevisionId": "8e555555-5555-4555-8555-555555555551",
+          "activityRevisionDigest": "sha256:e4fe6c54c6debdfdf43c420eecb8143278ccbfaa2dbe22eff263c52d8239744c",
+          "objectiveIds": [
+            "8c333333-3333-4333-8333-333333333333"
+          ],
+          "type": "constructed",
+          "prompt": "Quelle forme d’énergie alimente directement la photosynthèse ?",
+          "explanation": "La photosynthèse utilise l’énergie lumineuse.",
+          "difficulty": "easy",
+          "learningPhase": "comprehension",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 3,
+          "acceptedResponses": [
+            "énergie lumineuse"
+          ]
+        },
+        {
+          "activityLineageId": "8d444444-4444-4444-8444-444444444442",
+          "activityRevisionId": "8e555555-5555-4555-8555-555555555552",
+          "activityRevisionDigest": "sha256:408df8f7be3aca765d9eb020d976aff13e0fac00a026bd3778e90424c24839a6",
+          "objectiveIds": [
+            "8c333333-3333-4333-8333-333333333333"
+          ],
+          "type": "constructed",
+          "prompt": "Quel gaz la plante prélève-t-elle dans l’air pour la photosynthèse ?",
+          "explanation": "La plante prélève du dioxyde de carbone dans l’air.",
+          "difficulty": "easy",
+          "learningPhase": "application",
+          "assessmentRole": "practice",
+          "estimatedMinutes": 3,
+          "acceptedResponses": [
+            "dioxyde de carbone",
+            "CO2"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -163,6 +163,35 @@ function renderFillForm(activity, submit) {
   return form;
 }
 
+function renderConstructedForm(activity, submit) {
+  const textareaId = `constructed-${activity.activityRevisionId}`;
+  const textarea = node('textarea', {
+    id: textareaId,
+    name: 'constructed-response',
+    rows: 7,
+    maxlength: 4000,
+    required: 'required',
+    'aria-describedby': `${textareaId}-help`,
+  });
+  const form = node('form', { className: 'activity-form' }, [
+    node('div', { className: 'constructed-response' }, [
+      node('label', { className: 'field-label', for: textareaId, text: 'Votre réponse' }),
+      textarea,
+      node('p', {
+        id: `${textareaId}-help`,
+        className: 'help',
+        text: 'Réponse obligatoire · 4000 caractères maximum.',
+      }),
+    ]),
+    node('button', { type: 'submit', className: 'primary', text: 'Valider' }),
+  ]);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submit({ text: textarea.value });
+  });
+  return form;
+}
+
 function escapeAtlasActivityHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({
     '&': '&amp;',
@@ -239,6 +268,18 @@ export function renderAtlasActivityMarkup(activity) {
     );
   }
 
+  if (activity.type === 'constructed') {
+    return (
+      prompt
+      + '<div class="constructed-response">'
+      + '<label class="field-label" for="atlas-constructed-response">Votre réponse</label>'
+      + '<textarea id="atlas-constructed-response" rows="7" maxlength="4000" '
+      + 'data-atlas-constructed-response="true" aria-describedby="atlas-constructed-help"></textarea>'
+      + '<p id="atlas-constructed-help" class="help">Réponse obligatoire · 4000 caractères maximum.</p>'
+      + '</div>'
+    );
+  }
+
   throw new Error(`ATLAS_ACTIVITY_TYPE_UNSUPPORTED: ${activity.type}`);
 }
 
@@ -269,6 +310,16 @@ export function readAtlasActivityResponse(container, activity) {
       answer[select.getAttribute('data-atlas-slot')] = select.value;
     }
     return answer;
+  }
+
+  if (activity.type === 'constructed') {
+    const textarea = container.querySelector('[data-atlas-constructed-response="true"]');
+    if (!textarea || !textarea.value.trim()) {
+      const error = new Error('Saisissez une réponse avant de valider.');
+      error.code = 'ATLAS_ANSWER_REQUIRED';
+      throw error;
+    }
+    return { text: textarea.value };
   }
 
   throw new Error(`ATLAS_ACTIVITY_TYPE_UNSUPPORTED: ${activity.type}`);
@@ -578,6 +629,13 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       progress: session.progress,
       activity,
     });
+    const activityForm = activity.type === 'qcm'
+      ? renderQcmForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
+      : activity.type === 'fill'
+        ? renderFillForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
+        : activity.type === 'constructed'
+          ? renderConstructedForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
+          : (() => { throw new Error(`Unsupported activity type ${activity.type}`); })();
     const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel' }, [
       node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: () => renderLibrary() }),
       node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
@@ -585,9 +643,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       renderProgress(session.progress),
       objectiveSurface,
       reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
-      activity.type === 'qcm'
-        ? renderQcmForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
-        : renderFillForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer)),
+      activityForm,
       reviewMode ? node('button', {
         type: 'button',
         className: 'secondary',
