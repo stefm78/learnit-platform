@@ -15,6 +15,7 @@
     "job01R2WorkPackage": "ATLAS-WP-031"
   },
   "baseline": {
+    "baseCommit": "f4636e06279481b62ffd676ba70313c71283baeb",
     "faninABase": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
     "r2StartCandidate": "f4636e06279481b62ffd676ba70313c71283baeb",
     "wave1CommonBase": "27846dff52fde9b83434bca29bd8732ea42834bf",
@@ -100,6 +101,11 @@
     "Launching Wave 2.",
     "Merging product changes to main.",
     "Running student sessions."
+  ],
+  "independentReview": [
+    "JOB01 R2 was independently qualified on PR #396 before FAN-IN A R2.",
+    "JOB02 and JOB03 remain frozen at their previously accepted exact role heads.",
+    "JOB04 R2 must rerun the full integration oracle and must not silently repair role semantics."
   ],
   "execution": {
     "branch": "student-v01/fanin-a-r2",
