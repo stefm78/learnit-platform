@@ -91,8 +91,13 @@ def run_node(script: str, *, kit_path: Path, responses_path: Path | None = None)
         env=env,
         text=True,
         capture_output=True,
-        check=True,
+        check=False,
     )
+    if completed.returncode:
+        raise RuntimeError(
+            "Node integration probe failed "
+            f"(exit={completed.returncode})\nSTDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}"
+        )
     return json.loads(completed.stdout)
 
 
