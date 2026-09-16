@@ -1,0 +1,84 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:8d19e9fb88f25037ef584c7257b16e9bbd7906142a9da3d403252d220d1951d5",
+    "kitSha256": "sha256:4ce65c0de6520aae74b29ba89da4e8ef00023fed0b499216b6c1c765791afaec",
+    "sourceSetDigest": "sha256:56518c66fab2fb2e7a8b60b675520265b935e9ed4d8db37f1b319d64dd9ec526",
+    "briefSha256": "sha256:74e7b2b555f240f8f805c866c5d51bb7c22809caba809135afd46744b819292e"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les affirmations présentes dans les objectifs, prompts, réponses et explications sont soutenues par les sections fournies : second degré à coefficients complexes, deux méthodes de racines carrées, racines de l’unité, racines n-ièmes et rotations. Aucun fait matériel inventé ou contresens de signe/unité n’a été relevé ; une omission mineure de la plage de k dans une option QCM est signalée séparément.",
+      "evidence": [
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 14-15, §1.2.3.2, Proposition 1.52 et les deux méthodes","basis":"La source relie le second degré complexe aux racines carrées de Δ et donne les méthodes exponentielle et algébrique avec a²−b²=a₀, 2ab=b₀ et la condition de signe."},
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 16, §1.2.4, Théorème 1.53, formule générale et Remarque 1.55","basis":"La source donne Uₙ={e^{i2kπ/n}:k=0,…,n−1}, la formule des racines n-ièmes et l’interprétation par rotations de centre O et d’angle 2π/n."}
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Les dix activités ont été recalculées indépendamment. Les racines de 3+4i et 8−6i, les racines carrées de i, le discriminant −3+4i et les solutions i et −1−i, ainsi que les réponses sur U₃, U₄, Uₙ, les racines n-ièmes et les rotations sont correctes.",
+      "evidence": [
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 14-15, équation (1.2) et caractérisation algébrique","basis":"La source impose z²=z₀ et, en forme algébrique, a²−b²=a₀ et 2ab=b₀ ; cela valide (2+i)²=3+4i, (3−i)²=8−6i et le rôle de la condition de signe."},
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 14, Proposition 1.52","basis":"Avec Δ=−3+4i et √Δ=±(1+2i), l’application de la proposition donne bien i et −1−i."},
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 16, Théorème 1.53 et formule des racines n-ièmes","basis":"La source établit exactement n racines de l’unité et la forme ⁿ√|z₀|·e^{i(θ₀/n+2kπ/n)}, ce qui confirme les réponses correspondantes."}
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les QCM ont une réponse matériellement unique et les activités à jetons ont un seul choix correct. La plage de k est toutefois absente du libellé de l’option correcte d’une activité sur les racines n-ièmes ; l’explication la rétablit, ce qui limite l’impact à un défaut mineur.",
+      "evidence": [
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 16, formule des racines n-ièmes","basis":"La source associe explicitement la formule à k∈{0,…,n−1}, condition utile pour décrire sans ambiguïté la famille complète."}
+      ]
+    },
+    "objectiveCoverage": {
+      "status": "hold",
+      "summary": "Le kit couvre correctement les deux méthodes de racines carrées, leur usage dans le second degré, Uₙ, les racines n-ièmes générales et l’interprétation géométrique. Il omet cependant entièrement le Théorème 1.56 — la somme des racines n-ièmes de l’unité est nulle pour n≥2 — et son exemple 1+j+j²=0, qui appartiennent encore à la section 1.2.4 visée explicitement par le brief et par la description du kit.",
+      "evidence": [
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 14-15, §1.2.3.2","basis":"Les éléments centraux du premier objectif sont présents dans le kit : Proposition 1.52 et deux stratégies de calcul des racines carrées."},
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 16-17, fin de §1.2.4 avant le titre « 1.3 Géométrie Plane »","basis":"Après le Théorème 1.53, la formule générale et la Remarque 1.55, la source énonce le Théorème 1.56 « la somme des racines n-ièmes de l’unité est nulle » et l’Exemple 1.57 ; aucun objectif, prompt, réponse ou explication du candidat ne couvre ce résultat."}
+      ]
+    },
+    "validationTransfer": {
+      "status": "pass",
+      "summary": "Pour les concepts effectivement présents, les validations changent de représentation ou de contexte : algébrique vers exponentiel puis second degré, Uₙ spécifique vers paramétrisation générale puis z₀ quelconque ; le transfert géométrique change également de représentation. Le déficit de contenu sur le Théorème 1.56 est traité comme un défaut de couverture, pas comme une répétition de validation.",
+      "evidence": [
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 14-15, deux méthodes de racines carrées et Proposition 1.52","basis":"La source fournit des représentations distinctes et un contexte d’application au second degré, ce qui soutient l’indépendance des validations correspondantes."},
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 16, Théorème 1.53, formule générale et Remarque 1.55","basis":"La source permet de passer des racines de l’unité à un z₀ général puis à l’interprétation géométrique par rotations."}
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le niveau de langue et de calcul est compatible avec une 2e année d’école d’ingénieur, le kit est en français et les dix activités totalisent 40 minutes estimées. Le HOLD provient d’un concept important manquant dans le périmètre annoncé, non d’une mauvaise calibration de niveau ou de temps des activités présentes.",
+      "evidence": [
+        {"sourceId":"mi2-nombres-complexes","locator":"p. 14-17, §§1.2.3.2-1.2.4","basis":"Les notations, raisonnements et niveaux de calcul des activités présentes correspondent directement au cours fourni et au public annoncé."}
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id":"F-001","severity":"major","dimension":"objectiveCoverage","path":"$.courses[0]",
+      "problem":"Le candidat ne couvre pas le Théorème 1.56 de la section 1.2.4 : pour n≥2, la somme des racines n-ièmes de l’unité est nulle, avec l’Exemple 1.57 donnant 1+j+j²=0.",
+      "impact":"Le brief demande de maîtriser les racines n-ièmes / racines de l’unité de la section 1.2.4. Un apprenant peut terminer les 40 minutes sans rencontrer ni appliquer un résultat substantiel de cette section ; le périmètre pédagogique déclaré n’est donc pas couvert de façon suffisante.",
+      "fix":"Introduire, dans le même budget, au moins une activité source-supported qui fait reconnaître, expliquer ou appliquer la propriété de somme nulle pour n≥2, idéalement avec une validation distincte ; remplacer une activité redondante si nécessaire plutôt que dépasser le budget.",
+      "evidence":[{"sourceId":"mi2-nombres-complexes","locator":"p. 17, Théorème 1.56 et Exemple 1.57, immédiatement avant le titre « 1.3 Géométrie Plane »","basis":"La source énonce explicitement que la somme des racines n-ièmes de l’unité est nulle pour n≥2 et illustre le cas cubique par 1+j+j²=0."}]
+    },
+    {
+      "id":"F-002","severity":"minor","dimension":"ambiguity","path":"$.courses[0].activities[8].choices[0].label",
+      "problem":"L’option correcte pour la forme générale des racines n-ièmes contient k mais n’indique pas dans son libellé la plage k=0,…,n−1, alors que cette plage fait partie de la description source de la famille complète.",
+      "impact":"La réponse reste identifiable et l’explication rétablit la plage, mais l’option seule peut être lue comme une expression à k non spécifié plutôt que comme la description complète des n racines.",
+      "fix":"Ajouter «, k=0,…,n−1» au libellé de l’option correcte en conservant des distracteurs distincts.",
+      "evidence":[{"sourceId":"mi2-nombres-complexes","locator":"p. 16, §1.2.4, formule des racines n-ièmes","basis":"La source donne la famille ⁿ√|z₀|·e^{i(θ₀/n+2kπ/n)} avec k∈{0,…,n−1}."}]
+    }
+  ],
+  "limitations": [
+    "Revue statique du kit : elle ne démontre ni rétention, ni maîtrise durable, ni efficacité pédagogique en situation réelle.",
+    "La Remarque 1.55 du PDF affirme aussi que le point I(1,0) est un sommet pour les racines n-ièmes d’un z₀ général, assertion mathématiquement trop large ; le candidat n’utilise pas cette sous-assertion et la revue s’appuie uniquement sur la formule et sur la propriété de rotation/polygone régulier."
+  ],
+  "verdict": "HOLD_SEMANTIC_REVIEW_V1"
+}

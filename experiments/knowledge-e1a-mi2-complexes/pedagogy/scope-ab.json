@@ -1,0 +1,10 @@
+{
+  "schema":"learnit.e1a.scope-manifest.v1",
+  "id":"ab-1.2.3.2-1.2.4",
+  "SOURCE_SCOPE":["section:1.2.3.2","section:1.2.4"],
+  "CONSULTABLE_CONTEXT":["section:1.1.6","module/argument/formes in 1.1"],
+  "TARGET_KNOWLEDGE":["complex-square-roots","complex-quadratic","nth-roots","roots-of-unity","regular-polygon-representation"],
+  "PREREQUISITES":["basic-trigonometry","complex-modulus","complex-argument","exponential-form"],
+  "EXCLUDED_TEACHING_SCOPE":["rest-of-section:1.1","section:1.3","unrelated-exercises:1.4"],
+  "ASSESSMENT_SOURCE_MATERIAL":["exercise:1.5","exercise:1.6","exercise:1.7","exercise:1.8","exercise:1.9","exercise:1.10","exercise:1.11","exercise:1.14"]
+}
