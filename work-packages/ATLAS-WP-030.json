@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-030",
   "title": "Student V0.1 JOB 04 — controlled Wave 1 FAN-IN A",
-  "status": "approved",
+  "status": "proposed",
   "changeClass": "controlled-multi-role-integration",
   "riskClass": "high",
   "authority": {
@@ -27,6 +27,7 @@
       "work-packages/ATLAS-WP-027.json",
       "work-packages/ATLAS-WP-028.json",
       "work-packages/ATLAS-WP-029.json",
+      "work-packages/ATLAS-WP-030.json",
       "apps/learnit-next/src/core/activity_semantics.js",
       "apps/learnit-next/src/core/contract.js",
       "apps/learnit-next/src/core/import.js",
@@ -109,12 +110,17 @@
     "Running real student sessions.",
     "Adding Knowledge-assisted authoring to the Student V0.1 critical path."
   ],
+  "independentReview": [
+    "JOB 01, JOB 02 and JOB 03 were qualified as separate role streams before integration.",
+    "JOB 04 must verify exact child heads and path independence rather than trusting reported chat state.",
+    "JOB 05 contradictory QA will independently attack the integrated candidate after FAN-IN A."
+  ],
   "execution": {
     "branch": "student-v01/fanin-a",
-    "phase": "CONTROLLED_FANIN_A",
+    "phase": "CONTROLLED_FANIN_A_PREPARED",
     "humanGateRequired": false,
     "mergeStatus": "not-merged",
-    "nextGate": "FANIN_A_EXACT_HEAD_QUALIFICATION",
+    "nextGate": "FANIN_A_BASE_REBIND_AND_EXECUTION",
     "finalVerdict": "PENDING_INTEGRATION_QUALIFICATION"
   },
   "rollback": "Close the FAN-IN A PR and delete its branch. The three role PRs remain open and independently recoverable; main remains at the coordination-only launch state."
