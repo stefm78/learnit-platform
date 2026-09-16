@@ -127,6 +127,7 @@ jobs:
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
+              student-v01/fanin-a) echo 'student-v01-fanin-a wave' ;;
               *) echo 'ci-router wave' ;;
             esac
           }
@@ -513,6 +514,60 @@ jobs:
             [[ "${actual}" == "${expected}" ]] &&
               [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
           }
+
+          if [[ "${PROFILE}" == student-v01-fanin-a ]]; then
+            [[ "${EVENT}" == pull_request ]] || {
+              echo "Student V0.1 FAN-IN A route is valid only for PR #393." >&2
+              exit 2
+            }
+            [[ "${BRANCH}" == student-v01/fanin-a ]] || {
+              echo "Unexpected Student V0.1 FAN-IN A branch: ${BRANCH}" >&2
+              exit 2
+            }
+            [[ "${PR_BASE_SHA}" == 21d25c36aec6c04fdfe8126c95e71cbf80771a1b ]] || {
+              echo "Student V0.1 FAN-IN A PR base drifted: ${PR_BASE_SHA}" >&2
+              exit 2
+            }
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin student-v01/fanin-a | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || {
+              echo "Student V0.1 FAN-IN A remote head differs from exact target." >&2
+              exit 2
+            }
+            [[ "$(git merge-base "${PR_BASE_SHA}" "${TARGET}")" == "${PR_BASE_SHA}" ]] || {
+              echo "Student V0.1 FAN-IN A exact base is no longer an ancestor." >&2
+              exit 2
+            }
+
+            python -m playwright install --with-deps chromium
+            chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+            )"
+            [[ -x "${chromium}" ]]
+            sudo ln -sf "${chromium}" /usr/bin/chromium
+
+            checks=(
+              "python -B apps/learnit-next/build.py"
+              "python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v"
+              "python -B apps/learnit-next/tests/student_v01_activity_presentation.py"
+              "python -B apps/learnit-next/tests/browser_student_v01_activity_presentation.py"
+              "python -B authoring/v4/tests/test_validate_v4.py -v"
+              "python -B authoring/v2/atlas/tests/test_pedagogical_quality.py -v"
+              "python -B authoring/factory/tests/test_student_v01_v4.py -v"
+              "python -B apps/learnit-next/tests/student_v01_fanin_a.py"
+            )
+            for check in "${checks[@]}"; do
+              echo "::group::${check}"
+              eval "${check}"
+              echo "::endgroup::"
+            done
+            echo "STUDENT_V01_FANIN_A_EXACT_ROUTE=PASS"
+            echo "STUDENT_V01_FANIN_A_TARGET=${TARGET}"
+            exit 0
+          fi
 
           if [[ "${PROFILE}" == atlas-ux-convergence ]]; then
             [[ "${EVENT}" == pull_request ]]
