@@ -155,7 +155,10 @@ function svgSecurityReason(data) {
   if (/<\s*(?:script|foreignObject|iframe|object|embed|link|meta|style|animate|animateMotion|animateTransform|set)\b/i.test(raw)) return 'SVG contains active or forbidden elements';
   if (/\son[a-z0-9:_-]+\s*=/i.test(raw)) return 'SVG event attributes are forbidden';
   if (/\s(?:href|xlink:href|src)\s*=\s*["'](?!\s*#)[^"']+["']/i.test(raw)) return 'SVG external references are forbidden';
-  if (/(?:javascript|vbscript|data|https?|file|blob)\s*:/i.test(raw)) return 'SVG active/external URI is forbidden';
+  const uriScan = raw
+    .replace(/\sxmlns\s*=\s*(["'])http:\/\/www\.w3\.org\/2000\/svg\1/gi, '')
+    .replace(/\sxmlns:xlink\s*=\s*(["'])http:\/\/www\.w3\.org\/1999\/xlink\1/gi, '');
+  if (/(?:javascript|vbscript|data|https?|file|blob)\s*:/i.test(uriScan)) return 'SVG active/external URI is forbidden';
   for (const match of raw.matchAll(/url\s*\(([^)]*)\)/gi)) {
     const value = match[1].trim().replace(/^['"]|['"]$/g, '');
     if (!/^#[A-Za-z_][\w:.-]*$/.test(value)) return 'SVG external url() is forbidden';
