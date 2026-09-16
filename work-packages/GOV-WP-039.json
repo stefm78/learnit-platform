@@ -53,6 +53,16 @@
     "Any direct merge of PR #387, #388 or #389 to main before FAN-IN A qualification violates the program.",
     "Any attempt to launch Wave 2 from this coordination PR fails the phase boundary."
   ],
+  "nonGoals": [
+    "Implementing or integrating Student V0.1 product code in this launch package.",
+    "Merging any child role PR directly to main.",
+    "Launching Wave 2 or running student sessions."
+  ],
+  "independentReview": [
+    "Repository governance validates durable work-package structure independently of the prompt author.",
+    "PR-scope automation validates the exact coordination-only changed-path boundary.",
+    "JOB 04 must independently re-read all three role PR heads and changed-path sets before combining them."
+  ],
   "execution": {
     "branch": "student-v01/fanin-a-launch",
     "phase": "FANIN_A_LAUNCH_COORDINATION",
