@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -13,11 +15,20 @@ ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_PATH = ROOT / "contracts/learnit-kit-v2.schema.json"
 V2_VALIDATOR_PATH = ROOT / "authoring/v2/validate_kit.py"
 ATLAS_VALIDATOR_PATH = ROOT / "authoring/v2/atlas/validate_atlas_content.py"
+V4_VALIDATOR_PATH = ROOT / "authoring/v4/validate_kit.py"
 REPORT_SCHEMA = "learnit.atlas.pedagogical_quality_report.v1"
 PROFILE = "atlas.pedagogy.v1"
+V4_PROFILE = "atlas.pedagogy.student-v0.1.v4"
 ENGINE_VERSION = "1.0.0"
+V4_ENGINE_VERSION = "1.1.0"
 SEVERITY_ORDER = {"blocking": 0, "warning": 1, "advice": 2}
 DIFFICULTY_RANK = {"easy": 0, "medium": 1, "advanced": 2, "expert": 3}
+NON_SCORED = {"lesson", "flashcard"}
+EVALUATED = {"qcm", "fill", "constructed", "matching", "order", "classify"}
+HIGHER_ORDER = re.compile(
+    r"\b(?:explain|expliquer|explique|justif|d[eé]montr|derive|d[eé]riv|calcul|compare|analys|raisonn|reason|constru|formul|prove|prouv)\w*",
+    re.IGNORECASE,
+)
 
 
 class QualityError(ValueError):
@@ -36,6 +47,7 @@ def _load_module(name: str, path: Path):
 
 _V2 = None
 _ATLAS = None
+_V4 = None
 
 
 def authorities():
@@ -45,6 +57,13 @@ def authorities():
     if _ATLAS is None:
         _ATLAS = _load_module("learnit_m3_1_atlas_authority", ATLAS_VALIDATOR_PATH)
     return _V2, _ATLAS
+
+
+def v4_authority():
+    global _V4
+    if _V4 is None:
+        _V4 = _load_module("learnit_student_v01_v4_authority", V4_VALIDATOR_PATH)
+    return _V4
 
 
 def _split_general(message: str) -> tuple[str, str]:
@@ -123,7 +142,46 @@ def _sort_diagnostics(diagnostics: list[dict[str, Any]]) -> list[dict[str, Any]]
     )
 
 
+def _canonical_diagnostics_v4(package: dict[str, Any]) -> list[dict[str, Any]]:
+    v4 = v4_authority()
+    diagnostics: list[dict[str, Any]] = []
+    try:
+        schema = v4.load(v4.SCHEMA_PATH)
+        if not isinstance(schema, dict):
+            raise QualityError("v4 schema root must be an object")
+        report = v4.validate(Path("<pedagogical-quality-v4>"), package, schema)
+    except Exception as exc:
+        diagnostics.append(
+            _diagnostic(
+                "CANONICAL_V4_INVALID",
+                "blocking",
+                "$",
+                str(exc),
+                "The v4 candidate cannot enter pedagogical-quality analysis.",
+                "Fix the candidate against the frozen v4 schema and authoring validator.",
+                _refs(package),
+            )
+        )
+    else:
+        for message in report.errors:
+            path, cause = _split_general(message)
+            diagnostics.append(
+                _diagnostic(
+                    "CANONICAL_V4_INVALID",
+                    "blocking",
+                    path,
+                    cause,
+                    "The v4 candidate violates frozen structural or semantic authoring invariants.",
+                    "Fix the candidate without changing the frozen v4 contract.",
+                    _refs(package),
+                )
+            )
+    return _sort_diagnostics(diagnostics)
+
+
 def _canonical_diagnostics(package: dict[str, Any]) -> list[dict[str, Any]]:
+    if package.get("contract") == "learnit.kit.v4":
+        return _canonical_diagnostics_v4(package)
     v2, atlas = authorities()
     diagnostics: list[dict[str, Any]] = []
     schema = v2.load(SCHEMA_PATH)
@@ -189,7 +247,188 @@ def _objective_rows(
     return rows
 
 
+def _quality_diagnostics_v4(package: dict[str, Any]) -> list[dict[str, Any]]:
+    diagnostics: list[dict[str, Any]] = []
+    for ci, course in enumerate(package.get("courses", [])):
+        cp = f"$.courses[{ci}]"
+        activities = [
+            activity
+            for activity in course.get("activities", [])
+            if isinstance(activity, dict)
+        ]
+        if activities and all(
+            isinstance(activity.get("estimatedMinutes"), int)
+            for activity in activities
+        ):
+            authored = sum(activity["estimatedMinutes"] for activity in activities)
+            if course.get("estimatedMinutes") != authored:
+                diagnostics.append(
+                    _diagnostic(
+                        "PQ_COURSE_DURATION_MISMATCH",
+                        "warning",
+                        cp + ".estimatedMinutes",
+                        "Course duration differs from the sum of authored activity durations.",
+                        "Learner time expectations can drift from authored content.",
+                        "Align the course duration or activity estimates.",
+                        _refs(package, course),
+                        {
+                            "declaredMinutes": course.get("estimatedMinutes"),
+                            "activityMinutes": authored,
+                        },
+                    )
+                )
+
+        for oi, objective in enumerate(course.get("objectives", [])):
+            if not isinstance(objective, dict):
+                continue
+            oid = objective.get("objectiveId")
+            op = f"{cp}.objectives[{oi}]"
+            related = [
+                (index, activity)
+                for index, activity in enumerate(activities)
+                if oid in activity.get("objectiveIds", [])
+            ]
+            exposure = [
+                (index, activity)
+                for index, activity in related
+                if activity.get("type") in NON_SCORED
+            ]
+            evaluated = [
+                (index, activity)
+                for index, activity in related
+                if activity.get("type") in EVALUATED
+            ]
+            practice = [
+                (index, activity)
+                for index, activity in evaluated
+                if activity.get("assessmentRole") == "practice"
+            ]
+            validation = [
+                (index, activity)
+                for index, activity in evaluated
+                if activity.get("assessmentRole") == "validation"
+                and activity.get("learningPhase") == "validation"
+            ]
+            refs = _refs(package, course, objective)
+            if exposure and not practice:
+                diagnostics.append(
+                    _diagnostic(
+                        "PQ_V4_EXPOSURE_WITHOUT_PRACTICE",
+                        "warning",
+                        op,
+                        "This objective exposes content but has no scored practice activity.",
+                        "Exposure alone does not establish retrieval or application practice.",
+                        "Add source-supported practice when the learning goal requires it; do not turn lesson/flashcard into scored evidence.",
+                        refs,
+                    )
+                )
+            if exposure and not validation:
+                diagnostics.append(
+                    _diagnostic(
+                        "PQ_V4_EXPOSURE_WITHOUT_VALIDATION",
+                        "warning",
+                        op,
+                        "This objective exposes content but has no evaluated validation activity.",
+                        "Lesson/flashcard completion cannot establish validation evidence.",
+                        "Add an appropriate evaluated validation activity when validation is part of the objective.",
+                        refs,
+                    )
+                )
+            if (
+                not exposure
+                and evaluated
+                and len(evaluated) >= 2
+                and not practice
+                and all(
+                    activity.get("assessmentRole") in {"diagnostic", "validation"}
+                    for _, activity in evaluated
+                )
+            ):
+                diagnostics.append(
+                    _diagnostic(
+                        "PQ_V4_ASSESSMENT_ONLY_OBJECTIVE",
+                        "warning",
+                        op,
+                        "This objective contains only diagnostic/validation assessment and no learning exposure or practice.",
+                        "A genuinely new topic can become a quiz-only experience.",
+                        "For new material, add source-supported exposition or practice; for prior-knowledge checks, keep the lean assessment design.",
+                        refs,
+                    )
+                )
+            evaluated_types = [
+                activity.get("type") for _, activity in evaluated
+            ]
+            if len(evaluated_types) >= 3 and len(set(evaluated_types)) == 1:
+                diagnostics.append(
+                    _diagnostic(
+                        "PQ_V4_REPETITIVE_OPERATION",
+                        "advice",
+                        op,
+                        "Three or more evaluated activities repeat the same interaction family.",
+                        "The learner may rehearse the interface rather than the intended operation.",
+                        "Vary the operation only when pedagogy and source material justify it; there is no activity-type quota.",
+                        refs,
+                        {
+                            "activityType": evaluated_types[0],
+                            "count": len(evaluated_types),
+                        },
+                    )
+                )
+
+        for ai, activity in enumerate(activities):
+            ap = f"{cp}.activities[{ai}]"
+            refs = _refs(package, course, None, activity)
+            if activity.get("type") == "classify":
+                assignments = activity.get("assignments", [])
+                buckets = activity.get("buckets", [])
+                counts = Counter(
+                    item.get("bucketId")
+                    for item in assignments
+                    if isinstance(item, dict)
+                )
+                if (
+                    len(activity.get("items", [])) == len(buckets)
+                    and buckets
+                    and all(
+                        counts.get(bucket.get("bucketId"), 0) == 1
+                        for bucket in buckets
+                        if isinstance(bucket, dict)
+                    )
+                ):
+                    diagnostics.append(
+                        _diagnostic(
+                            "PQ_V4_CLASSIFY_ONE_ITEM_PER_BUCKET",
+                            "advice",
+                            ap,
+                            "Each classify bucket contains exactly one item.",
+                            "The task can collapse into a disguised one-to-one choice/matching operation rather than category formation.",
+                            "Use classify when multiple examples must genuinely be sorted into conceptual categories; otherwise prefer a simpler family.",
+                            refs,
+                        )
+                    )
+            if (
+                activity.get("type") == "constructed"
+                and activity.get("assessmentRole") in {"diagnostic", "validation"}
+            ):
+                prompt = str(activity.get("prompt", ""))
+                if not HIGHER_ORDER.search(prompt):
+                    diagnostics.append(
+                        _diagnostic(
+                            "PQ_V4_CONSTRUCTED_LOW_OPERATION_SIGNAL",
+                            "advice",
+                            ap + ".prompt",
+                            "The constructed-response prompt does not contain a clear construction/reasoning operation signal.",
+                            "Free text alone is not evidence of higher-order thinking.",
+                            "Use constructed only when the learner must produce a bounded response or reasoning; otherwise prefer qcm/fill/matching/order/classify.",
+                            refs,
+                        )
+                    )
+    return _sort_diagnostics(diagnostics)
+
+
 def _quality_diagnostics(package: dict[str, Any]) -> list[dict[str, Any]]:
+    if package.get("contract") == "learnit.kit.v4":
+        return _quality_diagnostics_v4(package)
     _, atlas = authorities()
     diagnostics: list[dict[str, Any]] = []
     for ci, course in enumerate(package.get("courses", [])):
@@ -435,13 +674,16 @@ def _summaries(
 def analyze_package(package: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(package, dict):
         raise QualityError("kit root must be a JSON object")
+    is_v4 = package.get("contract") == "learnit.kit.v4"
+    profile = V4_PROFILE if is_v4 else PROFILE
+    engine_version = V4_ENGINE_VERSION if is_v4 else ENGINE_VERSION
     canonical = _canonical_diagnostics(package)
     if canonical:
         counts = _counts(canonical)
         return {
             "schema": REPORT_SCHEMA,
-            "profile": PROFILE,
-            "engineVersion": ENGINE_VERSION,
+            "profile": profile,
+            "engineVersion": engine_version,
             "canonicalValid": False,
             "verdict": "HOLD_CANONICAL_INVALID",
             "qualityBand": "BLOCKED",
@@ -456,8 +698,8 @@ def analyze_package(package: dict[str, Any]) -> dict[str, Any]:
     courses, objectives = _summaries(package, diagnostics)
     return {
         "schema": REPORT_SCHEMA,
-        "profile": PROFILE,
-        "engineVersion": ENGINE_VERSION,
+        "profile": profile,
+        "engineVersion": engine_version,
         "canonicalValid": True,
         "verdict": "PASS_ATLAS_PEDAGOGICAL_PROFILE_V1",
         "qualityBand": _band(
