@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-030",
+  "title": "Student V0.1 JOB 04 — controlled Wave 1 FAN-IN A",
+  "status": "approved",
+  "changeClass": "controlled-multi-role-integration",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 391,
+    "parentIssue": 380,
+    "architectureWorkPackage": "ARC-WP-025",
+    "launchAuthority": "GOV-WP-039"
+  },
+  "baseline": {
+    "job04Base": "CURRENT_MAIN_AFTER_GOV_WP_039_MERGE",
+    "wave1CommonBase": "27846dff52fde9b83434bca29bd8732ea42834bf",
+    "acceptedRoleHeads": {
+      "JOB_01": "d937592fb4d1e6dba6fcd02e290290f1a98cff71",
+      "JOB_02": "6c91346d07c934cfb2917799084647b13e4fb931",
+      "JOB_03": "a90ba85857dded331e5e3952c2f181cbe2e6d689"
+    }
+  },
+  "purpose": "Combine the three exact qualified Wave 1 role deltas on one fresh integration branch, add only the minimum integration-owned build/source-manifest/CI routing needed for the combined candidate, and qualify the exact integrated head without silently repairing role semantics.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-027.json",
+      "work-packages/ATLAS-WP-028.json",
+      "work-packages/ATLAS-WP-029.json",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/integration/atlas/import_adapter.js",
+      "apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json",
+      "apps/learnit-next/tests/student_v01_learning_runtime.py",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/tests/browser_student_v01_activity_presentation.py",
+      "apps/learnit-next/tests/student_v01_activity_presentation.py",
+      "authoring/factory/tests/test_student_v01_v4.py",
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V4.md",
+      "authoring/v2/atlas/pedagogical_quality.py",
+      "authoring/v2/atlas/tests/test_pedagogical_quality.py",
+      "authoring/v4/README.md",
+      "authoring/v4/tests/test_validate_v4.py",
+      "authoring/v4/validate_kit.py",
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/tests/student_v01_fanin_a.py",
+      "qualification/STUDENT_V01_FANIN_A_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "docs/programs/student-v0.1/WAVE1_INTERFACE_FREEZE.md",
+      "governance/**",
+      "tools/**",
+      "authoring/factory/factory_gate.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/source_admission.py"
+    ]
+  },
+  "invariants": [
+    "The accepted JOB 01, JOB 02 and JOB 03 heads are exact immutable inputs.",
+    "Child role deltas are applied from their shared Wave 1 base, not re-authored from memory.",
+    "No semantic conflict is silently repaired by the integrator.",
+    "v2 and v3 meanings remain unchanged; v4 contract remains frozen.",
+    "Lesson and flashcard completion remains non-scored and produces no mastery/validation evidence.",
+    "All scoring secrets remain behind the learner-safe presentation boundary.",
+    "UI does not own correctness; Learning/runtime does not own DOM mechanics.",
+    "Authoring/Factory changes do not alter learner runtime semantics.",
+    "Central workflow/build/source-manifest changes are minimal integration wiring only.",
+    "The generic role-branch CI router failure is not copied as product semantics; JOB 04 adds only the route needed for the integration branch/candidate."
+  ],
+  "requiredEvidence": [
+    "Current main and all three accepted role heads are freshly re-read before integration.",
+    "Each role PR still points to the frozen exact head and remains unmerged.",
+    "Changed-path sets for JOB 01, JOB 02 and JOB 03 match the frozen input manifest and have empty pairwise intersections.",
+    "Every role-specific qualification test passes unchanged on the combined head.",
+    "End-to-end v4 tests cover qcm, fill, constructed, lesson, flashcard, matching, order, classify and bounded media.",
+    "Secret-boundary tests prove no correctChoiceId, answers, acceptedResponses, matches, correctOrder or classify assignments reach learner-safe presentation.",
+    "Lesson/flashcard completion creates no correctness, validation, mastery, transfer or spaced-review evidence.",
+    "Authoring v4 validator/quality outputs feed runtime admission and learner presentation without contract mutation.",
+    "v2 and v3 regression suites pass on the exact integrated head.",
+    "Repository governance, PR scope and the exact integration CI route pass on the exact candidate head.",
+    "The qualification artifact binds integration base, accepted child heads, result head, changed paths, tests and reservations."
+  ],
+  "adversarialTests": [
+    "Any role-head drift or role-PR merge before integration fails closed.",
+    "Any changed child path not in the frozen manifest fails closed.",
+    "Any overlapping child writable path fails closed rather than being auto-resolved.",
+    "Any need to modify contracts or Wave 1 interface authority returns ARCHITECTURE_REOPEN_REQUIRED.",
+    "Any semantic merge conflict returns HOLD_FANIN_A_CONFLICT_REQUIRES_ROLE_REWORK.",
+    "Any integration-only edit broader than build/source-manifest/CI/test/result wiring fails scope.",
+    "Any learner-visible scoring secret fails qualification.",
+    "Any lesson/flashcard mastery contamination fails qualification.",
+    "Any v2/v3 regression fails qualification."
+  ],
+  "nonGoals": [
+    "Improving child role implementations during integration.",
+    "Changing learnit.kit.v4 schema or architecture semantics.",
+    "Launching Wave 2.",
+    "Creating the showcase student kit.",
+    "Running real student sessions.",
+    "Adding Knowledge-assisted authoring to the Student V0.1 critical path."
+  ],
+  "execution": {
+    "branch": "student-v01/fanin-a",
+    "phase": "CONTROLLED_FANIN_A",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "FANIN_A_EXACT_HEAD_QUALIFICATION",
+    "finalVerdict": "PENDING_INTEGRATION_QUALIFICATION"
+  },
+  "rollback": "Close the FAN-IN A PR and delete its branch. The three role PRs remain open and independently recoverable; main remains at the coordination-only launch state."
+}
