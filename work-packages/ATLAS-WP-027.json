@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-027",
   "title": "Student V0.1 Wave 1 — Learning/runtime semantics",
-  "status": "proposed",
+  "status": "approved",
   "changeClass": "bounded-runtime-contract-admission",
   "riskClass": "high",
   "authority": {
@@ -12,8 +12,9 @@
     "architectureWorkPackage": "ARC-WP-025"
   },
   "baseline": {
+    "baseCommit": "27846dff52fde9b83434bca29bd8732ea42834bf",
     "architectureMerge": "0d1e400d95a371898e79335501d5f989677bdb0e",
-    "requiredCommonWave1Base": "TO_BE_REBOUND_TO_WAVE1_LAUNCH_MERGE"
+    "requiredCommonWave1Base": "27846dff52fde9b83434bca29bd8732ea42834bf"
   },
   "purpose": "Implement v4 Learning/runtime semantics, explicit v2/v3/v4 admission, learner-safe projection and non-scored lesson/flashcard session completion without owning UI rendering or authoring/factory behavior.",
   "scope": {
@@ -79,5 +80,13 @@
     "JOB 05 contradictory QA will independently attack the integrated result after FAN-IN A.",
     "JOB 04 integrates reviewed exact role heads without silently repairing JOB 01 code."
   ],
+  "execution": {
+    "branch": "student-v01/wave1-learning-runtime",
+    "phase": "PARALLEL_IMPLEMENTATION_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB01_EXACT_HEAD_ROLE_REVIEW",
+    "finalVerdict": "PENDING_IMPLEMENTATION_QUALIFICATION"
+  },
   "rollback": "Drop the JOB 01 commits/branch. The merged v4 architecture remains design authority and no learner data migration is required."
 }

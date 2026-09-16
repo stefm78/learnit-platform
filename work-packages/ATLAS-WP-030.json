@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-030",
   "title": "Student V0.1 JOB 04 — controlled Wave 1 FAN-IN A",
-  "status": "proposed",
+  "status": "approved",
   "changeClass": "controlled-multi-role-integration",
   "riskClass": "high",
   "authority": {
@@ -13,7 +13,8 @@
     "launchAuthority": "GOV-WP-039"
   },
   "baseline": {
-    "job04Base": "CURRENT_MAIN_AFTER_GOV_WP_039_MERGE",
+    "baseCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
+    "job04Base": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
     "wave1CommonBase": "27846dff52fde9b83434bca29bd8732ea42834bf",
     "acceptedRoleHeads": {
       "JOB_01": "d937592fb4d1e6dba6fcd02e290290f1a98cff71",

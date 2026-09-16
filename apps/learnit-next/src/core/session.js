@@ -1,3 +1,8 @@
+import {
+  ActivityResponseValidationError,
+  evaluateActivityResponse,
+} from './activity_semantics.js';
+
 export class AnswerValidationError extends Error {
   constructor(message, code = 'invalid_answer') {
     super(message);
@@ -8,80 +13,33 @@ export class AnswerValidationError extends Error {
 
 export const LEARNING_LOOP_V2_SESSION_META_KEY = 'learningLoopV2Session';
 
-function normalizeQcmAnswer(activity, answer) {
-  const choiceId = typeof answer === 'string' ? answer : answer?.choiceId;
-  if (typeof choiceId !== 'string') {
-    throw new AnswerValidationError('A QCM answer must provide a choiceId');
+function evaluation(activity, answer) {
+  try {
+    return evaluateActivityResponse(activity, answer);
+  } catch (error) {
+    if (error instanceof ActivityResponseValidationError) {
+      throw new AnswerValidationError(error.message, error.code);
+    }
+    throw error;
   }
-  if (!activity.choices.some((choice) => choice.choiceId === choiceId)) {
-    throw new AnswerValidationError('The selected choiceId is not declared by this activity', 'unknown_choice');
-  }
-  return { choiceId };
 }
 
-function normalizeFillAnswer(activity, answer) {
-  const entries = Array.isArray(answer)
-    ? answer.map((assignment) => [assignment?.slotId, assignment?.tokenId])
-    : Object.entries(answer ?? {});
-  const assignments = new Map();
-  for (const [slotId, tokenId] of entries) {
-    if (typeof slotId !== 'string' || typeof tokenId !== 'string') {
-      throw new AnswerValidationError('Each fill assignment must contain string slotId and tokenId values');
-    }
-    if (assignments.has(slotId)) {
-      throw new AnswerValidationError(`slotId ${slotId} is assigned more than once`, 'duplicate_slot_assignment');
-    }
-    assignments.set(slotId, tokenId);
-  }
-
-  const slotIds = activity.segments.filter((segment) => Object.hasOwn(segment, 'slotId')).map((segment) => segment.slotId);
-  const tokenById = new Map(activity.tokens.map((token) => [token.tokenId, token]));
-  if (assignments.size !== slotIds.length || slotIds.some((slotId) => !assignments.has(slotId))) {
-    throw new AnswerValidationError('Every declared fill slot must have exactly one token', 'incomplete_fill');
-  }
-
-  const usage = new Map();
-  for (const [slotId, tokenId] of assignments) {
-    if (!slotIds.includes(slotId)) {
-      throw new AnswerValidationError(`Unknown slotId ${slotId}`, 'unknown_slot');
-    }
-    const token = tokenById.get(tokenId);
-    if (!token) throw new AnswerValidationError(`Unknown tokenId ${tokenId}`, 'unknown_token');
-    const count = (usage.get(tokenId) ?? 0) + 1;
-    if (count > token.maxUses) {
-      throw new AnswerValidationError(`tokenId ${tokenId} exceeds maxUses ${token.maxUses}`, 'max_uses');
-    }
-    usage.set(tokenId, count);
-  }
-
-  return Object.fromEntries(slotIds.map((slotId) => [slotId, assignments.get(slotId)]));
-}
-
-function evaluateAnswer(activity, answer) {
-  if (activity.type === 'qcm') {
-    const normalized = normalizeQcmAnswer(activity, answer);
-    return { normalized, correct: normalized.choiceId === activity.correctChoiceId };
-  }
-  if (activity.type === 'fill') {
-    const normalized = normalizeFillAnswer(activity, answer);
-    const expected = new Map(activity.answers.map((entry) => [entry.slotId, entry.tokenId]));
-    const correct = Object.entries(normalized).every(([slotId, tokenId]) => expected.get(slotId) === tokenId);
-    return { normalized, correct };
-  }
-  throw new AnswerValidationError(`Unsupported activity type ${activity.type}`, 'unsupported_activity');
+export function evaluateAnswer(activity, answer) {
+  const result = evaluation(activity, answer);
+  return result.scored
+    ? { normalized: result.normalized, correct: result.correct, scored: true }
+    : { normalized: result.normalized, correct: null, scored: false, completed: true };
 }
 
 function nextIncompleteIndex(course, records, preferredIndex = null) {
-  const complete = new Set(records.filter((record) => record.completed).map((record) => record.activityRevisionId));
+  const complete = new Set(records.filter(record => record.completed).map(record => record.activityRevisionId));
   if (
     Number.isInteger(preferredIndex)
     && preferredIndex >= 0
     && preferredIndex < course.activities.length
     && !complete.has(course.activities[preferredIndex].activityRevisionId)
-  ) {
-    return preferredIndex;
-  }
-  return course.activities.findIndex((activity) => !complete.has(activity.activityRevisionId));
+  ) return preferredIndex;
+  return course.activities.findIndex(activity => !complete.has(activity.activityRevisionId));
 }
 
 function validLearningLoopMeta(meta, activeCourseMeta) {
@@ -123,18 +81,12 @@ export function createSessionService(storage, progressService) {
 
   async function persistActive(current = null) {
     if (!active) return;
-    if (learningLoopV2Enabled) {
-      // Write the additive record first. The protected P1 record remains the resume authority.
-      await storage.setMeta(LEARNING_LOOP_V2_SESSION_META_KEY, learningLoopMeta(current));
-    }
+    if (learningLoopV2Enabled) await storage.setMeta(LEARNING_LOOP_V2_SESSION_META_KEY, learningLoopMeta(current));
     await storage.setMeta('activeCourse', legacyActiveMeta());
   }
 
   async function clearPersistedActive() {
-    if (learningLoopV2Enabled) {
-      // Preserve the protected P1 resume record if cleanup of the additive record fails.
-      await storage.deleteMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
-    }
+    if (learningLoopV2Enabled) await storage.deleteMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
     await storage.deleteMeta('activeCourse');
   }
 
@@ -174,10 +126,7 @@ export function createSessionService(storage, progressService) {
         currentIndex: index,
         currentActivity: structuredClone(queue[index]),
         review: learningLoopV2Enabled
-          ? {
-            remaining: queue.length,
-            activityRevisionIds: queue.map((activity) => activity.activityRevisionId),
-          }
+          ? { remaining: queue.length, activityRevisionIds: queue.map(activity => activity.activityRevisionId) }
           : { remaining: queue.length },
       };
     }
@@ -192,7 +141,7 @@ export function createSessionService(storage, progressService) {
     };
   }
 
-  return {
+  return Object.freeze({
     async startCourse(courseInstallId) {
       const courseRecord = await loadCourse(courseInstallId);
       active = { courseRecord, mode: 'learn', currentIndex: 0 };
@@ -209,24 +158,15 @@ export function createSessionService(storage, progressService) {
       const courseRecord = await loadCourse(courseInstallId);
       active = { courseRecord, mode: 'review', reviewIndex: 0 };
       const current = await snapshot();
-      if (current.review.remaining > 0) await persistActive(current);
-      else await clearPersistedActive();
+      if (current.review.remaining > 0) await persistActive(current); else await clearPersistedActive();
       return current;
     },
 
     async resumeActiveCourse() {
       let meta;
-      try {
-        meta = await storage.getMeta('activeCourse');
-      } catch {
-        active = null;
-        return null;
-      }
-      if (meta == null) {
-        active = null;
-        return null;
-      }
-
+      try { meta = await storage.getMeta('activeCourse'); }
+      catch { active = null; return null; }
+      if (meta == null) { active = null; return null; }
       const validCourseInstallId = typeof meta.courseInstallId === 'string' && meta.courseInstallId.length > 0;
       const validMode = meta.mode == null || meta.mode === 'learn' || meta.mode === 'review';
       if (!validCourseInstallId || !validMode) {
@@ -235,32 +175,22 @@ export function createSessionService(storage, progressService) {
         if (learningLoopV2Enabled) await storage.deleteMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
         return null;
       }
-
       let courseRecord;
-      try {
-        courseRecord = await storage.getCourse(meta.courseInstallId);
-      } catch {
-        active = null;
-        return null;
-      }
+      try { courseRecord = await storage.getCourse(meta.courseInstallId); }
+      catch { active = null; return null; }
       if (!courseRecord) {
         active = null;
         await storage.deleteMeta('activeCourse');
         if (learningLoopV2Enabled) await storage.deleteMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
         return null;
       }
-
       let waveMeta = null;
       if (learningLoopV2Enabled) {
         try {
           const candidate = await storage.getMeta(LEARNING_LOOP_V2_SESSION_META_KEY);
           if (validLearningLoopMeta(candidate, meta)) waveMeta = candidate;
-        } catch {
-          active = null;
-          return null;
-        }
+        } catch { active = null; return null; }
       }
-
       active = meta.mode === 'review'
         ? {
           courseRecord,
@@ -272,29 +202,17 @@ export function createSessionService(storage, progressService) {
         : {
           courseRecord,
           mode: 'learn',
-          currentIndex: Number.isInteger(waveMeta?.currentIndex) && waveMeta.currentIndex >= 0
-            ? waveMeta.currentIndex
-            : 0,
+          currentIndex: Number.isInteger(waveMeta?.currentIndex) && waveMeta.currentIndex >= 0 ? waveMeta.currentIndex : 0,
         };
-
       let current;
-      try {
-        current = await snapshot();
-      } catch {
-        active = null;
-        return null;
-      }
-      if (current?.mode === 'review' && current.review.remaining === 0) {
-        await clearPersistedActive();
-      } else if (learningLoopV2Enabled) {
-        await persistActive(current);
-      }
+      try { current = await snapshot(); }
+      catch { active = null; return null; }
+      if (current?.mode === 'review' && current.review.remaining === 0) await clearPersistedActive();
+      else if (learningLoopV2Enabled) await persistActive(current);
       return current;
     },
 
-    async getSession() {
-      return snapshot();
-    },
+    async getSession() { return snapshot(); },
 
     async answer(activityRevisionId, answer) {
       const current = await snapshot();
@@ -302,40 +220,43 @@ export function createSessionService(storage, progressService) {
       if (current.currentActivity.activityRevisionId !== activityRevisionId) {
         throw new AnswerValidationError('Answers must follow the active session queue', 'out_of_sequence');
       }
-
-      const evaluation = evaluateAnswer(current.currentActivity, answer);
-      const record = await progressService.recordAttempt({
-        courseInstallId: current.courseInstallId,
-        course: active.courseRecord.course,
-        activity: current.currentActivity,
-        answer: evaluation.normalized,
-        correct: evaluation.correct,
-      });
+      const result = evaluation(current.currentActivity, answer);
+      const record = result.scored
+        ? await progressService.recordAttempt({
+          courseInstallId: current.courseInstallId,
+          course: active.courseRecord.course,
+          activity: current.currentActivity,
+          answer: result.normalized,
+          correct: result.correct,
+        })
+        : await progressService.recordCompletion({
+          courseInstallId: current.courseInstallId,
+          course: active.courseRecord.course,
+          activity: current.currentActivity,
+          answer: result.normalized,
+        });
 
       const previousReviewIndex = current.mode === 'review' ? active.reviewIndex : null;
       const previousCurrentIndex = active.currentIndex;
       try {
-        if (current.mode === 'review' && !evaluation.correct) active.reviewIndex += 1;
+        if (current.mode === 'review' && result.scored && !result.correct) active.reviewIndex += 1;
         const after = await snapshot();
         if (current.mode === 'review') {
-          if (after.review.remaining === 0) await clearPersistedActive();
-          else await persistActive(after);
-        } else if (after.progress.isComplete) {
-          await clearPersistedActive();
-        } else if (learningLoopV2Enabled) {
-          await persistActive(after);
-        }
+          if (after.review.remaining === 0) await clearPersistedActive(); else await persistActive(after);
+        } else if (after.progress.isComplete) await clearPersistedActive();
+        else if (learningLoopV2Enabled) await persistActive(after);
 
         return {
           courseInstallId: current.courseInstallId,
           mode: current.mode,
           activityRevisionId,
-          correct: evaluation.correct,
+          scored: result.scored,
+          ...(result.scored ? { correct: result.correct } : {}),
           completed: record.completed,
           ...(record.selectedChoiceId ? { selectedChoiceId: record.selectedChoiceId } : {}),
           ...(record.answers ? { answers: structuredClone(record.answers) } : {}),
-          answer: evaluation.normalized,
-          explanation: current.currentActivity.explanation,
+          answer: result.normalized,
+          ...(Object.hasOwn(current.currentActivity, 'explanation') ? { explanation: current.currentActivity.explanation } : {}),
           ...(learningLoopV2Enabled ? { courseObjectives: current.courseObjectives } : {}),
           progress: after.progress,
           ...(current.mode === 'review' ? { review: after.review } : {}),
@@ -350,10 +271,6 @@ export function createSessionService(storage, progressService) {
       }
     },
 
-    clearActiveSession() {
-      active = null;
-    },
-  };
+    clearActiveSession() { active = null; },
+  });
 }
-
-export { evaluateAnswer };
