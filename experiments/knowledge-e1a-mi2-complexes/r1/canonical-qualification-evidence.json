@@ -1,0 +1,17 @@
+{
+  "schema": "learnit.e1a-r1.canonical-qualification-evidence.v1-experimental",
+  "status": "PENDING_EXACT_REPOSITORY_CI",
+  "candidate": {
+    "path": "candidate-b-r1.json",
+    "packageRevisionDigest": "sha256:47724cff565e776cb85dc7a83e957510e89826dd6011a2a1474898168beb8fb3",
+    "kitSha256": "sha256:3bcbf01ce98de5faf06cd4ebfcded11acb161a64f4c2816cf88acf16fd83b574"
+  },
+  "authoritiesBaseCommit": "1e71271436fd4b7dd7d895cfec827833187630fe",
+  "checks": [
+    "learnit.kit.v2",
+    "Atlas validate_packages",
+    "M3.1 Pedagogical Quality",
+    "coverage_check"
+  ],
+  "validatorMutation": "FORBIDDEN"
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "learnit.coverage-loss-report.v1-experimental",
+  "summary": {
+    "REPRESENTED": 7,
+    "EXPLICITLY_EXCLUDED": 1,
+    "MISSING_SILENTLY": 1
+  },
+  "items": [
+    {
+      "sourceItemId": "proposition-1.52",
+      "state": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-quadratic"
+      ]
+    },
+    {
+      "sourceItemId": "equation-1.2",
+      "state": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-square-roots"
+      ]
+    },
+    {
+      "sourceItemId": "square-root-strategy-argument",
+      "state": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-square-roots"
+      ]
+    },
+    {
+      "sourceItemId": "square-root-strategy-algebraic",
+      "state": "REPRESENTED",
+      "knowledgeRefs": [
+        "complex-square-roots"
+      ]
+    },
+    {
+      "sourceItemId": "theorem-1.53",
+      "state": "REPRESENTED",
+      "knowledgeRefs": [
+        "roots-of-unity"
+      ]
+    },
+    {
+      "sourceItemId": "nth-roots-general-formula",
+      "state": "REPRESENTED",
+      "knowledgeRefs": [
+        "nth-roots"
+      ]
+    },
+    {
+      "sourceItemId": "remark-1.55",
+      "state": "REPRESENTED",
+      "knowledgeRefs": [
+        "regular-polygon-representation"
+      ]
+    },
+    {
+      "sourceItemId": "theorem-1.56",
+      "state": "MISSING_SILENTLY",
+      "knowledgeRefs": [
+        "roots-of-unity#zero-sum-property"
+      ]
+    },
+    {
+      "sourceItemId": "example-1.57",
+      "state": "EXPLICITLY_EXCLUDED",
+      "knowledgeRefs": []
+    }
+  ],
+  "sourceKnowledgeGitBlob": "3ffb2162e4c4b091a2b6ba5a23322fbd58e53ddf",
+  "expectedWitness": "theorem-1.56"
+}

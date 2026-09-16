@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "id": "EXP-WP-001",
+  "title": "Qualify E1A and bounded R1 coverage-preservation experiment",
+  "status": "approved",
+  "changeClass": "bounded-experimental-qualification",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "pullRequest": 378
+  },
+  "purpose": "Govern the existing cumulative E1A/E1A-R1 MI2 Nombres Complexes experimental qualification diff, close repository/PR-scope mechanics, and preauthorize only the bounded clean semantic-review closure evidence needed to decide R1. This work package does not promote the experiment, change product/runtime authority, or authorize E1B.",
+  "baseline": {
+    "baseCommit": "1e71271436fd4b7dd7d895cfec827833187630fe",
+    "e1aFrozenParent": "cd42098c6ea3e48e5610e197a94797835f6b540c",
+    "r1PreGovernanceHead": "4196a2b2664db8c6a495c29ead24ee2bbd6e54b4",
+    "sourceSha256": "a197b2a17743752a79ec77caa4543b791cfcf246a2e8a749ffcb2677c3b05c26"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/e1a-canonical-ab-qualification.yml",
+      ".github/workflows/e1a-r1-coverage-qualification.yml",
+      "experiments/knowledge-e1a-mi2-complexes/E1A_REPORT.md",
+      "experiments/knowledge-e1a-mi2-complexes/NEXT_PROMPT_E1A_AB_CANONICAL.md",
+      "experiments/knowledge-e1a-mi2-complexes/NEXT_PROMPT_E1A_FINAL_QUALIFICATION.md",
+      "experiments/knowledge-e1a-mi2-complexes/README.md",
+      "experiments/knowledge-e1a-mi2-complexes/ab/EXECUTION_STATUS.md",
+      "experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-a.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-b.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/canonical-qualification/CI_RUN.md",
+      "experiments/knowledge-e1a-mi2-complexes/ab/canonical-qualification/atlas-validation.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/canonical-qualification/qualification-manifest.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/canonical-qualification/route-a-quality.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/canonical-qualification/route-b-quality.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/learner-brief.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/semantic-qualification/REVIEW_A_SCHEMA_CORRECTION_REQUEST.md",
+      "experiments/knowledge-e1a-mi2-complexes/ab/semantic-qualification/SEMANTIC_AUDIT.md",
+      "experiments/knowledge-e1a-mi2-complexes/ab/semantic-qualification/route-a.review-conformance.json",
+      "experiments/knowledge-e1a-mi2-complexes/ab/semantic-qualification/route-b.semantic-review.json",
+      "experiments/knowledge-e1a-mi2-complexes/derivations/impact-manifest.json",
+      "experiments/knowledge-e1a-mi2-complexes/knowledge/knowledge-bundle.json",
+      "experiments/knowledge-e1a-mi2-complexes/knowledge/learnit.knowledge-relations.v1.json",
+      "experiments/knowledge-e1a-mi2-complexes/pedagogy/blueprints.json",
+      "experiments/knowledge-e1a-mi2-complexes/pedagogy/scope-ab.json",
+      "experiments/knowledge-e1a-mi2-complexes/pedagogy/scope-section-1.2.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/B_E1A_vs_B_R1.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/R1_COMPLEXITY_LEDGER.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/R1_FAST_PATH_CHECK.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/R1_FINAL_AUDIT.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/R1_RECONSTRUCTED_BASELINE.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/R1_UNCOVERED_RISKS.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/README.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/SEMANTIC_REVIEW_R1_STATUS.md",
+      "experiments/knowledge-e1a-mi2-complexes/r1/candidate-b-r1.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/canonical-qualification-evidence.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/coverage-check-after.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/coverage-ledger.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/coverage-loss-before.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/coverage_check.py",
+      "experiments/knowledge-e1a-mi2-complexes/r1/factory-context-r1.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/factory-gate-result.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/knowledge-bundle-r1.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/pedagogical-derivation-r1.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/test_coverage_check.py",
+      "experiments/knowledge-e1a-mi2-complexes/source/source-manifest.json",
+      "experiments/knowledge-e1a-mi2-complexes/source/source-map.json",
+      "experiments/knowledge-e1a-mi2-complexes/r1/semantic-review-r1.json",
+      "work-packages/EXP-WP-001.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "docs/**",
+      "governance/**",
+      "tools/**",
+      "tests/**"
+    ]
+  },
+  "invariants": [
+    "PR #378 remains DRAFT and DO NOT MERGE during this qualification package.",
+    "Frozen E1A Route A and Route B candidate blobs remain unchanged.",
+    "R1 candidate semantic payload, packageRevisionDigest, learner brief and exact source identity remain unchanged during Job A.",
+    "Canonical learnit.kit.v2 validation, Atlas validation, M3.1 quality, SKILL_ATLAS_KIT_REVIEW_V1.md and factory_gate.py remain read-only authorities.",
+    "Independent semantic review is forbidden in the authoring discussion and must occur in a fresh clean discussion.",
+    "Only preauthorized R1 review/closure evidence may be added or updated after the independent review.",
+    "No product runtime, schema authority, Player, Learn-it Next path or Direct AI Kit Factory fast-path requirement is changed.",
+    "This work package does not authorize E1B or production promotion."
+  ],
+  "requiredEvidence": [
+    "Repository governance PASS on the exact final Job A head.",
+    "PR scope PASS on the exact final Job A head and exactly one work-package identifier in the PR body.",
+    "E1A-R1 Coverage Preservation Qualification PASS on the exact final Job A head.",
+    "Exact current source, candidate, brief, review-skill and Factory-Gate identities are recorded in the clean-review handoff.",
+    "Clean semantic review remains PENDING_CLEAN_CONTEXT at Job A stop.",
+    "The candidate, brief, source identity, canonical validators, review skill, Factory Gate and frozen E1A A/B artifacts are unchanged from their pre-governance identities."
+  ],
+  "adversarialTests": [
+    "Fail if any changed path lies outside the explicit allowlist.",
+    "Fail if a production/runtime, authoring authority, contract, governance implementation, tool or test surface is changed.",
+    "Fail if PR #378 ceases to be DRAFT or is merged.",
+    "Fail if Job A writes or performs the independent semantic review.",
+    "Fail if candidate-b-r1.json, learner-brief.json, candidate-route-a.json or candidate-route-b.json changes.",
+    "Fail if SKILL_ATLAS_KIT_REVIEW_V1.md or factory_gate.py changes."
+  ],
+  "nonGoals": [
+    "Repairing or redesigning the learner candidate.",
+    "Changing the coverage mechanism beyond evidence needed for mechanical qualification.",
+    "Performing the independent semantic review in Job A.",
+    "Changing canonical validators, Factory Gate, review skill, schemas or product runtime.",
+    "Promoting or merging PR #378.",
+    "Executing E1B."
+  ],
+  "independentReview": [
+    "Job A may close governance and mechanical qualification only.",
+    "Job B must run in a brand-new clean discussion and freeze learnit.atlas.semantic_review.v1 before inspecting prohibited R1 author evidence.",
+    "A clean semantic HOLD or FAIL remains authoritative and must not be repaired inside the independent-review job."
+  ],
+  "execution": {
+    "branch": "experiment/e1a-r1-coverage-preservation-mi2-complexes",
+    "pullRequest": 378,
+    "maximumChangedFiles": 48,
+    "phase": "GOVERNANCE_PRE_CLEAN_REVIEW",
+    "humanGateRequired": false,
+    "mergeStatus": "draft-do-not-merge"
+  },
+  "rollback": "Revert the governance-only EXP-WP-001/status commits from the R1 branch. Frozen E1A/R1 learner artifacts and production/runtime state remain untouched."
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "learnit.e1a.semantic_review_conformance.v1",
+  "route": "A",
+  "target": {
+    "contextDigest": "sha256:a6c99a600a0134dc6e4c658f864228ac344f78051ffa27e6121a59017192c390",
+    "kitSha256": "sha256:c3bc513fbb3b003edfcdd06fe82aea886934bf4be71b80fe90525176a6a38b88",
+    "sourceSetDigest": "sha256:56518c66fab2fb2e7a8b60b675520265b935e9ed4d8db37f1b319d64dd9ec526",
+    "briefSha256": "sha256:74e7b2b555f240f8f805c866c5d51bb7c22809caba809135afd46744b819292e"
+  },
+  "reviewerReportedVerdict": "HOLD_SEMANTIC_REVIEW_V1",
+  "factoryConsumable": false,
+  "conformanceErrors": [
+    "profile must be atlas.semantic-review.v1; received atlas.independent-adversarial-semantic-reviewer.v1",
+    "each dimension must have exactly status, summary, evidence; received notes instead of summary",
+    "dimension evidence items must have exactly sourceId, locator, basis; received support instead of basis",
+    "findings must use exactly id, severity, dimension, path, problem, impact, fix, evidence; received findingId, kitPath, fixDirection, sourceEvidence"
+  ],
+  "substantiveAudit": {
+    "supportedBySource": true,
+    "reportedMajorFindings": [
+      "Route A does not require actual construction of the n distinct roots of a general nonzero complex number.",
+      "Route A omits Theorem 1.56: the sum of n-th roots of unity is zero for n>=2.",
+      "The second-objective validation pair under-tests the stated determine-and-interpret n-th-roots objective."
+    ]
+  },
+  "factoryDecision": "NOT_RUN_REVIEW_INPUT_NONCONFORMANT",
+  "requiredNextAction": "The independent Route A reviewer must resubmit the same independently reached review using the exact learnit.atlas.semantic_review.v1 field names/profile. Do not author-normalize it into canonical evidence."
+}

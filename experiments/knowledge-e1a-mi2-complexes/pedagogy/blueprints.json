@@ -1,0 +1,10 @@
+{
+  "schema":"learnit.e1a.pedagogical-blueprints.v1",
+  "sharedKnowledge":["complex-modulus","complex-argument","exponential-form","complex-square-roots","roots-of-unity"],
+  "blueprints":[
+    {"id":"kit-a-forms","mode":"APPRENTISSAGE","targets":["complex-modulus","complex-argument","exponential-form"],"strategy":["intuition","worked examples","progressive practice","validation"]},
+    {"id":"kit-b-roots","mode":"APPRENTISSAGE","targets":["complex-square-roots","nth-roots","roots-of-unity"],"prerequisites":["complex-modulus","complex-argument","exponential-form"],"strategy":["method selection","worked roots","practice","transfer"]},
+    {"id":"same-knowledge-learning","mode":"APPRENTISSAGE","targets":["complex-square-roots","roots-of-unity"],"strategy":["intuition","understanding","progressive practice"]},
+    {"id":"same-knowledge-revision","mode":"REVISION_TD","targets":["complex-square-roots","roots-of-unity"],"strategy":["minimal recall","hard problems","pitfalls","transfer","validation"]}
+  ]
+}

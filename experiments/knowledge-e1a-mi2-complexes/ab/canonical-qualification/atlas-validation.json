@@ -1,0 +1,1 @@
+{"authority":"authoring/v2/atlas/validate_atlas_content.py::validate_packages","inputs":["experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-a.json","experiments/knowledge-e1a-mi2-complexes/ab/candidate-route-b.json"],"result":"PASS","schema":"learnit.e1a.atlas-canonical-validation.v1"}
