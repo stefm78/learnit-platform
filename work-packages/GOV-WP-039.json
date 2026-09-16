@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-039",
+  "title": "Authorize Student V0.1 Wave 1 FAN-IN A launch",
+  "status": "proposed",
+  "changeClass": "governance-controlled-integration-coordination",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 380,
+    "faninIssue": 391
+  },
+  "baseline": {
+    "baseCommit": "e61e9b33f94298699a4012780c7f79681ba17d80",
+    "wave1CommonBase": "27846dff52fde9b83434bca29bd8732ea42834bf"
+  },
+  "purpose": "Persist the exact accepted Wave 1 role heads, the FAN-IN A integration work package and the execution prompt required to combine only reviewed deltas without silently repairing role code.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/GOV-WP-039.json",
+      "work-packages/ATLAS-WP-030.json",
+      "docs/programs/student-v0.1/COORDINATION.yaml",
+      "docs/programs/student-v0.1/FANIN_A_INPUT_FREEZE.md",
+      "docs/programs/student-v0.1/jobs/JOB_04_WAVE1_FANIN_A.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "This launch package changes coordination/docs/work-packages only.",
+    "Accepted JOB 01, JOB 02 and JOB 03 heads are immutable FAN-IN A inputs.",
+    "No child role PR is merged directly to main before FAN-IN A qualification.",
+    "JOB 04 starts from the exact current main after this launch package is merged.",
+    "Any child-head drift, changed-path drift or semantic merge conflict blocks integration.",
+    "No Wave 2 work or student use is authorized by this package."
+  ],
+  "requiredEvidence": [
+    "Repository governance passes on the exact launch-package head.",
+    "PR scope passes on the exact launch-package head.",
+    "The three accepted role heads match their current PR heads.",
+    "Pairwise child changed-path intersections are empty.",
+    "FAN-IN A prompt requires no-silent-repair semantics and exact-head provenance."
+  ],
+  "adversarialTests": [
+    "Any product, authoring, workflow, contract or tools change fails this launch package.",
+    "Any role-head substitution or moving branch reference without exact SHA binding blocks JOB 04.",
+    "Any direct merge of PR #387, #388 or #389 to main before FAN-IN A qualification violates the program.",
+    "Any attempt to launch Wave 2 from this coordination PR fails the phase boundary."
+  ],
+  "nonGoals": [
+    "Implementing or integrating Student V0.1 product code in this launch package.",
+    "Merging any child role PR directly to main.",
+    "Launching Wave 2 or running student sessions."
+  ],
+  "independentReview": [
+    "Repository governance validates durable work-package structure independently of the prompt author.",
+    "PR-scope automation validates the exact coordination-only changed-path boundary.",
+    "JOB 04 must independently re-read all three role PR heads and changed-path sets before combining them."
+  ],
+  "execution": {
+    "branch": "student-v01/fanin-a-launch",
+    "phase": "FANIN_A_LAUNCH_COORDINATION",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB04_CONTROLLED_FANIN_A",
+    "finalVerdict": "PENDING_LAUNCH_QUALIFICATION"
+  },
+  "rollback": "Close the launch PR and delete its branch. Wave 1 role PRs remain open and unmerged; main keeps the prior R1 control state."
+}

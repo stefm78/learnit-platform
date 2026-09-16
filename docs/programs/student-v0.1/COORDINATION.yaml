@@ -12,12 +12,13 @@ contract:
 critical_path:
   knowledge_assisted_authoring: OUTSIDE
 wave1:
-  status: TARGETED_R1_REWORK_ACTIVE
+  status: FANIN_A_LAUNCH_PREPARED
   launch_merge: 27846dff52fde9b83434bca29bd8732ea42834bf
   common_base: 27846dff52fde9b83434bca29bd8732ea42834bf
   interface: docs/programs/student-v0.1/WAVE1_INTERFACE_FREEZE.md
+  input_freeze: docs/programs/student-v0.1/FANIN_A_INPUT_FREEZE.md
   maximum_parallel_workers: 3
-  fanin_a: BLOCKED_BY_JOB01_JOB03_R1
+  fanin_a: READY_AFTER_GOV_WP_039_MERGE
 jobs:
   JOB_00:
     role: architecture_freeze
@@ -25,14 +26,14 @@ jobs:
     pr: 381
   JOB_01:
     role: learning_runtime
-    status: HOLD_R1_PUBLICATION_REQUIRED
+    status: PASS_R1_FROZEN_FOR_FANIN_A
     issue: 383
     work_package: ATLAS-WP-027
     branch: student-v01/wave1-learning-runtime
     pr: 387
-    durable_head_observed: ffdefe4c187814c56bf3cfd8102f046255f76b6e
-    prior_result_sha: NOT_PUBLISHED
-    r1_job: docs/programs/student-v0.1/jobs/JOB_01_R1_PUBLISH_RESULT.md
+    accepted_head: d937592fb4d1e6dba6fcd02e290290f1a98cff71
+    verdict: PASS_STUDENT_V01_JOB01_R1_READY_FOR_FANIN_A
+    mutation_policy: FROZEN_UNTIL_FANIN_A
   JOB_02:
     role: activity_presentation_ui
     status: PASS_FROZEN_FOR_FANIN_A
@@ -41,21 +42,30 @@ jobs:
     branch: student-v01/wave1-presentation-ui
     pr: 388
     accepted_head: 6c91346d07c934cfb2917799084647b13e4fb931
+    verdict: PASS_STUDENT_V01_JOB02_PRESENTATION_READY_FOR_FANIN_A
     mutation_policy: FROZEN_UNTIL_FANIN_A
   JOB_03:
     role: authoring_factory
-    status: HOLD_R1_V2_REGRESSION
+    status: PASS_R1_FROZEN_FOR_FANIN_A
     issue: 385
     work_package: ATLAS-WP-029
     branch: student-v01/wave1-authoring-factory
     pr: 389
-    held_head: a90ba85857dded331e5e3952c2f181cbe2e6d689
-    generic_ci_reservation: UNRECOGNIZED_BRANCH_ROUTER_OUTSIDE_ROLE_SCOPE
-    r1_job: docs/programs/student-v0.1/jobs/JOB_03_R1_V2_REGRESSION.md
-  JOB_04: {role: wave1_integrator, status: BLOCKED_BY_JOB01_JOB03_R1}
-  JOB_05: {role: contradictory_qa, status: BLOCKED}
-  JOB_06: {role: showcase_kit, status: BLOCKED}
-  JOB_07: {role: pilot_packaging_ux, status: BLOCKED}
+    accepted_head: a90ba85857dded331e5e3952c2f181cbe2e6d689
+    regression_classification: MISCLASSIFIED_INFRA_FAILURE
+    generic_ci_reservation: OUT_OF_SCOPE_ROUTER_FAILURE
+    verdict: PASS_STUDENT_V01_JOB03_R1_READY_FOR_FANIN_A
+    mutation_policy: FROZEN_UNTIL_FANIN_A
+  JOB_04:
+    role: wave1_integrator
+    status: READY_AFTER_GOV_WP_039_MERGE
+    issue: 391
+    work_package: ATLAS-WP-030
+    branch: student-v01/fanin-a
+    prompt: docs/programs/student-v0.1/jobs/JOB_04_WAVE1_FANIN_A.md
+  JOB_05: {role: contradictory_qa, status: BLOCKED_BY_JOB04}
+  JOB_06: {role: showcase_kit, status: BLOCKED_BY_JOB04}
+  JOB_07: {role: pilot_packaging_ux, status: BLOCKED_BY_JOB04}
   JOB_08: {role: final_integrator, status: BLOCKED}
   JOB_09: {role: human_student_readiness, status: BLOCKED}
 student_candidate:
