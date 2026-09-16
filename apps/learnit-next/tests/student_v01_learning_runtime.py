@@ -37,6 +37,18 @@ async function rehash(pkg){
   return pkg;
 }
 
+async function validateSvg(data){
+  const candidate=clone(fixture);
+  candidate.assets[0].data=data;
+  await rehash(candidate);
+  return C.validatePackageObject(candidate);
+}
+
+async function unsafeSvg(data){
+  const result=await validateSvg(data);
+  ok(!result.ok && result.errors.some(x=>x.code==='unsafe_svg'),`Expected unsafe SVG rejection: ${data}`);
+}
+
 const historicalV2={
   contract:'learnit.kit.v2',
   packageLineageId:'11111111-1111-4111-8111-111111111111',
@@ -142,8 +154,26 @@ eq(mp.rightItems.map(x=>x.itemId),[m.rightItems[1].itemId,m.rightItems[0].itemId
 const cp=X.projectActivityPresentation(byType.constructed,{assets:fixture.assets});
 eq(cp.media[0],{assetId:fixture.assets[0].assetId,format:'svg',alt:'Schéma pédagogique',caption:'Exemple sûr',pedagogicalRole:'question_stimulus',data:fixture.assets[0].data,placement:'prompt',display:'contained',zoomable:false});
 
-// Media references and unsafe SVG fail closed at runtime/import admission.
-const unsafe=clone(fixture); unsafe.assets[0].data='<svg onload="alert(1)"><script>alert(1)</script></svg>'; await rehash(unsafe); r=await C.validatePackageObject(unsafe); ok(!r.ok && r.errors.some(x=>x.code==='unsafe_svg'));
+// SVG namespace metadata is admissible, while active/external SVG remains fail-closed.
+const job03Representative='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" role="img"><title>Deux blocs reliés</title><rect x="15" y="25" width="45" height="40" rx="6" fill="#dbeafe" stroke="#1d4ed8"/><rect x="100" y="25" width="45" height="40" rx="6" fill="#dcfce7" stroke="#15803d"/><path d="M60 45h40" stroke="#111827" stroke-width="4"/><path d="m92 37 8 8-8 8" fill="none" stroke="#111827" stroke-width="4"/></svg>';
+r=await validateSvg(job03Representative); ok(r.ok,JSON.stringify(r.errors));
+r=await validateSvg('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 10 10"><defs><path id="p" d="M0 0h10"/></defs><use href="#p"/><rect width="10" height="10" fill="url(#p)"/></svg>'); ok(r.ok,JSON.stringify(r.errors));
+for(const data of [
+  '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect onclick="alert(1)"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><a href="http://example.invalid/x"><rect/></a></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><a href="https://example.invalid/x"><rect/></a></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="https://example.invalid/x"><rect/></a></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><image src="/external.png"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect data-ref="javascript:alert(1)"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect data-ref="vbscript:msgbox(1)"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect data-ref="data:text/html,boom"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect data-ref="file:///tmp/x"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect data-ref="blob:https://example.invalid/id"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect fill="url(/external.svg#paint)"/></svg>',
+  '<svg xmlns="https://www.w3.org/2000/svg"><rect/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg> trailing',
+]) await unsafeSvg(data);
 const missingMedia=clone(fixture); missingMedia.courses[0].activities.find(x=>x.type==='constructed').media[0].assetId='ffffffff-ffff-4fff-8fff-ffffffffffff'; await rehash(missingMedia); r=await C.validatePackageObject(missingMedia); ok(!r.ok && r.errors.some(x=>x.code==='missing_asset_reference'));
 const raster=clone(fixture); raster.assets.push({assetId:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',type:'image',format:'png',alt:'Raster',pedagogicalRole:'memory_anchor',data:'data:image/png;base64,iVBORw0KGgo='}); await rehash(raster); r=await C.validatePackageObject(raster); ok(r.ok,JSON.stringify(r.errors));
 const remoteRaster=clone(raster); remoteRaster.assets.at(-1).data='https://example.invalid/x.png'; await rehash(remoteRaster); r=await C.validatePackageObject(remoteRaster); ok(!r.ok && r.errors.some(x=>x.code==='unsafe_media'));
