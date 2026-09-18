@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-036",
+  "title": "Student V0.1 JOB 07 — pilot packaging and learner-start UX",
+  "status": "approved",
+  "changeClass": "pilot-packaging-and-observability",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 406,
+    "parentWave2Issue": 403,
+    "parentProgramIssue": 380,
+    "qualifiedFaninIssue": 401,
+    "qualifiedFaninPr": 402
+  },
+  "baseline": {
+    "baseCommit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "qualifiedProductBase": "8fa25844cf9ddf7c2429f730d818b3518c46de04",
+    "qualifiedEvidenceBase": "281dc7470d51682c5e6d79d3fff54c46cfbced3b"
+  },
+  "purpose": "Create the smallest deterministic, local/offline pilot package and learner-start flow around the exact qualified application, independent of the final showcase content.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-036.json",
+      "docs/programs/student-v0.1/jobs/JOB_07_PILOT_PACKAGING_UX.md",
+      "pilot/student-v0.1/**",
+      "qualification/STUDENT_V01_JOB07_PILOT_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/tests/**",
+      "showcase/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "work-packages/ATLAS-WP-034.json",
+      "work-packages/ATLAS-WP-035.json"
+    ]
+  },
+  "invariants": [
+    "The pilot layer wraps exact qualified application bytes; it does not fork or patch product semantics.",
+    "The packaging contract is generic with respect to the final V4 kit and must not consume JOB06 output.",
+    "Output is deterministic and local/offline; no backend, remote catalog or network dependency.",
+    "Learner-start friction is measured, not hidden.",
+    "Canonical kit scoring secrets may exist in the local package artifact, but the UI presentation boundary must not leak them; do not claim file-level secrecy.",
+    "A real served V4 journey failure is reported as a product boundary HOLD, not repaired from packaging scope."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP and repository/PR #402 rebind.",
+    "Exact branch ancestry from WAVE2_COMMON_BASE.",
+    "Deterministic package builder or equivalent reproducible packaging mechanism.",
+    "Manifest binding exact app artifact and input kit hashes.",
+    "No remote resources or network requirements.",
+    "Clear learner/facilitator start instructions with measured action count.",
+    "Desktop and mobile browser smoke.",
+    "Import/start/reload/resume/finish probe using an independently generated valid rich V4 fixture, without JOB06 dependency.",
+    "Failure classification if the real application cannot complete the rich journey.",
+    "Package build repeated twice with identical bytes/hash.",
+    "Exact changed paths and rollback."
+  ],
+  "adversarialTests": [
+    "A package that only demonstrates qcm/fill cannot claim Student V0.1 rich-journey readiness.",
+    "A wrapper that embeds a modified app artifact is a scope failure.",
+    "A non-deterministic ZIP/timestamp or unbound kit/app pair is a packaging failure.",
+    "A start guide that requires undocumented developer knowledge is a learner-start failure.",
+    "A mobile path that cannot import/start or resume is a HOLD, not a desktop-only PASS.",
+    "No auto-import hack may bypass browser security or mutate core application code."
+  ],
+  "nonGoals": [
+    "Repairing the learner runtime or presentation stack.",
+    "Authoring the final showcase kit.",
+    "Publishing remotely.",
+    "Changing contracts or CI.",
+    "Running real students."
+  ],
+  "independentReview": [
+    "The package must be testable with any valid V4 candidate, not only one hard-coded kit.",
+    "The worker must report actual start friction and not optimize the metric by skipping required learner actions.",
+    "The full served-browser smoke is the authority for pilot feasibility."
+  ],
+  "execution": {
+    "branch": "student-v01/wave2-pilot-package",
+    "phase": "WAVE2_JOB07_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "G3_WAVE2_OUTPUT_REVIEW",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the JOB07 PR and delete its branch; qualified product bytes and sibling branches remain unchanged."
+}
