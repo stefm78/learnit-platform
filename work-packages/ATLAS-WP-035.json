@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-035",
+  "title": "Student V0.1 JOB 06 — real showcase kit",
+  "status": "approved",
+  "changeClass": "authoring-and-learning-content",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 405,
+    "parentWave2Issue": 403,
+    "parentProgramIssue": 380,
+    "qualifiedFaninIssue": 401,
+    "qualifiedFaninPr": 402
+  },
+  "baseline": {
+    "baseCommit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "qualifiedProductBase": "8fa25844cf9ddf7c2429f730d818b3518c46de04",
+    "qualifiedEvidenceBase": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "preferredSource": "authoring/v2/atlas/nombres_complexes_atlas.json"
+  },
+  "purpose": "Produce one source-traceable 30–45 minute canonical learnit.kit.v4 showcase journey for later pilot qualification, using existing canonical Nombres complexes material as the bounded content source.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-035.json",
+      "docs/programs/student-v0.1/jobs/JOB_06_SHOWCASE_KIT.md",
+      "showcase/student-v0.1/**",
+      "qualification/STUDENT_V01_JOB06_SHOWCASE_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "apps/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "work-packages/ATLAS-WP-034.json",
+      "work-packages/ATLAS-WP-036.json"
+    ]
+  },
+  "invariants": [
+    "The V4 contract and authoring validators are read-only authorities.",
+    "The existing canonical Nombres complexes Atlas kit is content evidence, not permission to invent unsupported mathematics.",
+    "The showcase is a new V4 candidate, not an automatic in-place migration of V2 identities.",
+    "Source fidelity outranks activity variety and quality diagnostics.",
+    "There is no activity-family quota.",
+    "A qcm/fill-only result is not sufficient to demonstrate Student V0.1 richness; genuinely distinct cognitive operations must be represented when supported by the source.",
+    "Lesson/flashcard remain non-scored exposure only.",
+    "Media must be local, pedagogically justified and fail closed.",
+    "No runtime/UI/contract/workflow code is changed."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP and repository/PR #402 rebind.",
+    "Exact branch ancestry from WAVE2_COMMON_BASE.",
+    "Explicit learner brief for a 30–45 minute journey.",
+    "External provenance map from every new V4 learning unit to the canonical source material it derives from.",
+    "Canonical V4 validation PASS.",
+    "Pedagogical-quality report at least STRONG; EXCELLENT_BY_PROFILE preferred without source distortion.",
+    "Evidence that chosen activity families correspond to distinct cognitive operations rather than variety quota.",
+    "At least one meaningful non-scored learning unit and meaningful evaluated interactions beyond only qcm/fill, unless the source honestly prevents that—in which case HOLD.",
+    "Embedded media safety and alt/pedagogicalRole checks if media is used.",
+    "Factory context generation bound to exact source/brief/kit hashes.",
+    "No fabricated claim of independent semantic review; status must be explicit.",
+    "Exact total estimated duration 30–45 minutes.",
+    "Exact changed paths and rollback."
+  ],
+  "adversarialTests": [
+    "Adding a family solely to increase variety is a quality failure.",
+    "Any new mathematical fact/example not supported by the chosen canonical source basis is a source-fidelity failure.",
+    "A lesson-heavy or assessment-only journey is a quality HOLD.",
+    "A classify task that is disguised matching, an order task with non-meaningful order, or constructed free text with unbounded semantics is a HOLD.",
+    "Reusing V2 identity semantics without explicit V4 authority is forbidden; use fresh V4 identities when continuity is not normatively defined.",
+    "A semantic-review PASS may be claimed only with independently bound evidence."
+  ],
+  "nonGoals": [
+    "Changing authoring tooling.",
+    "Changing learner runtime/UI.",
+    "Publishing the kit.",
+    "Using another Wave 2 branch.",
+    "Starting students."
+  ],
+  "independentReview": [
+    "The worker must challenge whether Nombres complexes is sufficient for a truthful rich V4 journey before authoring.",
+    "The worker must preserve provenance outside the kit rather than inventing new contract fields.",
+    "The final candidate must remain useful as real learning content, not a feature demo."
+  ],
+  "execution": {
+    "branch": "student-v01/wave2-showcase-kit",
+    "phase": "WAVE2_JOB06_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "G3_WAVE2_OUTPUT_REVIEW",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the JOB06 PR and delete its branch; no product code or sibling branch is changed."
+}
