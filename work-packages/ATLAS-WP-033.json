@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-033",
+  "title": "Student V0.1 JOB 04 R3 — cross-role oracle alignment and full FAN-IN requalification",
+  "status": "approved",
+  "changeClass": "bounded-integration-oracle-correction",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 401,
+    "parentIssue": 380,
+    "parentFaninIssue": 391,
+    "predecessorIssue": 397,
+    "predecessorWorkPackage": "ATLAS-WP-032",
+    "predecessorPr": 398
+  },
+  "baseline": {
+    "baseCommit": "249ea00b287fb98fb9ad02b8ffeff2fe2eeec670",
+    "priorExecutableResult": "7d261fd515b36f20865daea5a933c4ff3e7ffc16",
+    "priorQualificationObject": "qualification/STUDENT_V01_FANIN_A_R2_RESULT.md",
+    "frozenRoleHeads": {
+      "JOB_01_R2": "ef3080e32e873170c6fd2fbdc72e93c31389cebb",
+      "JOB_02": "6c91346d07c934cfb2917799084647b13e4fb931",
+      "JOB_03": "a90ba85857dded331e5e3952c2f181cbe2e6d689"
+    }
+  },
+  "purpose": "Resolve only the cross-role FAN-IN oracle ordering inconsistency exposed after R2 role convergence, then rerun the complete exact-head integration qualification without changing product semantics or frozen role code.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-033.json",
+      "docs/programs/student-v0.1/jobs/JOB_04_R3_FANIN_ORACLE_ALIGNMENT.md",
+      "apps/learnit-next/tests/student_v01_fanin_a.py",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_FANIN_A_R3_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/tests/student_v01_learning_runtime.py",
+      "apps/learnit-next/tests/student_v01_activity_presentation.py",
+      "apps/learnit-next/tests/browser_student_v01_activity_presentation.py",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "The exact R2 product candidate remains unchanged; R3 may alter only the cross-role integration oracle plus minimum exact CI routing and evidence.",
+    "JOB01 R2, JOB02 and JOB03 exact role heads remain frozen and no role-owned product file is modified.",
+    "learnit.kit.v2, learnit.kit.v3 and learnit.kit.v4 schema/semantics remain unchanged.",
+    "The oracle must test an authority-supported ordering invariant, not encode an arbitrary family order.",
+    "If no canonical family sort is defined by contract/architecture/runtime authority, the oracle must separately prove exact family coverage and source-order preservation.",
+    "Changing the representative JOB03 package to fit the old oracle is forbidden.",
+    "Changing projectActivityPresentation() or any product source to fit the old oracle is forbidden.",
+    "No Wave 2 launch, main merge, product promotion or real student use occurs inside this work package."
+  ],
+  "requiredEvidence": [
+    "Fresh Human Control Plane and repository main rebind before mutation.",
+    "PR #398 live head remains exactly 249ea00b287fb98fb9ad02b8ffeff2fe2eeec670 at R3 branch creation baseline, or any later drift is explicitly classified before continuation.",
+    "R2 qualification and both exact-head CI failures are re-read rather than trusted from prose.",
+    "The old oracle mismatch is reproduced from exact current files: hard-coded FAMILIES order versus make_valid_v4() activity order.",
+    "Repository evidence is searched for any normative canonical activity-family sort before changing the oracle.",
+    "If no such sort exists, the corrected oracle proves one occurrence of every expected Student V0.1 family and exact preservation of input activity order by projection.",
+    "The corrected oracle remains learner-secret-safe and does not weaken any existing assertions.",
+    "Canonical deterministic build is executed twice on the exact final executable head and both artifact hashes/byte counts match.",
+    "JOB01 R2, JOB02 static/browser, JOB03 v4/quality/factory, v2/v3 regression and the corrected full cross-role E2E oracle all pass.",
+    "Repository governance, PR scope and exact routed Learn-it Next integration CI pass on the exact executable head.",
+    "Qualification evidence binds exact base/result/evidence SHAs, workflow run IDs, artifact hash and rollback."
+  ],
+  "adversarialTests": [
+    "Replacing the hard-coded order with no ordering assertion at all fails review.",
+    "Sorting both expected and observed lists without separately proving source-order preservation fails review.",
+    "Reordering make_valid_v4() activities merely to satisfy FAMILIES fails review.",
+    "Changing projectActivityPresentation() to impose family sorting fails scope.",
+    "Changing any JOB01/JOB02/JOB03 product code fails scope.",
+    "Changing source_manifest.json fails scope because the oracle is not a declared build source.",
+    "Any newly exposed semantic/E2E failure returns HOLD with the owning boundary; the integrator must not silently repair it.",
+    "Any evidence of an authoritative canonical family order contradictory to the proposed source-order invariant requires HOLD before test mutation."
+  ],
+  "nonGoals": [
+    "Redesigning activity sequencing.",
+    "Changing the v4 contract or architecture.",
+    "Changing the representative authoring package.",
+    "Changing runtime, presentation or authoring role implementations.",
+    "Improving learner UX.",
+    "Launching Wave 2.",
+    "Merging to main."
+  ],
+  "independentReview": [
+    "R2 reached this boundary only after all role suites passed and the previous SVG boundary was closed.",
+    "The ordering inconsistency must be re-derived from exact repository state by a fresh worker.",
+    "The final corrected oracle must be exercised by exact-head CI independently of local execution."
+  ],
+  "execution": {
+    "branch": "student-v01/fanin-a-r3-oracle",
+    "phase": "ORACLE_ALIGNMENT_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB04_R3_FULL_INTEGRATION_QUALIFICATION",
+    "finalVerdict": "PENDING_R3_INTEGRATION_QUALIFICATION"
+  },
+  "rollback": "Close the R3 PR and delete its branch. PR #398 remains frozen at its R2 evidence head; the exact R2 executable result and frozen role heads remain recoverable."
+}
