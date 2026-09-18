@@ -121,7 +121,12 @@ def main() -> int:
         # JOB01 -> explicit runtime admission and learner-safe projection.
         projected = run_node(PROJECT, kit_path=kit_path)
         presentations = projected["presentations"]
-        assert [p["type"] for p in presentations] == list(FAMILIES)
+        source_types = [a["type"] for a in kit["courses"][0]["activities"]]
+        assert len(FAMILIES) == len(set(FAMILIES)), "expected family list must not contain duplicates"
+        assert len(source_types) == len(FAMILIES), (source_types, FAMILIES)
+        assert len(source_types) == len(set(source_types)), f"duplicate source families: {source_types}"
+        assert set(source_types) == set(FAMILIES), (source_types, FAMILIES)
+        assert [p["type"] for p in presentations] == source_types
         presentation_by_type = {p["type"]: p for p in presentations}
         activity_by_type = {a["type"]: a for a in kit["courses"][0]["activities"]}
         for family, presentation in presentation_by_type.items():
