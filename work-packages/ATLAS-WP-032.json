@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-032",
+  "title": "Student V0.1 JOB 04 R2 — controlled FAN-IN A convergence",
+  "status": "approved",
+  "changeClass": "controlled-role-rework-integration",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 397,
+    "parentIssue": 380,
+    "parentFaninIssue": 391,
+    "priorFaninWorkPackage": "ATLAS-WP-030",
+    "job01R2Issue": 395,
+    "job01R2WorkPackage": "ATLAS-WP-031"
+  },
+  "baseline": {
+    "baseCommit": "f4636e06279481b62ffd676ba70313c71283baeb",
+    "faninABase": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
+    "r2StartCandidate": "f4636e06279481b62ffd676ba70313c71283baeb",
+    "wave1CommonBase": "27846dff52fde9b83434bca29bd8732ea42834bf",
+    "acceptedRoleHeads": {
+      "JOB_01_PREDECESSOR": "d937592fb4d1e6dba6fcd02e290290f1a98cff71",
+      "JOB_01_R2": "ef3080e32e873170c6fd2fbdc72e93c31389cebb",
+      "JOB_02": "6c91346d07c934cfb2917799084647b13e4fb931",
+      "JOB_03": "a90ba85857dded331e5e3952c2f181cbe2e6d689"
+    }
+  },
+  "purpose": "Apply the exact independently qualified JOB01 R2 media-policy delta to the exact failed executable FAN-IN A candidate, then rerun the full integration qualification without rebuilding or redesigning unaffected role streams.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-031.json",
+      "work-packages/ATLAS-WP-032.json",
+      "docs/programs/student-v0.1/FANIN_A_R2_INPUT_FREEZE.md",
+      "docs/programs/student-v0.1/jobs/JOB_04_R2_WAVE1_FANIN_A.md",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/tests/student_v01_learning_runtime.py",
+      "apps/learnit-next/source_manifest.json",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_FANIN_A_R2_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "apps/learnit-next/src/ui/**",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/integration/atlas/**",
+      "apps/learnit-next/tests/student_v01_activity_presentation.py",
+      "apps/learnit-next/tests/browser_student_v01_activity_presentation.py",
+      "apps/learnit-next/tests/student_v01_fanin_a.py",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "R2 starts from exact failed executable candidate f4636e06279481b62ffd676ba70313c71283baeb.",
+    "JOB01 R2 is admitted only as the exact delta d937592fb4d1e6dba6fcd02e290290f1a98cff71..ef3080e32e873170c6fd2fbdc72e93c31389cebb.",
+    "JOB02 and JOB03 remain frozen and unmodified.",
+    "v2 and v3 meanings remain unchanged; v4 architecture/schema remains frozen.",
+    "Standard SVG namespace metadata may be admitted, but active/external SVG references remain fail-closed.",
+    "Lesson and flashcard remain non-scored and create no mastery/validation evidence.",
+    "Scoring secrets never cross learner-safe ActivityPresentation.",
+    "Any integration edit beyond exact JOB01 R2 role delta and minimal source-manifest/CI/result wiring fails scope.",
+    "No Wave 2 launch, main merge, product promotion or student use occurs inside this work package."
+  ],
+  "requiredEvidence": [
+    "Current Human Control Plane and repository main are freshly re-read before mutation.",
+    "PR #396 live head equals ef3080e32e873170c6fd2fbdc72e93c31389cebb and remains unmerged.",
+    "JOB01 R2 merge-base with predecessor is exactly d937592fb4d1e6dba6fcd02e290290f1a98cff71 and changed-path set is exact.",
+    "R2 start candidate is exactly the JOB04 R1 executable candidate f4636e06279481b62ffd676ba70313c71283baeb.",
+    "Exact JOB01 R2 delta is applied without reauthoring.",
+    "JOB01, JOB02 and JOB03 role qualification suites pass on the new integrated head.",
+    "v2 and v3 regression suites pass.",
+    "v4 end-to-end passes from authoring through runtime/presentation for qcm, fill, constructed, lesson, flashcard, matching, order, classify and media.",
+    "Standard SVG namespace passes and malicious/external SVG adversarial cases fail closed.",
+    "Secret boundary and non-scored lesson/flashcard invariants pass.",
+    "Repository governance, PR scope and exact routed integration CI pass on the exact R2 candidate head.",
+    "Qualification evidence binds all exact input/result SHAs and reservations."
+  ],
+  "adversarialTests": [
+    "Any PR #396 head drift from the accepted JOB01 R2 SHA fails closed.",
+    "Any JOB01 R2 delta path outside the frozen three-path set fails closed.",
+    "Any JOB02/JOB03 role-file mutation fails scope.",
+    "Any global allowance of http/https/data/file/blob/javascript/vbscript URI schemes in SVG fails security qualification.",
+    "Any remote media acceptance fails qualification.",
+    "Any lesson/flashcard correctness/mastery contamination fails qualification.",
+    "Any learner-visible scoring secret fails qualification.",
+    "Any v2/v3 regression fails qualification.",
+    "Any new semantic defect requiring role redesign returns HOLD rather than being repaired by the integrator."
+  ],
+  "nonGoals": [
+    "Rebuilding Wave 1 from scratch.",
+    "Changing JOB02 or JOB03.",
+    "Changing learnit.kit.v4 schema or architecture.",
+    "Improving UI or authoring semantics.",
+    "Launching Wave 2.",
+    "Merging product changes to main.",
+    "Running student sessions."
+  ],
+  "independentReview": [
+    "JOB01 R2 was independently qualified on PR #396 before FAN-IN A R2.",
+    "JOB02 and JOB03 remain frozen at their previously accepted exact role heads.",
+    "JOB04 R2 must rerun the full integration oracle and must not silently repair role semantics."
+  ],
+  "execution": {
+    "branch": "student-v01/fanin-a-r2",
+    "phase": "CONTROLLED_FANIN_A_R2_PREPARED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB04_R2_FULL_INTEGRATION_QUALIFICATION",
+    "finalVerdict": "PENDING_R2_INTEGRATION_QUALIFICATION"
+  },
+  "rollback": "Close the FAN-IN A R2 PR and delete its branch. Prior candidate f4636e06279481b62ffd676ba70313c71283baeb, PR #393, JOB01 R2 PR #396, and frozen JOB02/JOB03 heads remain independently recoverable."
+}

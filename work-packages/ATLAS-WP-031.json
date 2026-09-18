@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-031",
+  "title": "Student V0.1 JOB 01 R2 — SVG media policy alignment",
+  "status": "approved",
+  "changeClass": "bounded-runtime-media-policy-correction",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 395,
+    "parentIssue": 380,
+    "parentFaninIssue": 391,
+    "predecessorWorkPackage": "ATLAS-WP-027"
+  },
+  "baseline": {
+    "baseCommit": "d937592fb4d1e6dba6fcd02e290290f1a98cff71",
+    "failingIntegratedCandidate": "f4636e06279481b62ffd676ba70313c71283baeb",
+    "frozenJob03Evidence": "a90ba85857dded331e5e3952c2f181cbe2e6d689"
+  },
+  "purpose": "Correct the JOB01 runtime SVG admission false-positive for standards-compliant namespace declarations while preserving fail-closed rejection of active and external SVG references, then requalify the exact role result for FAN-IN A R2.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-031.json",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/tests/student_v01_learning_runtime.py",
+      "apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "contracts/**",
+      "authoring/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/ui/**",
+      "apps/learnit-next/src/atlas.css",
+      "docs/architecture/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "The frozen v4 contract is unchanged.",
+    "A standards-compliant inline SVG namespace declaration is not treated as an executable or external media reference.",
+    "External href/xlink:href/src references, active URI schemes, scripts, event handlers and external url() references remain fail-closed.",
+    "The correction is owned by JOB01 runtime media admission; JOB03 authoring output is not modified to fit the bug.",
+    "v2 and v3 semantics remain unchanged.",
+    "Lesson/flashcard non-scored behavior and learner-safe secret boundaries remain unchanged.",
+    "PR #387 and its frozen predecessor SHA are not mutated."
+  ],
+  "requiredEvidence": [
+    "Valid inline SVG containing xmlns=http://www.w3.org/2000/svg is admitted.",
+    "The exact representative JOB03 media case from a90ba85857dded331e5e3952c2f181cbe2e6d689 is admitted unchanged by corrected JOB01 runtime.",
+    "Existing malicious SVG cases remain rejected and new namespace-vs-reference adversarial cases pass.",
+    "JOB01 role qualification passes on the exact result head.",
+    "v2 regression and v3 constructed regression pass.",
+    "v4 evaluated and non-scored semantics pass.",
+    "Secret-boundary tests pass.",
+    "Changed paths are a subset of allowedPaths.",
+    "The result is published on a new DRAFT PR without moving PR #387."
+  ],
+  "adversarialTests": [
+    "Globally allowing http: or https: anywhere in SVG fails review.",
+    "Allowing external href, xlink:href or src references fails review.",
+    "Allowing script, foreignObject, iframe, object, embed, link, meta, style, animate, set or event-handler execution fails review.",
+    "Allowing external url() references fails review.",
+    "Changing authoring, UI, workflows, source manifest or v4 schema fails scope.",
+    "Changing unrelated JOB01 runtime semantics fails scope."
+  ],
+  "nonGoals": [
+    "Redesigning the media model.",
+    "Changing authoring or Factory validation.",
+    "Changing learner UI sanitization or rendering.",
+    "Adding a generic SVG parser framework or third-party dependency without a demonstrated need.",
+    "Launching FAN-IN A R2, Wave 2, product promotion or student use."
+  ],
+  "independentReview": [
+    "The defect was discovered by JOB04 cross-role qualification, not by JOB01 self-review.",
+    "JOB03 exact frozen output is used as read-only compatibility evidence.",
+    "A future FAN-IN A R2 must independently recombine the new JOB01 result with unchanged JOB02/JOB03 exact heads."
+  ],
+  "execution": {
+    "branch": "student-v01/wave1-learning-runtime-r2-svg",
+    "phase": "ROLE_REWORK_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB01_R2_EXACT_HEAD_ROLE_REVIEW",
+    "finalVerdict": "PENDING_REWORK_QUALIFICATION"
+  },
+  "rollback": "Close the JOB01 R2 PR and delete its branch. PR #387 remains frozen at d937592fb4d1e6dba6fcd02e290290f1a98cff71 and FAN-IN A remains on HOLD."
+}
