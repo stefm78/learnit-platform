@@ -118,10 +118,12 @@ def run_viewport(browser, url: str, viewport: dict[str, int], touch: bool) -> No
     page.get_by_text("Student V0.1 runtime fixture", exact=True).wait_for()
     page.get_by_role("button", name="Commencer").click()
 
+    expect_heading_focus = True
     for index, family in enumerate(FAMILIES):
         page.locator(f'[data-activity-presentation="{family}"]').wait_for()
         assert_safe_runtime_activity(page, family)
-        assert page.locator("#activity-title").evaluate("e => document.activeElement === e")
+        if expect_heading_focus:
+            page.wait_for_function("() => document.activeElement?.id === 'activity-title'")
         assert page.evaluate("() => document.documentElement.scrollWidth <= window.innerWidth")
         answer_family(page, family)
         if family == "lesson":
@@ -129,9 +131,11 @@ def run_viewport(browser, url: str, viewport: dict[str, int], touch: bool) -> No
             page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
             page.locator('[data-activity-presentation="flashcard"]').wait_for()
             assert_safe_runtime_activity(page, "flashcard")
+            expect_heading_focus = False
             continue
         if index < len(FAMILIES) - 1:
             page.locator('[data-served-next-action="true"]').click()
+            expect_heading_focus = True
 
     page.locator('[data-served-next-action="true"]').click()
     page.get_by_text("Cours terminé", exact=True).wait_for()
