@@ -9,6 +9,7 @@ import {
   createProgressService,
 } from './core/progress.js';
 import { createSessionService } from './core/session.js';
+import { projectActivityPresentation } from './integration/atlas/activity_projection.js';
 import * as objectiveProgressDomain from './core/objective_progress.js';
 import * as learningRecommendationDomain from './core/learning_recommendation.js';
 import { createIndexedDbStorage } from './adapters/indexeddb.js';
@@ -134,6 +135,39 @@ export function createLearnitRuntime(
   );
   const sessions = createSessionService(storage, progress);
 
+  async function projectLearnerActivity(activity, courseInstallId) {
+    if (activity == null) return null;
+    const courseRecord = await library.getCourse(courseInstallId);
+    if (!courseRecord) throw new Error(`Unknown courseInstallId ${courseInstallId}`);
+    return Object.freeze({
+      activityRevisionId: activity.activityRevisionId,
+      presentation: projectActivityPresentation(activity, {
+        assets: courseRecord.packageAssets ?? [],
+      }),
+    });
+  }
+
+  async function projectLearnerSession(value) {
+    if (value == null) return null;
+    return Object.freeze({
+      ...value,
+      currentActivity: await projectLearnerActivity(
+        value.currentActivity,
+        value.courseInstallId,
+      ),
+    });
+  }
+
+  async function projectLearnerAnswer(value) {
+    return Object.freeze({
+      ...value,
+      nextActivity: await projectLearnerActivity(
+        value.nextActivity,
+        value.courseInstallId,
+      ),
+    });
+  }
+
   const runtime = {
     contractVersion: CONTRACT_VERSION,
     validatePackage: (payload) => imports.validatePackage(payload),
@@ -164,9 +198,9 @@ export function createLearnitRuntime(
       return enriched;
     },
     setCourseDisplayLabel: (courseInstallId, label) => library.setDisplayLabel(courseInstallId, label),
-    startCourse: (courseInstallId) => sessions.startCourse(courseInstallId),
-    startReviewQueue: (courseInstallId) => sessions.startReviewQueue(courseInstallId),
-    answer: (activityRevisionId, answer) => sessions.answer(activityRevisionId, answer),
+    startCourse: async (courseInstallId) => projectLearnerSession(await sessions.startCourse(courseInstallId)),
+    startReviewQueue: async (courseInstallId) => projectLearnerSession(await sessions.startReviewQueue(courseInstallId)),
+    answer: async (activityRevisionId, answer) => projectLearnerAnswer(await sessions.answer(activityRevisionId, answer)),
     async getProgress(courseInstallId) {
       const courseRecord = await library.getCourse(courseInstallId);
       if (!courseRecord) throw new Error(`Unknown courseInstallId ${courseInstallId}`);
@@ -231,8 +265,8 @@ export function createLearnitRuntime(
       atlasM1: atlasRuntime.status(),
     }),
 
-    resumeActiveCourse: () => sessions.resumeActiveCourse(),
-    getSession: () => sessions.getSession(),
+    resumeActiveCourse: async () => projectLearnerSession(await sessions.resumeActiveCourse()),
+    getSession: async () => projectLearnerSession(await sessions.getSession()),
   };
 
   return Object.freeze(runtime);
