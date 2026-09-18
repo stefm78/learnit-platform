@@ -114,7 +114,7 @@ def run_viewport(browser, url: str, viewport: dict[str, int], touch: bool) -> No
         "mimeType": "application/json",
         "buffer": FIXTURE.read_bytes(),
     })
-    page.get_by_role("button", name="Importer").click()
+    page.locator("form.import-panel button[type='submit']").click()
     page.get_by_text("Student V0.1 runtime fixture", exact=True).wait_for()
     page.get_by_role("button", name="Commencer").click()
 
