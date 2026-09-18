@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-034",
+  "title": "Student V0.1 JOB 05 — contradictory QA",
+  "status": "approved",
+  "changeClass": "independent-contradictory-qa",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 404,
+    "parentWave2Issue": 403,
+    "parentProgramIssue": 380,
+    "qualifiedFaninIssue": 401,
+    "qualifiedFaninPr": 402
+  },
+  "baseline": {
+    "baseCommit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "qualifiedProductBase": "8fa25844cf9ddf7c2429f730d818b3518c46de04",
+    "qualifiedEvidenceBase": "281dc7470d51682c5e6d79d3fff54c46cfbced3b"
+  },
+  "purpose": "Independently attack the real served/browser Student V0.1 path and expose any mismatch between seam-level integration PASS and actual learner behavior without repairing product code.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-034.json",
+      "docs/programs/student-v0.1/jobs/JOB_05_CONTRADICTORY_QA.md",
+      "qa/student-v0.1/**",
+      "qualification/STUDENT_V01_JOB05_QA_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/tests/**",
+      "showcase/**",
+      "pilot/**",
+      "governance/**",
+      "tools/**",
+      "work-packages/ATLAS-WP-035.json",
+      "work-packages/ATLAS-WP-036.json"
+    ]
+  },
+  "invariants": [
+    "QA is independent and may add only QA fixtures/probes/evidence under its own namespace.",
+    "The exact qualified product/evidence bytes are treated as read-only.",
+    "A seam-level PASS is not accepted as proof of a real served learner journey.",
+    "QA must exercise the built application through a browser path where applicable.",
+    "Any discovered product defect is reported with exact reproduction and owner classification; QA must not repair it.",
+    "No Wave 2 sibling output is consumed.",
+    "No contract, architecture, runtime, presentation, authoring, manifest or workflow semantics are changed."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP and repository/PR #402 rebind.",
+    "Exact branch ancestry from WAVE2_COMMON_BASE.",
+    "Deterministic build identity verification.",
+    "Real browser import/start path using an independently fixed valid V4 QA fixture.",
+    "Desktop and mobile viewport probes.",
+    "All supported activity families challenged through the real application path, not only isolated presentation functions.",
+    "Reload/resume and completion probes.",
+    "Non-scored lesson/flashcard contamination challenge.",
+    "Learner-safe secret leakage challenge.",
+    "Malicious/remote media fail-closed challenge.",
+    "Storage isolation and reset challenge.",
+    "V2/V3 regression probes.",
+    "Accessibility smoke for keyboard/focus/labels/non-drag alternatives.",
+    "Exact changed-path scope and rollback."
+  ],
+  "adversarialTests": [
+    "A fixture that passes canonical V4 validation but reaches a real application unsupported-type boundary must produce HOLD, not be simplified to qcm/fill.",
+    "A browser-only failure cannot be waived because lower-level unit tests pass.",
+    "A direct projectActivityPresentation()/renderActivityPresentation composition does not substitute for served session navigation.",
+    "No test may expose scoring secrets to the presentation layer merely to make automation easier.",
+    "Remote media/network requests are forbidden.",
+    "Any attempt to fix product source from QA scope is a scope FAIL."
+  ],
+  "nonGoals": [
+    "Repairing product code.",
+    "Authoring the showcase kit.",
+    "Building the pilot package.",
+    "Changing CI routing.",
+    "Merging to main or starting real students."
+  ],
+  "independentReview": [
+    "This job must derive its own defect hypotheses from repository state.",
+    "It must prefer false-PASS challenges over replaying only known happy paths.",
+    "A final PASS requires no unclassified contradiction between served behavior and qualified seams."
+  ],
+  "execution": {
+    "branch": "student-v01/wave2-contradictory-qa",
+    "phase": "WAVE2_JOB05_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "G3_WAVE2_OUTPUT_REVIEW",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the JOB05 PR and delete its branch; product candidate and all sibling branches remain unchanged."
+}
