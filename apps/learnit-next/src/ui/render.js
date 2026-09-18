@@ -1,3 +1,5 @@
+import { renderActivityPresentation, readActivityResponse } from './activity_presenters.js';
+
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
   for (const [name, value] of Object.entries(attributes)) {
@@ -159,6 +161,53 @@ function renderFillForm(activity, submit) {
     event.preventDefault();
     const answer = Object.fromEntries(selects.map((select) => [select.dataset.slotId, select.value]));
     submit(answer);
+  });
+  return form;
+}
+
+function activityPresentationHeading(presentation) {
+  return presentation.prompt
+    ?? presentation.title
+    ?? presentation.front
+    ?? 'Activité';
+}
+
+function renderServedActivityForm(activity, submit) {
+  const presentation = activity?.presentation;
+  if (!presentation || typeof presentation !== 'object') {
+    throw new TypeError('Learner-safe ActivityPresentation is required');
+  }
+  const responseStatus = node('p', {
+    className: 'help',
+    role: 'status',
+    'aria-live': 'polite',
+    'data-served-activity-response-status': 'true',
+  });
+  const submitLabel = ['lesson', 'flashcard'].includes(presentation.type)
+    ? 'Continuer'
+    : 'Valider';
+  const form = node('form', {
+    className: 'activity-form served-activity-form',
+    'data-served-activity-type': presentation.type,
+  }, [
+    renderActivityPresentation(presentation),
+    responseStatus,
+    node('button', {
+      type: 'submit',
+      className: 'primary',
+      text: submitLabel,
+      'data-served-activity-submit': 'true',
+    }),
+  ]);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    responseStatus.textContent = '';
+    try {
+      submit(readActivityResponse(form, presentation));
+    } catch (error) {
+      if (error?.code !== 'ACTIVITY_RESPONSE_REQUIRED') throw error;
+      responseStatus.textContent = error.message;
+    }
   });
   return form;
 }
@@ -570,8 +619,9 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       return renderLibrary({ announcement: message });
     }
     const activity = session.currentActivity;
+    const presentation = activity.presentation;
     const reviewMode = session.mode === 'review';
-    const activityTitle = node('h2', { id: 'activity-title', tabindex: '-1', text: activity.prompt });
+    const activityTitle = node('h2', { id: 'activity-title', tabindex: '-1', text: activityPresentationHeading(presentation) });
     const objectiveSurface = renderObjectiveSurface(objectiveUi, {
       context: reviewMode ? 'review' : 'session',
       courseObjectives: session.courseObjectives,
@@ -585,9 +635,10 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       renderProgress(session.progress),
       objectiveSurface,
       reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
-      activity.type === 'qcm'
-        ? renderQcmForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
-        : renderFillForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer)),
+      renderServedActivityForm(
+        activity,
+        (answer) => submitAnswer(activity.activityRevisionId, answer),
+      ),
       reviewMode ? node('button', {
         type: 'button',
         className: 'secondary',
@@ -602,9 +653,14 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     const reviewMode = result.mode === 'review';
     const reviewRemaining = result.review?.remaining ?? 0;
     const complete = result.progress.isComplete;
-    const outcomeText = result.correct ? 'Réponse correcte' : 'Pas tout à fait';
+    const scored = result.scored === true;
+    const outcomeText = scored
+      ? (result.correct ? 'Réponse correcte' : 'Pas tout à fait')
+      : 'Activité terminée';
     const outcome = node('p', {
-      className: result.correct ? 'feedback-correct' : 'feedback-incorrect',
+      className: scored
+        ? (result.correct ? 'feedback-correct' : 'feedback-incorrect')
+        : 'feedback-neutral',
       role: 'status',
       'aria-live': 'polite',
       'aria-atomic': 'true',
@@ -615,12 +671,14 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       ? node('button', {
         type: 'button',
         className: 'primary',
+        'data-served-next-action': 'true',
         text: reviewRemaining === 0 ? 'Retour à la bibliothèque' : 'Activité suivante à revoir',
         onclick: reviewRemaining === 0 ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
       })
       : node('button', {
         type: 'button',
         className: 'primary',
+        'data-served-next-action': 'true',
         text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
         onclick: complete ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
       });
@@ -630,10 +688,27 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       progress: result.progress,
       activity: result.nextActivity,
     });
-    const section = node('section', { 'aria-labelledby': 'feedback-title', className: 'feedback-panel' }, [
+    const feedbackDetail = result.explanation
+      ? [
+        node('h2', { id: 'feedback-title', text: 'Explication' }),
+        node('p', { text: result.explanation }),
+      ]
+      : [
+        node('h2', { id: 'feedback-title', text: 'Progression enregistrée' }),
+        node('p', {
+          className: 'help',
+          text: scored
+            ? 'Votre réponse a été enregistrée.'
+            : 'Cette activité compte comme terminée, sans score de correction.',
+        }),
+      ];
+    const section = node('section', {
+      'aria-labelledby': 'feedback-title',
+      className: 'feedback-panel',
+      'data-served-feedback': scored ? 'scored' : 'non-scored',
+    }, [
       outcome,
-      node('h2', { id: 'feedback-title', text: 'Explication' }),
-      node('p', { text: result.explanation }),
+      ...feedbackDetail,
       renderProgress(result.progress),
       objectiveSurface,
       reviewMode ? node('p', {
