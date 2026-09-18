@@ -217,7 +217,7 @@ A successor Control Room work package must decide the intended order invariant f
 - Exact routed Learn-it Next integration CI: **FAIL**, solely because the required unchanged FAN-IN oracle fails at the ordering assertion described above.
 - Full authoring-to-learner E2E proof: **FAIL / incomplete**, because the cross-role oracle stops before completing its UI/E2E continuation.
 - No main merge, product promotion, Wave 2 launch or student use is authorized.
-- Temporary CI carrier PR #400 must be closed without merge after this evidence is durably recorded.
+- Temporary CI carrier PR #400 was closed without merge after this evidence was durably recorded.
 - Rollback remains closure/deletion of R2 branch/PR; R1 candidate and frozen role heads remain recoverable.
 
 ## 10. Final result
