@@ -2,7 +2,7 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, student-v01/fanin-a]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
       - 'apps/learnit-next/**'
@@ -127,7 +127,7 @@ jobs:
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
-              student-v01/fanin-a) echo 'student-v01-fanin-a wave' ;;
+              student-v01/fanin-a|student-v01/fanin-a-r2) echo 'student-v01-fanin-a wave' ;;
               *) echo 'ci-router wave' ;;
             esac
           }
@@ -517,24 +517,37 @@ jobs:
 
           if [[ "${PROFILE}" == student-v01-fanin-a ]]; then
             [[ "${EVENT}" == pull_request ]] || {
-              echo "Student V0.1 FAN-IN A route is valid only for PR #393." >&2
+              echo "Student V0.1 FAN-IN A route is valid only for controlled FAN-IN PRs." >&2
               exit 2
             }
-            [[ "${BRANCH}" == student-v01/fanin-a ]] || {
-              echo "Unexpected Student V0.1 FAN-IN A branch: ${BRANCH}" >&2
-              exit 2
-            }
-            [[ "${PR_BASE_SHA}" == 21d25c36aec6c04fdfe8126c95e71cbf80771a1b ]] || {
-              echo "Student V0.1 FAN-IN A PR base drifted: ${PR_BASE_SHA}" >&2
-              exit 2
-            }
+            exact_base=''
+            case "${BRANCH}" in
+              student-v01/fanin-a)
+                [[ "${PR_BASE_SHA}" == 21d25c36aec6c04fdfe8126c95e71cbf80771a1b ]] || {
+                  echo "Student V0.1 FAN-IN A PR base drifted: ${PR_BASE_SHA}" >&2
+                  exit 2
+                }
+                exact_base="${PR_BASE_SHA}"
+                ;;
+              student-v01/fanin-a-r2)
+                [[ "${PR_BASE_SHA}" == a0fc0096840fd0dec79fd87b80906ee291ae36cc ]] || {
+                  echo "Student V0.1 FAN-IN A R2 stacked PR base drifted: ${PR_BASE_SHA}" >&2
+                  exit 2
+                }
+                exact_base=f4636e06279481b62ffd676ba70313c71283baeb
+                ;;
+              *)
+                echo "Unexpected Student V0.1 FAN-IN A branch: ${BRANCH}" >&2
+                exit 2
+                ;;
+            esac
             [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
-            remote="$(git ls-remote --exit-code --heads origin student-v01/fanin-a | awk 'NR==1 {print $1}')"
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
             [[ "${remote}" == "${TARGET}" ]] || {
               echo "Student V0.1 FAN-IN A remote head differs from exact target." >&2
               exit 2
             }
-            [[ "$(git merge-base "${PR_BASE_SHA}" "${TARGET}")" == "${PR_BASE_SHA}" ]] || {
+            [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || {
               echo "Student V0.1 FAN-IN A exact base is no longer an ancestor." >&2
               exit 2
             }
