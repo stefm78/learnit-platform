@@ -2,7 +2,7 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main, student-v01/fanin-a, student-v01/fanin-a-r2]
+    branches: [main, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
       - 'apps/learnit-next/**'
