@@ -1,0 +1,13 @@
+{
+  "schema": "learnit.atlas.learner_brief.v1",
+  "audience": "Apprenant de niveau cohérent avec la source EPF Mathématiques S2, en introduction ou renforcement ciblé sur le conjugué et le module des nombres complexes.",
+  "goal": "À la fin du parcours, calculer et interpréter un conjugué, calculer et interpréter un module, reconnaître la symétrie associée au conjugué et relier le module à une distance à l’origine, dans le périmètre exact de la source.",
+  "language": "fr",
+  "timeBudgetMinutes": 42,
+  "courseCount": 1,
+  "constraints": [
+    "Aucune dépendance backend ou réseau.",
+    "Aucune prétention de couverture complète du programme des nombres complexes.",
+    "Contenu limité aux notions et exemples supportés par authoring/v2/atlas/nombres_complexes_atlas.json au WAVE2_COMMON_BASE."
+  ]
+}
