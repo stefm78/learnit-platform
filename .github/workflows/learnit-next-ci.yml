@@ -2,7 +2,7 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main, student-v01/fanin-a]
+    branches: [main, student-v01/fanin-a, student-v01/fanin-a-r2]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
       - 'apps/learnit-next/**'
@@ -127,7 +127,7 @@ jobs:
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
-              student-v01/fanin-a|student-v01/fanin-a-r2) echo 'student-v01-fanin-a wave' ;;
+              student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
               *) echo 'ci-router wave' ;;
             esac
           }
@@ -538,6 +538,13 @@ jobs:
                     ;;
                 esac
                 exact_base=f4636e06279481b62ffd676ba70313c71283baeb
+                ;;
+              student-v01/fanin-a-r3-oracle)
+                [[ "${PR_BASE_SHA}" == 249ea00b287fb98fb9ad02b8ffeff2fe2eeec670 ]] || {
+                  echo "Student V0.1 FAN-IN A R3 PR base drifted: ${PR_BASE_SHA}" >&2
+                  exit 2
+                }
+                exact_base=249ea00b287fb98fb9ad02b8ffeff2fe2eeec670
                 ;;
               *)
                 echo "Unexpected Student V0.1 FAN-IN A branch: ${BRANCH}" >&2
