@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
 import json
-import os
-import shutil
 import subprocess
-import tempfile
+import threading
+from contextlib import contextmanager
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import Any
+
+from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[3]
 APP = ROOT / "apps" / "learnit-next"
@@ -14,12 +19,25 @@ RENDER = APP / "src" / "ui" / "render.js"
 SURFACE = APP / "src" / "integration" / "atlas" / "surface.js"
 PROJECTION = APP / "src" / "integration" / "atlas" / "activity_projection.js"
 FIXTURE = APP / "tests" / "fixtures" / "student_v01_v4_runtime.json"
+ATLAS_FIXTURE = ROOT / "authoring" / "v2" / "atlas" / "nombres_complexes_atlas.json"
+ARTIFACT = APP / "dist" / "learnit-next.html"
+FORBIDDEN_ACTIVITY_KEYS = {
+    "correctChoiceId",
+    "answers",
+    "acceptedResponses",
+    "matches",
+    "correctOrder",
+    "assignments",
+}
+SCORED_FAMILIES = {"qcm", "fill", "constructed", "matching", "order", "classify"}
+FAMILIES = ["qcm", "fill", "constructed", "lesson", "flashcard", "matching", "order", "classify"]
 
 main = MAIN.read_text(encoding="utf-8")
 render = RENDER.read_text(encoding="utf-8")
 surface = SURFACE.read_text(encoding="utf-8")
 projection = PROJECTION.read_text(encoding="utf-8")
 fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+atlas_fixture = json.loads(ATLAS_FIXTURE.read_text(encoding="utf-8"))
 
 for source in (MAIN, RENDER, SURFACE):
     subprocess.run(["node", "--check", str(source)], cwd=ROOT, check=True)
@@ -34,7 +52,7 @@ assert "projectLearnerSession(await sessions.startReviewQueue" in main
 assert "projectLearnerAnswer(await sessions.answer" in main
 assert "projectLearnerSession(await sessions.resumeActiveCourse" in main
 assert "projectLearnerSession(await sessions.getSession" in main
-for field in ("correctChoiceId", "answers", "acceptedResponses", "matches", "correctOrder", "assignments"):
+for field in FORBIDDEN_ACTIVITY_KEYS:
     assert f"activity.{field}" not in main, field
 
 assert "renderActivityPresentation" in render
@@ -55,212 +73,157 @@ assert "ATLAS_SUPPORTED_ACTIVITY_TYPES.has(activity.type)" in compat
 assert "typeof activity.assessmentRole === 'string'" in compat
 
 families = [item["type"] for item in fixture["courses"][0]["activities"]]
-assert families == ["qcm", "fill", "constructed", "lesson", "flashcard", "matching", "order", "classify"]
+assert families == FAMILIES
 for family in families:
     assert f"case '{family}'" in projection
 
-NODE = r"""
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import {pathToFileURL} from 'node:url';
 
-const root = process.env.SERVED_V4_ROOT;
-const fixture = JSON.parse(fs.readFileSync(process.env.SERVED_V4_FIXTURE, 'utf8'));
-const {createLearnitRuntime} = await import(pathToFileURL(root + '/apps/learnit-next/src/main.js').href);
-const clone = value => structuredClone(value);
-const key = (courseInstallId, activityRevisionId) => courseInstallId + '::' + activityRevisionId;
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *_: Any) -> None:
+        return
 
-class MemoryStorage {
-  constructor() {
-    this.courses = new Map();
-    this.progress = new Map();
-    this.meta = new Map();
-    this.revisions = new Map();
-  }
-  async commitImport(payload) {
-    for (const course of payload.courses ?? []) this.courses.set(course.courseInstallId, clone(course));
-    for (const revision of payload.revisions ?? []) this.revisions.set(revision.revisionId, revision.digest);
-    for (const entry of payload.meta ?? []) this.meta.set(entry.key, clone(entry.value));
-  }
-  async getRevisionDigestIndex() { return new Map(this.revisions); }
-  async listCourses() { return [...this.courses.values()].map(clone); }
-  async getCourse(courseInstallId) { return clone(this.courses.get(courseInstallId) ?? null); }
-  async setCourseDisplayLabel(courseInstallId, label) { this.courses.get(courseInstallId).displayLabel = label; }
-  async listProgress(courseInstallId) {
-    return [...this.progress.values()].filter(item => item.courseInstallId === courseInstallId).map(clone);
-  }
-  async getProgress(courseInstallId, activityRevisionId) {
-    return clone(this.progress.get(key(courseInstallId, activityRevisionId)) ?? null);
-  }
-  async putProgress(record) {
-    this.progress.set(key(record.courseInstallId, record.activityRevisionId), clone(record));
-  }
-  async getMeta(name) { return clone(this.meta.get(name) ?? null); }
-  async setMeta(name, value) { this.meta.set(name, clone(value)); }
-  async deleteMeta(name) { this.meta.delete(name); }
-  async resetNextData() { this.courses.clear(); this.progress.clear(); this.meta.clear(); this.revisions.clear(); }
-  async storageReport() { return {courses: this.courses.size, progress: this.progress.size}; }
-}
 
-const forbidden = new Set(['correctChoiceId', 'answers', 'acceptedResponses', 'matches', 'correctOrder', 'assignments']);
-function forbiddenHits(value, out = []) {
-  if (value == null || typeof value !== 'object') return out;
-  for (const [name, child] of Object.entries(value)) {
-    if (forbidden.has(name)) out.push(name);
-    forbiddenHits(child, out);
-  }
-  return out;
-}
-function assertSafeActivity(activity, expectedType) {
-  assert.ok(activity);
-  assert.deepEqual(Object.keys(activity).sort(), ['activityRevisionId', 'presentation']);
-  assert.equal(activity.presentation.type, expectedType);
-  assert.deepEqual(forbiddenHits(activity), []);
-  for (const name of forbidden) assert.equal(JSON.stringify(activity).includes('"' + name + '"'), false);
-}
-function responseFor(activity) {
-  switch (activity.type) {
-    case 'qcm':
-      return {choiceId: activity.correctChoiceId};
-    case 'fill':
-      return Object.fromEntries(activity.answers.map(entry => [entry.slotId, entry.tokenId]));
-    case 'constructed':
-      return {text: activity.acceptedResponses[0]};
-    case 'lesson':
-      return {acknowledged: true};
-    case 'flashcard':
-      return {revealed: true};
-    case 'matching':
-      return {associations: activity.matches.map(clone)};
-    case 'order':
-      return {orderedItemIds: [...activity.correctOrder]};
-    case 'classify':
-      return {assignments: activity.assignments.map(clone)};
-    default:
-      throw new Error('unsupported family ' + activity.type);
-  }
-}
-
-const runtime = createLearnitRuntime(new MemoryStorage(), {});
-const imported = await runtime.importPackage(fixture);
-const courseInstallId = imported.courses[0].courseInstallId;
-const sourceActivities = fixture.courses[0].activities;
-const familyOrder = sourceActivities.map(activity => activity.type);
-const scoredFamilies = new Set(['qcm', 'fill', 'constructed', 'matching', 'order', 'classify']);
-
-let session = await runtime.startCourse(courseInstallId);
-assertSafeActivity(session.currentActivity, familyOrder[0]);
-
-for (let index = 0; index < sourceActivities.length; index += 1) {
-  const source = sourceActivities[index];
-  assertSafeActivity(session.currentActivity, source.type);
-  if (source.type === 'constructed') {
-    const media = session.currentActivity.presentation.media;
-    assert.equal(media.length, 1);
-    assert.equal(media[0].assetId, fixture.assets[0].assetId);
-    assert.equal(media[0].data, fixture.assets[0].data);
-    assert.equal(media[0].alt, fixture.assets[0].alt);
-  }
-
-  const response = responseFor(source);
-  const result = await runtime.answer(source.activityRevisionId, response);
-  assert.deepEqual(result.answer, response);
-
-  if (scoredFamilies.has(source.type)) {
-    assert.equal(result.scored, true);
-    assert.equal(result.correct, true);
-  } else {
-    assert.equal(result.scored, false);
-    assert.equal(Object.hasOwn(result, 'correct'), false);
-  }
-
-  if (index < sourceActivities.length - 1) {
-    assertSafeActivity(result.nextActivity, familyOrder[index + 1]);
-  } else {
-    assert.equal(result.nextActivity, null);
-  }
-
-  session = await runtime.getSession();
-  if (index < sourceActivities.length - 1) {
-    assertSafeActivity(session.currentActivity, familyOrder[index + 1]);
-  } else {
-    assert.equal(session.currentActivity, null);
-    assert.equal(session.progress.isComplete, true);
-  }
-}
-
-const surfaceSource = fs.readFileSync(root + '/apps/learnit-next/src/integration/atlas/surface.js', 'utf8');
-const setMatch = surfaceSource.match(/const ATLAS_SUPPORTED_ACTIVITY_TYPES = new Set\(\[[^\n]+\]\);/);
-assert.ok(setMatch);
-const functionStart = surfaceSource.indexOf('function compatibleAtlasCourse');
-const functionEnd = surfaceSource.indexOf('\n}\n\nfunction learnerObjectiveLabels', functionStart);
-assert.ok(functionStart >= 0 && functionEnd > functionStart);
-const compatibilityModule = setMatch[0] + '\n' + surfaceSource.slice(functionStart, functionEnd + 2) + '\nexport { compatibleAtlasCourse };';
-const {compatibleAtlasCourse} = await import('data:text/javascript;base64,' + Buffer.from(compatibilityModule).toString('base64'));
-const atlasRuntime = {modules: {claimAuthority: {contextAccepted: () => true}}};
-const baseActivity = {
-  objectiveIds: ['objective-1'],
-  learningPhase: 'application',
-  assessmentRole: 'practice',
-  estimatedMinutes: 5,
-};
-const qcmFillContext = {
-  course: {
-    objectives: [{objectiveId: 'objective-1'}],
-    activities: [
-      {...baseActivity, type: 'qcm'},
-      {...baseActivity, type: 'fill'},
-    ],
-  },
-};
-const richContext = {
-  course: {
-    objectives: [{objectiveId: 'objective-1'}],
-    activities: [
-      {...baseActivity, type: 'qcm'},
-      {...baseActivity, type: 'constructed'},
-    ],
-  },
-};
-assert.equal(compatibleAtlasCourse(qcmFillContext, atlasRuntime), true);
-assert.equal(compatibleAtlasCourse(richContext, atlasRuntime), false);
-
-console.log(JSON.stringify({
-  ok: true,
-  families: familyOrder,
-  atlasQcmFillAccepted: true,
-  atlasRichRejected: true,
-  complete: session.progress.isComplete,
-}));
-"""
-
-node = shutil.which("node")
-assert node, "node is required for served runtime integration proof"
-with tempfile.TemporaryDirectory(prefix="served-v4-runtime-") as temp_dir:
-    harness = Path(temp_dir) / "served-v4-runtime.mjs"
-    harness.write_text(NODE, encoding="utf-8")
-    env = {
-        **os.environ,
-        "SERVED_V4_ROOT": str(ROOT),
-        "SERVED_V4_FIXTURE": str(FIXTURE),
-    }
-    result = subprocess.run(
-        [node, str(harness)],
-        cwd=ROOT,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        timeout=180,
-        check=False,
+@contextmanager
+def artifact_server():
+    server = ThreadingHTTPServer(
+        ("127.0.0.1", 0),
+        partial(QuietHandler, directory=str(ARTIFACT.parent)),
     )
-assert result.returncode == 0, result.stdout
-runtime_result = json.loads(result.stdout.strip().splitlines()[-1])
-assert runtime_result["ok"] is True
-assert runtime_result["families"] == families
-assert runtime_result["atlasQcmFillAccepted"] is True
-assert runtime_result["atlasRichRejected"] is True
-assert runtime_result["complete"] is True
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}/{ARTIFACT.name}"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def forbidden_hits(value: Any) -> list[str]:
+    hits: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key in FORBIDDEN_ACTIVITY_KEYS:
+                hits.append(key)
+            hits.extend(forbidden_hits(child))
+    elif isinstance(value, list):
+        for child in value:
+            hits.extend(forbidden_hits(child))
+    return hits
+
+
+def assert_safe_activity(activity: dict[str, Any] | None, expected_type: str) -> None:
+    assert activity is not None
+    assert sorted(activity) == ["activityRevisionId", "presentation"], activity
+    assert activity["presentation"]["type"] == expected_type, activity
+    assert forbidden_hits(activity) == [], activity
+    serialized = json.dumps(activity, ensure_ascii=False, sort_keys=True)
+    for field in FORBIDDEN_ACTIVITY_KEYS:
+        assert f'"{field}"' not in serialized, (field, serialized)
+
+
+def response_for(activity: dict[str, Any]) -> dict[str, Any]:
+    family = activity["type"]
+    if family == "qcm":
+        return {"choiceId": activity["correctChoiceId"]}
+    if family == "fill":
+        return {entry["slotId"]: entry["tokenId"] for entry in activity["answers"]}
+    if family == "constructed":
+        return {"text": activity["acceptedResponses"][0]}
+    if family == "lesson":
+        return {"acknowledged": True}
+    if family == "flashcard":
+        return {"revealed": True}
+    if family == "matching":
+        return {"associations": [dict(item) for item in activity["matches"]]}
+    if family == "order":
+        return {"orderedItemIds": list(activity["correctOrder"])}
+    if family == "classify":
+        return {"assignments": [dict(item) for item in activity["assignments"]]}
+    raise AssertionError(family)
+
+
+assert ARTIFACT.is_file(), "built Learn-it Next artifact is required for runtime integration proof"
+with artifact_server() as url, sync_playwright() as pw:
+    browser = pw.chromium.launch(headless=True, executable_path="/usr/bin/chromium")
+    context = browser.new_context(viewport={"width": 1024, "height": 768})
+    page = context.new_page()
+    page.goto(url)
+    page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
+
+    page.evaluate("async () => window.__LEARNIT_NEXT_TEST__.resetNextData()")
+    imported = page.evaluate(
+        "async payload => await window.__LEARNIT_NEXT_TEST__.importPackage(payload)",
+        fixture,
+    )
+    course_install_id = imported["courses"][0]["courseInstallId"]
+    session = page.evaluate(
+        "async courseInstallId => await window.__LEARNIT_NEXT_TEST__.startCourse(courseInstallId)",
+        course_install_id,
+    )
+    assert_safe_activity(session["currentActivity"], FAMILIES[0])
+
+    source_activities = fixture["courses"][0]["activities"]
+    for index, source in enumerate(source_activities):
+        family = source["type"]
+        assert_safe_activity(session["currentActivity"], family)
+
+        if family == "constructed":
+            media = session["currentActivity"]["presentation"]["media"]
+            assert len(media) == 1, media
+            assert media[0]["assetId"] == fixture["assets"][0]["assetId"]
+            assert media[0]["data"] == fixture["assets"][0]["data"]
+            assert media[0]["alt"] == fixture["assets"][0]["alt"]
+
+        response = response_for(source)
+        result = page.evaluate(
+            """async args => await window.__LEARNIT_NEXT_TEST__.answer(
+              args.activityRevisionId,
+              args.response,
+            )""",
+            {
+                "activityRevisionId": source["activityRevisionId"],
+                "response": response,
+            },
+        )
+        assert result["answer"] == response, (family, result["answer"], response)
+
+        if family in SCORED_FAMILIES:
+            assert result["scored"] is True, result
+            assert result["correct"] is True, result
+        else:
+            assert result["scored"] is False, result
+            assert "correct" not in result, result
+
+        if index < len(source_activities) - 1:
+            assert_safe_activity(result["nextActivity"], FAMILIES[index + 1])
+        else:
+            assert result["nextActivity"] is None, result
+
+        session = page.evaluate("async () => await window.__LEARNIT_NEXT_TEST__.getSession()")
+        if index < len(source_activities) - 1:
+            assert_safe_activity(session["currentActivity"], FAMILIES[index + 1])
+        else:
+            assert session["currentActivity"] is None, session
+            assert session["progress"]["isComplete"] is True, session["progress"]
+
+    page.reload()
+    page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
+    assert page.locator("[data-atlas-course-install-id]").count() == 0
+
+    page.evaluate("async () => window.__LEARNIT_NEXT_TEST__.resetNextData()")
+    atlas_imported = page.evaluate(
+        "async payload => await window.__LEARNIT_NEXT_TEST__.importPackage(payload)",
+        atlas_fixture,
+    )
+    assert atlas_imported["courses"], atlas_imported
+    page.reload()
+    page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
+    page.locator("[data-atlas-course-install-id]").first.wait_for()
+    assert page.locator("[data-atlas-course-install-id]").count() >= 1
+
+    context.close()
+    browser.close()
 
 print("STUDENT_V01_SERVED_V4_STATIC_PASS")
 print("SERVED_RUNTIME_PROJECTION_BOUNDARY=PASS")
@@ -272,5 +235,5 @@ print("NON_SCORED_RESULT_SHAPE=PASS")
 print("TRUSTED_MEDIA_PROJECTION=PASS")
 print("SERVED_GENERIC_PRESENTER_WIRING=PASS")
 print("ATLAS_EXPLICIT_QCM_FILL_GATE=PASS")
-print("ATLAS_QCM_FILL_ACCEPTED=PASS")
 print("ATLAS_RICH_REJECTED=PASS")
+print("ATLAS_QCM_FILL_ACCEPTED=PASS")
