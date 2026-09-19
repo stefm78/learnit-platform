@@ -2,7 +2,7 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
+    branches: [main, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle, student-v01/served-v4-integration]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
       - 'apps/learnit-next/**'
@@ -127,7 +127,7 @@ jobs:
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
-              student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
+              student-v01/wave2-contradictory-qa-r1) echo 'student-v01-job05-r1 wave' ;;\n              student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
               student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
               *) echo 'ci-router wave' ;;
             esac
@@ -515,6 +515,111 @@ jobs:
             [[ "${actual}" == "${expected}" ]] &&
               [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
           }
+
+          if [[ "${PROFILE}" == student-v01-job05-r1 ]]; then
+            [[ "${EVENT}" == pull_request ]] || {
+              echo "Student V0.1 JOB05 R1 route requires a pull request event." >&2
+              exit 2
+            }
+            [[ "${BRANCH}" == student-v01/wave2-contradictory-qa-r1 ]] || exit 2
+            exact_base=7c13d67a76705b4452304c0f6a882504bc7701a7
+            repaired_product=bdb66bffefd6738e3cb4004d304159e9d3d048ce
+            frozen_fixture_blob=c190fc4f04a7cee5731627e4f6276ee08e39d746
+            expected_sha=85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e
+            expected_bytes=478657
+
+            [[ "${PR_BASE_SHA}" == "${exact_base}" ]] || {
+              echo "Student V0.1 JOB05 R1 PR base drifted: ${PR_BASE_SHA}" >&2
+              exit 2
+            }
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || {
+              echo "Student V0.1 JOB05 R1 remote head differs from exact target." >&2
+              exit 2
+            }
+            [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || {
+              echo "Student V0.1 JOB05 R1 exact base is no longer an ancestor." >&2
+              exit 2
+            }
+            [[ "$(git merge-base "${repaired_product}" "${TARGET}")" == "${repaired_product}" ]] || {
+              echo "Repaired product anchor is no longer an ancestor." >&2
+              exit 2
+            }
+
+            allowed_path() {
+              case "$1" in
+                work-packages/ATLAS-WP-038.json|docs/programs/student-v0.1/jobs/JOB_05_R1_CONTRADICTORY_QA.md|qa/student-v0.1/JOB05_CANONICAL_V4_FIXTURE.json|qa/student-v0.1/job05_r1_contradictory_qa.py|qa/student-v0.1/browser_job05_r1_contradictory_qa.py|.github/workflows/learnit-next-ci.yml|qualification/STUDENT_V01_JOB05_R1_QA_RESULT.md) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              allowed_path "${path}" || {
+                echo "Student V0.1 JOB05 R1 scope violation: ${path}" >&2
+                exit 2
+              }
+            done < <(git diff --name-only "${exact_base}" "${TARGET}")
+
+            while IFS= read -r path; do
+              case "${path}" in
+                apps/learnit-next/src/**|apps/learnit-next/source_manifest.json|apps/learnit-next/build.py|apps/learnit-next/tests/**|contracts/**|docs/architecture/**|authoring/**)
+                  echo "Student V0.1 JOB05 R1 product inheritance violation: ${path}" >&2
+                  exit 2
+                  ;;
+              esac
+            done < <(git diff --name-only "${repaired_product}" "${TARGET}")
+
+            [[ "$(git hash-object qa/student-v0.1/JOB05_CANONICAL_V4_FIXTURE.json)" == "${frozen_fixture_blob}" ]] || {
+              echo "Frozen JOB05 fixture blob drifted." >&2
+              exit 2
+            }
+
+            python -m playwright install --with-deps chromium
+            chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+            )"
+            [[ -x "${chromium}" ]]
+            sudo ln -sf "${chromium}" /usr/bin/chromium
+
+            checks=(
+              "python -B qa/student-v0.1/job05_r1_contradictory_qa.py"
+              "python -B qa/student-v0.1/browser_job05_r1_contradictory_qa.py"
+              "python -B apps/learnit-next/tests/student_v01_served_v4_integration.py"
+              "python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py"
+              "python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v"
+              "python -B apps/learnit-next/tests/student_v01_activity_presentation.py"
+              "python -B apps/learnit-next/tests/browser_student_v01_activity_presentation.py"
+              "python -B authoring/v4/tests/test_validate_v4.py -v"
+              "python -B authoring/v2/atlas/tests/test_pedagogical_quality.py -v"
+              "python -B authoring/factory/tests/test_student_v01_v4.py -v"
+              "python -B apps/learnit-next/tests/student_v01_fanin_a.py"
+              "python -B apps/learnit-next/tests/atlas_m1_int.py -v"
+              "python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v"
+            )
+            for check in "${checks[@]}"; do
+              echo "::group::${check}"
+              eval "${check}"
+              echo "::endgroup::"
+            done
+
+            python -B apps/learnit-next/build.py
+            artifact=apps/learnit-next/dist/learnit-next.html
+            artifact_sha="$(sha256sum "${artifact}" | awk '{print $1}')"
+            artifact_bytes="$(wc -c < "${artifact}" | tr -d ' ')"
+            [[ "${artifact_sha}" == "${expected_sha}" ]]
+            [[ "${artifact_bytes}" == "${expected_bytes}" ]]
+            echo "STUDENT_V01_JOB05_R1_EXACT_ROUTE=PASS"
+            echo "STUDENT_V01_JOB05_R1_TARGET=${TARGET}"
+            echo "STUDENT_V01_JOB05_R1_REPAIRED_PRODUCT=${repaired_product}"
+            echo "STUDENT_V01_JOB05_R1_FIXTURE_BLOB=${frozen_fixture_blob}"
+            echo "STUDENT_V01_JOB05_R1_ARTIFACT_SHA256=${artifact_sha}"
+            echo "STUDENT_V01_JOB05_R1_ARTIFACT_BYTES=${artifact_bytes}"
+            exit 0
+          fi
 
           if [[ "${PROFILE}" == student-v01-served-v4 ]]; then
             [[ "${EVENT}" == pull_request ]] || {
