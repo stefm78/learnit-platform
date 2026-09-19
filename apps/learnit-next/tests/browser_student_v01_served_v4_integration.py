@@ -45,11 +45,24 @@ def assert_safe_runtime_activity(page, expected_type: str) -> None:
         }
       };
       walk(activity);
-      return {keys: activity ? Object.keys(activity).sort() : [], type: activity?.presentation?.type ?? null, hits};
+      return {
+        keys: activity ? Object.keys(activity).sort() : [],
+        type: activity?.presentation?.type ?? null,
+        hits,
+        serialized: JSON.stringify(activity),
+      };
     }""", sorted(FORBIDDEN_ACTIVITY_KEYS))
     assert snapshot["keys"] == ["activityRevisionId", "presentation"], snapshot
     assert snapshot["type"] == expected_type, snapshot
     assert snapshot["hits"] == [], snapshot
+    for field in FORBIDDEN_ACTIVITY_KEYS:
+        assert f'"{field}"' not in snapshot["serialized"], (field, snapshot["serialized"])
+
+
+def assert_no_scoring_secrets_in_rendered_activity(page, expected_type: str) -> None:
+    html = page.locator(f'[data-activity-presentation="{expected_type}"]').evaluate("(element) => element.outerHTML")
+    for field in FORBIDDEN_ACTIVITY_KEYS:
+        assert field not in html, (field, html)
 
 def submit(page, scored: bool) -> None:
     page.locator('[data-served-activity-submit="true"]').click()
@@ -122,6 +135,7 @@ def run_viewport(browser, url: str, viewport: dict[str, int], touch: bool) -> No
     for index, family in enumerate(FAMILIES):
         page.locator(f'[data-activity-presentation="{family}"]').wait_for()
         assert_safe_runtime_activity(page, family)
+        assert_no_scoring_secrets_in_rendered_activity(page, family)
         if expect_heading_focus:
             page.wait_for_function("() => document.activeElement?.id === 'activity-title'")
         assert page.evaluate("() => document.documentElement.scrollWidth <= window.innerWidth")
@@ -131,6 +145,7 @@ def run_viewport(browser, url: str, viewport: dict[str, int], touch: bool) -> No
             page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
             page.locator('[data-activity-presentation="flashcard"]').wait_for()
             assert_safe_runtime_activity(page, "flashcard")
+            assert_no_scoring_secrets_in_rendered_activity(page, "flashcard")
             expect_heading_focus = False
             continue
         if index < len(FAMILIES) - 1:
@@ -165,6 +180,8 @@ def main() -> int:
         "COMPLETION=PASS",
         "NON_SCORED_LESSON_FLASHCARD=PASS",
         "SECRET_BOUNDARY=PASS",
+        "SERIALIZED_PRESENTATION_SECRET_BOUNDARY=PASS",
+        "DOM_SECRET_BOUNDARY=PASS",
         "SAFE_MEDIA=PASS",
         "DESKTOP=PASS",
         "MOBILE=PASS",
