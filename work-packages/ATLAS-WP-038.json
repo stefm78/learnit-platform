@@ -70,7 +70,7 @@
     "Two canonical builds on the QA result head exactly match each other and the repaired artifact bytes/hash.",
     "Independent static check confirms the old qcm-vs-fill classic dispatch and assessmentRole-everywhere Atlas gate are absent/replaced as intended, without accepting static proof as browser proof.",
     "Real served browser path imports the frozen fixture and traverses all eight families through user-visible controls.",
-    "At least one deliberately incorrect evaluated response is independently proven scored=false/correct=false as applicable without contaminating the final completion journey; correct responses are then tested from clean state.",
+    "At least one deliberately incorrect evaluated response is independently proven scored:true and correct:false without contaminating the final completion journey; correct responses are then tested from clean state.",
     "Lesson/flashcard completion never becomes correct/incorrect or review/mastery evidence.",
     "Recursive learner-boundary and DOM scans prove hidden scoring fields absent.",
     "Safe local SVG renders and browser makes no unexpected external request.",
