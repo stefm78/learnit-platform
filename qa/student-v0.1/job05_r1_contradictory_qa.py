@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 FIXTURE = Path(__file__).with_name("JOB05_CANONICAL_V4_FIXTURE.json")
 DIST = ROOT / "apps" / "learnit-next" / "dist" / "learnit-next.html"
 EXPECTED_FIXTURE_BLOB = "c190fc4f04a7cee5731627e4f6276ee08e39d746"
