@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-038",
+  "title": "Student V0.1 JOB 05 R1 — contradictory QA after served-V4 repair",
+  "status": "approved",
+  "changeClass": "independent-contradictory-requalification",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 412,
+    "parentWave2Issue": 403,
+    "parentProgramIssue": 380,
+    "priorJob05Issue": 404,
+    "servedRepairIssue": 410,
+    "servedRepairPr": 411,
+    "frozenShowcaseIssue": 405
+  },
+  "baseline": {
+    "baseCommit": "7c13d67a76705b4452304c0f6a882504bc7701a7",
+    "repairedProductCommit": "bdb66bffefd6738e3cb4004d304159e9d3d048ce",
+    "priorQaResultCommit": "3ef8895fcf4df0ded936daf4c939e2c60200232c",
+    "frozenQaFixtureGitBlob": "c190fc4f04a7cee5731627e4f6276ee08e39d746",
+    "expectedRepairedArtifact": {
+      "bytes": 478657,
+      "sha256": "85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e"
+    }
+  },
+  "purpose": "Independently attempt to falsify the repaired served-V4 product using the exact pre-repair QA fixture and new QA-owned probes, without changing product behavior.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-038.json",
+      "docs/programs/student-v0.1/jobs/JOB_05_R1_CONTRADICTORY_QA.md",
+      "qa/student-v0.1/JOB05_CANONICAL_V4_FIXTURE.json",
+      "qa/student-v0.1/job05_r1_contradictory_qa.py",
+      "qa/student-v0.1/browser_job05_r1_contradictory_qa.py",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_JOB05_R1_QA_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/tests/**",
+      "showcase/**",
+      "pilot/**",
+      "governance/**",
+      "tools/**",
+      "work-packages/ATLAS-WP-037.json"
+    ]
+  },
+  "invariants": [
+    "The repaired product bytes are read-only; QA may not repair product code.",
+    "The canonical QA fixture is frozen byte-for-byte at Git blob c190fc4f04a7cee5731627e4f6276ee08e39d746 and must not be edited.",
+    "The old JOB05 harness is historical evidence only because it intentionally encoded the pre-repair expected failure.",
+    "The new QA harness must be independently written for post-repair falsification and must not simply invoke the repair worker's new tests as its sole proof.",
+    "All learner interactions must use actual served application controls where browser behavior is claimed.",
+    "Canonical answer authority may exist only in the QA driver/out-of-band; it must never be injected into learner presentation or DOM.",
+    "A QA-only branch must build to the exact repaired artifact identity because no declared product build source is writable.",
+    "No sibling Wave 2 branch output is consumed.",
+    "Any newly discovered product defect returns HOLD with exact reproducible ownership; QA never expands scope to fix it."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP and repository/PR #411 rebind.",
+    "Exact ancestry from 7c13d67a76705b4452304c0f6a882504bc7701a7 and exact repaired product anchor bdb66bffefd6738e3cb4004d304159e9d3d048ce.",
+    "Frozen fixture Git blob identity rechecked before execution.",
+    "Canonical V4 validator executes successfully against the frozen fixture.",
+    "Two canonical builds on the QA result head exactly match each other and the repaired artifact bytes/hash.",
+    "Independent static check confirms the old qcm-vs-fill classic dispatch and assessmentRole-everywhere Atlas gate are absent/replaced as intended, without accepting static proof as browser proof.",
+    "Real served browser path imports the frozen fixture and traverses all eight families through user-visible controls.",
+    "At least one deliberately incorrect evaluated response is independently proven scored:true and correct:false without contaminating the final completion journey; correct responses are then tested from clean state.",
+    "Lesson/flashcard completion never becomes correct/incorrect or review/mastery evidence.",
+    "Recursive learner-boundary and DOM scans prove hidden scoring fields absent.",
+    "Safe local SVG renders and browser makes no unexpected external request.",
+    "At least one active/remote SVG mutation is rejected fail-closed with the rejection attributable to media policy rather than only a stale digest.",
+    "Reload/resume occurs at more than one position, including after a non-scored unit and after a scored unit.",
+    "Desktop 1365x768 and mobile 390x844 both complete the critical journey.",
+    "Keyboard/accessibility smoke covers non-drag controls for matching/order/classify and form labels/status/focus.",
+    "V2/V3, R3 and served-V4 repair regression suites remain green.",
+    "Minimum exact-head CI route executes the independent QA harness and prior repair regressions.",
+    "Qualification evidence separates RESULT_SHA from EVIDENCE_HEAD and records all workflow IDs, artifact hashes, changed paths and rollback."
+  ],
+  "adversarialTests": [
+    "A PASS based only on apps/learnit-next/tests/browser_student_v01_served_v4_integration.py is invalid; the QA harness must independently drive the product.",
+    "Changing the frozen fixture to fit the repair is a scope failure.",
+    "Changing product source or source_manifest.json is a scope failure.",
+    "Skipping canonical V4 validation because the fixture passed static inspection is a failure.",
+    "Treating blocked/not-run checks as PASS is forbidden.",
+    "Treating the canonical local JSON file itself as secret is an invalid claim; the secret boundary is runtime/presentation/DOM.",
+    "A desktop-only or happy-path-only journey cannot qualify PASS.",
+    "Unexpected HTTP(S) requests, page errors, console errors tied to the journey, or silent unsupported-family fallback are failures.",
+    "If the old blocker still reproduces, return HOLD_PRODUCT_GAP rather than rewriting QA expectations."
+  ],
+  "nonGoals": [
+    "Repairing the served product.",
+    "Re-authoring the showcase kit.",
+    "Building the pilot package.",
+    "Changing contract or architecture.",
+    "Merging to main.",
+    "Launching JOB08 or real students."
+  ],
+  "independentReview": [
+    "The main QA fixture predates the served-V4 repair and is frozen before R1 execution.",
+    "The new QA logic must be authored after the repair but must use independent oracles derived from contract/interface authority, not repair implementation details.",
+    "Exact-head CI and deterministic artifact identity are required to prevent local-only or branch-drift false PASS."
+  ],
+  "execution": {
+    "branch": "student-v01/wave2-contradictory-qa-r1",
+    "phase": "JOB05_R1_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB05_R1_REVIEW_THEN_JOB07_R1",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the JOB05 R1 PR and delete its branch. PR #411 and repaired product/evidence heads remain unchanged; JOB06 remains frozen."
+}
