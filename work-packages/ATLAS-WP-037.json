@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-037",
+  "title": "Student V0.1 served-session V4 integration rework",
+  "status": "approved",
+  "changeClass": "bounded-cross-role-product-integration-repair",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 410,
+    "parentProgramIssue": 380,
+    "wave2ControlIssue": 403,
+    "qualifiedFaninIssue": 401,
+    "qualifiedFaninPr": 402,
+    "contradictoryQaIssue": 404,
+    "pilotIssue": 406,
+    "frozenShowcaseIssue": 405
+  },
+  "baseline": {
+    "baseCommit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "qualifiedProductBase": "8fa25844cf9ddf7c2429f730d818b3518c46de04",
+    "qualifiedEvidenceBase": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "frozenShowcaseResult": "8e0e3c43968cf0cf442e0e47b73bc38fc19ae565"
+  },
+  "purpose": "Wire the already-qualified Student V0.1 V4 Learning/presentation seams into the real served learner session path so an imported rich V4 course can start, render, respond, reload/resume and complete without leaking scoring secrets or changing the frozen contract.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-037.json",
+      "docs/programs/student-v0.1/jobs/JOB_04_R4_SERVED_V4_INTEGRATION.md",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/tests/student_v01_served_v4_integration.py",
+      "apps/learnit-next/tests/browser_student_v01_served_v4_integration.py",
+      "apps/learnit-next/source_manifest.json",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_SERVED_V4_INTEGRATION_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "apps/learnit-next/src/core/**",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/tests/student_v01_fanin_a.py",
+      "apps/learnit-next/tests/student_v01_learning_runtime.py",
+      "apps/learnit-next/tests/student_v01_activity_presentation.py",
+      "apps/learnit-next/tests/browser_student_v01_activity_presentation.py"
+    ]
+  },
+  "invariants": [
+    "The frozen learnit.kit.v4 contract and Wave 1 interface freeze remain authority; this repair changes integration only.",
+    "Core Learning/session remains the sole sequencing, evaluation, completion and persistence authority.",
+    "The served UI must receive learner-safe ActivityPresentation data, not authored scoring secrets.",
+    "The existing generic projectActivityPresentation(), renderActivityPresentation() and readActivityResponse() implementations are reused unchanged.",
+    "The real classic served path must support all eight V4 families through the generic presenter seam.",
+    "Lesson and flashcard responses advance completion only and must never become correctness, mastery, validation, transfer or spaced-review evidence.",
+    "Atlas Today may remain intentionally bounded to qcm/fill-compatible assessed courses, but its compatibility gate must explicitly encode what that path supports instead of accidentally requiring fields forbidden on non-scored V4 units.",
+    "A rich V4 course that Atlas does not support must remain fully usable through the classic served course path.",
+    "No sibling Wave 2 branch output is consumed; JOB06 remains frozen and untouched.",
+    "No new persistence schema, backend, plugin runtime, remote dependency or automatic migration is introduced."
+  ],
+  "requiredEvidence": [
+    "Fresh Human Control Plane and repository/PR #402 rebind before mutation.",
+    "Independent reproduction of JOB05/JOB07 served-path blockers from exact base source.",
+    "Design note inside qualification evidence choosing the minimum coherent served path before coding.",
+    "Runtime-to-UI projection proves current and next activity payloads contain no correctChoiceId, answers, acceptedResponses, matches, correctOrder or classify assignments.",
+    "Existing frozen fixture apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json is used for the primary all-eight-family served journey; no sibling Wave 2 fixture is required.",
+    "Real built application import/start/respond/feedback/reload/resume/completion is exercised through browser-visible controls.",
+    "All eight activity families are reached through the real served path.",
+    "Lesson/flashcard non-scored semantics are proven in the real served path.",
+    "Safe embedded media renders; unsafe/remote media remains fail-closed through existing validators/rendering boundaries.",
+    "Desktop 1365x768 and mobile 390x844 browser paths pass.",
+    "V2 and V3 behavior/regressions remain green.",
+    "Atlas qcm/fill route remains green for its supported legacy/current scope.",
+    "Existing Wave 1/R3 role suites and unchanged FAN-IN A oracle pass.",
+    "Source manifest is rebound only for changed declared build sources and its self-hash is valid.",
+    "Canonical deterministic build is executed twice on the exact final executable head with identical artifact bytes/hash.",
+    "Repository governance, PR scope and exact routed integration CI pass on the exact executable head.",
+    "Qualification evidence separates executable RESULT_SHA from later evidence-only EVIDENCE_HEAD."
+  ],
+  "adversarialTests": [
+    "Routing every non-qcm activity to fill is a hard failure.",
+    "Passing raw canonical activity objects containing scoring secrets into renderApp or generic presenters is a hard failure.",
+    "Adding correct answers to ActivityPresentation to simplify rendering is a hard failure.",
+    "Treating lesson/flashcard completion as correct=true or as validation/mastery evidence is a hard failure.",
+    "Making lesson/flashcard Atlas-compatible by adding forbidden assessmentRole fields is a hard failure.",
+    "Silently upgrading Atlas session.js outside scope is a hard failure.",
+    "Disabling Atlas globally or breaking existing qcm/fill Atlas behavior merely to force rich V4 into classic mode is a hard failure.",
+    "Changing the existing generic projection/presenter implementations to accommodate served wiring is a scope failure; any actual defect there returns HOLD.",
+    "Changing the showcase kit or consuming JOB05/JOB07 branch files is a scope failure.",
+    "A seam-level test without real served-browser import/start/resume/completion cannot qualify PASS."
+  ],
+  "nonGoals": [
+    "Changing V4 schema or architecture.",
+    "Changing Learning evaluation semantics.",
+    "Rewriting Atlas planning/session algorithms.",
+    "Authoring or reviewing the showcase kit.",
+    "Building the pilot package.",
+    "Running real students.",
+    "Merging to main or launching JOB08."
+  ],
+  "independentReview": [
+    "JOB05 and JOB07 independently exposed the same served-session contradiction from separate Wave 2 branches.",
+    "This repair must re-derive the blocker from exact base code before implementation rather than trusting their prose.",
+    "The final candidate must be challenged by exact-head browser CI and by unchanged prior regression suites.",
+    "JOB05 R1 and JOB07 R1 remain separate future contradictory reviewers and are not folded into this implementation job."
+  ],
+  "execution": {
+    "branch": "student-v01/served-v4-integration",
+    "phase": "SERVED_V4_INTEGRATION_REPAIR_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "EXACT_REPAIR_QUALIFICATION_THEN_JOB05_R1_JOB07_R1",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the repair PR and delete student-v01/served-v4-integration. The qualified R3 product/evidence heads and all three Wave 2 branches remain independently recoverable."
+}

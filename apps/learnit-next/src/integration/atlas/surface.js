@@ -4,6 +4,7 @@ import {
 } from './session.js';
 
 const DURATIONS = Object.freeze([5, 15, 30]);
+const ATLAS_SUPPORTED_ACTIVITY_TYPES = new Set(['qcm', 'fill']);
 
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
@@ -32,7 +33,8 @@ function compatibleAtlasCourse(context, atlasRuntime) {
     && Array.isArray(course.activities)
     && course.activities.length > 0
     && course.activities.every(activity => (
-      Array.isArray(activity.objectiveIds)
+      ATLAS_SUPPORTED_ACTIVITY_TYPES.has(activity.type)
+      && Array.isArray(activity.objectiveIds)
       && activity.objectiveIds.length === 1
       && typeof activity.learningPhase === 'string'
       && typeof activity.assessmentRole === 'string'
