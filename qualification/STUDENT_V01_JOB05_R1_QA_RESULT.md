@@ -298,3 +298,72 @@ No product blocker survived the independent R1 attacks, the original served-V4 b
 **VERDICT: `PASS_STUDENT_V01_JOB05_R1_READY_FOR_JOB07_R1`**
 
 This verdict authorizes only the next step permitted by issue #412 / ATLAS-WP-038. It does not merge, promote, authorize G3/JOB08, or change any broader release gate.
+
+
+## 17. Fresh HCP binding, authoritative PR scope, and rollback
+
+### Fresh HCP binding
+
+Immediately before final evidence mutation, the installed constitutional bootstrap was revalidated against the fixed Human Control Plane source:
+
+- UCP spec: `UCP-CONTROL-PLANE`
+- UCP status: `ACTIVE`
+- UCP version: `1.1-R4`
+- bootstrap-bound UCP SHA-256: `c499abc9d1045b3cbe0b632d7470ccbbe52d4dc726968e5206cfdde393f2cfb4`
+- current `governance/CONTROL_PLANE_HEAD.json` Git blob: `2a9014e2b2051b0ede746a9772cdbbe471f55e3a`
+- active orchestrator binding: UAO `2.6`
+- selected execution kernels were revalidated from the current HEAD before governed writes.
+
+No HCP/CAS drift was observed during the final qualification/evidence writes.
+
+### Exact QA changed paths at RESULT_SHA
+
+Exact diff from `JOB05_R1_BASE` to qualified `RESULT_SHA`:
+
+- `.github/workflows/learnit-next-ci.yml`
+- `docs/programs/student-v0.1/jobs/JOB_05_R1_CONTRADICTORY_QA.md`
+- `qa/student-v0.1/JOB05_CANONICAL_V4_FIXTURE.json`
+- `qa/student-v0.1/browser_job05_r1_contradictory_qa.py`
+- `qa/student-v0.1/job05_r1_contradictory_qa.py`
+- `work-packages/ATLAS-WP-038.json`
+
+All six paths are in the canonical `ATLAS-WP-038.scope.allowedPaths`. None matches a canonical forbidden path. The exact merge base is `7c13d67a76705b4452304c0f6a882504bc7701a7`; RESULT_SHA is ahead-only from that base.
+
+Worker execution after the preparation head added/changed only the two R1 QA harnesses and the bounded Learn-it Next exact-head CI route. The prompt, work package, and frozen fixture were preparation inputs and were not altered by the worker.
+
+**Authoritative PR scope result: PASS.**
+
+The repository-wide `PR scope` workflow run #947 is explicitly a run for temporary carrier **PR #414**, not PR #413; its artifact name is `pr-scope-414-35469818626` and it validates from the unrelated `main` base `21d25c36...`. It therefore sees inherited repaired-product paths and correctly rejects that carrier as an ordinary scoped implementation PR. That carrier-only failure is not used as evidence for PR #413.
+
+For authoritative PR #413, scope is established against its actual exact base by:
+
+- exact Git ancestry/merge-base audit;
+- canonical WP038 allowed/forbidden path evaluation;
+- the exact-head JOB05 R1 route's fail-closed path filter;
+- the repaired-product inheritance guard, which rejects any post-repair product/source/authoring mutation.
+
+This is the scope check used for the JOB05 R1 PASS gate; the carrier is CI transport only and is excluded from authority and scope qualification.
+
+### Evidence-only separation
+
+Qualified executable/tested head remains:
+
+- `RESULT_SHA = 1c92cad7ea576a613b6f198768bbebd114a06082`
+
+The first evidence commit `4d3fe7e6ad5a5f6d466d1ae442b6e5f3121ecb54` was exactly one commit ahead of RESULT_SHA and changed only:
+
+- `qualification/STUDENT_V01_JOB05_R1_QA_RESULT.md`
+
+This final evidence refinement also changes only the same qualification file. No executable QA, product, workflow, contract, authoring, or governance semantics are changed after RESULT_SHA.
+
+### Rollback
+
+If this qualification is rejected or superseded:
+
+1. close PR #413 without merge;
+2. delete branch `student-v01/wave2-contradictory-qa-r1`;
+3. retain PR #411 and the repaired product/evidence anchors unchanged;
+4. retain the frozen JOB06/showcase state unchanged;
+5. do not invoke JOB07, G3, JOB08, main merge, or real-student execution from this result.
+
+Temporary carrier PR #414 is already closed, DRAFT, and unmerged.
