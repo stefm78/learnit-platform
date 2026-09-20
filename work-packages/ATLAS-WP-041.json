@@ -122,5 +122,11 @@
     "nextGate": "JOB08_FANIN_B_PREPARATION_IF_PASS",
     "finalVerdict": "PENDING"
   },
-  "rollback": "Close the G3 PR and delete student-v01/g3-wave2-review. All accepted input branches and their exact result/evidence SHAs remain unchanged."
+  "rollback": "Close the G3 PR and delete student-v01/g3-wave2-review. All accepted input branches and their exact result/evidence SHAs remain unchanged.",
+  "independentReview": [
+    "G3 semantic review is performed in a clean reviewer phase before author-side JOB06 conclusions are read.",
+    "The semantic review is committed alone and frozen before full Wave 2 evidence is opened.",
+    "Factory gate execution, cross-output compatibility probes and path-overlap review independently challenge the accepted role outputs.",
+    "G3 performs no implementation repair; any semantic, factory, product, packaging or overlap defect returns HOLD to the owning role or Control Room."
+  ]
 }
