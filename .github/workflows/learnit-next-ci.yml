@@ -2,9 +2,10 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
+    branches: [main, student-v01/served-v4-integration, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
+      - 'pilot/student-v0.1/**'
       - 'apps/learnit-next/**'
       - 'authoring/v2/**'
       - 'authoring/factory/**'
@@ -128,6 +129,7 @@ jobs:
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
               student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
+              student-v01/wave2-pilot-package-r1) echo 'student-v01-job07-r1 wave' ;;
               student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
               *) echo 'ci-router wave' ;;
             esac
@@ -515,6 +517,131 @@ jobs:
             [[ "${actual}" == "${expected}" ]] &&
               [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
           }
+
+          if [[ "${PROFILE}" == student-v01-job07-r1 ]]; then
+            [[ "${EVENT}" == pull_request ]] || {
+              echo "Student V0.1 JOB07 R1 route requires a pull request event." >&2
+              exit 2
+            }
+            [[ "${BRANCH}" == student-v01/wave2-pilot-package-r1 ]] || exit 2
+            exact_base=7c13d67a76705b4452304c0f6a882504bc7701a7
+            repaired_product=bdb66bffefd6738e3cb4004d304159e9d3d048ce
+            expected_app_sha=85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e
+            expected_app_bytes=478657
+            [[ "${PR_BASE_SHA}" == "${exact_base}" ]] || {
+              echo "Student V0.1 JOB07 R1 PR base drifted: ${PR_BASE_SHA}" >&2
+              exit 2
+            }
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || {
+              echo "Student V0.1 JOB07 R1 remote head differs from exact target." >&2
+              exit 2
+            }
+            [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || {
+              echo "Student V0.1 JOB07 R1 exact base is no longer an ancestor." >&2
+              exit 2
+            }
+            git merge-base --is-ancestor "${repaired_product}" "${TARGET}" || {
+              echo "Student V0.1 JOB07 R1 repaired product anchor is not an ancestor." >&2
+              exit 2
+            }
+
+            allowed_path() {
+              case "$1" in
+                work-packages/ATLAS-WP-039.json|docs/programs/student-v0.1/jobs/JOB_07_R1_PILOT_PACKAGING_UX.md|pilot/student-v0.1/*|.github/workflows/learnit-next-ci.yml|qualification/STUDENT_V01_JOB07_R1_PILOT_RESULT.md) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              allowed_path "${path}" || {
+                echo "Student V0.1 JOB07 R1 scope violation: ${path}" >&2
+                exit 2
+              }
+            done < <(git diff --name-only "${exact_base}" "${TARGET}")
+
+            python -m playwright install --with-deps chromium
+            chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+            )"
+            [[ -x "${chromium}" ]]
+            sudo ln -sf "${chromium}" /usr/bin/chromium
+
+            first="$(mktemp --suffix=.html)"
+            second="$(mktemp --suffix=.html)"
+            trap 'rm -f "${first}" "${second}"' EXIT
+            python -B apps/learnit-next/build.py --output "${first}"
+            first_sha="$(sha256sum "${first}" | awk '{print $1}')"
+            first_bytes="$(wc -c < "${first}" | tr -d ' ')"
+            [[ "${first_sha}" == "${expected_app_sha}" ]] || {
+              echo "JOB07 R1 repaired app SHA drift: ${first_sha}" >&2
+              exit 2
+            }
+            [[ "${first_bytes}" == "${expected_app_bytes}" ]] || {
+              echo "JOB07 R1 repaired app byte drift: ${first_bytes}" >&2
+              exit 2
+            }
+
+            python -B apps/learnit-next/build.py --output "${second}"
+            second_sha="$(sha256sum "${second}" | awk '{print $1}')"
+            second_bytes="$(wc -c < "${second}" | tr -d ' ')"
+            [[ "${second_sha}" == "${first_sha}" ]]
+            [[ "${second_bytes}" == "${first_bytes}" ]]
+            cmp -s "${first}" "${second}"
+            echo "STUDENT_V01_JOB07_R1_REPAIRED_APP_IDENTITY=PASS"
+
+            fixture_valid=true
+            if ! python -B authoring/v4/validate_kit.py apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json --format=json; then
+              fixture_valid=false
+              echo "STUDENT_V01_JOB07_R1_RICH_V4_FIXTURE=FAIL"
+            else
+              echo "STUDENT_V01_JOB07_R1_RICH_V4_FIXTURE=PASS"
+            fi
+
+            python -B apps/learnit-next/build.py
+            python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
+            python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py
+            echo "STUDENT_V01_JOB07_R1_OLD_BLOCKER_CLOSED=PASS"
+
+            if [[ "${fixture_valid}" != true ]]; then
+              echo "JOB07 R1 qualification fixture is not canonical-valid; packaging implementation is blocked." >&2
+              exit 2
+            fi
+
+            if [[ ! -f pilot/student-v0.1/build_pilot_package.py ]]; then
+              echo "STUDENT_V01_JOB07_R1_PREFLIGHT_ONLY=PASS"
+              echo "STUDENT_V01_JOB07_R1_TARGET=${TARGET}"
+              exit 0
+            fi
+
+            checks=(
+              "python -B pilot/student-v0.1/test_pilot_package.py"
+              "python -B pilot/student-v0.1/browser_pilot_package.py"
+              "python -B apps/learnit-next/tests/student_v01_served_v4_integration.py"
+              "python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py"
+              "python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v"
+              "python -B apps/learnit-next/tests/student_v01_activity_presentation.py"
+              "python -B apps/learnit-next/tests/browser_student_v01_activity_presentation.py"
+              "python -B authoring/v4/tests/test_validate_v4.py -v"
+              "python -B authoring/v2/atlas/tests/test_pedagogical_quality.py -v"
+              "python -B authoring/factory/tests/test_student_v01_v4.py -v"
+              "python -B apps/learnit-next/tests/student_v01_fanin_a.py"
+              "python -B apps/learnit-next/tests/atlas_m1_int.py -v"
+              "python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v"
+            )
+            for check in "${checks[@]}"; do
+              echo "::group::${check}"
+              eval "${check}"
+              echo "::endgroup::"
+            done
+            echo "STUDENT_V01_JOB07_R1_EXACT_ROUTE=PASS"
+            echo "STUDENT_V01_JOB07_R1_TARGET=${TARGET}"
+            exit 0
+          fi
 
           if [[ "${PROFILE}" == student-v01-served-v4 ]]; then
             [[ "${EVENT}" == pull_request ]] || {

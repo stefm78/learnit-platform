@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-039",
+  "title": "Student V0.1 JOB 07 R1 — deterministic pilot packaging after served-V4 repair",
+  "status": "approved",
+  "changeClass": "pilot-packaging-and-learner-start-requalification",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 415,
+    "parentWave2Issue": 403,
+    "parentProgramIssue": 380,
+    "priorJob07Issue": 406,
+    "servedRepairIssue": 410,
+    "servedRepairPr": 411,
+    "contradictoryQaIssue": 412,
+    "contradictoryQaPr": 413,
+    "frozenShowcaseIssue": 405
+  },
+  "baseline": {
+    "baseCommit": "7c13d67a76705b4452304c0f6a882504bc7701a7",
+    "repairedProductCommit": "bdb66bffefd6738e3cb4004d304159e9d3d048ce",
+    "acceptedJob05R1Result": "1c92cad7ea576a613b6f198768bbebd114a06082",
+    "acceptedJob05R1Evidence": "9dbd5c97603be864a57cc0f7f46047ee41772b34",
+    "priorJob07Result": "3f9798dd11edea4dcc95c959aacb0a6790d2bfc1",
+    "qualificationFixture": "apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json",
+    "expectedRepairedArtifact": {
+      "bytes": 478657,
+      "sha256": "85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e"
+    }
+  },
+  "purpose": "Build and independently qualify the smallest deterministic local/offline pilot package around the exact repaired Learn-it Next application, without changing product semantics and without consuming the frozen showcase branch.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-039.json",
+      "docs/programs/student-v0.1/jobs/JOB_07_R1_PILOT_PACKAGING_UX.md",
+      "pilot/student-v0.1/**",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_JOB07_R1_PILOT_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "showcase/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/tests/**",
+      "work-packages/ATLAS-WP-037.json",
+      "work-packages/ATLAS-WP-038.json"
+    ]
+  },
+  "invariants": [
+    "The repaired product is read-only; pilot packaging must wrap exact product bytes rather than fork or patch them.",
+    "The package builder is generic over any canonical learnit.kit.v4 input and must not depend on JOB06 showcase output.",
+    "The qualification uses the existing repaired-base rich V4 fixture as test input only; it is not pilot content authority.",
+    "The distributed package is local/offline and contains no backend, remote catalog, remote script, remote font, service dependency or network-required asset.",
+    "The canonical V4 kit may contain scoring authority by design; security claims apply to learner runtime/presentation/DOM, not to a technically inspectable local JSON file.",
+    "Browser file-selection steps must be counted honestly; no auto-import or browser-security bypass is allowed.",
+    "The package must be byte-deterministic for identical app/kit inputs, including deterministic archive entry order and metadata.",
+    "Generated bulky package artifacts are qualification outputs and are not committed unless repository authority explicitly requires it.",
+    "No sibling Wave 2 implementation branch is consumed. JOB05 R1 evidence is a gate input only; JOB06 remains frozen.",
+    "Any product defect discovered during real packaged-browser use returns HOLD with owner classification; JOB07 R1 does not repair it."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP and repository/PR #411 rebind, plus independent verification that JOB05 R1 PASS is durable and PR #413 remains unmerged.",
+    "Exact branch ancestry from JOB07_R1_BASE and repaired product anchor.",
+    "Canonical repaired application built twice and verified at 478657 bytes / SHA256 85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e before packaging.",
+    "Qualification fixture is validated canonically as learnit.kit.v4 before packaging.",
+    "A deterministic package builder accepts explicit app HTML and V4 kit paths and emits a bounded package with app, kit, learner start surface/instructions and machine-readable manifest.",
+    "Pilot manifest binds exact app bytes/SHA256 and exact kit bytes/SHA256, plus deterministic package format/version metadata.",
+    "Two package builds from identical inputs are byte-identical with exact package byte count and SHA256 recorded.",
+    "Archive entry order, timestamps/metadata and manifest serialization are deterministic and inspected.",
+    "Extracted package app and kit hashes revalidate exactly against the pilot manifest.",
+    "Learner start instructions identify learner actions, facilitator/setup actions and recovery/reset actions separately.",
+    "Actual learner action count from opening START_HERE to course start is measured without excluding mandatory chooser/selection/import actions.",
+    "The unpacked package is exercised through the real app and real product controls with the qualification fixture, not by direct runtime calls.",
+    "Desktop 1365x768 and mobile 390x844 complete import/start/interact/reload/resume/completion from the packaged inputs.",
+    "No unexpected remote HTTP(S) request occurs during start or rich journey.",
+    "Reload/resume and completion survive the packaging context.",
+    "Recovery covers invalid kit selection, return-to-library/continue, and documented local reset without claiming cross-device sync.",
+    "Learner UI/presentation remains free of hidden scoring keys during packaged use.",
+    "Relevant repaired-product and JOB05 R1 regression evidence is rerun or independently checked on exact result head; no prior PASS is accepted by prose alone.",
+    "Minimum exact-head CI route executes package determinism and packaged-browser smoke on exact RESULT_SHA.",
+    "Repository governance, authoritative PR scope and final changed-path audit pass.",
+    "Qualification evidence separates RESULT_SHA from EVIDENCE_HEAD and records package hashes, workflow IDs, changed paths and rollback."
+  ],
+  "adversarialTests": [
+    "A deterministic ZIP that cannot start and complete a rich V4 journey cannot PASS.",
+    "A package that embeds app bytes differing from the repaired artifact is a hard failure.",
+    "A manifest that binds only filenames rather than bytes/hashes is a failure.",
+    "Changing the product to reduce learner action count is a scope failure.",
+    "Auto-importing a bundled kit by bypassing the real file chooser is forbidden.",
+    "Using JOB06 content or JOB05 QA branch files as implementation dependencies is a scope failure.",
+    "A package requiring external network access is a failure.",
+    "Non-deterministic ZIP timestamps/order/compression metadata are a failure.",
+    "A browser automation that skips mandatory learner actions cannot be used to under-report LEARNER_START_ACTIONS.",
+    "If file:// behavior differs from loopback HTTP, the difference must be measured and documented; do not silently test a different start mode than the learner instructions.",
+    "A product blocker discovered during packaged use returns HOLD_PRODUCT_BLOCKS_PILOT; it is not repaired from pilot scope."
+  ],
+  "nonGoals": [
+    "Changing Learn-it Next product code.",
+    "Authoring or reviewing the final showcase kit.",
+    "Changing V4 contract or architecture.",
+    "Adding backend/accounts/cloud distribution.",
+    "Publishing remotely.",
+    "Merging to main.",
+    "Launching JOB08 or real students."
+  ],
+  "independentReview": [
+    "The first JOB07 stopped before packaging and therefore contributes blocker evidence, not reusable package implementation.",
+    "JOB05 R1 independently accepted the repaired product before this packaging replay was authorized.",
+    "The final package must prove its own deterministic/hash/start properties and cannot inherit them from the served-V4 repair qualification."
+  ],
+  "execution": {
+    "branch": "student-v01/wave2-pilot-package-r1",
+    "phase": "JOB07_R1_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "G3_WAVE2_REVIEW",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the JOB07 R1 PR and delete its branch. PR #411, repaired product/evidence heads, JOB05 R1 and frozen JOB06 remain unchanged."
+}
