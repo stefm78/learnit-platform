@@ -1,0 +1,139 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:c9c90b779ea0c40ef0013bae3f78c3852de48cff36b4927f38ef9e22e21a9730",
+    "kitSha256": "sha256:694f6713c2399e680f4748b925c9b293a9c9236cf25c593ce2f900ba5cec918b",
+    "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83",
+    "briefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les définitions, interprétations géométriques, exemples numériques et explications importantes du candidat restent dans le périmètre de la source fournie.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].objectives",
+          "basis": "La source fixe les deux objectifs: calculer et interpréter le conjugué et le module."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[4]",
+          "basis": "La source établit que la conjugaison correspond à une symétrie par rapport à l’axe réel."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[6]",
+          "basis": "La source donne la formule √(a² + b²) et relie le module à la distance à l’origine."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Chaque réponse scorée, appariement, ordre et réponse construite du candidat a été recalculé indépendamment; aucune erreur de signe, de calcul ou de correspondance n’a été trouvée.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0:5]",
+          "basis": "Les exemples et règles de conjugaison confirment 2−3i, −1+4i, 5+2i et la symétrie d’axe réel utilisés par le candidat."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[5:10]",
+          "basis": "Les exemples de module et de distance confirment 5, 13, 17 et le cercle de centre O et rayon 2 utilisés par le candidat."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Aucune interprétation concurrente, équivalence accidentelle de distracteur ou ambiguïté bloquante n’a été trouvée dans les onze activités.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Le parcours couvre les deux objectifs du brief et leurs interprétations géométriques sans prétendre couvrir tout le programme des nombres complexes.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].objectives",
+          "basis": "Les deux objectifs de la source sont explicitement repris par le candidat."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[4]",
+          "basis": "L’interprétation géométrique du conjugué est couverte."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[8:10]",
+          "basis": "La distance à l’origine et le lieu |z|=2 couvrent l’interprétation géométrique du module."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "hold",
+      "summary": "Les deux activités marquées validation réutilisent des exemples dont la réponse exacte a déjà été exposée dans des activités de pratique du même candidat; elles ne constituent donc pas des validations indépendantes des objectifs.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[3]",
+          "basis": "La source utilise 5−2i comme item de validation du conjugué; dans le candidat, ce même couple question/réponse est déjà dévoilé par l’appariement de pratique avant la validation."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[7]",
+          "basis": "La source utilise −5+12i comme item de validation du module; dans le candidat, la valeur 13 est déjà dévoilée par l’appariement de pratique avant la validation."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le parcours est en français, totalise 42 minutes déclarées, reste limité à un cours et correspond au niveau et au but définis dans le learner brief.",
+      "evidence": []
+    }
+  },
+  "findings": [
+    {
+      "id": "G3-SEM-001",
+      "severity": "major",
+      "dimension": "validationTransfer",
+      "path": "$.courses[0].activities[5]",
+      "problem": "La validation « déterminer le conjugué de 5 − 2i » demande exactement la correspondance 5 − 2i → 5 + 2i déjà affichée dans l’activité de matching $.courses[0].activities[2].",
+      "impact": "Un apprenant peut restituer une réponse explicitement révélée quelques activités plus tôt; cette validation ne démontre pas indépendamment l’objectif de calcul du conjugué.",
+      "fix": "Utiliser pour la validation une instance distincte, toujours supportée par les règles et le périmètre de la source, ou retirer l’exposition préalable de cette réponse exacte.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[3]",
+          "basis": "La source présente 5 − 2i comme validation indépendante du conjugué."
+        }
+      ]
+    },
+    {
+      "id": "G3-SEM-002",
+      "severity": "major",
+      "dimension": "validationTransfer",
+      "path": "$.courses[0].activities[9]",
+      "problem": "La validation « calculer le module de −5 + 12i » demande exactement la valeur 13 déjà affichée dans l’activité de matching $.courses[0].activities[8].",
+      "impact": "La bonne réponse peut être mémorisée depuis l’activité de pratique immédiatement antérieure; la validation ne teste pas indépendamment le calcul du module.",
+      "fix": "Utiliser une instance de validation distincte dans le périmètre source ou éviter de révéler auparavant la valeur exacte de cet item.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[7]",
+          "basis": "La source présente −5 + 12i comme validation du calcul de module."
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Revue statique de fidélité sémantique et d’adéquation au brief; elle ne prouve ni rétention, ni maîtrise durable, ni efficacité éducative en conditions réelles.",
+    "Aucun contexte auteur, scratchpad, audit auteur ou conclusion sémantique antérieure n’a été utilisé avant le gel de cette revue."
+  ],
+  "verdict": "HOLD_SEMANTIC_REVIEW_V1"
+}
