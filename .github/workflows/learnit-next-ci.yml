@@ -594,13 +594,23 @@ jobs:
             cmp -s "${first}" "${second}"
             echo "STUDENT_V01_JOB07_R1_REPAIRED_APP_IDENTITY=PASS"
 
-            python -B authoring/v4/validate_kit.py               apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json               --format=json
-            echo "STUDENT_V01_JOB07_R1_RICH_V4_FIXTURE=PASS"
+            fixture_valid=true
+            if ! python -B authoring/v4/validate_kit.py apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json --format=json; then
+              fixture_valid=false
+              echo "STUDENT_V01_JOB07_R1_RICH_V4_FIXTURE=FAIL"
+            else
+              echo "STUDENT_V01_JOB07_R1_RICH_V4_FIXTURE=PASS"
+            fi
 
             python -B apps/learnit-next/build.py
             python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
             python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py
             echo "STUDENT_V01_JOB07_R1_OLD_BLOCKER_CLOSED=PASS"
+
+            if [[ "${fixture_valid}" != true ]]; then
+              echo "JOB07 R1 qualification fixture is not canonical-valid; packaging implementation is blocked." >&2
+              exit 2
+            fi
 
             if [[ ! -f pilot/student-v0.1/build_pilot_package.py ]]; then
               echo "STUDENT_V01_JOB07_R1_PREFLIGHT_ONLY=PASS"
