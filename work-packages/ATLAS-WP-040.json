@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-040",
+  "title": "Student V0.1 JOB 07 R2 — deterministic pilot packaging with canonical generated qualification kit",
+  "status": "approved",
+  "changeClass": "pilot-packaging-requalification-input-correction",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 417,
+    "parentWave2Issue": 403,
+    "parentProgramIssue": 380,
+    "initialJob07Issue": 406,
+    "servedRepairIssue": 410,
+    "servedRepairPr": 411,
+    "contradictoryQaIssue": 412,
+    "contradictoryQaPr": 413,
+    "priorJob07R1Issue": 415,
+    "priorJob07R1Pr": 416,
+    "frozenShowcaseIssue": 405
+  },
+  "baseline": {
+    "baseCommit": "7c13d67a76705b4452304c0f6a882504bc7701a7",
+    "repairedProductCommit": "bdb66bffefd6738e3cb4004d304159e9d3d048ce",
+    "acceptedJob05R1Result": "1c92cad7ea576a613b6f198768bbebd114a06082",
+    "acceptedJob05R1Evidence": "9dbd5c97603be864a57cc0f7f46047ee41772b34",
+    "priorJob07R1Result": "87a851051bdf80d6e9edb097130521a96df4038a",
+    "priorJob07R1Evidence": "704b4588547bc4ca8af6f85ecbf0004e34b8a03f",
+    "canonicalQualificationGenerator": {
+      "path": "authoring/v4/tests/test_validate_v4.py",
+      "gitBlob": "85debca78c3ec342d9e4e7ed63a033fd0968e72e",
+      "function": "make_valid_v4"
+    },
+    "rejectedQualificationFixture": {
+      "path": "apps/learnit-next/tests/fixtures/student_v01_v4_runtime.json",
+      "gitBlob": "943944eaee6944529810acffc06e61affc71f909",
+      "reason": "runtime fixture is structurally rich but its lesson body fails current canonical V4 authoring admissibility"
+    },
+    "expectedRepairedArtifact": {
+      "bytes": 478657,
+      "sha256": "85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e"
+    }
+  },
+  "purpose": "Complete pilot packaging qualification around the exact repaired product using a canonical ephemeral rich-V4 qualification kit generated from the repository's frozen canonical V4 representative generator, without mutating product, validator, runtime fixture, generator, or showcase content.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-040.json",
+      "docs/programs/student-v0.1/jobs/JOB_07_R2_PILOT_PACKAGING_UX.md",
+      "pilot/student-v0.1/**",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_JOB07_R2_PILOT_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "docs/architecture/**",
+      "authoring/**",
+      "showcase/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/tests/**",
+      "work-packages/ATLAS-WP-037.json",
+      "work-packages/ATLAS-WP-038.json",
+      "work-packages/ATLAS-WP-039.json"
+    ]
+  },
+  "invariants": [
+    "JOB07 R2 starts cleanly from the repaired-product evidence head, not from the failed JOB07 R1 branch.",
+    "The failed R1 runtime fixture remains unchanged; its failure is qualification-input evidence, not repair authority.",
+    "The canonical qualification kit is generated ephemerally from exact authoring/v4/tests/test_validate_v4.py blob 85debca78c3ec342d9e4e7ed63a033fd0968e72e using make_valid_v4().",
+    "The generated qualification kit must be deterministically serialized, canonically validated, hashed, and used unchanged for all package/browser qualification steps.",
+    "The pilot package builder itself is generic over arbitrary canonical learnit.kit.v4 input and has no runtime dependency on authoring test helpers.",
+    "The repaired product is read-only and must remain byte-identical to the accepted served-V4 artifact.",
+    "No JOB06 showcase file is consumed; showcase remains frozen for later fan-in.",
+    "JOB05 R1 is a prerequisite gate only; no QA implementation file is consumed.",
+    "The package is local/offline, deterministic, hash-bound and contains no required remote dependency.",
+    "Learner action count must include mandatory browser chooser/selection/import steps honestly.",
+    "No auto-import, browser-security bypass, product fork, backend, service dependency or new product persistence model is introduced.",
+    "Any product defect discovered during packaged use returns HOLD; pilot scope never repairs it."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/repository/PR #411 rebind and durable verification of accepted JOB05 R1 PASS.",
+    "Exact ancestry from JOB07_R2_BASE and repaired product anchor.",
+    "Exact canonical generator blob identity 85debca78c3ec342d9e4e7ed63a033fd0968e72e is rechecked before qualification input generation.",
+    "Representative canonical generator test passes unchanged.",
+    "Ephemeral qualification kit is materialized from make_valid_v4(), deterministically serialized, and its byte count/SHA256 recorded.",
+    "Canonical V4 validator passes on the exact materialized qualification kit before packaging.",
+    "Generated qualification kit contains all eight Student V0.1 families and safe local SVG media.",
+    "Canonical repaired app built twice and verified at 478657 bytes / SHA256 85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e.",
+    "Old served-session blocker closure is re-proved on the generated qualification kit before package implementation proceeds.",
+    "A generic deterministic package builder accepts explicit app HTML and canonical V4 kit paths.",
+    "Package manifest binds exact app and kit filenames, bytes, SHA256 and package schema/version.",
+    "START_HERE is deterministic, local-only, learner-facing and does not silently bypass file selection.",
+    "Two package builds from identical inputs are byte-identical; archive entry names/order/timestamps/permissions/compression metadata are inspected.",
+    "Extracted app and kit bytes exactly match manifest-bound inputs.",
+    "Direct-file behavior is tested first; if unusable, any loopback helper is standard-library-only, binds 127.0.0.1, and is explicitly facilitator tooling.",
+    "The actual documented start mode is used for browser qualification.",
+    "Actual learner action count from START_HERE to course start is recorded without omitting chooser/selection/import actions.",
+    "Extracted package is used for the real rich-V4 journey; source-tree product is not substituted for package proof.",
+    "Desktop 1365x768 and mobile 390x844 both complete import/start/rich interaction/reload/resume/completion.",
+    "No unexpected external HTTP(S) requests occur through start, media, reload/resume or completion.",
+    "Packaged learner runtime/presentation/DOM exposes none of correctChoiceId, answers, acceptedResponses, matches, correctOrder, assignments.",
+    "Recovery covers invalid kit selection, retry, library return/continue and local reset/re-import without claiming cloud/account recovery.",
+    "Relevant served-repair regressions rerun unchanged on exact RESULT_SHA.",
+    "Exact-head CI proves package determinism, packaged browser journey and repaired-product regressions.",
+    "Repository governance, authoritative PR scope and exact changed-path scope pass.",
+    "Qualification evidence separates RESULT_SHA from later evidence-only EVIDENCE_HEAD."
+  ],
+  "adversarialTests": [
+    "Changing or weakening the runtime fixture, canonical generator, canonical validator or authoring code to obtain a qualification input is a scope failure.",
+    "A generated qualification kit that has not passed the canonical validator cannot be used for packaging.",
+    "A package builder that imports make_valid_v4() at runtime is invalid; generator dependency is qualification-only.",
+    "A package that embeds app bytes differing from the repaired artifact is a failure.",
+    "A deterministic archive without a real packaged learner journey cannot PASS.",
+    "A manifest binding only names and not bytes/hashes is a failure.",
+    "Generated ZIP timestamps/order/permissions that vary across identical runs are a failure.",
+    "Testing source-tree Learn-it while claiming extracted-package PASS is forbidden.",
+    "Qualifying under loopback while documenting direct-file-only start is forbidden.",
+    "A remote network request required for any learner step is a failure.",
+    "Changing product code or auto-importing the kit to lower learner action count is a scope failure.",
+    "Using frozen JOB06 showcase content as qualification input is forbidden in R2.",
+    "If packaged use reveals a product defect, return HOLD_PRODUCT_BLOCKS_PILOT rather than patching it."
+  ],
+  "nonGoals": [
+    "Changing the repaired product.",
+    "Changing canonical V4 authoring policy or validators.",
+    "Fixing the old runtime fixture.",
+    "Authoring/reviewing the final showcase kit.",
+    "Combining product + showcase + packaging.",
+    "Adding backend/accounts/cloud distribution.",
+    "Publishing remotely.",
+    "Merging to main.",
+    "Launching JOB08 or real students."
+  ],
+  "independentReview": [
+    "R1's HOLD is accepted as an input-authority defect, not a product failure.",
+    "R2 corrects only the qualification input authority and then re-executes the packaging mission from the repaired product base.",
+    "Generated qualification input identity and validation are durable evidence; no silent substitution is permitted.",
+    "G3 remains a separate Control Room review after R2."
+  ],
+  "execution": {
+    "branch": "student-v01/wave2-pilot-package-r2",
+    "phase": "JOB07_R2_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "G3_WAVE2_REVIEW",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the JOB07 R2 PR and delete its branch. PR #411, repaired product/evidence anchors, accepted JOB05 R1, frozen JOB06, and historical JOB07 R1 remain unchanged."
+}
