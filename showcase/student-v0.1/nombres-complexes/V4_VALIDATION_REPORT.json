@@ -7,7 +7,7 @@
       "ok": true,
       "errors": [],
       "warnings": [],
-      "idsDefined": 59,
+      "idsDefined": 55,
       "objectiveReferences": 12,
       "activities": {
         "constructed": 1,
@@ -37,9 +37,9 @@
         {
           "level": "activity",
           "path": "$.courses[0].activities[2]",
-          "revisionId": "4df86b61-81fa-489a-aed2-fb0abde50ded",
-          "declared": "sha256:64decd72d4a575bd08c9c26f00e180b1f3f72e15a4a4c29093d4ceb8a289dc55",
-          "calculated": "sha256:64decd72d4a575bd08c9c26f00e180b1f3f72e15a4a4c29093d4ceb8a289dc55"
+          "revisionId": "66c05bee-82c6-4192-8e0e-4ef4412f6095",
+          "declared": "sha256:493ee2474d5776453814a9b23913a9edc2e65d4b1b64f9415230ae0aea23742e",
+          "calculated": "sha256:493ee2474d5776453814a9b23913a9edc2e65d4b1b64f9415230ae0aea23742e"
         },
         {
           "level": "activity",
@@ -79,9 +79,9 @@
         {
           "level": "activity",
           "path": "$.courses[0].activities[8]",
-          "revisionId": "11536112-05f1-4548-93b5-80f6d5b4db7a",
-          "declared": "sha256:4027721883d27c4987faace4c152cc499adf161dc26eb0408787038104a24ea9",
-          "calculated": "sha256:4027721883d27c4987faace4c152cc499adf161dc26eb0408787038104a24ea9"
+          "revisionId": "c08425be-c74a-4610-aef0-9d2bd0a721d9",
+          "declared": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4",
+          "calculated": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4"
         },
         {
           "level": "activity",
@@ -100,16 +100,16 @@
         {
           "level": "course",
           "path": "$.courses[0]",
-          "revisionId": "584b1cc7-2915-4ef0-b866-56fe3186fc78",
-          "declared": "sha256:d09e729b12ca7cba0c08de38bcb928dc26da5ae3d0e155f573ee2555be3050c5",
-          "calculated": "sha256:d09e729b12ca7cba0c08de38bcb928dc26da5ae3d0e155f573ee2555be3050c5"
+          "revisionId": "a0a34de6-e00a-41c5-97db-010c3fd333df",
+          "declared": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418",
+          "calculated": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418"
         },
         {
           "level": "package",
           "path": "$",
-          "revisionId": "77305022-2670-4983-9ec1-f59a76011c95",
-          "declared": "sha256:481e971dc71a1994219d50c6f5c1ef02ce646c42ae0a0086623796b36c376acb",
-          "calculated": "sha256:481e971dc71a1994219d50c6f5c1ef02ce646c42ae0a0086623796b36c376acb"
+          "revisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
+          "declared": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee",
+          "calculated": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee"
         }
       ]
     }
