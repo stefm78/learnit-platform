@@ -15,8 +15,8 @@
     "path": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json",
     "contract": "learnit.kit.v4",
     "packageLineageId": "5c621f9b-f584-4669-9ae4-ce174f473650",
-    "packageRevisionId": "77305022-2670-4983-9ec1-f59a76011c95",
-    "packageRevisionDigest": "sha256:481e971dc71a1994219d50c6f5c1ef02ce646c42ae0a0086623796b36c376acb"
+    "packageRevisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
+    "packageRevisionDigest": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee"
   },
   "activities": [
     {
@@ -91,12 +91,6 @@
           "sourceActivityLineageId": "4de1146e-c35f-4398-9a2b-8fdcb35ce987",
           "locator": "$.courses[0].activities[2]",
           "basis": "Conjugate of −1 − 4i and general a + ib → a − ib statement."
-        },
-        {
-          "sourceActivityIndex": 3,
-          "sourceActivityLineageId": "06d208c3-00cb-46d5-a762-e462e926f4ca",
-          "locator": "$.courses[0].activities[3]",
-          "basis": "Independent conjugate example 5 − 2i → 5 + 2i."
         }
       ]
     },
@@ -181,12 +175,6 @@
           "sourceActivityLineageId": "9c36140e-ccfd-4b41-aa0c-43a81a48b833",
           "locator": "$.courses[0].activities[5]",
           "basis": "Module example |3 + 4i| = 5."
-        },
-        {
-          "sourceActivityIndex": 7,
-          "sourceActivityLineageId": "4da38176-c283-4884-b48f-b5e6da821b0d",
-          "locator": "$.courses[0].activities[7]",
-          "basis": "Module example |−5 + 12i| = 13."
         },
         {
           "sourceActivityIndex": 8,

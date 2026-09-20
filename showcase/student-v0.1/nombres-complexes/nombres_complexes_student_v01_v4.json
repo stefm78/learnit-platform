@@ -1,8 +1,8 @@
 {
   "contract": "learnit.kit.v4",
   "packageLineageId": "5c621f9b-f584-4669-9ae4-ce174f473650",
-  "packageRevisionId": "77305022-2670-4983-9ec1-f59a76011c95",
-  "packageRevisionDigest": "sha256:481e971dc71a1994219d50c6f5c1ef02ce646c42ae0a0086623796b36c376acb",
+  "packageRevisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
+  "packageRevisionDigest": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee",
   "title": "Nombres complexes — Student V0.1 Showcase",
   "description": "Parcours borné de 42 minutes sur le conjugué, le module et leurs interprétations géométriques, dérivé du kit canonique Atlas M1 0.3.",
   "versionLabel": "Student V0.1 Showcase 1",
@@ -10,8 +10,8 @@
   "courses": [
     {
       "courseLineageId": "7ee53f04-f12f-49b8-9d0a-e3e68cb4c412",
-      "courseRevisionId": "584b1cc7-2915-4ef0-b866-56fe3186fc78",
-      "courseRevisionDigest": "sha256:d09e729b12ca7cba0c08de38bcb928dc26da5ae3d0e155f573ee2555be3050c5",
+      "courseRevisionId": "a0a34de6-e00a-41c5-97db-010c3fd333df",
+      "courseRevisionDigest": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418",
       "title": "Conjugué et module des nombres complexes",
       "subtitle": "Comprendre, retrouver, pratiquer et valider les deux notions",
       "estimatedMinutes": 42,
@@ -61,8 +61,8 @@
         },
         {
           "activityLineageId": "160f988a-5840-4104-93db-d9463cc92a01",
-          "activityRevisionId": "4df86b61-81fa-489a-aed2-fb0abde50ded",
-          "activityRevisionDigest": "sha256:64decd72d4a575bd08c9c26f00e180b1f3f72e15a4a4c29093d4ceb8a289dc55",
+          "activityRevisionId": "66c05bee-82c6-4192-8e0e-4ef4412f6095",
+          "activityRevisionDigest": "sha256:493ee2474d5776453814a9b23913a9edc2e65d4b1b64f9415230ae0aea23742e",
           "objectiveIds": [
             "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
           ],
@@ -81,10 +81,6 @@
             {
               "itemId": "87ad9412-3dbe-42b2-b15b-698ac600ab4c",
               "label": "−1 − 4i"
-            },
-            {
-              "itemId": "356f1c65-15dd-4abe-b3b0-39ae1c899356",
-              "label": "5 − 2i"
             }
           ],
           "rightItems": [
@@ -95,10 +91,6 @@
             {
               "itemId": "c3d93a11-21c1-45d1-a513-530448a1c679",
               "label": "−1 + 4i"
-            },
-            {
-              "itemId": "8e33618e-5f8f-409d-8e8a-435a7c39ef8b",
-              "label": "5 + 2i"
             }
           ],
           "matches": [
@@ -109,10 +101,6 @@
             {
               "leftItemId": "87ad9412-3dbe-42b2-b15b-698ac600ab4c",
               "rightItemId": "c3d93a11-21c1-45d1-a513-530448a1c679"
-            },
-            {
-              "leftItemId": "356f1c65-15dd-4abe-b3b0-39ae1c899356",
-              "rightItemId": "8e33618e-5f8f-409d-8e8a-435a7c39ef8b"
             }
           ]
         },
@@ -252,8 +240,8 @@
         },
         {
           "activityLineageId": "e7279474-373a-4823-9281-59952f2e91f9",
-          "activityRevisionId": "11536112-05f1-4548-93b5-80f6d5b4db7a",
-          "activityRevisionDigest": "sha256:4027721883d27c4987faace4c152cc499adf161dc26eb0408787038104a24ea9",
+          "activityRevisionId": "c08425be-c74a-4610-aef0-9d2bd0a721d9",
+          "activityRevisionDigest": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4",
           "objectiveIds": [
             "42f0999d-3586-4fe6-888f-c6df07a2b255"
           ],
@@ -270,10 +258,6 @@
               "label": "|3 + 4i|"
             },
             {
-              "itemId": "839fe45f-b8c9-40a3-9dd1-4de798ecb08f",
-              "label": "|−5 + 12i|"
-            },
-            {
               "itemId": "975e9396-6d18-462e-8861-0e8c7239acd4",
               "label": "Distance à l’origine du point d’affixe 8 − 15i"
             }
@@ -284,10 +268,6 @@
               "label": "5"
             },
             {
-              "itemId": "b85b6ad3-6305-4518-a9cd-b987c2ce2751",
-              "label": "13"
-            },
-            {
               "itemId": "791a425a-8577-4f67-9f6b-6d4a03550ef6",
               "label": "17"
             }
@@ -296,10 +276,6 @@
             {
               "leftItemId": "a9f4bee6-5743-472f-b4ec-29faab85fba6",
               "rightItemId": "37c40737-af02-4de1-8e8f-039b02eea161"
-            },
-            {
-              "leftItemId": "839fe45f-b8c9-40a3-9dd1-4de798ecb08f",
-              "rightItemId": "b85b6ad3-6305-4518-a9cd-b987c2ce2751"
             },
             {
               "leftItemId": "975e9396-6d18-462e-8861-0e8c7239acd4",
