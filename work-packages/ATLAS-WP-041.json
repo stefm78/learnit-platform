@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-041",
+  "title": "Student V0.1 G3 — Wave 2 review and Fan-in B input freeze",
+  "status": "approved",
+  "changeClass": "control-room-review-and-fanin-input-freeze",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 419,
+    "parentProgramIssue": 380,
+    "wave2ControlIssue": 403,
+    "servedRepairIssue": 410,
+    "job05R1Issue": 412,
+    "job06Issue": 405,
+    "job07R2Issue": 417
+  },
+  "baseline": {
+    "baseCommit": "7c13d67a76705b4452304c0f6a882504bc7701a7",
+    "repairedProductCommit": "bdb66bffefd6738e3cb4004d304159e9d3d048ce",
+    "job05R1Result": "1c92cad7ea576a613b6f198768bbebd114a06082",
+    "job05R1Evidence": "9dbd5c97603be864a57cc0f7f46047ee41772b34",
+    "job06Result": "8e0e3c43968cf0cf442e0e47b73bc38fc19ae565",
+    "job06Evidence": "28d6e2968fcbe79d7225b2c29efda22317af09c8",
+    "job07R2Result": "5e492fddc4d5cf00c71bdb770eb1aeac11a63803",
+    "job07R2Evidence": "a2695560810b9a1bf3761d065326ff7df09c2252",
+    "job06FactoryContextDigest": "sha256:c9c90b779ea0c40ef0013bae3f78c3852de48cff36b4927f38ef9e22e21a9730",
+    "job06KitSha256": "sha256:694f6713c2399e680f4748b925c9b293a9c9236cf25c593ce2f900ba5cec918b",
+    "job06BriefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a",
+    "job06SourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83",
+    "job06SourceBlob": "7f83784e8719917496a694b2ad170d724190fd04"
+  },
+  "purpose": "Perform the independent G3 review required by the Student V0.1 program, close JOB06's deferred semantic-review gate, challenge exact Wave 2 output compatibility, and freeze a non-repairing JOB08 Fan-in B input manifest.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-041.json",
+      "docs/programs/student-v0.1/jobs/JOB_G3_WAVE2_REVIEW.md",
+      "qualification/STUDENT_V01_G3_JOB06_SEMANTIC_REVIEW.json",
+      "qualification/STUDENT_V01_G3_JOB06_FACTORY_RESULT.json",
+      "qualification/STUDENT_V01_G3_FANIN_B_INPUT_MANIFEST.json",
+      "qualification/STUDENT_V01_G3_WAVE2_REVIEW.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "docs/architecture/**",
+      "docs/programs/student-v0.1/PROGRAM_CHARTER.md",
+      "docs/programs/student-v0.1/COORDINATION.yaml",
+      "work-packages/ATLAS-WP-037.json",
+      "work-packages/ATLAS-WP-038.json",
+      "work-packages/ATLAS-WP-039.json",
+      "work-packages/ATLAS-WP-040.json"
+    ]
+  },
+  "invariants": [
+    "G3 is a review gate, not an integration or repair job.",
+    "G3 starts from the repaired-product evidence head and does not cherry-pick or merge JOB05, JOB06 or JOB07 outputs.",
+    "The independent JOB06 semantic-review phase must be completed before reading JOB06 author-side audit, provenance, quality-report or qualification conclusions.",
+    "Semantic review may receive only exact source bytes, learner brief, candidate, factory context and public reviewer/factory authorities.",
+    "authorScratchpadSeen and authorActiveContextReused must both remain false; otherwise semantic review HOLDs.",
+    "The semantic review must bind exactly to the frozen four-hash Factory target.",
+    "A semantic HOLD or deterministic Factory HOLD blocks G3; G3 does not repair JOB06.",
+    "After semantic review is durably frozen, G3 may inspect all accepted Wave 2 evidence and perform read-only temporary cross-output compatibility probes.",
+    "JOB06 showcase content remains byte-identical; no G3 mutation of the kit is allowed.",
+    "JOB07 R2 packaging code may be materialized read-only into a temporary workspace for compatibility proof but is not committed on the G3 branch.",
+    "JOB05 R1 QA implementation may be inspected as evidence but is not consumed or mutated by G3.",
+    "Any sibling workflow changes are classified as integrator-owned overlap; G3 must not merge or resolve them.",
+    "G3 PASS freezes exact Fan-in B inputs and a path-level integration policy; it does not create or execute JOB08.",
+    "No main merge, release promotion or real-student execution is authorized."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP binding and exact live PR states for #411, #413, #408 and #418.",
+    "Exact SHA and ancestry verification for all four accepted inputs.",
+    "Independent JOB06 semantic review over exact source/brief/candidate/context with all six required dimensions.",
+    "Independent recalculation of every scored JOB06 activity answer/correct mapping used in the showcase.",
+    "Source-fidelity evidence with exact source IDs/locators for required semantic dimensions.",
+    "Semantic review JSON validates under learnit.atlas.semantic_review.v1 and binds exact contextDigest, kitSha256, sourceSetDigest and briefSha256.",
+    "Deterministic factory_gate.py gate executed against the exact JOB06 candidate, brief, source and G3 semantic review; raw JSON result stored durably.",
+    "JOB06 canonical V4 validation and pedagogical quality rerun against exact candidate materialized from JOB06 RESULT_SHA.",
+    "Read-only compatibility proof that exact JOB06 candidate imports/starts/completes on repaired product bdb66bffefd6738e3cb4004d304159e9d3d048ce.",
+    "Read-only compatibility proof that exact JOB07 R2 generic builder can package the exact JOB06 candidate without modifying either and that extracted package app/kit hashes bind correctly.",
+    "At least one real packaged-browser smoke using exact JOB06 showcase on repaired app; desktop and mobile start/interaction/resume/completion are preferred and required unless an earlier causal incompatibility stops G3.",
+    "Exact JOB05 R1, JOB06 and JOB07 R2 changed-path audits and evidence/result separation verification.",
+    "Cross-output overlap matrix identifying candidate payload, evidence-only paths and integrator-owned central-file overlaps.",
+    "Fan-in B input manifest naming exact source SHAs and exact payload paths to import, plus central files that JOB08 must recompose instead of blindly cherry-pick.",
+    "Explicit JOB08 integration order and stop conditions with no silent repair.",
+    "Repository governance PASS on G3 review branch.",
+    "Final exact scope audit proving only ATLAS-WP-041 allowed paths changed."
+  ],
+  "adversarialTests": [
+    "Reading AUTHOR_AUDIT.md, PEDAGOGICAL_QUALITY_REPORT.json, PROVENANCE_MAP.json, SOURCE_BASIS.md or JOB06 qualification conclusions before freezing semantic review invalidates reviewer independence and must HOLD G3.",
+    "Using JOB06's author-side provenance map as semantic source evidence is forbidden during independent review; evidence must be derived directly from the exact source.",
+    "A structurally valid kit with a wrong or ambiguous answer must HOLD semantic review.",
+    "Factory PASS may not be inferred from semantic PASS; factory_gate.py must execute on exact bytes.",
+    "JOB06 PASS may not be inferred from its previous qualification because semantic review was explicitly pending.",
+    "JOB05 R1 and JOB07 R2 workflow changes must not be silently merged together at G3.",
+    "Temporary cross-output compatibility material must not be committed to the G3 branch.",
+    "A package smoke using the generated R2 qualification kit instead of the exact JOB06 showcase does not prove Wave 2 mutual compatibility.",
+    "If exact JOB06 showcase cannot run/package against repaired product, G3 HOLDs rather than editing product/content/package code.",
+    "G3 PASS cannot authorize JOB09 or real students; only JOB08 preparation becomes eligible."
+  ],
+  "nonGoals": [
+    "Integrating Wave 2 branches.",
+    "Repairing product, QA, showcase or packaging code.",
+    "Changing schema, authoring rules or central workflow.",
+    "Creating JOB08 implementation.",
+    "Merging any open PR.",
+    "Running real students."
+  ],
+  "execution": {
+    "branch": "student-v01/g3-wave2-review",
+    "phase": "G3_WAVE2_REVIEW_AUTHORIZED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "JOB08_FANIN_B_PREPARATION_IF_PASS",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the G3 PR and delete student-v01/g3-wave2-review. All accepted input branches and their exact result/evidence SHAs remain unchanged.",
+  "independentReview": [
+    "G3 semantic review is performed in a clean reviewer phase before author-side JOB06 conclusions are read.",
+    "The semantic review is committed alone and frozen before full Wave 2 evidence is opened.",
+    "Factory gate execution, cross-output compatibility probes and path-overlap review independently challenge the accepted role outputs.",
+    "G3 performs no implementation repair; any semantic, factory, product, packaging or overlap defect returns HOLD to the owning role or Control Room."
+  ]
+}
