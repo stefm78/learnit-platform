@@ -1,0 +1,117 @@
+{
+  "ok": true,
+  "crossFileErrors": [],
+  "files": [
+    {
+      "path": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "idsDefined": 55,
+      "objectiveReferences": 12,
+      "activities": {
+        "constructed": 1,
+        "flashcard": 2,
+        "lesson": 1,
+        "matching": 2,
+        "order": 1,
+        "qcm": 4
+      },
+      "assets": 0,
+      "mediaReferences": 0,
+      "revisions": [
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[0]",
+          "revisionId": "bbb79698-89d1-4154-b5fd-f9c9632b9ec5",
+          "declared": "sha256:3057235d6403bc969369fd42d1db6ce5f33f10359ea327cecb6b07421bf3c202",
+          "calculated": "sha256:3057235d6403bc969369fd42d1db6ce5f33f10359ea327cecb6b07421bf3c202"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[1]",
+          "revisionId": "7a918ca6-f2de-46fe-974d-64ef35b0c072",
+          "declared": "sha256:0f72b187442b0da307f616d3f41ff80e7c6e8e0aa1e4731763a58bd4c2046b92",
+          "calculated": "sha256:0f72b187442b0da307f616d3f41ff80e7c6e8e0aa1e4731763a58bd4c2046b92"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[2]",
+          "revisionId": "66c05bee-82c6-4192-8e0e-4ef4412f6095",
+          "declared": "sha256:493ee2474d5776453814a9b23913a9edc2e65d4b1b64f9415230ae0aea23742e",
+          "calculated": "sha256:493ee2474d5776453814a9b23913a9edc2e65d4b1b64f9415230ae0aea23742e"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[3]",
+          "revisionId": "f4498110-0227-404a-857d-324409c1c560",
+          "declared": "sha256:08afaf2f1f5c35dd4f5cae56f8aba02493530934de19ba0871a3da09ef2e690c",
+          "calculated": "sha256:08afaf2f1f5c35dd4f5cae56f8aba02493530934de19ba0871a3da09ef2e690c"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[4]",
+          "revisionId": "c49f1df9-16fb-43aa-afa7-f1d461a37052",
+          "declared": "sha256:72445ba4596294aa5f8289ab77aec47623a75b65e323cc3b8c467392672ceab1",
+          "calculated": "sha256:72445ba4596294aa5f8289ab77aec47623a75b65e323cc3b8c467392672ceab1"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[5]",
+          "revisionId": "1bd5164b-8905-4742-8ba1-7f37bff6337c",
+          "declared": "sha256:86f3d199b53e14b26d0943c7aa4534dab21848e4347d44294cef90b6e3f2f04c",
+          "calculated": "sha256:86f3d199b53e14b26d0943c7aa4534dab21848e4347d44294cef90b6e3f2f04c"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[6]",
+          "revisionId": "2df5cfaf-877e-4718-91c7-8c9b2f0c3a3a",
+          "declared": "sha256:cd961483425266ec1c47b86c8187f5d7415eae6fbdcce7ff69bf2ee4354af3e4",
+          "calculated": "sha256:cd961483425266ec1c47b86c8187f5d7415eae6fbdcce7ff69bf2ee4354af3e4"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[7]",
+          "revisionId": "977d798a-a70e-4b60-a85a-7e82af51aa2c",
+          "declared": "sha256:9a3a597a4686a79023250df773628a642a97d75b318e6b4998ab995fb57d3243",
+          "calculated": "sha256:9a3a597a4686a79023250df773628a642a97d75b318e6b4998ab995fb57d3243"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[8]",
+          "revisionId": "c08425be-c74a-4610-aef0-9d2bd0a721d9",
+          "declared": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4",
+          "calculated": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[9]",
+          "revisionId": "9ba5d27c-2982-4b2c-b1de-574652d4043d",
+          "declared": "sha256:45075f52952487f27fad15219355ff28c670b2e21de3f7a05d242ab6e1ae3920",
+          "calculated": "sha256:45075f52952487f27fad15219355ff28c670b2e21de3f7a05d242ab6e1ae3920"
+        },
+        {
+          "level": "activity",
+          "path": "$.courses[0].activities[10]",
+          "revisionId": "71b869f2-ca60-4f44-8193-489c09755eb7",
+          "declared": "sha256:eb85d90d958b445500e2343a7492cfd93f86aea6c6cf3d43c5b793fc8e03c661",
+          "calculated": "sha256:eb85d90d958b445500e2343a7492cfd93f86aea6c6cf3d43c5b793fc8e03c661"
+        },
+        {
+          "level": "course",
+          "path": "$.courses[0]",
+          "revisionId": "a0a34de6-e00a-41c5-97db-010c3fd333df",
+          "declared": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418",
+          "calculated": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418"
+        },
+        {
+          "level": "package",
+          "path": "$",
+          "revisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
+          "declared": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee",
+          "calculated": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee"
+        }
+      ]
+    }
+  ]
+}
