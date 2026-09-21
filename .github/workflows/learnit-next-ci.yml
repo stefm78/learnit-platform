@@ -542,6 +542,23 @@ jobs:
             [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || { echo "JOB08 base no longer ancestor." >&2; exit 2; }
             [[ "$(git rev-parse "HEAD:qualification/STUDENT_V01_G3_R1_FANIN_B_INPUT_MANIFEST.json")" == "${expected_manifest_blob}" ]] || { echo "Fan-in manifest drift." >&2; exit 2; }
 
+            evidence_path=qualification/STUDENT_V01_JOB08_FANIN_B_RESULT.md
+            if ! git diff --quiet "${exact_base}" "${TARGET}" -- "${evidence_path}"; then
+              parents=( $(git show -s --format=%P "${TARGET}") )
+              [[ ${#parents[@]} -eq 1 ]] || { echo "JOB08 evidence head must have one parent." >&2; exit 2; }
+              functional_parent="${parents[0]}"
+              [[ "$(git diff --name-only "${functional_parent}" "${TARGET}")" == "${evidence_path}" ]] || {
+                echo "JOB08 evidence head contains non-evidence changes." >&2
+                exit 2
+              }
+              grep -Fq "RESULT_SHA" "${evidence_path}"
+              grep -Fq "${functional_parent}" "${evidence_path}"
+              echo "STUDENT_V01_JOB08_EVIDENCE_ONLY_ROUTE=PASS"
+              echo "STUDENT_V01_JOB08_EVIDENCE_HEAD=${TARGET}"
+              echo "STUDENT_V01_JOB08_FUNCTIONAL_RESULT=${functional_parent}"
+              exit 0
+            fi
+
             allowed_path() {
               case "$1" in
                 work-packages/ATLAS-WP-044.json|docs/programs/student-v0.1/jobs/JOB_08_FANIN_B.md|.github/workflows/learnit-next-ci.yml|apps/learnit-next/tests/student_v01_fanin_b.py|qa/student-v0.1/JOB05_CANONICAL_V4_FIXTURE.json|qa/student-v0.1/browser_job05_r1_contradictory_qa.py|qa/student-v0.1/job05_r1_contradictory_qa.py|showcase/student-v0.1/nombres-complexes/AUTHOR_AUDIT.md|showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT.json|showcase/student-v0.1/nombres-complexes/FACTORY_REVIEW_REQUEST.md|showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json|showcase/student-v0.1/nombres-complexes/PEDAGOGICAL_QUALITY_REPORT.json|showcase/student-v0.1/nombres-complexes/PROVENANCE_MAP.json|showcase/student-v0.1/nombres-complexes/SOURCE_BASIS.md|showcase/student-v0.1/nombres-complexes/V4_VALIDATION_REPORT.json|showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json|pilot/student-v0.1/browser_generated_v4_probe.py|pilot/student-v0.1/browser_pilot_package.py|pilot/student-v0.1/build_pilot_package.py|pilot/student-v0.1/ci_job07_r2.py|pilot/student-v0.1/materialize_qualification_kit.py|pilot/student-v0.1/test_pilot_package.py) return 0 ;;
