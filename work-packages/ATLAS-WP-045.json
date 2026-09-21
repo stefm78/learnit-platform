@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-045",
+  "title": "Student V0.1 JOB09 — G5 human replay and student-readiness gate",
+  "status": "approved",
+  "changeClass": "human-gate-readiness-review",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 427,
+    "parentProgramIssue": 380,
+    "g4Issue": 425,
+    "g4Pr": 426,
+    "g3R1Issue": 423
+  },
+  "baseline": {
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133",
+    "g4CandidateResult": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+    "g4EvidenceHead": "18b925436777943b19c4b031c24659ad60dee133",
+    "repairedApp": {
+      "bytes": 478657,
+      "sha256": "85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e"
+    },
+    "showcase": {
+      "path": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json",
+      "sha256": "da2beb6df6f490c6637d5de22ce1c8fc99fafe89a2ba4b0e6c698b0544c193ff"
+    },
+    "exactPilotPackage": {
+      "bytes": 496658,
+      "sha256": "a3d3db4c63fae89b47e1d7a1341ebb522f31df69e1b107ada2ecbb9a11c4ac10",
+      "startMode": "DIRECT_FILE"
+    }
+  },
+  "purpose": "Prepare an identity-bound human replay from the exact G4 candidate, obtain an explicit real-human G5 decision on student readiness, and durably record that decision without modifying the candidate.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-045.json",
+      "docs/programs/student-v0.1/jobs/JOB_09_G5_HUMAN_STUDENT_READINESS.md",
+      "qualification/STUDENT_V01_JOB09_G5_REPLAY_PACKET.json",
+      "qualification/STUDENT_V01_JOB09_G5_PROTOCOL.md",
+      "qualification/STUDENT_V01_JOB09_G5_HUMAN_DECISION.md",
+      "qualification/STUDENT_V01_JOB09_G5_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "docs/architecture/**",
+      "docs/programs/student-v0.1/PROGRAM_CHARTER.md",
+      "docs/programs/student-v0.1/COORDINATION.yaml",
+      "qualification/STUDENT_V01_JOB08_FANIN_B_RESULT.md"
+    ]
+  },
+  "invariants": [
+    "JOB09 is a human gate. Automation prepares evidence but cannot substitute for the human verdict.",
+    "The learner candidate under review is exactly G4 RESULT_SHA 757ed15e840bfca603de0eac3bef1e9d5ff3483d; JOB09 does not create a new product candidate.",
+    "The human replay uses the exact 496658-byte package with SHA-256 a3d3db4c63fae89b47e1d7a1341ebb522f31df69e1b107ada2ecbb9a11c4ac10 rebuilt from the exact G4 candidate.",
+    "The outer human-replay bundle may contain reviewer-only protocol/guide/decision artifacts, but the nested learner package bytes remain exact and immutable.",
+    "Reviewer-only answer guidance must stay outside the learner package and must not be opened before the cold-start segment is complete.",
+    "Phase A must stop with HUMAN_DECISION_REQUIRED and may not infer or manufacture human observations.",
+    "Phase B requires an explicit human decision bound to exact candidate and replay-bundle identities.",
+    "A human GO requires a complete learner journey plus the mandatory readiness dimensions; automation PASS alone is insufficient.",
+    "Human HOLD findings are not repaired in JOB09. They are classified and returned to the owning role or Control Room.",
+    "No main merge, release promotion, or broader student rollout is authorized by JOB09.",
+    "G5 PASS authorizes only the first limited 5–6 real student sessions on this exact candidate/package."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/main/G4 PR binding before replay preparation.",
+    "G4 RESULT_SHA and EVIDENCE_HEAD exact ancestry and durable qualification revalidated.",
+    "Exact app rebuilt twice and matched to 478657 bytes / SHA256 85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e.",
+    "Exact repaired showcase SHA256 verified.",
+    "Exact pilot package rebuilt twice and matched to 496658 bytes / SHA256 a3d3db4c63fae89b47e1d7a1341ebb522f31df69e1b107ada2ecbb9a11c4ac10.",
+    "Transient outer replay bundle contains exact nested learner package, identity record, cold-start protocol, reviewer-only answer guide, accessibility/recovery protocol, decision form, and hash verifier.",
+    "Replay packet committed in Git binds candidate SHA, nested package hash, outer replay-bundle hash, protocol version and mandatory human dimensions.",
+    "Human reviewer verifies the exact replay identity before testing.",
+    "Cold-start segment is completed without reviewer answer guide.",
+    "Human completes the full 11-activity / 30–45 minute journey.",
+    "Human tests at least one intentional wrong scored answer and judges feedback clarity/trust.",
+    "Human verifies reload/resume and completion persistence.",
+    "Human tests invalid/canceled import recovery and judges recovery clarity.",
+    "Human performs desktop pointer/keyboard interaction and a mobile touch replay/smoke on the exact candidate.",
+    "Human performs a real screen-reader smoke with one of NVDA, VoiceOver or TalkBack over start/import, one activity/feedback state and completion.",
+    "Human records each mandatory dimension as PASS or HOLD, with blocker/major/minor findings.",
+    "Human gives an explicit final GO_LIMITED_PILOT or HOLD decision.",
+    "Human GO explicitly authorizes only the first 5–6 student sessions and binds the exact replay/candidate identity.",
+    "Human decision is committed as a dedicated immutable evidence file before final JOB09 result.",
+    "Repository governance and exact scope pass on review-only branch."
+  ],
+  "adversarialTests": [
+    "An AI/model cannot mark a human dimension PASS based solely on prior automated evidence.",
+    "A screenshot, DOM probe or automated browser run cannot substitute for the required human interaction observations.",
+    "Opening the reviewer answer guide before the cold-start segment invalidates cold-start comprehensibility evidence and requires replay restart.",
+    "Reviewing a package whose SHA-256 differs from the exact G4 package invalidates the G5 decision.",
+    "A GO statement that is not explicitly tied to the exact candidate/replay bundle is insufficient.",
+    "A GO with any unresolved blocker or major finding is invalid.",
+    "A human HOLD must not trigger product/QA/showcase/pilot repair inside JOB09.",
+    "Minor findings may be carried only if the human explicitly marks them non-blocking for the limited 5–6-student pilot and records any guardrail.",
+    "A human decision to broaden deployment beyond the first limited pilot is outside this gate.",
+    "No mutation of candidate/product/payload/workflow paths is permitted."
+  ],
+  "nonGoals": [
+    "Automating the human decision.",
+    "Repairing any observed issue.",
+    "Changing or merging the G4 candidate.",
+    "Promoting a release.",
+    "Starting more than the first 5–6 student sessions.",
+    "Declaring production readiness."
+  ],
+  "independentReview": [
+    "The human reviewer directly experiences the exact G4 package rather than relying on machine summaries.",
+    "Cold-start evaluation is protected from answer-guide priming.",
+    "Real keyboard, touch and screen-reader interaction covers qualities explicitly not replaceable by automation.",
+    "The durable human decision binds exact candidate/package/replay hashes and cannot be inferred from machine PASS."
+  ],
+  "execution": {
+    "branch": "student-v01/g5-human-readiness",
+    "phase": "JOB09_G5_PREP_AND_HUMAN_GATE_AUTHORIZED",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "nextGate": "LIMITED_5_6_STUDENT_SESSIONS_IF_HUMAN_GO",
+    "finalVerdict": "PENDING_HUMAN"
+  },
+  "rollback": "Close the JOB09 PR and delete student-v01/g5-human-readiness. G4 candidate/evidence remain unchanged; no product rollback is required because JOB09 is review-only."
+}
