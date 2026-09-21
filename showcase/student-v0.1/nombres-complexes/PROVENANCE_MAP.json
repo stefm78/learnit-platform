@@ -1,0 +1,215 @@
+{
+  "schema": "learnit.student-v0.1.provenance-map.v1",
+  "source": {
+    "path": "authoring/v2/atlas/nombres_complexes_atlas.json",
+    "gitCommit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "gitBlobSha": "7f83784e8719917496a694b2ad170d724190fd04",
+    "bytes": 12384,
+    "sha256": "sha256:3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d",
+    "contract": "learnit.kit.v2",
+    "title": "Nombres complexes — Atlas M1 0.3",
+    "versionLabel": "Atlas M1 0.3",
+    "provenance": "Source scientifique : MI2 — Nombres Complexes, EPF Mathématiques S2, 2e édition, 17 février 2026."
+  },
+  "candidate": {
+    "path": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json",
+    "contract": "learnit.kit.v4",
+    "packageLineageId": "5c621f9b-f584-4669-9ae4-ce174f473650",
+    "packageRevisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
+    "packageRevisionDigest": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee"
+  },
+  "activities": [
+    {
+      "activityIndex": 0,
+      "activityLineageId": "bd26d7ec-02aa-4530-9d87-51b8a2cc57a7",
+      "activityType": "lesson",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 0,
+          "sourceActivityLineageId": "d2ae98fc-61fa-41f4-ac9a-95917fa9bd7e",
+          "locator": "$.courses[0].activities[0]",
+          "basis": "Conjugate rule and 2 + 3i example."
+        },
+        {
+          "sourceActivityIndex": 4,
+          "sourceActivityLineageId": "4c2afff9-0d2a-4c59-a543-343d39d2b0f8",
+          "locator": "$.courses[0].activities[4]",
+          "basis": "Geometric interpretation of conjugation as symmetry about the real axis."
+        },
+        {
+          "sourceActivityIndex": 5,
+          "sourceActivityLineageId": "9c36140e-ccfd-4b41-aa0c-43a81a48b833",
+          "locator": "$.courses[0].activities[5]",
+          "basis": "Module example |3 + 4i| = 5."
+        },
+        {
+          "sourceActivityIndex": 6,
+          "sourceActivityLineageId": "dc9c983d-65e1-43cc-9715-8be7d6288724",
+          "locator": "$.courses[0].activities[6]",
+          "basis": "General module formula and distance-to-origin interpretation."
+        }
+      ]
+    },
+    {
+      "activityIndex": 1,
+      "activityLineageId": "28ef0c23-a968-4f37-bb56-8d4b0635e01c",
+      "activityType": "flashcard",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 0,
+          "sourceActivityLineageId": "d2ae98fc-61fa-41f4-ac9a-95917fa9bd7e",
+          "locator": "$.courses[0].activities[0]",
+          "basis": "Conjugate rule and 2 + 3i example."
+        },
+        {
+          "sourceActivityIndex": 2,
+          "sourceActivityLineageId": "4de1146e-c35f-4398-9a2b-8fdcb35ce987",
+          "locator": "$.courses[0].activities[2]",
+          "basis": "Conjugate of −1 − 4i and general a + ib → a − ib statement."
+        },
+        {
+          "sourceActivityIndex": 3,
+          "sourceActivityLineageId": "06d208c3-00cb-46d5-a762-e462e926f4ca",
+          "locator": "$.courses[0].activities[3]",
+          "basis": "Independent conjugate example 5 − 2i → 5 + 2i."
+        }
+      ]
+    },
+    {
+      "activityIndex": 2,
+      "activityLineageId": "160f988a-5840-4104-93db-d9463cc92a01",
+      "activityType": "matching",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 0,
+          "sourceActivityLineageId": "d2ae98fc-61fa-41f4-ac9a-95917fa9bd7e",
+          "locator": "$.courses[0].activities[0]",
+          "basis": "Conjugate rule and 2 + 3i example."
+        },
+        {
+          "sourceActivityIndex": 2,
+          "sourceActivityLineageId": "4de1146e-c35f-4398-9a2b-8fdcb35ce987",
+          "locator": "$.courses[0].activities[2]",
+          "basis": "Conjugate of −1 − 4i and general a + ib → a − ib statement."
+        }
+      ]
+    },
+    {
+      "activityIndex": 3,
+      "activityLineageId": "70621195-4a56-4a0a-b16f-aed1c66be771",
+      "activityType": "qcm",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 4,
+          "sourceActivityLineageId": "4c2afff9-0d2a-4c59-a543-343d39d2b0f8",
+          "locator": "$.courses[0].activities[4]",
+          "basis": "Geometric interpretation of conjugation as symmetry about the real axis."
+        }
+      ]
+    },
+    {
+      "activityIndex": 4,
+      "activityLineageId": "ff4305ec-22c6-4880-bf7f-1f8177ea4705",
+      "activityType": "constructed",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 2,
+          "sourceActivityLineageId": "4de1146e-c35f-4398-9a2b-8fdcb35ce987",
+          "locator": "$.courses[0].activities[2]",
+          "basis": "Conjugate of −1 − 4i and general a + ib → a − ib statement."
+        }
+      ]
+    },
+    {
+      "activityIndex": 5,
+      "activityLineageId": "7672a1b7-9328-4b31-be08-1a56bbd2e57f",
+      "activityType": "qcm",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 3,
+          "sourceActivityLineageId": "06d208c3-00cb-46d5-a762-e462e926f4ca",
+          "locator": "$.courses[0].activities[3]",
+          "basis": "Independent conjugate example 5 − 2i → 5 + 2i."
+        }
+      ]
+    },
+    {
+      "activityIndex": 6,
+      "activityLineageId": "b0e92b38-57be-4caa-80e9-a0cc770e4599",
+      "activityType": "flashcard",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 5,
+          "sourceActivityLineageId": "9c36140e-ccfd-4b41-aa0c-43a81a48b833",
+          "locator": "$.courses[0].activities[5]",
+          "basis": "Module example |3 + 4i| = 5."
+        },
+        {
+          "sourceActivityIndex": 6,
+          "sourceActivityLineageId": "dc9c983d-65e1-43cc-9715-8be7d6288724",
+          "locator": "$.courses[0].activities[6]",
+          "basis": "General module formula and distance-to-origin interpretation."
+        }
+      ]
+    },
+    {
+      "activityIndex": 7,
+      "activityLineageId": "691f3cf1-f6a7-4cc0-9b74-7008643de172",
+      "activityType": "order",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 5,
+          "sourceActivityLineageId": "9c36140e-ccfd-4b41-aa0c-43a81a48b833",
+          "locator": "$.courses[0].activities[5]",
+          "basis": "Module example |3 + 4i| = 5."
+        }
+      ]
+    },
+    {
+      "activityIndex": 8,
+      "activityLineageId": "e7279474-373a-4823-9281-59952f2e91f9",
+      "activityType": "matching",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 5,
+          "sourceActivityLineageId": "9c36140e-ccfd-4b41-aa0c-43a81a48b833",
+          "locator": "$.courses[0].activities[5]",
+          "basis": "Module example |3 + 4i| = 5."
+        },
+        {
+          "sourceActivityIndex": 8,
+          "sourceActivityLineageId": "c30cd87d-f131-418f-9bf6-681ce87de4fb",
+          "locator": "$.courses[0].activities[8]",
+          "basis": "Distance-to-origin example for affix 8 − 15i = 17."
+        }
+      ]
+    },
+    {
+      "activityIndex": 9,
+      "activityLineageId": "8d7844eb-2451-42a7-8aa1-358bb732f554",
+      "activityType": "qcm",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 7,
+          "sourceActivityLineageId": "4da38176-c283-4884-b48f-b5e6da821b0d",
+          "locator": "$.courses[0].activities[7]",
+          "basis": "Module example |−5 + 12i| = 13."
+        }
+      ]
+    },
+    {
+      "activityIndex": 10,
+      "activityLineageId": "a65f94fa-98a5-496e-8b31-56625c9d2733",
+      "activityType": "qcm",
+      "sourceRefs": [
+        {
+          "sourceActivityIndex": 9,
+          "sourceActivityLineageId": "672a8d5b-3a31-48b3-96d1-ab1e57df1a79",
+          "locator": "$.courses[0].activities[9]",
+          "basis": "Geometric locus |z| = 2 is the circle centered at O with radius 2."
+        }
+      ]
+    }
+  ],
+  "assets": []
+}

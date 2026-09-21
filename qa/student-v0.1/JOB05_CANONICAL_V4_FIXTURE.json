@@ -1,0 +1,157 @@
+{
+  "contract": "learnit.kit.v4",
+  "packageLineageId": "10000000-0000-4000-8000-000000000005",
+  "packageRevisionId": "10000000-0000-4000-8000-000000000006",
+  "packageRevisionDigest": "sha256:1fc35e1164248c3e872dc136d58ec27f0aa6f3ee8c034d55f522cd5cd4f5c7f6",
+  "title": "QA Student V0.1 — huit familles",
+  "description": "Fixture QA indépendante destinée au parcours navigateur réel.",
+  "versionLabel": "job05-qa-v1",
+  "language": "fr-FR",
+  "assets": [
+    {
+      "assetId": "10000000-0000-4000-8000-000000000002",
+      "type": "image",
+      "format": "svg",
+      "alt": "Schéma simple du cycle de l’eau",
+      "caption": "Cycle simplifié",
+      "pedagogicalRole": "concept_visual",
+      "data": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 60\"><rect x=\"5\" y=\"35\" width=\"110\" height=\"20\" fill=\"#dceeff\"/><circle cx=\"90\" cy=\"15\" r=\"8\" fill=\"#ffd45c\"/><path d=\"M25 38 C35 20 45 20 55 38\" fill=\"none\" stroke=\"#335577\" stroke-width=\"2\"/></svg>"
+    }
+  ],
+  "courses": [
+    {
+      "courseLineageId": "10000000-0000-4000-8000-000000000003",
+      "courseRevisionId": "10000000-0000-4000-8000-000000000004",
+      "courseRevisionDigest": "sha256:c7fe53f1df81579c4d4cd548d04a61ff5e4f7bc2c60e6660b864f8790fb1b980",
+      "title": "QA Student V0.1 — cycle de l’eau",
+      "subtitle": "Fixture contradictoire huit familles",
+      "estimatedMinutes": 15,
+      "objectives": [
+        {
+          "objectiveId": "10000000-0000-4000-8000-000000000001",
+          "label": "Reconnaître les étapes principales du cycle de l’eau"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000010",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000011",
+          "activityRevisionDigest": "sha256:1f15d2c39e752bc160b524fa7053ab9da25dc4894d7c70721ca4fc9e85fcf0e0",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "lesson",
+          "learningPhase": "comprehension",
+          "estimatedMinutes": 2,
+          "title": "Lire avant de pratiquer",
+          "body": "Cette courte leçon explique que le cycle de l’eau alterne évaporation, condensation et précipitation dans un système naturel continu.",
+          "keyPoints": ["L’eau change d’état au cours du cycle.", "La gravité ramène l’eau vers les sols et les océans."],
+          "contextNote": "Cette activité sert uniquement d’exposition : elle ne produit aucun score.",
+          "media": [{"assetId": "10000000-0000-4000-8000-000000000002", "placement": "content", "display": "contained", "zoomable": false}]
+        },
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000020",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000021",
+          "activityRevisionDigest": "sha256:c631da6a794b8d0fcf4850dccd17541ca9ab674395e9863f2f9e36eea5bb23a5",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "flashcard",
+          "learningPhase": "consolidation",
+          "estimatedMinutes": 1,
+          "front": "Quel phénomène transforme l’eau liquide en vapeur ?",
+          "back": "L’évaporation.",
+          "explanation": "L’énergie thermique permet à des molécules d’eau de passer à l’état gazeux."
+        },
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000030",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000035",
+          "activityRevisionDigest": "sha256:f18153ebf9ecb76dd89b4de98355a81449eaf8cc24b9235e1fb68985cad1a4a5",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "matching",
+          "learningPhase": "application",
+          "estimatedMinutes": 2,
+          "prompt": "Associez chaque phénomène à sa description.",
+          "explanation": "Chaque phénomène correspond à un changement ou déplacement précis de l’eau.",
+          "difficulty": "easy",
+          "assessmentRole": "practice",
+          "leftItems": [{"itemId": "10000000-0000-4000-8000-000000000031", "label": "Évaporation"}, {"itemId": "10000000-0000-4000-8000-000000000032", "label": "Condensation"}],
+          "rightItems": [{"itemId": "10000000-0000-4000-8000-000000000033", "label": "Liquide vers gaz"}, {"itemId": "10000000-0000-4000-8000-000000000034", "label": "Gaz vers liquide"}],
+          "matches": [{"leftItemId": "10000000-0000-4000-8000-000000000031", "rightItemId": "10000000-0000-4000-8000-000000000033"}, {"leftItemId": "10000000-0000-4000-8000-000000000032", "rightItemId": "10000000-0000-4000-8000-000000000034"}]
+        },
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000040",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000044",
+          "activityRevisionDigest": "sha256:3e0ea6ace5cf996150bf4564037039c5a0a8e95208067123e0847cf794e81e2d",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "order",
+          "learningPhase": "application",
+          "estimatedMinutes": 2,
+          "prompt": "Remettez ces étapes dans un ordre cohérent.",
+          "explanation": "L’eau s’évapore, se condense puis retombe sous forme de précipitations.",
+          "difficulty": "easy",
+          "assessmentRole": "practice",
+          "items": [{"itemId": "10000000-0000-4000-8000-000000000042", "label": "Condensation"}, {"itemId": "10000000-0000-4000-8000-000000000041", "label": "Évaporation"}, {"itemId": "10000000-0000-4000-8000-000000000043", "label": "Précipitation"}],
+          "correctOrder": ["10000000-0000-4000-8000-000000000041", "10000000-0000-4000-8000-000000000042", "10000000-0000-4000-8000-000000000043"]
+        },
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000050",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000055",
+          "activityRevisionDigest": "sha256:cfd3baf59f31055d537efa5987c7d96cbeae9611c22426e2fae2377b1137ad26",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "classify",
+          "learningPhase": "application",
+          "estimatedMinutes": 2,
+          "prompt": "Classez chaque exemple.",
+          "explanation": "Les exemples sont classés selon le changement d’état observé.",
+          "difficulty": "easy",
+          "assessmentRole": "practice",
+          "buckets": [{"bucketId": "10000000-0000-4000-8000-000000000051", "label": "Évaporation"}, {"bucketId": "10000000-0000-4000-8000-000000000052", "label": "Condensation"}],
+          "items": [{"itemId": "10000000-0000-4000-8000-000000000053", "label": "Une flaque disparaît au soleil"}, {"itemId": "10000000-0000-4000-8000-000000000054", "label": "De la buée se forme sur une vitre"}],
+          "assignments": [{"itemId": "10000000-0000-4000-8000-000000000053", "bucketId": "10000000-0000-4000-8000-000000000051"}, {"itemId": "10000000-0000-4000-8000-000000000054", "bucketId": "10000000-0000-4000-8000-000000000052"}]
+        },
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000060",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000063",
+          "activityRevisionDigest": "sha256:4ea508efd336c5e913a7b4f7270a8428ad1e374eff7367b2404ae9becccfd2f6",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "qcm",
+          "learningPhase": "application",
+          "estimatedMinutes": 1,
+          "prompt": "Quel phénomène forme les nuages ?",
+          "explanation": "La condensation transforme la vapeur en fines gouttelettes.",
+          "difficulty": "easy",
+          "assessmentRole": "practice",
+          "choices": [{"choiceId": "10000000-0000-4000-8000-000000000061", "label": "Condensation"}, {"choiceId": "10000000-0000-4000-8000-000000000062", "label": "Fusion"}],
+          "correctChoiceId": "10000000-0000-4000-8000-000000000061"
+        },
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000070",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000074",
+          "activityRevisionDigest": "sha256:d84bf22bcbefe6d1721459a870d84a3dbeae0da12ba7a2b7ce36cf1940e6f8e4",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "fill",
+          "learningPhase": "application",
+          "estimatedMinutes": 1,
+          "prompt": "Complétez la phrase.",
+          "explanation": "La vapeur se condense en gouttelettes.",
+          "difficulty": "easy",
+          "assessmentRole": "practice",
+          "segments": [{"text": "La vapeur se "}, {"slotId": "10000000-0000-4000-8000-000000000071"}, {"text": " en gouttelettes."}],
+          "tokens": [{"tokenId": "10000000-0000-4000-8000-000000000072", "label": "condense", "maxUses": 1}, {"tokenId": "10000000-0000-4000-8000-000000000073", "label": "solidifie", "maxUses": 1}],
+          "answers": [{"slotId": "10000000-0000-4000-8000-000000000071", "tokenId": "10000000-0000-4000-8000-000000000072"}]
+        },
+        {
+          "activityLineageId": "10000000-0000-4000-8000-000000000080",
+          "activityRevisionId": "10000000-0000-4000-8000-000000000081",
+          "activityRevisionDigest": "sha256:339c6c08f05403cc62bc3108f7f9b55e04ff81531b365cfad9fc3ece8ce4623a",
+          "objectiveIds": ["10000000-0000-4000-8000-000000000001"],
+          "type": "constructed",
+          "learningPhase": "transfer",
+          "estimatedMinutes": 2,
+          "prompt": "Nommez le phénomène qui transforme l’eau liquide en vapeur.",
+          "explanation": "La réponse attendue est évaporation.",
+          "difficulty": "easy",
+          "assessmentRole": "practice",
+          "acceptedResponses": ["évaporation", "evaporation"]
+        }
+      ]
+    }
+  ]
+}

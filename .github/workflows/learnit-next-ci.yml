@@ -2,9 +2,12 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
+    branches: [main, student-v01/g3-wave2-review-r1, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
+      - 'qa/student-v0.1/**'
+      - 'showcase/student-v0.1/nombres-complexes/**'
+      - 'pilot/student-v0.1/**'
       - 'apps/learnit-next/**'
       - 'authoring/v2/**'
       - 'authoring/factory/**'
@@ -127,6 +130,7 @@ jobs:
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
+              student-v01/fanin-b) echo 'student-v01-fanin-b wave' ;;
               student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
               student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
               *) echo 'ci-router wave' ;;
@@ -515,6 +519,129 @@ jobs:
             [[ "${actual}" == "${expected}" ]] &&
               [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
           }
+
+
+          if [[ "${PROFILE}" == student-v01-fanin-b ]]; then
+            [[ "${EVENT}" == pull_request ]] || { echo "JOB08 requires pull_request." >&2; exit 2; }
+            [[ "${BRANCH}" == student-v01/fanin-b ]] || exit 2
+            exact_base=d5050bace4c7dcbb63dcfe44a64ef344434e9bc2
+            expected_manifest_blob=d76d624b6e76655b60b1a43b1dafbce22d3eb087
+            expected_app_sha=85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e
+            expected_app_bytes=478657
+            expected_package_sha=a3d3db4c63fae89b47e1d7a1341ebb522f31df69e1b107ada2ecbb9a11c4ac10
+            expected_package_bytes=496658
+            kit=showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json
+            brief=showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json
+            source=authoring/v2/atlas/nombres_complexes_atlas.json
+            review=qualification/STUDENT_V01_G3_R1_JOB06_SEMANTIC_REVIEW.json
+
+            [[ "${PR_BASE_SHA}" == "${exact_base}" ]] || { echo "JOB08 PR base drifted: ${PR_BASE_SHA}" >&2; exit 2; }
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || { echo "JOB08 remote head differs from exact target." >&2; exit 2; }
+            [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || { echo "JOB08 base no longer ancestor." >&2; exit 2; }
+            [[ "$(git rev-parse "HEAD:qualification/STUDENT_V01_G3_R1_FANIN_B_INPUT_MANIFEST.json")" == "${expected_manifest_blob}" ]] || { echo "Fan-in manifest drift." >&2; exit 2; }
+
+            evidence_path=qualification/STUDENT_V01_JOB08_FANIN_B_RESULT.md
+            if ! git diff --quiet "${exact_base}" "${TARGET}" -- "${evidence_path}"; then
+              parents=( $(git show -s --format=%P "${TARGET}") )
+              [[ ${#parents[@]} -eq 1 ]] || { echo "JOB08 evidence head must have one parent." >&2; exit 2; }
+              functional_parent="${parents[0]}"
+              [[ "$(git diff --name-only "${functional_parent}" "${TARGET}")" == "${evidence_path}" ]] || {
+                echo "JOB08 evidence head contains non-evidence changes." >&2
+                exit 2
+              }
+              grep -Fq "RESULT_SHA" "${evidence_path}"
+              grep -Fq "${functional_parent}" "${evidence_path}"
+              echo "STUDENT_V01_JOB08_EVIDENCE_ONLY_ROUTE=PASS"
+              echo "STUDENT_V01_JOB08_EVIDENCE_HEAD=${TARGET}"
+              echo "STUDENT_V01_JOB08_FUNCTIONAL_RESULT=${functional_parent}"
+              exit 0
+            fi
+
+            allowed_path() {
+              case "$1" in
+                work-packages/ATLAS-WP-044.json|docs/programs/student-v0.1/jobs/JOB_08_FANIN_B.md|.github/workflows/learnit-next-ci.yml|apps/learnit-next/tests/student_v01_fanin_b.py|qa/student-v0.1/JOB05_CANONICAL_V4_FIXTURE.json|qa/student-v0.1/browser_job05_r1_contradictory_qa.py|qa/student-v0.1/job05_r1_contradictory_qa.py|showcase/student-v0.1/nombres-complexes/AUTHOR_AUDIT.md|showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT.json|showcase/student-v0.1/nombres-complexes/FACTORY_REVIEW_REQUEST.md|showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json|showcase/student-v0.1/nombres-complexes/PEDAGOGICAL_QUALITY_REPORT.json|showcase/student-v0.1/nombres-complexes/PROVENANCE_MAP.json|showcase/student-v0.1/nombres-complexes/SOURCE_BASIS.md|showcase/student-v0.1/nombres-complexes/V4_VALIDATION_REPORT.json|showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json|pilot/student-v0.1/browser_generated_v4_probe.py|pilot/student-v0.1/browser_pilot_package.py|pilot/student-v0.1/build_pilot_package.py|pilot/student-v0.1/ci_job07_r2.py|pilot/student-v0.1/materialize_qualification_kit.py|pilot/student-v0.1/test_pilot_package.py) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              allowed_path "${path}" || { echo "JOB08 scope violation: ${path}" >&2; exit 2; }
+            done < <(git diff --name-only "${exact_base}" "${TARGET}")
+
+            python -m playwright install --with-deps chromium
+            chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+            )"
+            [[ -x "${chromium}" ]]
+            sudo ln -sf "${chromium}" /usr/bin/chromium
+
+            python -B apps/learnit-next/tests/student_v01_fanin_b.py --mode identity
+            python -B authoring/v4/validate_kit.py "${kit}" --format=json > "${RUNNER_TEMP}/job08-v4.json"
+            python -B -c "import json,pathlib; r=json.loads(pathlib.Path('${RUNNER_TEMP}/job08-v4.json').read_text()); assert r['ok'] is True; print('STUDENT_V01_JOB08_V4_CANONICAL=PASS')"
+            python -B -c "import json,pathlib; from authoring.v2.atlas import pedagogical_quality as q; p=json.loads(pathlib.Path('${kit}').read_text(encoding='utf-8')); r=q.analyze_package(p); assert r['canonicalValid'] is True; assert r['verdict']=='PASS_ATLAS_PEDAGOGICAL_PROFILE_V1'; assert r['qualityBand']=='EXCELLENT_BY_PROFILE'; assert r['counts']=={'blocking':0,'warning':0,'advice':0}; print('STUDENT_V01_JOB08_PEDAGOGICAL_QUALITY=PASS')"
+            python -B authoring/factory/factory_gate.py gate --kit "${kit}" --brief "${brief}" --source "nombres-complexes-atlas-v2=${source}" --review "${review}" --json > "${RUNNER_TEMP}/job08-factory.json"
+            python -B -c "import json,pathlib; r=json.loads(pathlib.Path('${RUNNER_TEMP}/job08-factory.json').read_text()); assert r['verdict']=='PASS_AI_KIT_FACTORY_V1'; assert r['canonicalValid'] is True; assert r['pedagogicalQuality']['qualityBand']=='EXCELLENT_BY_PROFILE'; print('STUDENT_V01_JOB08_FACTORY_GATE=PASS')"
+
+            python -B apps/learnit-next/build.py
+            artifact=apps/learnit-next/dist/learnit-next.html
+            first_sha="$(sha256sum "${artifact}" | awk '{print $1}')"
+            first_bytes="$(wc -c < "${artifact}" | tr -d ' ')"
+            python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/learnit-next-second.html"
+            second_sha="$(sha256sum "${RUNNER_TEMP}/learnit-next-second.html" | awk '{print $1}')"
+            second_bytes="$(wc -c < "${RUNNER_TEMP}/learnit-next-second.html" | tr -d ' ')"
+            cmp -s "${artifact}" "${RUNNER_TEMP}/learnit-next-second.html"
+            [[ "${first_sha}" == "${expected_app_sha}" && "${second_sha}" == "${expected_app_sha}" ]]
+            [[ "${first_bytes}" == "${expected_app_bytes}" && "${second_bytes}" == "${expected_app_bytes}" ]]
+            echo "STUDENT_V01_JOB08_APP_BUILD_IDENTITY=PASS"
+
+            checks=(
+              "python -B qa/student-v0.1/job05_r1_contradictory_qa.py"
+              "python -B qa/student-v0.1/browser_job05_r1_contradictory_qa.py"
+              "python -B apps/learnit-next/tests/student_v01_served_v4_integration.py"
+              "python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py"
+              "python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v"
+              "python -B apps/learnit-next/tests/student_v01_activity_presentation.py"
+              "python -B apps/learnit-next/tests/browser_student_v01_activity_presentation.py"
+              "python -B apps/learnit-next/tests/student_v01_fanin_a.py"
+              "python -B apps/learnit-next/tests/atlas_m1_int.py -v"
+              "python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py -v"
+              "python -B authoring/v4/tests/test_validate_v4.py -v"
+              "python -B authoring/v2/atlas/tests/test_pedagogical_quality.py -v"
+              "python -B authoring/factory/tests/test_student_v01_v4.py -v"
+            )
+            for check in "${checks[@]}"; do echo "::group::${check}"; eval "${check}"; echo "::endgroup::"; done
+            echo "STUDENT_V01_JOB08_CONTRADICTORY_QA=PASS"
+            echo "STUDENT_V01_JOB08_PRODUCT_REGRESSIONS=PASS"
+
+            python -B apps/learnit-next/tests/student_v01_fanin_b.py --mode showcase-browser
+
+            python -B pilot/student-v0.1/test_pilot_package.py --app "${artifact}" --kit "${kit}"
+            package1="${RUNNER_TEMP}/job08-package-1.zip"
+            package2="${RUNNER_TEMP}/job08-package-2.zip"
+            python -B pilot/student-v0.1/build_pilot_package.py --app "${artifact}" --kit "${kit}" --output "${package1}"
+            python -B pilot/student-v0.1/build_pilot_package.py --app "${artifact}" --kit "${kit}" --output "${package2}"
+            cmp -s "${package1}" "${package2}"
+            package_sha="$(sha256sum "${package1}" | awk '{print $1}')"
+            package_bytes="$(wc -c < "${package1}" | tr -d ' ')"
+            [[ "${package_sha}" == "${expected_package_sha}" ]]
+            [[ "${package_bytes}" == "${expected_package_bytes}" ]]
+            echo "STUDENT_V01_JOB08_PACKAGE_IDENTITY=PASS"
+            python -B apps/learnit-next/tests/student_v01_fanin_b.py --mode package-browser --package "${package1}"
+
+            python -B apps/learnit-next/tests/student_v01_fanin_b.py --mode identity
+            echo "STUDENT_V01_JOB08_EXACT_ROUTE=PASS"
+            echo "STUDENT_V01_JOB08_TARGET=${TARGET}"
+            echo "STUDENT_V01_JOB08_APP_SHA256=${first_sha}"
+            echo "STUDENT_V01_JOB08_APP_BYTES=${first_bytes}"
+            echo "STUDENT_V01_JOB08_PACKAGE_SHA256=${package_sha}"
+            echo "STUDENT_V01_JOB08_PACKAGE_BYTES=${package_bytes}"
+            exit 0
+          fi
 
           if [[ "${PROFILE}" == student-v01-served-v4 ]]; then
             [[ "${EVENT}" == pull_request ]] || {
