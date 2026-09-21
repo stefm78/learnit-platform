@@ -1,0 +1,134 @@
+{
+  "schema": "learnit.student-v0.1.g3-r1-fanin-b-inputs.v1",
+  "g3R1Base": "7c13d67a76705b4452304c0f6a882504bc7701a7",
+  "repairedProduct": {
+    "resultSha": "bdb66bffefd6738e3cb4004d304159e9d3d048ce",
+    "evidenceHead": "7c13d67a76705b4452304c0f6a882504bc7701a7",
+    "artifact": {
+      "path": "apps/learnit-next/dist/learnit-next.html",
+      "bytes": 478657,
+      "sha256": "85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e"
+    }
+  },
+  "job05R1": {
+    "resultSha": "1c92cad7ea576a613b6f198768bbebd114a06082",
+    "evidenceHead": "9dbd5c97603be864a57cc0f7f46047ee41772b34",
+    "accepted": true,
+    "payload": [
+      {"path": "qa/student-v0.1/JOB05_CANONICAL_V4_FIXTURE.json", "gitBlobSha1": "c190fc4f04a7cee5731627e4f6276ee08e39d746"},
+      {"path": "qa/student-v0.1/browser_job05_r1_contradictory_qa.py", "gitBlobSha1": "9c33a185a957b3b3513822a4cc3f72294a867fae"},
+      {"path": "qa/student-v0.1/job05_r1_contradictory_qa.py", "gitBlobSha1": "a7a1ac5baa93df355cc687d4635ff5f9837e30d9"}
+    ],
+    "centralWorkflowDisposition": "integrator_owned_recompose"
+  },
+  "job06R1": {
+    "resultSha": "80ec72fef535e78013a9f0fb10bedb57f05bc761",
+    "evidenceHead": "d40a27ffadf99e2c0d47981cca47082be0003cfb",
+    "accepted": true,
+    "payload": [
+      {"path": "showcase/student-v0.1/nombres-complexes/AUTHOR_AUDIT.md", "gitBlobSha1": "dcbd252559292c9a9b1949b3cf85007cc60949e0"},
+      {"path": "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT.json", "gitBlobSha1": "ea5ce453421bfe25db8e1a16597953cad77ac2db"},
+      {"path": "showcase/student-v0.1/nombres-complexes/FACTORY_REVIEW_REQUEST.md", "gitBlobSha1": "4e6903e9854c357a6d99178d0b8b4ba2614a5c67"},
+      {"path": "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json", "gitBlobSha1": "6c4fb770f12690a3cb338c82fc77bf9b323c3b06"},
+      {"path": "showcase/student-v0.1/nombres-complexes/PEDAGOGICAL_QUALITY_REPORT.json", "gitBlobSha1": "747daee9ad0ff3dc8c4c6b7c2edd621bbc26e963"},
+      {"path": "showcase/student-v0.1/nombres-complexes/PROVENANCE_MAP.json", "gitBlobSha1": "7fb0a7153a22c8e2b9bb6b899b152867e89f0cfc"},
+      {"path": "showcase/student-v0.1/nombres-complexes/SOURCE_BASIS.md", "gitBlobSha1": "f10e8f0f78512f4b3c95befb28e9fe565e8c99c9"},
+      {"path": "showcase/student-v0.1/nombres-complexes/V4_VALIDATION_REPORT.json", "gitBlobSha1": "711ebee54d9007364ffadfa964e907b09bdc550d"},
+      {"path": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json", "gitBlobSha1": "03ed1d5819911c23734980f89716f4ca18a6bca4", "sha256": "da2beb6df6f490c6637d5de22ce1c8fc99fafe89a2ba4b0e6c698b0544c193ff"}
+    ]
+  },
+  "job07R2": {
+    "resultSha": "5e492fddc4d5cf00c71bdb770eb1aeac11a63803",
+    "evidenceHead": "a2695560810b9a1bf3761d065326ff7df09c2252",
+    "accepted": true,
+    "payload": [
+      {"path": "pilot/student-v0.1/browser_generated_v4_probe.py", "gitBlobSha1": "b5a4ecbf5879effb698929e17fb5c263ba8400c7"},
+      {"path": "pilot/student-v0.1/browser_pilot_package.py", "gitBlobSha1": "ae86fb159e322b24c1ce37ca662d4d5674422b43"},
+      {"path": "pilot/student-v0.1/build_pilot_package.py", "gitBlobSha1": "47ccfd8a7f6df23bc2c77b057f54f4502cff09a0"},
+      {"path": "pilot/student-v0.1/ci_job07_r2.py", "gitBlobSha1": "8c27a4dbdb9e2b16051da6d77b1a6a243705b555"},
+      {"path": "pilot/student-v0.1/materialize_qualification_kit.py", "gitBlobSha1": "2c805242f23825bca87fdacc46bdb0c241bb5b39"},
+      {"path": "pilot/student-v0.1/test_pilot_package.py", "gitBlobSha1": "6726504f8ca6540cb21a4372c5035a29cd848443"}
+    ],
+    "centralWorkflowDisposition": "integrator_owned_recompose"
+  },
+  "g3Review": {
+    "semanticReviewSha": "a35d521a5027e0efde79ba37add487b70bc7d510",
+    "semanticReviewVerdict": "PASS_SEMANTIC_REVIEW_V1",
+    "factoryEvidenceCommit": "4d5277d4f2261657c01a738a1a7d903e2be65a55",
+    "factoryVerdict": "PASS_AI_KIT_FACTORY_V1",
+    "factoryTarget": {
+      "kitSha256": "sha256:da2beb6df6f490c6637d5de22ce1c8fc99fafe89a2ba4b0e6c698b0544c193ff",
+      "briefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a",
+      "contextDigest": "sha256:eab953d540af138f1da0b030d9cee97fdeab4060b76bfc832ab018f7abd89123",
+      "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83"
+    },
+    "canonicalQualityCrossCheck": {
+      "canonicalValid": true,
+      "qualityVerdict": "PASS_ATLAS_PEDAGOGICAL_PROFILE_V1",
+      "qualityBand": "EXCELLENT_BY_PROFILE",
+      "counts": {"blocking": 0, "warning": 0, "advice": 0}
+    }
+  },
+  "compatibilityEvidence": {
+    "showcaseOnRepairedProduct": "PASS",
+    "desktopMobile": "PASS",
+    "reloadResumeCompletion": "PASS",
+    "offlineNoRemote": "PASS",
+    "secretBoundary": "PASS",
+    "activityCount": 11,
+    "browserViewports": ["1365x768", "390x844"],
+    "browserEnvironmentNote": "Managed Chromium blocks all navigations. G3 used the exact built HTML in a temporary about:blank harness with only platform primitives unavailable on opaque origin supplied in-memory; product HTML, kit, controls, validation, scoring, session logic and DOM were unmodified.",
+    "package": {
+      "builderGitBlobSha1": "47ccfd8a7f6df23bc2c77b057f54f4502cff09a0",
+      "bytes": 496658,
+      "sha256": "a3d3db4c63fae89b47e1d7a1341ebb522f31df69e1b107ada2ecbb9a11c4ac10",
+      "manifestBinding": "PASS",
+      "determinism": "PASS",
+      "extractedInputIdentity": "PASS",
+      "directFile": "PASS",
+      "extractedBrowserSmoke": "PASS"
+    }
+  },
+  "overlap": {
+    "candidatePayloadFamilies": ["qa/student-v0.1/**", "showcase/student-v0.1/nombres-complexes/**", "pilot/student-v0.1/**"],
+    "evidenceOrControlOnly": ["qualification/**", "work-packages/**", "docs/programs/student-v0.1/jobs/**"],
+    "integratorOwnedRecompose": [".github/workflows/learnit-next-ci.yml"],
+    "forbiddenOrUnresolved": [],
+    "samePayloadPathConflicts": [],
+    "verdict": "PASS"
+  },
+  "job08": {
+    "integrationOrder": [
+      "import exact JOB05 R1 qa/student-v0.1/** payload",
+      "import exact repaired JOB06 showcase/student-v0.1/nombres-complexes/** payload",
+      "import exact JOB07 R2 pilot/student-v0.1/** payload",
+      "recompose .github/workflows/learnit-next-ci.yml from G3 base and required integrated checks"
+    ],
+    "requiredTests": [
+      "verify repaired app build identity remains exact",
+      "rerun canonical V4 validation and pedagogical quality on repaired showcase",
+      "run repaired showcase real learner journey",
+      "package exact showcase with integrated JOB07 R2 builder",
+      "run contradictory QA",
+      "run desktop/mobile/reload/resume/completion compatibility",
+      "verify deterministic app and package",
+      "run exact-head CI",
+      "run Repository governance",
+      "perform G4 exact candidate qualification"
+    ],
+    "noProductSourceChange": true,
+    "sourceManifestChangeAllowedOnlyIfDeclaredBuildSourceRequiresIt": true,
+    "noSilentRepair": "Any role-owned defect returns to its owning role; JOB08 has no repair authority."
+  },
+  "excludedFromPayload": [
+    "JOB05/JOB06/JOB07 qualification evidence",
+    "JOB05/JOB06/JOB07 work-package and job prompt control files",
+    "sibling workflow variants"
+  ],
+  "rollbackAnchors": {
+    "g3R1Base": "7c13d67a76705b4452304c0f6a882504bc7701a7",
+    "job05R1ResultSha": "1c92cad7ea576a613b6f198768bbebd114a06082",
+    "job06R1ResultSha": "80ec72fef535e78013a9f0fb10bedb57f05bc761",
+    "job07R2ResultSha": "5e492fddc4d5cf00c71bdb770eb1aeac11a63803"
+  }
+}
