@@ -1,0 +1,135 @@
+{
+  "schema": "learnit.atlas.semantic_review.v1",
+  "profile": "atlas.semantic-review.v1",
+  "target": {
+    "contextDigest": "sha256:eab953d540af138f1da0b030d9cee97fdeab4060b76bfc832ab018f7abd89123",
+    "kitSha256": "sha256:da2beb6df6f490c6637d5de22ce1c8fc99fafe89a2ba4b0e6c698b0544c193ff",
+    "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83",
+    "briefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "Les onze activités restent dans le périmètre du conjugué, du module et de leurs interprétations géométriques explicitement présentes dans la source fournie. La leçon et les flashcards reformulent ces règles sans ajouter de propriété non soutenue.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0]",
+          "basis": "L’activité source établit que le conjugué conserve la partie réelle et change le signe de la partie imaginaire."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[4]",
+          "basis": "L’activité source établit l’interprétation du conjugué comme symétrie par rapport à l’axe réel."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[6]",
+          "basis": "L’activité source donne |z| = √(a² + b²) et l’interprète comme distance à l’origine."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[9]",
+          "basis": "L’activité source établit que |z| = 2 décrit le cercle de centre O et de rayon 2."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "Toutes les réponses évaluées ont été recalculées indépendamment : les deux associations de conjugués, la symétrie axiale réelle, le construit −1 + 4i, la validation 5 + 2i, l’ordre du calcul de |3 + 4i|, les associations 5/17, la validation 13 et le cercle de rayon 2 sont corrects et uniques dans leurs choix.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0:5]",
+          "basis": "Les activités source fournissent la règle du conjugué, les exemples 2 + 3i, −1 − 4i et 5 − 2i, ainsi que la symétrie par rapport à l’axe réel."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[5:10]",
+          "basis": "Les activités source fournissent la formule du module et les résultats 5, 13, 17 ainsi que l’interprétation géométrique de |z| = 2."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "Les consignes identifient sans ambiguïté l’opération attendue. Les distracteurs QCM ne sont pas équivalents aux réponses correctes, les appariements sont bijectifs, l’ordre comporte une séquence déterminée et la réponse construite est bornée à un résultat mathématique précis.",
+      "evidence": []
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Le parcours couvre les deux objectifs bornés du brief — calculer/interpréter le conjugué et le module — avec exposition, rappel actif, pratique, validation et transfert géométrique. Il n’essaie pas d’étendre la couverture au-delà du périmètre de 42 minutes.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].objectives",
+          "basis": "La source définit exactement les deux objectifs : calculer/interpréter un conjugué et calculer/interpréter un module."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[4]",
+          "basis": "La source couvre l’interprétation géométrique du conjugué."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[6]",
+          "basis": "La source couvre formule et interprétation géométrique du module."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[9]",
+          "basis": "La source fournit un transfert géométrique sur le lieu |z| = 2."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "pass",
+      "summary": "Les validations utilisent de nouvelles instances par rapport aux pratiques : 5 − 2i pour le conjugué et −5 + 12i pour le module. Les transferts changent la représentation vers la géométrie du plan complexe, respectivement symétrie axiale et lieu |z| = 2, sans sortir de la source.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0]",
+          "basis": "La pratique source du conjugué utilise 2 + 3i."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[3]",
+          "basis": "La validation source du conjugué utilise une nouvelle instance, 5 − 2i."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[5]",
+          "basis": "La pratique source du module utilise 3 + 4i."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[7]",
+          "basis": "La validation source du module utilise une nouvelle instance, −5 + 12i."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[4]",
+          "basis": "Le transfert du conjugué passe à une interprétation géométrique par symétrie."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[9]",
+          "basis": "Le transfert du module passe à l’ensemble géométrique défini par un module constant."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "Le niveau, le français et la progression sont cohérents avec un apprenant EPF Mathématiques S2 en introduction ou renforcement ciblé. Les durées des onze activités totalisent 42 minutes exactement, conformément au brief, avec deux activités d’exposition/rappel non notées et des évaluations bornées.",
+      "evidence": []
+    }
+  },
+  "findings": [],
+  "limitations": [
+    "Revue sémantique statique : elle ne démontre ni rétention durable, ni maîtrise à long terme, ni efficacité pédagogique en situation réelle."
+  ],
+  "verdict": "PASS_SEMANTIC_REVIEW_V1"
+}
