@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-050",
+  "title": "Student V0.1 — G5 corrective wave R1: App Experience + Activity Experience Lab + Pilot Activity Policy",
+  "status": "approved",
+  "changeClass": "human-findings-corrective-discovery-and-author-wave",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 431,
+    "parentProgramIssue": 380,
+    "g4Issue": 425,
+    "g4Pr": 426,
+    "g5Issue": 427,
+    "g5Pr": 428,
+    "supersededCoordinatorIssue": 429,
+    "supersededCoordinatorPr": 430
+  },
+  "baseline": {
+    "commonBase": "18b925436777943b19c4b031c24659ad60dee133",
+    "g4CandidateResult": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+    "g5ReplayPrep": "a72897c209b8ea7bd8672cc8a95be939ecee6fb8",
+    "g5FormalStatus": "PENDING_HUMAN",
+    "interfaceFreeze": {
+      "path": "docs/programs/student-v0.1/WAVE1_INTERFACE_FREEZE.md",
+      "gitBlob": "cf15b12e0d008484b8341a8a059fe0d91955f8b0"
+    },
+    "richnessArchitecture": {
+      "path": "docs/architecture/student-v0.1/STUDENT_V0_1_ACTIVITY_RICHNESS_ARCHITECTURE.md",
+      "gitBlob": "c900d96c3845276e23b77a43c970c7c3834655a5"
+    },
+    "currentActivityProjectionBlob": "607ecea8af6dc468ded05dbcc924693f90d576ff",
+    "currentActivityPresentersBlob": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf",
+    "currentShowcaseBlob": "03ed1d5819911c23734980f89716f4ca18a6bca4",
+    "sourceAuthority": {
+      "commit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+      "path": "authoring/v2/atlas/nombres_complexes_atlas.json",
+      "gitBlob": "7f83784e8719917496a694b2ad170d724190fd04",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    }
+  },
+  "purpose": "Replace the superseded two-track corrective plan with three independent streams: shell-level App Experience repair, a bounded fail-fast Activity Experience Lab sub-product driven by frozen ActivityPresentation/ActivityResponse contracts, and a limited-pilot activity profile that excludes constructed free text without changing learnit.kit.v4 published meaning.",
+  "reservedChildren": {
+    "appExperience": {
+      "workPackage": "ATLAS-WP-051",
+      "branch": "student-v01/g5-r1-app-experience",
+      "resultToken": "PASS_STUDENT_V01_G5_R1_APP_EXPERIENCE_READY_FOR_INTEGRATION"
+    },
+    "activityLab": {
+      "workPackage": "ATLAS-WP-052",
+      "branch": "student-v01/g5-r1-activity-experience-lab",
+      "phaseAToken": "READY_STUDENT_V01_ACTIVITY_LAB_FOR_HUMAN_PROTOTYPE_REVIEW",
+      "phaseBToken": "PASS_STUDENT_V01_ACTIVITY_LAB_SELECTION_FROZEN"
+    },
+    "pilotPolicy": {
+      "workPackage": "ATLAS-WP-053",
+      "branch": "student-v01/g5-r1-pilot-activity-policy",
+      "resultToken": "PASS_STUDENT_V01_G5_R1_PILOT_POLICY_READY_FOR_INDEPENDENT_REVIEW"
+    },
+    "nextIndependentGate": {
+      "reservedWorkPackage": "ATLAS-WP-054",
+      "purpose": "consume accepted App Experience, human-selected Activity Lab specification, and independently reviewed Pilot Activity Policy; implement selected activity UX in production; fan-in and qualify G4 R1"
+    }
+  },
+  "coordinatorScope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-050.json",
+      "docs/programs/student-v0.1/jobs/JOB_10_R1_G5_CORRECTIVE_THREE_STREAMS.md",
+      "qualification/STUDENT_V01_G5_HUMAN_FINDINGS_R1.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "qualification/STUDENT_V01_JOB09_G5_HUMAN_DECISION.md",
+      "qualification/STUDENT_V01_JOB09_G5_RESULT.md"
+    ]
+  },
+  "streamA": {
+    "name": "APP_EXPERIENCE_R1",
+    "owns": [
+      "post-import/library truthfulness",
+      "global navigation hierarchy",
+      "overall course progress",
+      "per-objective bucket/reservoir presentation",
+      "progressive disclosure of detailed objective status",
+      "resume/recovery/navigation clarity"
+    ],
+    "forbiddenOwnership": [
+      "activity presenter interaction mechanics",
+      "canonical activity semantics",
+      "showcase author content"
+    ]
+  },
+  "streamB": {
+    "name": "ACTIVITY_EXPERIENCE_LAB_V1",
+    "contract": {
+      "input": "learner-safe ActivityPresentation",
+      "output": "frozen ActivityResponse",
+      "mayEvaluateCorrectness": false,
+      "mayReceiveScoringSecrets": false,
+      "pluginRuntime": false
+    },
+    "labPath": "labs/student-v0.1/activity-experience/**",
+    "admittedPrototypeFamilies": [
+      "lesson",
+      "flashcard",
+      "matching",
+      "order",
+      "classify",
+      "qcm",
+      "fill"
+    ],
+    "pilotExcludedFamily": "constructed",
+    "phaseAStop": "ACTIVITY_PROTOTYPE_DECISION_REQUIRED"
+  },
+  "streamC": {
+    "name": "PILOT_ACTIVITY_POLICY_R1",
+    "admittedFirstPilotFamilies": [
+      "lesson",
+      "flashcard",
+      "matching",
+      "order",
+      "classify",
+      "qcm",
+      "fill"
+    ],
+    "excludedFirstPilotFamilies": [
+      "constructed"
+    ],
+    "contractMeaning": "learnit.kit.v4 remains unchanged; this is a Student V0.1 limited-pilot admission profile",
+    "currentShowcaseConstructedIndex": 4,
+    "currentShowcaseDurationMinutes": 42,
+    "targetShowcaseDurationAfterMinimalRemovalMinutes": 39
+  },
+  "invariants": [
+    "All three streams start from the exact same common base 18b925436777943b19c4b031c24659ad60dee133.",
+    "No stream may consume another stream result/evidence during authoring/prototyping.",
+    "G5 remains PENDING_HUMAN; no GO/HOLD decision is manufactured from engineering findings.",
+    "learnit.kit.v4 schema and published meaning remain unchanged.",
+    "canonical-text-match-v1 remains unchanged.",
+    "Stream A does not modify activity_presenters.js or activity response semantics.",
+    "Stream B does not modify production apps/learnit-next/src/** in this job.",
+    "Stream B is an isolated prototype sub-product and must consume only learner-safe ActivityPresentation fixtures and emit only frozen ActivityResponse shapes.",
+    "Stream B cannot contain or derive scoring secrets and cannot evaluate correctness.",
+    "Stream B must provide at least two meaningfully different prototypes for flashcard, matching, order and classify; qcm/fill may serve as baseline references and lesson must have at least one simplified candidate.",
+    "Stream B must stop after producing a downloadable human prototype-review bundle; no prototype is integrated into production before explicit human selection.",
+    "Stream C does not alter the v4 schema or runtime support for constructed; it excludes constructed only from the limited Student V0.1 pilot profile.",
+    "Stream C removes the current constructed showcase activity rather than replacing it with invented content, unless independent source evidence proves a replacement is needed for objective coverage.",
+    "If the constructed activity is simply removed, course estimatedMinutes becomes 39 and objective coverage must remain complete.",
+    "Stream C also removes learner-facing internal provenance/program jargon identified by the G5 replay.",
+    "Stream C author-side result cannot claim independent semantic PASS; changed learner content requires later independent review.",
+    "A later ATLAS-WP-054 job, not this wave, owns production implementation of human-selected Activity Lab variants and corrective fan-in/G4 R1."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/main/G4/G5 authority rebind before child creation.",
+    "Durable R1 human-findings record explaining the three-stream decomposition and why the previous two-track plan is superseded.",
+    "Three child issues/work packages/branches all rooted at the same exact common base.",
+    "Stream A tests proving truthful post-import state, activity-first hierarchy, compact objective buckets, progressive-disclosure detail, and regression safety.",
+    "Stream B architecture note proving the Activity Lab boundary exactly matches frozen ActivityPresentation/ActivityResponse contracts without scoring secrets.",
+    "Stream B deterministic static lab artifact with fixtures for all admitted pilot families.",
+    "Stream B at least two prototype variants for flashcard, matching, order and classify, plus one simplified lesson and qcm/fill reference renderings.",
+    "Stream B response inspector showing exact ActivityResponse emitted by each interaction without correctness evaluation.",
+    "Stream B keyboard/mobile/accessibility browser checks on every candidate variant.",
+    "Stream B human micro-review bundle with one-page instructions and an explicit per-family/variant ACCEPT/REJECT decision form.",
+    "Stream B Phase A stops at HUMAN prototype selection; no product presenter mutation.",
+    "Stream C pilot-profile document explicitly excludes constructed from first pilot while leaving v4 contract unchanged.",
+    "Stream C showcase has no constructed activity and remains within 30–45 minutes; minimal expected duration is 39 minutes.",
+    "Stream C learner-visible internal jargon scan PASS.",
+    "Stream C objective coverage/source fidelity/canonical validation/pedagogical quality/revision-digest/source-traceability PASS.",
+    "Stream C semantic review status explicitly PENDING_INDEPENDENT_CORRECTIVE_REVIEW.",
+    "Repository governance PASS on coordinator and every child branch.",
+    "Coordinator final audit proves payload scope separation and no cross-consumption."
+  ],
+  "adversarialTests": [
+    "Do not solve activity UX by modifying production presenters before human prototype selection.",
+    "Do not build a generic plugin registry, dynamic loader, evaluator registry or event bus for the Activity Lab.",
+    "Do not let Activity Lab fixtures contain correctChoiceId, fill answers, acceptedResponses, matches, correctOrder or classify authored assignments.",
+    "Do not let the Activity Lab compute correctness or mastery.",
+    "Do not make drag-and-drop the only interaction path for matching/order/classify; keyboard/touch-safe fallback is mandatory.",
+    "Do not move app-shell progress/navigation concerns into the Activity Lab.",
+    "Do not treat constructed removal from the first pilot as deletion from learnit.kit.v4.",
+    "Do not add acceptedResponses variants as the primary fix for constructed in the pilot; constructed is excluded from the limited-pilot profile.",
+    "Do not invent replacement mathematical content merely to preserve 11 activities or 42 minutes.",
+    "Do not claim independent semantic review from the Stream C authoring session.",
+    "Do not infer a G5 human decision from the screenshots or engineering discussion.",
+    "Do not fan-in streams in this job."
+  ],
+  "independentReview": [
+    "Stream A, Stream B and Stream C are authored from the same frozen base with no sibling consumption.",
+    "Stream B human selection is a separate fail-fast UX decision before any production implementation.",
+    "Stream C changed learner content is reviewed independently only in a later gate.",
+    "ATLAS-WP-054 independently integrates only accepted stream outputs and requalifies a new G4 candidate."
+  ],
+  "nonGoals": [
+    "Production integration of Activity Lab prototypes.",
+    "Corrective fan-in.",
+    "G4 R1 qualification.",
+    "Replacement G5 replay bundle.",
+    "Formal G5 GO/HOLD.",
+    "Main merge.",
+    "Real student sessions."
+  ],
+  "execution": {
+    "branch": "student-v01/g5-findings-corrective-wave-r1",
+    "phase": "CORRECTIVE_THREE_STREAM_PREP",
+    "humanGateRequired": true,
+    "humanGateReason": "Stream B fail-fast prototype selection",
+    "mergeStatus": "not-merged",
+    "nextGate": "ATLAS-WP-054_AFTER_STREAM_B_HUMAN_SELECTION_AND_STREAM_C_INDEPENDENT_REVIEW",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the R1 coordinator and child DRAFT PRs and delete their branches. Historical G4/G5 Phase-A evidence remains unchanged."
+}
