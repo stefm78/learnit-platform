@@ -7,10 +7,9 @@
       "ok": true,
       "errors": [],
       "warnings": [],
-      "idsDefined": 55,
-      "objectiveReferences": 12,
+      "idsDefined": 53,
+      "objectiveReferences": 11,
       "activities": {
-        "constructed": 1,
         "flashcard": 2,
         "lesson": 1,
         "matching": 2,
@@ -30,9 +29,9 @@
         {
           "level": "activity",
           "path": "$.courses[0].activities[1]",
-          "revisionId": "7a918ca6-f2de-46fe-974d-64ef35b0c072",
-          "declared": "sha256:0f72b187442b0da307f616d3f41ff80e7c6e8e0aa1e4731763a58bd4c2046b92",
-          "calculated": "sha256:0f72b187442b0da307f616d3f41ff80e7c6e8e0aa1e4731763a58bd4c2046b92"
+          "revisionId": "be024979-1d66-4ef7-ad51-9ed541d57d0b",
+          "declared": "sha256:97a3b2c0b75bb2c171d3192803b0af05c6f8d2a40ee2836e0050029aad1725d8",
+          "calculated": "sha256:97a3b2c0b75bb2c171d3192803b0af05c6f8d2a40ee2836e0050029aad1725d8"
         },
         {
           "level": "activity",
@@ -51,48 +50,41 @@
         {
           "level": "activity",
           "path": "$.courses[0].activities[4]",
-          "revisionId": "c49f1df9-16fb-43aa-afa7-f1d461a37052",
-          "declared": "sha256:72445ba4596294aa5f8289ab77aec47623a75b65e323cc3b8c467392672ceab1",
-          "calculated": "sha256:72445ba4596294aa5f8289ab77aec47623a75b65e323cc3b8c467392672ceab1"
+          "revisionId": "66b080a6-8479-4c93-8010-273b07872bef",
+          "declared": "sha256:3c60016fcd69c44db6ed1a6edd588b7f7a3f94ce1ba080eb75f8895e9050ee53",
+          "calculated": "sha256:3c60016fcd69c44db6ed1a6edd588b7f7a3f94ce1ba080eb75f8895e9050ee53"
         },
         {
           "level": "activity",
           "path": "$.courses[0].activities[5]",
-          "revisionId": "1bd5164b-8905-4742-8ba1-7f37bff6337c",
-          "declared": "sha256:86f3d199b53e14b26d0943c7aa4534dab21848e4347d44294cef90b6e3f2f04c",
-          "calculated": "sha256:86f3d199b53e14b26d0943c7aa4534dab21848e4347d44294cef90b6e3f2f04c"
-        },
-        {
-          "level": "activity",
-          "path": "$.courses[0].activities[6]",
           "revisionId": "2df5cfaf-877e-4718-91c7-8c9b2f0c3a3a",
           "declared": "sha256:cd961483425266ec1c47b86c8187f5d7415eae6fbdcce7ff69bf2ee4354af3e4",
           "calculated": "sha256:cd961483425266ec1c47b86c8187f5d7415eae6fbdcce7ff69bf2ee4354af3e4"
         },
         {
           "level": "activity",
-          "path": "$.courses[0].activities[7]",
+          "path": "$.courses[0].activities[6]",
           "revisionId": "977d798a-a70e-4b60-a85a-7e82af51aa2c",
           "declared": "sha256:9a3a597a4686a79023250df773628a642a97d75b318e6b4998ab995fb57d3243",
           "calculated": "sha256:9a3a597a4686a79023250df773628a642a97d75b318e6b4998ab995fb57d3243"
         },
         {
           "level": "activity",
-          "path": "$.courses[0].activities[8]",
-          "revisionId": "c08425be-c74a-4610-aef0-9d2bd0a721d9",
-          "declared": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4",
-          "calculated": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4"
+          "path": "$.courses[0].activities[7]",
+          "revisionId": "79b0d82c-9c30-48c1-994c-622d5203a5ca",
+          "declared": "sha256:18e7a3922de1fe87a72ad767d44d93109f616e4e1d25eb67c77b07fd6ca4d6ec",
+          "calculated": "sha256:18e7a3922de1fe87a72ad767d44d93109f616e4e1d25eb67c77b07fd6ca4d6ec"
         },
         {
           "level": "activity",
-          "path": "$.courses[0].activities[9]",
+          "path": "$.courses[0].activities[8]",
           "revisionId": "9ba5d27c-2982-4b2c-b1de-574652d4043d",
           "declared": "sha256:45075f52952487f27fad15219355ff28c670b2e21de3f7a05d242ab6e1ae3920",
           "calculated": "sha256:45075f52952487f27fad15219355ff28c670b2e21de3f7a05d242ab6e1ae3920"
         },
         {
           "level": "activity",
-          "path": "$.courses[0].activities[10]",
+          "path": "$.courses[0].activities[9]",
           "revisionId": "71b869f2-ca60-4f44-8193-489c09755eb7",
           "declared": "sha256:eb85d90d958b445500e2343a7492cfd93f86aea6c6cf3d43c5b793fc8e03c661",
           "calculated": "sha256:eb85d90d958b445500e2343a7492cfd93f86aea6c6cf3d43c5b793fc8e03c661"
@@ -100,16 +92,16 @@
         {
           "level": "course",
           "path": "$.courses[0]",
-          "revisionId": "a0a34de6-e00a-41c5-97db-010c3fd333df",
-          "declared": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418",
-          "calculated": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418"
+          "revisionId": "640ea095-d3f6-4fb7-92a9-b33e20302940",
+          "declared": "sha256:0b7975a766e4dbaec9d9286bb54792ca73a6e4374e34f58c16d3593075c2bc07",
+          "calculated": "sha256:0b7975a766e4dbaec9d9286bb54792ca73a6e4374e34f58c16d3593075c2bc07"
         },
         {
           "level": "package",
           "path": "$",
-          "revisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
-          "declared": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee",
-          "calculated": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee"
+          "revisionId": "7f40d370-1015-41fc-899f-b1600c5e0dbe",
+          "declared": "sha256:fd447bdcee498bab50c67601c8d4dee863508d7a23410432e5ff75c0924ef323",
+          "calculated": "sha256:fd447bdcee498bab50c67601c8d4dee863508d7a23410432e5ff75c0924ef323"
         }
       ]
     }
