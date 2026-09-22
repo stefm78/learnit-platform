@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-046",
+  "title": "Student V0.1 — G5 human-findings corrective author wave",
+  "status": "approved",
+  "changeClass": "human-findings-corrective-author-wave",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 429,
+    "parentProgramIssue": 380,
+    "g4Issue": 425,
+    "g4Pr": 426,
+    "g5Issue": 427,
+    "g5Pr": 428
+  },
+  "baseline": {
+    "commonBase": "18b925436777943b19c4b031c24659ad60dee133",
+    "g4CandidateResult": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+    "g5ReplayPrep": "a72897c209b8ea7bd8672cc8a95be939ecee6fb8",
+    "humanFindingsDecisionStatus": "NOT_RECORDED",
+    "exactObservedCode": {
+      "atlasSurface": "aea13ae66fdeeddae6a32b46f8c53875f6a754ad",
+      "servedRender": "0fc4b5027c82d038f69d402f97f8d0e059c5401c",
+      "activityPresenters": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf",
+      "main": "828997da351fc63b72adacf61f330fe2fcdd8f31",
+      "activitySemantics": "07c4595332419da1da0473a9715f09894620f6bd",
+      "repairedShowcase": "03ed1d5819911c23734980f89716f4ca18a6bca4"
+    },
+    "sourceAuthority": {
+      "commit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+      "path": "authoring/v2/atlas/nombres_complexes_atlas.json",
+      "gitBlob": "7f83784e8719917496a694b2ad170d724190fd04",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    }
+  },
+  "reservedChildren": {
+    "product": {
+      "workPackage": "ATLAS-WP-047",
+      "branch": "student-v01/g5-finding-product-ux-r1",
+      "resultToken": "PASS_STUDENT_V01_G5_PRODUCT_UX_R1_READY_FOR_CORRECTIVE_REVIEW"
+    },
+    "showcase": {
+      "workPackage": "ATLAS-WP-048",
+      "branch": "student-v01/g5-finding-showcase-r2",
+      "resultToken": "PASS_STUDENT_V01_G5_SHOWCASE_R2_READY_FOR_CORRECTIVE_REVIEW"
+    },
+    "nextIndependentGate": {
+      "reservedWorkPackage": "ATLAS-WP-049",
+      "purpose": "independent semantic review plus corrective fan-in and G4 R1 qualification"
+    }
+  },
+  "purpose": "Produce two independent author-side repair candidates from the exact G4 evidence base: one for product UX/integration defects and one for learner-facing showcase content/constructed-answer variants, without consuming each other or recording a G5 verdict.",
+  "coordinatorScope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-046.json",
+      "docs/programs/student-v0.1/jobs/JOB_10_G5_FINDINGS_CORRECTIVE_AUTHOR_WAVE.md",
+      "qualification/STUDENT_V01_G5_HUMAN_FINDINGS_01.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "qualification/STUDENT_V01_JOB09_G5_HUMAN_DECISION.md",
+      "qualification/STUDENT_V01_JOB09_G5_RESULT.md"
+    ]
+  },
+  "productTrack": {
+    "allowedPayloadPaths": [
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/tests/student_v01_g5_findings_ux.py",
+      "apps/learnit-next/tests/browser_student_v01_g5_findings_ux.py"
+    ],
+    "allowedControlPaths": [
+      "work-packages/ATLAS-WP-047.json",
+      "docs/programs/student-v0.1/jobs/JOB_10A_G5_PRODUCT_UX_R1.md",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_G5_PRODUCT_UX_R1_RESULT.md"
+    ],
+    "forbidden": [
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/index.template.html",
+      "contracts/**",
+      "authoring/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**"
+    ]
+  },
+  "showcaseTrack": {
+    "allowedPayloadPaths": [
+      "showcase/student-v0.1/nombres-complexes/**"
+    ],
+    "allowedControlPaths": [
+      "work-packages/ATLAS-WP-048.json",
+      "docs/programs/student-v0.1/jobs/JOB_10B_G5_SHOWCASE_R2.md",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_G5_SHOWCASE_R2_RESULT.md"
+    ],
+    "forbidden": [
+      "apps/**",
+      "contracts/**",
+      "authoring/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "qualification/STUDENT_V01_G3_R1_JOB06_SEMANTIC_REVIEW.json",
+      "qualification/STUDENT_V01_G3_R1_JOB06_FACTORY_RESULT.json"
+    ]
+  },
+  "invariants": [
+    "The two repair tracks start from the exact same common base 18b925436777943b19c4b031c24659ad60dee133.",
+    "Neither repair track may merge or cherry-pick the other track or consume its result/evidence.",
+    "G5 remains formally PENDING_HUMAN; this corrective wave must not manufacture or commit a human GO/HOLD decision.",
+    "The product track does not change canonical-text-match-v1 or any scoring contract semantics.",
+    "The showcase track handles ordinary keyboard-equivalent constructed-answer forms by hidden acceptedResponses only.",
+    "The product track does not edit the repaired showcase or author/source content.",
+    "The showcase track does not edit product/runtime/contract code.",
+    "The product track must make the learning activity primary and keep objective progress compact, comprehensible and accessible.",
+    "The product track must expose exactly one continuation path for lesson and exactly reveal-then-one-continuation for flashcard.",
+    "The product track must never show a contradictory 'no Atlas course installed' state while an installed rich V4 course is present in the library.",
+    "The showcase track must remove internal provenance/program jargon from learner-visible fields without inventing new factual claims.",
+    "Source authority remains byte-identical and source traceability remains complete.",
+    "Changed showcase revisions/digests rotate correctly; unchanged activities remain byte/revision stable where contract semantics require.",
+    "Author-side showcase qualification cannot claim independent semantic PASS; it must stop at PENDING_INDEPENDENT_CORRECTIVE_REVIEW.",
+    "Each track separates RESULT_SHA from a later evidence-only EVIDENCE_HEAD.",
+    "The central workflow may differ independently in the two branches only as CI transport; it is excluded from repair-payload overlap and will be recomposed by the later independent fan-in."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/main/G4/G5 Phase-A authority rebind before creating child branches.",
+    "Exact common-base ancestry for both child branches.",
+    "Durable human-findings report with no G5 final decision.",
+    "Product branch browser proof that installed rich V4 never coexists with misleading Atlas empty-state.",
+    "Product branch DOM/visual-order proof that the activity is primary and verbose progress is not injected before it.",
+    "Product branch proof of compact per-objective reservoir/bucket progress with visible state labels and accessible text.",
+    "Product branch proof that full objective details are progressive disclosure rather than mandatory pre-activity content.",
+    "Product branch lesson proof of one Continue action only.",
+    "Product branch flashcard proof of one reveal action followed by one Continue action only, with no learner-visible 'Réponse affichée' or 'Prêt à continuer' control state.",
+    "Product branch full rich-family, persistence, reload/resume, secret-boundary, keyboard and mobile regressions PASS.",
+    "Product branch deterministic double build with new bytes/hash recorded.",
+    "Showcase branch learner-visible-string scan proving no internal 'de la source', 'kit canonique', 'Atlas M1', or 'Student V0.1 Showcase' wording remains.",
+    "Showcase branch proves course facts, objectives, activity order, duration, learning phases and assessment roles remain source-faithful.",
+    "Showcase branch constructed acceptedResponses include bounded typographic keyboard variants and reject a genuinely incorrect answer.",
+    "Showcase branch revision/digest hygiene PASS.",
+    "Showcase branch canonical V4 and pedagogical quality PASS.",
+    "Showcase branch source traceability PASS with source blob/hash unchanged.",
+    "Showcase branch semantic review status explicitly PENDING_INDEPENDENT_CORRECTIVE_REVIEW.",
+    "Exact-head CI and Repository governance PASS on each child result when technically routable; any temporary carrier is same-head, DRAFT, non-authoritative and closed unmerged.",
+    "Child PRs remain DRAFT/unmerged.",
+    "Payload changed-path sets are disjoint.",
+    "Coordinator final audit proves no cross-consumption."
+  ],
+  "adversarialTests": [
+    "Do not solve the misleading Atlas empty state by extending the legacy Atlas planner to all rich V4 families in this repair.",
+    "Do not remove progression entirely; the repair must retain clear per-objective acquired/not-acquired state.",
+    "Do not merely CSS-hide duplicate lesson/flashcard controls while leaving conflicting state-machine semantics underneath.",
+    "Do not change activity_semantics.js or canonical-text-match-v1 to make one showcase response pass.",
+    "Do not expose acceptedResponses to learner-safe presentation.",
+    "Do not silently lowercase, algebraically parse or broadly canonicalize constructed answers in product code.",
+    "Do not replace the repaired showcase with a synthetic qualification fixture.",
+    "Do not rewrite source facts to improve copy.",
+    "Do not claim independent semantic review from the same authoring session.",
+    "Do not treat the human screenshots/observations as a completed G5 final decision.",
+    "Do not fan-in or package a new G5 replay in this author wave."
+  ],
+  "nonGoals": [
+    "Recording G5 GO/HOLD.",
+    "Independent semantic review.",
+    "Corrective fan-in.",
+    "G4 R1 qualification.",
+    "New human replay bundle.",
+    "Main merge.",
+    "Real student sessions."
+  ],
+  "execution": {
+    "branch": "student-v01/g5-findings-corrective-wave",
+    "phase": "CORRECTIVE_AUTHOR_WAVE_PREP",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "ATLAS-WP-049_INDEPENDENT_CORRECTIVE_REVIEW_AND_FANIN",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the coordinator and child DRAFT PRs and delete the corrective branches. G4/G5 Phase-A historical evidence remains immutable."
+}
