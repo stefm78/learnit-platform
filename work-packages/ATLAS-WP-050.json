@@ -37,7 +37,8 @@
       "path": "authoring/v2/atlas/nombres_complexes_atlas.json",
       "gitBlob": "7f83784e8719917496a694b2ad170d724190fd04",
       "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
-    }
+    },
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133"
   },
   "purpose": "Replace the superseded two-track corrective plan with three independent streams: shell-level App Experience repair, a bounded fail-fast Activity Experience Lab sub-product driven by frozen ActivityPresentation/ActivityResponse contracts, and a limited-pilot activity profile that excludes constructed free text without changing learnit.kit.v4 published meaning.",
   "reservedChildren": {
@@ -216,5 +217,25 @@
     "nextGate": "ATLAS-WP-054_AFTER_STREAM_B_HUMAN_SELECTION_AND_STREAM_C_INDEPENDENT_REVIEW",
     "finalVerdict": "PENDING"
   },
-  "rollback": "Close the R1 coordinator and child DRAFT PRs and delete their branches. Historical G4/G5 Phase-A evidence remains unchanged."
+  "rollback": "Close the R1 coordinator and child DRAFT PRs and delete their branches. Historical G4/G5 Phase-A evidence remains unchanged.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-050.json",
+      "docs/programs/student-v0.1/jobs/JOB_10_R1_G5_CORRECTIVE_THREE_STREAMS.md",
+      "qualification/STUDENT_V01_G5_HUMAN_FINDINGS_R1.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "qualification/STUDENT_V01_JOB09_G5_HUMAN_DECISION.md",
+      "qualification/STUDENT_V01_JOB09_G5_RESULT.md"
+    ]
+  }
 }
