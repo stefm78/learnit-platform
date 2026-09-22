@@ -586,7 +586,6 @@ jobs:
             python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
             python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v
             python -B apps/learnit-next/tests/student_v01_activity_presentation.py
-            python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
 
             python -B apps/learnit-next/build.py
             artifact=apps/learnit-next/dist/learnit-next.html
@@ -601,6 +600,7 @@ jobs:
             echo "STUDENT_V01_G5_R1_APP_DOUBLE_BUILD=PASS"
             echo "APP_BUILD_SHA256=${first_sha}"
             echo "APP_BUILD_BYTES=${first_bytes}"
+            python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
 
             python -m playwright install --with-deps chromium
             chromium="$(python - <<'PY'
