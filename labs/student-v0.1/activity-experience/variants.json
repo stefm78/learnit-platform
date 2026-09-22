@@ -1,0 +1,57 @@
+[
+  {
+    "id": "lesson-a",
+    "family": "lesson",
+    "label": "Lecture simple"
+  },
+  {
+    "id": "flashcard-a",
+    "family": "flashcard",
+    "label": "Révélation directe"
+  },
+  {
+    "id": "flashcard-b",
+    "family": "flashcard",
+    "label": "Carte à retournement"
+  },
+  {
+    "id": "matching-a",
+    "family": "matching",
+    "label": "Association par sélection"
+  },
+  {
+    "id": "matching-b",
+    "family": "matching",
+    "label": "Association spatiale + glisser"
+  },
+  {
+    "id": "order-a",
+    "family": "order",
+    "label": "Monter / descendre"
+  },
+  {
+    "id": "order-b",
+    "family": "order",
+    "label": "Réordonner + glisser"
+  },
+  {
+    "id": "classify-a",
+    "family": "classify",
+    "label": "Choisir une catégorie"
+  },
+  {
+    "id": "classify-b",
+    "family": "classify",
+    "label": "Zones + glisser"
+  },
+  {
+    "id": "qcm-a",
+    "family": "qcm",
+    "label": "QCM baseline"
+  },
+  {
+    "id": "fill-a",
+    "family": "fill",
+    "label": "Texte à compléter baseline"
+  }
+]
