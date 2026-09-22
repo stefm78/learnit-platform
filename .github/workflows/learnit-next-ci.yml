@@ -2,7 +2,7 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main, student-v01/g3-wave2-review-r1, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
+    branches: [main, student-v01/g3-wave2-review-r1, student-v01/fanin-b, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
       - 'qa/student-v0.1/**'
@@ -130,6 +130,7 @@ jobs:
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
+              student-v01/g5-r1-app-experience) echo 'student-v01-g5-r1-app-experience wave' ;;
               student-v01/fanin-b) echo 'student-v01-fanin-b wave' ;;
               student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
               student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
