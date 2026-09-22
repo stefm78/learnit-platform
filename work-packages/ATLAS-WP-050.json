@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-050",
+  "title": "Student V0.1 — G5 corrective R1 coordination only",
+  "status": "approved",
+  "changeClass": "corrective-three-stream-coordination-only",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 431,
+    "parentProgramIssue": 380,
+    "g4Issue": 425,
+    "g4Pr": 426,
+    "g5Issue": 427,
+    "g5Pr": 428,
+    "supersededCoordinatorIssue": 429,
+    "supersededCoordinatorPr": 430
+  },
+  "baseline": {
+    "commonBase": "18b925436777943b19c4b031c24659ad60dee133",
+    "g4CandidateResult": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+    "g5ReplayPrep": "a72897c209b8ea7bd8672cc8a95be939ecee6fb8",
+    "g5FormalStatus": "PENDING_HUMAN",
+    "interfaceFreeze": {
+      "path": "docs/programs/student-v0.1/WAVE1_INTERFACE_FREEZE.md",
+      "gitBlob": "cf15b12e0d008484b8341a8a059fe0d91955f8b0"
+    },
+    "richnessArchitecture": {
+      "path": "docs/architecture/student-v0.1/STUDENT_V0_1_ACTIVITY_RICHNESS_ARCHITECTURE.md",
+      "gitBlob": "c900d96c3845276e23b77a43c970c7c3834655a5"
+    },
+    "currentActivityProjectionBlob": "607ecea8af6dc468ded05dbcc924693f90d576ff",
+    "currentActivityPresentersBlob": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf",
+    "currentShowcaseBlob": "03ed1d5819911c23734980f89716f4ca18a6bca4",
+    "sourceAuthority": {
+      "commit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+      "path": "authoring/v2/atlas/nombres_complexes_atlas.json",
+      "gitBlob": "7f83784e8719917496a694b2ad170d724190fd04",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    },
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133"
+  },
+  "purpose": "Freeze the three-stream corrective topology and hand off three independent execution jobs. The coordinator does not execute, mutate, or consume child payloads.",
+  "reservedChildren": {
+    "appExperience": {
+      "workPackage": "ATLAS-WP-051",
+      "issue": 433,
+      "pr": 436,
+      "branch": "student-v01/g5-r1-app-experience",
+      "prompt": "docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md"
+    },
+    "activityLab": {
+      "workPackage": "ATLAS-WP-052",
+      "issue": 434,
+      "pr": 437,
+      "branch": "student-v01/g5-r1-activity-experience-lab",
+      "prompt": "docs/programs/student-v0.1/jobs/JOB_10B_ACTIVITY_EXPERIENCE_LAB_V1.md"
+    },
+    "pilotPolicy": {
+      "workPackage": "ATLAS-WP-053",
+      "issue": 435,
+      "pr": 438,
+      "branch": "student-v01/g5-r1-pilot-activity-policy",
+      "prompt": "docs/programs/student-v0.1/jobs/JOB_10C_G5_R1_PILOT_ACTIVITY_POLICY.md"
+    },
+    "nextIndependentGate": {
+      "reservedWorkPackage": "ATLAS-WP-054",
+      "purpose": "after Stream A PASS, Stream B human selection, and Stream C independent semantic acceptance: implement selected activity UX, fan-in and qualify G4 R1"
+    }
+  },
+  "coordinatorScope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-050.json",
+      "docs/programs/student-v0.1/jobs/JOB_10_R1_G5_CORRECTIVE_THREE_STREAMS.md",
+      "qualification/STUDENT_V01_G5_HUMAN_FINDINGS_R1.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "qualification/STUDENT_V01_JOB09_G5_HUMAN_DECISION.md",
+      "qualification/STUDENT_V01_JOB09_G5_RESULT.md"
+    ]
+  },
+  "streamA": {
+    "name": "APP_EXPERIENCE_R1",
+    "owns": [
+      "post-import/library truthfulness",
+      "global navigation hierarchy",
+      "overall course progress",
+      "per-objective bucket/reservoir presentation",
+      "progressive disclosure of detailed objective status",
+      "resume/recovery/navigation clarity"
+    ],
+    "forbiddenOwnership": [
+      "activity presenter interaction mechanics",
+      "canonical activity semantics",
+      "showcase author content"
+    ]
+  },
+  "streamB": {
+    "name": "ACTIVITY_EXPERIENCE_LAB_V1",
+    "contract": {
+      "input": "learner-safe ActivityPresentation",
+      "output": "frozen ActivityResponse",
+      "mayEvaluateCorrectness": false,
+      "mayReceiveScoringSecrets": false,
+      "pluginRuntime": false
+    },
+    "labPath": "labs/student-v0.1/activity-experience/**",
+    "admittedPrototypeFamilies": [
+      "lesson",
+      "flashcard",
+      "matching",
+      "order",
+      "classify",
+      "qcm",
+      "fill"
+    ],
+    "pilotExcludedFamily": "constructed",
+    "phaseAStop": "ACTIVITY_PROTOTYPE_DECISION_REQUIRED"
+  },
+  "streamC": {
+    "name": "PILOT_ACTIVITY_POLICY_R1",
+    "admittedFirstPilotFamilies": [
+      "lesson",
+      "flashcard",
+      "matching",
+      "order",
+      "classify",
+      "qcm",
+      "fill"
+    ],
+    "excludedFirstPilotFamilies": [
+      "constructed"
+    ],
+    "contractMeaning": "learnit.kit.v4 remains unchanged; this is a Student V0.1 limited-pilot admission profile",
+    "currentShowcaseConstructedIndex": 4,
+    "currentShowcaseDurationMinutes": 42,
+    "targetShowcaseDurationAfterMinimalRemovalMinutes": 39
+  },
+  "invariants": [
+    "Coordinator branch contains control/findings only and never executes child repair payloads.",
+    "All three child branches start exactly from common base 18b925436777943b19c4b031c24659ad60dee133.",
+    "Each child is executed in a separate conversation/session.",
+    "No child may consume another child result/evidence during its authoring/prototyping execution.",
+    "Stream B stops for human prototype selection before any production activity-presenter implementation.",
+    "Stream C excludes constructed only from the limited-pilot profile; learnit.kit.v4 and canonical-text-match-v1 remain unchanged.",
+    "G5 remains PENDING_HUMAN and no final human decision is inferred.",
+    "ATLAS-WP-054 is not prepared until prerequisites are independently accepted."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/main/G4/G5 authority binding.",
+    "Child issue/branch/PR/work-package/prompt identity for Stream A.",
+    "Child issue/branch/PR/work-package/prompt identity for Stream B.",
+    "Child issue/branch/PR/work-package/prompt identity for Stream C.",
+    "All child PR bases exactly equal common base 18b925436777943b19c4b031c24659ad60dee133.",
+    "Preparation Repository governance PASS for coordinator and each child head.",
+    "No child implementation payload exists at preparation time beyond its WP/prompt.",
+    "Old #429 / PR #430 remains closed and superseded."
+  ],
+  "adversarialTests": [
+    "Do not execute all three child jobs in one conversation.",
+    "Do not copy child outputs into coordinator branch.",
+    "Do not let Stream B modify production presenters before human selection.",
+    "Do not let Stream C mutate v4 or scoring semantics.",
+    "Do not prepare ATLAS-WP-054 before child prerequisites are accepted.",
+    "Do not record a G5 final decision."
+  ],
+  "independentReview": [
+    "The coordinator prepares three independent execution surfaces and then stops.",
+    "Each child must be run in a separate conversation from the exact same frozen base.",
+    "The later integration gate consumes only accepted/frozen child outputs and an explicit human Activity Lab selection."
+  ],
+  "nonGoals": [
+    "Executing Stream A, B or C.",
+    "Activity Lab human selection.",
+    "Independent semantic review.",
+    "Corrective fan-in or G4 R1.",
+    "Replacement G5 replay or G5 decision.",
+    "Main merge or student sessions."
+  ],
+  "execution": {
+    "branch": "student-v01/g5-findings-corrective-wave-r1",
+    "phase": "COORDINATION_COMPLETE_CHILD_JOBS_PREPARED",
+    "humanGateRequired": false,
+    "mergeStatus": "not-merged",
+    "nextGate": "RUN_ATLAS_WP_051_052_053_IN_SEPARATE_SESSIONS",
+    "finalVerdict": "READY_FOR_SEPARATE_CHILD_EXECUTION"
+  },
+  "rollback": "Close the R1 coordinator and child DRAFT PRs and delete their branches. Historical G4/G5 Phase-A evidence remains unchanged.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-050.json",
+      "docs/programs/student-v0.1/jobs/JOB_10_R1_G5_CORRECTIVE_THREE_STREAMS.md",
+      "qualification/STUDENT_V01_G5_HUMAN_FINDINGS_R1.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "qualification/STUDENT_V01_JOB09_G5_HUMAN_DECISION.md",
+      "qualification/STUDENT_V01_JOB09_G5_RESULT.md"
+    ]
+  }
+}
