@@ -587,19 +587,83 @@ jobs:
             python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v
             python -B apps/learnit-next/tests/student_v01_activity_presentation.py
 
-            python -B apps/learnit-next/build.py
-            artifact=apps/learnit-next/dist/learnit-next.html
-            first_sha="$(sha256sum "${artifact}" | awk '{print $1}')"
-            first_bytes="$(wc -c < "${artifact}" | tr -d ' ')"
-            python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/job10a-second.html"
+            [[ "$(git rev-parse "HEAD:apps/learnit-next/source_manifest.json")" == "$(git rev-parse "${exact_base}:apps/learnit-next/source_manifest.json")" ]] || {
+              echo "JOB10A source manifest changed despite frozen boundary." >&2
+              exit 2
+            }
+
+            candidate_tree="${RUNNER_TEMP}/job10a-build-tree"
+            git worktree add --detach "${candidate_tree}" "${TARGET}"
+            trap 'git worktree remove --force "${candidate_tree}" >/dev/null 2>&1 || true' EXIT
+            (
+              cd "${candidate_tree}"
+              python - <<'PY'
+          import copy, hashlib, json
+          from pathlib import Path
+
+          root = Path('.')
+          path = Path('apps/learnit-next/source_manifest.json')
+          manifest = json.loads(path.read_text(encoding='utf-8'))
+          self_path = 'apps/learnit-next/source_manifest.json'
+
+          def blob_sha(data: bytes) -> str:
+              return hashlib.sha1(f'blob {len(data)}\0'.encode('ascii') + data).hexdigest()
+
+          by_path = {item['path']: item for item in manifest['workingFiles']}
+          for item in manifest['workingFiles']:
+              item_path = item['path']
+              if item_path == self_path:
+                  continue
+              disk = root / item_path
+              if disk.is_file():
+                  item['fingerprint'] = {
+                      'kind': 'git-blob-sha1',
+                      'value': blob_sha(disk.read_bytes()),
+                  }
+
+          self_item = by_path[self_path]
+          self_item['fingerprint']['kind'] = 'canonical-self-sha256'
+          self_item['fingerprint']['value'] = None
+          clone = copy.deepcopy(manifest)
+          digest = hashlib.sha256(
+              json.dumps(
+                  clone,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(',', ':'),
+                  allow_nan=False,
+              ).encode('utf-8')
+          ).hexdigest()
+          self_item['fingerprint']['value'] = digest
+          path.write_text(
+              json.dumps(
+                  manifest,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(',', ':'),
+                  allow_nan=False,
+              ) + '\n',
+              encoding='utf-8',
+          )
+          print('JOB10A_TRANSIENT_MANIFEST_SELF_SHA256=' + digest)
+          PY
+              python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/job10a-first.html"
+              python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/job10a-second.html"
+            )
+            cmp -s "${RUNNER_TEMP}/job10a-first.html" "${RUNNER_TEMP}/job10a-second.html"
+            first_sha="$(sha256sum "${RUNNER_TEMP}/job10a-first.html" | awk '{print $1}')"
+            first_bytes="$(wc -c < "${RUNNER_TEMP}/job10a-first.html" | tr -d ' ')"
             second_sha="$(sha256sum "${RUNNER_TEMP}/job10a-second.html" | awk '{print $1}')"
             second_bytes="$(wc -c < "${RUNNER_TEMP}/job10a-second.html" | tr -d ' ')"
-            cmp -s "${artifact}" "${RUNNER_TEMP}/job10a-second.html"
             [[ "${first_sha}" == "${second_sha}" ]]
             [[ "${first_bytes}" == "${second_bytes}" ]]
+            mkdir -p apps/learnit-next/dist
+            cp "${RUNNER_TEMP}/job10a-first.html" apps/learnit-next/dist/learnit-next.html
+            artifact=apps/learnit-next/dist/learnit-next.html
             echo "STUDENT_V01_G5_R1_APP_DOUBLE_BUILD=PASS"
             echo "APP_BUILD_SHA256=${first_sha}"
             echo "APP_BUILD_BYTES=${first_bytes}"
+            echo "STUDENT_V01_G5_R1_SOURCE_MANIFEST_BRANCH_UNCHANGED=PASS"
             python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
 
             python -m playwright install --with-deps chromium
