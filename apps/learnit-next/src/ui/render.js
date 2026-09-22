@@ -49,6 +49,66 @@ function renderProgress(progress) {
   ]);
 }
 
+const OBJECTIVE_BUCKET_STATE_LABELS = Object.freeze({
+  'not-started': 'À découvrir',
+  training: 'En apprentissage',
+  'review-needed': 'À renforcer',
+  'ready-for-validation': 'À confirmer',
+  'validated-recently': 'Acquis récemment',
+});
+
+function objectiveBucketState(value) {
+  return Object.hasOwn(OBJECTIVE_BUCKET_STATE_LABELS, value) ? value : 'training';
+}
+
+function renderObjectiveBuckets(objectives, courseObjectives = []) {
+  if (!Array.isArray(objectives) || objectives.length === 0) return null;
+  const labels = new Map(
+    (courseObjectives ?? []).map(objective => [
+      objective.objectiveId,
+      objective.label ?? objective.objectiveId,
+    ]),
+  );
+  return node('section', {
+    className: 'objective-buckets',
+    'data-session-objective-buckets': 'true',
+    'aria-label': 'État des objectifs du cours',
+  }, [
+    node('h3', { className: 'objective-buckets__heading', text: 'Objectifs du cours' }),
+    node('ul', { className: 'objective-buckets__list' }, objectives.map(objective => {
+      const state = objectiveBucketState(objective?.status);
+      const objectiveId = objective?.objectiveId ?? 'objectif';
+      const label = labels.get(objectiveId) ?? objectiveId;
+      const stateLabel = OBJECTIVE_BUCKET_STATE_LABELS[state];
+      return node('li', {
+        className: `objective-bucket objective-bucket--${state}`,
+        'data-objective-bucket': objectiveId,
+        'data-objective-bucket-state': state,
+        'aria-label': `${label}. ${stateLabel}`,
+      }, [
+        node('span', { className: 'objective-bucket__reservoir', 'aria-hidden': 'true' }, [
+          node('span', { className: 'objective-bucket__fill' }),
+        ]),
+        node('span', { className: 'objective-bucket__copy' }, [
+          node('strong', { className: 'objective-bucket__label', text: label }),
+          node('span', { className: 'objective-bucket__state', text: stateLabel }),
+        ]),
+      ]);
+    })),
+  ]);
+}
+
+function renderSessionProgressDetails(objectiveSurface) {
+  if (!objectiveSurface) return null;
+  return node('details', {
+    className: 'session-progress-details',
+    'data-session-progress-details': 'true',
+  }, [
+    node('summary', { text: 'Voir ma progression' }),
+    objectiveSurface,
+  ]);
+}
+
 function assertObjectiveUi(objectiveUi) {
   if (objectiveUi == null) return null;
   if (typeof objectiveUi.renderObjectiveProgress !== 'function') {
@@ -628,17 +688,23 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       progress: session.progress,
       activity,
     });
+    const objectiveBuckets = renderObjectiveBuckets(
+      session.progress?.objectives ?? [],
+      session.courseObjectives,
+    );
+    const objectiveDetails = renderSessionProgressDetails(objectiveSurface);
     const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel' }, [
       node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: () => renderLibrary() }),
       node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
       activityTitle,
       renderProgress(session.progress),
-      objectiveSurface,
-      reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
       renderServedActivityForm(
         activity,
         (answer) => submitAnswer(activity.activityRevisionId, answer),
       ),
+      objectiveBuckets,
+      objectiveDetails,
+      reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
       reviewMode ? node('button', {
         type: 'button',
         className: 'secondary',
