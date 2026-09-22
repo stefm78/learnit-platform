@@ -1,0 +1,116 @@
+{
+  "app": {
+    "bytes": 478657,
+    "sha256": "85dbeeef4207c9e4deb846d2b2e15f1e6979b1d32144ead3c1097bd5bf15630e"
+  },
+  "authorityBinding": {
+    "humanControlPlane": {
+      "controlPlaneHeadGitBlob": "2a9014e2b2051b0ede746a9772cdbbe471f55e3a",
+      "ucpSha256": "c499abc9d1045b3cbe0b632d7470ccbbe52d4dc726968e5206cfdde393f2cfb4",
+      "ucpSpecId": "UCP-CONTROL-PLANE",
+      "ucpVersion": "1.1-R4"
+    },
+    "mainAtPhaseA": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b"
+  },
+  "authorizationBoundary": {
+    "broadRollout": false,
+    "mainMerge": false,
+    "onHumanGo": "FIRST_LIMITED_5_6_STUDENT_SESSIONS_ONLY",
+    "productionReadiness": false,
+    "releasePromotion": false
+  },
+  "findingSeverities": [
+    "BLOCKER",
+    "MAJOR",
+    "MINOR"
+  ],
+  "g4CandidateSha": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+  "g4EvidenceHead": "18b925436777943b19c4b031c24659ad60dee133",
+  "g5": "PENDING_HUMAN",
+  "humanDecision": "PENDING",
+  "issue": 427,
+  "job09Base": "18b925436777943b19c4b031c24659ad60dee133",
+  "learnerPackage": {
+    "bytes": 496658,
+    "sha256": "a3d3db4c63fae89b47e1d7a1341ebb522f31df69e1b107ada2ecbb9a11c4ac10",
+    "startMode": "DIRECT_FILE"
+  },
+  "mandatoryHumanDimensions": [
+    "COLD_START_COMPREHENSION",
+    "INFORMATION_DENSITY",
+    "PEDAGOGICAL_FLOW",
+    "INTERACTION_GESTURE_QUALITY",
+    "KEYBOARD_ACCESSIBILITY",
+    "SCREEN_READER_ACCESSIBILITY",
+    "FEEDBACK_SCORING_TRUST",
+    "RECOVERY_RESUME_CLARITY",
+    "MOBILE_TOUCH_USABILITY",
+    "FULL_30_45_MIN_JOURNEY",
+    "OVERALL_LIMITED_PILOT_CONFIDENCE"
+  ],
+  "phaseAStatus": "HUMAN_DECISION_REQUIRED",
+  "pr": 428,
+  "protocolVersion": "1.0",
+  "repairedShowcase": {
+    "sha256": "da2beb6df6f490c6637d5de22ce1c8fc99fafe89a2ba4b0e6c698b0544c193ff"
+  },
+  "replayBundle": {
+    "bytes": 508231,
+    "deterministicDoubleBuild": true,
+    "entries": [
+      {
+        "bytes": 771,
+        "path": "student-v01-g5-human-replay/README_FIRST.md",
+        "sha256": "567d3cd60263fefea6f7d54023050456ff9273a8986c167b008fb1d4b4b39a51"
+      },
+      {
+        "bytes": 599,
+        "path": "student-v01-g5-human-replay/identity.json",
+        "sha256": "1e3f3f5e1f94972be043ddd1cfa43aed3817e43f5ba557c33d1bb80679eb9734"
+      },
+      {
+        "bytes": 496658,
+        "path": "student-v01-g5-human-replay/learner/student-v01-pilot.zip",
+        "sha256": "a3d3db4c63fae89b47e1d7a1341ebb522f31df69e1b107ada2ecbb9a11c4ac10"
+      },
+      {
+        "bytes": 2609,
+        "path": "student-v01-g5-human-replay/reviewer-only/ANSWER_GUIDE.md",
+        "sha256": "e265ed082bf41e4f801b6497f38b35dace9a1b43df90116609f31e6ffdd466c8"
+      },
+      {
+        "bytes": 688,
+        "path": "student-v01-g5-human-replay/reviewer-only/G5_DECISION_FORM.md",
+        "sha256": "268f55ae5b467fb9cec085062915aa94bffb52820ea1a7a7107f855d76499c5b"
+      },
+      {
+        "bytes": 3640,
+        "path": "student-v01-g5-human-replay/reviewer-only/HUMAN_REPLAY_PROTOCOL.md",
+        "sha256": "85e9dc619238f757eef8c6d7537e100ab8030dab625f6f4709f9668ceee34e74"
+      },
+      {
+        "bytes": 74,
+        "path": "student-v01-g5-human-replay/reviewer-only/invalid-not-v4.json",
+        "sha256": "04a53953dc2481ef723a99e997cb4012fd750b00fdf55a576520c682b274442d"
+      },
+      {
+        "bytes": 1674,
+        "path": "student-v01-g5-human-replay/reviewer-only/verify_replay.py",
+        "sha256": "bb032b7944055c128e9996af7881d511394b227a1355959d5031441d9667fdde"
+      }
+    ],
+    "entryOrder": [
+      "student-v01-g5-human-replay/README_FIRST.md",
+      "student-v01-g5-human-replay/identity.json",
+      "student-v01-g5-human-replay/learner/student-v01-pilot.zip",
+      "student-v01-g5-human-replay/reviewer-only/ANSWER_GUIDE.md",
+      "student-v01-g5-human-replay/reviewer-only/G5_DECISION_FORM.md",
+      "student-v01-g5-human-replay/reviewer-only/HUMAN_REPLAY_PROTOCOL.md",
+      "student-v01-g5-human-replay/reviewer-only/invalid-not-v4.json",
+      "student-v01-g5-human-replay/reviewer-only/verify_replay.py"
+    ],
+    "sha256": "fc06e745405cb1ba48674bcf93478e9ccbc44d766bee4bd4174a3aab3b00ce66"
+  },
+  "schema": "learnit.student-v0.1.job09-g5-replay-packet.v1",
+  "studentSessions": 0
+}
