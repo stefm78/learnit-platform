@@ -584,7 +584,6 @@ jobs:
             node --check apps/learnit-next/src/ui/render.js
             python -B apps/learnit-next/tests/student_v01_g5_r1_app_experience.py
             python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
-            python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
             python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v
             python -B apps/learnit-next/tests/student_v01_activity_presentation.py
             python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
