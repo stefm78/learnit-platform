@@ -15,8 +15,8 @@
     "path": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json",
     "contract": "learnit.kit.v4",
     "packageLineageId": "5c621f9b-f584-4669-9ae4-ce174f473650",
-    "packageRevisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
-    "packageRevisionDigest": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee"
+    "packageRevisionId": "7f40d370-1015-41fc-899f-b1600c5e0dbe",
+    "packageRevisionDigest": "sha256:fd447bdcee498bab50c67601c8d4dee863508d7a23410432e5ff75c0924ef323"
   },
   "activities": [
     {
@@ -109,19 +109,6 @@
     },
     {
       "activityIndex": 4,
-      "activityLineageId": "ff4305ec-22c6-4880-bf7f-1f8177ea4705",
-      "activityType": "constructed",
-      "sourceRefs": [
-        {
-          "sourceActivityIndex": 2,
-          "sourceActivityLineageId": "4de1146e-c35f-4398-9a2b-8fdcb35ce987",
-          "locator": "$.courses[0].activities[2]",
-          "basis": "Conjugate of −1 − 4i and general a + ib → a − ib statement."
-        }
-      ]
-    },
-    {
-      "activityIndex": 5,
       "activityLineageId": "7672a1b7-9328-4b31-be08-1a56bbd2e57f",
       "activityType": "qcm",
       "sourceRefs": [
@@ -134,7 +121,7 @@
       ]
     },
     {
-      "activityIndex": 6,
+      "activityIndex": 5,
       "activityLineageId": "b0e92b38-57be-4caa-80e9-a0cc770e4599",
       "activityType": "flashcard",
       "sourceRefs": [
@@ -153,7 +140,7 @@
       ]
     },
     {
-      "activityIndex": 7,
+      "activityIndex": 6,
       "activityLineageId": "691f3cf1-f6a7-4cc0-9b74-7008643de172",
       "activityType": "order",
       "sourceRefs": [
@@ -166,7 +153,7 @@
       ]
     },
     {
-      "activityIndex": 8,
+      "activityIndex": 7,
       "activityLineageId": "e7279474-373a-4823-9281-59952f2e91f9",
       "activityType": "matching",
       "sourceRefs": [
@@ -185,7 +172,7 @@
       ]
     },
     {
-      "activityIndex": 9,
+      "activityIndex": 8,
       "activityLineageId": "8d7844eb-2451-42a7-8aa1-358bb732f554",
       "activityType": "qcm",
       "sourceRefs": [
@@ -198,7 +185,7 @@
       ]
     },
     {
-      "activityIndex": 10,
+      "activityIndex": 9,
       "activityLineageId": "a65f94fa-98a5-496e-8b31-56625c9d2733",
       "activityType": "qcm",
       "sourceRefs": [

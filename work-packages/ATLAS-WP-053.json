@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-053",
+  "title": "Student V0.1 G5 R1 — Limited Pilot Activity Policy and Showcase repair",
+  "status": "approved",
+  "changeClass": "limited-pilot-activity-policy-and-showcase-author-repair",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 435,
+    "coordinatorIssue": 431,
+    "parentProgramIssue": 380,
+    "g4Issue": 425,
+    "g5Issue": 427
+  },
+  "baseline": {
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133",
+    "g4CandidateResult": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+    "showcasePath": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json",
+    "showcaseBlob": "03ed1d5819911c23734980f89716f4ca18a6bca4",
+    "sourceCommit": "281dc7470d51682c5e6d79d3fff54c46cfbced3b",
+    "sourcePath": "authoring/v2/atlas/nombres_complexes_atlas.json",
+    "sourceBlob": "7f83784e8719917496a694b2ad170d724190fd04",
+    "sourceSha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d",
+    "currentDurationMinutes": 42,
+    "currentActivityCount": 11,
+    "constructedActivityIndex": 4,
+    "constructedMinutes": 3
+  },
+  "pilotProfile": {
+    "admittedFamilies": [
+      "lesson",
+      "flashcard",
+      "matching",
+      "order",
+      "classify",
+      "qcm",
+      "fill"
+    ],
+    "excludedFamilies": [
+      "constructed"
+    ],
+    "contractImpact": "none; learnit.kit.v4 remains unchanged",
+    "rationale": "The first limited mathematics pilot avoids free-text semantic-equivalence risk while preserving bounded v4 support for constructed outside this pilot profile."
+  },
+  "purpose": "Define the Student V0.1 limited-pilot activity admission profile without changing v4, remove the one constructed free-text showcase activity, remove internal/provenance jargon from learner-facing copy, and regenerate author-side evidence for later independent semantic review.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-053.json",
+      "docs/programs/student-v0.1/jobs/JOB_10C_G5_R1_PILOT_ACTIVITY_POLICY.md",
+      "docs/programs/student-v0.1/STUDENT_V0_1_LIMITED_PILOT_ACTIVITY_PROFILE.md",
+      "showcase/student-v0.1/nombres-complexes/**",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_G5_R1_PILOT_ACTIVITY_POLICY_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "contracts/**",
+      "authoring/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "qualification/STUDENT_V01_G3_R1_JOB06_SEMANTIC_REVIEW.json",
+      "qualification/STUDENT_V01_G3_R1_JOB06_FACTORY_RESULT.json"
+    ]
+  },
+  "invariants": [
+    "learnit.kit.v4 schema and published meaning remain unchanged.",
+    "constructed remains a supported v4 family but is excluded from the Student V0.1 limited-pilot profile.",
+    "The current constructed activity at index 4 is removed rather than patched with acceptedResponses variants.",
+    "No replacement mathematical activity is invented merely to preserve 11 activities or 42 minutes.",
+    "Minimal removal yields 10 activities and 39 estimated minutes, still inside the intended 30–45 minute pilot window.",
+    "Both existing learning objectives remain present and must remain sufficiently covered by the remaining source-supported activities.",
+    "Remaining activity order is preserved.",
+    "Source authority is byte-identical and no new source is introduced.",
+    "Learner-facing internal/program/provenance jargon is removed while factual mathematical content remains source-faithful.",
+    "Revision IDs/digests rotate exactly where canonical content changes and remain stable where unchanged.",
+    "Author-side canonical/quality/provenance/Factory context is regenerated against the changed exact showcase.",
+    "No independent semantic PASS is claimed from this author session.",
+    "Final author result explicitly states SEMANTIC_REVIEW: PENDING_INDEPENDENT_CORRECTIVE_REVIEW.",
+    "RESULT_SHA and EVIDENCE_HEAD remain separated."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/main/common-base/source/showcase identity binding.",
+    "Pilot-profile document explicitly distinguishing pilot admission from v4 support.",
+    "Exact before/after proof that only the constructed activity is removed from the activity list.",
+    "Activity count becomes 10 and estimated course duration becomes 39 minutes.",
+    "Both objective IDs/labels remain unchanged.",
+    "Objective-coverage analysis shows conjugate objective remains covered by lesson, flashcard, matching, transfer qcm and validation qcm after constructed removal.",
+    "Remaining activity order and semantic roles remain unchanged except index renumbering implied by list removal.",
+    "Path-aware learner-visible copy scan proves removal of 'Student V0.1 Showcase', 'kit canonique Atlas M1 0.3', 'de la source' and equivalent internal wording.",
+    "No acceptedResponses workaround is added.",
+    "Source blob/hash unchanged.",
+    "Canonical V4 validation PASS.",
+    "Pedagogical quality remains an accepted high band; source fidelity outranks preserving a prior score.",
+    "Revision/digest hygiene PASS.",
+    "Source traceability/provenance PASS.",
+    "Fresh Factory context/review request binds the changed kit and unchanged source/brief as applicable.",
+    "Semantic review status explicitly pending independent corrective review.",
+    "Exact-head CI and Repository governance PASS.",
+    "Exact changed-path scope PASS."
+  ],
+  "adversarialTests": [
+    "Do not delete constructed from the v4 schema or runtime support.",
+    "Do not change canonical-text-match-v1.",
+    "Do not add keyboard-string variants as the primary fix for the pilot.",
+    "Do not invent a replacement activity merely to retain 11 activities or 42 minutes.",
+    "Do not alter source content to remove author jargon.",
+    "Do not weaken objective coverage by removing another conjugate activity.",
+    "Do not claim the historical G3 semantic review still applies to changed showcase bytes.",
+    "Do not self-author an independent semantic PASS.",
+    "Do not modify product/runtime code."
+  ],
+  "independentReview": [
+    "This author branch is independent of App Experience and Activity Lab sibling results.",
+    "Changed learner content requires a later clean independent semantic review.",
+    "ATLAS-WP-054 or its delegated independent semantic phase will verify the exact new showcase before fan-in."
+  ],
+  "nonGoals": [
+    "Product UX implementation.",
+    "Activity Lab prototyping.",
+    "Production presenter changes.",
+    "Corrective fan-in.",
+    "G4 R1 or G5 replay."
+  ],
+  "execution": {
+    "branch": "student-v01/g5-r1-pilot-activity-policy",
+    "phase": "PILOT_ACTIVITY_POLICY_R1_AUTHORIZED",
+    "mergeStatus": "not-merged",
+    "nextGate": "INDEPENDENT_CORRECTIVE_SEMANTIC_REVIEW",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the Stream C PR and delete student-v01/g5-r1-pilot-activity-policy. The G4 showcase remains historical authority."
+}

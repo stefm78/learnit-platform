@@ -131,6 +131,7 @@ jobs:
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
               student-v01/fanin-b) echo 'student-v01-fanin-b wave' ;;
+              student-v01/g5-r1-pilot-activity-policy) echo 'student-v01-g5-r1-pilot-policy wave' ;;
               student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
               student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
               *) echo 'ci-router wave' ;;
@@ -520,6 +521,119 @@ jobs:
               [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
           }
 
+
+          if [[ "${PROFILE}" == student-v01-g5-r1-pilot-policy ]]; then
+            [[ "${EVENT}" == pull_request ]] || { echo "JOB10C requires pull_request CI transport." >&2; exit 2; }
+            [[ "${BRANCH}" == student-v01/g5-r1-pilot-activity-policy ]] || exit 2
+            exact_base=18b925436777943b19c4b031c24659ad60dee133
+            source_commit=281dc7470d51682c5e6d79d3fff54c46cfbced3b
+            source_path=authoring/v2/atlas/nombres_complexes_atlas.json
+            source_blob=7f83784e8719917496a694b2ad170d724190fd04
+            source_sha=3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d
+            g4_blob=03ed1d5819911c23734980f89716f4ca18a6bca4
+            kit=showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json
+            brief=showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json
+            factory=showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT.json
+            profile_doc=docs/programs/student-v0.1/STUDENT_V0_1_LIMITED_PILOT_ACTIVITY_PROFILE.md
+
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || { echo "JOB10C remote head differs from exact target." >&2; exit 2; }
+            [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || { echo "JOB10C exact common base is no longer ancestor." >&2; exit 2; }
+            [[ "$(git rev-parse "${exact_base}:${kit}")" == "${g4_blob}" ]] || { echo "JOB10C G4 baseline blob drift." >&2; exit 2; }
+            [[ "$(git rev-parse "${source_commit}:${source_path}")" == "${source_blob}" ]]
+            [[ "$(git rev-parse "HEAD:${source_path}")" == "${source_blob}" ]] || { echo "JOB10C source blob changed." >&2; exit 2; }
+            [[ "$(git show "${source_commit}:${source_path}" | sha256sum | awk '{print $1}')" == "${source_sha}" ]] || { echo "JOB10C source SHA-256 drift." >&2; exit 2; }
+            [[ "$(git rev-parse "${exact_base}:contracts/learnit-kit-v4.schema.json")" == "$(git rev-parse "HEAD:contracts/learnit-kit-v4.schema.json")" ]] || { echo "JOB10C v4 schema changed." >&2; exit 2; }
+            [[ "$(git rev-parse "${exact_base}:authoring/v4/validate_kit.py")" == "$(git rev-parse "HEAD:authoring/v4/validate_kit.py")" ]] || { echo "JOB10C v4 validator changed." >&2; exit 2; }
+
+            allowed_path() {
+              case "$1" in
+                work-packages/ATLAS-WP-053.json|docs/programs/student-v0.1/jobs/JOB_10C_G5_R1_PILOT_ACTIVITY_POLICY.md|docs/programs/student-v0.1/STUDENT_V0_1_LIMITED_PILOT_ACTIVITY_PROFILE.md|showcase/student-v0.1/nombres-complexes/*|.github/workflows/learnit-next-ci.yml|qualification/STUDENT_V01_G5_R1_PILOT_ACTIVITY_POLICY_RESULT.md) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              allowed_path "${path}" || { echo "JOB10C scope violation: ${path}" >&2; exit 2; }
+            done < <(git diff --name-only "${exact_base}" "${TARGET}")
+
+            grep -Fq 'pilot policy only' "${profile_doc}"
+            grep -Fq '`constructed` remains a supported `learnit.kit.v4`' "${profile_doc}"
+            grep -Fq 'exact text matching is not a general mathematical semantic-equivalence mechanism' "${profile_doc}"
+            for family in lesson flashcard matching order classify qcm fill; do grep -Fq "`${family}`" "${profile_doc}"; done
+
+            python -B - <<'PY'
+          import json, pathlib, subprocess
+          base="18b925436777943b19c4b031c24659ad60dee133"
+          kit_path=pathlib.Path("showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json")
+          now=json.loads(kit_path.read_text(encoding="utf-8"))
+          old=json.loads(subprocess.check_output(["git","show",f"{base}:{kit_path.as_posix()}"],text=True))
+          c=now["courses"][0]; oc=old["courses"][0]
+          acts=c["activities"]; old_acts=oc["activities"]
+          admitted={"lesson","flashcard","matching","order","classify","qcm","fill"}
+          assert len(old_acts)==11 and old_acts[4]["type"]=="constructed" and old_acts[4]["estimatedMinutes"]==3
+          assert len(acts)==10
+          assert c["estimatedMinutes"]==39==sum(a["estimatedMinutes"] for a in acts)
+          assert all(a["type"] in admitted for a in acts)
+          assert not any(a["type"]=="constructed" for a in acts)
+          assert c["objectives"]==oc["objectives"]
+          assert [a["activityLineageId"] for a in acts]==[a["activityLineageId"] for i,a in enumerate(old_acts) if i!=4]
+          assert all("acceptedResponses" not in a for a in acts)
+          serialized=json.dumps(now,ensure_ascii=False).lower()
+          for forbidden in ("student v0.1","showcase","kit canonique","atlas m1 0.3","de la source","provenance"):
+              assert forbidden not in serialized, forbidden
+          conj=c["objectives"][0]["objectiveId"]; mod=c["objectives"][1]["objectiveId"]
+          ca=[a for a in acts if conj in a["objectiveIds"]]
+          ma=[a for a in acts if mod in a["objectiveIds"]]
+          assert {"lesson","flashcard","matching","qcm"} <= {a["type"] for a in ca}
+          assert any(a.get("assessmentRole")=="practice" for a in ca)
+          assert any(a.get("assessmentRole")=="validation" and a.get("learningPhase")=="validation" for a in ca)
+          assert {"flashcard","order","matching","qcm"} <= {a["type"] for a in ma}
+          assert any(a.get("assessmentRole")=="practice" for a in ma)
+          assert any(a.get("assessmentRole")=="validation" and a.get("learningPhase")=="validation" for a in ma)
+          conj_validation=next(i for i,a in enumerate(acts) if conj in a["objectiveIds"] and a.get("assessmentRole")=="validation")
+          before_conj=json.dumps(acts[:conj_validation],ensure_ascii=False)
+          assert "5 + 2i" not in before_conj
+          mod_validation=next(i for i,a in enumerate(acts) if mod in a["objectiveIds"] and a.get("assessmentRole")=="validation")
+          before_mod=json.dumps(acts[:mod_validation],ensure_ascii=False)
+          assert "|−5 + 12i|" not in before_mod and '"13"' not in before_mod
+          stable_old=[0,2,3,6,7,9,10]; stable_new=[0,2,3,5,6,8,9]
+          for oi,ni in zip(stable_old,stable_new):
+              assert acts[ni]["activityRevisionId"]==old_acts[oi]["activityRevisionId"]
+              assert acts[ni]["activityRevisionDigest"]==old_acts[oi]["activityRevisionDigest"]
+          changed=[(1,1),(5,4),(8,7)]
+          for oi,ni in changed:
+              assert acts[ni]["activityRevisionId"]!=old_acts[oi]["activityRevisionId"]
+              assert acts[ni]["activityRevisionDigest"]!=old_acts[oi]["activityRevisionDigest"]
+          assert now["packageLineageId"]==old["packageLineageId"]
+          assert c["courseLineageId"]==oc["courseLineageId"]
+          assert now["packageRevisionId"]!=old["packageRevisionId"]
+          assert c["courseRevisionId"]!=oc["courseRevisionId"]
+          print("STUDENT_V01_JOB10C_POLICY_CONTENT=PASS")
+          PY
+
+            python -B authoring/v4/validate_kit.py "${kit}" --format=json > "${RUNNER_TEMP}/job10c-v4.json"
+            python -B -c "import json,pathlib; r=json.loads(pathlib.Path('${RUNNER_TEMP}/job10c-v4.json').read_text()); assert r['ok'] is True; assert r['crossFileErrors']==[]; print('STUDENT_V01_JOB10C_V4_CANONICAL=PASS')"
+            python -B -c "import json,pathlib; from authoring.v2.atlas import pedagogical_quality as q; p=json.loads(pathlib.Path('${kit}').read_text(encoding='utf-8')); r=q.analyze_package(p); assert r['canonicalValid'] is True; assert r['verdict']=='PASS_ATLAS_PEDAGOGICAL_PROFILE_V1'; assert r['qualityBand'] in {'STRONG','EXCELLENT_BY_PROFILE'}; assert r['counts']['blocking']==0 and r['counts']['warning']==0; print('STUDENT_V01_JOB10C_PEDAGOGICAL_QUALITY=PASS:'+r['qualityBand'])"
+            python -B - <<'PY'
+          import json, pathlib
+          from authoring.factory import factory_gate as f
+          kit=pathlib.Path("showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v4.json")
+          brief=pathlib.Path("showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json")
+          source="authoring/v2/atlas/nombres_complexes_atlas.json"
+          expected=json.loads(pathlib.Path("showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT.json").read_text(encoding="utf-8"))
+          actual=f.build_context(kit,brief,[f"nombres-complexes-atlas-v2={source}"])
+          assert actual==expected
+          print("STUDENT_V01_JOB10C_FACTORY_CONTEXT=PASS")
+          PY
+            grep -Fq 'SEMANTIC_REVIEW: PENDING_INDEPENDENT_CORRECTIVE_REVIEW' showcase/student-v0.1/nombres-complexes/AUTHOR_AUDIT.md
+            grep -Fq 'SEMANTIC_REVIEW: PENDING_INDEPENDENT_CORRECTIVE_REVIEW' showcase/student-v0.1/nombres-complexes/FACTORY_REVIEW_REQUEST.md
+
+            echo "STUDENT_V01_JOB10C_EXACT_ROUTE=PASS"
+            echo "STUDENT_V01_JOB10C_TARGET=${TARGET}"
+            exit 0
+          fi
 
           if [[ "${PROFILE}" == student-v01-fanin-b ]]; then
             [[ "${EVENT}" == pull_request ]] || { echo "JOB08 requires pull_request." >&2; exit 2; }

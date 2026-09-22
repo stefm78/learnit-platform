@@ -1,20 +1,20 @@
 {
   "contract": "learnit.kit.v4",
   "packageLineageId": "5c621f9b-f584-4669-9ae4-ce174f473650",
-  "packageRevisionId": "14a8e677-ea6a-4705-a7b8-cffbbd5ed1f1",
-  "packageRevisionDigest": "sha256:69027acc24444047d0be714eb417addace9d28a7b946e7533dfb7768c63a26ee",
-  "title": "Nombres complexes — Student V0.1 Showcase",
-  "description": "Parcours borné de 42 minutes sur le conjugué, le module et leurs interprétations géométriques, dérivé du kit canonique Atlas M1 0.3.",
-  "versionLabel": "Student V0.1 Showcase 1",
+  "packageRevisionId": "7f40d370-1015-41fc-899f-b1600c5e0dbe",
+  "packageRevisionDigest": "sha256:fd447bdcee498bab50c67601c8d4dee863508d7a23410432e5ff75c0924ef323",
+  "title": "Nombres complexes — Conjugué et module",
+  "description": "Parcours de 39 minutes pour comprendre, pratiquer et valider le conjugué, le module et leurs interprétations géométriques.",
+  "versionLabel": "Conjugué et module 1",
   "language": "fr",
   "courses": [
     {
       "courseLineageId": "7ee53f04-f12f-49b8-9d0a-e3e68cb4c412",
-      "courseRevisionId": "a0a34de6-e00a-41c5-97db-010c3fd333df",
-      "courseRevisionDigest": "sha256:c66a0871c8bc1d767507ed60f593e6b82810acc92b47c5b7aad66e99e8863418",
+      "courseRevisionId": "640ea095-d3f6-4fb7-92a9-b33e20302940",
+      "courseRevisionDigest": "sha256:0b7975a766e4dbaec9d9286bb54792ca73a6e4374e34f58c16d3593075c2bc07",
       "title": "Conjugué et module des nombres complexes",
       "subtitle": "Comprendre, retrouver, pratiquer et valider les deux notions",
-      "estimatedMinutes": 42,
+      "estimatedMinutes": 39,
       "objectives": [
         {
           "objectiveId": "aaf4d254-9d16-43ec-8a47-c4d3b27f3777",
@@ -47,8 +47,8 @@
         },
         {
           "activityLineageId": "28ef0c23-a968-4f37-bb56-8d4b0635e01c",
-          "activityRevisionId": "7a918ca6-f2de-46fe-974d-64ef35b0c072",
-          "activityRevisionDigest": "sha256:0f72b187442b0da307f616d3f41ff80e7c6e8e0aa1e4731763a58bd4c2046b92",
+          "activityRevisionId": "be024979-1d66-4ef7-ad51-9ed541d57d0b",
+          "activityRevisionDigest": "sha256:97a3b2c0b75bb2c171d3192803b0af05c6f8d2a40ee2836e0050029aad1725d8",
           "objectiveIds": [
             "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
           ],
@@ -57,7 +57,7 @@
           "estimatedMinutes": 2,
           "front": "Que change-t-on pour passer de z = a + ib à son conjugué ?",
           "back": "On conserve la partie réelle et on change le signe de la partie imaginaire.",
-          "explanation": "C’est la règle utilisée dans les exemples 2 + 3i, −1 − 4i et 5 − 2i de la source."
+          "explanation": "La règle s’applique aux exemples 2 + 3i, −1 − 4i et 5 − 2i."
         },
         {
           "activityLineageId": "160f988a-5840-4104-93db-d9463cc92a01",
@@ -139,34 +139,16 @@
           "correctChoiceId": "0f9d7008-53b0-4ddb-bd8d-921c7f9a9d3c"
         },
         {
-          "activityLineageId": "ff4305ec-22c6-4880-bf7f-1f8177ea4705",
-          "activityRevisionId": "c49f1df9-16fb-43aa-afa7-f1d461a37052",
-          "activityRevisionDigest": "sha256:72445ba4596294aa5f8289ab77aec47623a75b65e323cc3b8c467392672ceab1",
-          "objectiveIds": [
-            "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
-          ],
-          "type": "constructed",
-          "learningPhase": "application",
-          "estimatedMinutes": 3,
-          "prompt": "Calculer le conjugué de −1 − 4i.",
-          "explanation": "Le conjugué conserve −1 et change le signe de la partie imaginaire : −1 + 4i.",
-          "difficulty": "medium",
-          "assessmentRole": "practice",
-          "acceptedResponses": [
-            "−1 + 4i"
-          ]
-        },
-        {
           "activityLineageId": "7672a1b7-9328-4b31-be08-1a56bbd2e57f",
-          "activityRevisionId": "1bd5164b-8905-4742-8ba1-7f37bff6337c",
-          "activityRevisionDigest": "sha256:86f3d199b53e14b26d0943c7aa4534dab21848e4347d44294cef90b6e3f2f04c",
+          "activityRevisionId": "66b080a6-8479-4c93-8010-273b07872bef",
+          "activityRevisionDigest": "sha256:3c60016fcd69c44db6ed1a6edd588b7f7a3f94ce1ba080eb75f8895e9050ee53",
           "objectiveIds": [
             "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
           ],
           "type": "qcm",
           "learningPhase": "validation",
           "estimatedMinutes": 5,
-          "prompt": "Sans reprendre l’exemple précédent, déterminer le conjugué de 5 − 2i.",
+          "prompt": "Déterminer le conjugué de 5 − 2i.",
           "explanation": "Le signe de −2 devient +2.",
           "difficulty": "medium",
           "assessmentRole": "validation",
@@ -240,16 +222,16 @@
         },
         {
           "activityLineageId": "e7279474-373a-4823-9281-59952f2e91f9",
-          "activityRevisionId": "c08425be-c74a-4610-aef0-9d2bd0a721d9",
-          "activityRevisionDigest": "sha256:2658c1a66a451a74352a5c64710d6d0b016b42e95b308d83a9d235aaf66f0fe4",
+          "activityRevisionId": "79b0d82c-9c30-48c1-994c-622d5203a5ca",
+          "activityRevisionDigest": "sha256:18e7a3922de1fe87a72ad767d44d93109f616e4e1d25eb67c77b07fd6ca4d6ec",
           "objectiveIds": [
             "42f0999d-3586-4fe6-888f-c6df07a2b255"
           ],
           "type": "matching",
           "learningPhase": "application",
           "estimatedMinutes": 4,
-          "prompt": "Associe chaque expression issue du parcours à sa valeur.",
-          "explanation": "Les valeurs reprises ici sont celles des exemples de module et de distance à l’origine de la source.",
+          "prompt": "Associe chaque expression à sa valeur.",
+          "explanation": "Les valeurs correspondent aux exemples de module et de distance à l’origine étudiés dans ce parcours.",
           "difficulty": "medium",
           "assessmentRole": "practice",
           "leftItems": [
