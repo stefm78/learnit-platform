@@ -522,6 +522,110 @@ jobs:
           }
 
 
+          if [[ "${PROFILE}" == student-v01-g5-r1-app-experience ]]; then
+            [[ "${EVENT}" == pull_request ]] || { echo "JOB10A requires pull_request." >&2; exit 2; }
+            [[ "${BRANCH}" == student-v01/g5-r1-app-experience ]] || exit 2
+            exact_base=18b925436777943b19c4b031c24659ad60dee133
+            expected_presenter_blob=fe38702b97f2f243101bfd0ae894b43aaeb2fbaf
+            evidence_path=qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md
+
+            [[ "${PR_BASE_SHA}" == "${exact_base}" ]] || {
+              echo "JOB10A PR base drifted: ${PR_BASE_SHA}" >&2
+              exit 2
+            }
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || {
+              echo "JOB10A remote head differs from exact target." >&2
+              exit 2
+            }
+            [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || {
+              echo "JOB10A exact base is no longer an ancestor." >&2
+              exit 2
+            }
+            [[ "$(git rev-parse "HEAD:apps/learnit-next/src/ui/activity_presenters.js")" == "${expected_presenter_blob}" ]] || {
+              echo "JOB10A activity presenter drift." >&2
+              exit 2
+            }
+
+            if ! git diff --quiet "${exact_base}" "${TARGET}" -- "${evidence_path}"; then
+              parents=( $(git show -s --format=%P "${TARGET}") )
+              [[ ${#parents[@]} -eq 1 ]] || {
+                echo "JOB10A evidence head must have exactly one parent." >&2
+                exit 2
+              }
+              functional_parent="${parents[0]}"
+              [[ "$(git diff --name-only "${functional_parent}" "${TARGET}")" == "${evidence_path}" ]] || {
+                echo "JOB10A evidence head contains non-evidence changes." >&2
+                exit 2
+              }
+              grep -Fq "RESULT_SHA: ${functional_parent}" "${evidence_path}"
+              echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_EVIDENCE_ONLY_ROUTE=PASS"
+              echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_EVIDENCE_HEAD=${TARGET}"
+              echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_FUNCTIONAL_RESULT=${functional_parent}"
+              exit 0
+            fi
+
+            allowed_path() {
+              case "$1" in
+                work-packages/ATLAS-WP-051.json|docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md|apps/learnit-next/src/integration/atlas/surface.js|apps/learnit-next/src/ui/render.js|apps/learnit-next/src/ui/objective_progress.js|apps/learnit-next/src/ui/objective_buckets.js|apps/learnit-next/src/atlas.css|apps/learnit-next/tests/student_v01_g5_r1_app_experience.py|apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py|.github/workflows/learnit-next-ci.yml) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              allowed_path "${path}" || {
+                echo "JOB10A scope violation: ${path}" >&2
+                exit 2
+              }
+            done < <(git diff --name-only "${exact_base}" "${TARGET}")
+
+            node --check apps/learnit-next/src/integration/atlas/surface.js
+            node --check apps/learnit-next/src/ui/render.js
+            python -B apps/learnit-next/tests/student_v01_g5_r1_app_experience.py
+            python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+            python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+            python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v
+            python -B apps/learnit-next/tests/student_v01_activity_presentation.py
+            python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
+
+            python -B apps/learnit-next/build.py
+            artifact=apps/learnit-next/dist/learnit-next.html
+            first_sha="$(sha256sum "${artifact}" | awk '{print $1}')"
+            first_bytes="$(wc -c < "${artifact}" | tr -d ' ')"
+            python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/job10a-second.html"
+            second_sha="$(sha256sum "${RUNNER_TEMP}/job10a-second.html" | awk '{print $1}')"
+            second_bytes="$(wc -c < "${RUNNER_TEMP}/job10a-second.html" | tr -d ' ')"
+            cmp -s "${artifact}" "${RUNNER_TEMP}/job10a-second.html"
+            [[ "${first_sha}" == "${second_sha}" ]]
+            [[ "${first_bytes}" == "${second_bytes}" ]]
+            echo "STUDENT_V01_G5_R1_APP_DOUBLE_BUILD=PASS"
+            echo "APP_BUILD_SHA256=${first_sha}"
+            echo "APP_BUILD_BYTES=${first_bytes}"
+
+            python -m playwright install --with-deps chromium
+            chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+            )"
+            [[ -x "${chromium}" ]]
+            sudo ln -sf "${chromium}" /usr/bin/chromium
+
+            python -B apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py
+            python -B apps/learnit-next/tests/browser_student_v01_activity_presentation.py
+            python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py
+            python -B apps/learnit-next/tests/browser_vertical_slice.py
+
+            [[ "$(git rev-parse "HEAD:apps/learnit-next/src/ui/activity_presenters.js")" == "${expected_presenter_blob}" ]]
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_PRODUCT_REGRESSIONS=PASS"
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_SCOPE=PASS"
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_EXACT_ROUTE=PASS"
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_TARGET=${TARGET}"
+            exit 0
+          fi
+
           if [[ "${PROFILE}" == student-v01-fanin-b ]]; then
             [[ "${EVENT}" == pull_request ]] || { echo "JOB08 requires pull_request." >&2; exit 2; }
             [[ "${BRANCH}" == student-v01/fanin-b ]] || exit 2
