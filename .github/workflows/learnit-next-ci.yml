@@ -2,7 +2,7 @@ name: Learn-it Next CI
 
 on:
   pull_request:
-    branches: [main, student-v01/g3-wave2-review-r1, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
+    branches: [main, student-v01/g3-wave2-review-r1, student-v01/fanin-b, student-v01/fanin-a, student-v01/fanin-a-r2, student-v01/fanin-a-r3-oracle]
     paths:
       - '.github/workflows/learnit-next-ci.yml'
       - 'qa/student-v0.1/**'
@@ -130,6 +130,7 @@ jobs:
               atlas/ATLAS-WP-023-transient-user-source-admission) echo 'm3-3-transient-source-delegated wave' ;;
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
+              student-v01/g5-r1-app-experience) echo 'student-v01-g5-r1-app-experience wave' ;;
               student-v01/fanin-b) echo 'student-v01-fanin-b wave' ;;
               student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
               student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
@@ -520,6 +521,172 @@ jobs:
               [[ "${second_parent}" == 870d69800dcb07fcfff9f1d232dd143c8eaa6486 ]]
           }
 
+
+          if [[ "${PROFILE}" == student-v01-g5-r1-app-experience ]]; then
+            [[ "${EVENT}" == pull_request ]] || { echo "JOB10A requires pull_request." >&2; exit 2; }
+            [[ "${BRANCH}" == student-v01/g5-r1-app-experience ]] || exit 2
+            exact_base=18b925436777943b19c4b031c24659ad60dee133
+            expected_presenter_blob=fe38702b97f2f243101bfd0ae894b43aaeb2fbaf
+            evidence_path=qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md
+
+            [[ "${PR_BASE_SHA}" == "${exact_base}" ]] || {
+              echo "JOB10A PR base drifted: ${PR_BASE_SHA}" >&2
+              exit 2
+            }
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || {
+              echo "JOB10A remote head differs from exact target." >&2
+              exit 2
+            }
+            [[ "$(git merge-base "${exact_base}" "${TARGET}")" == "${exact_base}" ]] || {
+              echo "JOB10A exact base is no longer an ancestor." >&2
+              exit 2
+            }
+            [[ "$(git rev-parse "HEAD:apps/learnit-next/src/ui/activity_presenters.js")" == "${expected_presenter_blob}" ]] || {
+              echo "JOB10A activity presenter drift." >&2
+              exit 2
+            }
+
+            if ! git diff --quiet "${exact_base}" "${TARGET}" -- "${evidence_path}"; then
+              parents=( $(git show -s --format=%P "${TARGET}") )
+              [[ ${#parents[@]} -eq 1 ]] || {
+                echo "JOB10A evidence head must have exactly one parent." >&2
+                exit 2
+              }
+              functional_parent="${parents[0]}"
+              [[ "$(git diff --name-only "${functional_parent}" "${TARGET}")" == "${evidence_path}" ]] || {
+                echo "JOB10A evidence head contains non-evidence changes." >&2
+                exit 2
+              }
+              grep -Fq "RESULT_SHA: ${functional_parent}" "${evidence_path}"
+              echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_EVIDENCE_ONLY_ROUTE=PASS"
+              echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_EVIDENCE_HEAD=${TARGET}"
+              echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_FUNCTIONAL_RESULT=${functional_parent}"
+              exit 0
+            fi
+
+            allowed_path() {
+              case "$1" in
+                work-packages/ATLAS-WP-051.json|docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md|apps/learnit-next/src/integration/atlas/surface.js|apps/learnit-next/src/ui/render.js|apps/learnit-next/src/ui/objective_progress.js|apps/learnit-next/src/ui/objective_buckets.js|apps/learnit-next/src/atlas.css|apps/learnit-next/tests/student_v01_g5_r1_app_experience.py|apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py|.github/workflows/learnit-next-ci.yml) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              allowed_path "${path}" || {
+                echo "JOB10A scope violation: ${path}" >&2
+                exit 2
+              }
+            done < <(git diff --name-only "${exact_base}" "${TARGET}")
+
+            node --check apps/learnit-next/src/integration/atlas/surface.js
+            node --check apps/learnit-next/src/ui/render.js
+            python -B apps/learnit-next/tests/student_v01_g5_r1_app_experience.py
+            python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+            python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v
+            python -B apps/learnit-next/tests/student_v01_activity_presentation.py
+
+            [[ "$(git rev-parse "HEAD:apps/learnit-next/source_manifest.json")" == "$(git rev-parse "${exact_base}:apps/learnit-next/source_manifest.json")" ]] || {
+              echo "JOB10A source manifest changed despite frozen boundary." >&2
+              exit 2
+            }
+
+            candidate_tree="${RUNNER_TEMP}/job10a-build-tree"
+            git worktree add --detach "${candidate_tree}" "${TARGET}"
+            trap 'git worktree remove --force "${candidate_tree}" >/dev/null 2>&1 || true' EXIT
+            (
+              cd "${candidate_tree}"
+              python - <<'PY'
+          import copy, hashlib, json
+          from pathlib import Path
+
+          root = Path('.')
+          path = Path('apps/learnit-next/source_manifest.json')
+          manifest = json.loads(path.read_text(encoding='utf-8'))
+          self_path = 'apps/learnit-next/source_manifest.json'
+
+          def blob_sha(data: bytes) -> str:
+              return hashlib.sha1(f'blob {len(data)}\0'.encode('ascii') + data).hexdigest()
+
+          by_path = {item['path']: item for item in manifest['workingFiles']}
+          for item in manifest['workingFiles']:
+              item_path = item['path']
+              if item_path == self_path:
+                  continue
+              disk = root / item_path
+              if disk.is_file():
+                  item['fingerprint'] = {
+                      'kind': 'git-blob-sha1',
+                      'value': blob_sha(disk.read_bytes()),
+                  }
+
+          self_item = by_path[self_path]
+          self_item['fingerprint']['kind'] = 'canonical-self-sha256'
+          self_item['fingerprint']['value'] = None
+          clone = copy.deepcopy(manifest)
+          digest = hashlib.sha256(
+              json.dumps(
+                  clone,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(',', ':'),
+                  allow_nan=False,
+              ).encode('utf-8')
+          ).hexdigest()
+          self_item['fingerprint']['value'] = digest
+          path.write_text(
+              json.dumps(
+                  manifest,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(',', ':'),
+                  allow_nan=False,
+              ) + '\n',
+              encoding='utf-8',
+          )
+          print('JOB10A_TRANSIENT_MANIFEST_SELF_SHA256=' + digest)
+          PY
+              python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/job10a-first.html"
+              python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/job10a-second.html"
+            )
+            cmp -s "${RUNNER_TEMP}/job10a-first.html" "${RUNNER_TEMP}/job10a-second.html"
+            first_sha="$(sha256sum "${RUNNER_TEMP}/job10a-first.html" | awk '{print $1}')"
+            first_bytes="$(wc -c < "${RUNNER_TEMP}/job10a-first.html" | tr -d ' ')"
+            second_sha="$(sha256sum "${RUNNER_TEMP}/job10a-second.html" | awk '{print $1}')"
+            second_bytes="$(wc -c < "${RUNNER_TEMP}/job10a-second.html" | tr -d ' ')"
+            [[ "${first_sha}" == "${second_sha}" ]]
+            [[ "${first_bytes}" == "${second_bytes}" ]]
+            mkdir -p apps/learnit-next/dist
+            cp "${RUNNER_TEMP}/job10a-first.html" apps/learnit-next/dist/learnit-next.html
+            artifact=apps/learnit-next/dist/learnit-next.html
+            echo "STUDENT_V01_G5_R1_APP_DOUBLE_BUILD=PASS"
+            echo "APP_BUILD_SHA256=${first_sha}"
+            echo "APP_BUILD_BYTES=${first_bytes}"
+            echo "STUDENT_V01_G5_R1_SOURCE_MANIFEST_BRANCH_UNCHANGED=PASS"
+            python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
+
+            python -m playwright install --with-deps chromium
+            chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+            )"
+            [[ -x "${chromium}" ]]
+            sudo ln -sf "${chromium}" /usr/bin/chromium
+
+            python -B apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py
+            python -B apps/learnit-next/tests/browser_student_v01_activity_presentation.py
+            python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py
+
+            [[ "$(git rev-parse "HEAD:apps/learnit-next/src/ui/activity_presenters.js")" == "${expected_presenter_blob}" ]]
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_PRODUCT_REGRESSIONS=PASS"
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_SCOPE=PASS"
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_EXACT_ROUTE=PASS"
+            echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_TARGET=${TARGET}"
+            exit 0
+          fi
 
           if [[ "${PROFILE}" == student-v01-fanin-b ]]; then
             [[ "${EVENT}" == pull_request ]] || { echo "JOB08 requires pull_request." >&2; exit 2; }
