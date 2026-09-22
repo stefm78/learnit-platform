@@ -57,6 +57,14 @@ const OBJECTIVE_BUCKET_STATE_LABELS = Object.freeze({
   'validated-recently': 'Acquis récemment',
 });
 
+const OBJECTIVE_BUCKET_LEVELS = Object.freeze({
+  'not-started': '8%',
+  training: '45%',
+  'review-needed': '45%',
+  'ready-for-validation': '75%',
+  'validated-recently': '100%',
+});
+
 function objectiveBucketState(value) {
   return Object.hasOwn(OBJECTIVE_BUCKET_STATE_LABELS, value) ? value : 'training';
 }
@@ -73,9 +81,13 @@ function renderObjectiveBuckets(objectives, courseObjectives = []) {
     className: 'objective-buckets',
     'data-session-objective-buckets': 'true',
     'aria-label': 'État des objectifs du cours',
+    style: 'display:grid;gap:.55rem;margin:1rem 0;min-width:0',
   }, [
-    node('h3', { className: 'objective-buckets__heading', text: 'Objectifs du cours' }),
-    node('ul', { className: 'objective-buckets__list' }, objectives.map(objective => {
+    node('h3', { className: 'objective-buckets__heading', text: 'Objectifs du cours', style: 'margin:0;font-size:1rem' }),
+    node('ul', {
+      className: 'objective-buckets__list',
+      style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:.6rem;margin:0;padding:0;list-style:none',
+    }, objectives.map(objective => {
       const state = objectiveBucketState(objective?.status);
       const objectiveId = objective?.objectiveId ?? 'objectif';
       const label = labels.get(objectiveId) ?? objectiveId;
@@ -85,13 +97,21 @@ function renderObjectiveBuckets(objectives, courseObjectives = []) {
         'data-objective-bucket': objectiveId,
         'data-objective-bucket-state': state,
         'aria-label': `${label}. ${stateLabel}`,
+        style: 'display:grid;grid-template-columns:1.35rem minmax(0,1fr);align-items:center;gap:.65rem;min-width:0;padding:.6rem .7rem;border:1px solid #cbd4df;border-radius:.65rem',
       }, [
-        node('span', { className: 'objective-bucket__reservoir', 'aria-hidden': 'true' }, [
-          node('span', { className: 'objective-bucket__fill' }),
+        node('span', {
+          className: 'objective-bucket__reservoir',
+          'aria-hidden': 'true',
+          style: 'position:relative;display:block;width:1.1rem;height:2.4rem;overflow:hidden;border:2px solid currentColor;border-radius:.3rem',
+        }, [
+          node('span', {
+            className: 'objective-bucket__fill',
+            style: `position:absolute;inset:auto 0 0;height:${OBJECTIVE_BUCKET_LEVELS[state]};background:currentColor`,
+          }),
         ]),
-        node('span', { className: 'objective-bucket__copy' }, [
-          node('strong', { className: 'objective-bucket__label', text: label }),
-          node('span', { className: 'objective-bucket__state', text: stateLabel }),
+        node('span', { className: 'objective-bucket__copy', style: 'display:grid;gap:.12rem;min-width:0' }, [
+          node('strong', { className: 'objective-bucket__label', text: label, style: 'overflow-wrap:anywhere' }),
+          node('span', { className: 'objective-bucket__state', text: stateLabel, style: 'font-size:.9rem;overflow-wrap:anywhere' }),
         ]),
       ]);
     })),
@@ -103,8 +123,9 @@ function renderSessionProgressDetails(objectiveSurface) {
   return node('details', {
     className: 'session-progress-details',
     'data-session-progress-details': 'true',
+    style: 'margin:1rem 0;border-top:1px solid #cbd4df;padding-top:.35rem',
   }, [
-    node('summary', { text: 'Voir ma progression' }),
+    node('summary', { text: 'Voir ma progression', style: 'min-height:44px;font-weight:700;cursor:pointer' }),
     objectiveSurface,
   ]);
 }
