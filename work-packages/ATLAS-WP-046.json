@@ -32,7 +32,8 @@
       "path": "authoring/v2/atlas/nombres_complexes_atlas.json",
       "gitBlob": "7f83784e8719917496a694b2ad170d724190fd04",
       "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
-    }
+    },
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133"
   },
   "reservedChildren": {
     "product": {
@@ -193,5 +194,31 @@
     "nextGate": "ATLAS-WP-049_INDEPENDENT_CORRECTIVE_REVIEW_AND_FANIN",
     "finalVerdict": "PENDING"
   },
-  "rollback": "Close the coordinator and child DRAFT PRs and delete the corrective branches. G4/G5 Phase-A historical evidence remains immutable."
+  "rollback": "Close the coordinator and child DRAFT PRs and delete the corrective branches. G4/G5 Phase-A historical evidence remains immutable.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-046.json",
+      "docs/programs/student-v0.1/jobs/JOB_10_G5_FINDINGS_CORRECTIVE_AUTHOR_WAVE.md",
+      "qualification/STUDENT_V01_G5_HUMAN_FINDINGS_01.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "qualification/STUDENT_V01_JOB09_G5_HUMAN_DECISION.md",
+      "qualification/STUDENT_V01_JOB09_G5_RESULT.md"
+    ]
+  },
+  "independentReview": [
+    "Track A and Track B start from the same frozen common base and are authored on separate branches.",
+    "Track B is not allowed to consume Track A result/evidence, and Track A is not allowed to consume Track B result/evidence.",
+    "A later ATLAS-WP-049 session, not this author wave, owns independent semantic review and corrective fan-in qualification.",
+    "G5 human decision remains outside this work package and cannot be inferred from engineering findings."
+  ]
 }
