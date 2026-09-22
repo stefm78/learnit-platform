@@ -74,4 +74,4 @@ No independent semantic-review PASS is claimed by this authoring execution. Hist
 
 ## Scope and rollback
 
-No source, learner brief, app/runtime, contract, authoring implementation, QA, pilot runtime, governance, scoring rule or central workflow file is changed. Rollback is the preparation HEAD `b83bdd260ce7c30279eb40ee9172e2476906321a`; no merge or cherry-pick is part of this execution.
+No source, learner brief, app/runtime, contract, authoring implementation, QA, pilot runtime, governance or scoring rule is changed. The only CI mutation is the bounded JOB10C route in `.github/workflows/learnit-next-ci.yml`, authorized by `ATLAS-WP-053`; it changes no product/runtime semantics. Rollback is the preparation HEAD `b83bdd260ce7c30279eb40ee9172e2476906321a`; no merge or cherry-pick is part of this execution.
