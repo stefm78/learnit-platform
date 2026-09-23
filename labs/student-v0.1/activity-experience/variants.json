@@ -12,7 +12,7 @@
   {
     "id": "flashcard-b",
     "family": "flashcard",
-    "label": "Carte à retournement"
+    "label": "Carte recto / verso"
   },
   {
     "id": "matching-a",
@@ -22,7 +22,7 @@
   {
     "id": "matching-b",
     "family": "matching",
-    "label": "Association spatiale + glisser"
+    "label": "Cartes à déposer"
   },
   {
     "id": "order-a",
@@ -32,7 +32,7 @@
   {
     "id": "order-b",
     "family": "order",
-    "label": "Réordonner + glisser"
+    "label": "Liste tactile à réordonner"
   },
   {
     "id": "classify-a",
@@ -42,7 +42,7 @@
   {
     "id": "classify-b",
     "family": "classify",
-    "label": "Zones + glisser"
+    "label": "Cartes vers zones"
   },
   {
     "id": "qcm-a",
