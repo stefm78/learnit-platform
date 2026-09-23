@@ -1,5 +1,62 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Student V0.1 — Activity Experience Lab V2 Touch</title><link rel="stylesheet" href="styles.css"></head>
-<body><header><p class="eyebrow">ATLAS-WP-052 · Phase A · V2 tactile</p><h1>Activity Experience Lab</h1><p>Prototype local : aucune correction, aucun score, aucune progression. Les variantes B testent des interactions spatiales tactiles.</p></header>
-<main><aside class="picker" aria-label="Choix du prototype"><label for="variant">Prototype</label><select id="variant"></select><p id="variant-note" class="muted"></p></aside><section id="stage" class="stage" aria-live="polite"></section><aside class="inspector" aria-label="Inspecteur de réponse"><h2>ActivityResponse</h2><p>Affiche uniquement la réponse émise par l’interaction.</p><pre id="response">Aucune réponse émise.</pre></aside></main>
-<script id="fixtures" type="application/json">{"lesson":{"type":"lesson","title":"Observer avant de conclure","body":"Commence par identifier les éléments visibles. Ensuite, formule une conclusion courte.","keyPoints":["Observer les indices","Séparer observation et conclusion"],"contextNote":"Contenu synthétique de démonstration.","media":[]},"flashcard":{"type":"flashcard","front":"Que signifie « hypothèse » ici ?","back":"Une explication provisoire à tester.","explanation":"Elle guide l’enquête sans être traitée comme une preuve.","media":[]},"matching":{"type":"matching","prompt":"Associe chaque terme à sa description.","leftItems":[{"itemId":"l1","label":"Indice"},{"itemId":"l2","label":"Hypothèse"},{"itemId":"l3","label":"Conclusion"}],"rightItems":[{"itemId":"r2","label":"Explication à tester"},{"itemId":"r3","label":"Résultat tiré des éléments"},{"itemId":"r1","label":"Élément observable"}],"media":[]},"order":{"type":"order","prompt":"Place les étapes dans l’ordre qui te paraît logique.","items":[{"itemId":"o2","label":"Formuler une hypothèse"},{"itemId":"o1","label":"Observer"},{"itemId":"o3","label":"Tester"}],"media":[]},"classify":{"type":"classify","prompt":"Range chaque élément dans une catégorie.","buckets":[{"bucketId":"b1","label":"Observation"},{"bucketId":"b2","label":"Interprétation"}],"items":[{"itemId":"c1","label":"Le voyant est rouge"},{"itemId":"c2","label":"La batterie est probablement faible"},{"itemId":"c3","label":"Le câble est débranché"}],"media":[]},"qcm":{"type":"qcm","prompt":"Quel élément souhaites-tu examiner en premier ?","choices":[{"choiceId":"q1","label":"Le voyant"},{"choiceId":"q2","label":"Le câble"},{"choiceId":"q3","label":"La batterie"}],"media":[]},"fill":{"type":"fill","prompt":"Complète la phrase.","tokens":[{"tokenId":"t1","label":"observer"},{"tokenId":"t2","label":"tester"},{"tokenId":"t3","label":"conclure"}],"segments":[{"text":"Je commence par "},{"slotId":"s1"},{"text":", puis je peux "},{"slotId":"s2"},{"text":"."}],"media":[]}}</script><script id="variants" type="application/json">[{"id":"lesson-a","family":"lesson","label":"Lecture simple"},{"id":"flashcard-a","family":"flashcard","label":"Révélation directe"},{"id":"flashcard-b","family":"flashcard","label":"Carte recto / verso"},{"id":"matching-a","family":"matching","label":"Association par sélection"},{"id":"matching-b","family":"matching","label":"Cartes à déposer"},{"id":"order-a","family":"order","label":"Monter / descendre"},{"id":"order-b","family":"order","label":"Liste tactile à réordonner"},{"id":"classify-a","family":"classify","label":"Choisir une catégorie"},{"id":"classify-b","family":"classify","label":"Cartes vers zones"},{"id":"qcm-a","family":"qcm","label":"QCM baseline"},{"id":"fill-a","family":"fill","label":"Texte à compléter baseline"}]</script><script src="lab.js"></script><script src="lab_v2_touch.js"></script></body></html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Student V0.1 — Activity Experience Lab V3</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="app-header">
+  <p class="eyebrow">ATLAS-WP-052 · Human feedback rework</p>
+  <h1>Activity Experience Lab V3</h1>
+  <p>Aucune correction, aucun score, aucune progression. Ce Lab compare uniquement des expériences d’interaction.</p>
+</header>
+<main class="app-grid">
+  <aside class="panel picker" aria-label="Choix du prototype">
+    <label for="variant">Prototype</label>
+    <select id="variant"></select>
+    <p id="variant-note" class="muted"></p>
+  </aside>
+  <section id="stage" class="panel stage" aria-live="polite"></section>
+  <aside class="panel inspector" aria-label="Inspecteur de réponse">
+    <h2>ActivityResponse</h2>
+    <p class="muted">Réponse exacte émise par l’interaction.</p>
+    <pre id="response">Aucune réponse émise.</pre>
+  </aside>
+</main>
+<script id="fixtures" type="application/json">
+{
+  "lesson":{"type":"lesson","title":"Observer avant de conclure","body":"Commence par identifier les éléments visibles. Ensuite, formule une conclusion courte.","keyPoints":["Observer les indices","Séparer observation et conclusion"],"contextNote":"Contenu synthétique de démonstration.","media":[]},
+  "flashcard":{"type":"flashcard","front":"Que signifie « hypothèse » ici ?","back":"Une explication provisoire à tester.","explanation":"Elle guide l’enquête sans être traitée comme une preuve.","media":[]},
+  "matching":{"type":"matching","prompt":"Associe chaque terme à sa description.","leftItems":[{"itemId":"l1","label":"Indice"},{"itemId":"l2","label":"Hypothèse"},{"itemId":"l3","label":"Conclusion"}],"rightItems":[{"itemId":"r2","label":"Explication à tester"},{"itemId":"r3","label":"Résultat tiré des éléments"},{"itemId":"r1","label":"Élément observable"}],"media":[]},
+  "order":{"type":"order","prompt":"Place les étapes dans l’ordre qui te paraît logique.","items":[{"itemId":"o2","label":"Formuler une hypothèse"},{"itemId":"o1","label":"Observer"},{"itemId":"o3","label":"Tester"}],"media":[]},
+  "classify":{"type":"classify","prompt":"Range chaque élément dans une catégorie.","buckets":[{"bucketId":"b1","label":"Observation"},{"bucketId":"b2","label":"Interprétation"}],"items":[{"itemId":"c1","label":"Le voyant est rouge"},{"itemId":"c2","label":"La batterie est probablement faible"},{"itemId":"c3","label":"Le câble est débranché"}],"media":[]},
+  "qcm":{"type":"qcm","prompt":"Quel élément souhaites-tu examiner en premier ?","choices":[{"choiceId":"q1","label":"Le voyant"},{"choiceId":"q2","label":"Le câble"},{"choiceId":"q3","label":"La batterie"}],"media":[]},
+  "fill":{"type":"fill","prompt":"Complète la phrase.","tokens":[{"tokenId":"t1","label":"observer"},{"tokenId":"t2","label":"tester"},{"tokenId":"t3","label":"conclure"}],"segments":[{"text":"Je commence par "},{"slotId":"s1"},{"text":", puis je peux "},{"slotId":"s2"},{"text":"."}],"media":[]}
+}
+</script>
+<script id="variants" type="application/json">
+[
+  {"id":"lesson-a","family":"lesson","label":"Lecture simple"},
+  {"id":"flashcard-a","family":"flashcard","label":"Révélation directe"},
+  {"id":"flashcard-b","family":"flashcard","label":"Carte recto / verso contextualisée"},
+  {"id":"matching-a","family":"matching","label":"Association par sélection"},
+  {"id":"matching-b","family":"matching","label":"Paires visuelles par glisser"},
+  {"id":"order-a","family":"order","label":"Monter / descendre"},
+  {"id":"order-b","family":"order","label":"Réordonnancement tactile direct"},
+  {"id":"classify-a","family":"classify","label":"Choisir une catégorie"},
+  {"id":"classify-b","family":"classify","label":"Cartes dans les catégories"},
+  {"id":"qcm-a","family":"qcm","label":"QCM baseline"},
+  {"id":"fill-a","family":"fill","label":"Compléter par listes"},
+  {"id":"fill-b","family":"fill","label":"Mots à glisser dans la phrase"}
+]
+</script>
+<script src="lab_core.js"></script>
+<script src="lab_baselines.js"></script>
+<script src="lab_candidates_a.js"></script>
+<script src="lab_candidates_b.js"></script>
+<script src="lab_candidates_c.js"></script>
+<script src="lab_bootstrap.js"></script>
+</body>
+</html>
