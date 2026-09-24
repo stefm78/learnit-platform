@@ -1,52 +1,45 @@
-# Activity Experience Lab V4 — Interaction Stabilization
+# Activity Experience Lab V1 — V5 Interaction Convergence
 
-Status: Phase-A isolated prototype candidate; human review required.
+Status: Phase-A prototype laboratory; human physical-device decision still required.
 
 ## Boundary
 
-The Lab consumes learner-safe `ActivityPresentation` fixtures and emits only the frozen Student V0.1 `ActivityResponse` grammar. Production presenter/projection files remain read-only. The Lab contains no answer key, correctness evaluator, scoring, mastery, progress, session authority, persistence or external network dependency.
+The Lab consumes learner-safe `ActivityPresentation` fixtures and emits only the frozen Student V0.1 `ActivityResponse` grammar. Production `apps/learnit-next/src/**` remains read-only. The Lab contains no answer keys, correctness evaluation, score, mastery, progress/session authority, persistence, external network dependency, plugin registry, dynamic loader or production import.
 
-## V4 interaction invariants
+## V5 interaction grammar
 
-- `CLICK_CARD != MOVE_CARD`
-- `CLICK_TOKEN != MOVE_TOKEN`
-- `BUBBLING_CANNOT_CAUSE_MUTATION`
-- `DRAG_OR_EXPLICIT_FALLBACK_REQUIRED_FOR_MOVE`
-- `ONE_ATTEMPT_ONE_STABLE_RANDOM_ORDER`
-- `NEW_ATTEMPT_MAY_HAVE_NEW_RANDOM_ORDER`
-- `POINTER_DRAG_IS_NOT_HTML5_DRAG_DROP`
-- `ACTIVITY_RESPONSE_GRAMMAR_UNCHANGED`
+Manipulable candidates share a common visual/state model:
+
+- `normal`: one neutral border and common radius;
+- `selected`: subtle tint + accent border + small elevation;
+- `focus`: independent keyboard-focus ring;
+- `dragging`: elevated floating representation;
+- `empty target`: one dashed affordance;
+- `filled target`: moved card/token replaces the empty-target affordance, without a redundant shell.
+
+Drag uses Pointer Events. Tap/click selection never mutates position by itself. Mutation requires an explicit destination or an actual drag/drop.
+
+## Candidate behavior
+
+- `flashcard-b`: repeated question, answer and explanation share the same left/start reading axis; card remains reversible.
+- `matching-b`: source card and target become a persistent two-card pair; no outer pair frame and no filled-slot frame; source/target orders randomize independently once per attempt.
+- `order-b`: vertical-only ghost; independent insertion placeholder moves while the source card remains structurally stable during pointer movement; tap selection reveals large-hit-area visual intercalaires for non-drag placement.
+- `classify-b`: no movement panel; persistent bucket-title destinations implement select-card -> tap-bucket; drag supports source↔bucket and bucket↔bucket.
+- `fill-b`: no movement panel; select-token -> tap-empty-slot; filled slots remove their shell and nested destination semantics; drag replacement returns displaced token to the bank; bank title is the explicit non-drag return destination.
+- `qcm-a`: radio and label remain naturally aligned with robust wrapping.
 
 ## Randomization
 
-Each render starts one in-memory attempt seed. QCM choices, matching source/targets, order items, classify source cards and fill tokens/options are shuffled once from that seed. Category order and sentence slot order remain stable. No interaction re-shuffles an active attempt. A deterministic test seed hook exists only for audit/replay and has no authority or persistence semantics.
-
-## Order B
-
-Order B was rebuilt after physical Android review refuted the previous simulated PASS. Pointer-down creates a floating visual ghost while the original card becomes a low-opacity insertion gap. During pointer movement the original card is reinserted in DOM order as the pointer crosses sibling centers, so surrounding cards reflow before pointer-up. Drop removes the ghost and exposes the current gap as the committed item. Keyboard lift/move/drop remains available without visible arrow controls.
-
-## Classify B and Fill B
-
-Card/token click handlers only select and stop propagation. Buckets and slots are not implicit mutation controls. A dedicated movement panel provides the non-drag fallback. Drag remains the primary tactile path.
-
-Classify cards physically move among source and bucket containers; multiple cards can coexist in a bucket.
-
-Fill slots show a dashed affordance only while empty. Once occupied, the slot shell loses its border/background and the token itself becomes the visible inline answer. Explicit drag or explicit movement controls may replace a filled slot, returning the displaced token to the bank.
+QCM choices, Matching source/targets, Order initial items, Classify source cards and Fill token/options shuffle once per attempt. Category order and sentence-slot order remain stable. Test-seed support exists only for deterministic audit and is not persisted authority.
 
 ## Verification
 
-Static tests prohibit HTML5 drag-and-drop, persistence/network APIs and hidden scoring authority.
+`test_lab.py` checks static boundary invariants, required Pointer Event machinery, absence of HTML5 drag/network/persistence, and V5 structural markers.
 
-Mobile Chromium tests at 390x844 challenge:
-- verso text alignment;
-- deterministic/random seed behavior;
-- Order B ghost-follow + pre-drop DOM reflow;
-- negative repeated-click sequences for Classify B and Fill B;
-- explicit drag/fallback movement;
-- occupied-slot visual simplification;
-- frozen response grammar;
-- long-label overflow;
-- reduced motion;
-- external request/browser error absence.
+`browser_smoke.py` runs a 390x844 mobile/touch causal audit covering exact response grammars, deterministic randomization, Matching visual replacement and selection, Order vertical ghost/placeholder/intercalaires, Classify tap destinations, Fill tap-empty-slot/drag-replacement, long-label layout, reduced motion and network/browser cleanliness.
 
-Physical Android review remains the final Phase-A human gate.
+`production_audit.py` independently challenges the authored test assumptions (selection, nested framing, direct destinations, non-drag reorder, common radii and stale movement UI). `visual_audit.py` captures Matching B, Order B, Classify B and Fill B final states for visual inspection.
+
+The V5 adversarial audit found one bounded regression during construction: pointer handlers could suppress the subsequent tap-selection path. The implementation was repaired so a normal tap survives Pointer Event setup while post-drag synthetic clicks remain suppressed; the full static, mobile-touch and production audits then passed from clean state.
+
+Physical Android review remains the final Phase-A gate.

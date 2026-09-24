@@ -11,7 +11,7 @@ forbidden={'correctChoiceId','answers','acceptedResponses','matches','correctOrd
 def walk(x):
     if isinstance(x,dict):
         for k,v in x.items():
-            assert k not in forbidden, k
+            assert k not in forbidden,k
             walk(v)
     elif isinstance(x,list):
         for v in x: walk(v)
@@ -24,9 +24,12 @@ for bad in ['dragstart','ondragstart','.draggable','localStorage','sessionStorag
     assert bad not in js
 for fn in ['flashB','matchingB','orderB','classifyB','fillB']:
     assert f'function {fn}' in js
-for marker in ['.order-ghost','.drag-origin','.move-panel','.fill-slot.filled','.flash-answer','text-align:left','overflow-wrap:anywhere','prefers-reduced-motion:reduce']:
+for marker in ['.manip-card[aria-pressed="true"]','.pair-slot.filled','.order-placeholder','.order-insert-slot','.bucket-grid','.fill-slot.filled','prefers-reduced-motion:reduce']:
     assert marker in css
-# Buckets/slots are not mutation buttons in V4 candidates.
-assert "bucket.addEventListener('click'" not in js
-assert "slot.onclick" not in js
-print('STATIC_LAB_V4_TESTS: PASS')
+assert '.move-panel' not in css
+assert 'Déplacer «' not in js
+assert "title.addEventListener('click'" in js
+assert "slot.addEventListener('click'" in js and "bankTitle.addEventListener('click'" in js
+assert 's.ghost.style.left=`${s.fixedLeft}px`' in js
+assert "list.insertBefore(s.placeholder,other)" in js
+print('STATIC_LAB_V5_TESTS: PASS')

@@ -5,10 +5,10 @@
   {"id":"matching-a","family":"matching","label":"Association par sélection"},
   {"id":"matching-b","family":"matching","label":"Paires visuelles par glisser"},
   {"id":"order-a","family":"order","label":"Monter / descendre"},
-  {"id":"order-b","family":"order","label":"Réordonnancement tactile direct"},
+  {"id":"order-b","family":"order","label":"Réordonnancement vertical"},
   {"id":"classify-a","family":"classify","label":"Choisir une catégorie"},
   {"id":"classify-b","family":"classify","label":"Cartes dans les catégories"},
   {"id":"qcm-a","family":"qcm","label":"QCM baseline"},
   {"id":"fill-a","family":"fill","label":"Compléter par listes"},
-  {"id":"fill-b","family":"fill","label":"Mots à glisser dans la phrase"}
+  {"id":"fill-b","family":"fill","label":"Mots à placer dans la phrase"}
 ]
