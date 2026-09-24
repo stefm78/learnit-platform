@@ -6,7 +6,7 @@ import {
 
 const SUPPORTED = new Set(SUPPORTED_CONTRACT_VERSIONS);
 const INVALID_PACKAGE_MESSAGE = 'Le kit Learn-it est invalide et n’a pas été importé.';
-const UNSUPPORTED_CONTRACT_MESSAGE = 'Format non pris en charge : seuls learnit.kit.v2, learnit.kit.v3 et learnit.kit.v4 sont admis explicitement.';
+const UNSUPPORTED_CONTRACT_MESSAGE = 'Format non pris en charge : seuls learnit.kit.v2, learnit.kit.v3, learnit.kit.v4 et learnit.kit.v5 sont admis explicitement.';
 
 class DomainImportError extends Error {
   constructor(name, code, message, { cause, errors = [] } = {}) {
@@ -106,12 +106,13 @@ function installationId() {
 export function buildInstallationPlan(payload, now = new Date()) {
   const packageInstallId = installationId();
   const installedAt = now.toISOString();
-  const packageAssets = payload.contract === 'learnit.kit.v4'
+  const packageAssets = ['learnit.kit.v4', 'learnit.kit.v5'].includes(payload.contract)
     ? structuredClone(payload.assets ?? [])
     : null;
   const courses = payload.courses.map(course => ({
     courseInstallId: installationId(),
     packageInstallId,
+    contract: payload.contract,
     packageLineageId: payload.packageLineageId,
     packageRevisionId: payload.packageRevisionId,
     courseLineageId: course.courseLineageId,
@@ -128,6 +129,7 @@ export function buildInstallationPlan(payload, now = new Date()) {
   return {
     package: {
       packageInstallId,
+      contract: payload.contract,
       packageLineageId: payload.packageLineageId,
       packageRevisionId: payload.packageRevisionId,
       packageRevisionDigest: payload.packageRevisionDigest,

@@ -3,6 +3,12 @@ import {
   readAtlasActivityResponse,
   renderAtlasActivityMarkup,
 } from '../../ui/render.js';
+import {
+  projectActivityPresentation,
+} from './activity_projection.js';
+
+const V5_CONTRACT = 'learnit.kit.v5';
+const V5_HINT_INFLIGHT = new Set();
 
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
@@ -73,7 +79,17 @@ function sourceActivity(context, reference) {
   return activity;
 }
 
-export function projectAtlasActivityPresentation(activity) {
+export function projectAtlasActivityPresentation(
+  activity,
+  { assets = [], contract = null } = {},
+) {
+  if (contract === V5_CONTRACT) {
+    return projectActivityPresentation(
+      activity,
+      { assets, contract },
+    );
+  }
+
   if (activity.type === 'qcm') {
     return Object.freeze({
       type: activity.type,
@@ -504,6 +520,226 @@ function projectCourseEvidence(
       ));
 }
 
+
+export function reconstructAtlasHintPrefix(
+  state,
+  {
+    sessionRef,
+    itemPosition,
+    contentRevisionRef: expectedContentRevisionRef,
+    hints,
+  },
+  sameCanonical = (left, right) => (
+    JSON.stringify(left) === JSON.stringify(right)
+  ),
+) {
+  if (!state || !Array.isArray(state.resumeStates)) {
+    throw new Error('ATLAS_V5_ASSISTANCE_STATE_UNAVAILABLE');
+  }
+  if (!Array.isArray(hints)) {
+    throw new Error('ATLAS_V5_HINTS_UNAVAILABLE');
+  }
+
+  const checkpoint = state.resumeStates.find(candidate => (
+    candidate.sessionRef?.sessionId === sessionRef?.sessionId
+  ));
+
+  if (
+    !checkpoint
+    || !sameCanonical(checkpoint.sessionRef, sessionRef)
+    || !sameCanonical(
+      checkpoint.contentRevisionRef,
+      expectedContentRevisionRef,
+    )
+  ) {
+    throw new Error('ATLAS_V5_CONTENT_REVISION_MISMATCH');
+  }
+
+  const itemState = checkpoint.itemStates?.find(candidate => (
+    candidate.itemPosition === itemPosition
+  ));
+
+  if (!itemState || !Array.isArray(itemState.assistanceUseIds)) {
+    throw new Error('ATLAS_V5_ASSISTANCE_RESUME_STATE_MISSING');
+  }
+
+  const assistanceUses = state.atlasMeta?.assistanceUses;
+  if (!assistanceUses || typeof assistanceUses !== 'object') {
+    throw new Error('ATLAS_V5_ASSISTANCE_HISTORY_MISSING');
+  }
+
+  const resumeIds = new Set(itemState.assistanceUseIds);
+  const records = itemState.assistanceUseIds.map(identifier => {
+    const record = assistanceUses[identifier];
+    if (
+      !record
+      || record.assistanceUseId !== identifier
+      || record.itemPosition !== itemPosition
+      || !sameCanonical(record.sessionRef, sessionRef)
+    ) {
+      throw new Error('ATLAS_V5_ASSISTANCE_HISTORY_MISMATCH');
+    }
+    return record;
+  });
+
+  for (const [identifier, record] of Object.entries(assistanceUses)) {
+    if (
+      record?.itemPosition === itemPosition
+      && sameCanonical(record.sessionRef, sessionRef)
+      && !resumeIds.has(identifier)
+    ) {
+      throw new Error('ATLAS_V5_ASSISTANCE_HISTORY_MISMATCH');
+    }
+  }
+
+  const hintRecords = records.filter(record => (
+    record.assistanceKind === 'hint'
+  ));
+
+  if (hintRecords.length > hints.length) {
+    throw new Error('ATLAS_V5_HINT_HISTORY_EXCEEDS_CONTENT');
+  }
+
+  return Object.freeze({
+    count: hintRecords.length,
+    revealed: Object.freeze(
+      hints.slice(0, hintRecords.length),
+    ),
+    assistanceUseIds: Object.freeze(
+      hintRecords.map(record => record.assistanceUseId),
+    ),
+  });
+}
+
+export async function requestNextAtlasV5Hint({
+  readState,
+  requestHelp,
+  sessionRef,
+  itemPosition,
+  contentRevisionRef: expectedContentRevisionRef,
+  hints,
+  sameCanonical,
+}) {
+  if (
+    typeof readState !== 'function'
+    || typeof requestHelp !== 'function'
+  ) {
+    throw new TypeError('ATLAS_V5_HINT_PORT_REQUIRED');
+  }
+
+  const key = `${sessionRef?.sessionId ?? 'unknown'}:${itemPosition}`;
+  if (V5_HINT_INFLIGHT.has(key)) {
+    return Object.freeze({ status: 'in-flight' });
+  }
+
+  V5_HINT_INFLIGHT.add(key);
+  try {
+    const before = reconstructAtlasHintPrefix(
+      readState(),
+      {
+        sessionRef,
+        itemPosition,
+        contentRevisionRef: expectedContentRevisionRef,
+        hints,
+      },
+      sameCanonical,
+    );
+
+    if (before.count >= hints.length) {
+      return Object.freeze({
+        status: 'exhausted',
+        prefix: before,
+      });
+    }
+
+    const confirmation = await requestHelp('hint');
+    if (
+      confirmation?.committed !== true
+      || confirmation.record?.assistanceKind !== 'hint'
+      || typeof confirmation.record?.assistanceUseId !== 'string'
+    ) {
+      throw new Error('ATLAS_V5_HINT_PERSISTENCE_NOT_CONFIRMED');
+    }
+
+    const after = reconstructAtlasHintPrefix(
+      readState(),
+      {
+        sessionRef,
+        itemPosition,
+        contentRevisionRef: expectedContentRevisionRef,
+        hints,
+      },
+      sameCanonical,
+    );
+
+    if (
+      after.count !== before.count + 1
+      || !after.assistanceUseIds.includes(
+        confirmation.record.assistanceUseId,
+      )
+    ) {
+      throw new Error('ATLAS_V5_HINT_PERSISTENCE_NOT_CONFIRMED');
+    }
+
+    const index = after.count - 1;
+    return Object.freeze({
+      status: 'revealed',
+      index,
+      text: hints[index],
+      prefix: after,
+    });
+  } finally {
+    V5_HINT_INFLIGHT.delete(key);
+  }
+}
+
+function assertV5PinnedContentRevision(
+  context,
+  activePlan,
+  checkpoint,
+  sameCanonical,
+) {
+  if (context.contract !== V5_CONTRACT) return;
+
+  const expected = contentRevisionRef(context);
+  if (
+    !sameCanonical(
+      activePlan?.payload?.contentRevisionRef,
+      expected,
+    )
+    || !sameCanonical(
+      checkpoint?.contentRevisionRef,
+      expected,
+    )
+  ) {
+    throw new Error('ATLAS_V5_CONTENT_REVISION_MISMATCH');
+  }
+}
+
+function appendV5Hint(wrapper, text, index) {
+  const rank = index + 1;
+  const target = wrapper.querySelector('.atlas-activity');
+  if (!target) {
+    throw new Error('ATLAS_V5_HINT_TARGET_MISSING');
+  }
+  if (target.querySelector(
+    `[data-atlas-hint-rank="${rank}"]`,
+  )) {
+    return;
+  }
+  target.append(
+    node(
+      'p',
+      {
+        className: 'help',
+        role: 'status',
+        'data-atlas-help-status': 'true',
+        'data-atlas-hint-rank': String(rank),
+        text,
+      },
+    ),
+  );
+}
 
 export async function findResumableAtlasSession(
   context,
@@ -965,6 +1201,13 @@ export async function runAtlasSession({
           checkpoint.nextItemPosition
         ];
 
+      assertV5PinnedContentRevision(
+        context,
+        activePlan,
+        checkpoint,
+        modules.today.sameCanonical,
+      );
+
       const activity =
         sourceActivity(
           context,
@@ -974,6 +1217,10 @@ export async function runAtlasSession({
       const activityPresentation =
         projectAtlasActivityPresentation(
           activity,
+          {
+            assets: context.packageAssets ?? [],
+            contract: context.contract ?? null,
+          },
         );
 
       const wrapper = node('div');
@@ -1017,6 +1264,32 @@ export async function runAtlasSession({
       }
 
       container.replaceChildren(wrapper);
+
+      let v5HintPrefix = null;
+      const authoredV5Hints =
+        context.contract === V5_CONTRACT
+          ? Object.freeze([...(activity.hints ?? [])])
+          : null;
+
+      if (authoredV5Hints) {
+        v5HintPrefix = reconstructAtlasHintPrefix(
+          storage.snapshot(),
+          {
+            sessionRef,
+            itemPosition: item.position,
+            contentRevisionRef:
+              contentRevisionRef(context),
+            hints: authoredV5Hints,
+          },
+          modules.today.sameCanonical,
+        );
+
+        v5HintPrefix.revealed.forEach(
+          (text, index) => {
+            appendV5Hint(wrapper, text, index);
+          },
+        );
+      }
 
       const submit =
         wrapper.querySelector(
@@ -1100,10 +1373,66 @@ export async function runAtlasSession({
         );
       }
 
+      if (
+        authoredV5Hints
+        && v5HintPrefix.count >= authoredV5Hints.length
+      ) {
+        help.disabled = true;
+      }
+
       help.addEventListener(
         'click',
         async () => {
           help.disabled = true;
+
+          if (authoredV5Hints) {
+            try {
+              const result =
+                await requestNextAtlasV5Hint({
+                  readState: () => storage.snapshot(),
+                  requestHelp: kind =>
+                    controller.requestHelp(kind),
+                  sessionRef,
+                  itemPosition: item.position,
+                  contentRevisionRef:
+                    contentRevisionRef(context),
+                  hints: authoredV5Hints,
+                  sameCanonical:
+                    modules.today.sameCanonical,
+                });
+
+              if (result.status === 'revealed') {
+                appendV5Hint(
+                  wrapper,
+                  result.text,
+                  result.index,
+                );
+              }
+
+              const current =
+                reconstructAtlasHintPrefix(
+                  storage.snapshot(),
+                  {
+                    sessionRef,
+                    itemPosition: item.position,
+                    contentRevisionRef:
+                      contentRevisionRef(context),
+                    hints: authoredV5Hints,
+                  },
+                  modules.today.sameCanonical,
+                );
+
+              help.disabled =
+                current.count >= authoredV5Hints.length;
+            } catch (error) {
+              showError(
+                container,
+                error,
+              );
+              help.disabled = false;
+            }
+            return;
+          }
 
           try {
             await controller.requestHelp(

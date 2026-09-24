@@ -143,6 +143,7 @@ export function createLearnitRuntime(
       activityRevisionId: activity.activityRevisionId,
       presentation: projectActivityPresentation(activity, {
         assets: courseRecord.packageAssets ?? [],
+        contract: courseRecord.contract ?? null,
       }),
     });
   }
@@ -255,6 +256,8 @@ export function createLearnitRuntime(
         packageLineageId: courseRecord.packageLineageId,
         packageRevisionId: courseRecord.packageRevisionId,
         packageDigest,
+        contract: courseRecord.contract ?? null,
+        packageAssets: structuredClone(courseRecord.packageAssets ?? []),
         course: structuredClone(courseRecord.course),
       });
     },

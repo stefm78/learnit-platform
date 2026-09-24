@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-057",
+  "title": "Student V0.1 V5 runtime and Atlas projection R1",
+  "status": "under-qa",
+  "purpose": "Implement and qualify only R2 Handoff 3: explicit learnit.kit.v5 runtime admission, learner-safe V5 projection, embedded asset preservation, offline learner references, post-transition feedback-media projection, and durable Atlas hint reveal using the existing assistance journal.",
+  "changeClass": "C2",
+  "riskClass": "R2",
+  "authority": {
+    "issue": 444,
+    "humanDecisionIssue": 431,
+    "humanDecisionComment": 5817817692,
+    "decision": "GO_PRE_PILOT_V5",
+    "parentIssue": 442,
+    "parentPullRequest": 443
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-v5-authoring-factory-r1",
+    "baseCommit": "dc855d1c527bcc27a8fca262dd2ad814aed96cb0"
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py",
+      "docs/architecture/student-v0.1/LEARNIT_KIT_V5_RUNTIME_ATLAS_PROJECTION.md",
+      "work-packages/ATLAS-WP-057.json",
+      "qualification/STUDENT_V01_V5_RUNTIME_ATLAS_PROJECTION_R1_RESULT.md"
+    ],
+    "immutable": [
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "authoring/v5/tests/test_validate_v5.py",
+      "contracts/learnit-kit-v4.schema.json",
+      "authoring/v4/validate_kit.py",
+      "authoring/v4/tests/test_validate_v4.py",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/adapters/atlas_indexeddb.js",
+      "apps/learnit-next/src/ports/atlas_storage.js",
+      "apps/learnit-next/src/ui/atlas_session.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/media.js"
+    ]
+  },
+  "invariants": [
+    "V5 is admitted explicitly and is never converted to or from V4.",
+    "V2/V3/V4 runtime behavior and V4 bytes remain unchanged.",
+    "V5 initial learner projection contains no hints key and no unrevealed hint text.",
+    "Feedback-placement media is absent from initial V5 projection and available only through an explicit post-transition seam.",
+    "Learner references are projected only as {url,label,hook} and require no runtime network fetch.",
+    "Atlas hint rank is reconstructed only from durable hint AssistanceUseRecords cross-checked with the ResumeState assistanceUseIds for the exact session/item and pinned content revision.",
+    "No new Atlas persistence counter, store, table, schema version, sidecar, or content-revision fallback exists.",
+    "ActivityResponse, authored answers, scoring rules and evaluation semantics remain unchanged."
+  ],
+  "nonGoals": [
+    "V8 or presenter redesign.",
+    "Final Pour aller plus loin UI.",
+    "10C showcase port.",
+    "Final semantic review or fan-in.",
+    "ATLAS-WP-054.",
+    "Merge, cherry-pick, promotion or student session."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-v5-runtime-atlas-projection-r1",
+    "parentBranch": "student-v01/r2-v5-authoring-factory-r1",
+    "parentHead": "dc855d1c527bcc27a8fca262dd2ad814aed96cb0",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false
+  },
+  "rollback": "Close the unmerged draft PR and delete the Handoff-3 branch; Handoff 2 remains the unchanged qualified parent."
+}

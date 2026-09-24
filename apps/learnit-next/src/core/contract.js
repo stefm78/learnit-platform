@@ -2,7 +2,7 @@ import { normalizeConstructedText, V4_ACTIVITY_TYPES } from './activity_semantic
 
 export const CONTRACT_VERSION = 'learnit.kit.v2';
 export const SUPPORTED_CONTRACT_VERSIONS = Object.freeze([
-  'learnit.kit.v2', 'learnit.kit.v3', 'learnit.kit.v4',
+  'learnit.kit.v2', 'learnit.kit.v3', 'learnit.kit.v4', 'learnit.kit.v5',
 ]);
 
 const CONTRACTS = new Set(SUPPORTED_CONTRACT_VERSIONS);
@@ -21,6 +21,10 @@ const MEDIA_DISPLAY = new Set(['contained', 'full_width']);
 const V2_TYPES = new Set(['qcm', 'fill']);
 const V3_TYPES = new Set(['qcm', 'fill', 'constructed']);
 const V4_TYPES = new Set(V4_ACTIVITY_TYPES);
+const V5_TYPES = new Set(V4_ACTIVITY_TYPES);
+const NON_WHITESPACE = /\S/;
+const CONTROL_OR_SPACE = /[\x00-\x20\x7f]/;
+const BACKSLASH = /\\/;
 const EVALUATED_TYPES = new Set(['qcm', 'fill', 'constructed', 'matching', 'order', 'classify']);
 
 export class ContractValidationError extends Error {
@@ -123,6 +127,7 @@ function typeSet(contract) {
   if (contract === 'learnit.kit.v2') return V2_TYPES;
   if (contract === 'learnit.kit.v3') return V3_TYPES;
   if (contract === 'learnit.kit.v4') return V4_TYPES;
+  if (contract === 'learnit.kit.v5') return V5_TYPES;
   return new Set();
 }
 
@@ -147,6 +152,47 @@ function validateMediaRef(value, path, errors) {
   if (Object.hasOwn(value, 'placement')) enumValue(value.placement, MEDIA_PLACEMENT, `${path}.placement`, errors);
   if (Object.hasOwn(value, 'display')) enumValue(value.display, MEDIA_DISPLAY, `${path}.display`, errors);
   if (Object.hasOwn(value, 'zoomable') && typeof value.zoomable !== 'boolean') issue(errors, 'type', `${path}.zoomable`, 'Expected a boolean');
+}
+
+function validateReference(value, path, errors) {
+  if (!object(value, path, errors)) return;
+  const keys = new Set(['url', 'label', 'hook']);
+  exactKeys(value, keys, keys, path, errors);
+  if (string(value.url, `${path}.url`, errors, { min: 9, max: 2048 })) {
+    const raw = value.url;
+    if (!NON_WHITESPACE.test(raw) || raw !== raw.trim() || CONTROL_OR_SPACE.test(raw) || BACKSLASH.test(raw)) {
+      issue(errors, 'unsafe_reference_url', `${path}.url`, 'Reference URL must be a whitespace-free HTTPS URL');
+    } else {
+      try {
+        const parsed = new URL(raw);
+        if (parsed.protocol.toLowerCase() !== 'https:' || !parsed.hostname || parsed.username || parsed.password) {
+          issue(errors, 'unsafe_reference_url', `${path}.url`, 'Reference URL must use HTTPS, an ordinary host, and no credentials');
+        }
+      } catch {
+        issue(errors, 'unsafe_reference_url', `${path}.url`, 'Reference URL is malformed');
+      }
+    }
+  }
+  string(value.label, `${path}.label`, errors, { min: 1, max: 180, pattern: NON_WHITESPACE });
+  string(value.hook, `${path}.hook`, errors, { min: 1, max: 800, pattern: NON_WHITESPACE });
+}
+
+function validateV5Extensions(activity, path, errors) {
+  if (Object.hasOwn(activity, 'hints') && array(activity.hints, `${path}.hints`, errors, 0, 3)) {
+    activity.hints.forEach((hint, index) => string(
+      hint,
+      `${path}.hints[${index}]`,
+      errors,
+      { min: 1, max: 1200, pattern: NON_WHITESPACE },
+    ));
+  }
+  if (Object.hasOwn(activity, 'references') && array(activity.references, `${path}.references`, errors, 0, 3)) {
+    activity.references.forEach((reference, index) => validateReference(
+      reference,
+      `${path}.references[${index}]`,
+      errors,
+    ));
+  }
 }
 
 function svgSecurityReason(data) {
@@ -240,9 +286,12 @@ function validateActivity(activity, path, errors, contract) {
     return;
   }
   const v4 = contract === 'learnit.kit.v4';
-  const mediaKey = v4 ? ['media'] : [];
-  if (EVALUATED_TYPES.has(activity.type)) validateCommon(activity, path, errors, v4, true);
-  else validateCommon(activity, path, errors, v4, false);
+  const v5 = contract === 'learnit.kit.v5';
+  const mediaEnabled = v4 || v5;
+  const mediaKey = v5 ? ['media', 'hints', 'references'] : (v4 ? ['media'] : []);
+  if (EVALUATED_TYPES.has(activity.type)) validateCommon(activity, path, errors, mediaEnabled, true);
+  else validateCommon(activity, path, errors, mediaEnabled, false);
+  if (v5) validateV5Extensions(activity, path, errors);
 
   if (activity.type === 'qcm') {
     const allowed = new Set([...EVAL_COMMON, ...mediaKey, 'choices', 'correctChoiceId']);
@@ -369,12 +418,13 @@ function validateShape(payload, errors) {
     issue(errors, 'unsupported_contract', '$.contract', `Unsupported contract ${String(contract)}`);
     return;
   }
-  const allowed = new Set([...PACKAGE_BASE, ...(contract === 'learnit.kit.v4' ? ['assets'] : [])]);
+  const mediaContract = contract === 'learnit.kit.v4' || contract === 'learnit.kit.v5';
+  const allowed = new Set([...PACKAGE_BASE, ...(mediaContract ? ['assets'] : [])]);
   const required = new Set(PACKAGE_BASE.filter(k => k !== 'description'));
   exactKeys(payload, allowed, required, '$', errors);
   uuid(payload.packageLineageId, '$.packageLineageId', errors); uuid(payload.packageRevisionId, '$.packageRevisionId', errors); digest(payload.packageRevisionDigest, '$.packageRevisionDigest', errors);
   string(payload.title, '$.title', errors, { min: 1, max: 180 }); if (Object.hasOwn(payload, 'description')) string(payload.description, '$.description', errors, { max: 2000 }); string(payload.versionLabel, '$.versionLabel', errors, { min: 1, max: 80 }); string(payload.language, '$.language', errors, { pattern: LANGUAGE });
-  if (contract === 'learnit.kit.v4' && Object.hasOwn(payload, 'assets') && array(payload.assets, '$.assets', errors, 0, 100)) payload.assets.forEach((asset, index) => validateAsset(asset, `$.assets[${index}]`, errors));
+  if (mediaContract && Object.hasOwn(payload, 'assets') && array(payload.assets, '$.assets', errors, 0, 100)) payload.assets.forEach((asset, index) => validateAsset(asset, `$.assets[${index}]`, errors));
   if (array(payload.courses, '$.courses', errors, 1, 20)) payload.courses.forEach((course, index) => validateCourse(course, `$.courses[${index}]`, errors, contract));
 }
 
@@ -410,7 +460,7 @@ function semanticValidation(payload, errors) {
       const ap = `${cp}.activities[${ai}]`;
       registerId('activityLineageId', activity.activityLineageId, `${ap}.activityLineageId`); registerRevision(activity.activityRevisionId, activity.activityRevisionDigest, `${ap}.activityRevisionId`); activityByLineage.set(activity.activityLineageId, activity);
       activity.objectiveIds.forEach(id => { if (!objectiveIds.has(id)) issue(errors, 'missing_objective_reference', `${ap}.objectiveIds`, `Unknown objectiveId ${id}`); });
-      if (payload.contract === 'learnit.kit.v4') (activity.media ?? []).forEach((ref, mi) => { if (!assetById.has(ref.assetId)) issue(errors, 'missing_asset_reference', `${ap}.media[${mi}].assetId`, `Unknown assetId ${ref.assetId}`); });
+      if (payload.contract === 'learnit.kit.v4' || payload.contract === 'learnit.kit.v5') (activity.media ?? []).forEach((ref, mi) => { if (!assetById.has(ref.assetId)) issue(errors, 'missing_asset_reference', `${ap}.media[${mi}].assetId`, `Unknown assetId ${ref.assetId}`); });
       if (activity.type === 'qcm') {
         activity.choices.forEach((choice, index) => registerId('choiceId', choice.choiceId, `${ap}.choices[${index}].choiceId`)); const ids = new Set(activity.choices.map(choice => choice.choiceId)); if (!ids.has(activity.correctChoiceId)) issue(errors, 'missing_choice_reference', `${ap}.correctChoiceId`, 'correctChoiceId is not declared in choices');
       } else if (activity.type === 'fill') {
