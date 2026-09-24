@@ -252,6 +252,15 @@ class WebAdmissionTests(unittest.TestCase):
         self.assertEqual(len(body), record["content"]["bytes"])
         self.assertEqual(factory.sha256_bytes(body), record["content"]["sha256"])
 
+    def test_forged_private_resolution_evidence_is_rejected(self):
+        record = fake_pass_admission("https://example.org/reference")
+        forged = copy.deepcopy(record)
+        forged["resolutionChain"][0]["approvedIps"] = ["127.0.0.1"]
+        core = {k: v for k, v in forged.items() if k != "admissionId"}
+        forged["admissionId"] = web.digest(core)
+        with self.assertRaises(web.WebAdmissionError):
+            web.verify(forged)
+
     def test_unsafe_initial_urls_and_non_public_destinations_hold(self):
         cases = [
             ("http://example.org/x", lambda host, port: [PUBLIC_IP]),
