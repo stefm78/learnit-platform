@@ -134,7 +134,14 @@ def _record(*,purpose:str,submitted_url:str,final_url:str|None,checked_at:str,st
     core={"schema":SCHEMA,"profile":PROFILE,"purpose":purpose,"submittedUrl":submitted_url,"finalUrl":final_url,"checkedAt":checked_at,"httpStatus":status,"contentType":content_type,"redirectCount":redirect_count,"accessClassification":"public-anonymous" if verdict==PASS else "not-admitted","stableIdentifier":stable,"content":content,"resolutionChain":resolution_chain,"decision":{"verdict":verdict,"reasons":sorted(set(reasons))}}
     return {**core,"admissionId":digest(core)}
 
-def admit(url:str,*,purpose:str,checked_at:str,resolver:Callable[[str,int],Sequence[str]]=system_resolver,transport:Callable[[str,Sequence[str],float,float,int],Response]=pinned_transport,max_redirects:int=MAX_REDIRECTS,max_bytes:int=MAX_RESPONSE_BYTES,connect_timeout:float=CONNECT_TIMEOUT_SECONDS,read_timeout:float=READ_TIMEOUT_SECONDS)->dict[str,Any]:
+def admit_with_body(url:str,*,purpose:str,checked_at:str,resolver:Callable[[str,int],Sequence[str]]=system_resolver,transport:Callable[[str,Sequence[str],float,float,int],Response]=pinned_transport,max_redirects:int=MAX_REDIRECTS,max_bytes:int=MAX_RESPONSE_BYTES,connect_timeout:float=CONNECT_TIMEOUT_SECONDS,read_timeout:float=READ_TIMEOUT_SECONDS)->tuple[dict[str,Any],bytes|None]:
+    """Admit one bounded Web resource and return the exact admitted bytes on PASS.
+
+    The returned bytes are the same bytes hashed into the admission record. This
+    lets a Role B caller materialize the exact admitted payload as an existing
+    Factory --source input without performing a second, potentially different,
+    network retrieval.
+    """
     if purpose not in PURPOSES: raise WebAdmissionError(f"unsupported purpose {purpose!r}")
     if not isinstance(checked_at,str) or not checked_at.strip(): raise WebAdmissionError("checked_at is required")
     if max_redirects!=MAX_REDIRECTS: raise WebAdmissionError("redirect policy is fixed at five redirects for R1")
@@ -156,9 +163,16 @@ def admit(url:str,*,purpose:str,checked_at:str,resolver:Callable[[str,int],Seque
             if not response.body: raise WebAdmissionError("empty resource body")
             if media_type in EXECUTABLE_TYPES: raise WebAdmissionError(f"executable content type rejected: {media_type}")
             if _download_only(headers,media_type): raise WebAdmissionError(f"download-only resource rejected: {media_type or 'unknown'}")
-            return _record(purpose=purpose,submitted_url=submitted,final_url=normalized,checked_at=checked_at,status=status,content_type=media_type or "application/octet-stream",redirect_count=redirects,body=response.body,resolution_chain=chain,verdict=PASS,reasons=[])
+            body=bytes(response.body)
+            record=_record(purpose=purpose,submitted_url=submitted,final_url=normalized,checked_at=checked_at,status=status,content_type=media_type or "application/octet-stream",redirect_count=redirects,body=body,resolution_chain=chain,verdict=PASS,reasons=[])
+            return record,body
     except WebAdmissionError as exc:
-        return _record(purpose=purpose,submitted_url=submitted,final_url=None,checked_at=checked_at,status=None,content_type=None,redirect_count=redirects,body=None,resolution_chain=chain,verdict=HOLD,reasons=[str(exc)])
+        record=_record(purpose=purpose,submitted_url=submitted,final_url=None,checked_at=checked_at,status=None,content_type=None,redirect_count=redirects,body=None,resolution_chain=chain,verdict=HOLD,reasons=[str(exc)])
+        return record,None
+
+def admit(url:str,*,purpose:str,checked_at:str,resolver:Callable[[str,int],Sequence[str]]=system_resolver,transport:Callable[[str,Sequence[str],float,float,int],Response]=pinned_transport,max_redirects:int=MAX_REDIRECTS,max_bytes:int=MAX_RESPONSE_BYTES,connect_timeout:float=CONNECT_TIMEOUT_SECONDS,read_timeout:float=READ_TIMEOUT_SECONDS)->dict[str,Any]:
+    record,_=admit_with_body(url,purpose=purpose,checked_at=checked_at,resolver=resolver,transport=transport,max_redirects=max_redirects,max_bytes=max_bytes,connect_timeout=connect_timeout,read_timeout=read_timeout)
+    return record
 
 def verify(record:Any)->dict[str,Any]:
     if not isinstance(record,dict): raise WebAdmissionError("admission record must be an object")
@@ -179,11 +193,17 @@ def verify(record:Any)->dict[str,Any]:
     return record
 
 def parser()->argparse.ArgumentParser:
-    p=argparse.ArgumentParser(description="Bounded V5 authoring-time Web admission"); p.add_argument("--url",required=True); p.add_argument("--purpose",choices=sorted(PURPOSES),required=True); p.add_argument("--checked-at",required=True); p.add_argument("--json-out",type=Path); return p
+    p=argparse.ArgumentParser(description="Bounded V5 authoring-time Web admission"); p.add_argument("--url",required=True); p.add_argument("--purpose",choices=sorted(PURPOSES),required=True); p.add_argument("--checked-at",required=True); p.add_argument("--json-out",type=Path); p.add_argument("--capture-out",type=Path,help="Write the exact admitted bytes; authoring-source purpose only."); return p
 
 def main(argv:list[str]|None=None)->int:
-    args=parser().parse_args(argv); record=admit(args.url,purpose=args.purpose,checked_at=args.checked_at); verify(record)
+    p=parser(); args=p.parse_args(argv)
+    if args.capture_out is not None and args.purpose!="authoring-source":
+        p.error("--capture-out is allowed only with --purpose authoring-source")
+    record,body=admit_with_body(args.url,purpose=args.purpose,checked_at=args.checked_at); verify(record)
     if args.json_out: args.json_out.write_bytes(canonical(record)+b"\n")
+    if args.capture_out is not None and record["decision"]["verdict"]==PASS:
+        if body is None: raise WebAdmissionError("PASS admission did not return exact capture bytes")
+        args.capture_out.write_bytes(body)
     print(canonical(record).decode("utf-8")); return 0 if record["decision"]["verdict"]==PASS else 8
 
 if __name__=="__main__": raise SystemExit(main())
