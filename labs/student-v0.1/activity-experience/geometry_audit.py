@@ -145,7 +145,7 @@ with sync_playwright() as pw:
         sb=rect(src);db=rect(dst);sx,sy=sb['x']+sb['width']/2,sb['y']+sb['height']/2
         c=p.context.new_cdp_session(p);c.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':sx,'y':sy,'force':1,'id':1}]})
         c.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':sx+40,'y':sy+9,'force':1,'id':1}]});p.wait_for_timeout(60)
-        c.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':sx+100,'y':db['y']+4,'force':1,'id':1}]});p.wait_for_timeout(60)
+        target_y=(db['y']+2) if target_i<source_i else (db['y']+db['height']-2)\n        c.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':sx+100,'y':target_y,'force':1,'id':1}]});p.wait_for_timeout(60)
         assert close(list_height(p),page_before,1.0);c.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});p.wait_for_timeout(60)
         assert all(x['position']!='absolute' and x['style']=='' for x in row_state(p)),row_state(p)
     p.close();browser.close()
