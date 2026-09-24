@@ -144,12 +144,21 @@ def _binding_reasons(review:dict[str,Any],context:dict[str,Any])->list[str]:
 def run_gate(kit_path:Path,brief_path:Path,review_path:Path,source_specs:list[str],role_a_admission_paths:list[Path],role_b_manifest_path:Path,role_b_web_admission_paths:list[Path])->dict[str,Any]:
     context=factory.build_context(kit_path,brief_path,source_specs); kit,_=factory.load_json(kit_path,"kit")
     if not isinstance(kit,dict) or kit.get("contract")!="learnit.kit.v5": raise V5FactoryError("V5 Factory admission requires exact discriminator learnit.kit.v5")
-    quality=_v5_quality(kit); policy=authoring_policy.analyze(kit); role_a=validate_role_a(kit,role_a_admission_paths); role_b=validate_role_b(_load_json(role_b_manifest_path,"Role B manifest"),context,source_specs,role_b_web_admission_paths); review,semantic_reasons=_validate_v5_review(_load_json(review_path,"V5 semantic review"),context); bindings=_binding_reasons(review,context)
+    quality=_v5_quality(kit); policy=authoring_policy.analyze(kit)
+    try:
+        role_a=validate_role_a(kit,role_a_admission_paths)
+    except (V5FactoryError,web.WebAdmissionError) as exc:
+        role_a={"requiredUrls":sorted(set(authoring_policy.reference_urls(kit))),"admissionIds":[],"verdict":"HOLD_V5_ROLE_A_REFERENCE_ADMISSION_R1","reasons":[str(exc)]}
+    try:
+        role_b=validate_role_b(_load_json(role_b_manifest_path,"Role B manifest"),context,source_specs,role_b_web_admission_paths)
+    except (V5FactoryError,web.WebAdmissionError) as exc:
+        role_b={"verdict":"HOLD_V5_ROLE_B_SOURCE_GOVERNANCE_R1","sourceIds":[],"sourceSetDigest":context["sourceSetDigest"],"reasons":[str(exc)]}
+    review,semantic_reasons=_validate_v5_review(_load_json(review_path,"V5 semantic review"),context); bindings=_binding_reasons(review,context)
     if not quality["canonicalValid"]: verdict,reasons="HOLD_V5_FACTORY_CANONICAL_INVALID",["CANONICAL_V5_INVALID"]
     elif quality["qualityBand"] not in {"STRONG","EXCELLENT_BY_PROFILE"}: verdict,reasons="HOLD_V5_FACTORY_PEDAGOGICAL_WARNING",["PEDAGOGICAL_QUALITY_BAND:"+quality["qualityBand"]]
     elif policy["verdict"]!=authoring_policy.PASS: verdict,reasons="HOLD_V5_FACTORY_AUTHORING_POLICY",policy["reasons"]
     elif role_a["verdict"]!="PASS_V5_ROLE_A_REFERENCE_ADMISSION_R1": verdict,reasons="HOLD_V5_FACTORY_ROLE_A_ADMISSION",role_a["reasons"]
-    elif role_b["verdict"]!=ROLE_B_PASS: verdict,reasons="HOLD_V5_FACTORY_ROLE_B_SOURCE_GOVERNANCE",[role_b["verdict"]]
+    elif role_b["verdict"]!=ROLE_B_PASS: verdict,reasons="HOLD_V5_FACTORY_ROLE_B_SOURCE_GOVERNANCE",role_b.get("reasons",[role_b["verdict"]])
     elif bindings: verdict,reasons="HOLD_V5_FACTORY_REVIEW_BINDING",bindings
     elif semantic_reasons: verdict,reasons="HOLD_V5_FACTORY_SEMANTIC_REVIEW",semantic_reasons
     else: verdict,reasons="PASS_AI_KIT_FACTORY_V5_R2",[]
