@@ -1,6 +1,4 @@
-# Activity Experience Lab V3 — Human feedback rework
-
-This isolated Student V0.1 Lab is a human-review prototype. It consumes learner-safe `ActivityPresentation` data and emits only frozen `ActivityResponse` objects. It has no correctness, score, mastery, progress, session, persistence or evaluator authority.
+# Activity Experience Lab V4 — interaction stabilization
 
 Run locally:
 
@@ -8,22 +6,21 @@ Run locally:
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Open `http://127.0.0.1:8000/`.
+Then open `http://127.0.0.1:8000/`.
 
-Automated checks:
+Checks:
 
 ```bash
 python test_lab.py
 python browser_smoke.py
 ```
 
-V3 implements the human mobile review feedback:
+V4 stabilizes the interaction model after physical Android review:
+- Flashcard B uses one left-aligned reading axis on the verso.
+- Order B uses a floating ghost plus a moving insertion gap; the whole card is draggable.
+- Classify B card clicks only select. Movement requires drag or the explicit movement panel.
+- Fill B token clicks only select. Movement requires drag or the explicit movement panel; occupied slots lose their dashed shell.
+- QCM A keeps radio + text left aligned and wraps long labels.
+- Randomized choices are seeded per in-memory activity attempt and remain stable during the attempt.
 
-- Flashcard B repeats the question on the revealed side and can flip back.
-- Matching B snaps source cards into persistent paired rows opposite target descriptions.
-- Order B removes numbers and visible arrow controls; the whole card drags and surrounding cards reflow immediately. Keyboard lift/move/drop remains available.
-- Classify B places moved cards physically inside category buckets; `À classer` shrinks and cards can move between buckets or back.
-- QCM A aligns labels immediately after radio controls and wraps long text.
-- Fill B adds draggable token chips into sentence slots while preserving canonical slot mapping.
-
-All touch manipulation uses Pointer Events. No HTML5 drag-and-drop dependency or external network request is used.
+No correctness, score, mastery, progress, session authority, persistence or external network dependency is present.
