@@ -1,72 +1,103 @@
 {
-  "schema": "student-v0.1.work-package.v1",
-  "workPackage": "ATLAS-WP-055",
-  "status": "R2_HANDOFF_1_CANDIDATE_READY_FOR_QUALIFICATION",
-  "repository": "stefm78/learnit-platform",
-  "issue": 440,
-  "pr": 441,
-  "branch": "student-v01/r2-v5-contract-r1",
-  "commonBase": "18b925436777943b19c4b031c24659ad60dee133",
-  "humanDecision": {
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-055",
+  "title": "R2 Handoff 1 — explicit learnit.kit.v5 contract, schema and deterministic validator",
+  "status": "in-progress",
+  "changeClass": "bounded-contract-successor-qualification",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 440,
+    "pr": 441,
     "coordinatorIssue": 431,
-    "commentId": 5817817692,
-    "decision": "GO_PRE_PILOT_V5"
+    "humanDecisionCommentId": 5817817692,
+    "humanDecision": "GO_PRE_PILOT_V5"
   },
-  "purpose": "R2 Handoff 1 only: explicit learnit.kit.v5 contract/schema/validator candidate and qualification.",
-  "allowedPaths": [
-    "contracts/learnit-kit-v5.schema.json",
-    "authoring/v5/validate_kit.py",
-    "authoring/v5/tests/test_validate_v5.py",
-    "docs/architecture/student-v0.1/LEARNIT_KIT_V5_CONTRACT_DELTA.md",
-    "docs/programs/student-v0.1/jobs/JOB_12_V5_CONTRACT_SCHEMA_VALIDATOR_R1.md",
-    "work-packages/ATLAS-WP-055.json",
-    "qualification/STUDENT_V01_V5_CONTRACT_R1_RESULT.md"
-  ],
-  "forbiddenPaths": [
-    "contracts/learnit-kit-v4.schema.json",
-    "authoring/v4/**",
-    "apps/**",
-    "authoring/factory/**",
-    "authoring/skills/**",
-    "showcase/**",
-    ".github/**",
-    "docs/atlas/**",
-    "qualification/STUDENT_V01_ACTIVITY_LAB_SELECTION.md",
-    "historical JOB10 result/evidence files"
-  ],
-  "frozenR2Decisions": {
-    "v4": "immutable schema and meaning; no silent widening; no automatic rewrite",
-    "v5": "explicit learnit.kit.v5 successor",
-    "hints": "optional ordered 0..3 learner-facing strings; no hint IDs/revisions/media in first slice",
-    "references": "optional closed learner objects {url,label,hook}; HTTPS ordinary web URLs; no provenance metadata; no runtime dependence",
-    "media": "reuse V4 assets[] + media[] semantics; no remote image URL",
-    "activityResponse": "unchanged"
+  "baseline": {
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133",
+    "baseBranch": "student-v01/fanin-b",
+    "artifactSha256": null,
+    "frozenV4SchemaBlob": "e141bd5fafa75dda88a49e8a2094e4589bb4306e",
+    "frozenV4ValidatorBlob": "4ef561dfc1137aa436b4d8c8820db421ab6e1861",
+    "frozenV4TestsBlob": "85debca78c3ec342d9e4e7ed63a033fd0968e72e"
   },
-  "qualificationMatrix": [
-    "V4 exact blob immutability and regression",
-    "V4 rejection of V5-only fields",
-    "V5 closed-schema validation",
-    "hints 0..3/non-whitespace/all families",
-    "references closed shape/all families/static HTTPS safety/no network I/O",
-    "V4 media/SVG semantics preserved",
-    "hints/references digest propagation and hint-order identity",
-    "V4/V5 discriminator separation and no implicit conversion",
-    "changed-path scope audit",
-    "repository governance evidence on exact candidate head"
-  ],
-  "stopCondition": "READY_FOR_R2_HANDOFF_2 only after qualification with PR #441 DRAFT/OPEN/UNMERGED; otherwise HOLD/FAIL without scope expansion.",
-  "boundaries": {
-    "runtimeUi": false,
-    "atlasAssistance": false,
-    "authoringFactorySourceGovernance": false,
-    "v8": false,
-    "showcase10CPort": false,
-    "independentSemanticReview": false,
-    "atlasWp054Preparation": false,
-    "merge": false,
-    "cherryPick": false,
-    "promotion": false,
-    "studentSession": false
+  "purpose": "Execute only R2 Handoff 1: materialize and qualify an explicit closed learnit.kit.v5 successor contract plus deterministic V5 validator while proving frozen learnit.kit.v4 remains unchanged.",
+  "scope": {
+    "allowedPaths": [
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "authoring/v5/tests/test_validate_v5.py",
+      "docs/architecture/student-v0.1/LEARNIT_KIT_V5_CONTRACT_DELTA.md",
+      "work-packages/ATLAS-WP-055.json",
+      "qualification/STUDENT_V01_V5_CONTRACT_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/learnit-kit-v4.schema.json",
+      "authoring/v4/**",
+      "apps/**",
+      "authoring/factory/**",
+      "authoring/skills/**",
+      "showcase/**",
+      ".github/**",
+      "docs/atlas/**",
+      "qualification/STUDENT_V01_ACTIVITY_LAB_SELECTION.md"
+    ]
   },
-  "rollback": "If abandoned, close draft PR #441 and delete branch student-v01/r2-v5-contract-r1. V4 and common base remain authoritative and unchanged."
+  "invariants": [
+    "learnit.kit.v4 schema, validator and validator tests remain byte-identical to the common base.",
+    "V4 and V5 are explicit discriminator-separated contracts with no automatic conversion.",
+    "V5 activity-family schemas remain closed while adding only optional hints[] and references[] through shared activity definitions.",
+    "hints[] and references[] are canonical authored content and participate in activity, course and package digest identity.",
+    "V5 reuses V4 asset/media semantics; references never become remote media.",
+    "Reference validation is deterministic and static only; Handoff 1 performs no network link-health checks.",
+    "No runtime/UI, Atlas assistance, Authoring/Factory/source governance, V8, 10C port/review, WP-054 preparation, merge, cherry-pick, promotion or student session is authorized."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP binding and exact common-base revalidation before mutation.",
+    "Exact V4 schema/validator/test blob immutability proof on candidate head.",
+    "Narrow V5 deterministic unit/adversarial tests on exact candidate head.",
+    "Every activity family accepts bounded hints[] and references[] in V5.",
+    "V4 rejects V5 discriminator and V5-only fields; V5 rejects V4 discriminator.",
+    "Reference objects are closed and reject unsafe/non-HTTPS/malformed forms without network I/O.",
+    "Existing V4 remote-media and SVG fail-closed semantics remain effective in V5.",
+    "Hint/reference mutations and hint ordering change the canonical digest chain deterministically.",
+    "Changed-path scope is limited to this work package's allowed paths.",
+    "Repository governance evidence is collected on the exact candidate head when available.",
+    "PR #441 remains DRAFT, OPEN and UNMERGED."
+  ],
+  "adversarialTests": [
+    "Four hints must fail while zero through three hints remain structurally admissible.",
+    "Empty or whitespace-only hints must fail.",
+    "Four references must fail.",
+    "References missing url, label or hook, carrying extra provenance fields, or shaped as media must fail.",
+    "http, javascript, file, blob, protocol-relative, malformed, credential-bearing and backslash URLs must fail.",
+    "Unknown V5 activity fields must fail closed.",
+    "Remote media and unsafe SVG must remain rejected by inherited V4 semantics.",
+    "Changing reference url, label or hook must change the activity/course/package digest chain.",
+    "Reordering hints must change digest identity while unchanged revalidation is deterministic.",
+    "No local PASS may override repository-governance failure."
+  ],
+  "nonGoals": [
+    "Runtime or UI implementation.",
+    "Atlas hint implementation or assistance behavior.",
+    "Authoring Skill, Factory or source-governance implementation.",
+    "V8 interaction work.",
+    "10C showcase port or independent semantic review.",
+    "ATLAS-WP-054 preparation or fan-in.",
+    "Merge, cherry-pick, promotion or student session."
+  ],
+  "independentReview": [
+    "Final audit independently rechecks V4 immutability, V4/V5 separation, digest participation and exact changed paths after build.",
+    "Repository governance is treated as an independent exact-head check and cannot be overridden by local unit tests.",
+    "Any material decision outside the frozen R2 record stops at HUMAN_DECISION_REQUIRED instead of expanding scope."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-v5-contract-r1",
+    "pr": 441,
+    "phase": "R2_HANDOFF_1_V5_CONTRACT_QUALIFICATION",
+    "mergeStatus": "not-merged",
+    "promotionStatus": "none",
+    "next": "R2_HANDOFF_2_V5_AUTHORING_FACTORY_SOURCE_GOVERNANCE_IF_PASS"
+  },
+  "rollback": "If Handoff 1 is rejected or abandoned, close draft PR #441 and delete branch student-v01/r2-v5-contract-r1; common base student-v01/fanin-b@18b925436777943b19c4b031c24659ad60dee133 and frozen V4 blobs remain unchanged."
 }
