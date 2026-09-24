@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-056",
+  "title": "Student V0.1 V5 authoring, Factory and source governance R1",
+  "status": "under-qa",
+  "purpose": "Implement and qualify only R2 Handoff 2: explicit V5 authoring guidance, bounded learner-reference admission, governed supplemental authoring sources, and explicit V5 Factory admission reusing the existing exact source/kit/review binding.",
+  "changeClass": "C2",
+  "riskClass": "R2",
+  "authority": {
+    "issue": 442,
+    "humanDecisionIssue": 431,
+    "humanDecisionComment": 5817817692,
+    "decision": "GO_PRE_PILOT_V5",
+    "parentIssue": 440,
+    "parentPullRequest": 441
+  },
+  "baseline": {
+    "baseCommit": "fb12f413f0f2af08fc9e8dcd5d4267fae22beef4",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V5.md",
+      "authoring/skills/SKILL_ATLAS_KIT_REVIEW_V2.md",
+      "authoring/v5/authoring_policy.py",
+      "authoring/factory/v5_web_admission.py",
+      "authoring/factory/v5_factory_gate.py",
+      "authoring/factory/tests/test_v5_authoring_factory_source_governance.py",
+      "docs/architecture/student-v0.1/LEARNIT_KIT_V5_AUTHORING_FACTORY_SOURCE_GOVERNANCE.md",
+      "work-packages/ATLAS-WP-056.json",
+      "qualification/STUDENT_V01_V5_AUTHORING_FACTORY_SOURCE_GOVERNANCE_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "authoring/v5/tests/test_validate_v5.py",
+      "contracts/learnit-kit-v4.schema.json",
+      "authoring/v4/validate_kit.py",
+      "authoring/v4/tests/test_validate_v4.py",
+      "apps",
+      "showcase",
+      "pilot",
+      "docs/atlas/runtime",
+      "qualification/STUDENT_V01_ACTIVITY_LAB_SELECTION.md"
+    ]
+  },
+  "invariants": [
+    "Human R2 decision GO_PRE_PILOT_V5 remains authoritative and Handoff 1 is immutable input.",
+    "V5 is validated as learnit.kit.v5 and is never converted or disguised as V4 for Factory admission.",
+    "The promoted Factory build_context remains the sole sourceSetDigest/contextDigest/kit review-binding authority.",
+    "Learner references remain exactly {url,label,hook}; admission/source metadata stays external.",
+    "Role A is optional enrichment and cannot supply canonical claims required to solve or score an activity.",
+    "Role B exact bytes, authorization, provenance and claim mappings are required and the exact source set is Factory-bound.",
+    "Remote media remains rejected by the unchanged V5/V4 media authority.",
+    "No runtime/UI/Atlas reveal/V8/showcase/fan-in/promotion behavior is added."
+  ],
+  "requiredEvidence": [
+    "Exact frozen V5 and V4 blob identities unchanged from the accepted Handoff-1 base.",
+    "Handoff-1 V5 canonical tests and V4 canonical regression remain PASS or are proven immutable from their qualified parent authority.",
+    "Deterministic no-public-network tests for bounded Role A/Role B Web admission and SSRF/redirect controls.",
+    "V5 Factory tests for zero hints/refs, progressive hints, answer leakage HOLD, Role A anti-orphan, Role B exact evidence and stale-review invalidation.",
+    "Exact source-byte drift changes sourceSetDigest/contextDigest and invalidates the old semantic review target.",
+    "Repository governance PASS on the exact final candidate head."
+  ],
+  "adversarialTests": [
+    "Reject credential-bearing, HTTP, loopback, private, link-local, multicast and non-public destinations.",
+    "Reject HTTPS redirects to HTTP or non-public destinations and reject more than five redirects.",
+    "HOLD obvious 404/410, authentication-required, executable and download-only references.",
+    "HOLD missing/mismatched Role A admission evidence and Role B source-set/evidence mismatches.",
+    "HOLD a semantic review that marks hint answer leakage even if deterministic string leakage does not fire.",
+    "HOLD old review binding after exact kit-byte, learner-reference, or Role B source-byte drift."
+  ],
+  "nonGoals": [
+    "Runtime or UI implementation.",
+    "Atlas hint reveal/projection implementation.",
+    "Learner-safe runtime projection.",
+    "V8.",
+    "10C showcase port or final semantic acceptance.",
+    "Fan-in, merge, cherry-pick, promotion or student session.",
+    "ATLAS-WP-054.",
+    "Crawler, website mirror, archive service, persistent Web corpus or background link monitoring."
+  ],
+  "independentReview": [
+    "V5 semantic review keeps the promoted clean-context independence firewall.",
+    "The V5 reviewer must explicitly assess hint progression, answer leakage, Role A usefulness/non-dependence and Role B claim/source consistency.",
+    "This Handoff does not perform final showcase semantic acceptance."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-v5-authoring-factory-r1",
+    "parentBranch": "student-v01/r2-v5-contract-r1",
+    "parentHead": "fb12f413f0f2af08fc9e8dcd5d4267fae22beef4",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false
+  },
+  "rollback": "Close the unmerged draft PR and delete the reserved Handoff-2 branch; Handoff-1 remains the unchanged qualified parent."
+}
