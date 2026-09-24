@@ -430,12 +430,16 @@ class V5FactoryGovernanceTests(unittest.TestCase):
             }]
             package = refresh_v5(package)
             w = Workspace(Path(td), package)
-            with self.assertRaises(v5_factory.V5FactoryError):
-                w.gate()
+            self.assertEqual(
+                "HOLD_V5_FACTORY_ROLE_A_ADMISSION",
+                w.gate()["verdict"],
+            )
             wrong = Path(td) / "wrong.json"
             write_json(wrong, fake_pass_admission("https://example.org/other"))
-            with self.assertRaises(v5_factory.V5FactoryError):
-                w.gate(role_a=[wrong])
+            self.assertEqual(
+                "HOLD_V5_FACTORY_ROLE_A_ADMISSION",
+                w.gate(role_a=[wrong])["verdict"],
+            )
 
     def test_role_b_source_set_exact_bytes_authorization_and_claim_mapping(self):
         with tempfile.TemporaryDirectory() as td:
@@ -447,8 +451,10 @@ class V5FactoryGovernanceTests(unittest.TestCase):
                 evidence["roleBSources"]["sourceSetDigest"],
             )
             write_json(w.role_b, role_b_manifest(w.source, allowed=False))
-            with self.assertRaises(v5_factory.V5FactoryError):
-                w.gate()
+            self.assertEqual(
+                "HOLD_V5_FACTORY_ROLE_B_SOURCE_GOVERNANCE",
+                w.gate()["verdict"],
+            )
 
     def test_web_role_b_requires_matching_safe_admission_and_exact_bytes(self):
         with tempfile.TemporaryDirectory() as td:
@@ -492,8 +498,10 @@ class V5FactoryGovernanceTests(unittest.TestCase):
             write_json(bad, drifted)
             manifest["sources"][0]["origin"]["webAdmissionId"] = drifted["admissionId"]
             write_json(w.role_b, manifest)
-            with self.assertRaises(v5_factory.V5FactoryError):
-                w.gate(role_b_web=[bad])
+            self.assertEqual(
+                "HOLD_V5_FACTORY_ROLE_B_SOURCE_GOVERNANCE",
+                w.gate(role_b_web=[bad])["verdict"],
+            )
 
     def test_role_b_missing_from_source_set_holds(self):
         with tempfile.TemporaryDirectory() as td:
@@ -501,8 +509,10 @@ class V5FactoryGovernanceTests(unittest.TestCase):
             manifest = role_b_manifest(w.source)
             manifest["sources"][0]["sourceId"] = "unbound-source"
             write_json(w.role_b, manifest)
-            with self.assertRaises(v5_factory.V5FactoryError):
-                w.gate()
+            self.assertEqual(
+                "HOLD_V5_FACTORY_ROLE_B_SOURCE_GOVERNANCE",
+                w.gate()["verdict"],
+            )
 
     def test_one_byte_role_b_drift_rotates_source_and_context_and_stales_review(self):
         with tempfile.TemporaryDirectory() as td:
