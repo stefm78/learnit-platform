@@ -44,6 +44,24 @@
       "apps/learnit-next/src/ui/atlas_session.js",
       "apps/learnit-next/src/ui/activity_presenters.js",
       "apps/learnit-next/src/ui/media.js"
+    ],
+    "forbiddenPaths": [
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "authoring/v5/tests/test_validate_v5.py",
+      "contracts/learnit-kit-v4.schema.json",
+      "authoring/v4/validate_kit.py",
+      "authoring/v4/tests/test_validate_v4.py",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/adapters/atlas_indexeddb.js",
+      "apps/learnit-next/src/ports/atlas_storage.js",
+      "apps/learnit-next/src/ui/atlas_session.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/media.js",
+      "docs/atlas/CONTRACTS.md",
+      "showcase",
+      "pilot/student-v0.1",
+      "qualification/STUDENT_V01_ACTIVITY_LAB_SELECTION.md"
     ]
   },
   "invariants": [
@@ -71,5 +89,31 @@
     "mergeAuthorized": false,
     "promotionAuthorized": false
   },
-  "rollback": "Close the unmerged draft PR and delete the Handoff-3 branch; Handoff 2 remains the unchanged qualified parent."
+  "rollback": "Close the unmerged draft PR and delete the Handoff-3 branch; Handoff 2 remains the unchanged qualified parent.",
+  "requiredEvidence": [
+    "Exact Handoff-2 parent and human R2 decision remain authoritative.",
+    "Qualified V5 schema/validator/tests and frozen V4 schema/validator/tests remain byte-identical.",
+    "Deterministic causal tests prove explicit V5 runtime admission, V5 asset preservation and V2/V3/V4 regression.",
+    "Initial V5 projection contains no hints key or unrevealed hint text and excludes placement=feedback media.",
+    "References project only as {url,label,hook} and normal render/response/score execution requires no runtime network fetch.",
+    "Atlas hint reveal proves persist-before-reveal, exact 1-2-3 order, exhaustion without extra mutation, in-flight safety, non-hint non-advancement, resume/crash recovery and exact-revision fail-closed behavior.",
+    "ActivityResponse, scoring authority, selected V7 presenters, Atlas persistence schema and docs/atlas/CONTRACTS.md remain unchanged.",
+    "Repository governance PASS on the exact RESULT_SHA when available."
+  ],
+  "adversarialTests": [
+    "Reject malformed V5-only fields and keep V4 closed against hints/references.",
+    "Patch runtime network fetch to fail and prove reference-bearing activity projection/execution remains local.",
+    "Attempt feedback-media projection before authorization and require fail-closed behavior.",
+    "Force persistence failure and malformed confirmation and prove no hint is revealed.",
+    "Issue two simultaneous hint requests and prove only one assistance mutation occurs.",
+    "Insert guided-step assistance before hint requests and prove hint rank remains unchanged.",
+    "Request a fourth hint after three canonical hints and prove no fourth Atlas mutation.",
+    "Simulate commit-then-render-crash and prove resume reconstructs the committed prefix.",
+    "Mismatch the exact pinned content revision and prove no fallback or reveal occurs."
+  ],
+  "independentReview": [
+    "No final semantic-review PASS is produced by this Handoff-3 implementation session.",
+    "Handoff 3 qualification is limited to deterministic runtime/Atlas behavior, immutable-authority checks and repository governance.",
+    "Fresh independent semantic review remains downstream after V8 and exact 10C V5 port/requalification."
+  ]
 }
