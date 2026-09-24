@@ -15,7 +15,7 @@ def walk(x):
     elif isinstance(x,list):
         for v in x: walk(v)
 walk(fixtures)
-js='\n'.join((ROOT/n).read_text(encoding='utf-8') for n in ['lab_core.js','lab_baselines.js','lab_v6_helpers.js','lab_v6_flash.js','lab_v6_matching.js','lab_v6_order.js','lab_v6_classify.js','lab_v6_fill.js','lab_bootstrap.js'])
+js='\n'.join((ROOT/n).read_text(encoding='utf-8') for n in ['lab_core.js','lab_baselines.js','lab_v6_helpers.js','lab_v6_flash.js','lab_v6_matching.js','lab_v7_order.js','lab_v6_classify.js','lab_v6_fill.js','lab_bootstrap.js'])
 css=(ROOT/'styles.css').read_text(encoding='utf-8')
 for marker in ['pointerdown','pointermove','pointerup','setPointerCapture','beginAttempt','shuffled','__LAB_TEST_SEEDS__']:
     assert marker in js
@@ -34,4 +34,17 @@ assert "slot.addEventListener('click'" in js and "bankTitle.addEventListener('cl
 assert 's.ghost.style.left=`${s.fixedLeft}px`' in js
 assert "list.insertBefore(s.placeholder,other)" in js
 assert "classList.add('eligible-destination')" in js
-print('STATIC_LAB_V6_TESTS: PASS')
+print('STATIC_LAB_V7_TESTS: PASS')
+
+assert 'lab_v7_order.js' in html
+assert 'lab_v6_order.js' not in html
+order_js=(ROOT/'lab_v7_order.js').read_text(encoding='utf-8')
+assert "row.style.position='absolute'" in order_js
+assert "placeholder.style.width=" in order_js
+assert "placeholder.style.height=" in order_js
+assert "placeholder.style.minHeight=" in order_js
+assert "placeholder.style.maxHeight=" in order_js
+assert "restoreRowStyle(row,s)" in order_js
+assert 'min-height:54px' not in css
+assert '.order-placeholder{box-sizing:border-box;min-height:0!important' in css
+print('STATIC_LAB_V7_GEOMETRY_INVARIANTS: PASS')

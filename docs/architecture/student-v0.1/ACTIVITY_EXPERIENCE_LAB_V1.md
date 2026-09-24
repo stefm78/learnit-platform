@@ -1,4 +1,4 @@
-# Activity Experience Lab V1 — V6 Destination Feedback / No Layout Shift
+# Activity Experience Lab V1 — V7 Exact Drag Geometry
 
 Status: Phase-A prototype laboratory; human physical-device decision still required.
 
@@ -6,7 +6,7 @@ Status: Phase-A prototype laboratory; human physical-device decision still requi
 
 The Lab consumes learner-safe `ActivityPresentation` fixtures and emits only the frozen Student V0.1 `ActivityResponse` grammar. Production `apps/learnit-next/src/**` remains read-only. The Lab contains no answer keys, correctness evaluation, score, mastery, progress/session authority, persistence, external network dependency, plugin registry, dynamic loader or production import.
 
-## V6 interaction invariant
+## V7 interaction invariant
 
 Across Matching B, Order B, Classify B and Fill B:
 
@@ -49,8 +49,15 @@ QCM choices, Matching source/targets, Order initial items, Classify source cards
 
 `production_audit.py` is intentionally adversarial and checks numeric row rectangles/list height, overlay out-of-flow structure, bounded target overlap with adjacent cards, destination validity, selection-vs-destination distinction, mutation safety, framing convergence, common look-and-feel and accessibility DOM sanity.
 
-The V6 visual audit caught one bounded production defect during construction: the rendered page still carried stale V5 title/eyebrow metadata. This was corrected to V6 and the complete static, browser, production and visual audits were rerun successfully.
+The V7 visual audit caught one bounded production defect during construction: the rendered page still carried stale V5 title/eyebrow metadata. This was corrected to V7 and the complete static, browser, production and visual audits were rerun successfully.
 
 Two audit assertions were also corrected because they incorrectly treated transient CSS transition/focus behavior as product defects; those audit fixes did not relax the functional invariants.
 
 Physical Android review remains the final Phase-A gate.
+
+
+## V7 exact Order-B drag geometry invariant
+
+During an active Order-B drag, the dashed placeholder is the unique in-flow geometric representative of the source row. Its border-box width and height are copied from the source `getBoundingClientRect()` and must match within 1 CSS px. The original source row remains alive for pointer capture but is positioned out of normal Grid flow, so no extra Grid track or `gap` is introduced. List height therefore remains invariant while the placeholder moves between insertion points.
+
+The audit covers short and multi-line labels, narrow mobile width, repeated reorder directions, pointer cancel, strict-Y ghost motion, zero residual inline styles, and the existing non-drag insertion overlay.

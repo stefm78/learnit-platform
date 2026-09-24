@@ -1,7 +1,7 @@
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 ROOT=Path(__file__).parent
-mods=['lab_core.js','lab_baselines.js','lab_v6_helpers.js','lab_v6_flash.js','lab_v6_matching.js','lab_v6_order.js','lab_v6_classify.js','lab_v6_fill.js','lab_bootstrap.js']
+mods=['lab_core.js','lab_baselines.js','lab_v6_helpers.js','lab_v6_flash.js','lab_v6_matching.js','lab_v7_order.js','lab_v6_classify.js','lab_v6_fill.js','lab_bootstrap.js']
 raw=(ROOT/'index.html').read_text();html=raw.replace('<link rel="stylesheet" href="styles.css">','')
 for n in mods:html=html.replace(f'<script src="{n}"></script>','')
 css=(ROOT/'styles.css').read_text();scripts=[(ROOT/n).read_text() for n in mods]
@@ -31,4 +31,4 @@ with sync_playwright() as pw:
  for vid,sel in [('matching-b','.match-card'),('order-b','.order-b-card'),('classify-b','.classify-card'),('fill-b','.token-chip')]:
   p.select_option('#variant',vid);radii.append(p.locator(sel).first.evaluate('e=>getComputedStyle(e).borderRadius'));assert p.locator('button button').count()==0
  assert len(set(radii))==1 and '.eligible-destination' in css and '.active-destination' in css and ':focus-visible' in css;p.close();b.close()
-print('PRODUCTION_AUDIT_V6: PASS')
+print('PRODUCTION_AUDIT_V7: PASS')

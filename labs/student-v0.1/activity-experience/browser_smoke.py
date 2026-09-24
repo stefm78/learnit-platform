@@ -4,7 +4,7 @@ import json
 
 ROOT=Path(__file__).parent
 raw=(ROOT/'index.html').read_text(encoding='utf-8')
-mods=['lab_core.js','lab_baselines.js','lab_v6_helpers.js','lab_v6_flash.js','lab_v6_matching.js','lab_v6_order.js','lab_v6_classify.js','lab_v6_fill.js','lab_bootstrap.js']
+mods=['lab_core.js','lab_baselines.js','lab_v6_helpers.js','lab_v6_flash.js','lab_v6_matching.js','lab_v7_order.js','lab_v6_classify.js','lab_v6_fill.js','lab_bootstrap.js']
 html=raw.replace('<link rel="stylesheet" href="styles.css">','')
 for n in mods: html=html.replace(f'<script src="{n}"></script>','')
 css=(ROOT/'styles.css').read_text(encoding='utf-8')
@@ -52,4 +52,4 @@ with sync_playwright() as pw:
 
     assert not errors,errors; assert not external,external
     b.close()
-print('BROWSER_LAB_V6_DESTINATION_FEEDBACK_AUDIT: PASS')
+print('BROWSER_LAB_V7_DESTINATION_FEEDBACK_AUDIT: PASS')
