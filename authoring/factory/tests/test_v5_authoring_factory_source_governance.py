@@ -234,6 +234,24 @@ class WebAdmissionTests(unittest.TestCase):
             record["content"]["sha256"],
         )
 
+    def test_authoring_source_capture_is_exact_admitted_body(self):
+        body = b"Exact admitted Role B bytes\n"
+        record, captured = web.admit_with_body(
+            "https://example.org/source",
+            purpose="authoring-source",
+            checked_at=CHECKED_AT,
+            resolver=lambda host, port: [PUBLIC_IP],
+            transport=lambda *args: web.Response(
+                200,
+                {"content-type": "text/plain; charset=utf-8"},
+                body,
+            ),
+        )
+        self.assertEqual(web.PASS, record["decision"]["verdict"])
+        self.assertEqual(body, captured)
+        self.assertEqual(len(body), record["content"]["bytes"])
+        self.assertEqual(factory.sha256_bytes(body), record["content"]["sha256"])
+
     def test_unsafe_initial_urls_and_non_public_destinations_hold(self):
         cases = [
             ("http://example.org/x", lambda host, port: [PUBLIC_IP]),
