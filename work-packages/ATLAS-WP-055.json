@@ -1,0 +1,18 @@
+{
+  "schema": "student-v0.1.work-package.v1",
+  "workPackage": "ATLAS-WP-055",
+  "status": "RESERVED_FOR_R2_HANDOFF_1",
+  "repository": "stefm78/learnit-platform",
+  "issue": 440,
+  "pr": null,
+  "branch": "student-v01/r2-v5-contract-r1",
+  "commonBase": "18b925436777943b19c4b031c24659ad60dee133",
+  "humanDecision": {
+    "issue": 431,
+    "commentId": 5817817692,
+    "decision": "GO_PRE_PILOT_V5"
+  },
+  "purpose": "R2 Handoff 1 only: reserve exact branch/issue before candidate materialization.",
+  "noMerge": true,
+  "noPromotion": true
+}
