@@ -1,4 +1,4 @@
-# Activity Experience Lab V5 — Interaction Convergence
+# Activity Experience Lab V6 — Destination Feedback / No Layout Shift
 
 This isolated Student V0.1 Lab consumes learner-safe `ActivityPresentation` fixtures and emits only the frozen `ActivityResponse` grammar. It contains no correctness evaluator, answer key, score, mastery, progress/session authority, persistence, external network dependency, plugin registry or production import.
 
@@ -19,25 +19,28 @@ python production_audit.py
 python visual_audit.py
 ```
 
-V5 converges manipulable activities on one interaction grammar:
+V6 adds one shared interaction invariant across manipulable activities:
 
-- one neutral card border/radius;
-- a subtle selected state distinct from keyboard focus;
-- drag elevation without nested shells;
-- a single dashed affordance only for empty targets;
-- filled targets are visually replaced by the moved card/token;
-- Pointer Events for drag; no HTML5 Drag and Drop.
+> selecting an object never moves layout; it only marks the object and reveals valid destinations. Tapping a revealed destination commits the action. Dragging to the same destination remains a shortcut.
 
-Specific V5 behavior:
+Shared state vocabulary:
 
-- Flashcard B keeps one left/start reading axis on the revealed face.
-- Matching B removes stacked frames; matched rows become two single cards facing one another.
-- Order B is vertical-only, uses a floating ghost plus independent insertion placeholder, and offers tap-to-select + tappable intercalaires as the non-drag path.
-- Classify B removes the movement panel: select a card, then tap a persistent bucket-title destination; drag remains a shortcut.
-- Fill B removes the movement panel: select a token, then tap an empty slot; a filled slot loses its shell. Drag replacement remains available and returns the displaced token to the bank.
-- QCM A keeps left-aligned radio/text wrapping.
-- randomizable option pools shuffle once per attempt and remain stable during that attempt.
+- normal;
+- selected;
+- eligible destination;
+- active destination;
+- dragging;
+- keyboard focus remains independent.
 
-`production_audit.py` adversarially challenges the authored tests and the final DOM interaction model. `visual_audit.py` captures the four key final states used for visual inspection.
+Specific V6 behavior:
+
+- Flashcard B keeps one left/start reading axis.
+- Matching B reveals eligible descriptions after source selection; a filled source target is replaced by the moved card with no redundant frame.
+- Order B renders insertion targets in an absolute overlay, so selecting a row leaves every row at the exact same geometry. Drag remains strict-Y with ghost + placeholder.
+- Classify B highlights only valid bucket-title destinations after card selection; no movement panel exists.
+- Fill B highlights only valid empty slots after token selection, plus the bank when returning a placed token; filled slots keep no redundant target shell.
+- randomizable pools shuffle once per attempt and remain stable during that attempt.
+
+The independent production audit challenges layout invariance, overlay hit regions, destination validity, state distinctness, mutation safety, framing convergence, look-and-feel consistency and accessibility DOM sanity.
 
 Physical Android review remains required before any human prototype decision.

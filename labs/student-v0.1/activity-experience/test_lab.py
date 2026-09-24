@@ -11,12 +11,11 @@ forbidden={'correctChoiceId','answers','acceptedResponses','matches','correctOrd
 def walk(x):
     if isinstance(x,dict):
         for k,v in x.items():
-            assert k not in forbidden,k
-            walk(v)
+            assert k not in forbidden,k; walk(v)
     elif isinstance(x,list):
         for v in x: walk(v)
 walk(fixtures)
-js='\n'.join((ROOT/n).read_text(encoding='utf-8') for n in ['lab_core.js','lab_baselines.js','lab_candidates.js','lab_bootstrap.js'])
+js='\n'.join((ROOT/n).read_text(encoding='utf-8') for n in ['lab_core.js','lab_baselines.js','lab_v6_helpers.js','lab_v6_flash.js','lab_v6_matching.js','lab_v6_order.js','lab_v6_classify.js','lab_v6_fill.js','lab_bootstrap.js'])
 css=(ROOT/'styles.css').read_text(encoding='utf-8')
 for marker in ['pointerdown','pointermove','pointerup','setPointerCapture','beginAttempt','shuffled','__LAB_TEST_SEEDS__']:
     assert marker in js
@@ -24,12 +23,15 @@ for bad in ['dragstart','ondragstart','.draggable','localStorage','sessionStorag
     assert bad not in js
 for fn in ['flashB','matchingB','orderB','classifyB','fillB']:
     assert f'function {fn}' in js
-for marker in ['.manip-card[aria-pressed="true"]','.pair-slot.filled','.order-placeholder','.order-insert-slot','.bucket-grid','.fill-slot.filled','prefers-reduced-motion:reduce']:
+for marker in ['.manip-card[aria-pressed="true"]','.eligible-destination','.active-destination','.eligible-zone','.order-insert-overlay','.order-placeholder','.pair-slot.filled','.fill-slot.filled','prefers-reduced-motion:reduce']:
     assert marker in css
+assert 'position:absolute;inset:0' in css
+assert 'transform:translateY(-50%)' in css
 assert '.move-panel' not in css
 assert 'Déplacer «' not in js
 assert "title.addEventListener('click'" in js
 assert "slot.addEventListener('click'" in js and "bankTitle.addEventListener('click'" in js
 assert 's.ghost.style.left=`${s.fixedLeft}px`' in js
 assert "list.insertBefore(s.placeholder,other)" in js
-print('STATIC_LAB_V5_TESTS: PASS')
+assert "classList.add('eligible-destination')" in js
+print('STATIC_LAB_V6_TESTS: PASS')
