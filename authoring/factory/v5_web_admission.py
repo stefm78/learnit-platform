@@ -183,12 +183,24 @@ def verify(record:Any)->dict[str,Any]:
     if record["admissionId"]!=digest(core): raise WebAdmissionError("admissionId mismatch")
     decision=record.get("decision")
     if not isinstance(decision,dict) or set(decision)!={"verdict","reasons"} or decision["verdict"] not in {PASS,HOLD} or not isinstance(decision["reasons"],list): raise WebAdmissionError("invalid decision")
+    chain=record.get("resolutionChain")
+    if not isinstance(chain,list): raise WebAdmissionError("resolutionChain must be a list")
+    for hop in chain:
+        if not isinstance(hop,dict) or set(hop)!={"url","host","port","approvedIps"}: raise WebAdmissionError("invalid resolutionChain hop")
+        normalized,host,port=_normalized_url(hop["url"])
+        if hop["url"]!=normalized or hop["host"]!=host or hop["port"]!=port: raise WebAdmissionError("resolutionChain URL/host/port mismatch")
+        if not isinstance(hop["approvedIps"],list) or not hop["approvedIps"]: raise WebAdmissionError("resolutionChain hop requires approved public IPs")
+        for ip in hop["approvedIps"]: _public_ip(str(ip))
     if decision["verdict"]==PASS:
-        _normalized_url(record["submittedUrl"]); _normalized_url(record["finalUrl"])
-        if not 0 <= record["redirectCount"] <= MAX_REDIRECTS or record["accessClassification"]!="public-anonymous": raise WebAdmissionError("PASS policy mismatch")
+        submitted,_,_=_normalized_url(record["submittedUrl"]); final,_,_=_normalized_url(record["finalUrl"])
+        if not chain or chain[-1]["url"]!=final: raise WebAdmissionError("PASS final URL is not bound to the final resolution hop")
+        if record["redirectCount"]!=len(chain)-1 or not 0 <= record["redirectCount"] <= MAX_REDIRECTS or record["accessClassification"]!="public-anonymous": raise WebAdmissionError("PASS policy mismatch")
         content=record["content"]; stable=record["stableIdentifier"]
         if not isinstance(content,dict) or set(content)!={"bytes","sha256"}: raise WebAdmissionError("PASS requires exact content evidence")
-        if stable!={"kind":"content-sha256","value":content["sha256"]}: raise WebAdmissionError("stableIdentifier/content mismatch")
+        if isinstance(content["bytes"],bool) or not isinstance(content["bytes"],int) or content["bytes"]<=0: raise WebAdmissionError("PASS content byte count invalid")
+        sha=content["sha256"]
+        if not isinstance(sha,str) or not sha.startswith("sha256:") or len(sha)!=71 or any(ch not in "0123456789abcdef" for ch in sha[7:]): raise WebAdmissionError("PASS content SHA-256 invalid")
+        if stable!={"kind":"content-sha256","value":sha}: raise WebAdmissionError("stableIdentifier/content mismatch")
         if decision["reasons"]: raise WebAdmissionError("PASS cannot contain reasons")
     return record
 
@@ -199,6 +211,9 @@ def main(argv:list[str]|None=None)->int:
     p=parser(); args=p.parse_args(argv)
     if args.capture_out is not None and args.purpose!="authoring-source":
         p.error("--capture-out is allowed only with --purpose authoring-source")
+    if args.capture_out is not None:
+        try: args.capture_out.unlink(missing_ok=True)
+        except OSError as exc: p.error(f"cannot clear capture output before admission: {exc}")
     record,body=admit_with_body(args.url,purpose=args.purpose,checked_at=args.checked_at); verify(record)
     if args.json_out: args.json_out.write_bytes(canonical(record)+b"\n")
     if args.capture_out is not None and record["decision"]["verdict"]==PASS:
