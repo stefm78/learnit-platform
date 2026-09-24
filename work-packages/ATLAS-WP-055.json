@@ -1,18 +1,72 @@
 {
   "schema": "student-v0.1.work-package.v1",
   "workPackage": "ATLAS-WP-055",
-  "status": "RESERVED_FOR_R2_HANDOFF_1",
+  "status": "R2_HANDOFF_1_CANDIDATE_READY_FOR_QUALIFICATION",
   "repository": "stefm78/learnit-platform",
   "issue": 440,
-  "pr": null,
+  "pr": 441,
   "branch": "student-v01/r2-v5-contract-r1",
   "commonBase": "18b925436777943b19c4b031c24659ad60dee133",
   "humanDecision": {
-    "issue": 431,
+    "coordinatorIssue": 431,
     "commentId": 5817817692,
     "decision": "GO_PRE_PILOT_V5"
   },
-  "purpose": "R2 Handoff 1 only: reserve exact branch/issue before candidate materialization.",
-  "noMerge": true,
-  "noPromotion": true
+  "purpose": "R2 Handoff 1 only: explicit learnit.kit.v5 contract/schema/validator candidate and qualification.",
+  "allowedPaths": [
+    "contracts/learnit-kit-v5.schema.json",
+    "authoring/v5/validate_kit.py",
+    "authoring/v5/tests/test_validate_v5.py",
+    "docs/architecture/student-v0.1/LEARNIT_KIT_V5_CONTRACT_DELTA.md",
+    "docs/programs/student-v0.1/jobs/JOB_12_V5_CONTRACT_SCHEMA_VALIDATOR_R1.md",
+    "work-packages/ATLAS-WP-055.json",
+    "qualification/STUDENT_V01_V5_CONTRACT_R1_RESULT.md"
+  ],
+  "forbiddenPaths": [
+    "contracts/learnit-kit-v4.schema.json",
+    "authoring/v4/**",
+    "apps/**",
+    "authoring/factory/**",
+    "authoring/skills/**",
+    "showcase/**",
+    ".github/**",
+    "docs/atlas/**",
+    "qualification/STUDENT_V01_ACTIVITY_LAB_SELECTION.md",
+    "historical JOB10 result/evidence files"
+  ],
+  "frozenR2Decisions": {
+    "v4": "immutable schema and meaning; no silent widening; no automatic rewrite",
+    "v5": "explicit learnit.kit.v5 successor",
+    "hints": "optional ordered 0..3 learner-facing strings; no hint IDs/revisions/media in first slice",
+    "references": "optional closed learner objects {url,label,hook}; HTTPS ordinary web URLs; no provenance metadata; no runtime dependence",
+    "media": "reuse V4 assets[] + media[] semantics; no remote image URL",
+    "activityResponse": "unchanged"
+  },
+  "qualificationMatrix": [
+    "V4 exact blob immutability and regression",
+    "V4 rejection of V5-only fields",
+    "V5 closed-schema validation",
+    "hints 0..3/non-whitespace/all families",
+    "references closed shape/all families/static HTTPS safety/no network I/O",
+    "V4 media/SVG semantics preserved",
+    "hints/references digest propagation and hint-order identity",
+    "V4/V5 discriminator separation and no implicit conversion",
+    "changed-path scope audit",
+    "repository governance evidence on exact candidate head"
+  ],
+  "stopCondition": "READY_FOR_R2_HANDOFF_2 only after qualification with PR #441 DRAFT/OPEN/UNMERGED; otherwise HOLD/FAIL without scope expansion.",
+  "boundaries": {
+    "runtimeUi": false,
+    "atlasAssistance": false,
+    "authoringFactorySourceGovernance": false,
+    "v8": false,
+    "showcase10CPort": false,
+    "independentSemanticReview": false,
+    "atlasWp054Preparation": false,
+    "merge": false,
+    "cherryPick": false,
+    "promotion": false,
+    "studentSession": false
+  },
+  "rollback": "If abandoned, close draft PR #441 and delete branch student-v01/r2-v5-contract-r1. V4 and common base remain authoritative and unchanged."
 }
