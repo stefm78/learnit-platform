@@ -1,0 +1,156 @@
+{
+  "lesson": {
+    "type": "lesson",
+    "title": "Observer avant de conclure",
+    "body": "Commence par identifier les éléments visibles. Ensuite, formule une conclusion courte.",
+    "keyPoints": [
+      "Observer les indices",
+      "Séparer observation et conclusion"
+    ],
+    "contextNote": "Contenu synthétique de démonstration.",
+    "media": []
+  },
+  "flashcard": {
+    "type": "flashcard",
+    "front": "Que signifie « hypothèse » ici ?",
+    "back": "Une explication provisoire à tester.",
+    "explanation": "Elle guide l’enquête sans être traitée comme une preuve.",
+    "media": []
+  },
+  "matching": {
+    "type": "matching",
+    "prompt": "Associe chaque terme à sa description.",
+    "leftItems": [
+      {
+        "itemId": "l1",
+        "label": "Indice"
+      },
+      {
+        "itemId": "l2",
+        "label": "Hypothèse"
+      },
+      {
+        "itemId": "l3",
+        "label": "Conclusion"
+      }
+    ],
+    "rightItems": [
+      {
+        "itemId": "r2",
+        "label": "Explication à tester"
+      },
+      {
+        "itemId": "r3",
+        "label": "Résultat tiré des éléments"
+      },
+      {
+        "itemId": "r1",
+        "label": "Élément observable"
+      }
+    ],
+    "media": []
+  },
+  "order": {
+    "type": "order",
+    "prompt": "Place les étapes dans l’ordre qui te paraît logique.",
+    "items": [
+      {
+        "itemId": "o2",
+        "label": "Formuler une hypothèse"
+      },
+      {
+        "itemId": "o1",
+        "label": "Observer"
+      },
+      {
+        "itemId": "o3",
+        "label": "Tester"
+      }
+    ],
+    "media": []
+  },
+  "classify": {
+    "type": "classify",
+    "prompt": "Range chaque élément dans une catégorie.",
+    "buckets": [
+      {
+        "bucketId": "b1",
+        "label": "Observation"
+      },
+      {
+        "bucketId": "b2",
+        "label": "Interprétation"
+      }
+    ],
+    "items": [
+      {
+        "itemId": "c1",
+        "label": "Le voyant est rouge"
+      },
+      {
+        "itemId": "c2",
+        "label": "La batterie est probablement faible"
+      },
+      {
+        "itemId": "c3",
+        "label": "Le câble est débranché"
+      }
+    ],
+    "media": []
+  },
+  "qcm": {
+    "type": "qcm",
+    "prompt": "Quel élément souhaites-tu examiner en premier ?",
+    "choices": [
+      {
+        "choiceId": "q1",
+        "label": "Le voyant"
+      },
+      {
+        "choiceId": "q2",
+        "label": "Le câble"
+      },
+      {
+        "choiceId": "q3",
+        "label": "La batterie"
+      }
+    ],
+    "media": []
+  },
+  "fill": {
+    "type": "fill",
+    "prompt": "Complète la phrase.",
+    "tokens": [
+      {
+        "tokenId": "t1",
+        "label": "observer"
+      },
+      {
+        "tokenId": "t2",
+        "label": "tester"
+      },
+      {
+        "tokenId": "t3",
+        "label": "conclure"
+      }
+    ],
+    "segments": [
+      {
+        "text": "Je commence par "
+      },
+      {
+        "slotId": "s1"
+      },
+      {
+        "text": ", puis je peux "
+      },
+      {
+        "slotId": "s2"
+      },
+      {
+        "text": "."
+      }
+    ],
+    "media": []
+  }
+}

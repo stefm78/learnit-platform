@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-052",
+  "title": "Student V0.1 — Activity Experience Lab V1",
+  "status": "approved",
+  "changeClass": "bounded-activity-prototype-lab",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 434,
+    "coordinatorIssue": 431,
+    "parentProgramIssue": 380,
+    "g4Issue": 425,
+    "g5Issue": 427
+  },
+  "baseline": {
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133",
+    "g4CandidateResult": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+    "interfaceFreezePath": "docs/programs/student-v0.1/WAVE1_INTERFACE_FREEZE.md",
+    "interfaceFreezeBlob": "cf15b12e0d008484b8341a8a059fe0d91955f8b0",
+    "architecturePath": "docs/architecture/student-v0.1/STUDENT_V0_1_ACTIVITY_RICHNESS_ARCHITECTURE.md",
+    "architectureBlob": "c900d96c3845276e23b77a43c970c7c3834655a5",
+    "projectionBlob": "607ecea8af6dc468ded05dbcc924693f90d576ff",
+    "productionPresentersReadOnlyBlob": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf"
+  },
+  "purpose": "Build an isolated fail-fast Activity Experience Lab that consumes learner-safe ActivityPresentation fixtures, prototypes richer interactions, emits exact frozen ActivityResponse shapes, and stops for explicit human prototype selection before any production presenter implementation.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-052.json",
+      "docs/programs/student-v0.1/jobs/JOB_10B_ACTIVITY_EXPERIENCE_LAB_V1.md",
+      "docs/architecture/student-v0.1/ACTIVITY_EXPERIENCE_LAB_V1.md",
+      "labs/student-v0.1/activity-experience/**",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_ACTIVITY_LAB_V1_RESULT.md",
+      "qualification/STUDENT_V01_ACTIVITY_LAB_SELECTION.md"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/source_manifest.json",
+      "contracts/**",
+      "authoring/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "contract": {
+    "input": "ActivityPresentation only",
+    "output": "ActivityResponse only",
+    "scoringSecretsAllowed": false,
+    "correctnessEvaluationAllowed": false,
+    "sessionAuthorityAllowed": false,
+    "progressAuthorityAllowed": false,
+    "persistenceAuthorityAllowed": false,
+    "pluginRuntimeAllowed": false
+  },
+  "admittedFamilies": [
+    "lesson",
+    "flashcard",
+    "matching",
+    "order",
+    "classify",
+    "qcm",
+    "fill"
+  ],
+  "prototypeMinimums": {
+    "lesson": 1,
+    "flashcard": 2,
+    "matching": 2,
+    "order": 2,
+    "classify": 2,
+    "qcm": 1,
+    "fill": 1
+  },
+  "invariants": [
+    "The Lab is outside the production Learn-it app and must not modify production presenters in this job.",
+    "Fixtures are learner-safe ActivityPresentation only and may not contain hidden scoring authority.",
+    "The Lab never computes or displays correctness.",
+    "The Lab never decides mastery, objective progress, session progression or completion.",
+    "Each prototype emits only the frozen response grammar for its family.",
+    "No plugin registry, dynamic loader, evaluator callback framework or event bus is introduced.",
+    "Richer drag/spatial interactions always retain keyboard and touch-safe non-drag operation.",
+    "Animation is progressive enhancement and respects reduced-motion.",
+    "Human micro-review is mandatory before a variant can be selected for future production integration.",
+    "Phase A stops at ACTIVITY_PROTOTYPE_DECISION_REQUIRED.",
+    "Phase B records human variant selection only; it still does not modify production presenters.",
+    "RESULT_SHA binds Lab implementation/tests before any human selection; LAB_SELECTION_SHA is a later selection-only commit."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/main/common-base authority and exact contract-authority blob verification.",
+    "Architecture note documenting the Lab boundary and non-goals.",
+    "Path-aware secret scan proving fixtures contain none of correctChoiceId, fill answers, acceptedResponses, matches, correctOrder or authored classify assignments.",
+    "Deterministic static Lab artifact and local-only/network-free operation.",
+    "Fixture coverage for lesson, flashcard, matching, order, classify, qcm and fill.",
+    "At least two meaningfully different variants each for flashcard, matching, order and classify.",
+    "At least one simplified lesson candidate and polished qcm/fill baselines.",
+    "Response inspector proving exact ActivityResponse shape from each prototype without correctness.",
+    "Keyboard tests for every prototype variant.",
+    "Mobile/touch layout/interaction tests for every variant.",
+    "Screen-reader/accessibility smoke for every candidate interaction pattern.",
+    "Reduced-motion behavior for animated variants.",
+    "Deterministic human review bundle with bundle hash/bytes and variant manifest.",
+    "Repository governance PASS and exact changed-path scope PASS.",
+    "Phase B selection file accepted only from explicit human form with exact bundle hash."
+  ],
+  "adversarialTests": [
+    "Fail if any fixture contains correctChoiceId, acceptedResponses, authored matches, correctOrder, fill answer key or classify solution assignments.",
+    "Fail if any prototype calls product scoring/evaluation code or invents correctness.",
+    "Fail if drag-and-drop is the only way to operate matching/order/classify.",
+    "Fail if a prototype cannot emit the exact frozen response shape.",
+    "Fail if Lab code imports production session/progress/persistence authority.",
+    "Fail if production activity_presenters.js changes on this branch.",
+    "Fail if a human selection is inferred from comments rather than the explicit selection form.",
+    "Fail if a selected variant is implemented into production in this job."
+  ],
+  "independentReview": [
+    "This Lab branch is authored independently from App Experience and Pilot Activity Policy streams.",
+    "It consumes only frozen contract documents and its own learner-safe fixtures, not sibling results.",
+    "Human selection occurs before any later production presenter implementation.",
+    "ATLAS-WP-054 will independently implement and qualify only the human-selected variants."
+  ],
+  "nonGoals": [
+    "Production presenter changes.",
+    "Scoring/evaluation.",
+    "Course/session progress.",
+    "Constructed free-text prototyping for the first pilot.",
+    "Corrective fan-in.",
+    "G4/G5 qualification."
+  ],
+  "execution": {
+    "branch": "student-v01/g5-r1-activity-experience-lab",
+    "phase": "ACTIVITY_LAB_V1_AUTHORIZED",
+    "humanGateRequired": true,
+    "humanGateReason": "fail-fast prototype selection",
+    "mergeStatus": "not-merged",
+    "nextGate": "HUMAN_ACTIVITY_PROTOTYPE_SELECTION",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the Stream B PR and delete student-v01/g5-r1-activity-experience-lab. No production code rollback is needed because the Lab is isolated."
+}
