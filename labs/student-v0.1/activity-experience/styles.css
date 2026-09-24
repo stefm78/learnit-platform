@@ -64,3 +64,6 @@ button,select{font:inherit;color:inherit;min-height:44px;border-radius:var(--car
 .order-insert-line{display:block;width:46%;height:2px;border-radius:999px;background:#6f8f72;box-shadow:0 0 0 1px rgba(111,143,114,.12);transition:width .12s,background .12s}
 .order-insert-slot:hover .order-insert-line,.order-insert-slot:focus-visible .order-insert-line{width:60%;height:3px;background:#3f7c46}
 .order-insert-slot:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+
+/* V7 visual geometry: the dashed placeholder must not visually exceed its border box. */
+.order-placeholder.active-destination{box-shadow:none!important}
