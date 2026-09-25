@@ -18,6 +18,8 @@ jobs:
   reviewer-qualification:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      PYTHONPATH: .
     steps:
       - name: Check out exact reviewer head
         uses: actions/checkout@v7
