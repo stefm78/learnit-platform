@@ -1,0 +1,116 @@
+name: ATLAS WP060 reviewer qualification
+
+on:
+  push:
+    branches:
+      - student-v01/r2-v5-independent-semantic-review-r1
+    paths:
+      - '.github/workflows/atlas-wp060-reviewer-qualification.yml'
+      - 'showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json'
+      - 'showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json'
+      - 'work-packages/ATLAS-WP-060.json'
+      - 'qualification/STUDENT_V01_V5_INDEPENDENT_SEMANTIC_REVIEW_R1_RESULT.md'
+
+permissions:
+  contents: read
+
+jobs:
+  reviewer-qualification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact reviewer head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install exact validator dependency
+        run: python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1
+
+      - name: Verify immutable reviewer inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a)" = "05161916ef35f30fe744c9d8e9783740a003395a"
+          test "$(sha256sum showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json | awk '{print $1}')" = "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b"
+          test "$(sha256sum showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json | awk '{print $1}')" = "fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a"
+          test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a:authoring/v2/atlas/nombres_complexes_atlas.json)" = "7f83784e8719917496a694b2ad170d724190fd04"
+          test "$(sha256sum authoring/v2/atlas/nombres_complexes_atlas.json | awk '{print $1}')" = "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+          test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a:authoring/factory/v5_factory_gate.py)" = "07158c4564d8a7e1de1fdf380f3c038024452e48"
+          test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a:authoring/skills/SKILL_ATLAS_KIT_REVIEW_V2.md)" = "7ff6a41754f3b52e2dd13c18befbe4995e870a4e"
+
+      - name: Run exact V5 Factory gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/v5_factory_gate.py \
+            --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json \
+            --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json \
+            --review showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json \
+            --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json \
+            --role-b-manifest showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json \
+            > /tmp/factory-final.json
+          python - <<'PY'
+          import json
+          p='/tmp/factory-final.json'
+          x=json.load(open(p, encoding='utf-8'))
+          assert x['verdict']=='PASS_AI_KIT_FACTORY_V5_R2', x
+          assert x['semanticReview']['verdict']=='PASS_SEMANTIC_REVIEW_V5_R2', x
+          PY
+          echo 'FACTORY_EVIDENCE_V5_FINAL_BEGIN'
+          cat /tmp/factory-final.json
+          echo 'FACTORY_EVIDENCE_V5_FINAL_END'
+
+      - name: Run adversarial Factory probes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy,json,pathlib
+          src=json.loads(pathlib.Path('showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json').read_text(encoding='utf-8'))
+          stale=copy.deepcopy(src); stale['target']['kitSha256']='sha256:'+'0'*64
+          check=copy.deepcopy(src); check['v5Checks']['hintProgression']='hold'; check['verdict']='HOLD_SEMANTIC_REVIEW_V5_R2'
+          dirty=copy.deepcopy(src); dirty['independence']['authorActiveContextReused']=True; dirty['verdict']='HOLD_SEMANTIC_REVIEW_V5_R2'
+          for name,obj in [('stale',stale),('check',check),('dirty',dirty)]:
+              pathlib.Path('/tmp/'+name+'.json').write_text(json.dumps(obj,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          gate() {
+            name="$1" expected="$2"
+            set +e
+            python -B authoring/factory/v5_factory_gate.py \
+              --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json \
+              --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json \
+              --review "/tmp/${name}.json" \
+              --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json \
+              --role-b-manifest showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json \
+              > "/tmp/${name}-evidence.json"
+            rc=$?
+            set -e
+            test "$rc" -ne 0
+            python - "$expected" "/tmp/${name}-evidence.json" <<'PY'
+          import json,sys
+          expected,path=sys.argv[1:]
+          x=json.load(open(path,encoding='utf-8'))
+          assert x['verdict']==expected,(expected,x)
+          print(x['verdict'])
+          PY
+          }
+          echo -n 'FACTORY_GATE_STALE_TARGET_PROBE='; gate stale HOLD_V5_FACTORY_REVIEW_BINDING
+          echo -n 'FACTORY_GATE_V5_CHECK_HOLD_PROBE='; gate check HOLD_V5_FACTORY_SEMANTIC_REVIEW
+          echo -n 'FACTORY_GATE_DIRTY_INDEPENDENCE_PROBE='; gate dirty HOLD_V5_FACTORY_SEMANTIC_REVIEW
+
+      - name: Run V5 validator tests
+        run: python -B authoring/v5/tests/test_validate_v5.py -v
+
+      - name: Run V5 Factory source-governance tests
+        run: python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+
+      - name: Validate repository governance
+        run: python tools/validate_repository.py
