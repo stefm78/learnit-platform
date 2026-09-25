@@ -1,0 +1,339 @@
+{
+  "contract": "learnit.kit.v5",
+  "packageLineageId": "5c621f9b-f584-4669-9ae4-ce174f473650",
+  "packageRevisionId": "9062f1a1-f01f-42c7-90fb-ed4bdeaeb579",
+  "packageRevisionDigest": "sha256:fe02377b3c8e4cad94ee25883e90c68fb8083c15e18938f495c115d6ed1514ad",
+  "title": "Nombres complexes — Conjugué et module",
+  "description": "Parcours de 39 minutes pour comprendre, pratiquer et valider le conjugué, le module et leurs interprétations géométriques.",
+  "versionLabel": "Conjugué et module 1",
+  "language": "fr",
+  "courses": [
+    {
+      "courseLineageId": "7ee53f04-f12f-49b8-9d0a-e3e68cb4c412",
+      "courseRevisionId": "640ea095-d3f6-4fb7-92a9-b33e20302940",
+      "courseRevisionDigest": "sha256:0b7975a766e4dbaec9d9286bb54792ca73a6e4374e34f58c16d3593075c2bc07",
+      "title": "Conjugué et module des nombres complexes",
+      "subtitle": "Comprendre, retrouver, pratiquer et valider les deux notions",
+      "estimatedMinutes": 39,
+      "objectives": [
+        {
+          "objectiveId": "aaf4d254-9d16-43ec-8a47-c4d3b27f3777",
+          "label": "Calculer et interpréter un conjugué"
+        },
+        {
+          "objectiveId": "42f0999d-3586-4fe6-888f-c6df07a2b255",
+          "label": "Calculer et interpréter un module"
+        }
+      ],
+      "activities": [
+        {
+          "activityLineageId": "bd26d7ec-02aa-4530-9d87-51b8a2cc57a7",
+          "activityRevisionId": "bbb79698-89d1-4154-b5fd-f9c9632b9ec5",
+          "activityRevisionDigest": "sha256:3057235d6403bc969369fd42d1db6ce5f33f10359ea327cecb6b07421bf3c202",
+          "objectiveIds": [
+            "aaf4d254-9d16-43ec-8a47-c4d3b27f3777",
+            "42f0999d-3586-4fe6-888f-c6df07a2b255"
+          ],
+          "type": "lesson",
+          "learningPhase": "comprehension",
+          "estimatedMinutes": 4,
+          "title": "Conjugué et module : deux lectures d’un nombre complexe",
+          "body": "Pour un nombre complexe, le conjugué conserve la partie réelle et change le signe de la partie imaginaire. Dans le plan complexe, cela correspond à une symétrie par rapport à l’axe réel. Le module de z = a + ib vaut √(a² + b²) : il représente la distance du point d’affixe z à l’origine.",
+          "keyPoints": [
+            "Le conjugué conserve la partie réelle et oppose la partie imaginaire.",
+            "Le module vaut √(a² + b²).",
+            "Le module est la distance à l’origine dans le plan complexe."
+          ]
+        },
+        {
+          "activityLineageId": "28ef0c23-a968-4f37-bb56-8d4b0635e01c",
+          "activityRevisionId": "be024979-1d66-4ef7-ad51-9ed541d57d0b",
+          "activityRevisionDigest": "sha256:97a3b2c0b75bb2c171d3192803b0af05c6f8d2a40ee2836e0050029aad1725d8",
+          "objectiveIds": [
+            "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
+          ],
+          "type": "flashcard",
+          "learningPhase": "activation",
+          "estimatedMinutes": 2,
+          "front": "Que change-t-on pour passer de z = a + ib à son conjugué ?",
+          "back": "On conserve la partie réelle et on change le signe de la partie imaginaire.",
+          "explanation": "La règle s’applique aux exemples 2 + 3i, −1 − 4i et 5 − 2i."
+        },
+        {
+          "activityLineageId": "160f988a-5840-4104-93db-d9463cc92a01",
+          "activityRevisionId": "66c05bee-82c6-4192-8e0e-4ef4412f6095",
+          "activityRevisionDigest": "sha256:493ee2474d5776453814a9b23913a9edc2e65d4b1b64f9415230ae0aea23742e",
+          "objectiveIds": [
+            "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
+          ],
+          "type": "matching",
+          "learningPhase": "application",
+          "estimatedMinutes": 4,
+          "prompt": "Associe chaque nombre complexe à son conjugué.",
+          "explanation": "Le conjugué conserve la partie réelle et change uniquement le signe de la partie imaginaire.",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "leftItems": [
+            {
+              "itemId": "b1d7b4d0-4537-4236-bf2a-67aa4d3d9d28",
+              "label": "2 + 3i"
+            },
+            {
+              "itemId": "87ad9412-3dbe-42b2-b15b-698ac600ab4c",
+              "label": "−1 − 4i"
+            }
+          ],
+          "rightItems": [
+            {
+              "itemId": "226239c3-352b-4c50-af6b-8a2adc64ef87",
+              "label": "2 − 3i"
+            },
+            {
+              "itemId": "c3d93a11-21c1-45d1-a513-530448a1c679",
+              "label": "−1 + 4i"
+            }
+          ],
+          "matches": [
+            {
+              "leftItemId": "b1d7b4d0-4537-4236-bf2a-67aa4d3d9d28",
+              "rightItemId": "226239c3-352b-4c50-af6b-8a2adc64ef87"
+            },
+            {
+              "leftItemId": "87ad9412-3dbe-42b2-b15b-698ac600ab4c",
+              "rightItemId": "c3d93a11-21c1-45d1-a513-530448a1c679"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "70621195-4a56-4a0a-b16f-aed1c66be771",
+          "activityRevisionId": "f4498110-0227-404a-857d-324409c1c560",
+          "activityRevisionDigest": "sha256:08afaf2f1f5c35dd4f5cae56f8aba02493530934de19ba0871a3da09ef2e690c",
+          "objectiveIds": [
+            "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
+          ],
+          "type": "qcm",
+          "learningPhase": "transfer",
+          "estimatedMinutes": 4,
+          "prompt": "Dans le plan complexe, passer de z à son conjugué correspond à quelle transformation ?",
+          "explanation": "Le conjugué conserve l’abscisse et oppose l’ordonnée.",
+          "difficulty": "advanced",
+          "assessmentRole": "practice",
+          "choices": [
+            {
+              "choiceId": "0f9d7008-53b0-4ddb-bd8d-921c7f9a9d3c",
+              "label": "Une symétrie par rapport à l’axe réel"
+            },
+            {
+              "choiceId": "c8306144-53de-48aa-aaab-54ff153a43d8",
+              "label": "Une symétrie par rapport à l’axe imaginaire"
+            },
+            {
+              "choiceId": "4d9819c3-7d59-42ed-80af-05899a4d2da0",
+              "label": "Une rotation d’un demi-tour"
+            },
+            {
+              "choiceId": "0f86ad65-cf32-4871-9064-bf0b8789ba99",
+              "label": "Une translation"
+            }
+          ],
+          "correctChoiceId": "0f9d7008-53b0-4ddb-bd8d-921c7f9a9d3c"
+        },
+        {
+          "activityLineageId": "7672a1b7-9328-4b31-be08-1a56bbd2e57f",
+          "activityRevisionId": "66b080a6-8479-4c93-8010-273b07872bef",
+          "activityRevisionDigest": "sha256:3c60016fcd69c44db6ed1a6edd588b7f7a3f94ce1ba080eb75f8895e9050ee53",
+          "objectiveIds": [
+            "aaf4d254-9d16-43ec-8a47-c4d3b27f3777"
+          ],
+          "type": "qcm",
+          "learningPhase": "validation",
+          "estimatedMinutes": 5,
+          "prompt": "Déterminer le conjugué de 5 − 2i.",
+          "explanation": "Le signe de −2 devient +2.",
+          "difficulty": "medium",
+          "assessmentRole": "validation",
+          "choices": [
+            {
+              "choiceId": "419e963e-7457-4379-bdd5-10f5a10d27fe",
+              "label": "5 + 2i"
+            },
+            {
+              "choiceId": "07e535c1-b50e-49f9-98d6-d5bb054f099b",
+              "label": "−5 + 2i"
+            },
+            {
+              "choiceId": "29f16e66-443c-415b-af50-a3242bb60edf",
+              "label": "5 − 2i"
+            },
+            {
+              "choiceId": "a78b4dce-314c-4589-ad9e-6ff6340bf209",
+              "label": "−5 − 2i"
+            }
+          ],
+          "correctChoiceId": "419e963e-7457-4379-bdd5-10f5a10d27fe"
+        },
+        {
+          "activityLineageId": "b0e92b38-57be-4caa-80e9-a0cc770e4599",
+          "activityRevisionId": "2df5cfaf-877e-4718-91c7-8c9b2f0c3a3a",
+          "activityRevisionDigest": "sha256:cd961483425266ec1c47b86c8187f5d7415eae6fbdcce7ff69bf2ee4354af3e4",
+          "objectiveIds": [
+            "42f0999d-3586-4fe6-888f-c6df07a2b255"
+          ],
+          "type": "flashcard",
+          "learningPhase": "activation",
+          "estimatedMinutes": 2,
+          "front": "Quelle est la formule du module de z = a + ib ?",
+          "back": "|z| = √(a² + b²).",
+          "explanation": "Dans le plan complexe, ce module est la distance du point d’affixe z à l’origine."
+        },
+        {
+          "activityLineageId": "691f3cf1-f6a7-4cc0-9b74-7008643de172",
+          "activityRevisionId": "977d798a-a70e-4b60-a85a-7e82af51aa2c",
+          "activityRevisionDigest": "sha256:9a3a597a4686a79023250df773628a642a97d75b318e6b4998ab995fb57d3243",
+          "objectiveIds": [
+            "42f0999d-3586-4fe6-888f-c6df07a2b255"
+          ],
+          "type": "order",
+          "learningPhase": "application",
+          "estimatedMinutes": 4,
+          "prompt": "Remets dans l’ordre le calcul du module de 3 + 4i.",
+          "explanation": "On applique la formule du module à 3 + 4i, puis on obtient 5.",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "items": [
+            {
+              "itemId": "771c56b5-1297-46a2-a8f2-f2eee7eb6732",
+              "label": "Conclure : |3 + 4i| = 5."
+            },
+            {
+              "itemId": "bea93ca7-b3eb-48c3-be8c-dae943f7bef6",
+              "label": "Former √(3² + 4²)."
+            },
+            {
+              "itemId": "ae3c3c09-56fb-4aca-8988-0be95455b952",
+              "label": "Calculer √(3² + 4²) = 5."
+            }
+          ],
+          "correctOrder": [
+            "bea93ca7-b3eb-48c3-be8c-dae943f7bef6",
+            "ae3c3c09-56fb-4aca-8988-0be95455b952",
+            "771c56b5-1297-46a2-a8f2-f2eee7eb6732"
+          ]
+        },
+        {
+          "activityLineageId": "e7279474-373a-4823-9281-59952f2e91f9",
+          "activityRevisionId": "79b0d82c-9c30-48c1-994c-622d5203a5ca",
+          "activityRevisionDigest": "sha256:18e7a3922de1fe87a72ad767d44d93109f616e4e1d25eb67c77b07fd6ca4d6ec",
+          "objectiveIds": [
+            "42f0999d-3586-4fe6-888f-c6df07a2b255"
+          ],
+          "type": "matching",
+          "learningPhase": "application",
+          "estimatedMinutes": 4,
+          "prompt": "Associe chaque expression à sa valeur.",
+          "explanation": "Les valeurs correspondent aux exemples de module et de distance à l’origine étudiés dans ce parcours.",
+          "difficulty": "medium",
+          "assessmentRole": "practice",
+          "leftItems": [
+            {
+              "itemId": "a9f4bee6-5743-472f-b4ec-29faab85fba6",
+              "label": "|3 + 4i|"
+            },
+            {
+              "itemId": "975e9396-6d18-462e-8861-0e8c7239acd4",
+              "label": "Distance à l’origine du point d’affixe 8 − 15i"
+            }
+          ],
+          "rightItems": [
+            {
+              "itemId": "37c40737-af02-4de1-8e8f-039b02eea161",
+              "label": "5"
+            },
+            {
+              "itemId": "791a425a-8577-4f67-9f6b-6d4a03550ef6",
+              "label": "17"
+            }
+          ],
+          "matches": [
+            {
+              "leftItemId": "a9f4bee6-5743-472f-b4ec-29faab85fba6",
+              "rightItemId": "37c40737-af02-4de1-8e8f-039b02eea161"
+            },
+            {
+              "leftItemId": "975e9396-6d18-462e-8861-0e8c7239acd4",
+              "rightItemId": "791a425a-8577-4f67-9f6b-6d4a03550ef6"
+            }
+          ]
+        },
+        {
+          "activityLineageId": "8d7844eb-2451-42a7-8aa1-358bb732f554",
+          "activityRevisionId": "9ba5d27c-2982-4b2c-b1de-574652d4043d",
+          "activityRevisionDigest": "sha256:45075f52952487f27fad15219355ff28c670b2e21de3f7a05d242ab6e1ae3920",
+          "objectiveIds": [
+            "42f0999d-3586-4fe6-888f-c6df07a2b255"
+          ],
+          "type": "qcm",
+          "learningPhase": "validation",
+          "estimatedMinutes": 5,
+          "prompt": "Calculer le module de −5 + 12i.",
+          "explanation": "√(25 + 144) = √169 = 13.",
+          "difficulty": "medium",
+          "assessmentRole": "validation",
+          "choices": [
+            {
+              "choiceId": "d40b8799-4931-4d8a-b22e-efce834bc3e2",
+              "label": "13"
+            },
+            {
+              "choiceId": "447a5301-fd17-4176-b83c-62da72344cbc",
+              "label": "17"
+            },
+            {
+              "choiceId": "8d1f8d54-45ef-419c-aa72-95e1823a96b4",
+              "label": "7"
+            },
+            {
+              "choiceId": "7300f965-d027-4da1-bdfb-e7e4891af55e",
+              "label": "169"
+            }
+          ],
+          "correctChoiceId": "d40b8799-4931-4d8a-b22e-efce834bc3e2"
+        },
+        {
+          "activityLineageId": "a65f94fa-98a5-496e-8b31-56625c9d2733",
+          "activityRevisionId": "71b869f2-ca60-4f44-8193-489c09755eb7",
+          "activityRevisionDigest": "sha256:eb85d90d958b445500e2343a7492cfd93f86aea6c6cf3d43c5b793fc8e03c661",
+          "objectiveIds": [
+            "42f0999d-3586-4fe6-888f-c6df07a2b255"
+          ],
+          "type": "qcm",
+          "learningPhase": "transfer",
+          "estimatedMinutes": 5,
+          "prompt": "Quel ensemble géométrique décrit l’équation |z| = 2 ?",
+          "explanation": "Un module constant fixe la distance à l’origine.",
+          "difficulty": "advanced",
+          "assessmentRole": "practice",
+          "choices": [
+            {
+              "choiceId": "c3d4fb1b-b24f-4726-8c84-960576d947d3",
+              "label": "Le cercle de centre O et de rayon 2"
+            },
+            {
+              "choiceId": "e1ae85d7-d157-4730-a076-266b040d6737",
+              "label": "La droite Re(z)=2"
+            },
+            {
+              "choiceId": "29e6060d-d913-43af-9eb1-0b07c3a9c015",
+              "label": "Le disque de rayon 2"
+            },
+            {
+              "choiceId": "04428ba3-2825-4a91-ad83-65aa7c5b04ba",
+              "label": "L’axe imaginaire"
+            }
+          ],
+          "correctChoiceId": "c3d4fb1b-b24f-4726-8c84-960576d947d3"
+        }
+      ]
+    }
+  ]
+}

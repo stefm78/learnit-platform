@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-059",
+  "title": "Student V0.1 exact 10C showcase V5 port R1",
+  "status": "under-qa",
+  "purpose": "Execute R2 Handoff 5 only: exact JOB10C 10-activity/39-minute learnit.kit.v5 port, deterministic author-side pre-review evidence, and exact technical V5/V8 requalification.",
+  "changeClass": "exact-v5-showcase-port-and-author-pre-review",
+  "riskClass": "moderate",
+  "authority": {
+    "issue": 448,
+    "humanDecisionIssue": 431,
+    "humanDecisionComment": 5817817692,
+    "decision": "GO_PRE_PILOT_V5",
+    "parentIssue": 446,
+    "parentPullRequest": 447,
+    "historicalInputPullRequest": 438
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-v8-selected-presenters-r1",
+    "baseCommit": "6480a21694006a78f4b75dbfea3d214277e776ba",
+    "parentResultSha": "3e44a1d4d74456dc7d2d74b62b151c016cdd85df",
+    "historical10cHead": "982b86bf86e18b39926736f92a16be40ba47f60b",
+    "historical10cResultSha": "9e3685b9b811abbd5c0ceeeb70e346ee3fa4d530",
+    "historicalV4KitBlob": "7d90c619b05d4dbea1a1b5674be82cc0dcdcdeec"
+  },
+  "scope": {
+    "allowedPaths": [
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/V5_PORT_DECISIONS.json",
+      "showcase/student-v0.1/nombres-complexes/V5_VALIDATION_REPORT.json",
+      "showcase/student-v0.1/nombres-complexes/V5_AUTHORING_POLICY_REPORT.json",
+      "showcase/student-v0.1/nombres-complexes/V5_PEDAGOGICAL_QUALITY_REPORT.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/V5_PRE_REVIEW_EVIDENCE.json",
+      "showcase/student-v0.1/nombres-complexes/PROVENANCE_MAP_V5.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/AUTHOR_AUDIT_V5.md",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_REVIEW_REQUEST_V5.md",
+      "docs/programs/student-v0.1/STUDENT_V0_1_LIMITED_PILOT_ACTIVITY_PROFILE_V5.md",
+      "apps/learnit-next/tests/v5_showcase_port_r1.py",
+      "work-packages/ATLAS-WP-059.json",
+      "qualification/STUDENT_V01_V5_SHOWCASE_PORT_R1_RESULT.md",
+      ".github/workflows/atlas-wp059-transient-blocker-qualification.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "contracts/**",
+      "authoring/**",
+      "docs/atlas/**",
+      "labs/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "No product/runtime code is modified in JOB16.",
+    "Historical PR #438 is oracle only; no cherry-pick.",
+    "Exactly 10 activities and 39 minutes are preserved.",
+    "No optional V5 field is added without need; this port adds none.",
+    "Learner brief and Role B source remain unchanged.",
+    "No independent semantic review or final V5 Factory PASS is produced.",
+    "ATLAS-WP-054 remains blocked."
+  ],
+  "requiredEvidence": [
+    "Exact historical identities.",
+    "V5 canonical/authoring/quality pre-review PASS.",
+    "Role A empty-set PASS.",
+    "Role B exact source governance PASS.",
+    "Factory context exact and rotated.",
+    "Full exact 10-activity V5/V8 smoke with reload/resume PASS.",
+    "Repository governance PASS."
+  ],
+  "adversarialTests": [
+    "No gratuitous activity/course revision rotation.",
+    "No constructed or acceptedResponses resurrection.",
+    "No Role B expansion.",
+    "No historical semantic-review reuse.",
+    "Do not misclassify legacy Atlas qcm/fill-only surface as failure of the qualified classic V8 path for this no-hints candidate."
+  ],
+  "nonGoals": [
+    "Handoff 6.",
+    "Final V5 Factory gate.",
+    "Product/runtime repair.",
+    "Fan-in.",
+    "ATLAS-WP-054.",
+    "Merge/cherry-pick/promotion/student session."
+  ],
+  "independentReview": [
+    "SEMANTIC_REVIEW remains PENDING_INDEPENDENT_V5_REVIEW."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-v5-showcase-port-r1",
+    "parentHead": "6480a21694006a78f4b75dbfea3d214277e776ba",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "semanticReviewAuthorized": false,
+    "qualifiedCarrierHead": "5ed081ca20eb5b68502c45d080daa74ed0017a15",
+    "qualifiedCarrierRun": 36137138473,
+    "qualifiedCarrierResult": "SUCCESS"
+  },
+  "nextGate": "R2_HANDOFF_6_INDEPENDENT_V5_SEMANTIC_REVIEW",
+  "finalVerdict": "PASS_READY_FOR_R2_HANDOFF_6",
+  "rollback": "Close unmerged PR and delete branch; upstream authorities remain unchanged."
+}
