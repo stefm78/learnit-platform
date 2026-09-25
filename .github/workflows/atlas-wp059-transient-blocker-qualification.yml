@@ -1,0 +1,19 @@
+name: ATLAS WP059 Transient Blocker Qualification
+on:
+  push:
+    branches:
+      - student-v01/r2-v5-showcase-port-r1
+permissions:
+  contents: read
+jobs:
+  exact-runtime-blocker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Exact candidate/runtime blocker probe
+        run: python apps/learnit-next/tests/v5_showcase_port_runtime_blocker_r1.py
+      - name: Repository governance
+        run: python tools/validate_repository.py

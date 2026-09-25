@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-059",
+  "title": "Student V0.1 exact 10C showcase V5 port R1",
+  "status": "blocked-upstream-runtime-defect",
+  "purpose": "Execute R2 Handoff 5 only. Execution stopped fail-closed when the exact historical 10C candidate exposed an upstream Atlas/V8 activity-family support gap on the qualified Handoff-4 product.",
+  "changeClass": "C2",
+  "riskClass": "R2",
+  "authority": {
+    "issue": 448,
+    "humanDecisionIssue": 431,
+    "humanDecisionComment": 5817817692,
+    "decision": "GO_PRE_PILOT_V5",
+    "parentIssue": 446,
+    "parentPullRequest": 447,
+    "historicalInputPullRequest": 438
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-v8-selected-presenters-r1",
+    "baseCommit": "6480a21694006a78f4b75dbfea3d214277e776ba",
+    "parentResultSha": "3e44a1d4d74456dc7d2d74b62b151c016cdd85df",
+    "historical10cHead": "982b86bf86e18b39926736f92a16be40ba47f60b",
+    "historical10cResultSha": "9e3685b9b811abbd5c0ceeeb70e346ee3fa4d530",
+    "historicalV4KitBlob": "7d90c619b05d4dbea1a1b5674be82cc0dcdcdeec"
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/tests/v5_showcase_port_runtime_blocker_r1.py",
+      "showcase/student-v0.1/nombres-complexes/V5_RUNTIME_BLOCKER_REPORT.json",
+      "work-packages/ATLAS-WP-059.json",
+      ".github/workflows/atlas-wp059-transient-blocker-qualification.yml",
+      "qualification/STUDENT_V01_V5_SHOWCASE_PORT_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/**",
+      "contracts/**",
+      "authoring/**",
+      "labs/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "No product/runtime code is modified in JOB16.",
+    "Historical PR #438 is input oracle only; no cherry-pick.",
+    "Learner brief and Role B source remain unchanged.",
+    "No independent semantic review or final V5 Factory PASS is produced.",
+    "A runtime defect in Handoff 3/4 causes HOLD_UPSTREAM_RUNTIME_DEFECT rather than an in-scope repair."
+  ],
+  "defect": {
+    "code": "UPSTREAM_H4_ATLAS_ACTIVITY_FAMILY_GATE_AND_RENDERER_GAP",
+    "surfaceSupportedActivityTypes": [
+      "qcm",
+      "fill"
+    ],
+    "exactShowcaseUnsupportedTypes": [
+      "lesson",
+      "flashcard",
+      "matching",
+      "order"
+    ]
+  },
+  "execution": {
+    "branch": "student-v01/r2-v5-showcase-port-r1",
+    "parentHead": "6480a21694006a78f4b75dbfea3d214277e776ba",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "semanticReviewAuthorized": false
+  },
+  "nextGate": "UPSTREAM_RUNTIME_CORRECTIVE_HANDOFF_REQUIRED",
+  "finalVerdict": "HOLD_UPSTREAM_RUNTIME_DEFECT",
+  "rollback": "Close the unmerged draft PR and delete the Handoff-5 branch; Handoff 4 and historical 10C authorities remain unchanged."
+}
