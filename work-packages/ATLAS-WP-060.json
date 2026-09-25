@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-060",
   "title": "Student V0.1 independent V5 semantic review R1",
-  "status": "under-qa",
+  "status": "qualified",
   "purpose": "Execute R2 Handoff 6 only: independent semantic review of the exact V5 Nombres complexes candidate, exact final V5 Factory qualification, adversarial Factory rejection probes, and reviewer-only evidence.",
   "changeClass": "independent-v5-semantic-review-and-factory-qualification",
   "riskClass": "moderate",
@@ -90,10 +90,21 @@
     "mergeAuthorized": false,
     "promotionAuthorized": false,
     "semanticReviewAuthorized": true,
-    "reviewerQualificationRun": 36149010287,
-    "reviewerQualificationHead": "490c43438c07691f4c712b074b5a383b9c1355ad",
+    "reviewerQualificationRun": 36149333780,
+    "reviewerQualificationHead": "0d839b4a3a9d7f88bf7aaa75ff0a2415805745a0",
     "reviewerQualificationResult": "SUCCESS",
-    "pullRequest": 452
+    "pullRequest": 452,
+    "resultSha": "0d839b4a3a9d7f88bf7aaa75ff0a2415805745a0",
+    "repositoryGovernance": "PASS",
+    "v5ValidatorTests": "PASS_11_OF_11",
+    "v5FactorySourceGovernanceTests": "PASS_20_OF_20",
+    "factoryGate": "PASS_AI_KIT_FACTORY_V5_R2",
+    "semanticReview": "PASS_SEMANTIC_REVIEW_V5_R2",
+    "probes": {
+      "staleTarget": "HOLD_V5_FACTORY_REVIEW_BINDING",
+      "v5CheckHold": "HOLD_V5_FACTORY_SEMANTIC_REVIEW",
+      "dirtyIndependence": "HOLD_V5_FACTORY_SEMANTIC_REVIEW"
+    }
   },
   "nextGate": "R2_HANDOFF_7_FINAL_CORRECTIVE_FANIN_REGRESSION_HUMAN_REPLAY",
   "finalVerdict": "PASS_READY_FOR_R2_HANDOFF_7",
