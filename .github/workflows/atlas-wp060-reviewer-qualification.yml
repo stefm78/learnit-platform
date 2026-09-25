@@ -39,10 +39,21 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a)" = "05161916ef35f30fe744c9d8e9783740a003395a"
-          test "$(sha256sum showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json | awk '{print $1}')" = "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b"
-          test "$(sha256sum showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json | awk '{print $1}')" = "fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a"
+          python -B authoring/factory/factory_gate.py context \
+            --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json \
+            --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json \
+            --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json \
+            > /tmp/factory-context.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/factory-context.json',encoding='utf-8'))
+          assert x['kitSha256']=='sha256:aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b',x
+          assert x['briefSha256']=='sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a',x
+          assert x['sources']==[{'sourceId':'nombres-complexes-atlas-v2','bytes':12384,'sha256':'sha256:3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d'}],x
+          assert x['sourceSetDigest']=='sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83',x
+          assert x['contextDigest']=='sha256:32fd5f9afcc0dd9466c50afb961614f442969d7681036e12a98b1ee59dece739',x
+          PY
           test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a:authoring/v2/atlas/nombres_complexes_atlas.json)" = "7f83784e8719917496a694b2ad170d724190fd04"
-          test "$(sha256sum authoring/v2/atlas/nombres_complexes_atlas.json | awk '{print $1}')" = "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
           test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a:authoring/factory/v5_factory_gate.py)" = "07158c4564d8a7e1de1fdf380f3c038024452e48"
           test "$(git rev-parse 05161916ef35f30fe744c9d8e9783740a003395a:authoring/skills/SKILL_ATLAS_KIT_REVIEW_V2.md)" = "7ff6a41754f3b52e2dd13c18befbe4995e870a4e"
 
