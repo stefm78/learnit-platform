@@ -256,8 +256,13 @@ export function createLearnitRuntime(
         packageLineageId: courseRecord.packageLineageId,
         packageRevisionId: courseRecord.packageRevisionId,
         packageDigest,
-        contract: courseRecord.contract ?? null,
-        packageAssets: structuredClone(courseRecord.packageAssets ?? []),
+        ...(courseRecord.contract === 'learnit.kit.v5'
+          ? {
+            contract: courseRecord.contract,
+            packageAssets:
+              structuredClone(courseRecord.packageAssets ?? []),
+          }
+          : {}),
         course: structuredClone(courseRecord.course),
       });
     },

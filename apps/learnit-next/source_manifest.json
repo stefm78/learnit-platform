@@ -135,11 +135,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "21a303e9616d7d5f402228d7bd0a9e748d0ad5e6"
+        "value": "ac68280407fd356bfe6dc8b86af83d742ce55352"
       },
-      "owner": "ATLAS-WP-037",
+      "owner": "ATLAS-WP-057",
       "path": "apps/learnit-next/src/main.js",
-      "provenance": "ATLAS-WP-037 served V4 integration repair"
+      "provenance": "ATLAS-WP-057 V5 runtime / Atlas projection bounded audit repair"
     },
     {
       "fingerprint": {
@@ -162,20 +162,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "72012b6f2278cbd4e82f22b014fcf13c42dcb418"
+        "value": "176a523e81006e9dcb574b2154f564403f64cd3f"
       },
-      "owner": "STUDENT-V01-JOB01",
+      "owner": "ATLAS-WP-057",
       "path": "apps/learnit-next/src/core/contract.js",
-      "provenance": "JOB01:ef3080e32e873170c6fd2fbdc72e93c31389cebb"
+      "provenance": "ATLAS-WP-057 V5 runtime / Atlas projection bounded audit repair"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "34902450a2ae5e5381fac63e3727c23ec9b08dc6"
+        "value": "3891c7d464003200d4cee6ce350b400359a1a20b"
       },
-      "owner": "STUDENT-V01-JOB01",
+      "owner": "ATLAS-WP-057",
       "path": "apps/learnit-next/src/core/import.js",
-      "provenance": "JOB01:d937592fb4d1e6dba6fcd02e290290f1a98cff71"
+      "provenance": "ATLAS-WP-057 V5 runtime / Atlas projection bounded audit repair"
     },
     {
       "fingerprint": {
@@ -369,7 +369,7 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "e63b366292fe2a03c7170a435d8f54076d131b7a8caa46b3027da52555025c5d"
+        "value": "e03ff5b16e44081aa71fd9905b59565a3266085da2cd5de1939af8f498a56762"
       },
       "owner": "ATLAS-WP-037",
       "path": "apps/learnit-next/source_manifest.json",

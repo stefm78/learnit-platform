@@ -25,6 +25,7 @@ const V5_TYPES = new Set(V4_ACTIVITY_TYPES);
 const NON_WHITESPACE = /\S/;
 const CONTROL_OR_SPACE = /[\x00-\x20\x7f]/;
 const BACKSLASH = /\\/;
+const HTTPS_AUTHORITY = /^https:\/\/([^/?#]+)(?:[/?#]|$)/i;
 const EVALUATED_TYPES = new Set(['qcm', 'fill', 'constructed', 'matching', 'order', 'classify']);
 
 export class ContractValidationError extends Error {
@@ -160,8 +161,14 @@ function validateReference(value, path, errors) {
   exactKeys(value, keys, keys, path, errors);
   if (string(value.url, `${path}.url`, errors, { min: 9, max: 2048 })) {
     const raw = value.url;
-    if (!NON_WHITESPACE.test(raw) || raw !== raw.trim() || CONTROL_OR_SPACE.test(raw) || BACKSLASH.test(raw)) {
-      issue(errors, 'unsafe_reference_url', `${path}.url`, 'Reference URL must be a whitespace-free HTTPS URL');
+    if (
+      !NON_WHITESPACE.test(raw)
+      || raw !== raw.trim()
+      || CONTROL_OR_SPACE.test(raw)
+      || BACKSLASH.test(raw)
+      || !HTTPS_AUTHORITY.test(raw)
+    ) {
+      issue(errors, 'unsafe_reference_url', `${path}.url`, 'Reference URL must be a whitespace-free HTTPS URL with an ordinary host');
     } else {
       try {
         const parsed = new URL(raw);

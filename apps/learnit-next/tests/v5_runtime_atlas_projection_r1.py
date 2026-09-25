@@ -179,6 +179,32 @@ assert.equal(plan.package.contract, 'learnit.kit.v5');
 assert.equal(plan.courses[0].contract, 'learnit.kit.v5');
 assert.deepEqual(plan.courses[0].packageAssets, v5.assets);
 
+for (const legacyContract of ['learnit.kit.v2', 'learnit.kit.v3', 'learnit.kit.v4']) {
+  const legacy = structuredClone(v4);
+  legacy.contract = legacyContract;
+  const legacyPlan = buildInstallationPlan(
+    legacy,
+    new Date('2026-09-24T20:00:00.000Z'),
+  );
+  assert.equal(Object.hasOwn(legacyPlan.package, 'contract'), false);
+  assert.equal(Object.hasOwn(legacyPlan.courses[0], 'contract'), false);
+}
+
+const malformedReference = structuredClone(v5);
+malformedReference.courses[0].activities[0].references[0].url =
+  'https:///missing-host';
+await fillDigests(malformedReference);
+const malformedReferenceResult =
+  await validatePackageObject(malformedReference);
+assert.equal(malformedReferenceResult.ok, false);
+assert.equal(
+  malformedReferenceResult.errors.some(error => (
+    error.code === 'unsafe_reference_url'
+    && error.path.endsWith('.references[0].url')
+  )),
+  true,
+);
+
 let fetchCalls = 0;
 globalThis.fetch = async () => {
   fetchCalls += 1;

@@ -112,7 +112,9 @@ export function buildInstallationPlan(payload, now = new Date()) {
   const courses = payload.courses.map(course => ({
     courseInstallId: installationId(),
     packageInstallId,
-    contract: payload.contract,
+    ...(payload.contract === 'learnit.kit.v5'
+      ? { contract: payload.contract }
+      : {}),
     packageLineageId: payload.packageLineageId,
     packageRevisionId: payload.packageRevisionId,
     courseLineageId: course.courseLineageId,
@@ -129,7 +131,9 @@ export function buildInstallationPlan(payload, now = new Date()) {
   return {
     package: {
       packageInstallId,
-      contract: payload.contract,
+      ...(payload.contract === 'learnit.kit.v5'
+        ? { contract: payload.contract }
+        : {}),
       packageLineageId: payload.packageLineageId,
       packageRevisionId: payload.packageRevisionId,
       packageRevisionDigest: payload.packageRevisionDigest,
