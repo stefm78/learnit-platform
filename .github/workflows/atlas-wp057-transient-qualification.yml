@@ -39,7 +39,7 @@ jobs:
           set -euo pipefail
           python -B authoring/v5/tests/test_validate_v5.py -v
           python -B authoring/v4/tests/test_validate_v4.py -v
-          python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+          PYTHONPATH=. python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
       - name: Historical runtime and Atlas regressions
         run: |
           set -euo pipefail
