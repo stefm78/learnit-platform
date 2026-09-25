@@ -210,7 +210,9 @@ window.wp59={{
           browser.close()
       finally:
         server.shutdown();server.server_close();hp.unlink(missing_ok=True)
-    import sys\n    if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))\n    from authoring.factory import factory_gate, v5_factory_gate
+    import sys
+    if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
+    from authoring.factory import factory_gate, v5_factory_gate
     from authoring.v5 import authoring_policy
     context=factory_gate.build_context(p,ROOT/"showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",["nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json"])
     assert context==json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json").read_text(encoding="utf-8"))
