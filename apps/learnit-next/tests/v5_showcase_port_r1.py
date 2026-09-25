@@ -224,7 +224,7 @@ window.wp59={{
     assert v5_factory_gate.validate_role_a(candidate,[])["verdict"]=="PASS_V5_ROLE_A_REFERENCE_ADMISSION_R1"
     rb=v5_factory_gate.validate_role_b(json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json").read_text(encoding="utf-8")),context,["nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json"],[])
     assert rb["verdict"]=="PASS_V5_ROLE_B_SOURCE_GOVERNANCE_R1"
-    vr=subprocess.run(["python","-B","authoring/v5/validate_kit.py",str(p),"--format","json"],cwd=ROOT,text=True,capture_output=True,check=True)
+    vr=subprocess.run(["python","-B","authoring/v5/validate_kit.py",str(p.relative_to(ROOT)),"--format","json"],cwd=ROOT,text=True,capture_output=True,check=True)
     assert json.loads(vr.stdout)==json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_VALIDATION_REPORT.json").read_text(encoding="utf-8"))
     d=json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_PORT_DECISIONS.json").read_text(encoding="utf-8")); assert len(d["entries"])==10
     assert all(x["hints"]["decision"]==x["media"]["decision"]==x["references"]["decision"]=="NONE" for x in d["entries"])
