@@ -213,3 +213,5 @@ window.wp59={{
     assert not subprocess.check_output(["git","status","--porcelain"],cwd=ROOT,text=True).strip()
     print("V8_EXACT_10_ACTIVITY_RENDER_RESPONSE: PASS");print("ACTIVITY_RESPONSE_UNCHANGED: PASS");print("UPSTREAM_PRODUCT_MUTATION: NONE");print("CLASSIC_V8_PATH_REFUTES_ATLAS_SURFACE_ONLY_BLOCKER: PASS")
 if __name__=="__main__": main()
+
+# second-push trigger: workflow now exists on branch
