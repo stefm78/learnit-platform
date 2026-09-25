@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-060",
+  "title": "Student V0.1 independent V5 semantic review R1",
+  "status": "under-qa",
+  "purpose": "Execute R2 Handoff 6 only: independent semantic review of the exact V5 Nombres complexes candidate, exact final V5 Factory qualification, adversarial Factory rejection probes, and reviewer-only evidence.",
+  "changeClass": "independent-v5-semantic-review-and-factory-qualification",
+  "riskClass": "moderate",
+  "authority": {
+    "issue": 451,
+    "pullRequest": 452,
+    "humanDecisionIssue": 431,
+    "humanDecisionComment": 5817817692,
+    "decision": "GO_PRE_PILOT_V5",
+    "parentIssue": 448,
+    "parentPullRequest": 449
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-v5-showcase-port-r1",
+    "baseCommit": "05161916ef35f30fe744c9d8e9783740a003395a",
+    "parentResultSha": "1f67cae285f9afc0425734329608623894b88831",
+    "kitBlob": "57374ba897600894ab124e8ac2d3ee3b6f5c4cc2",
+    "kitSha256": "sha256:aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b",
+    "briefBlob": "6c4fb770f12690a3cb338c82fc77bf9b323c3b06",
+    "briefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a",
+    "sourceBlob": "7f83784e8719917496a694b2ad170d724190fd04",
+    "sourceSha256": "sha256:3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d",
+    "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83",
+    "factoryContextDigest": "sha256:32fd5f9afcc0dd9466c50afb961614f442969d7681036e12a98b1ee59dece739",
+    "reviewerSkillBlob": "7ff6a41754f3b52e2dd13c18befbe4995e870a4e",
+    "factoryGateBlob": "07158c4564d8a7e1de1fdf380f3c038024452e48"
+  },
+  "scope": {
+    "allowedPaths": [
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json",
+      "work-packages/ATLAS-WP-060.json",
+      "qualification/STUDENT_V01_V5_INDEPENDENT_SEMANTIC_REVIEW_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "authoring/**",
+      "contracts/**",
+      "apps/**",
+      "labs/**",
+      "pilot/**",
+      "docs/atlas/**"
+    ]
+  },
+  "invariants": [
+    "Reviewer independence is truthful: authorScratchpadSeen=false and authorActiveContextReused=false.",
+    "Semantic judgment uses only REVIEW_INPUT_AUTHORITY-authorized inputs.",
+    "The exact V5 candidate, learner brief, Role B source/manifest, contract, authoring, runtime, presenters and Atlas remain unchanged.",
+    "All six semantic dimensions and all four V5 checks are independently challenged.",
+    "No author repair, Handoff 7, fan-in, ATLAS-WP-054, merge, cherry-pick, promotion or student session is performed."
+  ],
+  "requiredEvidence": [
+    "Independent semantic review V2 PASS with all six dimensions pass.",
+    "All four V5 checks pass, including explicit zero-hints and zero-Role-A handling.",
+    "Exact V5 Factory gate PASS on immutable bindings.",
+    "Stale target probe HOLD_V5_FACTORY_REVIEW_BINDING.",
+    "V5 check hold probe HOLD_V5_FACTORY_SEMANTIC_REVIEW.",
+    "Dirty independence probe HOLD_V5_FACTORY_SEMANTIC_REVIEW.",
+    "V5 validator tests PASS.",
+    "V5 Factory/source-governance tests PASS.",
+    "Repository governance PASS."
+  ],
+  "adversarialTests": [
+    "Altered semantic-review target hash is rejected by review binding.",
+    "A V5 check set to hold is rejected by semantic review gate.",
+    "Dirty reviewer independence is rejected by semantic review gate."
+  ],
+  "nonGoals": [
+    "Candidate repair.",
+    "Handoff 7.",
+    "Final corrective fan-in.",
+    "ATLAS-WP-054.",
+    "Merge/cherry-pick/promotion/student session."
+  ],
+  "independentReview": [
+    "authorScratchpadSeen=false",
+    "authorActiveContextReused=false",
+    "No Handoff-5 author report, historical V4 review, author conversation, project summary, Web research or external replacement source was used as semantic proof."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-v5-independent-semantic-review-r1",
+    "parentHead": "05161916ef35f30fe744c9d8e9783740a003395a",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "semanticReviewAuthorized": true,
+    "reviewerQualificationRun": 36149010287,
+    "reviewerQualificationHead": "490c43438c07691f4c712b074b5a383b9c1355ad",
+    "reviewerQualificationResult": "SUCCESS",
+    "pullRequest": 452
+  },
+  "nextGate": "R2_HANDOFF_7_FINAL_CORRECTIVE_FANIN_REGRESSION_HUMAN_REPLAY",
+  "finalVerdict": "PASS_READY_FOR_R2_HANDOFF_7",
+  "rollback": "Close unmerged PR #452 and delete reviewer branch; parent Handoff 5 remains unchanged."
+}
