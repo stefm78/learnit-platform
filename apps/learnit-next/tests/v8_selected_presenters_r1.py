@@ -50,7 +50,8 @@ def shapes(page):
     render(page,'flashcard');page.locator('.activity-flash-card').click();page.locator('[data-activity-continue="flashcard"]').click();assert page.evaluate('window.v8.response("flashcard")')=={'revealed':True}
     render(page,'matching')
     while page.locator('.activity-match-source>.activity-match-card').count():
-        page.locator('.activity-match-source>.activity-match-card').first.click();page.locator('.activity-pair-target.eligible-destination').first.click()
+        page.locator('.activity-match-source>.activity-match-card').first.click()
+        page.locator('.activity-pair-row:not(.matched) .activity-pair-target.eligible-destination').first.click()
     r=page.evaluate('window.v8.response("matching")');assert set(r)=={'associations'} and {x['leftItemId'] for x in r['associations']}=={'l1','l2','l3'}
     render(page,'order');r=page.evaluate('window.v8.response("order")');assert set(r)=={'orderedItemIds'} and set(r['orderedItemIds'])=={'o1','o2','o3','o4'}
     render(page,'classify')
@@ -61,6 +62,18 @@ def shapes(page):
     while page.locator('.activity-token-bank>.activity-token-chip').count():
         page.locator('.activity-token-bank>.activity-token-chip').first.click();page.locator('.activity-fill-b-slot.eligible-destination').first.click()
     r=page.evaluate('window.v8.response("fill")');assert set(r)=={'s1','s2'} and set(r.values())=={'t1','t2'}
+def matching_replacement(page):
+    render(page,'matching')
+    source=page.locator('.activity-match-source>.activity-match-card')
+    first_id=source.first.get_attribute('data-card-id')
+    source.first.click();target=page.locator('.activity-pair-target.eligible-destination').first;target.click()
+    placed=page.locator('.activity-pair-slot .activity-match-card');assert placed.count()==1 and placed.first.get_attribute('data-card-id')==first_id
+    source=page.locator('.activity-match-source>.activity-match-card');second_id=source.first.get_attribute('data-card-id')
+    source.first.click();page.locator('.activity-pair-target').first.click()
+    placed=page.locator('.activity-pair-slot .activity-match-card')
+    assert placed.count()==1 and placed.first.get_attribute('data-card-id')==second_id
+    assert page.locator('.activity-match-source>.activity-match-card[data-card-id="'+first_id+'"]').count()==1
+
 def randomization_and_media_failure(page):
     render(page,'qcm');labels1=page.locator('.activity-qcm-label').all_inner_texts();page.locator('[data-activity-choice="true"]').first.check();assert page.locator('.activity-qcm-label').all_inner_texts()==labels1
     render(page,'qcm');labels2=page.locator('.activity-qcm-label').all_inner_texts();assert labels2==labels1
@@ -112,7 +125,7 @@ def main():
         for width in (390,320):
           c=browser.new_context(viewport={'width':width,'height':844},has_touch=True,is_mobile=True);page=c.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.on('request',lambda r:external.append(r.url) if r.url.startswith(('http://','https://')) and HOST not in r.url else None);page.goto(f'http://{HOST}:{port}/apps/learnit-next/tests/v8_selected_presenters_harness.html',wait_until='networkidle')
           for kind in ('qcm','fill','lesson','flashcard','matching','order','classify'):render(page,kind)
-          if width==390:shapes(page);randomization_and_media_failure(page);geometry_keyboard(page);pointer_paths(page);page.emulate_media(reduced_motion='reduce');render(page,'flashcard');page.locator('.activity-flash-card').click();assert page.locator('.activity-flash-inner').evaluate('e=>getComputedStyle(e).transform')=='none'
+          if width==390:shapes(page);matching_replacement(page);randomization_and_media_failure(page);geometry_keyboard(page);pointer_paths(page);page.emulate_media(reduced_motion='reduce');render(page,'flashcard');page.locator('.activity-flash-card').click();assert page.locator('.activity-flash-inner').evaluate('e=>getComputedStyle(e).transform')=='none'
           c.close()
         c=browser.new_context(viewport={'width':1280,'height':900});page=c.new_page();page.goto(f'http://{HOST}:{port}/apps/learnit-next/tests/v8_selected_presenters_harness.html',wait_until='networkidle');shapes(page);c.close();browser.close()
     finally:server.shutdown();server.server_close()
