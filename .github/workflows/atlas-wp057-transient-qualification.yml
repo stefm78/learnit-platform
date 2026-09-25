@@ -1,0 +1,62 @@
+name: ATLAS-WP-057 transient qualification carrier
+
+on:
+  pull_request:
+    branches:
+      - student-v01/r2-v5-authoring-factory-r1
+
+permissions:
+  contents: read
+
+jobs:
+  qualify-handoff3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          set -euo pipefail
+          node --check apps/learnit-next/src/core/contract.js
+          node --check apps/learnit-next/src/core/import.js
+          node --check apps/learnit-next/src/integration/atlas/activity_projection.js
+          node --check apps/learnit-next/src/integration/atlas/session.js
+          node --check apps/learnit-next/src/main.js
+      - name: Handoff 3 causal qualification
+        run: python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+      - name: Frozen V5 V4 and Factory regressions
+        run: |
+          set -euo pipefail
+          python -B authoring/v5/tests/test_validate_v5.py -v
+          python -B authoring/v4/tests/test_validate_v4.py -v
+          python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+      - name: Historical runtime and Atlas regressions
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/student_v01_learning_runtime.py -v
+          python -B apps/learnit-next/tests/student_v01_activity_presentation.py
+          python -B apps/learnit-next/tests/atlas_activity_ui_seam.py
+          python -B apps/learnit-next/tests/atlas_m1_core.py -v
+          python -B apps/learnit-next/tests/atlas_m1_learning.py -v
+          python -B apps/learnit-next/tests/atlas_m1_int.py -v
+      - name: Deterministic build
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py
+          first_sha="$(sha256sum apps/learnit-next/dist/learnit-next.html | awk '{print $1}')"
+          first_bytes="$(wc -c < apps/learnit-next/dist/learnit-next.html | tr -d ' ')"
+          python -B apps/learnit-next/build.py
+          second_sha="$(sha256sum apps/learnit-next/dist/learnit-next.html | awk '{print $1}')"
+          second_bytes="$(wc -c < apps/learnit-next/dist/learnit-next.html | tr -d ' ')"
+          test "$first_sha" = "$second_sha"
+          test "$first_bytes" = "$second_bytes"
+          echo "ATLAS_WP_057_BUILD_SHA256=$second_sha"
+          echo "ATLAS_WP_057_BUILD_BYTES=$second_bytes"
