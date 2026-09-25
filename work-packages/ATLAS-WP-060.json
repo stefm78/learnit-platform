@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-060",
   "title": "Student V0.1 independent V5 semantic review R1",
-  "status": "qualified",
+  "status": "under-qa",
   "purpose": "Execute R2 Handoff 6 only: independent semantic review of the exact V5 Nombres complexes candidate, exact final V5 Factory qualification, adversarial Factory rejection probes, and reviewer-only evidence.",
   "changeClass": "independent-v5-semantic-review-and-factory-qualification",
   "riskClass": "moderate",
