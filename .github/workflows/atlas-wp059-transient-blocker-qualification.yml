@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - student-v01/r2-v5-showcase-port-r1
+  pull_request:
+    branches:
+      - student-v01/r2-v8-selected-presenters-r1
 permissions:
   contents: read
 jobs:
