@@ -1,0 +1,111 @@
+{
+  "schema": "learnit.atlas.semantic_review.v2",
+  "profile": "atlas.semantic-review.v5-r2",
+  "target": {
+    "contextDigest": "sha256:32fd5f9afcc0dd9466c50afb961614f442969d7681036e12a98b1ee59dece739",
+    "kitSha256": "sha256:aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b",
+    "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83",
+    "briefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a"
+  },
+  "independence": {
+    "authorScratchpadSeen": false,
+    "authorActiveContextReused": false
+  },
+  "dimensions": {
+    "sourceFidelity": {
+      "status": "pass",
+      "summary": "All material canonical claims in the ten-activity V5 candidate are supported by the single authorized exact Role B source: conjugate rule and real-axis symmetry, module formula and distance interpretation, the numeric examples, and the |z|=2 geometric locus. No semantic dependency on an unsupplied source was found.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0:10]",
+          "basis": "Independent comparison of the candidate's ten activities against the authorized source shows that every material mathematical claim is present in or directly entailed by these source activities."
+        }
+      ]
+    },
+    "answerCorrectness": {
+      "status": "pass",
+      "summary": "The scored answers and mappings were independently recalculated rather than inferred from validation: conjugates 2+3i→2−3i, −1−4i→−1+4i and 5−2i→5+2i; modules |3+4i|=5, distance for 8−15i=17 and |−5+12i|=13; conjugation is reflection across the real axis; |z|=2 is the circle centered at O with radius 2; the authored module ordering is mathematically correct.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0], $.courses[0].activities[2:5]",
+          "basis": "The source supplies the conjugate rule, the exact numerical conjugate instances and the real-axis symmetry interpretation used to independently verify candidate activities 2-4."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[5:10]",
+          "basis": "The source supplies the module formula, exact 3-4-5, 5-12-13 and 8-15-17 instances, distance interpretation and |z|=2 locus used to independently verify candidate activities 6-9."
+        }
+      ]
+    },
+    "ambiguity": {
+      "status": "pass",
+      "summary": "The prompts, choices, pairings and ordered steps have one clear intended interpretation within the supplied source. QCM distractors are materially distinct, matching is one-to-one, and the three module steps admit the authored mathematical order without a competing equivalent scoring interpretation.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0:10]",
+          "basis": "Source formulations and worked meanings make the candidate's terms, transformations, numeric values and geometric locus unambiguous in the stated scope."
+        }
+      ]
+    },
+    "objectiveCoverage": {
+      "status": "pass",
+      "summary": "Both declared objectives are materially exercised. Conjugation is taught, activated, applied, transferred geometrically and validated on a fresh instance; module is activated, applied procedurally and numerically, validated on a fresh instance, and transferred to a geometric locus. The 39-minute course stays within the 42-minute learner-brief budget without claiming full-program coverage.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].objectives[0], $.courses[0].activities[0:5]",
+          "basis": "The authorized source defines and exercises the conjugate objective across calculation, correction/validation and geometric interpretation, matching the candidate's coverage."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].objectives[1], $.courses[0].activities[5:10]",
+          "basis": "The authorized source defines and exercises the module objective across formula, calculation, distance interpretation, validation and geometric transfer, matching the candidate's coverage."
+        }
+      ]
+    },
+    "validationTransfer": {
+      "status": "pass",
+      "summary": "Transfer is substantive rather than ID-only. Conjugate validation changes the numerical instance to 5−2i, while transfer changes representation from algebraic sign manipulation to planar symmetry. Module validation changes the numerical instance to −5+12i, while transfer changes representation/context from numerical distance calculation to the geometric locus |z|=2.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[0], $.courses[0].activities[3], $.courses[0].activities[4]",
+          "basis": "Conjugate evidence separates an initial 2+3i instance, an independent 5−2i validation instance and a geometric-symmetry transfer representation."
+        },
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.courses[0].activities[5], $.courses[0].activities[7], $.courses[0].activities[9]",
+          "basis": "Module evidence separates the 3+4i application instance, the −5+12i validation instance and the |z|=2 geometric-locus transfer representation."
+        }
+      ]
+    },
+    "learnerFit": {
+      "status": "pass",
+      "summary": "The French wording, compact 39-minute sequencing and progression from explanation/activation through application, validation and transfer are coherent for the supplied EPF Mathematics S2 learner brief. No unsupported prerequisite or external dependency is introduced.",
+      "evidence": [
+        {
+          "sourceId": "nombres-complexes-atlas-v2",
+          "locator": "$.description, $.courses[0]",
+          "basis": "The authorized source identifies the EPF Mathématiques S2 context and provides the same two-objective instructional scope and examples used by the candidate."
+        }
+      ]
+    }
+  },
+  "findings": [],
+  "limitations": [
+    "This review is bounded to the exact candidate, learner brief and authorized Role B source set supplied for this job; it does not establish broader curriculum coverage.",
+    "This semantic review does not establish learner mastery, retention, certification or general educational effectiveness.",
+    "No Role A references are present, so no claim about external reference permanence or external content quality is made."
+  ],
+  "v5Checks": {
+    "reviewerSkill": "SKILL_ATLAS_KIT_REVIEW_V2",
+    "hintProgression": "pass",
+    "hintAnswerLeak": "pass",
+    "roleAReferenceUsefulness": "pass",
+    "roleBClaimMapping": "pass"
+  },
+  "verdict": "PASS_SEMANTIC_REVIEW_V5_R2"
+}
