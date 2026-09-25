@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-059",
   "title": "Student V0.1 exact 10C showcase V5 port R1",
-  "status": "blocked-upstream-runtime-defect",
-  "purpose": "Execute R2 Handoff 5 only. Execution stopped fail-closed when the exact historical 10C candidate exposed an upstream Atlas/V8 activity-family support gap on the qualified Handoff-4 product.",
+  "status": "proposed-blocked",
+  "purpose": "Execute R2 Handoff 5 only. Execution is held because the exact historical 10C candidate exposes an upstream Atlas/V8 activity-family support gap on the qualified Handoff-4 product.",
   "changeClass": "C2",
   "riskClass": "R2",
   "authority": {
@@ -47,6 +47,29 @@
     "Learner brief and Role B source remain unchanged.",
     "No independent semantic review or final V5 Factory PASS is produced.",
     "A runtime defect in Handoff 3/4 causes HOLD_UPSTREAM_RUNTIME_DEFECT rather than an in-scope repair."
+  ],
+  "requiredEvidence": [
+    "Exact 10C historical blob and 10-activity/39-minute structure are rechecked.",
+    "A transient V5 successor is accepted by the frozen V5 runtime contract/import primitives.",
+    "The exact Handoff-4 Atlas surface/session/render blobs are pinned and the activity-family gap is reproduced.",
+    "Repository governance passes on the persisted blocked result tree."
+  ],
+  "adversarialTests": [
+    "Reject any product/runtime source mutation in JOB16.",
+    "Verify Atlas surface admits only qcm/fill while the exact course also requires lesson/flashcard/matching/order.",
+    "Bypass the surface gate and require the first exact lesson projection to fail at the legacy Atlas renderer seam.",
+    "Require no constructed activity and no acceptedResponses workaround."
+  ],
+  "nonGoals": [
+    "Repair Handoff 3 or Handoff 4 product/runtime code.",
+    "Persist a final V5 showcase candidate before the upstream defect is corrected.",
+    "Run Handoff 6 independent semantic review or final Factory V5 gate.",
+    "Fan-in, ATLAS-WP-054, merge, cherry-pick, promotion or student session."
+  ],
+  "independentReview": [
+    "No independent semantic-review PASS is produced in this author session.",
+    "Historical V4 semantic review is not reused.",
+    "Handoff 6 remains unexecuted while the upstream runtime defect is open."
   ],
   "defect": {
     "code": "UPSTREAM_H4_ATLAS_ACTIVITY_FAMILY_GATE_AND_RENDERER_GAP",

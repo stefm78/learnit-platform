@@ -40,7 +40,8 @@ const vr=await validatePackageObject(kit);
 assert.equal(vr.ok,true,JSON.stringify(vr.errors));
 const plan=buildInstallationPlan(kit,new Date('2026-09-25T10:30:00.000Z'));
 assert.equal(plan.courses.length,1);
-assert.equal(plan.courses[0].activities.length,10);
+assert.equal(plan.courses[0].activityCount,10);
+assert.equal(plan.courses[0].course.activities.length,10);
 const first=kit.courses[0].activities[0];
 assert.equal(first.type,'lesson');
 const projected=projectAtlasActivityPresentation(first,{assets:kit.assets??[],contract:kit.contract});
@@ -50,8 +51,10 @@ console.log('V5_IMPORT_TRANSIENT_CANDIDATE: PASS');
 console.log('FIRST_ACTIVITY_V5_PROJECTION: lesson');
 console.log('ATLAS_RENDERER_FIRST_ACTIVITY: BLOCKED');
 """
-    out=subprocess.run(["node","--input-type=module","-e",node,str(p)],cwd=ROOT,check=True,text=True,capture_output=True)
-    print(out.stdout,end="")
+    out=subprocess.run(["node","--input-type=module","-e",node,str(p)],cwd=ROOT,text=True,capture_output=True)
+    if out.stdout: print(out.stdout,end="")
+    if out.stderr: print(out.stderr,end="")
+    assert out.returncode==0,out.returncode
 surface=(ROOT/"apps/learnit-next/src/integration/atlas/surface.js").read_text(encoding="utf-8")
 assert "const ATLAS_SUPPORTED_ACTIVITY_TYPES = new Set(['qcm', 'fill']);" in surface
 unsupported=sorted(set(EXPECTED)-{"qcm","fill"})
