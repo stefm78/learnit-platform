@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-058",
+  "title": "Student V0.1 V8 selected presenters R1",
+  "status": "under-qa",
+  "purpose": "Implement and qualify only R2 Handoff 4: materialize the exact human-selected V7 presenter variants in production and extend them only with the Handoff-3-qualified V5 hint, media and reference presentation capabilities, while preserving frozen ActivityResponse/scoring/Atlas authority.",
+  "changeClass": "C2",
+  "riskClass": "R2",
+  "authority": {
+    "issue": 446,
+    "humanDecisionIssue": 431,
+    "humanDecisionComment": 5817817692,
+    "decision": "GO_PRE_PILOT_V5",
+    "parentIssue": 444,
+    "parentPullRequest": 445,
+    "v7LabPullRequest": 437,
+    "stream10aPullRequest": 436
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-v5-runtime-atlas-projection-r1",
+    "baseCommit": "1bd57ee49f39ebc993af6198d24ebd54cd0ddbab"
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/tests/v8_selected_presenters_harness.html",
+      "apps/learnit-next/tests/v8_selected_presenters_r1.py",
+      "docs/architecture/student-v0.1/LEARNIT_KIT_V8_SELECTED_PRESENTERS.md",
+      "work-packages/ATLAS-WP-058.json",
+      "qualification/STUDENT_V01_V8_SELECTED_PRESENTERS_R1_RESULT.md"
+    ],
+    "immutable": [
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "authoring/v5/tests/test_validate_v5.py",
+      "contracts/learnit-kit-v4.schema.json",
+      "authoring/v4/validate_kit.py",
+      "authoring/v4/tests/test_validate_v4.py",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/adapters/atlas_indexeddb.js",
+      "apps/learnit-next/src/ports/atlas_storage.js",
+      "apps/learnit-next/src/ui/atlas_session.js",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "qualification/STUDENT_V01_ACTIVITY_LAB_SELECTION.md"
+    ],
+    "forbiddenPaths": [
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "authoring/v5/tests/test_validate_v5.py",
+      "contracts/learnit-kit-v4.schema.json",
+      "authoring/v4/validate_kit.py",
+      "authoring/v4/tests/test_validate_v4.py",
+      "apps/learnit-next/src/core/**",
+      "apps/learnit-next/src/adapters/atlas_indexeddb.js",
+      "apps/learnit-next/src/ports/atlas_storage.js",
+      "apps/learnit-next/src/ui/atlas_session.js",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "labs/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**"
+    ]
+  },
+  "invariants": [
+    "The exact V7 human selection remains Flashcard B, Matching B, Order B, Classify B, QCM A, Fill B and Lesson A; no rejected A/B choice is reopened.",
+    "Frozen ActivityResponse grammars and existing scoring authority remain unchanged.",
+    "Matching B, Order B, Classify B and Fill B preserve selection-without-geometry-shift, explicit destinations and convergent click/tap/keyboard and Pointer Events paths.",
+    "Order B preserves out-of-flow insertion targets, strict-Y drag, fixed-X ghost, one exact-size in-flow placeholder within one CSS pixel, stable list height and residue-free pointer cancel.",
+    "Randomization occurs once per presenter attempt, changes presentation order only, preserves canonical IDs and is never persisted or used for scoring/progress/Atlas evidence.",
+    "No unrevealed V5 hint text enters the initial learner projection, presenter DOM, accessibility tree or hidden attributes; only Handoff-3-confirmed or reconstructed hints are shown.",
+    "The presenter never persists assistance and no fake Indice control exists without an authored qualified V5 hint capability.",
+    "Prompt/content media may render initially; feedback media is absent initially and may render only after the Handoff-3 authorized post-transition seam.",
+    "References are closed-by-default secondary disclosure, perform no runtime fetch on render/open, and navigate only after explicit external-link activation.",
+    "No new Atlas persistence, evidence, scoring, progress or reference-fetch authority is introduced."
+  ],
+  "nonGoals": [
+    "Handoff 5 or exact 10C showcase V5 port.",
+    "Independent semantic review.",
+    "Final corrective fan-in.",
+    "ATLAS-WP-054.",
+    "Merge or cherry-pick of PR #437 or PR #436.",
+    "Merge, promotion or student session."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-v8-selected-presenters-r1",
+    "parentBranch": "student-v01/r2-v5-runtime-atlas-projection-r1",
+    "parentHead": "1bd57ee49f39ebc993af6198d24ebd54cd0ddbab",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false
+  },
+  "rollback": "Close the unmerged draft PR and delete the Handoff-4 branch; the qualified Handoff-3 parent remains unchanged.",
+  "requiredEvidence": [
+    "Exact Handoff-3 parent, Handoff-3 RESULT_SHA, human R2 decision and V7 selection blob remain authoritative.",
+    "Selected V7 Lab behavior and exact geometry are reproduced from PR #437 without cherry-pick.",
+    "All seven selected presenters are materially implemented in production with frozen ActivityResponse grammars.",
+    "Desktop, 390x844 and 320x844 browser tests cover keyboard, Pointer Events/touch, long labels, reduced motion, overflow and selected numeric geometry.",
+    "V5 hint UI uses only Handoff-3 persist-confirm-reveal/resume semantics with no initial preload or second assistance persistence authority.",
+    "Prompt/content versus feedback media lifecycle is causal and media failure remains accessible and non-scoring.",
+    "References remain closed/secondary with no render/open network fetch and accessible external-link indication.",
+    "Handoff-3 runtime, V2/V3/V4 runtime and deterministic build regressions PASS.",
+    "Detached temporary Stream 10A composition proves activity-primary/progress-secondary compatibility and is discarded without fan-in.",
+    "Repository governance PASS on the exact RESULT_SHA and the draft PR remains open/unmerged."
+  ],
+  "adversarialTests": [
+    "Scan initial V5 projection/DOM for unrevealed hint text, hidden hint attributes or fake hint controls.",
+    "Attempt feedback-media presentation before transition authorization and require absence/fail-closed behavior.",
+    "Open the references disclosure and prove no network request occurs.",
+    "Use long labels at 390x844 and 320x844 and reject horizontal overflow.",
+    "Select Matching/Order/Classify/Fill objects and prove destination revelation does not shift measured board geometry.",
+    "For Order B, measure placeholder width/height/list height within one CSS pixel, fixed-X ghost, strict-Y motion and pointer-cancel cleanup.",
+    "Exercise keyboard/non-drag and Pointer Events/touch paths and require equivalent canonical ActivityResponse shapes.",
+    "Repeat presenter interactions within one attempt and prove randomization order remains stable and non-persisted.",
+    "Run exact Handoff-3 and historical runtime regressions after Handoff-4 wiring.",
+    "Compose accepted 10A shell with exact Handoff-3/Handoff-4 presenter/runtime delta only in a detached worktree and require activity-first/mobile/browser PASS."
+  ],
+  "independentReview": [
+    "No independent semantic-review PASS is produced by this Handoff-4 implementation session.",
+    "PR #437 is used only as the exact selected behavior/geometry oracle and is never merged or cherry-picked.",
+    "PR #436 is used only in a detached temporary compatibility probe and is never merged, cherry-picked or published as fan-in.",
+    "Fresh independent semantic review remains downstream after Handoff 5 and later governed fan-in."
+  ]
+}

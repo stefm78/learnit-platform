@@ -3,8 +3,10 @@ import {
   readAtlasActivityResponse,
   renderAtlasActivityMarkup,
 } from '../../ui/render.js';
+import { renderEmbeddedMediaSet } from '../../ui/media.js';
 import {
   projectActivityPresentation,
+  projectFeedbackMedia,
 } from './activity_projection.js';
 
 const V5_CONTRACT = 'learnit.kit.v5';
@@ -236,6 +238,7 @@ async function showFeedbackTransition(
   feedbackMarkup,
   onContinue,
   nextLabel = 'Activité suivante',
+  feedbackMedia = [],
 ) {
   /*
    * Keep activity N visible while its own feedback is read.
@@ -269,6 +272,18 @@ async function showFeedbackTransition(
   const feedback = node('div');
   feedback.innerHTML = feedbackMarkup;
   transition.append(...feedback.childNodes);
+
+  if (Array.isArray(feedbackMedia) && feedbackMedia.length) {
+    const mediaRegion = node(
+      'div',
+      {
+        className: 'activity-feedback-media',
+        'data-activity-feedback-media': 'post-transition',
+      },
+    );
+    mediaRegion.append(renderEmbeddedMediaSet(feedbackMedia));
+    transition.append(mediaRegion);
+  }
 
   const next = node(
     'button',
@@ -718,20 +733,34 @@ function assertV5PinnedContentRevision(
 
 function appendV5Hint(wrapper, text, index) {
   const rank = index + 1;
-  const target = wrapper.querySelector('.atlas-activity');
+  const target =
+    wrapper.querySelector('.activity-presentation')
+    ?? wrapper.querySelector('.atlas-activity');
   if (!target) {
     throw new Error('ATLAS_V5_HINT_TARGET_MISSING');
   }
-  if (target.querySelector(
-    `[data-atlas-hint-rank="${rank}"]`,
+  let region = target.querySelector('[data-atlas-v8-hints]');
+  if (!region) {
+    region = node(
+      'section',
+      {
+        className: 'activity-hints',
+        'aria-label': 'Indices révélés',
+        'data-atlas-v8-hints': 'committed-only',
+      },
+    );
+    target.append(region);
+  }
+  if (region.querySelector(
+    '[data-atlas-hint-rank="' + rank + '"]',
   )) {
     return;
   }
-  target.append(
+  region.append(
     node(
       'p',
       {
-        className: 'help',
+        className: 'help activity-hint',
         role: 'status',
         'data-atlas-help-status': 'true',
         'data-atlas-hint-rank': String(rank),
@@ -1268,7 +1297,9 @@ export async function runAtlasSession({
       let v5HintPrefix = null;
       const authoredV5Hints =
         context.contract === V5_CONTRACT
-          ? Object.freeze([...(activity.hints ?? [])])
+        && Array.isArray(activity.hints)
+        && activity.hints.length > 0
+          ? Object.freeze([...activity.hints])
           : null;
 
       if (authoredV5Hints) {
@@ -1334,58 +1365,53 @@ export async function runAtlasSession({
       }
 
       /*
-       * EXPERIENCE normally provides the hint control.
-       * INT normalizes it and creates it defensively if absent.
+       * Handoff 3 is the sole V5 hint authority. Handoff 4 exposes a
+       * control only when that qualified capability exists for this item.
+       * The presenter never receives unrevealed hint text.
        */
-      let help =
-        wrapper.querySelector(
-          '[data-atlas-help="hint"]',
-        );
-
-      if (!help) {
-        help = node(
-          'button',
-          {
-            type: 'button',
-            className: 'secondary',
-            text: 'Indice',
-            'data-atlas-help': 'hint',
-          },
-        );
-      }
-
-      help.classList.add('secondary');
-
-      help.setAttribute(
-        'data-atlas-control',
-        'hint',
-      );
+      let help = null;
 
       submit.setAttribute(
         'data-atlas-control',
         'submit',
       );
 
-      if (help.parentElement !== sessionActions) {
-        sessionActions.insertBefore(
-          help,
-          submit,
+      if (authoredV5Hints) {
+        help =
+          wrapper.querySelector(
+            '[data-atlas-help="hint"]',
+          )
+          ?? node(
+            'button',
+            {
+              type: 'button',
+              className: 'secondary',
+              text: 'Indice',
+              'data-atlas-help': 'hint',
+            },
+          );
+
+        help.classList.add('secondary');
+        help.setAttribute(
+          'data-atlas-control',
+          'hint',
         );
-      }
 
-      if (
-        authoredV5Hints
-        && v5HintPrefix.count >= authoredV5Hints.length
-      ) {
-        help.disabled = true;
-      }
+        if (help.parentElement !== sessionActions) {
+          sessionActions.insertBefore(
+            help,
+            submit,
+          );
+        }
 
-      help.addEventListener(
-        'click',
-        async () => {
-          help.disabled = true;
+        help.disabled =
+          v5HintPrefix.count >= authoredV5Hints.length;
 
-          if (authoredV5Hints) {
+        help.addEventListener(
+          'click',
+          async () => {
+            help.disabled = true;
+
             try {
               const result =
                 await requestNextAtlasV5Hint({
@@ -1431,47 +1457,9 @@ export async function runAtlasSession({
               );
               help.disabled = false;
             }
-            return;
-          }
-
-          try {
-            await controller.requestHelp(
-              'hint',
-            );
-
-            wrapper.querySelector(
-              '[data-atlas-help-status]',
-            )?.remove();
-
-            const guidance =
-              activity.type === 'qcm'
-                ? 'Relisez la règle demandée puis éliminez les propositions incompatibles.'
-                : 'Repérez la forme attendue dans la phrase avant de choisir chaque élément.';
-
-            wrapper.querySelector(
-              '.atlas-activity',
-            )?.append(
-              node(
-                'p',
-                {
-                  className: 'help',
-                  role: 'status',
-                  'data-atlas-help-status':
-                    'true',
-                  text: guidance,
-                },
-              ),
-            );
-          } catch (error) {
-            showError(
-              container,
-              error,
-            );
-          } finally {
-            help.disabled = false;
-          }
-        },
-      );
+          },
+        );
+      }
 
       submit.addEventListener(
         'click',
@@ -1493,6 +1481,18 @@ export async function runAtlasSession({
                 activity,
                 modules,
               );
+
+            const outcomeFeedbackMedia =
+              context.contract === V5_CONTRACT
+                ? projectFeedbackMedia(
+                  activity,
+                  {
+                    assets: context.packageAssets ?? [],
+                    contract: context.contract,
+                    transitionAuthorized: true,
+                  },
+                )
+                : Object.freeze([]);
 
             const nextCheckpoint =
               resumeState(
@@ -1535,6 +1535,7 @@ export async function runAtlasSession({
                   await renderCurrent();
                 },
                 'Voir le bilan',
+                outcomeFeedbackMedia,
               );
             } else {
               await showFeedbackTransition(
@@ -1545,6 +1546,8 @@ export async function runAtlasSession({
                 async () => {
                   await renderCurrent();
                 },
+                'Activité suivante',
+                outcomeFeedbackMedia,
               );
             }
           } catch (error) {
@@ -1605,10 +1608,12 @@ export async function runAtlasSession({
        */
       await nextAtlasPaint();
 
-      assertAtlasControlVisible(
-        help,
-        'hint',
-      );
+      if (help) {
+        assertAtlasControlVisible(
+          help,
+          'hint',
+        );
+      }
 
       assertAtlasControlVisible(
         submit,
