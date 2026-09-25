@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-058",
+  "title": "Student V0.1 — V8 selected presenters R1",
+  "status": "approved",
+  "changeClass": "bounded-presenter-integration",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 446,
+    "coordinatorIssue": 431,
+    "parentHandoffIssue": 444,
+    "v7LabPr": 437,
+    "stream10aPr": 436
+  },
+  "baseline": {
+    "branch": "student-v01/r2-v5-runtime-atlas-projection-r1",
+    "head": "1bd57ee49f39ebc993af6198d24ebd54cd0ddbab",
+    "handoff3Result": "f1254562247a2ee54d5a5329b953fafc22eb8fd3",
+    "v7SelectionHead": "577aa6cde9dfc58663a4935545e48bf8953c902b",
+    "v7SelectionBlob": "947d0b20fbae356c47acd560fab584f9d4aa5199"
+  },
+  "selection": {
+    "lesson": "lesson-a",
+    "flashcard": "flashcard-b",
+    "matching": "matching-b",
+    "order": "order-b",
+    "classify": "classify-b",
+    "qcm": "qcm-a",
+    "fill": "fill-b"
+  },
+  "invariants": [
+    "ActivityResponse grammars unchanged",
+    "Existing scoring authority unchanged",
+    "V4/V5 contracts unchanged",
+    "Atlas persistence/evidence semantics unchanged",
+    "No unrevealed hint preload",
+    "Hints display only after Handoff-3 confirmation/reconstruction",
+    "Feedback media absent from initial DOM and rendered only post-transition",
+    "References perform no runtime fetch",
+    "Randomization is presentation-only and once per attempt",
+    "No PR #437 or PR #436 cherry-pick"
+  ],
+  "allowedPaths": [
+    "apps/learnit-next/src/ui/activity_presenters.js",
+    "apps/learnit-next/src/styles.css",
+    "apps/learnit-next/src/integration/atlas/session.js",
+    "apps/learnit-next/src/ui/render.js",
+    "apps/learnit-next/src/main.js",
+    "apps/learnit-next/source_manifest.json",
+    "apps/learnit-next/tests/**",
+    "docs/architecture/student-v0.1/LEARNIT_KIT_V8_SELECTED_PRESENTERS.md",
+    "work-packages/ATLAS-WP-058.json",
+    "qualification/STUDENT_V01_V8_SELECTED_PRESENTERS_R1_RESULT.md"
+  ],
+  "forbiddenPaths": [
+    "apps/learnit-next/src/core/**",
+    "apps/learnit-next/src/ports/atlas_storage.js",
+    "contracts/**",
+    "authoring/**",
+    "showcase/**",
+    "pilot/**",
+    "qa/**"
+  ],
+  "execution": {
+    "branch": "student-v01/r2-v8-selected-presenters-r1",
+    "mergeStatus": "not-merged",
+    "next": "R2_HANDOFF_5_EXACT_10C_SHOWCASE_V5_PORT_REQUALIFICATION"
+  }
+}

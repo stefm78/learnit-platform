@@ -1,4 +1,5 @@
 import { renderActivityPresentation, readActivityResponse } from './activity_presenters.js';
+import { renderEmbeddedMediaSet } from './media.js';
 
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
@@ -702,6 +703,18 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             : 'Cette activité compte comme terminée, sans score de correction.',
         }),
       ];
+    const feedbackMedia =
+      Array.isArray(result.feedbackMedia)
+      && result.feedbackMedia.length
+        ? node(
+          'div',
+          {
+            className: 'activity-feedback-media',
+            'data-activity-feedback-media': 'post-transition',
+          },
+          [renderEmbeddedMediaSet(result.feedbackMedia)],
+        )
+        : null;
     const section = node('section', {
       'aria-labelledby': 'feedback-title',
       className: 'feedback-panel',
@@ -709,6 +722,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     }, [
       outcome,
       ...feedbackDetail,
+      ...(feedbackMedia ? [feedbackMedia] : []),
       renderProgress(result.progress),
       objectiveSurface,
       reviewMode ? node('p', {

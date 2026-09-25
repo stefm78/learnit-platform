@@ -1,0 +1,33 @@
+name: ATLAS WP058 transient qualification
+on:
+  push:
+    branches: [student-v01/r2-v8-selected-presenters-r1]
+  workflow_dispatch:
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install playwright
+      - run: python -m playwright install --with-deps chromium
+      - name: Syntax and deterministic source/build checks
+        run: |
+          node --check apps/learnit-next/src/ui/activity_presenters.js
+          node --check apps/learnit-next/src/integration/atlas/session.js
+          node --check apps/learnit-next/src/main.js
+          node --check apps/learnit-next/src/ui/render.js
+          python apps/learnit-next/build.py --check
+          python apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+      - name: V8 production presenter qualification
+        run: python apps/learnit-next/tests/v8_selected_presenters_r1.py
+      - name: Reproduce exact selected V7 Lab authority
+        run: |
+          git worktree add /tmp/v7-lab 577aa6cde9dfc58663a4935545e48bf8953c902b
+          cd /tmp/v7-lab/labs/student-v0.1/activity-experience
+          python test_lab.py
+          python browser_smoke.py
+          python production_audit.py
+          python production_geometry_audit.py

@@ -126,20 +126,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "a4b90b1d71d5997c34eac50140b74152007f65ec"
+        "value": "5c4b5311631c98614ae021d47624370207ec36e6"
       },
-      "owner": "ATLAS-WP-024",
+      "owner": "ATLAS-WP-058",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-024 R13 direct-session dead preview style removal"
+      "provenance": "ATLAS-WP-058 V8 selected presenters R1"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "ac68280407fd356bfe6dc8b86af83d742ce55352"
+        "value": "86a0cbab26c11789dba72091198874130563abca"
       },
-      "owner": "ATLAS-WP-057",
+      "owner": "ATLAS-WP-058",
       "path": "apps/learnit-next/src/main.js",
-      "provenance": "ATLAS-WP-057 V5 runtime / Atlas projection bounded audit repair"
+      "provenance": "ATLAS-WP-058 V8 selected presenters R1"
     },
     {
       "fingerprint": {
@@ -252,11 +252,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "0fc4b5027c82d038f69d402f97f8d0e059c5401c"
+        "value": "af3ac83a5cf1455d982f6c73cfc8377c7cbc6ef8"
       },
-      "owner": "ATLAS-WP-037",
+      "owner": "ATLAS-WP-058",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-037 served V4 integration repair"
+      "provenance": "ATLAS-WP-058 V8 selected presenters R1"
     },
     {
       "fingerprint": {
@@ -369,7 +369,7 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "e03ff5b16e44081aa71fd9905b59565a3266085da2cd5de1939af8f498a56762"
+        "value": "da0144040e7acb77e35964054881bc1cb96f2e3f27100287708d3cf57bb5ac45"
       },
       "owner": "ATLAS-WP-037",
       "path": "apps/learnit-next/source_manifest.json",
@@ -567,11 +567,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "21a0fe27acbdde4698d0651e72ffa3da644b44ce"
+        "value": "98d8348e98c2068c0cb29f0e4f0a0e0493b00b5d"
       },
-      "owner": "ATLAS-LEARNING-SEAM",
+      "owner": "ATLAS-WP-058",
       "path": "apps/learnit-next/src/integration/atlas/session.js",
-      "provenance": "post-R15 learner-safe activity presentation boundary repair"
+      "provenance": "ATLAS-WP-058 V8 selected presenters R1"
     },
     {
       "fingerprint": {
@@ -639,11 +639,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf"
+        "value": "47afc02200b7a3f9be9df10c415341efe8e0e2a8"
       },
-      "owner": "STUDENT-V01-JOB02",
+      "owner": "ATLAS-WP-058",
       "path": "apps/learnit-next/src/ui/activity_presenters.js",
-      "provenance": "JOB02:6c91346d07c934cfb2917799084647b13e4fb931"
+      "provenance": "ATLAS-WP-058 V8 selected presenters R1"
     },
     {
       "fingerprint": {
