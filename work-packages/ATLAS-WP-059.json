@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-059",
   "title": "Student V0.1 exact 10C showcase V5 port R1",
-  "status": "approved",
+  "status": "under-qa",
   "purpose": "Execute R2 Handoff 5 only: exact JOB10C 10-activity/39-minute learnit.kit.v5 port, deterministic author-side pre-review evidence, and exact technical V5/V8 requalification.",
   "changeClass": "exact-v5-showcase-port-and-author-pre-review",
   "riskClass": "moderate",
@@ -94,9 +94,12 @@
     "parentHead": "6480a21694006a78f4b75dbfea3d214277e776ba",
     "mergeAuthorized": false,
     "promotionAuthorized": false,
-    "semanticReviewAuthorized": false
+    "semanticReviewAuthorized": false,
+    "qualifiedCarrierHead": "5ed081ca20eb5b68502c45d080daa74ed0017a15",
+    "qualifiedCarrierRun": 36137138473,
+    "qualifiedCarrierResult": "SUCCESS"
   },
   "nextGate": "R2_HANDOFF_6_INDEPENDENT_V5_SEMANTIC_REVIEW",
-  "finalVerdict": "PENDING_EXACT_HEAD_QUALIFICATION",
+  "finalVerdict": "PASS_READY_FOR_R2_HANDOFF_6",
   "rollback": "Close unmerged PR and delete branch; upstream authorities remain unchanged."
 }
