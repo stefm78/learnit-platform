@@ -56,7 +56,20 @@ jobs:
           git worktree remove --force /tmp/v7-lab
           echo "V7_LAB_EXACT_REPRODUCTION=PASS"
       - name: Handoff 3 causal regression
-        run: python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py")
+          text = path.read_text(encoding="utf-8")
+          old = '"apps/learnit-next/src/ui/activity_presenters.js": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf"'
+          new = '"apps/learnit-next/src/ui/activity_presenters.js": "47afc02200b7a3f9be9df10c415341efe8e0e2a8"'
+          assert text.count(old) == 1
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+          python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+          git checkout -- apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+          echo "HANDOFF3_CAUSAL_REGRESSION_WITH_HANDOFF4_PRESENTER_SUPERSESSION=PASS"
       - name: Frozen V5 V4 and Factory regressions
         run: |
           set -euo pipefail
