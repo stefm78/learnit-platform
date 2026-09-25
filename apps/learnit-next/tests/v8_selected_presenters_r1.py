@@ -40,6 +40,9 @@ def render(page,kind):
     details=page.locator('details.activity-references');assert details.count()==1 and not details.evaluate('e=>e.open')
     link=details.locator('a');assert link.get_attribute('target')=='_blank' and link.get_attribute('rel')=='noopener noreferrer'
     assert 'Lien externe' in link.get_attribute('aria-label')
+    details.locator('summary').click();assert details.evaluate('e=>e.open')
+    page.wait_for_timeout(20)
+    details.locator('summary').click();assert not details.evaluate('e=>e.open')
     assert page.evaluate('document.documentElement.scrollWidth<=window.innerWidth+1')
 def shapes(page):
     render(page,'qcm');page.locator('[data-activity-choice="true"]').first.check();assert set(page.evaluate('window.v8.response("qcm")'))=={'choiceId'}
@@ -58,6 +61,18 @@ def shapes(page):
     while page.locator('.activity-token-bank>.activity-token-chip').count():
         page.locator('.activity-token-bank>.activity-token-chip').first.click();page.locator('.activity-fill-b-slot.eligible-destination').first.click()
     r=page.evaluate('window.v8.response("fill")');assert set(r)=={'s1','s2'} and set(r.values())=={'t1','t2'}
+def randomization_and_media_failure(page):
+    render(page,'qcm');labels1=page.locator('.activity-qcm-label').all_inner_texts();page.locator('[data-activity-choice="true"]').first.check();assert page.locator('.activity-qcm-label').all_inner_texts()==labels1
+    render(page,'qcm');labels2=page.locator('.activity-qcm-label').all_inner_texts();assert labels2==labels1
+    page.evaluate("""() => {
+      const p=window.v8.enriched('qcm');
+      p.media[0].data='<svg><script>alert(1)</script></svg>';
+      window.v8.renderRaw(p);
+    }""")
+    assert page.locator('[data-activity-media-rejected]').count()==1
+    page.locator('[data-activity-choice="true"]').first.check()
+    assert set(page.evaluate('window.v8.response("qcm")'))=={'choiceId'}
+
 def geometry_keyboard(page):
     render(page,'qcm');radio=page.locator('[data-activity-choice="true"]').first;label=page.locator('.activity-qcm-label').first;rb,lb=radio.bounding_box(),label.bounding_box();assert rb and lb and abs(rb['y']-lb['y'])<=8
     radio.focus();page.keyboard.press('Space');assert radio.is_checked()
@@ -83,7 +98,7 @@ def static_contracts():
       'apps/learnit-next/src/integration/atlas/activity_projection.js':'06025e76b6b60d1dc3bee3af43e661689da99d08'}
     for path,expected in exact.items():assert blob(path)==expected,(path,blob(path),expected)
     p=(ROOT/'apps/learnit-next/src/ui/activity_presenters.js').read_text();s=(ROOT/'apps/learnit-next/src/integration/atlas/session.js').read_text();pr=(ROOT/'apps/learnit-next/src/integration/atlas/activity_projection.js').read_text()
-    for bad in ('dragstart','ondragstart','XMLHttpRequest','fetch('):assert bad not in p
+    for bad in ('dragstart','ondragstart','XMLHttpRequest','fetch(','localStorage','sessionStorage'):assert bad not in p
     assert 'projectFeedbackMedia' in s and 'transitionAuthorized: true' in s and 'requestNextAtlasV5Hint' in s and 'reconstructAtlasHintPrefix' in s
     assert 'Relisez la règle demandée' not in s and 'Repérez la forme attendue' not in s and 'authoredV5Hints.length' in s
     assert "ref => !v5 || ref.placement !== 'feedback'" in pr
@@ -97,7 +112,7 @@ def main():
         for width in (390,320):
           c=browser.new_context(viewport={'width':width,'height':844},has_touch=True,is_mobile=True);page=c.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.on('request',lambda r:external.append(r.url) if r.url.startswith(('http://','https://')) and HOST not in r.url else None);page.goto(f'http://{HOST}:{port}/apps/learnit-next/tests/v8_selected_presenters_harness.html',wait_until='networkidle')
           for kind in ('qcm','fill','lesson','flashcard','matching','order','classify'):render(page,kind)
-          if width==390:shapes(page);geometry_keyboard(page);pointer_paths(page);page.emulate_media(reduced_motion='reduce');render(page,'flashcard');page.locator('.activity-flash-card').click();assert page.locator('.activity-flash-inner').evaluate('e=>getComputedStyle(e).transform')=='none'
+          if width==390:shapes(page);randomization_and_media_failure(page);geometry_keyboard(page);pointer_paths(page);page.emulate_media(reduced_motion='reduce');render(page,'flashcard');page.locator('.activity-flash-card').click();assert page.locator('.activity-flash-inner').evaluate('e=>getComputedStyle(e).transform')=='none'
           c.close()
         c=browser.new_context(viewport={'width':1280,'height':900});page=c.new_page();page.goto(f'http://{HOST}:{port}/apps/learnit-next/tests/v8_selected_presenters_harness.html',wait_until='networkidle');shapes(page);c.close();browser.close()
     finally:server.shutdown();server.server_close()

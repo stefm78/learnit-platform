@@ -20,5 +20,6 @@ const host=document.querySelector('#host');
 function enriched(type){return {...structuredClone(fixtures[type]),media:structuredClone(media),references:structuredClone(references)}}
 function render(type){host.replaceChildren();setActivityPresenterRandomSourceForTest(()=>.3141592653589793);const p=enriched(type),node=renderActivityPresentation(p);host.append(node);return node}
 function response(type){return readActivityResponse(host,enriched(type))}
-window.v8={render,response,enriched,host};render('qcm');
+function renderRaw(p){host.replaceChildren();setActivityPresenterRandomSourceForTest(()=>.3141592653589793);const node=renderActivityPresentation(p);host.append(node);return node}
+window.v8={render,response,enriched,renderRaw,host};render('qcm');
 </script></body></html>
