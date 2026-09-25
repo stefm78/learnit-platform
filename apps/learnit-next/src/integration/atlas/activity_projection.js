@@ -1,10 +1,12 @@
+const V5_CONTRACT = 'learnit.kit.v5';
+
 function freezeList(values) {
   return Object.freeze(values.map(value => Object.freeze(value)));
 }
 
-function resolveMedia(activity, assets = []) {
+function resolveMedia(activity, assets = [], accept = () => true) {
   const assetById = new Map((assets ?? []).map(asset => [asset.assetId, asset]));
-  return freezeList((activity.media ?? []).map(ref => {
+  return freezeList((activity.media ?? []).filter(accept).map(ref => {
     const asset = assetById.get(ref.assetId);
     if (!asset) throw new Error(`ACTIVITY_MEDIA_ASSET_NOT_FOUND:${ref.assetId}`);
     return {
@@ -31,11 +33,39 @@ function matchingRightItems(activity) {
   return [...right.slice(1), right[0]];
 }
 
-export function projectActivityPresentation(activity, { assets = [] } = {}) {
+function projectReferences(references = []) {
+  return freezeList(references.map(reference => ({
+    url: reference.url,
+    label: reference.label,
+    hook: reference.hook,
+  })));
+}
+
+export function projectFeedbackMedia(
+  activity,
+  { assets = [], contract = null, transitionAuthorized = false } = {},
+) {
+  if (contract !== V5_CONTRACT) return Object.freeze([]);
+  if (transitionAuthorized !== true) {
+    throw new Error('V5_FEEDBACK_MEDIA_TRANSITION_REQUIRED');
+  }
+  return resolveMedia(
+    activity,
+    assets,
+    ref => ref.placement === 'feedback',
+  );
+}
+
+export function projectActivityPresentation(activity, { assets = [], contract = null } = {}) {
   if (!activity || typeof activity !== 'object' || Array.isArray(activity)) {
     throw new TypeError('Activity source must be an object');
   }
-  const media = resolveMedia(activity, assets);
+  const v5 = contract === V5_CONTRACT;
+  const media = resolveMedia(
+    activity,
+    assets,
+    ref => !v5 || ref.placement !== 'feedback',
+  );
   let presentation;
   switch (activity.type) {
     case 'qcm':
@@ -107,6 +137,12 @@ export function projectActivityPresentation(activity, { assets = [] } = {}) {
       break;
     default:
       throw new Error(`ACTIVITY_TYPE_UNSUPPORTED:${String(activity.type)}`);
+  }
+  if (v5 && Array.isArray(activity.references) && activity.references.length) {
+    presentation = {
+      ...presentation,
+      references: projectReferences(activity.references),
+    };
   }
   return Object.freeze(presentation);
 }
