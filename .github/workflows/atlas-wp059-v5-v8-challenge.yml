@@ -1,0 +1,38 @@
+name: ATLAS WP059 V5 V8 Challenge
+on:
+  push:
+    branches:
+      - student-v01/r2-v5-showcase-port-r1
+permissions:
+  contents: read
+jobs:
+  exact-v5-v8-challenge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install qualification dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install 'jsonschema>=4.18' playwright
+          python -m playwright install --with-deps chromium
+      - name: Exact 10C V5 product/V8 challenge
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/v5_showcase_port_r1.py
+      - name: Handoff-4 V8 regression
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
+      - name: Repository governance
+        run: |
+          set -euo pipefail
+          python tools/validate_repository.py
