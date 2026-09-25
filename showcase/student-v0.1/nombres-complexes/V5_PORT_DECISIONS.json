@@ -1,0 +1,198 @@
+{
+  "schema": "learnit.student-v0.1.v5-port-decisions.r1",
+  "workPackage": "ATLAS-WP-059",
+  "candidatePath": "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+  "policy": "NO_QUOTA_OPTIONAL_EXTENSIONS_ONLY_WHEN_CAUSALLY_USEFUL",
+  "entries": [
+    {
+      "activityIndex": 0,
+      "activityLineageId": "bd26d7ec-02aa-4530-9d87-51b8a2cc57a7",
+      "activityType": "lesson",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing teaching/reveal path is sufficient; an extra hint would be redundant."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 1,
+      "activityLineageId": "28ef0c23-a968-4f37-bb56-8d4b0635e01c",
+      "activityType": "flashcard",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing teaching/reveal path is sufficient; an extra hint would be redundant."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 2,
+      "activityLineageId": "160f988a-5840-4104-93db-d9463cc92a01",
+      "activityType": "matching",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing source-supported journey and feedback are sufficient; no non-filler progressive hint is required."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 3,
+      "activityLineageId": "70621195-4a56-4a0a-b16f-aed1c66be771",
+      "activityType": "qcm",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing source-supported journey and feedback are sufficient; no non-filler progressive hint is required."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 4,
+      "activityLineageId": "7672a1b7-9328-4b31-be08-1a56bbd2e57f",
+      "activityType": "qcm",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing source-supported journey and feedback are sufficient; no non-filler progressive hint is required."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 5,
+      "activityLineageId": "b0e92b38-57be-4caa-80e9-a0cc770e4599",
+      "activityType": "flashcard",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing teaching/reveal path is sufficient; an extra hint would be redundant."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 6,
+      "activityLineageId": "691f3cf1-f6a7-4cc0-9b74-7008643de172",
+      "activityType": "order",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing source-supported journey and feedback are sufficient; no non-filler progressive hint is required."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 7,
+      "activityLineageId": "e7279474-373a-4823-9281-59952f2e91f9",
+      "activityType": "matching",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing source-supported journey and feedback are sufficient; no non-filler progressive hint is required."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 8,
+      "activityLineageId": "8d7844eb-2451-42a7-8aa1-358bb732f554",
+      "activityType": "qcm",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing source-supported journey and feedback are sufficient; no non-filler progressive hint is required."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    },
+    {
+      "activityIndex": 9,
+      "activityLineageId": "a65f94fa-98a5-496e-8b31-56625c9d2733",
+      "activityType": "qcm",
+      "hints": {
+        "decision": "NONE",
+        "justification": "Existing source-supported journey and feedback are sufficient; no non-filler progressive hint is required."
+      },
+      "media": {
+        "decision": "NONE",
+        "justification": "No embedded representation is necessary for this exact historical activity; decorative media is prohibited."
+      },
+      "references": {
+        "decision": "NONE",
+        "justification": "No optional external complement is needed for solvability or canonical understanding."
+      },
+      "canonicalImpact": "NONE",
+      "activityRevisionRotated": false
+    }
+  ]
+}

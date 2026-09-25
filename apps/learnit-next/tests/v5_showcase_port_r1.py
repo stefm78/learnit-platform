@@ -210,7 +210,21 @@ window.wp59={{
           browser.close()
       finally:
         server.shutdown();server.server_close();hp.unlink(missing_ok=True)
-    assert not subprocess.check_output(["git","status","--porcelain"],cwd=ROOT,text=True).strip()
+    from authoring.factory import factory_gate, v5_factory_gate
+    from authoring.v5 import authoring_policy
+    context=factory_gate.build_context(p,ROOT/"showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",["nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json"])
+    assert context==json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json").read_text(encoding="utf-8"))
+    assert authoring_policy.analyze(candidate)==json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_AUTHORING_POLICY_REPORT.json").read_text(encoding="utf-8"))
+    q=v5_factory_gate._v5_quality(candidate); qr=json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_PEDAGOGICAL_QUALITY_REPORT.json").read_text(encoding="utf-8"))
+    assert {k:q[k] for k in ("canonicalValid","verdict","qualityBand","counts","diagnostics")}=={k:qr[k] for k in ("canonicalValid","verdict","qualityBand","counts","diagnostics")}
+    assert v5_factory_gate.validate_role_a(candidate,[])["verdict"]=="PASS_V5_ROLE_A_REFERENCE_ADMISSION_R1"
+    rb=v5_factory_gate.validate_role_b(json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json").read_text(encoding="utf-8")),context,["nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json"],[])
+    assert rb["verdict"]=="PASS_V5_ROLE_B_SOURCE_GOVERNANCE_R1"
+    vr=subprocess.run(["python","-B","authoring/v5/validate_kit.py",str(p),"--format","json"],cwd=ROOT,text=True,capture_output=True,check=True)
+    assert json.loads(vr.stdout)==json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_VALIDATION_REPORT.json").read_text(encoding="utf-8"))
+    d=json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_PORT_DECISIONS.json").read_text(encoding="utf-8")); assert len(d["entries"])==10
+    assert all(x["hints"]["decision"]==x["media"]["decision"]==x["references"]["decision"]=="NONE" for x in d["entries"])
+    assert not subprocess.check_output(["git","diff",PARENT,"HEAD","--","apps/learnit-next/src","contracts","authoring"],cwd=ROOT,text=True).strip()
     print("V8_EXACT_10_ACTIVITY_RENDER_RESPONSE: PASS");print("ACTIVITY_RESPONSE_UNCHANGED: PASS");print("UPSTREAM_PRODUCT_MUTATION: NONE");print("CLASSIC_V8_PATH_REFUTES_ATLAS_SURFACE_ONLY_BLOCKER: PASS")
 if __name__=="__main__": main()
 

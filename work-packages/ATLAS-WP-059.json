@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-059",
   "title": "Student V0.1 exact 10C showcase V5 port R1",
-  "status": "proposed-blocked",
-  "purpose": "Execute R2 Handoff 5 only. Execution is held because the exact historical 10C candidate exposes an upstream Atlas/V8 activity-family support gap on the qualified Handoff-4 product.",
-  "changeClass": "C2",
-  "riskClass": "R2",
+  "status": "approved",
+  "purpose": "Execute R2 Handoff 5 only: exact JOB10C 10-activity/39-minute learnit.kit.v5 port, deterministic author-side pre-review evidence, and exact technical V5/V8 requalification.",
+  "changeClass": "exact-v5-showcase-port-and-author-pre-review",
+  "riskClass": "moderate",
   "authority": {
     "issue": 448,
     "humanDecisionIssue": 431,
@@ -25,16 +25,28 @@
   },
   "scope": {
     "allowedPaths": [
-      "apps/learnit-next/tests/v5_showcase_port_runtime_blocker_r1.py",
-      "showcase/student-v0.1/nombres-complexes/V5_RUNTIME_BLOCKER_REPORT.json",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/V5_PORT_DECISIONS.json",
+      "showcase/student-v0.1/nombres-complexes/V5_VALIDATION_REPORT.json",
+      "showcase/student-v0.1/nombres-complexes/V5_AUTHORING_POLICY_REPORT.json",
+      "showcase/student-v0.1/nombres-complexes/V5_PEDAGOGICAL_QUALITY_REPORT.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/V5_PRE_REVIEW_EVIDENCE.json",
+      "showcase/student-v0.1/nombres-complexes/PROVENANCE_MAP_V5.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/AUTHOR_AUDIT_V5.md",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_REVIEW_REQUEST_V5.md",
+      "docs/programs/student-v0.1/STUDENT_V0_1_LIMITED_PILOT_ACTIVITY_PROFILE_V5.md",
+      "apps/learnit-next/tests/v5_showcase_port_r1.py",
       "work-packages/ATLAS-WP-059.json",
-      ".github/workflows/atlas-wp059-transient-blocker-qualification.yml",
-      "qualification/STUDENT_V01_V5_SHOWCASE_PORT_R1_RESULT.md"
+      "qualification/STUDENT_V01_V5_SHOWCASE_PORT_R1_RESULT.md",
+      ".github/workflows/atlas-wp059-transient-blocker-qualification.yml"
     ],
     "forbiddenPaths": [
       "apps/learnit-next/src/**",
       "contracts/**",
       "authoring/**",
+      "docs/atlas/**",
       "labs/**",
       "pilot/**",
       "qa/**",
@@ -43,47 +55,40 @@
   },
   "invariants": [
     "No product/runtime code is modified in JOB16.",
-    "Historical PR #438 is input oracle only; no cherry-pick.",
+    "Historical PR #438 is oracle only; no cherry-pick.",
+    "Exactly 10 activities and 39 minutes are preserved.",
+    "No optional V5 field is added without need; this port adds none.",
     "Learner brief and Role B source remain unchanged.",
     "No independent semantic review or final V5 Factory PASS is produced.",
-    "A runtime defect in Handoff 3/4 causes HOLD_UPSTREAM_RUNTIME_DEFECT rather than an in-scope repair."
+    "ATLAS-WP-054 remains blocked."
   ],
   "requiredEvidence": [
-    "Exact 10C historical blob and 10-activity/39-minute structure are rechecked.",
-    "A transient V5 successor is accepted by the frozen V5 runtime contract/import primitives.",
-    "The exact Handoff-4 Atlas surface/session/render blobs are pinned and the activity-family gap is reproduced.",
-    "Repository governance passes on the persisted blocked result tree."
+    "Exact historical identities.",
+    "V5 canonical/authoring/quality pre-review PASS.",
+    "Role A empty-set PASS.",
+    "Role B exact source governance PASS.",
+    "Factory context exact and rotated.",
+    "Full exact 10-activity V5/V8 smoke with reload/resume PASS.",
+    "Repository governance PASS."
   ],
   "adversarialTests": [
-    "Reject any product/runtime source mutation in JOB16.",
-    "Verify Atlas surface admits only qcm/fill while the exact course also requires lesson/flashcard/matching/order.",
-    "Bypass the surface gate and require the first exact lesson projection to fail at the legacy Atlas renderer seam.",
-    "Require no constructed activity and no acceptedResponses workaround."
+    "No gratuitous activity/course revision rotation.",
+    "No constructed or acceptedResponses resurrection.",
+    "No Role B expansion.",
+    "No historical semantic-review reuse.",
+    "Do not misclassify legacy Atlas qcm/fill-only surface as failure of the qualified classic V8 path for this no-hints candidate."
   ],
   "nonGoals": [
-    "Repair Handoff 3 or Handoff 4 product/runtime code.",
-    "Persist a final V5 showcase candidate before the upstream defect is corrected.",
-    "Run Handoff 6 independent semantic review or final Factory V5 gate.",
-    "Fan-in, ATLAS-WP-054, merge, cherry-pick, promotion or student session."
+    "Handoff 6.",
+    "Final V5 Factory gate.",
+    "Product/runtime repair.",
+    "Fan-in.",
+    "ATLAS-WP-054.",
+    "Merge/cherry-pick/promotion/student session."
   ],
   "independentReview": [
-    "No independent semantic-review PASS is produced in this author session.",
-    "Historical V4 semantic review is not reused.",
-    "Handoff 6 remains unexecuted while the upstream runtime defect is open."
+    "SEMANTIC_REVIEW remains PENDING_INDEPENDENT_V5_REVIEW."
   ],
-  "defect": {
-    "code": "UPSTREAM_H4_ATLAS_ACTIVITY_FAMILY_GATE_AND_RENDERER_GAP",
-    "surfaceSupportedActivityTypes": [
-      "qcm",
-      "fill"
-    ],
-    "exactShowcaseUnsupportedTypes": [
-      "lesson",
-      "flashcard",
-      "matching",
-      "order"
-    ]
-  },
   "execution": {
     "branch": "student-v01/r2-v5-showcase-port-r1",
     "parentHead": "6480a21694006a78f4b75dbfea3d214277e776ba",
@@ -91,7 +96,7 @@
     "promotionAuthorized": false,
     "semanticReviewAuthorized": false
   },
-  "nextGate": "UPSTREAM_RUNTIME_CORRECTIVE_HANDOFF_REQUIRED",
-  "finalVerdict": "HOLD_UPSTREAM_RUNTIME_DEFECT",
-  "rollback": "Close the unmerged draft PR and delete the Handoff-5 branch; Handoff 4 and historical 10C authorities remain unchanged."
+  "nextGate": "R2_HANDOFF_6_INDEPENDENT_V5_SEMANTIC_REVIEW",
+  "finalVerdict": "PENDING_EXACT_HEAD_QUALIFICATION",
+  "rollback": "Close unmerged PR and delete branch; upstream authorities remain unchanged."
 }

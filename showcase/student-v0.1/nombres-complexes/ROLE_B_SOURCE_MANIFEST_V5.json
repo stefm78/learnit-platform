@@ -1,0 +1,76 @@
+{
+  "schema": "learnit.atlas.v5.role_b_source_manifest.v1",
+  "profile": "atlas.v5.role-b-source-governance.r1",
+  "sources": [
+    {
+      "sourceId": "nombres-complexes-atlas-v2",
+      "authorization": {
+        "allowed": true,
+        "basis": "Human R2 Handoff-5 authority freezes this exact historical Role B source set for the port.",
+        "provenance": "Historical JOB10C/Atlas source authority; no new Role B source is introduced."
+      },
+      "origin": {
+        "kind": "local-file",
+        "submittedUrl": null,
+        "finalUrl": null,
+        "checkedAt": "2026-09-25T12:33:20Z",
+        "contentType": "application/json",
+        "webAdmissionId": null
+      },
+      "capture": {
+        "bytes": 12384,
+        "sha256": "sha256:3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+      },
+      "claimMappings": [
+        {
+          "kitPath": "$.courses[0].objectives[0]",
+          "basis": "Exact Role B source supports the conjugate rule, examples and geometric interpretation."
+        },
+        {
+          "kitPath": "$.courses[0].objectives[1]",
+          "basis": "Exact Role B source supports the module formula, distance interpretation and examples."
+        },
+        {
+          "kitPath": "$.courses[0].activities[0]",
+          "basis": "$.courses[0].activities[0]: Conjugate rule and 2 + 3i example. | $.courses[0].activities[4]: Geometric interpretation of conjugation as symmetry about the real axis. | $.courses[0].activities[5]: Module example |3 + 4i| = 5. | $.courses[0].activities[6]: General module formula and distance-to-origin interpretation."
+        },
+        {
+          "kitPath": "$.courses[0].activities[1]",
+          "basis": "$.courses[0].activities[0]: Conjugate rule and 2 + 3i example. | $.courses[0].activities[2]: Conjugate of −1 − 4i and general a + ib → a − ib statement. | $.courses[0].activities[3]: Independent conjugate example 5 − 2i → 5 + 2i."
+        },
+        {
+          "kitPath": "$.courses[0].activities[2]",
+          "basis": "$.courses[0].activities[0]: Conjugate rule and 2 + 3i example. | $.courses[0].activities[2]: Conjugate of −1 − 4i and general a + ib → a − ib statement."
+        },
+        {
+          "kitPath": "$.courses[0].activities[3]",
+          "basis": "$.courses[0].activities[4]: Geometric interpretation of conjugation as symmetry about the real axis."
+        },
+        {
+          "kitPath": "$.courses[0].activities[4]",
+          "basis": "$.courses[0].activities[3]: Independent conjugate example 5 − 2i → 5 + 2i."
+        },
+        {
+          "kitPath": "$.courses[0].activities[5]",
+          "basis": "$.courses[0].activities[5]: Module example |3 + 4i| = 5. | $.courses[0].activities[6]: General module formula and distance-to-origin interpretation."
+        },
+        {
+          "kitPath": "$.courses[0].activities[6]",
+          "basis": "$.courses[0].activities[5]: Module example |3 + 4i| = 5."
+        },
+        {
+          "kitPath": "$.courses[0].activities[7]",
+          "basis": "$.courses[0].activities[5]: Module example |3 + 4i| = 5. | $.courses[0].activities[8]: Distance-to-origin example for affix 8 − 15i = 17."
+        },
+        {
+          "kitPath": "$.courses[0].activities[8]",
+          "basis": "$.courses[0].activities[7]: Module example |−5 + 12i| = 13."
+        },
+        {
+          "kitPath": "$.courses[0].activities[9]",
+          "basis": "$.courses[0].activities[9]: Geometric locus |z| = 2 is the circle centered at O with radius 2."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "learnit.student-v0.1.v5-pre-review-evidence.r1",
+  "profile": "atlas.ai-kit-factory.v5-r2-pre-review",
+  "target": {
+    "contextDigest": "sha256:32fd5f9afcc0dd9466c50afb961614f442969d7681036e12a98b1ee59dece739",
+    "kitSha256": "sha256:aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b",
+    "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83",
+    "briefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a"
+  },
+  "canonical": {
+    "verdict": "PASS",
+    "validationReport": "V5_VALIDATION_REPORT.json"
+  },
+  "pedagogicalQuality": {
+    "verdict": "PASS_ATLAS_PEDAGOGICAL_PROFILE_V5_R2",
+    "qualityBand": "EXCELLENT_BY_PROFILE",
+    "counts": {
+      "blocking": 0,
+      "warning": 0,
+      "advice": 0
+    }
+  },
+  "authoringPolicy": {
+    "verdict": "PASS_V5_AUTHORING_POLICY_R1",
+    "hintCount": 0
+  },
+  "roleA": {
+    "requiredUrls": [],
+    "admissionIds": [],
+    "verdict": "PASS_V5_ROLE_A_REFERENCE_ADMISSION_R1",
+    "status": "NONE"
+  },
+  "roleB": {
+    "verdict": "PASS_V5_ROLE_B_SOURCE_GOVERNANCE_R1",
+    "sourceIds": [
+      "nombres-complexes-atlas-v2"
+    ],
+    "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83"
+  },
+  "historicalSemanticReviewReused": false,
+  "semanticReview": "PENDING_INDEPENDENT_V5_REVIEW",
+  "finalFactoryV5Gate": "PENDING_INDEPENDENT_V5_REVIEW"
+}
