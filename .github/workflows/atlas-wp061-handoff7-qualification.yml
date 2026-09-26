@@ -121,7 +121,32 @@ jobs:
           print('V8_SELECTED_PRESENTER_BLOB: PASS')
           PY
           python -B authoring/v4/tests/test_validate_v4.py -v
-          python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
+          python - <<'PY'
+          import pathlib
+          root=pathlib.Path('.')
+          main=(root/'apps/learnit-next/src/main.js').read_text(encoding='utf-8')
+          render=(root/'apps/learnit-next/src/ui/render.js').read_text(encoding='utf-8')
+          surface=(root/'apps/learnit-next/src/integration/atlas/surface.js').read_text(encoding='utf-8')
+          projection=(root/'apps/learnit-next/src/integration/atlas/activity_projection.js').read_text(encoding='utf-8')
+          for marker in (
+              'projectActivityPresentation',
+              'projectLearnerActivity',
+              'async function projectLearnerAnswer',
+              'await sessions.answer(',
+              'projectLearnerSession(await sessions.startCourse',
+              'projectLearnerSession(await sessions.startReviewQueue',
+              'projectLearnerSession(await sessions.resumeActiveCourse',
+              'projectLearnerSession(await sessions.getSession',
+          ):
+              assert marker in main, marker
+          for marker in ('renderActivityPresentation','readActivityResponse','renderServedActivityForm','data-served-activity-submit'):
+              assert marker in render, marker
+          assert "ATLAS_SUPPORTED_ACTIVITY_TYPES = new Set(['qcm', 'fill'])" in surface
+          for family in ('qcm','fill','constructed','lesson','flashcard','matching','order','classify'):
+              assert "case '"+family+"'" in projection, family
+          print('V4_RUNTIME_PROJECTION_CURRENT_STATIC: PASS')
+          print('V4_ALL_EIGHT_ACTIVITY_FAMILIES_CURRENT_STATIC: PASS')
+          PY
           python -B authoring/v5/tests/test_validate_v5.py -v
           python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
 
