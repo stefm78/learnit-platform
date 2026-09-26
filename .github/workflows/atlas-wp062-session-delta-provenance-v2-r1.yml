@@ -117,7 +117,15 @@ jobs:
               path.parent.mkdir(parents=True,exist_ok=True)
               path.write_bytes(data)
           PY
-          LLV2_PRODUCT_TREE=/tmp/wp062-qa-tree python -B apps/learnit-next/tests/qa_learning_loop_v2.py -v
+          python - <<'PY'
+          import importlib.util, pathlib
+          spec=importlib.util.spec_from_file_location('wp062_build','apps/learnit-next/build.py')
+          build=importlib.util.module_from_spec(spec); spec.loader.exec_module(build)
+          manifest,_,data=build.validate_manifest()
+          runtime=build.render_commonjs_runtime(manifest['build']['commonJsSources'],data)
+          pathlib.Path('/tmp/wp062-atlas-preload.mjs').write_text(runtime,encoding='utf-8')
+          PY
+          NODE_OPTIONS="--import=/tmp/wp062-atlas-preload.mjs" LLV2_PRODUCT_TREE=/tmp/wp062-qa-tree python -B apps/learnit-next/tests/qa_learning_loop_v2.py -v
 
       - name: V4 and V5 contract regressions
         run: |
