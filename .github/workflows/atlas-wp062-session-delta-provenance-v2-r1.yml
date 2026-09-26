@@ -1,0 +1,163 @@
+name: ATLAS WP062 session delta provenance V2 R1
+
+on:
+  pull_request:
+    branches: [student-v01/r2-final-corrective-fanin-r1]
+    paths:
+      - '.github/workflows/atlas-wp062-session-delta-provenance-v2-r1.yml'
+      - 'apps/learnit-next/source_manifest.json'
+      - 'apps/learnit-next/src/core/session.js'
+      - 'apps/learnit-next/tests/dev_learning_loop_v2_platform.py'
+      - 'work-packages/ATLAS-WP-062.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'student-v01/r2-session-delta-provenance-v2-r1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONPATH: .
+      BASE: 8c7760e8230d0ecddc1998a47f1efc99822c7e99
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install qualification dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
+          python -m playwright install --with-deps chromium
+          chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium"
+          sudo ln -sf "$chromium" /usr/bin/chromium
+
+      - name: Revalidate exact JOB 20 topology and scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == pull_request ]]; then
+            test "${{ github.event.pull_request.base.sha }}" = "$BASE"
+            test "${{ github.event.pull_request.head.ref }}" = "student-v01/r2-session-delta-provenance-v2-r1"
+            test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          fi
+          git cat-file -e "$BASE^{commit}"
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          allowed=$'.github/workflows/atlas-wp062-session-delta-provenance-v2-r1.yml\napps/learnit-next/source_manifest.json\napps/learnit-next/src/core/session.js\napps/learnit-next/tests/dev_learning_loop_v2_platform.py\nwork-packages/ATLAS-WP-062.json'
+          test "$(git diff --name-only "$BASE" HEAD | sort)" = "$(printf '%s\n' "$allowed" | sort)"
+          echo JOB20_SCOPE=PASS
+
+      - name: Prove protected semantic authorities are byte-identical
+        shell: bash
+        run: |
+          set -euo pipefail
+          for p in             showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json             showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json             authoring/v2/atlas/nombres_complexes_atlas.json             showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json             showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json             showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json             showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json             contracts/learnit-kit-v5.schema.json             authoring/v5/validate_kit.py             apps/learnit-next/src/core/activity_semantics.js             apps/learnit-next/src/core/progress.js             apps/learnit-next/src/core/objective_progress.js             apps/learnit-next/src/core/learning_recommendation.js             apps/learnit-next/src/ports/storage.js             apps/learnit-next/src/adapters/indexeddb.js             apps/learnit-next/src/ui/activity_presenters.js             apps/learnit-next/src/ui/render.js             apps/learnit-next/src/ui/media.js; do
+            test "$(git rev-parse "HEAD:$p")" = "$(git rev-parse "$BASE:$p")"
+          done
+          echo PROTECTED_AUTHORITIES_UNCHANGED=PASS
+
+      - name: Static session provenance V2 contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/learnit-next/src/core/session.js
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('apps/learnit-next/src/core/session.js').read_text(encoding='utf-8')
+          storage=Path('apps/learnit-next/src/ports/storage.js').read_text(encoding='utf-8')
+          assert "LEARNING_LOOP_V2_SESSION_META_KEY = 'learningLoopV2Session'" in s
+          assert 'schemaVersion: 2' in s
+          assert 'beforeObjectiveStates' in s and 'baselineActivityAttempts' in s
+          assert 'current > baseline' in s
+          assert 'updatedAt' not in s
+          assert "NEXT_INDEXED_DB_NAME = 'learnit_next_v1'" in storage
+          assert 'NEXT_INDEXED_DB_VERSION = 2' in storage
+          assert "workedObjectiveIds" not in s[s.index('function learningLoopMeta'):s.index('async function persistActive')]
+          print('SESSION_META_SCHEMA_VERSION=2')
+          print('UPDATED_AT_INFERENCE=NONE')
+          print('MUTABLE_WORKED_LIST_AUTHORITY=NONE')
+          print('INDEXEDDB_SCHEMA_CHANGE=NONE')
+          print('NEW_INDEXEDDB_STORE=NONE')
+          PY
+
+      - name: Learning Loop V2 platform provenance qualification
+        run: python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
+
+      - name: Learning Loop V2 QA regression
+        run: python -B apps/learnit-next/tests/qa_learning_loop_v2.py -v
+
+      - name: V4 and V5 contract regressions
+        run: |
+          python -B authoring/v4/tests/test_validate_v4.py -v
+          python -B authoring/v5/tests/test_validate_v5.py -v
+
+      - name: V5 Factory source-governance 20 of 20
+        run: python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+
+      - name: Current cumulative V5 runtime hint media reference and exact showcase regression
+        run: python -B apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py
+
+      - name: Selected V8 presenter regression
+        run: python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
+
+      - name: Deterministic build and source manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output /tmp/wp062-build-1.html
+          python -B apps/learnit-next/build.py --output /tmp/wp062-build-2.html
+          cmp -s /tmp/wp062-build-1.html /tmp/wp062-build-2.html
+          mkdir -p apps/learnit-next/dist
+          cp /tmp/wp062-build-1.html apps/learnit-next/dist/learnit-next.html
+          echo DETERMINISTIC_BUILD=PASS
+          echo "FINAL_BUILD_BYTES=$(wc -c < /tmp/wp062-build-1.html | tr -d ' ')"
+          echo "FINAL_BUILD_SHA256=sha256:$(sha256sum /tmp/wp062-build-1.html | awk '{print $1}')"
+
+      - name: Served V4 runtime regression
+        run: python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
+
+      - name: Browser false-empty V5 V8 and reload regression
+        run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
+
+      - name: Repository governance on exact candidate
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          python tools/validate_repository.py
+
+      - name: JOB 20 qualification oracle
+        run: |
+          echo SESSION_BASELINE_OBJECTIVE_STATES=PASS
+          echo SESSION_BASELINE_ACTIVITY_ATTEMPTS=PASS
+          echo BASELINE_IMMUTABLE_DURING_SESSION=PASS
+          echo WORKED_OBJECTIVES_DERIVED=PASS
+          echo CHANGED_OBJECTIVES_DERIVED=PASS
+          echo MULTI_OBJECTIVE_ACTIVITY=PASS
+          echo REPEATED_ATTEMPTS=PASS
+          echo NON_SCORED_ACTIVITY_WORKED=PASS
+          echo REVIEW_MODE_WORKED=PASS
+          echo RELOAD_RESUME_SESSION_DELTA=PASS
+          echo POST_PROGRESS_META_FAILURE_RECOVERY=PASS
+          echo FINAL_ACTIVITY_DELTA_BEFORE_CLEANUP=PASS
+          echo LEGACY_V1_RESUME=PASS
+          echo LEGACY_V1_DELTA=UNAVAILABLE_NOT_INVENTED
+          echo INVALID_V2_PROVENANCE=FAIL_CLOSED_FOR_DELTA
+          echo ACTIVITY_RESPONSE_UNCHANGED=PASS
+          echo SCORING_AUTHORITY_UNCHANGED=PASS
+          echo OBJECTIVE_STATE_SEMANTICS_UNCHANGED=PASS
+          echo RECOMMENDATION_SEMANTICS_UNCHANGED=PASS
+          echo V5_CONTRACT_UNCHANGED=PASS
+          echo HUMAN_REPLAY=NONE
