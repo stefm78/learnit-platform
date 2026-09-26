@@ -42,7 +42,9 @@
       "docs/programs/student-v0.1/replay/R2_HANDOFF7_HUMAN_REPLAY_CHECKLIST.md",
       "qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md",
       "work-packages/ATLAS-WP-051.json",
-      "work-packages/ATLAS-WP-061.json"
+      "work-packages/ATLAS-WP-061.json",
+      "qualification/STUDENT_V01_R2_HANDOFF7_FANIN_REPLAY_PREP_R1_RESULT.md",
+      "qualification/STUDENT_V01_R2_HANDOFF7_REPLAY_MANIFEST.json"
     ],
     "forbiddenPaths": [
       "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
@@ -97,5 +99,17 @@
   },
   "nextGate": "REAL_HUMAN_REPLAY_ON_EXACT_BUNDLE",
   "finalVerdict": "PENDING_MACHINE_QUALIFICATION_THEN_HUMAN_DECISION_REQUIRED",
-  "rollback": "Close unmerged PR #454 and delete the Handoff-7 branch; H6 evidence head and fan-in base remain unchanged."
+  "rollback": "Close unmerged PR #454 and delete the Handoff-7 branch; H6 evidence head and fan-in base remain unchanged.",
+  "adversarialTests": [
+    "Historical 10A presenter-freeze assertions are not reused as current fan-in truth after the qualified V8 presenter replacement; current Stream-A invariants are retested around the selected V8 implementation.",
+    "Any H6 semantic-target blob drift forces HOLD_REQUIRES_REQUALIFICATION.",
+    "Any direct Stream-A/R2 overlap beyond apps/learnit-next/src/ui/render.js fails closed.",
+    "Failed persistence must not reveal a V5 hint, and runtime references must not introduce network fetches.",
+    "The generic Learn-it CI must recognize only the exact Handoff-7 branch and delegate without weakening other branch routes."
+  ],
+  "independentReview": [
+    "Handoff 7 does not re-author or silently re-review H6 semantic evidence.",
+    "Machine fan-in regression is distinct from and cannot substitute for the mandatory real human replay.",
+    "Historical Stream-A evidence is carried unchanged while its current invariants are independently exercised against the cumulative R2 runtime."
+  ]
 }

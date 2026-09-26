@@ -131,6 +131,7 @@ jobs:
               stream1/issue-352-one-atlas-learning-journey) echo 'atlas-ux-convergence wave' ;;
               atlas/ATLAS-WP-021-m3-4-qualified-release-set) echo 'm3-4-release-set-delegated wave' ;;
               student-v01/g5-r1-app-experience) echo 'student-v01-g5-r1-app-experience wave' ;;
+              student-v01/r2-final-corrective-fanin-r1) echo 'student-v01-r2-handoff7 wave' ;;
               student-v01/fanin-b) echo 'student-v01-fanin-b wave' ;;
               student-v01/served-v4-integration) echo 'student-v01-served-v4 wave' ;;
               student-v01/fanin-a|student-v01/fanin-a-r2|student-v01/fanin-a-r3-oracle) echo 'student-v01-fanin-a wave' ;;
@@ -685,6 +686,26 @@ jobs:
             echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_SCOPE=PASS"
             echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_EXACT_ROUTE=PASS"
             echo "STUDENT_V01_G5_R1_APP_EXPERIENCE_TARGET=${TARGET}"
+            exit 0
+          fi
+
+          if [[ "${PROFILE}" == student-v01-r2-handoff7 ]]; then
+            [[ "${EVENT}" == pull_request ]] || { echo "R2 Handoff 7 requires pull_request." >&2; exit 2; }
+            [[ "${BRANCH}" == student-v01/r2-final-corrective-fanin-r1 ]] || exit 2
+            exact_base=18b925436777943b19c4b031c24659ad60dee133
+            h6_evidence=94370d13b6a6430aedd33c19f4180b4e7483a306
+            [[ "${PR_BASE_SHA}" == "${exact_base}" ]] || { echo "Handoff 7 PR base drifted: ${PR_BASE_SHA}" >&2; exit 2; }
+            [[ "${TARGET}" == "$(git rev-parse HEAD)" ]]
+            remote="$(git ls-remote --exit-code --heads origin "${BRANCH}" | awk 'NR==1 {print $1}')"
+            [[ "${remote}" == "${TARGET}" ]] || { echo "Handoff 7 remote head differs from exact target." >&2; exit 2; }
+            [[ "$(git merge-base "${h6_evidence}" "${TARGET}")" == "${h6_evidence}" ]] || {
+              echo "Handoff 7 no longer descends from exact H6 evidence head." >&2
+              exit 2
+            }
+            test -f .github/workflows/atlas-wp061-handoff7-qualification.yml
+            test -f work-packages/ATLAS-WP-061.json
+            echo "STUDENT_V01_R2_HANDOFF7_DELEGATED_ROUTE=PASS"
+            echo "STUDENT_V01_R2_HANDOFF7_TARGET=${TARGET}"
             exit 0
           fi
 

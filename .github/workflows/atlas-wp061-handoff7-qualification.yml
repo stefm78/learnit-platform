@@ -77,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           same(){ test "$(git rev-parse "HEAD:$1")" = "$(git rev-parse "$2:$1")"; }
-          for p in             .github/workflows/learnit-next-ci.yml             apps/learnit-next/src/integration/atlas/surface.js             apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py             apps/learnit-next/tests/student_v01_g5_r1_app_experience.py             docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md             work-packages/ATLAS-WP-051.json; do
+          for p in             apps/learnit-next/src/integration/atlas/surface.js             apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py             apps/learnit-next/tests/student_v01_g5_r1_app_experience.py             docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md             work-packages/ATLAS-WP-051.json; do
             same "$p" "$STREAM_RESULT"
           done
           same qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md "$STREAM_EVIDENCE"
@@ -98,7 +98,29 @@ jobs:
           node --check apps/learnit-next/src/integration/atlas/surface.js
           node --check apps/learnit-next/src/ui/render.js
           node --check apps/learnit-next/src/ui/activity_presenters.js
-          python -B apps/learnit-next/tests/student_v01_g5_r1_app_experience.py
+          python - <<'PY'
+          import pathlib,subprocess
+          root=pathlib.Path('.')
+          surface=(root/'apps/learnit-next/src/integration/atlas/surface.js').read_text(encoding='utf-8')
+          render=(root/'apps/learnit-next/src/ui/render.js').read_text(encoding='utf-8')
+          assert 'Aucun parcours Atlas installé' not in surface
+          assert "surface.style.display = 'none'" in surface
+          assert 'Planner incompatibility is not an empty learner library' in surface
+          for marker in ('data-session-objective-buckets','data-session-progress-details','Voir ma progression'):
+              assert marker in render,marker
+          start=render.index('function renderSessionSnapshot')
+          end=render.index('function renderFeedback',start)
+          session=render[start:end]
+          assert session.index('renderServedActivityForm(')<session.index('objectiveBuckets,')<session.index('objectiveDetails,')
+          presenter=subprocess.check_output(['git','rev-parse','HEAD:apps/learnit-next/src/ui/activity_presenters.js'],text=True).strip()
+          assert presenter=='47afc02200b7a3f9be9df10c415341efe8e0e2a8',presenter
+          print('FALSE_EMPTY_STATE: PASS')
+          print('ACTIVITY_PRIMARY: PASS')
+          print('COMPACT_OBJECTIVE_BUCKETS: PASS')
+          print('PROGRESSIVE_DISCLOSURE: PASS')
+          print('V8_SELECTED_PRESENTER_BLOB: PASS')
+          PY
+          python -B authoring/v4/tests/test_validate_v4.py -v
           python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
           python -B authoring/v5/tests/test_validate_v5.py -v
           python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v

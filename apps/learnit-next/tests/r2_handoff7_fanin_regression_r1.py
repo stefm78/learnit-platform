@@ -3,11 +3,15 @@ from __future__ import annotations
 import importlib.util, json, subprocess, tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
-A={".github/workflows/learnit-next-ci.yml":"9771876861b685db96083b4f8c9561fc045956ac","apps/learnit-next/src/integration/atlas/surface.js":"38e49785afc674c53436ec875782a2a07a47c18f","apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py":"cb31b23288bf605b91483bbe81124901728c99c0","apps/learnit-next/tests/student_v01_g5_r1_app_experience.py":"0f0ee68e930eed1b662d2ef5f4434a9e1022ed98","docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md":"c1030b44ab3beded87b68e51b9d5d2bdf979ba79","work-packages/ATLAS-WP-051.json":"180a0caaf76b391b9cb421d9cdcf96acf7fb89eb","qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md":"9798774f5c331b50ebda1bd6fa84ed45bcd59aee"}
+A={"apps/learnit-next/src/integration/atlas/surface.js":"38e49785afc674c53436ec875782a2a07a47c18f","apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py":"cb31b23288bf605b91483bbe81124901728c99c0","apps/learnit-next/tests/student_v01_g5_r1_app_experience.py":"0f0ee68e930eed1b662d2ef5f4434a9e1022ed98","docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md":"c1030b44ab3beded87b68e51b9d5d2bdf979ba79","work-packages/ATLAS-WP-051.json":"180a0caaf76b391b9cb421d9cdcf96acf7fb89eb","qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md":"9798774f5c331b50ebda1bd6fa84ed45bcd59aee"}
 H6={"showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json":"57374ba897600894ab124e8ac2d3ee3b6f5c4cc2","showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json":"6c4fb770f12690a3cb338c82fc77bf9b323c3b06","authoring/v2/atlas/nombres_complexes_atlas.json":"7f83784e8719917496a694b2ad170d724190fd04","showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json":"74e16e07e9e5978b7b5f3ce81befa4c0650bf925","showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json":"3f6a1cec5444121c8fe742d515b400780046557c","showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json":"a6c9f65f94900f5e46c0ecc8a44cb0d0e7166056","showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json":"d1c17f6f12775f667c23df0a3cf96e316ffab41b"}
 def blob(p): return subprocess.check_output(["git","rev-parse",f"HEAD:{p}"],cwd=ROOT,text=True).strip()
 for p,s in A.items(): assert blob(p)==s,(p,blob(p),s)
 for p,s in H6.items(): assert blob(p)==s,(p,blob(p),s)
+ci=(ROOT/".github/workflows/learnit-next-ci.yml").read_text(encoding="utf-8")
+assert "student-v01/g5-r1-app-experience) echo 'student-v01-g5-r1-app-experience wave'" in ci
+assert "student-v01/r2-final-corrective-fanin-r1) echo 'student-v01-r2-handoff7 wave'" in ci
+assert "STUDENT_V01_R2_HANDOFF7_DELEGATED_ROUTE=PASS" in ci
 render=(ROOT/"apps/learnit-next/src/ui/render.js").read_text(encoding="utf-8")
 for m in ("OBJECTIVE_BUCKET_STATE_LABELS","renderSessionProgressDetails","data-session-objective-buckets","data-session-progress-details","renderEmbeddedMediaSet","data-activity-feedback-media"): assert m in render,m
 session=render[render.index("const activityTitle = node('h2'"):render.index("function renderFeedback")]
