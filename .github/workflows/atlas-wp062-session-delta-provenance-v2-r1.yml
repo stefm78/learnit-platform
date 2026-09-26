@@ -154,10 +154,7 @@ jobs:
           echo "FINAL_BUILD_BYTES=$(wc -c < /tmp/wp062-build-1.html | tr -d ' ')"
           echo "FINAL_BUILD_SHA256=sha256:$(sha256sum /tmp/wp062-build-1.html | awk '{print $1}')"
 
-      - name: Served V4 runtime regression
-        run: python -B apps/learnit-next/tests/student_v01_served_v4_integration.py
-
-      - name: Browser false-empty V5 V8 and reload regression
+      - name: Current browser V4 V5 V8 false-empty and reload regression
         run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
 
       - name: Repository governance on exact candidate
