@@ -881,19 +881,26 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
     progressByInstallId = new Map();
 
     if (!atlasCourses.length) {
-      content.style.display = '';
+      /*
+       * Planner incompatibility is not an empty learner library.
+       * Rich V4 courses stay owned by the canonical Learn-it shell;
+       * only a genuinely planner-compatible course activates Today.
+       */
+      surface.style.display = 'none';
+      content.replaceChildren();
+      libraryVisible = false;
       if (appMain) {
         appMain.style.display = classicDisplay;
         if (!classicWasInert) appMain.removeAttribute('inert');
       }
-      if (libraryToggle) libraryToggle.style.display = 'none';
-      content.replaceChildren(node('div', {className: 'empty-state'}, [
-        node('h3', {text: 'Aucun parcours Atlas installé'}),
-        node('p', {text: 'Importez un cours dans la bibliothèque pour préparer une séance de 5, 15 ou 30 minutes.'}),
-      ]));
+      if (libraryToggle) {
+        libraryToggle.style.display = 'none';
+        libraryToggle.setAttribute('aria-expanded', 'false');
+      }
       return;
     }
 
+    surface.style.display = '';
     if (libraryToggle) libraryToggle.style.display = '';
     setClassicVisible(libraryVisible);
 

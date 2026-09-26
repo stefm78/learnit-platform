@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-061",
+  "title": "Student V0.1 R2 Handoff 7 final corrective fan-in and human replay preparation",
+  "status": "under-qa",
+  "purpose": "Execute only R2 Handoff 7: exact Stream-A payload materialization, minimal render reconciliation with cumulative R2 H1-H6, combined machine regression, deterministic build, and immutable human replay preparation.",
+  "changeClass": "final-corrective-fanin-regression-human-replay-preparation",
+  "riskClass": "high",
+  "authority": {
+    "issue": 453,
+    "pullRequest": 454,
+    "humanDecisionIssue": 431,
+    "humanDecisionComment": 5817817692,
+    "decision": "GO_PRE_PILOT_V5",
+    "streamAPullRequest": 436,
+    "h6PullRequest": 452
+  },
+  "baseline": {
+    "baseBranch": "student-v01/fanin-b",
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133",
+    "h6EvidenceHead": "94370d13b6a6430aedd33c19f4180b4e7483a306",
+    "h6ResultSha": "0d839b4a3a9d7f88bf7aaa75ff0a2415805745a0",
+    "streamAResultSha": "1d32e819a4a71e08f23bd64e9b9cb9fa643feef6",
+    "streamAEvidenceHead": "f26216cc28fee9a2f5a55b90e68959d53963663f",
+    "h6QualificationRun": 36149333780,
+    "semanticReviewBlob": "a6c9f65f94900f5e46c0ecc8a44cb0d0e7166056",
+    "finalFactoryEvidenceBlob": "d1c17f6f12775f667c23df0a3cf96e316ffab41b"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/atlas-wp061-handoff7-qualification.yml",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/student_v01_g5_r1_app_experience.py",
+      "apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py",
+      "apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py",
+      "apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py",
+      "docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md",
+      "docs/programs/student-v0.1/replay/R2_HANDOFF7_REPLAY_ANSWER_GUIDE.md",
+      "docs/programs/student-v0.1/replay/R2_HANDOFF7_HUMAN_REPLAY_CHECKLIST.md",
+      "qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md",
+      "work-packages/ATLAS-WP-051.json",
+      "work-packages/ATLAS-WP-061.json"
+    ],
+    "forbiddenPaths": [
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "authoring/v2/atlas/nombres_complexes_atlas.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ]
+  },
+  "invariants": [
+    "PR #436 is not merged and no commit is cherry-picked.",
+    "Only render.js is a direct Stream-A/R2 product overlap and receives minimal semantic reconciliation.",
+    "All non-conflicting accepted Stream-A payloads are materialized byte-exactly.",
+    "H6 semantic target and final Factory evidence bytes remain immutable.",
+    "Selected V8 presenters and exact H5 ten-activity / 39-minute showcase remain frozen.",
+    "No machine result can authorize GO_LIMITED_PILOT or G5 PASS.",
+    "ATLAS-WP-054 remains blocked until explicit real human replay."
+  ],
+  "requiredEvidence": [
+    "Stream-A App Experience static/browser regression PASS.",
+    "V4 regression PASS and V5 validator 11/11 PASS.",
+    "V5 Factory/source governance 20/20 PASS.",
+    "V5 runtime/hint/reference lifecycle regression PASS.",
+    "V8 selected presenter browser/accessibility regression PASS.",
+    "Exact 10-activity / 39-minute V5 showcase current-candidate regression PASS.",
+    "H6 semantic review and final Factory gate bytes and verdicts unchanged.",
+    "Cross-stream discriminant browser regression PASS.",
+    "Deterministic build PASS and exact build SHA-256 recorded.",
+    "Repository governance PASS on exact fan-in candidate SHA.",
+    "Deterministic replay bundle SHA-256 and downloadable artifact recorded."
+  ],
+  "nonGoals": [
+    "Merge",
+    "Cherry-pick",
+    "Promotion",
+    "Student session",
+    "Simulated human replay",
+    "GO_LIMITED_PILOT",
+    "G5 PASS",
+    "ATLAS-WP-054 closure"
+  ],
+  "execution": {
+    "branch": "student-v01/r2-final-corrective-fanin-r1",
+    "startingHead": "94370d13b6a6430aedd33c19f4180b4e7483a306",
+    "prBaseCommit": "18b925436777943b19c4b031c24659ad60dee133",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "humanReplayAuthorizedForMachine": false,
+    "pullRequest": 454
+  },
+  "nextGate": "REAL_HUMAN_REPLAY_ON_EXACT_BUNDLE",
+  "finalVerdict": "PENDING_MACHINE_QUALIFICATION_THEN_HUMAN_DECISION_REQUIRED",
+  "rollback": "Close unmerged PR #454 and delete the Handoff-7 branch; H6 evidence head and fan-in base remain unchanged."
+}
