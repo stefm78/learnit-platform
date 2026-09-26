@@ -160,7 +160,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -B authoring/factory/v5_factory_gate.py context             --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json             --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json             --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json             > /tmp/factory-context.json
+          python -B authoring/factory/factory_gate.py context             --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json             --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json             --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json             > /tmp/factory-context.json
           python - <<'PY'
           import json
           x=json.load(open('/tmp/factory-context.json',encoding='utf-8'))
