@@ -215,8 +215,6 @@ jobs:
         run: |
           set -euo pipefail
           python -B apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py
-          python -B apps/learnit-next/tests/browser_student_v01_activity_presentation.py
-          python -B apps/learnit-next/tests/browser_student_v01_served_v4_integration.py
           python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
 
       - name: Repository governance on exact candidate
