@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-051",
+  "title": "Student V0.1 G5 R1 — App Experience repair",
+  "status": "approved",
+  "changeClass": "product-shell-ux-repair",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 433,
+    "coordinatorIssue": 431,
+    "parentProgramIssue": 380,
+    "g4Issue": 425,
+    "g5Issue": 427
+  },
+  "baseline": {
+    "baseCommit": "18b925436777943b19c4b031c24659ad60dee133",
+    "g4CandidateResult": "757ed15e840bfca603de0eac3bef1e9d5ff3483d",
+    "g5ReplayPrep": "a72897c209b8ea7bd8672cc8a95be939ecee6fb8",
+    "atlasSurfaceBlob": "aea13ae66fdeeddae6a32b46f8c53875f6a754ad",
+    "servedRenderBlob": "0fc4b5027c82d038f69d402f97f8d0e059c5401c",
+    "objectiveProgressBlob": "2f70cc5ef1d2d5b7f6f089675723906e083a5643",
+    "activityPresentersReadOnlyBlob": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf"
+  },
+  "purpose": "Repair only the application-shell learner experience around installed rich V4 courses, active-session hierarchy, compact per-objective progress and resume/recovery clarity, while keeping activity interaction presenters and scoring semantics read-only.",
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-051.json",
+      "docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/ui/objective_buckets.js",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/tests/student_v01_g5_r1_app_experience.py",
+      "apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py",
+      ".github/workflows/learnit-next-ci.yml",
+      "qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/core/**",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/index.template.html",
+      "apps/learnit-next/source_manifest.json",
+      "contracts/**",
+      "authoring/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "invariants": [
+    "This stream owns application-shell experience only and must not redesign individual activity interactions.",
+    "activity_presenters.js and core activity semantics remain byte-identical to the common base.",
+    "A rich V4 course present in the learner library must never coexist with a learner-facing false 'Aucun parcours Atlas installé' diagnosis.",
+    "The legacy Atlas planner is not widened to rich V4 families merely to remove the false empty state.",
+    "During an active journey the current activity is visually primary; verbose objective detail is progressive disclosure.",
+    "Compact per-objective progress uses current objective state data and never becomes a second source of truth.",
+    "Objective state must be represented by text as well as visual fill; color alone is insufficient.",
+    "Resume, recovery, persistence and completion semantics remain unchanged.",
+    "The deterministic Learn-it build may change because product shell source changes; the new exact build identity must be recorded.",
+    "RESULT_SHA is executable/tested product-shell repair; EVIDENCE_HEAD may add only its qualification narrative."
+  ],
+  "requiredEvidence": [
+    "Fresh HCP/main/G4/G5 authority binding and exact common-base ancestry.",
+    "Baseline reproduction of false Atlas empty state and pre-activity objective-detail dominance.",
+    "Browser proof that an installed rich V4 course never shows a contradictory no-course/no-Atlas state.",
+    "DOM/order proof that current activity precedes verbose objective detail in active session.",
+    "Compact per-objective buckets for every objective with accessible learner state text.",
+    "Progressive disclosure for detailed objective evidence, collapsed by default.",
+    "Desktop and mobile layout checks showing no activity displacement/overflow caused by progress UI.",
+    "Keyboard accessibility for any disclosure/progress controls.",
+    "Unchanged activity presenter blob and unchanged core semantics proven at RESULT_SHA.",
+    "Persistence/reload/resume/completion regression PASS.",
+    "Existing Student V0.1 rich-family/product regressions PASS.",
+    "Deterministic app double-build identity recorded.",
+    "Exact-head CI PASS on RESULT_SHA.",
+    "Repository governance PASS and exact changed-path scope PASS."
+  ],
+  "adversarialTests": [
+    "Do not solve the empty state by making the legacy planner pretend it supports every rich V4 course.",
+    "Do not remove objective progress entirely.",
+    "Do not put detailed progress back above the activity through a different container.",
+    "Do not edit activity_presenters.js to fix lesson/flashcard confusion; that belongs to Activity Lab selection and later integration.",
+    "Do not change scoring, activity response shapes, source content or showcase copy.",
+    "Do not add shell-only code to source_manifest.json unless it is already part of the canonical app build path and exact build evidence proves necessity; prefer existing imported modules.",
+    "Do not use screenshots alone as evidence when DOM/state assertions can be deterministic."
+  ],
+  "independentReview": [
+    "This stream is authored independently from Activity Lab and Pilot Activity Policy branches.",
+    "It does not consume sibling result/evidence during implementation.",
+    "A later ATLAS-WP-054 gate independently integrates this exact result with other accepted streams."
+  ],
+  "nonGoals": [
+    "Activity presenter prototype design.",
+    "Constructed activity policy.",
+    "Showcase content rewrite.",
+    "Corrective fan-in.",
+    "G4 R1 or G5 replay."
+  ],
+  "execution": {
+    "branch": "student-v01/g5-r1-app-experience",
+    "phase": "APP_EXPERIENCE_R1_AUTHORIZED",
+    "mergeStatus": "not-merged",
+    "nextGate": "ATLAS-WP-054_IF_PASS",
+    "finalVerdict": "PENDING"
+  },
+  "rollback": "Close the Stream A PR and delete student-v01/g5-r1-app-experience. Common-base G4 evidence remains unchanged."
+}

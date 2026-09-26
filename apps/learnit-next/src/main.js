@@ -9,7 +9,10 @@ import {
   createProgressService,
 } from './core/progress.js';
 import { createSessionService } from './core/session.js';
-import { projectActivityPresentation } from './integration/atlas/activity_projection.js';
+import {
+  projectActivityPresentation,
+  projectFeedbackMedia,
+} from './integration/atlas/activity_projection.js';
 import * as objectiveProgressDomain from './core/objective_progress.js';
 import * as learningRecommendationDomain from './core/learning_recommendation.js';
 import { createIndexedDbStorage } from './adapters/indexeddb.js';
@@ -143,6 +146,7 @@ export function createLearnitRuntime(
       activityRevisionId: activity.activityRevisionId,
       presentation: projectActivityPresentation(activity, {
         assets: courseRecord.packageAssets ?? [],
+        contract: courseRecord.contract ?? null,
       }),
     });
   }
@@ -158,9 +162,44 @@ export function createLearnitRuntime(
     });
   }
 
-  async function projectLearnerAnswer(value) {
+  async function projectLearnerAnswer(
+    value,
+    answeredActivityRevisionId,
+  ) {
+    const courseRecord =
+      await library.getCourse(value.courseInstallId);
+
+    if (!courseRecord) {
+      throw new Error(
+        'Unknown courseInstallId ' + value.courseInstallId,
+      );
+    }
+
+    const answeredActivity =
+      courseRecord.course.activities.find(
+        activity =>
+          activity.activityRevisionId
+          === answeredActivityRevisionId,
+      );
+
+    const feedbackMedia =
+      answeredActivity
+      && courseRecord.contract === 'learnit.kit.v5'
+        ? projectFeedbackMedia(
+          answeredActivity,
+          {
+            assets: courseRecord.packageAssets ?? [],
+            contract: courseRecord.contract,
+            transitionAuthorized: true,
+          },
+        )
+        : Object.freeze([]);
+
     return Object.freeze({
       ...value,
+      ...(feedbackMedia.length
+        ? { feedbackMedia }
+        : {}),
       nextActivity: await projectLearnerActivity(
         value.nextActivity,
         value.courseInstallId,
@@ -200,7 +239,14 @@ export function createLearnitRuntime(
     setCourseDisplayLabel: (courseInstallId, label) => library.setDisplayLabel(courseInstallId, label),
     startCourse: async (courseInstallId) => projectLearnerSession(await sessions.startCourse(courseInstallId)),
     startReviewQueue: async (courseInstallId) => projectLearnerSession(await sessions.startReviewQueue(courseInstallId)),
-    answer: async (activityRevisionId, answer) => projectLearnerAnswer(await sessions.answer(activityRevisionId, answer)),
+    answer: async (activityRevisionId, answer) =>
+      projectLearnerAnswer(
+        await sessions.answer(
+          activityRevisionId,
+          answer,
+        ),
+        activityRevisionId,
+      ),
     async getProgress(courseInstallId) {
       const courseRecord = await library.getCourse(courseInstallId);
       if (!courseRecord) throw new Error(`Unknown courseInstallId ${courseInstallId}`);
@@ -255,6 +301,13 @@ export function createLearnitRuntime(
         packageLineageId: courseRecord.packageLineageId,
         packageRevisionId: courseRecord.packageRevisionId,
         packageDigest,
+        ...(courseRecord.contract === 'learnit.kit.v5'
+          ? {
+            contract: courseRecord.contract,
+            packageAssets:
+              structuredClone(courseRecord.packageAssets ?? []),
+          }
+          : {}),
         course: structuredClone(courseRecord.course),
       });
     },

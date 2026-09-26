@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ATLAS-WP-058 V8 harness</title><link rel="stylesheet" href="../src/styles.css">
+<body><main id="host"></main><script type="module">
+import {renderActivityPresentation,readActivityResponse,setActivityPresenterRandomSourceForTest} from '../src/ui/activity_presenters.js';
+const long='Libellé volontairement très long qui doit revenir proprement à la ligne sans déplacer le bouton radio ni provoquer de débordement horizontal sur un écran étroit.';
+const svg='<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20" viewBox="0 0 40 20"><rect width="40" height="20" fill="#ddd"/><text x="3" y="14">V8</text></svg>';
+const media=[{assetId:'prompt-media',format:'svg',alt:'Illustration de consigne',data:svg,placement:'prompt',display:'contained',zoomable:false},{assetId:'content-media',format:'svg',alt:'Illustration de contenu',data:svg,placement:'content',display:'contained',zoomable:true}];
+const references=[{url:'https://example.com/reference',label:'Référence externe vérifiée',hook:'Complément documentaire.'}];
+const fixtures={
+ qcm:{type:'qcm',prompt:'Choisissez la proposition correcte.',choices:[{choiceId:'a',label:long},{choiceId:'b',label:'Choix court'},{choiceId:'c',label:'Autre choix'}]},
+ fill:{type:'fill',prompt:'Complétez la phrase.',tokens:[{tokenId:'t1',label:'premier'},{tokenId:'t2',label:'deuxième'}],segments:[{text:'Le '},{slotId:'s1'},{text:' vient avant le '},{slotId:'s2'},{text:'.'}]},
+ lesson:{type:'lesson',title:'Lecture simple',body:'Premier paragraphe.\n\nDeuxième paragraphe.',keyPoints:['Point un','Point deux'],contextNote:'Contexte bref.'},
+ flashcard:{type:'flashcard',front:'Question de rappel',back:'Réponse attendue',explanation:'Explication claire.'},
+ matching:{type:'matching',prompt:'Associez chaque carte.',leftItems:[{itemId:'l1',label:'Carte alpha '+long},{itemId:'l2',label:'Carte bêta'},{itemId:'l3',label:'Carte gamma'}],rightItems:[{itemId:'r1',label:'Description un'},{itemId:'r2',label:'Description deux'},{itemId:'r3',label:'Description trois'}]},
+ order:{type:'order',prompt:'Mettez dans l’ordre.',items:[{itemId:'o1',label:'Étape un'},{itemId:'o2',label:'Étape deux '+long},{itemId:'o3',label:'Étape trois'},{itemId:'o4',label:'Étape quatre'}]},
+ classify:{type:'classify',prompt:'Classez les cartes.',buckets:[{bucketId:'b1',label:'Catégorie un'},{bucketId:'b2',label:'Catégorie deux'}],items:[{itemId:'c1',label:'Carte une '+long},{itemId:'c2',label:'Carte deux'},{itemId:'c3',label:'Carte trois'}]}
+};
+const host=document.querySelector('#host');
+function enriched(type){return {...structuredClone(fixtures[type]),media:structuredClone(media),references:structuredClone(references)}}
+function render(type){host.replaceChildren();setActivityPresenterRandomSourceForTest(()=>.3141592653589793);const p=enriched(type),node=renderActivityPresentation(p);host.append(node);return node}
+function response(type){return readActivityResponse(host,enriched(type))}
+function renderRaw(p){host.replaceChildren();setActivityPresenterRandomSourceForTest(()=>.3141592653589793);const node=renderActivityPresentation(p);host.append(node);return node}
+window.v8={render,response,enriched,renderRaw,host};render('qcm');
+</script></body></html>

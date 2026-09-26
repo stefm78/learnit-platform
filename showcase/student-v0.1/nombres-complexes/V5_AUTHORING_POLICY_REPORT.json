@@ -1,0 +1,8 @@
+{
+  "schema": "learnit.atlas.v5.authoring_policy_report.v1",
+  "profile": "atlas.v5.authoring-policy.r1",
+  "hintCount": 0,
+  "semanticReviewRequiredForHintSafety": false,
+  "verdict": "PASS_V5_AUTHORING_POLICY_R1",
+  "reasons": []
+}

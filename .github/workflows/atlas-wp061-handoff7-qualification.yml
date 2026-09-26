@@ -1,0 +1,273 @@
+name: ATLAS WP061 Handoff7 machine qualification
+
+on:
+  pull_request:
+    branches: [student-v01/fanin-b]
+    paths:
+      - '.github/workflows/atlas-wp061-handoff7-qualification.yml'
+      - '.github/workflows/learnit-next-ci.yml'
+      - 'apps/learnit-next/**'
+      - 'authoring/**'
+      - 'contracts/**'
+      - 'showcase/student-v0.1/nombres-complexes/**'
+      - 'work-packages/ATLAS-WP-061.json'
+      - 'docs/programs/student-v0.1/replay/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'student-v01/r2-final-corrective-fanin-r1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONPATH: .
+      BASE: 18b925436777943b19c4b031c24659ad60dee133
+      STREAM_RESULT: 1d32e819a4a71e08f23bd64e9b9cb9fa643feef6
+      STREAM_EVIDENCE: f26216cc28fee9a2f5a55b90e68959d53963663f
+      H6_RESULT: 0d839b4a3a9d7f88bf7aaa75ff0a2415805745a0
+      H6_EVIDENCE: 94370d13b6a6430aedd33c19f4180b4e7483a306
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
+          python -m playwright install --with-deps chromium
+          chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium"
+          sudo ln -sf "$chromium" /usr/bin/chromium
+
+      - name: Revalidate exact fan-in identities and topology
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == pull_request ]]; then
+            test "${{ github.event.pull_request.base.sha }}" = "$BASE"
+            test "${{ github.event.pull_request.head.ref }}" = "student-v01/r2-final-corrective-fanin-r1"
+            test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          fi
+          for sha in "$BASE" "$STREAM_RESULT" "$STREAM_EVIDENCE" "$H6_RESULT" "$H6_EVIDENCE"; do
+            git fetch --force --no-tags origin "$sha"
+            git cat-file -e "$sha^{commit}"
+          done
+          test "$(git merge-base "$H6_EVIDENCE" HEAD)" = "$H6_EVIDENCE"
+          overlap="$(comm -12 <(git diff --name-only "$BASE" "$STREAM_RESULT" | sort -u) <(git diff --name-only "$BASE" "$H6_EVIDENCE" | sort -u))"
+          test "$overlap" = "apps/learnit-next/src/ui/render.js"
+          echo "DIRECT_PRODUCT_OVERLAP=apps/learnit-next/src/ui/render.js"
+          expected=$'D\t.github/workflows/atlas-wp060-reviewer-qualification.yml\nA\tqualification/STUDENT_V01_V5_INDEPENDENT_SEMANTIC_REVIEW_R1_RESULT.md\nM\twork-packages/ATLAS-WP-060.json'
+          test "$(git diff --name-status "$H6_RESULT" "$H6_EVIDENCE")" = "$expected"
+          echo "H6_RESULT_TO_EVIDENCE_AUDIT=PASS_WORKFLOW_REMOVED_REPORT_ADDED_WP_FINALIZED"
+
+      - name: Verify exact carried bytes and H6 semantic immutability
+        shell: bash
+        run: |
+          set -euo pipefail
+          same(){ test "$(git rev-parse "HEAD:$1")" = "$(git rev-parse "$2:$1")"; }
+          for p in             apps/learnit-next/src/integration/atlas/surface.js             apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py             apps/learnit-next/tests/student_v01_g5_r1_app_experience.py             docs/programs/student-v0.1/jobs/JOB_10A_G5_R1_APP_EXPERIENCE.md             work-packages/ATLAS-WP-051.json; do
+            same "$p" "$STREAM_RESULT"
+          done
+          same qualification/STUDENT_V01_G5_R1_APP_EXPERIENCE_RESULT.md "$STREAM_EVIDENCE"
+          test "$(git rev-parse HEAD:showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json)" = 57374ba897600894ab124e8ac2d3ee3b6f5c4cc2
+          test "$(git rev-parse HEAD:showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json)" = 6c4fb770f12690a3cb338c82fc77bf9b323c3b06
+          test "$(git rev-parse HEAD:authoring/v2/atlas/nombres_complexes_atlas.json)" = 7f83784e8719917496a694b2ad170d724190fd04
+          test "$(git rev-parse HEAD:showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json)" = 74e16e07e9e5978b7b5f3ce81befa4c0650bf925
+          test "$(git rev-parse HEAD:showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json)" = 3f6a1cec5444121c8fe742d515b400780046557c
+          test "$(git rev-parse HEAD:showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json)" = a6c9f65f94900f5e46c0ecc8a44cb0d0e7166056
+          test "$(git rev-parse HEAD:showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json)" = d1c17f6f12775f667c23df0a3cf96e316ffab41b
+          echo H6_REVIEW_BYTES_UNCHANGED=PASS
+          echo H6_FACTORY_BYTES_UNCHANGED=PASS
+          echo SEMANTIC_TARGET_BYTES_UNCHANGED=PASS
+
+      - name: Static App Experience, V4, V5 contract and Factory regressions
+        run: |
+          set -euo pipefail
+          node --check apps/learnit-next/src/integration/atlas/surface.js
+          node --check apps/learnit-next/src/ui/render.js
+          node --check apps/learnit-next/src/ui/activity_presenters.js
+          python - <<'PY'
+          import pathlib,subprocess
+          root=pathlib.Path('.')
+          surface=(root/'apps/learnit-next/src/integration/atlas/surface.js').read_text(encoding='utf-8')
+          render=(root/'apps/learnit-next/src/ui/render.js').read_text(encoding='utf-8')
+          assert 'Aucun parcours Atlas installé' not in surface
+          assert "surface.style.display = 'none'" in surface
+          assert 'Planner incompatibility is not an empty learner library' in surface
+          for marker in ('data-session-objective-buckets','data-session-progress-details','Voir ma progression'):
+              assert marker in render,marker
+          start=render.index('function renderSessionSnapshot')
+          end=render.index('function renderFeedback',start)
+          session=render[start:end]
+          assert session.index('renderServedActivityForm(')<session.index('objectiveBuckets,')<session.index('objectiveDetails,')
+          presenter=subprocess.check_output(['git','rev-parse','HEAD:apps/learnit-next/src/ui/activity_presenters.js'],text=True).strip()
+          assert presenter=='47afc02200b7a3f9be9df10c415341efe8e0e2a8',presenter
+          print('FALSE_EMPTY_STATE: PASS')
+          print('ACTIVITY_PRIMARY: PASS')
+          print('COMPACT_OBJECTIVE_BUCKETS: PASS')
+          print('PROGRESSIVE_DISCLOSURE: PASS')
+          print('V8_SELECTED_PRESENTER_BLOB: PASS')
+          PY
+          python -B authoring/v4/tests/test_validate_v4.py -v
+          python - <<'PY'
+          import pathlib
+          root=pathlib.Path('.')
+          main=(root/'apps/learnit-next/src/main.js').read_text(encoding='utf-8')
+          render=(root/'apps/learnit-next/src/ui/render.js').read_text(encoding='utf-8')
+          surface=(root/'apps/learnit-next/src/integration/atlas/surface.js').read_text(encoding='utf-8')
+          projection=(root/'apps/learnit-next/src/integration/atlas/activity_projection.js').read_text(encoding='utf-8')
+          for marker in (
+              'projectActivityPresentation',
+              'projectLearnerActivity',
+              'async function projectLearnerAnswer',
+              'await sessions.answer(',
+              'projectLearnerSession(await sessions.startCourse',
+              'projectLearnerSession(await sessions.startReviewQueue',
+              'projectLearnerSession(await sessions.resumeActiveCourse',
+              'projectLearnerSession(await sessions.getSession',
+          ):
+              assert marker in main, marker
+          for marker in ('renderActivityPresentation','readActivityResponse','renderServedActivityForm','data-served-activity-submit'):
+              assert marker in render, marker
+          assert "ATLAS_SUPPORTED_ACTIVITY_TYPES = new Set(['qcm', 'fill'])" in surface
+          for family in ('qcm','fill','constructed','lesson','flashcard','matching','order','classify'):
+              assert "case '"+family+"'" in projection, family
+          print('V4_RUNTIME_PROJECTION_CURRENT_STATIC: PASS')
+          print('V4_ALL_EIGHT_ACTIVITY_FAMILIES_CURRENT_STATIC: PASS')
+          PY
+          python -B authoring/v5/tests/test_validate_v5.py -v
+          python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+
+      - name: V5 runtime, V8 presenters and exact showcase
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
+          python -B apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py
+
+      - name: Exact H6 Factory gate and adversarial rejection probes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B authoring/factory/factory_gate.py context             --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json             --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json             --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json             > /tmp/factory-context.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/factory-context.json',encoding='utf-8'))
+          assert x['kitSha256']=='sha256:aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b'
+          assert x['briefSha256']=='sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a'
+          assert x['sourceSetDigest']=='sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83'
+          assert x['contextDigest']=='sha256:32fd5f9afcc0dd9466c50afb961614f442969d7681036e12a98b1ee59dece739'
+          PY
+          python -B authoring/factory/v5_factory_gate.py             --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json             --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json             --review showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json             --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json             --role-b-manifest showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json             > /tmp/factory-final.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/factory-final.json',encoding='utf-8'))
+          assert x['verdict']=='PASS_AI_KIT_FACTORY_V5_R2'
+          assert x['semanticReview']['verdict']=='PASS_SEMANTIC_REVIEW_V5_R2'
+          PY
+          python - <<'PY'
+          import copy,json,pathlib
+          src=json.loads(pathlib.Path('showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json').read_text(encoding='utf-8'))
+          stale=copy.deepcopy(src);stale['target']['kitSha256']='sha256:'+'0'*64
+          check=copy.deepcopy(src);check['v5Checks']['hintProgression']='hold';check['verdict']='HOLD_SEMANTIC_REVIEW_V5_R2'
+          dirty=copy.deepcopy(src);dirty['independence']['authorActiveContextReused']=True;dirty['verdict']='HOLD_SEMANTIC_REVIEW_V5_R2'
+          for name,obj in [('stale',stale),('check',check),('dirty',dirty)]:
+              pathlib.Path('/tmp/'+name+'.json').write_text(json.dumps(obj,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          gate(){
+            name="$1";expected="$2";set +e
+            python -B authoring/factory/v5_factory_gate.py               --kit showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json               --brief showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json               --review "/tmp/${name}.json"               --source nombres-complexes-atlas-v2=authoring/v2/atlas/nombres_complexes_atlas.json               --role-b-manifest showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json               > "/tmp/${name}-evidence.json"
+            rc=$?;set -e;test "$rc" -ne 0
+            python - "$expected" "/tmp/${name}-evidence.json" <<'PY'
+          import json,sys
+          expected,path=sys.argv[1:];x=json.load(open(path,encoding='utf-8'));assert x['verdict']==expected,(expected,x)
+          PY
+          }
+          gate stale HOLD_V5_FACTORY_REVIEW_BINDING
+          gate check HOLD_V5_FACTORY_SEMANTIC_REVIEW
+          gate dirty HOLD_V5_FACTORY_SEMANTIC_REVIEW
+          echo SEMANTIC_REVIEW=PASS_SEMANTIC_REVIEW_V5_R2
+          echo FINAL_FACTORY_V5_GATE=PASS_AI_KIT_FACTORY_V5_R2
+
+      - name: Deterministic final build
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output /tmp/final-build-1.html
+          python -B apps/learnit-next/build.py --output /tmp/final-build-2.html
+          cmp -s /tmp/final-build-1.html /tmp/final-build-2.html
+          mkdir -p apps/learnit-next/dist
+          cp /tmp/final-build-1.html apps/learnit-next/dist/learnit-next.html
+          echo DETERMINISTIC_BUILD=PASS
+          sha256sum /tmp/final-build-1.html
+
+      - name: Browser App Experience and cross-stream regressions
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/browser_student_v01_g5_r1_app_experience.py
+          python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
+
+      - name: Repository governance on exact candidate
+        run: python tools/validate_repository.py
+
+      - name: Build deterministic immutable replay bundle
+        run: |
+          set -euo pipefail
+          target="$(git rev-parse HEAD)"
+          build=/tmp/final-build-1.html
+          build_sha="$(sha256sum "$build" | awk '{print $1}')"
+          build_bytes="$(wc -c < "$build" | tr -d ' ')"
+          rm -rf /tmp/wp061-replay
+          mkdir -p /tmp/wp061-replay
+          cp "$build" /tmp/wp061-replay/learnit-next.html
+          cp showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json /tmp/wp061-replay/nombres_complexes_student_v01_v5.json
+          cp docs/programs/student-v0.1/replay/R2_HANDOFF7_REPLAY_ANSWER_GUIDE.md /tmp/wp061-replay/ANSWER_GUIDE.md
+          cp docs/programs/student-v0.1/replay/R2_HANDOFF7_HUMAN_REPLAY_CHECKLIST.md /tmp/wp061-replay/HUMAN_REPLAY_CHECKLIST.md
+          python - "$target" "$build_sha" "$build_bytes" <<'PY'
+          import hashlib,json,pathlib,sys
+          target,build_sha,build_bytes=sys.argv[1:]
+          root=pathlib.Path('/tmp/wp061-replay')
+          identity={'schema':'student.v0.1.r2.handoff7.replay.v1','faninResultSha':target,'finalBuildSha256':'sha256:'+build_sha,'finalBuildBytes':int(build_bytes),'kitBlob':'57374ba897600894ab124e8ac2d3ee3b6f5c4cc2','kitSha256':'sha256:aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b','semanticReviewBlob':'a6c9f65f94900f5e46c0ecc8a44cb0d0e7166056','finalFactoryEvidenceBlob':'d1c17f6f12775f667c23df0a3cf96e316ffab41b','humanReplayStatus':'HUMAN_DECISION_REQUIRED'}
+          (root/'candidate_identity.json').write_text(json.dumps(identity,ensure_ascii=False,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+          files={p.name:'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(root.iterdir(),key=lambda x:x.name)}
+          (root/'bundle_manifest.json').write_text(json.dumps({'schema':'student.v0.1.r2.handoff7.replay-manifest.v1','files':files},sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+          PY
+          python - <<'PY'
+          import pathlib,zipfile
+          root=pathlib.Path('/tmp/wp061-replay')
+          out=pathlib.Path('STUDENT_V01_R2_HANDOFF7_HUMAN_REPLAY.zip')
+          with zipfile.ZipFile(out,'w',compression=zipfile.ZIP_STORED) as z:
+              for p in sorted(root.iterdir(),key=lambda x:x.name):
+                  i=zipfile.ZipInfo(p.name,date_time=(1980,1,1,0,0,0))
+                  i.compress_type=zipfile.ZIP_STORED;i.create_system=3;i.external_attr=(0o100644&0xFFFF)<<16
+                  z.writestr(i,p.read_bytes())
+          PY
+          replay_sha="$(sha256sum STUDENT_V01_R2_HANDOFF7_HUMAN_REPLAY.zip | awk '{print $1}')"
+          {
+            echo "FANIN_RESULT_SHA=$target"
+            echo "FINAL_BUILD_SHA256=sha256:$build_sha"
+            echo "FINAL_BUILD_BYTES=$build_bytes"
+            echo "REPLAY_BUNDLE_SHA256=sha256:$replay_sha"
+            echo "HUMAN_REPLAY_STATUS=HUMAN_DECISION_REQUIRED"
+          } | tee WP061_MACHINE_RESULT.env
+
+      - name: Upload exact replay packet
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-v01-r2-handoff7-replay-${{ github.event.pull_request.head.sha || github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            STUDENT_V01_R2_HANDOFF7_HUMAN_REPLAY.zip
+            WP061_MACHINE_RESULT.env
+            apps/learnit-next/dist/learnit-next.html

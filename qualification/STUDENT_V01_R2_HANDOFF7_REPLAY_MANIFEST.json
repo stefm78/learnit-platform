@@ -1,0 +1,58 @@
+{
+  "schema": "student.v0.1.r2.handoff7.replay-manifest.v1",
+  "status": "HUMAN_DECISION_REQUIRED",
+  "humanR2Decision": "GO_PRE_PILOT_V5",
+  "workPackage": "ATLAS-WP-061",
+  "issue": 453,
+  "pullRequest": 454,
+  "pullRequestBase": {
+    "branch": "student-v01/fanin-b",
+    "sha": "18b925436777943b19c4b031c24659ad60dee133"
+  },
+  "candidate": {
+    "branch": "student-v01/r2-final-corrective-fanin-r1",
+    "faninResultSha": "645e73c6e940451e393c89adb4273b048a39d6a0"
+  },
+  "machineQualification": {
+    "runId": 36245576901,
+    "conclusion": "success",
+    "headSha": "645e73c6e940451e393c89adb4273b048a39d6a0"
+  },
+  "h6": {
+    "resultSha": "0d839b4a3a9d7f88bf7aaa75ff0a2415805745a0",
+    "evidenceHead": "94370d13b6a6430aedd33c19f4180b4e7483a306",
+    "qualificationRun": 36149333780,
+    "semanticReviewBlob": "a6c9f65f94900f5e46c0ecc8a44cb0d0e7166056",
+    "finalFactoryEvidenceBlob": "d1c17f6f12775f667c23df0a3cf96e316ffab41b"
+  },
+  "build": {
+    "bytes": 522429,
+    "sha256": "sha256:ee1e4b9513eca42c671f753f617f66d2be7b534f53c583ab20f4fef2be8c2207"
+  },
+  "replay": {
+    "sha256": "sha256:076633c671bf6828344a2d87712be2c524f501cbc297cec54bca4cb3e58aa14c",
+    "workflowRun": 36245576901,
+    "artifactId": 10907735105,
+    "artifactName": "student-v01-r2-handoff7-replay-645e73c6e940451e393c89adb4273b048a39d6a0",
+    "artifactOuterSha256": "sha256:7fbce044222bb152be12009120f8269ed74ae109fc49a2df71c09d5f3525dccd",
+    "contents": [
+      "learnit-next.html",
+      "nombres_complexes_student_v01_v5.json",
+      "ANSWER_GUIDE.md",
+      "HUMAN_REPLAY_CHECKLIST.md",
+      "candidate_identity.json",
+      "bundle_manifest.json"
+    ],
+    "humanReplayChecklist": "docs/programs/student-v0.1/replay/R2_HANDOFF7_HUMAN_REPLAY_CHECKLIST.md",
+    "answerGuide": "docs/programs/student-v0.1/replay/R2_HANDOFF7_REPLAY_ANSWER_GUIDE.md"
+  },
+  "restrictions": {
+    "machineMayDeclareGoLimitedPilot": false,
+    "machineMayDeclareG5Pass": false,
+    "mainMerge": false,
+    "promotion": false,
+    "studentSession": false,
+    "atlasWp054": "BLOCKED_PENDING_HUMAN_REPLAY"
+  },
+  "next": "REAL_HUMAN_REPLAY_ON_EXACT_BUNDLE"
+}

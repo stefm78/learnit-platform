@@ -1,0 +1,13 @@
+{
+  "schema": "learnit.atlas.v5.pedagogical_quality_report.r1",
+  "profile": "atlas.ai-kit-factory.v5-r2",
+  "canonicalValid": true,
+  "verdict": "PASS_ATLAS_PEDAGOGICAL_PROFILE_V5_R2",
+  "qualityBand": "EXCELLENT_BY_PROFILE",
+  "counts": {
+    "blocking": 0,
+    "warning": 0,
+    "advice": 0
+  },
+  "diagnostics": []
+}

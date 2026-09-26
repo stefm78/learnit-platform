@@ -1,0 +1,15 @@
+{
+  "schema": "learnit.atlas.ai_kit_factory_context.v1",
+  "profile": "atlas.ai-kit-factory.v1",
+  "kitSha256": "sha256:aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b",
+  "briefSha256": "sha256:fe440c7499de6d9bc0ddd40bbd165a92bacf4e81719dcf3da9f9805e1f90639a",
+  "sources": [
+    {
+      "sourceId": "nombres-complexes-atlas-v2",
+      "bytes": 12384,
+      "sha256": "sha256:3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    }
+  ],
+  "sourceSetDigest": "sha256:ab3feaf05bff1240ad795f9afadf954c61311aa4b748f34a108ec19e76da0b83",
+  "contextDigest": "sha256:32fd5f9afcc0dd9466c50afb961614f442969d7681036e12a98b1ee59dece739"
+}
