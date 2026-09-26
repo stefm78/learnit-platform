@@ -590,7 +590,7 @@ class PlatformWaveATests(unittest.TestCase):
         self.assertIn("reduceObjectiveEvents(objectiveId, events)", progress)
         self.assertIn("recommendNextObjective(authored.objectiveIds, records)", progress)
         self.assertIn("objectiveUi.renderObjectiveProgress", render)
-        self.assertNotIn("validated-recently", render)
+        self.assertIn("'validated-recently': 'Acquis récemment'", render)
         self.assertNotIn("mastery", render.lower())
         self.assertNotIn("certification", render.lower())
 
