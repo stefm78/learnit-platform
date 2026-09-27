@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-063",
   "title": "Student V0.1 R15 objective progress UX restoration R2",
-  "status": "under-qa",
+  "status": "human-gate",
   "purpose": "Restore the exact human-validated R15 objective-progress UX language on the qualified current V5/V8 runtime, consume JOB 20 sessionDelta exactly at terminal feedback, and produce a corrected operational HTTPS Human Replay without changing learning semantics.",
   "changeClass": "r15-objective-progress-ux-restoration-r2",
   "riskClass": "high",
@@ -106,10 +106,16 @@
     "mergeAuthorized": false,
     "promotionAuthorized": false,
     "studentSessionAuthorized": false,
-    "humanReplayRequired": true
+    "humanReplayRequired": true,
+    "correctiveResultFrozen": true,
+    "correctiveResultSha": "360baf0ff1e548cf3d0f97421f2a9f28f8d380fc",
+    "goLimitedPilotDeclared": false,
+    "g5PassDeclared": false,
+    "atlasWp054": "BLOCKED_PENDING_CORRECTED_HUMAN_REPLAY",
+    "humanReplayStatus": "HUMAN_DECISION_REQUIRED"
   },
   "nextGate": "REAL_HUMAN_REPLAY_R15_RESTORED_V5_V8",
-  "finalVerdict": "PENDING_QUALIFICATION",
+  "finalVerdict": "PASS_MACHINE_R15_RESTORATION_READY_FOR_HUMAN_REPLAY",
   "rollback": "Close the unmerged ATLAS-WP-063 pull request and delete student-v01/r2-r15-objective-progress-restoration-r2; parent 3521bf8e4323e072c9196f7f74fd92f00c545460 and PR #456 remain unchanged.",
   "adversarialTests": [
     "A current V5/V8 activity or non-terminal feedback containing any macro objective-progress surface fails qualification.",
@@ -124,5 +130,28 @@
     "JOB 20 provenance tests are replayed byte-exactly with session.js held to blob 9909f0712de59211d14211ef1afc27bda87fcbf5.",
     "Browser proof traverses the exact 10-activity/39-minute showcase in both desktop and mobile/touch viewports.",
     "Repository governance and exact-head qualification must pass before evidence-only closeout and the human gate remains external."
-  ]
+  ],
+  "result": {
+    "correctiveResultSha": "360baf0ff1e548cf3d0f97421f2a9f28f8d380fc",
+    "resultQualificationRun": 36312306769,
+    "resultPullRequestQualificationRun": 36312309871,
+    "resultRepositoryGovernanceRun": 36312309856,
+    "finalBuildBytes": 538625,
+    "finalBuildSha256": "4f74792365d5b6462a7784e4d9568baf6b44d12435155991e64fdade6e7adb88",
+    "deterministicBuild": "PASS",
+    "sessionJsBlob": "9909f0712de59211d14211ef1afc27bda87fcbf5",
+    "qualificationArtifactId": 10928994731
+  },
+  "replay": {
+    "deliveryRun": 36313082023,
+    "replayBundleSha256": "5494bbe6c3df20393dbe13b558fd48092642e789f14f02a667bbf42400d7bbd1",
+    "replayArtifactId": 10929751838,
+    "liveEvidenceArtifactId": 10930035598,
+    "replayUrl": "https://stefm78.github.io/learnit-platform/human-replay/360baf0ff1e548cf3d0f97421f2a9f28f8d380fc/",
+    "replayKitUrl": "https://stefm78.github.io/learnit-platform/human-replay/360baf0ff1e548cf3d0f97421f2a9f28f8d380fc/fixtures/nombres_complexes_student_v01_v5.json",
+    "httpsLiveSmoke": "PASS",
+    "oldR15Preserved": true,
+    "promotion": false,
+    "humanGateRequired": true
+  }
 }
