@@ -468,9 +468,8 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     const courses = await runtime.listCourses();
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
-    section.append(node('div', { className: 'section-heading' }, [
+    section.append(node('div', { className: 'section-heading library-heading' }, [
       node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque' }), libraryTitle]),
-      renderResetAction(),
     ]));
 
     const importForm = node('form', { className: 'import-panel' });
@@ -531,12 +530,10 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         await renderLibrary({ announcement: message });
       });
     });
-    section.append(importForm);
-
     if (courses.length === 0) {
-      section.append(node('div', { className: 'empty-state' }, [
-        node('h3', { text: 'Bibliothèque vide' }),
-        node('p', { text: 'Importez un cours pour commencer.' }),
+      section.append(node('div', { className: 'empty-state empty-library-import' }, [
+        node('h3', { text: 'Importer votre premier cours' }),
+        importForm,
       ]));
     } else {
       const list = node('div', { className: 'course-grid' });
@@ -594,6 +591,17 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         ]));
       }
       section.append(list);
+      section.append(node('details', { className: 'library-management' }, [
+        node('summary', { text: 'Gérer la bibliothèque' }),
+        node('div', { className: 'library-management-body' }, [
+          node('h3', { text: 'Ajouter un cours' }),
+          importForm,
+          node('div', { className: 'library-reset-zone' }, [
+            node('h3', { text: 'Données locales' }),
+            renderResetAction(),
+          ]),
+        ]),
+      ]));
     }
     shell(section, { focusTarget: focus ? libraryTitle : null, announcement });
   }
