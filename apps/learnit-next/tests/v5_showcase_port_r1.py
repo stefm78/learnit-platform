@@ -127,9 +127,9 @@ window.wp59={{
           meta=page.evaluate("(i)=>window.wp59.render(i)",i); assert meta["type"]==a["type"] and meta["lineage"]==a["activityLineageId"]
           t=a["type"]
           if t=="lesson":
-            page.locator('[data-activity-continue="lesson"]').click()
+            assert page.locator('[data-activity-presentation="lesson"]').get_attribute("data-activity-ready")=="true"
           elif t=="flashcard":
-            page.locator(".activity-flash-card").click(); page.locator('[data-activity-continue="flashcard"]').click()
+            page.locator(".activity-flash-card").click(); assert page.locator('[data-activity-presentation="flashcard"]').get_attribute("data-activity-ready")=="true"
           elif t=="qcm":
             page.locator(f'[data-activity-choice="true"][value="{a["correctChoiceId"]}"]').check()
           elif t=="matching":
@@ -193,8 +193,8 @@ window.wp59={{
           for i,a in enumerate(candidate["courses"][0]["activities"]):
             meta=page.evaluate("(i)=>window.wp59.render(i)",i);assert meta=={"type":a["type"],"lineage":a["activityLineageId"]}
             t=a["type"]
-            if t=="lesson": page.locator('[data-activity-continue="lesson"]').click()
-            elif t=="flashcard": page.locator(".activity-flash-card").click();page.locator('[data-activity-continue="flashcard"]').click()
+            if t=="lesson": assert page.locator('[data-activity-presentation="lesson"]').get_attribute("data-activity-ready")=="true"
+            elif t=="flashcard": page.locator(".activity-flash-card").click();assert page.locator('[data-activity-presentation="flashcard"]').get_attribute("data-activity-ready")=="true"
             elif t=="qcm": page.locator(f'[data-activity-choice="true"][value="{a["correctChoiceId"]}"]').check()
             elif t=="matching":
               for m in a["matches"]:
