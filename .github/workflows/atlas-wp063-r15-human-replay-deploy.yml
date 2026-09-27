@@ -366,7 +366,7 @@ jobs:
       - name: Live HTTPS smoke of exact corrected replay
         shell: bash
         env:
-          PAGE_URL: \${{ steps.deployment.outputs.page_url }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
           current_url="$PAGE_URL""human-replay/""$PRODUCT_HEAD""/"
