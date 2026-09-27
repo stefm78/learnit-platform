@@ -70,6 +70,7 @@ jobs:
             'apps/learnit-next/tests/r15_objective_progress_restoration_r2.py',
             'apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py',
             'apps/learnit-next/tests/v8_selected_presenters_r1.py',
+            'apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py',
             'work-packages/ATLAS-WP-064.json',
           }
           def allowed(path):
