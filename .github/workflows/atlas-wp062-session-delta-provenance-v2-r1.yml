@@ -9,6 +9,7 @@ on:
       - 'apps/learnit-next/src/core/session.js'
       - 'apps/learnit-next/tests/dev_learning_loop_v2_platform.py'
       - 'work-packages/ATLAS-WP-062.json'
+      - 'qualification/STUDENT_V01_SESSION_DELTA_PROVENANCE_V2_R1_RESULT.md'
   workflow_dispatch:
 
 permissions:
@@ -57,8 +58,26 @@ jobs:
           fi
           git cat-file -e "$BASE^{commit}"
           test "$(git merge-base "$BASE" HEAD)" = "$BASE"
-          allowed=$'.github/workflows/atlas-wp062-session-delta-provenance-v2-r1.yml\napps/learnit-next/source_manifest.json\napps/learnit-next/src/core/session.js\napps/learnit-next/tests/dev_learning_loop_v2_platform.py\nwork-packages/ATLAS-WP-062.json'
-          test "$(git diff --name-only "$BASE" HEAD | sort)" = "$(printf '%s\n' "$allowed" | sort)"
+          python - "$BASE" <<'PY'
+          import subprocess, sys
+          base=sys.argv[1]
+          actual=set(subprocess.check_output(
+              ['git','diff','--name-only',base,'HEAD'],
+              text=True,
+          ).splitlines())
+          required={
+              '.github/workflows/atlas-wp062-session-delta-provenance-v2-r1.yml',
+              'apps/learnit-next/source_manifest.json',
+              'apps/learnit-next/src/core/session.js',
+              'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
+              'work-packages/ATLAS-WP-062.json',
+          }
+          allowed=required | {
+              'qualification/STUDENT_V01_SESSION_DELTA_PROVENANCE_V2_R1_RESULT.md',
+          }
+          assert required <= actual, sorted(required-actual)
+          assert actual <= allowed, sorted(actual-allowed)
+          PY
           echo JOB20_SCOPE=PASS
 
       - name: Prove protected semantic authorities are byte-identical
