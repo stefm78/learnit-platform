@@ -280,8 +280,8 @@ jobs:
               page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__)')
               page.locator('#kit-file').set_input_files(str(kit))
               page.locator("form.import-panel button[type='submit']").click()
-              page.get_by_text('Nombres complexes',exact=True).wait_for(timeout=10000)
-              card=page.locator('.course-card[data-course-install-id]').filter(has_text='Nombres complexes').first
+              page.get_by_text('Conjugué et module des nombres complexes',exact=True).wait_for(timeout=10000)
+              card=page.locator('.course-card[data-course-install-id]').filter(has_text='Conjugué et module des nombres complexes').first
               assert card.count()==1
               assert card.locator('[data-library-objective-details="true"]').count()==1
               card.get_by_role('button',name='Commencer').click()
@@ -397,8 +397,8 @@ jobs:
               page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__)')
               page.locator('#kit-file').set_input_files(kit)
               page.locator("form.import-panel button[type='submit']").click()
-              page.get_by_text('Nombres complexes',exact=True).wait_for(timeout=10000)
-              card=page.locator('.course-card[data-course-install-id]').filter(has_text='Nombres complexes').first
+              page.get_by_text('Conjugué et module des nombres complexes',exact=True).wait_for(timeout=10000)
+              card=page.locator('.course-card[data-course-install-id]').filter(has_text='Conjugué et module des nombres complexes').first
               assert card.count()==1
               assert card.locator('[data-library-objective-details="true"]').count()==1
               card.get_by_role('button',name='Commencer').click()
