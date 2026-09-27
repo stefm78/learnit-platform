@@ -26,7 +26,7 @@ EXPECTED_BLOBS = {
     "contracts/learnit-kit-v5.schema.json": "15e708f9b57ea1b35ff50ad3b3854bd49d5cadc7",
     "authoring/v5/validate_kit.py": "0b93925eb22058878f13bc86554126846d2923d1",
     "apps/learnit-next/src/core/session.js": "9909f0712de59211d14211ef1afc27bda87fcbf5",
-    "apps/learnit-next/src/core/activity_semantics.js": "07c4595332419da1a0473a9715f09894620f6bd",
+    "apps/learnit-next/src/core/activity_semantics.js": "07c4595332419da1da0473a9715f09894620f6bd",
     "apps/learnit-next/src/core/progress.js": "257720824ce9d2689ff2f48266592f9fc13750ec",
     "apps/learnit-next/src/core/objective_progress.js": "1f33e1d1214d0a9bce1f8db6bb40d4d7627ac2f0",
     "apps/learnit-next/src/core/learning_recommendation.js": "fe1a1a67db20500e84357f1c4884c972def839b1",
