@@ -124,6 +124,7 @@ def walk_showcase(page, course: dict[str, Any], viewport_name: str) -> None:
     assert_no_overflow(page)
     screenshot(page, viewport_name, "03-active-v8-no-macro")
 
+    page.locator('[data-activity-continue="lesson"]').click()
     page.locator('[data-served-activity-submit="true"]').click()
     page.locator('[data-served-feedback]').wait_for()
     assert_no_macro(page)
