@@ -474,13 +474,13 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
 
     const importForm = node('form', { className: 'import-panel' });
     const fileInput = node('input', { id: 'kit-file', type: 'file', accept: '.json,application/json', required: 'required' });
-    const importButton = node('button', { type: 'submit', className: 'primary', text: 'Importer', disabled: true });
+    const importButton = node('button', { type: 'submit', className: 'primary', text: 'Ajouter à la bibliothèque', disabled: true });
     const fileStatus = node('p', {
       className: 'help',
       role: 'status',
       'aria-live': 'polite',
       'aria-atomic': 'true',
-      text: 'Choisissez un fichier de cours à importer.',
+      text: '',
     });
     let selectionVersion = 0;
     let selectedFileText = null;
@@ -492,17 +492,18 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       importButton.disabled = true;
       const file = fileInput.files?.[0];
       if (!file) {
-        fileStatus.textContent = 'Choisissez un fichier de cours à importer.';
+        fileStatus.textContent = '';
         return;
       }
 
-      fileStatus.textContent = `Lecture de « ${file.name} »…`;
       try {
         const text = await file.text();
+        const preview = await runtime.previewImport(text);
         if (version !== selectionVersion) return;
         selectedFileText = text;
+        fileInput.value = '';
         importButton.disabled = false;
-        fileStatus.textContent = `« ${file.name} » est prêt à être importé.`;
+        fileStatus.textContent = preview.title;
       } catch (error) {
         if (version !== selectionVersion) return;
         const message = `Lecture du fichier impossible : ${error?.message ?? String(error)}`;
@@ -513,8 +514,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
 
     importForm.append(
       node('div', {}, [
-        node('label', { for: 'kit-file', className: 'field-label', text: 'Importer un cours' }),
-        node('p', { className: 'help', text: 'Le fichier est vérifié avant l’import.' }),
+        node('label', { for: 'kit-file', className: 'field-label', text: 'Choisir un cours à importer' }),
         fileStatus,
       ]),
       fileInput,
@@ -525,9 +525,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       if (selectedFileText === null) return;
       const payload = selectedFileText;
       run(() => runtime.importPackage(payload), async (result) => {
-        const message = `${result.courseCount} cours importé(s) depuis « ${result.title} ».`;
-        notice = renderNotice([message], 'success');
-        await renderLibrary({ announcement: message });
+        await renderLibrary({ announcement: `${result.title} ajouté à la bibliothèque.` });
       });
     });
     if (courses.length === 0) {
