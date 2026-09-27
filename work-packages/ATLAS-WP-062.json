@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-062",
+  "title": "Student V0.1 session delta provenance V2 R1",
+  "status": "under-qa",
+  "purpose": "Qualify the minimum durable session provenance required to derive worked-during-session and state-changed-during-session semantics exactly before the R15 objective-progress UX restoration.",
+  "changeClass": "session-delta-provenance-v2",
+  "riskClass": "high",
+  "authority": {
+    "issue": 455,
+    "parentPullRequest": 454,
+    "decision": "GO_SESSION_PROVENANCE_V2",
+    "r2Decision": "GO_PRE_PILOT_V5",
+    "authorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_CHAT_2026-09-27"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-final-corrective-fanin-r1",
+    "baseCommit": "8c7760e8230d0ecddc1998a47f1efc99822c7e99"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-wp062-session-delta-provenance-v2-r1.yml",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
+      "work-packages/ATLAS-WP-062.json",
+      "qualification/STUDENT_V01_SESSION_DELTA_PROVENANCE_V2_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "authoring/v2/atlas/nombres_complexes_atlas.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/media.js"
+    ]
+  },
+  "invariants": [
+    "The learningLoopV2Session meta key is unchanged and new explicit learn/review sessions use schemaVersion 2.",
+    "The session baseline is captured once and remains immutable across answers, reload and resume.",
+    "Worked activities are derived only from persisted attempts greater than baseline attempts; no mutable worked list is authoritative.",
+    "Changed objective ids are derived only among worked objectives by qualified objective-state comparison.",
+    "updatedAt, clocks and estimated temporal boundaries are never used for session provenance.",
+    "Legacy schema v1 navigation remains resumable but its missing historical provenance is never invented.",
+    "Invalid schema v2 provenance fails closed for sessionDelta while preserving safe navigation fallback when possible.",
+    "NEXT_INDEXED_DB_NAME remains learnit_next_v1 and NEXT_INDEXED_DB_VERSION remains 2 with no new store or migration.",
+    "Parent PR #454 remains draft, open and unmerged.",
+    "No R15 learner-visible restoration or Human Replay occurs in this work package."
+  ],
+  "requiredEvidence": [
+    "Session baseline objective states and activity-attempt counters are exact and immutable.",
+    "0->1, 3->4 and 3->3 attempt discriminants pass.",
+    "Multi-objective, repeated-attempt, non-scored and review-mode session delta cases pass.",
+    "Post-progress meta-write failure followed by runtime recreation preserves exact worked derivation.",
+    "Final activity returns final sessionDelta before normal cleanup.",
+    "Legacy v1 resume passes with unavailable-not-invented delta; invalid v2 provenance fails closed for delta.",
+    "Learning Loop V2 DEV and QA suites pass.",
+    "V4, V5 validator, V5 Factory/source governance, runtime V5, hints, references, feedback-media lifecycle, V8 presenters and exact 10-activity/39-minute showcase regressions pass.",
+    "ActivityResponse, scoring, objective-state, recommendation and V5 contract authorities remain byte-identical to the parent.",
+    "Deterministic build, source manifest and repository governance pass on the exact RESULT_SHA."
+  ],
+  "adversarialTests": [
+    "Changing updatedAt without increasing attempts cannot mark an activity as worked.",
+    "Changing an objective projection without an attempts increase cannot place an unworked objective in changedObjectiveIds.",
+    "A failed learningLoopV2Session meta update after progress persistence cannot erase the worked fact after runtime recreation.",
+    "Malformed or incomplete v2 baseline maps do not get normalized or reconstructed.",
+    "A persisted mutable workedObjectiveIds list is absent."
+  ],
+  "nonGoals": [
+    "R15 objective-progress visual restoration.",
+    "Any scoring, progression or mastery model change.",
+    "Append-only attempt history.",
+    "ActivityResponse grammar change.",
+    "IndexedDB schema version/store/migration change.",
+    "V5 kit, source, Factory, semantic-review, presenter, hint, media or reference mutation.",
+    "Human Replay, merge, promotion or ATLAS-WP-054 closure."
+  ],
+  "independentReview": [
+    "Qualification replays current Learning Loop V2 and cumulative R2 regression oracles rather than relying on JOB 19 reasoning.",
+    "Forbidden semantic-authority files are compared byte-exactly with the parent.",
+    "Repository governance is executed on the frozen RESULT_SHA before evidence-only closeout."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-session-delta-provenance-v2-r1",
+    "parentHead": "8c7760e8230d0ecddc1998a47f1efc99822c7e99",
+    "pullRequestBase": "student-v01/r2-final-corrective-fanin-r1",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "humanReplayAuthorized": false
+  },
+  "nextGate": "JOB_21_R15_OBJECTIVE_PROGRESS_UX_RESTORATION_R2",
+  "finalVerdict": "PENDING_QUALIFICATION",
+  "rollback": "Close the unmerged JOB 20 pull request and delete student-v01/r2-session-delta-provenance-v2-r1; parent 8c7760e8230d0ecddc1998a47f1efc99822c7e99 and PR #454 remain unchanged."
+}

@@ -136,10 +136,10 @@ const makeRuntime = (storage, enabled=true) => {
   const progress = createProgressService(storage, enabled ? integrations : {});
   return {progress, sessions:createSessionService(storage,progress)};
 };
-const seed = (storage, activity, correct=false, attempts=1, updatedAt='2026-07-27T00:00:00.000Z') => storage.progress.set(
-  keyOf(courseRecord.courseInstallId,activity.activityRevisionId),
+const seedFor = (storage, record, activity, correct=false, attempts=1, updatedAt='2026-07-27T00:00:00.000Z') => storage.progress.set(
+  keyOf(record.courseInstallId,activity.activityRevisionId),
   {
-    courseInstallId:courseRecord.courseInstallId,
+    courseInstallId:record.courseInstallId,
     activityLineageId:activity.activityLineageId,
     activityRevisionId:activity.activityRevisionId,
     attempts,
@@ -149,6 +149,8 @@ const seed = (storage, activity, correct=false, attempts=1, updatedAt='2026-07-2
     updatedAt,
   },
 );
+const seed = (storage, activity, correct=false, attempts=1, updatedAt='2026-07-27T00:00:00.000Z') =>
+  seedFor(storage, courseRecord, activity, correct, attempts, updatedAt);
 
 const results = [];
 async function test(name, fn) {
@@ -299,6 +301,198 @@ await test('post-progress session metadata failure restores in-memory review ind
   assert.equal(current.currentActivity.activityRevisionId,'a');
 });
 
+await test('session provenance v2 captures immutable baselines and derives 0->1 across reload', async () => {
+  const storage = new FakeStorage();
+  seed(storage, activities[2], true, 3);
+  let runtime = makeRuntime(storage);
+  const started = await runtime.sessions.startCourse('course-1');
+  const metaAtStart = clone(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY));
+  assert.equal(metaAtStart.schemaVersion, 2);
+  assert.deepEqual(metaAtStart.sessionProvenance.baselineActivityAttempts, {a:0,b:0,c:3});
+  assert.deepEqual(Object.keys(metaAtStart.sessionProvenance.beforeObjectiveStates), ['o1','o2']);
+  assert.equal(started.sessionDelta.available, true);
+  assert.deepEqual(started.sessionDelta.workedObjectiveIds, []);
+  assert.deepEqual(started.sessionDelta.changedObjectiveIds, []);
+  assert.equal(JSON.stringify(metaAtStart).includes('workedObjectiveIds'), false);
+  const baseline = clone(metaAtStart.sessionProvenance);
+  const result = await runtime.sessions.answer('a', answer(activities[0], true));
+  assert.equal(storage.progress.get(keyOf('course-1','a')).attempts, 1);
+  assert.equal(storage.progress.get(keyOf('course-1','c')).attempts, 3);
+  assert.deepEqual(result.sessionDelta.workedObjectiveIds, ['o1']);
+  assert.deepEqual(result.sessionDelta.changedObjectiveIds, ['o1']);
+  assert.deepEqual(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).sessionProvenance, baseline);
+  assert.equal(JSON.stringify(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY)).includes('workedObjectiveIds'), false);
+  runtime = makeRuntime(storage);
+  const resumed = await runtime.sessions.resumeActiveCourse();
+  assert.equal(resumed.sessionDelta.available, true);
+  assert.deepEqual(resumed.sessionDelta.workedObjectiveIds, ['o1']);
+  assert.deepEqual(resumed.sessionDelta.changedObjectiveIds, ['o1']);
+  assert.deepEqual(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).sessionProvenance, baseline);
+});
+
+await test('review mode derives 3->4 and repeated attempts without duplicate worked objectives', async () => {
+  const storage = new FakeStorage();
+  seed(storage, activities[0], false, 3);
+  const runtime = makeRuntime(storage);
+  let snapshot = await runtime.sessions.startReviewQueue('course-1');
+  const baseline = clone(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).sessionProvenance);
+  assert.equal(baseline.baselineActivityAttempts.a, 3);
+  assert.equal(snapshot.sessionDelta.available, true);
+  let result = await runtime.sessions.answer('a', answer(activities[0], false));
+  assert.equal(storage.progress.get(keyOf('course-1','a')).attempts, 4);
+  assert.deepEqual(result.sessionDelta.workedObjectiveIds, ['o1']);
+  assert.deepEqual(result.sessionDelta.changedObjectiveIds, []);
+  result = await runtime.sessions.answer('a', answer(activities[0], false));
+  assert.equal(storage.progress.get(keyOf('course-1','a')).attempts, 5);
+  assert.deepEqual(result.sessionDelta.workedObjectiveIds, ['o1']);
+  assert.deepEqual(result.sessionDelta.changedObjectiveIds, []);
+  assert.deepEqual(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).sessionProvenance, baseline);
+});
+
+await test('multi-objective activity derives authored-order worked and changed objective ids', async () => {
+  const multi = {...qcm('multi','o1'), objectiveIds:['o1','o2']};
+  const record = {
+    courseInstallId:'course-multi', title:'Canonical', displayLabel:'Multi',
+    course:{objectives:clone(objectives), activities:[multi]},
+  };
+  const storage = new FakeStorage(record);
+  const runtime = makeRuntime(storage);
+  await runtime.sessions.startCourse(record.courseInstallId);
+  const result = await runtime.sessions.answer('multi', answer(multi, true));
+  assert.deepEqual(result.sessionDelta.workedObjectiveIds, ['o1','o2']);
+  assert.deepEqual(result.sessionDelta.changedObjectiveIds, ['o1','o2']);
+});
+
+await test('lesson and flashcard are worked without inventing objective-state change', async () => {
+  const lesson = {
+    activityLineageId:'lesson-lineage', activityRevisionId:'lesson',
+    objectiveIds:['o1'], learningPhase:'explanation', type:'lesson', prompt:'Lesson',
+  };
+  const flashcard = {
+    activityLineageId:'flash-lineage', activityRevisionId:'flash',
+    objectiveIds:['o2'], learningPhase:'explanation', type:'flashcard', prompt:'Flashcard',
+  };
+  const record = {
+    courseInstallId:'course-nonscored', title:'Canonical', displayLabel:'Non scored',
+    course:{objectives:clone(objectives), activities:[lesson,flashcard]},
+  };
+  const storage = new FakeStorage(record);
+  const runtime = makeRuntime(storage);
+  await runtime.sessions.startCourse(record.courseInstallId);
+  let result = await runtime.sessions.answer('lesson', {acknowledged:true});
+  assert.equal(result.scored, false);
+  assert.deepEqual(result.sessionDelta.workedObjectiveIds, ['o1']);
+  assert.deepEqual(result.sessionDelta.changedObjectiveIds, []);
+  result = await runtime.sessions.answer('flash', {revealed:true});
+  assert.equal(result.scored, false);
+  assert.deepEqual(result.sessionDelta.workedObjectiveIds, ['o1','o2']);
+  assert.deepEqual(result.sessionDelta.changedObjectiveIds, []);
+});
+
+await test('objective state drift without attempts does not become worked or changed and ignores updatedAt', async () => {
+  const storage = new FakeStorage();
+  seed(storage, activities[2], false, 3, '2026-07-27T00:00:00.000Z');
+  const runtime = makeRuntime(storage);
+  const started = await runtime.sessions.startCourse('course-1');
+  const before = started.sessionDelta.beforeObjectiveStates.o2;
+  const stored = clone(storage.progress.get(keyOf('course-1','c')));
+  stored.correct = true;
+  stored.updatedAt = '2099-01-01T00:00:00.000Z';
+  storage.progress.set(keyOf('course-1','c'), stored);
+  const current = await runtime.sessions.getSession();
+  assert.notEqual(current.sessionDelta.afterObjectiveStates.o2, before);
+  assert.deepEqual(current.sessionDelta.workedObjectiveIds, []);
+  assert.deepEqual(current.sessionDelta.changedObjectiveIds, []);
+  assert.equal(current.sessionDelta.available, true);
+});
+
+await test('post-progress meta failure recovers worked fact from immutable baseline and persisted attempts', async () => {
+  const storage = new FakeStorage();
+  let runtime = makeRuntime(storage);
+  await runtime.sessions.startCourse('course-1');
+  const baseline = clone(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).sessionProvenance);
+  const originalSetMeta = storage.setMeta.bind(storage);
+  let failSessionWrite = true;
+  storage.setMeta = async (key, value) => {
+    if (failSessionWrite && key === LEARNING_LOOP_V2_SESSION_META_KEY) {
+      failSessionWrite = false;
+      throw new Error('session quota before meta write');
+    }
+    return originalSetMeta(key, value);
+  };
+  await assert.rejects(
+    runtime.sessions.answer('a', answer(activities[0], false)),
+    /session quota before meta write/,
+  );
+  assert.equal(storage.progress.get(keyOf('course-1','a')).attempts, 1);
+  assert.deepEqual(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).sessionProvenance, baseline);
+  storage.setMeta = originalSetMeta;
+  runtime = makeRuntime(storage);
+  const resumed = await runtime.sessions.resumeActiveCourse();
+  assert.equal(resumed.sessionDelta.available, true);
+  assert.deepEqual(resumed.sessionDelta.workedObjectiveIds, ['o1']);
+  assert.deepEqual(resumed.sessionDelta.changedObjectiveIds, ['o1']);
+  assert.deepEqual(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).sessionProvenance, baseline);
+});
+
+await test('final activity returns final delta before normal active-session cleanup', async () => {
+  const finalActivity = qcm('final','o1');
+  const record = {
+    courseInstallId:'course-final', title:'Canonical', displayLabel:'Final',
+    course:{objectives:[clone(objectives[0])], activities:[finalActivity]},
+  };
+  const storage = new FakeStorage(record);
+  const runtime = makeRuntime(storage);
+  await runtime.sessions.startCourse(record.courseInstallId);
+  const result = await runtime.sessions.answer('final', answer(finalActivity, true));
+  assert.equal(result.sessionDelta.available, true);
+  assert.deepEqual(result.sessionDelta.workedObjectiveIds, ['o1']);
+  assert.deepEqual(result.sessionDelta.changedObjectiveIds, ['o1']);
+  assert.equal(storage.meta.has(LEARNING_LOOP_V2_SESSION_META_KEY), false);
+  assert.equal(storage.meta.has('activeCourse'), false);
+});
+
+await test('legacy v1 resumes navigation without inventing delta and explicit restart creates v2', async () => {
+  const storage = new FakeStorage();
+  storage.meta.set('activeCourse', {courseInstallId:'course-1',mode:'learn'});
+  storage.meta.set(LEARNING_LOOP_V2_SESSION_META_KEY, {
+    schemaVersion:1, courseInstallId:'course-1', mode:'learn',
+    currentIndex:0, reviewIndex:0, currentActivityRevisionId:'a',
+    reviewQueueActivityRevisionIds:[],
+  });
+  let runtime = makeRuntime(storage);
+  const resumed = await runtime.sessions.resumeActiveCourse();
+  assert.equal(resumed.currentActivity.activityRevisionId, 'a');
+  assert.equal(resumed.sessionDelta.available, false);
+  assert.equal(resumed.sessionDelta.reason, 'LEGACY_SESSION_PROVENANCE_UNAVAILABLE');
+  assert.equal(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).schemaVersion, 1);
+  const restarted = await runtime.sessions.startCourse('course-1');
+  assert.equal(restarted.sessionDelta.available, true);
+  assert.equal(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY).schemaVersion, 2);
+});
+
+await test('invalid v2 provenance fails closed for delta while preserving safe navigation resume', async () => {
+  const storage = new FakeStorage();
+  storage.meta.set('activeCourse', {courseInstallId:'course-1',mode:'learn'});
+  const invalid = {
+    schemaVersion:2, courseInstallId:'course-1', mode:'learn',
+    currentIndex:0, reviewIndex:0, currentActivityRevisionId:'a',
+    reviewQueueActivityRevisionIds:[],
+    sessionProvenance:{
+      available:true,
+      beforeObjectiveStates:{o1:'unknown-state',o2:'not-started'},
+      baselineActivityAttempts:{a:0,b:0,c:0},
+    },
+  };
+  storage.meta.set(LEARNING_LOOP_V2_SESSION_META_KEY, clone(invalid));
+  const runtime = makeRuntime(storage);
+  const resumed = await runtime.sessions.resumeActiveCourse();
+  assert.equal(resumed.currentActivity.activityRevisionId, 'a');
+  assert.equal(resumed.sessionDelta.available, false);
+  assert.equal(resumed.sessionDelta.reason, 'INVALID_SESSION_PROVENANCE');
+  assert.deepEqual(storage.meta.get(LEARNING_LOOP_V2_SESSION_META_KEY), invalid);
+});
+
 await test('invalid domain output fails after retaining the activity record', async () => {
   const storage = new FakeStorage();
   const invalidProgress = {projectObjectiveProgress:() => [{objectiveId:'unknown'}]};
@@ -348,6 +542,7 @@ class PlatformWaveATests(unittest.TestCase):
             (target / "src/ports").mkdir(parents=True)
             shutil.copy2(APP / "src/core/progress.js", target / "src/core/progress.js")
             shutil.copy2(APP / "src/core/session.js", target / "src/core/session.js")
+            shutil.copy2(APP / "src/core/activity_semantics.js", target / "src/core/activity_semantics.js")
             shutil.copy2(APP / "src/ports/storage.js", target / "src/ports/storage.js")
             for key, path in LEARNING_PATHS.items():
                 (target / "src/core" / f"{key}.js").write_text(
@@ -367,7 +562,7 @@ class PlatformWaveATests(unittest.TestCase):
             self.assertEqual(process.returncode, 0, process.stdout)
             report = json.loads(process.stdout)
             self.assertTrue(report["ok"], process.stdout)
-            self.assertEqual(len(report["results"]), 11)
+            self.assertEqual(len(report["results"]), 20)
 
     def test_additive_storage_contract(self) -> None:
         storage = (APP / "src/ports/storage.js").read_text(encoding="utf-8")
@@ -395,7 +590,7 @@ class PlatformWaveATests(unittest.TestCase):
         self.assertIn("reduceObjectiveEvents(objectiveId, events)", progress)
         self.assertIn("recommendNextObjective(authored.objectiveIds, records)", progress)
         self.assertIn("objectiveUi.renderObjectiveProgress", render)
-        self.assertNotIn("validated-recently", render)
+        self.assertIn("'validated-recently': 'Acquis récemment'", render)
         self.assertNotIn("mastery", render.lower())
         self.assertNotIn("certification", render.lower())
 
