@@ -633,3 +633,47 @@ button.objective-progress-r15__reservoir--not-started{border-color:#52647c;backg
   button.objective-progress-r15__reservoir{flex-basis:1.2rem;width:1.2rem;min-width:1.2rem;height:4.1rem}
   .objective-progress-r15__context{grid-template-columns:1fr;gap:.18rem}
 }
+
+
+/* ATLAS-WP-064 — learner journey UX coherence */
+.library-heading { margin-bottom: 1rem; }
+.empty-library-import { max-width: 38rem; }
+.learner-course-card { display: grid; gap: 1rem; }
+.learner-course-card .objective-progress-panel { margin: 0; }
+.learner-course-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.library-management {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: .75rem;
+}
+.library-management > summary { cursor: pointer; font-weight: 700; }
+.library-management-body { display: grid; gap: 1rem; padding-top: 1rem; }
+.library-reset-zone { border-top: 1px solid var(--border); padding-top: .75rem; }
+.activity-context-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem 1rem;
+}
+.activity-position { margin: 0; color: var(--muted); font-size: .9rem; font-weight: 700; }
+.learner-feedback-panel { display: grid; gap: 1rem; }
+.feedback-answer,
+.feedback-explanation {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .9rem 1rem;
+}
+.feedback-answer h3,
+.feedback-explanation h3 { margin-top: 0; }
+.feedback-answer p,
+.feedback-answer ul,
+.feedback-explanation p { margin-bottom: 0; }
+@media (max-width: 600px) {
+  #app { padding: 16px; }
+  .learner-course-actions { align-items: stretch; flex-direction: column; }
+  .learner-course-actions button { width: 100%; }
+  .activity-context-row { align-items: flex-start; flex-direction: column; }
+  .feedback-answer,
+  .feedback-explanation { padding: .8rem; }
+}
