@@ -369,7 +369,7 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": null
+        "value": "0e7ec941fc38285736c8619e9cc673ad9e1bb78fcc6a41cfea2b92a0cd4cb08a"
       },
       "owner": "ATLAS-WP-063",
       "path": "apps/learnit-next/source_manifest.json",
