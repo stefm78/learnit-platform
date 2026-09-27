@@ -361,45 +361,67 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Live post-deploy identity smoke
+      - name: Install live smoke browser
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Live HTTPS smoke of exact corrected replay
         shell: bash
         env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          PAGE_URL: \${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
-          current_url="${PAGE_URL}human-replay/${PRODUCT_HEAD}/"
-          ok=0
-          for attempt in $(seq 1 20); do
-            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/root.html" \
-              && curl --fail --silent --show-error "$current_url" -o "$RUNNER_TEMP/current.html" \
-              && curl --fail --silent --show-error "${current_url}identity.json" -o "$RUNNER_TEMP/identity.json" \
-              && curl --fail --silent --show-error "${current_url}fixtures/nombres_complexes_atlas.json" -o "$RUNNER_TEMP/fixture.json" \
-              && curl --fail --silent --show-error "${current_url}fixtures/nombres_complexes_atlas-answer-guide.txt" -o "$RUNNER_TEMP/guide.txt"; then
-              readarray -t expected < <(python - "$RUNNER_TEMP/identity.json" <<'PY'
-          import json,os,sys
-          data=json.load(open(sys.argv[1],encoding='utf-8'))
-          assert data['productHead']==os.environ['PRODUCT_HEAD']
-          assert data['learnerArtifactSha256']==os.environ['PRODUCT_EXPECTED_SHA256']
-          assert data['promotion'] is False and data['humanGateRequired'] is True and data['learnerUxPass'] is False
-          print(data['fixtureSha256']); print(data['answerGuideSha256'])
+          current_url="$PAGE_URL""human-replay/""$PRODUCT_HEAD""/"
+          kit_url="$current_url""fixtures/nombres_complexes_student_v01_v5.json"
+          curl --fail --silent --show-error "$current_url" -o "$RUNNER_TEMP/current.html"
+          curl --fail --silent --show-error "$kit_url" -o "$RUNNER_TEMP/live-kit.json"
+          curl --fail --silent --show-error "$current_url""candidate-identity.json" -o "$RUNNER_TEMP/live-identity.json"
+          curl --fail --silent --show-error "$current_url""bundle-manifest.json" -o "$RUNNER_TEMP/live-bundle-manifest.json"
+          test "$(sha256sum "$RUNNER_TEMP/current.html" | awk '{print $1}')" = "$PRODUCT_EXPECTED_SHA256"
+          test "$(wc -c < "$RUNNER_TEMP/current.html" | tr -d ' ')" = "$PRODUCT_EXPECTED_BYTES"
+          test "$(sha256sum "$RUNNER_TEMP/live-kit.json" | awk '{print $1}')" = "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b"
+          curl --fail --silent --show-error "$PAGE_URL""human-replay/""$OLD_R15_HEAD""/" -o "$RUNNER_TEMP/old-r15.html"
+          test "$(sha256sum "$RUNNER_TEMP/old-r15.html" | awk '{print $1}')" = "$OLD_R15_SHA256"
+
+          python - "$current_url" "$RUNNER_TEMP/site/human-replay/$PRODUCT_HEAD/fixtures/nombres_complexes_student_v01_v5.json" <<'PY'
+          import sys
+          from playwright.sync_api import sync_playwright
+          url,kit=sys.argv[1:]
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              page=browser.new_page(viewport={'width':1365,'height':768})
+              errors=[]
+              page.on('pageerror',lambda error: errors.append(str(error)))
+              page.goto(url,wait_until='load')
+              page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__)')
+              page.locator('#kit-file').set_input_files(kit)
+              page.locator("form.import-panel button[type='submit']").click()
+              page.get_by_text('Nombres complexes',exact=True).wait_for(timeout=10000)
+              card=page.locator('.course-card[data-course-install-id]').filter(has_text='Nombres complexes').first
+              assert card.count()==1
+              assert card.locator('[data-library-objective-details="true"]').count()==1
+              card.get_by_role('button',name='Commencer').click()
+              page.locator('[data-served-activity-submit="true"]').wait_for(timeout=10000)
+              assert page.locator('[data-objective-progress-r15="true"]').count()==0
+              assert not errors,errors
+              browser.close()
+          print('REPLAY_HTTPS_LIVE_SMOKE: PASS')
           PY
-          )
-              if [[ "$(sha256sum "$RUNNER_TEMP/root.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" \
-                && "$(sha256sum "$RUNNER_TEMP/current.html" | awk '{print $1}')" == "$PRODUCT_EXPECTED_SHA256" \
-                && "$(sha256sum "$RUNNER_TEMP/fixture.json" | awk '{print $1}')" == "${expected[0]}" \
-                && "$(sha256sum "$RUNNER_TEMP/guide.txt" | awk '{print $1}')" == "${expected[1]}" ]]; then
-                for row in "$R10_HEAD:$R10_SHA256" "$R11_HEAD:$R11_SHA256" "$R12_HEAD:$R12_SHA256" "$PREVIOUS_R13_HEAD:$PREVIOUS_R13_SHA256" "$FINAL_R13_HEAD:$FINAL_R13_SHA256" "$R14_HEAD:$R14_SHA256"; do
-                  IFS=: read -r replay_head replay_sha <<< "$row"
-                  curl --fail --silent --show-error "${PAGE_URL}human-replay/${replay_head}/" -o "$RUNNER_TEMP/history.html"
-                  [[ "$(sha256sum "$RUNNER_TEMP/history.html" | awk '{print $1}')" == "$replay_sha" ]]
-                done
-                ok=1; break
-              fi
-            fi
-            sleep 3
-          done
-          [[ "$ok" == 1 ]]
-          echo "R15_REPLAY_URL=$current_url" >> "$GITHUB_STEP_SUMMARY"
-          echo "R15_IDENTITY_URL=${current_url}identity.json" >> "$GITHUB_STEP_SUMMARY"
-          echo "R15_FIXTURE_URL=${current_url}fixtures/nombres_complexes_atlas.json" >> "$GITHUB_STEP_SUMMARY"
-          echo "R15_ANSWER_GUIDE_URL=${current_url}fixtures/nombres_complexes_atlas-answer-guide.txt" >> "$GITHUB_STEP_SUMMARY"
+
+          bundle_sha="$(cat "$RUNNER_TEMP/site/human-replay/$PRODUCT_HEAD/REPLAY_BUNDLE_SHA256.txt")"
+          cat > wp063-live-evidence.json <<EOF
+          {"schema":"learnit.wp063.corrected-human-replay.live.v1","productHead":"$PRODUCT_HEAD","replayUrl":"$current_url","kitUrl":"$kit_url","replayBundleSha256":"$bundle_sha","replayHttpsLiveSmoke":"PASS","promotion":false,"humanGateRequired":true}
+          EOF
+          echo "REPLAY_URL=$current_url" >> "$GITHUB_STEP_SUMMARY"
+          echo "REPLAY_KIT_URL=$kit_url" >> "$GITHUB_STEP_SUMMARY"
+          echo "REPLAY_BUNDLE_SHA256=$bundle_sha" >> "$GITHUB_STEP_SUMMARY"
+          echo "REPLAY_HTTPS_LIVE_SMOKE=PASS" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload live replay evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp063-corrected-human-replay-live
+          retention-days: 30
+          if-no-files-found: error
+          path: wp063-live-evidence.json
