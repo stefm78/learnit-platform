@@ -321,9 +321,6 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}human-replay/${{ env.PRODUCT_HEAD }}/
     steps:
       - name: Download immutable verified site
         uses: actions/download-artifact@v4
