@@ -67,7 +67,9 @@ marks = {"review-needed": "↺", "ready-for-validation": "◇", "validated-recen
 for state, label in labels.items():
     assert label in presenter, (state, label)
 for state, level in levels.items():
-    assert f"'{state}': '{level}'" in presenter, (state, level)
+    quoted = f"'{state}': '{level}'"
+    bare = f"{state}: '{level}'"
+    assert quoted in presenter or bare in presenter, (state, level)
 for state, mark in marks.items():
     assert mark in presenter, (state, mark)
 for old in ("À commencer", "En entraînement", "Révision nécessaire", "Prêt pour validation", "Validation récente"):
