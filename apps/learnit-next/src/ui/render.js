@@ -177,19 +177,24 @@ function renderServedActivityForm(activity, submit) {
   const submitLabel = ['lesson', 'flashcard'].includes(presentation.type)
     ? 'Continuer'
     : 'Valider';
+  const submitButton = node('button', {
+    type: 'submit',
+    className: 'primary',
+    text: submitLabel,
+    'data-served-activity-submit': 'true',
+    disabled: presentation.type === 'flashcard',
+  });
   const form = node('form', {
     className: 'activity-form served-activity-form',
     'data-served-activity-type': presentation.type,
   }, [
     renderActivityPresentation(presentation),
     responseStatus,
-    node('button', {
-      type: 'submit',
-      className: 'primary',
-      text: submitLabel,
-      'data-served-activity-submit': 'true',
-    }),
+    submitButton,
   ]);
+  form.addEventListener('learnit:activity-ready', () => {
+    submitButton.disabled = false;
+  });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     responseStatus.textContent = '';
@@ -615,27 +620,28 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       return renderLibrary({ announcement: message });
     }
     const activity = session.currentActivity;
-    const presentation = activity.presentation;
     const reviewMode = session.mode === 'review';
-    const activityTitle = node('h2', { id: 'activity-title', tabindex: '-1', text: activityPresentationHeading(presentation) });
-    const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel' }, [
+    const total = Number(session.progress?.total ?? 0);
+    const completed = Number(session.progress?.completed ?? 0);
+    const currentPosition = total > 0 ? Math.min(completed + 1, total) : 1;
+    const activityTitle = node('h2', {
+      id: 'activity-title',
+      className: 'sr-only',
+      text: reviewMode ? 'Activité à renforcer' : 'Activité en cours',
+    });
+    const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel learner-session-panel' }, [
       node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: () => renderLibrary() }),
-      node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
+      node('div', { className: 'activity-context-row' }, [
+        node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
+        node('p', { className: 'activity-position', text: `${currentPosition}/${total || 1} activités` }),
+      ]),
       activityTitle,
-      renderProgress(session.progress),
       renderServedActivityForm(
         activity,
         (answer) => submitAnswer(activity.activityRevisionId, answer),
       ),
-      reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
-      reviewMode ? node('button', {
-        type: 'button',
-        className: 'secondary',
-        text: 'Revenir au parcours',
-        onclick: () => run(() => runtime.startCourse(session.courseInstallId), renderSessionSnapshot),
-      }) : null,
     ]);
-    shell(section, { focusTarget: focus ? activityTitle : null });
+    shell(section);
   }
 
   function renderFeedback(result) {
