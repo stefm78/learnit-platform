@@ -1,0 +1,49 @@
+{
+  "schema": "learnit.qualification.objective-progress-r15-five-states.v1",
+  "qualificationOnly": true,
+  "learnerCourse": false,
+  "note": "Strict qualification fixture only. It must never be imported or published as a learner course.",
+  "priorityObjectiveId": "qualification-objective-3",
+  "states": [
+    {
+      "objectiveId": "qualification-objective-1",
+      "label": "Objectif qualification 1",
+      "status": "not-started",
+      "canonicalLabel": "À découvrir",
+      "visualLevel": "0%",
+      "mark": null
+    },
+    {
+      "objectiveId": "qualification-objective-2",
+      "label": "Objectif qualification 2",
+      "status": "training",
+      "canonicalLabel": "En apprentissage",
+      "visualLevel": "48%",
+      "mark": null
+    },
+    {
+      "objectiveId": "qualification-objective-3",
+      "label": "Objectif qualification 3",
+      "status": "review-needed",
+      "canonicalLabel": "À renforcer",
+      "visualLevel": "46%",
+      "mark": "↺"
+    },
+    {
+      "objectiveId": "qualification-objective-4",
+      "label": "Objectif qualification 4",
+      "status": "ready-for-validation",
+      "canonicalLabel": "À confirmer",
+      "visualLevel": "82%",
+      "mark": "◇"
+    },
+    {
+      "objectiveId": "qualification-objective-5",
+      "label": "Objectif qualification 5",
+      "status": "validated-recently",
+      "canonicalLabel": "Acquis récemment",
+      "visualLevel": "100%",
+      "mark": "✓"
+    }
+  ]
+}
