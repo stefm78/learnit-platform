@@ -84,10 +84,10 @@ await test('01 status vocabulary and all supported states', () => {
   assert.deepEqual(OBJECTIVE_PROGRESS_STATUSES, [
     'not-started', 'training', 'review-needed', 'ready-for-validation', 'validated-recently',
   ]);
-  assert.equal(getObjectiveStatusPresentation('training').label, 'En entraînement');
-  assert.equal(getObjectiveStatusPresentation('review-needed').label, 'Révision nécessaire');
-  assert.equal(getObjectiveStatusPresentation('ready-for-validation').label, 'Prêt pour validation');
-  assert.equal(getObjectiveStatusPresentation('validated-recently').label, 'Validation récente');
+  assert.equal(getObjectiveStatusPresentation('training').label, 'En apprentissage');
+  assert.equal(getObjectiveStatusPresentation('review-needed').label, 'À renforcer');
+  assert.equal(getObjectiveStatusPresentation('ready-for-validation').label, 'À confirmer');
+  assert.equal(getObjectiveStatusPresentation('validated-recently').label, 'Acquis récemment');
   assert.throws(() => getObjectiveStatusPresentation('unknown'), RangeError);
 });
 
@@ -102,7 +102,7 @@ await test('02 generated objective HTML is semantic and readable without colour'
   assert.match(html, /aria-labelledby=/);
   assert.match(html, /aria-describedby=/);
   assert.match(html, /data-progress-status="review-needed"/);
-  assert.match(html, /État : <\/span><strong>Révision nécessaire<\/strong>/);
+  assert.match(html, /État : <\/span><strong>À renforcer<\/strong>/);
   assert.match(html, /Révision à effectuer<\/dt><dd>Oui<\/dd>/);
   assert.match(html, /Dernier entraînement<\/dt><dd>À reprendre<\/dd>/);
 });
@@ -170,17 +170,17 @@ await test('05 recommendation renders native keyboard controls only when actiona
   assert.equal(received, recommendation);
 });
 
-await test('06 panel reading order is objectives then next action', () => {
+await test('06 canonical R15 panel uses authored reservoir and current priority only', () => {
   const panel = renderObjectiveProgressPanel({
+    context: 'library',
     objectives: [progress('obj-1', 'training')],
-    recommendation: {
-      title: 'Continuer l’entraînement',
-      description: 'Une activité est disponible.',
-      actionLabel: 'Continuer',
-    },
-  }, {documentRef});
+    recommendation: {objectiveId: 'obj-1', status: 'training'},
+  }, {documentRef, labelsById: {'obj-1': 'Objectif un'}});
   const html = panel.outerHTML;
-  assert.ok(html.indexOf('Progression par objectif') < html.indexOf('Prochaine action recommandée'));
+  assert.match(html, /data-objective-progress-r15="true"/);
+  assert.match(html, /data-objective-progress-r15-priority="true"/);
+  assert.ok(html.indexOf('Objectifs du cours') < html.indexOf('Priorité Learn-it'));
+  assert.doesNotMatch(html, /À commencer|En entraînement|Révision nécessaire|Prêt pour validation|Validation récente/);
 });
 
 await test('07 input data is validated and not mutated', () => {
@@ -238,6 +238,9 @@ class LearningLoopV2UiTests(unittest.TestCase):
             ".objective-progress__item--ready-for-validation",
             ".objective-progress__item--validated-recently",
             ".objective-recommendation__action:focus-visible",
+            ".objective-progress-r15__reservoir--review-needed .objective-progress-r15__fill",
+            "repeating-linear-gradient(135deg,#b48a46 0 5px,#ead8b8 5px 10px)",
+            "button.objective-progress-r15__reservoir:focus-visible",
             "min-height: 44px",
             "@media (max-width: 520px)",
             "overflow-wrap: anywhere",
