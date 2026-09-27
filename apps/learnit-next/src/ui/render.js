@@ -338,6 +338,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
 
   root.addEventListener('learnit:show-library', () => {
     main.replaceChildren(node('p', {
+      className: 'sr-only',
       role: 'status',
       text: 'Ouverture de la bibliothèque…',
     }));
@@ -394,7 +395,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
 
   function renderCourseLabelForm(course) {
     const inputId = `course-display-label-${course.courseInstallId}`;
-    const helpId = `${inputId}-help`;
     const input = node('input', {
       id: inputId,
       name: 'display-label',
@@ -402,7 +402,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       value: course.title,
       required: 'required',
       autocomplete: 'off',
-      'aria-describedby': helpId,
     });
     const form = node('form', { className: 'course-label-form' }, [
       node('label', { className: 'field-label', for: inputId, text: 'Nom local du cours' }),
@@ -410,11 +409,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         input,
         node('button', { type: 'submit', className: 'secondary', text: 'Enregistrer' }),
       ]),
-      node('p', {
-        id: helpId,
-        className: 'help',
-        text: 'Ce nom est utilisé uniquement sur cet appareil.',
-      }),
     ]);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -478,7 +472,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     ]));
 
     const importForm = node('form', { className: 'import-panel' });
-    const fileInput = node('input', { id: 'kit-file', type: 'file', accept: '.json,application/json', required: 'required' });
+    const fileInput = node('input', { id: 'kit-file', className: 'sr-only library-file-input', type: 'file', accept: '.json,application/json', required: 'required' });
     const importButton = node('button', { type: 'submit', className: 'primary', text: 'Ajouter à la bibliothèque', disabled: true });
     const fileStatus = node('p', {
       className: 'help',
@@ -518,11 +512,11 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     });
 
     importForm.append(
-      node('div', {}, [
-        node('label', { for: 'kit-file', className: 'field-label', text: 'Choisir un cours à importer' }),
+      node('div', { className: 'library-import-controls' }, [
+        node('label', { for: 'kit-file', className: 'secondary library-file-picker', text: 'Choisir un cours' }),
+        fileInput,
         fileStatus,
       ]),
-      fileInput,
       importButton,
     );
     importForm.addEventListener('submit', (event) => {
