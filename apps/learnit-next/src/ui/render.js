@@ -570,7 +570,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           courseObjectives: course.objectives,
           progress: course.progress,
         });
-        const objectiveDetails = renderLibraryObjectiveDetails(objectiveSurface);
+        const objectiveDetails = objectiveSurface;
         const settingsDetails = node('details', { className: 'course-settings-details' }, [
           node('summary', { text: 'Options du cours' }),
           renderCourseLabelForm(course),
