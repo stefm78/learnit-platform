@@ -110,7 +110,7 @@ jobs:
           path=Path('apps/learnit-next/source_manifest.json')
           manifest=json.loads(path.read_text(encoding='utf-8'))
           item=next(x for x in manifest['workingFiles'] if x['path']=='apps/learnit-next/tests/dev_learning_loop_v2_platform.py')
-          item['fingerprint']={'kind':'git-blob-sha1','value':'471cbcfe7c5970828f4cf84180f46e442d1d890e'}
+          item['fingerprint']={'kind':'git-blob-sha1','value':'b4d84da9a7aba98c205953138895c554e9884a9e'}
           item['owner']='ATLAS-WP-063'
           item['provenance']='ATLAS-WP-063 platform composition oracle for canonical R15 presenter'
           self_item=next(x for x in manifest['workingFiles'] if x['path']=='apps/learnit-next/source_manifest.json')
