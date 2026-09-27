@@ -12,6 +12,7 @@ import { createSessionService } from './core/session.js';
 import {
   projectActivityPresentation,
   projectFeedbackMedia,
+  projectPostAnswerFeedback,
 } from './integration/atlas/activity_projection.js';
 import * as objectiveProgressDomain from './core/objective_progress.js';
 import * as learningRecommendationDomain from './core/learning_recommendation.js';
@@ -197,10 +198,27 @@ export function createLearnitRuntime(
         )
         : Object.freeze([]);
 
+    const postAnswerFeedback =
+      answeredActivity
+      && value.scored === true
+      && courseRecord.contract === 'learnit.kit.v5'
+        ? projectPostAnswerFeedback(
+          answeredActivity,
+          value.answer,
+          {
+            contract: courseRecord.contract,
+            transitionAuthorized: true,
+          },
+        )
+        : null;
+
     return Object.freeze({
       ...value,
       ...(feedbackMedia.length
         ? { feedbackMedia }
+        : {}),
+      ...(postAnswerFeedback
+        ? { postAnswerFeedback }
         : {}),
       nextActivity: await projectLearnerActivity(
         value.nextActivity,
