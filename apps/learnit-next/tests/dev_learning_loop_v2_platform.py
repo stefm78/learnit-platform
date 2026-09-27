@@ -578,6 +578,7 @@ class PlatformWaveATests(unittest.TestCase):
     def test_explicit_parallel_lane_composition_uses_actual_exports(self) -> None:
         main = (APP / "src/main.js").read_text(encoding="utf-8")
         render = (APP / "src/ui/render.js").read_text(encoding="utf-8")
+        objective_ui = (APP / "src/ui/objective_progress.js").read_text(encoding="utf-8")
         progress = (APP / "src/core/progress.js").read_text(encoding="utf-8")
         self.assertIn("from './core/objective_progress.js'", main)
         self.assertIn("from './core/learning_recommendation.js'", main)
@@ -590,7 +591,9 @@ class PlatformWaveATests(unittest.TestCase):
         self.assertIn("reduceObjectiveEvents(objectiveId, events)", progress)
         self.assertIn("recommendNextObjective(authored.objectiveIds, records)", progress)
         self.assertIn("objectiveUi.renderObjectiveProgress", render)
-        self.assertIn("'validated-recently': 'Acquis récemment'", render)
+        self.assertIn("'validated-recently': Object.freeze({label: 'Acquis récemment'", objective_ui)
+        self.assertIn("data.recommendation?.objectiveId", objective_ui)
+        self.assertNotIn("renderObjectiveBuckets", render)
         self.assertNotIn("mastery", render.lower())
         self.assertNotIn("certification", render.lower())
 
