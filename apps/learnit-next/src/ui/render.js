@@ -500,7 +500,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         const preview = await runtime.previewImport(text);
         if (version !== selectionVersion) return;
         selectedFileText = text;
-        fileInput.value = '';
         importButton.disabled = false;
         fileStatus.textContent = preview.title;
       } catch (error) {
