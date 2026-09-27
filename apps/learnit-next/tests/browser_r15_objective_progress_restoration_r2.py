@@ -81,34 +81,29 @@ def assert_no_overflow(page) -> None:
 def library_checks(page, course: dict[str, Any], viewport_name: str, touch: bool) -> None:
     card = page.locator('.course-card[data-course-install-id]').filter(has_text=course["title"]).first
     assert card.count() == 1
-    details = card.locator('[data-library-objective-details="true"]')
-    assert details.count() == 1 and details.get_attribute("open") is None
-    assert card.locator('[data-objective-progress-r15="true"]').count() == 1
+    assert card.locator('[data-library-objective-details="true"]').count() == 0
+    panel = card.locator('[data-objective-progress-r15="true"]')
+    assert panel.count() == 1
     assert card.locator('.atlas-r13-progress').count() == 0
-    screenshot(page, viewport_name, "01-library-collapsed")
-
-    summary = details.locator("summary")
-    summary.focus()
-    page.keyboard.press("Enter")
-    assert details.get_attribute("open") is not None
-    reservoirs = details.locator('button[data-objective-progress-r15-objective]')
+    reservoirs = panel.locator('button[data-objective-progress-r15-objective]')
     assert reservoirs.count() == len(course["objectives"])
-    priorities = details.locator('[data-objective-progress-r15-priority="true"]')
+    priorities = panel.locator('[data-objective-progress-r15-priority="true"]')
     assert priorities.count() == 1
+    screenshot(page, viewport_name, "01-library-r15-direct")
     for index in range(reservoirs.count()):
         reservoir = reservoirs.nth(index)
         label = reservoir.get_attribute("aria-label")
         assert label and course["objectives"][index]["label"] in label
         reservoir.focus()
         assert page.evaluate("(el) => document.activeElement === el", reservoir.element_handle())
-        assert details.locator('[data-objective-progress-r15-detail="true"]').get_attribute("hidden") is None
+        assert panel.locator('[data-objective-progress-r15-detail="true"]').get_attribute("hidden") is None
     if touch:
         reservoirs.first.tap()
     else:
         reservoirs.first.click()
-    assert details.locator('[data-objective-progress-r15-detail="true"]').get_attribute("hidden") is None
+    assert panel.locator('[data-objective-progress-r15-detail="true"]').get_attribute("hidden") is None
     assert_no_overflow(page)
-    screenshot(page, viewport_name, "02-library-r15-expanded")
+    screenshot(page, viewport_name, "02-library-r15-detail")
 
 def walk_showcase(page, course: dict[str, Any], viewport_name: str) -> None:
     activities = course["activities"]
@@ -124,15 +119,13 @@ def walk_showcase(page, course: dict[str, Any], viewport_name: str) -> None:
     assert_no_overflow(page)
     screenshot(page, viewport_name, "03-active-v8-no-macro")
 
-    page.locator('[data-activity-continue="lesson"]').click()
+    assert page.locator('[data-activity-continue="lesson"]').count() == 0
     page.locator('[data-served-activity-submit="true"]').click()
-    page.locator('[data-served-feedback]').wait_for()
+    page.locator('[data-activity-presentation="flashcard"]').wait_for()
+    assert page.locator('[data-served-feedback]').count() == 0
     assert_no_macro(page)
-    assert page.locator('[data-served-next-action="true"]').is_visible()
     assert_no_overflow(page)
-    screenshot(page, viewport_name, "04-intermediate-feedback-no-macro")
-
-    page.locator('[data-served-next-action="true"]').click()
+    screenshot(page, viewport_name, "04-non-scored-direct-next")
     seen = {activities[0]["type"]}
     for index in range(1, 9):
         activity = activities[index]
@@ -142,7 +135,7 @@ def walk_showcase(page, course: dict[str, Any], viewport_name: str) -> None:
         assert session["currentActivity"]["presentation"]["type"] == activity["type"]
         seen.add(activity["type"])
         assert_no_macro(page)
-        assert page.get_by_text(f"{index}/10 activités", exact=True).count() == 1
+        assert page.get_by_text(f"{index + 1}/10 activités", exact=True).count() == 1
         result = page.evaluate(
             "async x => window.__LEARNIT_NEXT_TEST__.answer(x.id, x.answer)",
             {"id": activity["activityRevisionId"], "answer": response_for(activity)},
@@ -158,7 +151,7 @@ def walk_showcase(page, course: dict[str, Any], viewport_name: str) -> None:
     assert session["currentActivity"]["presentation"]["type"] == final_activity["type"]
     seen.add(final_activity["type"])
     assert_no_macro(page)
-    assert page.get_by_text("9/10 activités", exact=True).count() == 1
+    assert page.get_by_text("10/10 activités", exact=True).count() == 1
     assert seen == {"lesson", "flashcard", "matching", "qcm", "order"}
 
     correct = final_activity["correctChoiceId"]
