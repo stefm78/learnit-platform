@@ -324,11 +324,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "1790e1871cbf1ac2676f8962fa9256d5106b210c"
+        "value": "b4d84da9a7aba98c205953138895c554e9884a9e"
       },
-      "owner": "ATLAS-WP-062",
+      "owner": "ATLAS-WP-063",
       "path": "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
-      "provenance": "ATLAS-WP-062 session provenance discriminant qualification"
+      "provenance": "ATLAS-WP-063 platform composition oracle for canonical R15 presenter"
     },
     {
       "fingerprint": {
@@ -369,7 +369,7 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "6e6cc37bd0626ca6d74f7bb348e2454b10222951aa638b8f15893b0c321cc6e2"
+        "value": null
       },
       "owner": "ATLAS-WP-063",
       "path": "apps/learnit-next/source_manifest.json",
