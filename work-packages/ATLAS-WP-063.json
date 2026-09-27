@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-063",
   "title": "Student V0.1 R15 objective progress UX restoration R2",
-  "status": "qualifying",
+  "status": "under-qa",
   "purpose": "Restore the exact human-validated R15 objective-progress UX language on the qualified current V5/V8 runtime, consume JOB 20 sessionDelta exactly at terminal feedback, and produce a corrected operational HTTPS Human Replay without changing learning semantics.",
   "changeClass": "r15-objective-progress-ux-restoration-r2",
   "riskClass": "high",
@@ -39,6 +39,21 @@
       "work-packages/ATLAS-WP-063.json"
     ],
     "forbiddenSemanticPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ],
+    "forbiddenPaths": [
       "apps/learnit-next/src/core/session.js",
       "apps/learnit-next/src/core/activity_semantics.js",
       "apps/learnit-next/src/core/progress.js",
@@ -94,5 +109,19 @@
   },
   "nextGate": "REAL_HUMAN_REPLAY_R15_RESTORED_V5_V8",
   "finalVerdict": "PENDING_QUALIFICATION",
-  "rollback": "Close the unmerged ATLAS-WP-063 pull request and delete student-v01/r2-r15-objective-progress-restoration-r2; parent 3521bf8e4323e072c9196f7f74fd92f00c545460 and PR #456 remain unchanged."
+  "rollback": "Close the unmerged ATLAS-WP-063 pull request and delete student-v01/r2-r15-objective-progress-restoration-r2; parent 3521bf8e4323e072c9196f7f74fd92f00c545460 and PR #456 remain unchanged.",
+  "adversarialTests": [
+    "A current V5/V8 activity or non-terminal feedback containing any macro objective-progress surface fails qualification.",
+    "A priority outline not sourced from progress.recommendation.objectiveId fails qualification.",
+    "A terminal summary without sessionDelta.available === true fails qualification.",
+    "Any current-path recomputation of worked/changed provenance fails qualification.",
+    "Any reappearance of renderObjectiveBuckets, data-session-objective-buckets or legacy DOM enhancement on current Library cards fails qualification.",
+    "Any mutation of session.js, scoring, objective-state, recommendation, V5 contract, learner brief, Role B, Factory or H6 authorities fails qualification."
+  ],
+  "independentReview": [
+    "The corrected current 10A static and browser oracles are replayed rather than rewriting historical 10A results.",
+    "JOB 20 provenance tests are replayed byte-exactly with session.js held to blob 9909f0712de59211d14211ef1afc27bda87fcbf5.",
+    "Browser proof traverses the exact 10-activity/39-minute showcase in both desktop and mobile/touch viewports.",
+    "Repository governance and exact-head qualification must pass before evidence-only closeout and the human gate remains external."
+  ]
 }
