@@ -144,14 +144,14 @@ function lesson(p) {
   const card=el('div',{className:'activity-learning-card'},[el('p',{className:'activity-kind',text:'À retenir'}),el('h2',{text:p.title}),body]);
   if(p.keyPoints?.length) card.append(el('section',{className:'activity-key-points','aria-label':'Points clés'},[el('h3',{text:'Points clés'}),el('ul',{},p.keyPoints.map(x=>el('li',{text:x})))]));
   if(p.contextNote?.trim()) card.append(el('aside',{className:'activity-context-note','aria-label':'Contexte'},[el('strong',{text:'Contexte'}),el('p',{text:p.contextNote.trim()})]));
-  const button=el('button',{type:'button',className:'atlas-primary activity-continue',text:'Continuer','data-activity-continue':'lesson'});
-  const root=shell(p,[card,el('div',{className:'activity-local-actions'},[button])]);
-  button.addEventListener('click',()=>{root.dataset.activityReady='true';button.disabled=true;button.textContent='Prêt à continuer';});
+  const root=shell(p,[card]);
+  root.dataset.activityReady='true';
   return root;
 }
+
 function flashcard(p) {
   let revealed=false;
-  const status=el('p',{className:'activity-interaction-status',role:'status','aria-live':'polite',text:'Activez la carte pour voir la réponse.'});
+  const status=el('p',{className:'activity-interaction-status sr-only',role:'status','aria-live':'polite',text:'Activez la carte pour voir la réponse.'});
   const front=el('div',{className:'activity-flash-face activity-flash-front'},[el('div',{className:'activity-flash-section'},[el('span',{className:'activity-small-label',text:'Question'}),el('h3',{text:p.front})])]);
   const back=el('div',{className:'activity-flash-face activity-flash-back'},[
     el('div',{className:'activity-flash-section activity-flash-question-repeat'},[el('span',{className:'activity-small-label',text:'Question'}),el('strong',{text:p.front})]),
@@ -159,19 +159,32 @@ function flashcard(p) {
     el('p',{className:'activity-flash-explanation',text:p.explanation}),
   ]);
   const card=el('button',{type:'button',className:'activity-flash-card','aria-label':'Retourner la carte','aria-pressed':'false'},[el('div',{className:'activity-flash-inner'},[front,back])]);
-  const next=el('button',{type:'button',className:'atlas-primary',text:'Continuer','data-activity-continue':'flashcard'}); next.hidden=true;
-  const root=shell(p,[el('section',{className:'activity-flash-shell'},[card,status,el('div',{className:'activity-local-actions'},[next])])]);
-  card.addEventListener('click',()=>{const toBack=!card.classList.contains('is-back');card.classList.toggle('is-back',toBack);card.setAttribute('aria-pressed',String(toBack));if(toBack){revealed=true;root.dataset.flashcardRevealed='true';next.hidden=false;status.textContent='Réponse affichée. La question reste rappelée en haut.';}else status.textContent='Question affichée.';});
-  next.addEventListener('click',()=>{if(!revealed)return;root.dataset.activityReady='true';next.disabled=true;next.textContent='Prêt à continuer';});
+  const root=shell(p,[el('section',{className:'activity-flash-shell'},[card,status])]);
+  root.dataset.activityReady='false';
+  card.addEventListener('click',()=>{
+    const toBack=!card.classList.contains('is-back');
+    card.classList.toggle('is-back',toBack);
+    card.setAttribute('aria-pressed',String(toBack));
+    if(toBack){
+      revealed=true;
+      root.dataset.flashcardRevealed='true';
+      root.dataset.activityReady='true';
+      status.textContent='Réponse affichée.';
+      root.dispatchEvent(new CustomEvent('learnit:activity-ready',{bubbles:true,detail:{type:'flashcard'}}));
+    } else {
+      status.textContent=revealed?'Question affichée. La réponse a déjà été consultée.':'Question affichée.';
+    }
+  });
   return root;
 }
+
 function associations(root) {
   return new Map([...root.querySelectorAll('[data-matching-association="true"]')].map(node=>[node.dataset.leftItemId,node.dataset.rightItemId]));
 }
 function matching(p) {
   const map=new Map(),cards=new Map(),rows=new Map(); let selected=null;
-  const status=el('p',{className:'activity-interaction-status',role:'status','aria-live':'polite',text:'Glissez une carte vers une description, ou sélectionnez-la puis choisissez une destination.'});
-  const sourceHead=el('div',{className:'activity-match-source-head'},[el('h3',{text:'Cartes à placer'}),el('span',{className:'help activity-match-count'})]);
+  const status=el('p',{className:'activity-interaction-status sr-only',role:'status','aria-live':'polite',text:'Glissez une carte vers une description, ou sélectionnez-la puis choisissez une destination.'});
+  const sourceHead=el('div',{className:'activity-match-source-head'},[el('h3',{text:'Cartes à placer'}),el('span',{className:'help activity-match-count sr-only'})]);
   const source=el('div',{className:'activity-match-source'}), sourceWrap=el('section',{className:'activity-match-source-wrap'},[sourceHead,source]), board=el('section',{className:'activity-pair-board'});
   const root=shell(p,[prompt(p.prompt),sourceWrap,board,status]);
   const paint=()=>{sourceHead.querySelector('.activity-match-count').textContent=source.querySelectorAll(':scope > .activity-match-card').length+' restante(s)';for(const [id,row] of rows){const filled=[...map.values()].includes(id);row.classList.toggle('matched',filled);row.querySelector('.activity-pair-slot').classList.toggle('filled',filled);}status.textContent=map.size+'/'+p.leftItems.length+' association(s).';};
@@ -184,7 +197,7 @@ function matching(p) {
   paint(); return root;
 }
 function order(p) {
-  const status=el('p',{className:'activity-interaction-status',role:'status','aria-live':'polite',text:'Glissez verticalement une étiquette, ou sélectionnez-la puis choisissez un intercalaire.'});
+  const status=el('p',{className:'activity-interaction-status sr-only',role:'status','aria-live':'polite',text:'Glissez verticalement une étiquette, ou sélectionnez-la puis choisissez un intercalaire.'});
   const list=el('div',{className:'activity-order-b-list',role:'list','data-order-list':'true'}), overlay=el('div',{className:'activity-order-insert-overlay','aria-hidden':'true'}); list.append(overlay);
   let selected=null; const cards=new Map(); const cardNodes=()=>[...list.querySelectorAll(':scope > .activity-order-b-card')];
   const clearOverlay=()=>{overlay.replaceChildren();overlay.classList.remove('visible');overlay.setAttribute('aria-hidden','true');list.classList.remove('placing');};
@@ -199,7 +212,7 @@ function order(p) {
 }
 function classify(p) {
   const cards=new Map(),buckets=new Map();let selected=null;
-  const status=el('p',{className:'activity-interaction-status',role:'status','aria-live':'polite',text:'Glissez une carte ou sélectionnez-la puis choisissez une catégorie.'}),sourceTitle=el('button',{type:'button',className:'activity-bucket-title activity-classify-destination','data-dest':'source',text:'À classer'}),sourceCards=el('div',{className:'activity-classify-source-cards'}),source=el('section',{className:'activity-classify-source activity-drop-target','data-drop-zone':'source'},[sourceTitle,sourceCards]),grid=el('section',{className:'activity-bucket-grid'});
+  const status=el('p',{className:'activity-interaction-status sr-only',role:'status','aria-live':'polite',text:'Glissez une carte ou sélectionnez-la puis choisissez une catégorie.'}),sourceTitle=el('button',{type:'button',className:'activity-bucket-title activity-classify-destination','data-dest':'source',text:'À classer'}),sourceCards=el('div',{className:'activity-classify-source-cards'}),source=el('section',{className:'activity-classify-source activity-drop-target','data-drop-zone':'source'},[sourceTitle,sourceCards]),grid=el('section',{className:'activity-bucket-grid'});
   const root=shell(p,[prompt(p.prompt),source,grid,status]), current=id=>cards.get(id)?.dataset.classifyBucket||'source';
   const clear=()=>{selected=null;setPressed(cards,null);clearSignals(root);};
   const show=id=>{clearSignals(root);const now=current(id);if(now!=='source'){sourceTitle.classList.add('eligible-destination');source.classList.add('eligible-zone');}for(const [bid,b] of buckets)if(bid!==now){b.querySelector('.activity-classify-destination').classList.add('eligible-destination');b.classList.add('eligible-zone');}};
@@ -212,7 +225,7 @@ function classify(p) {
 }
 function fill(p) {
   const assignments=new Map(),tokens=new Map(),slots=new Map();let selected=null;
-  const status=el('p',{className:'activity-interaction-status',role:'status','aria-live':'polite',text:'Glissez un mot ou sélectionnez-le puis choisissez un emplacement.'}),bankTitle=el('button',{type:'button',className:'activity-fill-bank-title',text:'Mots disponibles','aria-label':'Mots disponibles — remettre le mot sélectionné dans la banque'}),bankBox=el('div',{className:'activity-token-bank'}),bank=el('section',{className:'activity-fill-bank activity-drop-target','data-fill-drop':'bank'},[bankTitle,bankBox]),sentence=el('div',{className:'activity-fill-b-sentence'});
+  const status=el('p',{className:'activity-interaction-status sr-only',role:'status','aria-live':'polite',text:'Glissez un mot ou sélectionnez-le puis choisissez un emplacement.'}),bankTitle=el('button',{type:'button',className:'activity-fill-bank-title',text:'Mots disponibles','aria-label':'Mots disponibles — remettre le mot sélectionné dans la banque'}),bankBox=el('div',{className:'activity-token-bank'}),bank=el('section',{className:'activity-fill-bank activity-drop-target','data-fill-drop':'bank'},[bankTitle,bankBox]),sentence=el('div',{className:'activity-fill-b-sentence'});
   const root=shell(p,[prompt(p.prompt),bank,sentence,status]), location=id=>{for(const [slot,token] of assignments)if(token===id)return slot;return'bank';};
   const clear=()=>{selected=null;setPressed(tokens,null);clearSignals(root);};
   const paint=()=>{for(const [id,slot] of slots){const filled=assignments.has(id);slot.classList.toggle('filled',filled);slot.classList.toggle('empty',!filled);if(filled){slot.removeAttribute('role');slot.removeAttribute('tabindex');}else{slot.setAttribute('role','button');slot.setAttribute('tabindex','0');}slot.dataset.tokenId=assignments.get(id)??'';}status.textContent=assignments.size+'/'+slots.size+' emplacement(s) rempli(s).';};
