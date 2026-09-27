@@ -1,26 +1,26 @@
 const STATUS_PRESENTATION = Object.freeze({
   'not-started': Object.freeze({
-    label: 'À commencer',
+    label: 'À découvrir',
     description: 'Aucune activité enregistrée pour cet objectif.',
     className: 'objective-progress__item--not-started',
   }),
   training: Object.freeze({
-    label: 'En entraînement',
+    label: 'En apprentissage',
     description: 'Des activités d’entraînement ont été réalisées pour cet objectif.',
     className: 'objective-progress__item--training',
   }),
   'review-needed': Object.freeze({
-    label: 'Révision nécessaire',
+    label: 'À renforcer',
     description: 'Une activité doit être reprise avant de poursuivre vers la validation.',
     className: 'objective-progress__item--review-needed',
   }),
   'ready-for-validation': Object.freeze({
-    label: 'Prêt pour validation',
+    label: 'À confirmer',
     description: 'L’entraînement est à jour et une activité de validation peut être proposée.',
     className: 'objective-progress__item--ready-for-validation',
   }),
   'validated-recently': Object.freeze({
-    label: 'Validation récente',
+    label: 'Acquis récemment',
     description: 'Une activité de validation a été réussie récemment.',
     className: 'objective-progress__item--validated-recently',
   }),
@@ -323,30 +323,169 @@ export function renderRecommendedAction(recommendation, options = {}) {
   return section;
 }
 
-export function renderObjectiveProgressPanel(data, options = {}) {
+const R15_VISUAL_LEVEL = Object.freeze({
+  'not-started': '0%',
+  training: '48%',
+  'review-needed': '46%',
+  'ready-for-validation': '82%',
+  'validated-recently': '100%',
+});
+const R15_STATE_MARK = Object.freeze({
+  'not-started': null,
+  training: null,
+  'review-needed': '↺',
+  'ready-for-validation': '◇',
+  'validated-recently': '✓',
+});
+
+function renderR15ObjectiveProgress(data, options) {
   const documentRef = requireDocument(options.documentRef ?? globalThis.document);
+  const context = data.context ?? 'library';
+  const labelsById = options.labelsById;
+  const idPrefix = safeFragment(options.idPrefix ?? 'learning-loop');
+  const delta = data.sessionDelta?.available === true ? data.sessionDelta : null;
+  if (context === 'terminal-summary' && !delta) return null;
+  const before = delta?.beforeObjectiveStates ?? {};
+  const after = delta?.afterObjectiveStates ?? {};
+  const worked = new Set(delta?.workedObjectiveIds ?? []);
+  const changed = new Set(delta?.changedObjectiveIds ?? []);
+  if (delta) {
+    if (!delta.beforeObjectiveStates || !delta.afterObjectiveStates
+      || !Array.isArray(delta.workedObjectiveIds) || !Array.isArray(delta.changedObjectiveIds)) {
+      throw new TypeError('sessionDelta disponible mais incomplet.');
+    }
+    for (const state of [...Object.values(before), ...Object.values(after)]) statusPresentation(state);
+  }
+  const objectives = (data.objectives ?? []).map((raw) => {
+    const objective = normalizeObjective(raw);
+    const status = context === 'terminal-summary' && Object.hasOwn(after, objective.objectiveId)
+      ? after[objective.objectiveId] : objective.status;
+    statusPresentation(status);
+    return {...objective, status, label: requiredText(labelFromMap(labelsById, objective.objectiveId), 'label')};
+  });
+  const requestedPriority = context === 'library'
+    ? optionalText(data.recommendation?.objectiveId, 'recommendation.objectiveId') : null;
+  const priority = requestedPriority && objectives.some(item => item.objectiveId === requestedPriority)
+    ? requestedPriority : null;
+  const allAcquired = objectives.length > 0 && objectives.every(item => item.status === 'validated-recently');
+
+  const detailState = element(documentRef, 'strong', {className: 'objective-progress-r15__detail-state'});
+  const detailLabel = element(documentRef, 'span', {className: 'objective-progress-r15__detail-label'});
+  const detail = element(documentRef, 'div', {
+    className: 'objective-progress-r15__detail',
+    'data-objective-progress-r15-detail': 'true',
+    'aria-live': 'polite',
+    hidden: true,
+  }, [detailState, detailLabel]);
+  const showDetail = (item) => {
+    detail.hidden = false;
+    detailState.textContent = statusPresentation(item.status).label;
+    if (context !== 'terminal-summary' || !worked.has(item.objectiveId)) {
+      detailLabel.textContent = item.label;
+    } else if (changed.has(item.objectiveId)) {
+      const oldState = before[item.objectiveId];
+      const newState = after[item.objectiveId];
+      if (!oldState || !newState) throw new TypeError('sessionDelta changed incomplet.');
+      detailLabel.textContent = `${item.label} · Cette séance : ${statusPresentation(oldState).label} → ${statusPresentation(newState).label}`;
+    } else {
+      detailLabel.textContent = `${item.label} · Travaillé pendant cette séance, état inchangé`;
+    }
+  };
+
+  const reservoirs = element(documentRef, 'div', {
+    className: 'objective-progress-r15__reservoirs',
+    role: 'group',
+    'aria-label': `${objectives.length} objectifs du cours`,
+  });
+  objectives.forEach((item, index) => {
+    const presentation = statusPresentation(item.status);
+    const isPriority = priority === item.objectiveId;
+    const wasWorked = context === 'terminal-summary' && worked.has(item.objectiveId);
+    const didChange = context === 'terminal-summary' && changed.has(item.objectiveId);
+    const aria = [
+      `${item.label}. ${presentation.label}.`,
+      isPriority ? 'Priorité Learn-it' : null,
+      wasWorked ? 'Travaillé pendant cette séance' : null,
+      didChange ? 'État modifié pendant cette séance' : null,
+    ].filter(Boolean).join('. ');
+    const reservoir = element(documentRef, 'button', {
+      id: `${idPrefix}-r15-${safeFragment(item.objectiveId)}-${index}`,
+      type: 'button',
+      className: `objective-progress-r15__reservoir objective-progress-r15__reservoir--${item.status}`,
+      'data-objective-progress-r15-objective': item.objectiveId,
+      'data-objective-progress-r15-state': item.status,
+      'data-objective-progress-r15-priority': String(isPriority),
+      'data-objective-progress-r15-session-worked': String(wasWorked),
+      'data-objective-progress-r15-session-changed': String(didChange),
+      'aria-label': aria,
+      title: `${item.label} — ${presentation.label}`,
+    }, [
+      element(documentRef, 'span', {
+        className: 'objective-progress-r15__fill',
+        'aria-hidden': 'true',
+        style: `--objective-progress-r15-level:${R15_VISUAL_LEVEL[item.status]}`,
+      }),
+      R15_STATE_MARK[item.status] ? element(documentRef, 'span', {
+        className: 'objective-progress-r15__state-mark',
+        'aria-hidden': 'true',
+        text: R15_STATE_MARK[item.status],
+      }) : null,
+    ]);
+    reservoir.addEventListener('click', () => showDetail(item));
+    reservoir.addEventListener('focus', () => showDetail(item));
+    reservoirs.appendChild(reservoir);
+  });
+  const group = element(documentRef, 'div', {
+    className: `objective-progress-r15__group${allAcquired ? ' objective-progress-r15__group--consolidated' : ''}`,
+    'data-objective-progress-r15-group': 'objectifs-du-cours',
+    'data-objective-progress-r15-consolidated': String(allAcquired),
+  }, [
+    element(documentRef, 'span', {className: 'objective-progress-r15__group-label', text: 'Objectifs du cours'}),
+    reservoirs,
+    detail,
+  ]);
+  const children = [group];
+  if (context === 'terminal-summary') {
+    const workedCount = delta.workedObjectiveIds.length;
+    const changedCount = delta.changedObjectiveIds.length;
+    children.push(element(documentRef, 'div', {
+      className: 'objective-progress-r15__context objective-progress-r15__session-context',
+      'data-objective-progress-r15-session-context': 'true',
+    }, [
+      element(documentRef, 'span', {className: 'objective-progress-r15__context-kicker', text: 'Cette séance'}),
+      element(documentRef, 'strong', {
+        className: 'objective-progress-r15__context-state',
+        text: `${workedCount} objectif${workedCount > 1 ? 's' : ''} travaillé${workedCount > 1 ? 's' : ''}`,
+      }),
+      element(documentRef, 'span', {
+        className: 'objective-progress-r15__context-target',
+        text: changedCount
+          ? `${changedCount} changement${changedCount > 1 ? 's' : ''} d’état visible${changedCount > 1 ? 's' : ''}`
+          : 'État global inchangé',
+      }),
+    ]));
+  } else if (priority) {
+    const target = objectives.find(item => item.objectiveId === priority);
+    children.push(element(documentRef, 'div', {
+      className: 'objective-progress-r15__context objective-progress-r15__priority-context',
+      'data-objective-progress-r15-priority-context': 'true',
+    }, [
+      element(documentRef, 'span', {className: 'objective-progress-r15__context-kicker', text: 'Priorité Learn-it'}),
+      element(documentRef, 'strong', {className: 'objective-progress-r15__context-state', text: statusPresentation(target.status).label}),
+      element(documentRef, 'span', {className: 'objective-progress-r15__context-target', text: target.label}),
+    ]));
+  }
+  return element(documentRef, 'section', {
+    className: `objective-progress-r15 objective-progress-r15--${context}`,
+    'data-objective-progress-r15': 'true',
+    'data-objective-progress-r15-context': context,
+    'aria-label': context === 'terminal-summary' ? 'Bilan de progression de cette séance' : 'Progression détaillée par objectif',
+  }, children);
+}
+
+export function renderObjectiveProgressPanel(data, options = {}) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new TypeError('Le panneau de progression doit recevoir un objet data.');
   }
-  const panel = element(documentRef, 'div', { className: 'objective-progress-panel' });
-  append(panel,
-    renderObjectiveProgressList(data.objectives ?? [], {
-      documentRef,
-      idPrefix: options.idPrefix,
-      labelsById: options.labelsById,
-      title: options.objectivesTitle,
-      emptyMessage: options.objectivesEmptyMessage,
-      headingLevel: options.headingLevel ?? 2,
-    }),
-    renderRecommendedAction(data.recommendation ?? null, {
-      documentRef,
-      idPrefix: `${options.idPrefix ?? 'learning-loop'}-next`,
-      labelsById: options.labelsById,
-      title: options.recommendationTitle,
-      emptyMessage: options.recommendationEmptyMessage,
-      headingLevel: options.headingLevel ?? 2,
-      onAction: options.onAction,
-    }),
-  );
-  return panel;
+  return renderR15ObjectiveProgress(data, options);
 }
