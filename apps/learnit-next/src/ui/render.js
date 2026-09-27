@@ -77,17 +77,6 @@ function renderObjectiveSurface(objectiveUi, model) {
   throw new TypeError('renderObjectiveProgress() must return a Node, an array of Nodes, or null');
 }
 
-function renderLibraryObjectiveDetails(objectiveSurface) {
-  if (!objectiveSurface) return null;
-  return node('details', {
-    className: 'course-progress-details',
-    'data-library-objective-details': 'true',
-  }, [
-    node('summary', { text: 'Voir la progression détaillée' }),
-    objectiveSurface,
-  ]);
-}
-
 function renderQcmForm(activity, submit) {
   const fieldset = node('fieldset', { className: 'answer-fieldset' });
   fieldset.append(node('legend', { text: 'Choisissez une réponse' }));
