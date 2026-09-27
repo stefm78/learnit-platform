@@ -608,7 +608,19 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     shell(section, { focusTarget: focus ? libraryTitle : null, announcement });
   }
   async function submitAnswer(activityRevisionId, answer) {
-    await run(() => runtime.answer(activityRevisionId, answer), renderFeedback);
+    await run(() => runtime.answer(activityRevisionId, answer), async (result) => {
+      if (result.scored !== true) {
+        if (result.nextActivity) {
+          const nextSession = await runtime.getSession();
+          renderSessionSnapshot(nextSession, { focus: false });
+          announce('Activité suivante.');
+        } else {
+          await renderLibrary({ focus: false, announcement: 'Cours terminé.' });
+        }
+        return;
+      }
+      renderFeedback(result);
+    });
   }
 
   function renderSessionSnapshot(session, { focus = true } = {}) {
@@ -644,62 +656,40 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     shell(section);
   }
 
+  function renderFeedbackLines(title, lines, className) {
+    if (!Array.isArray(lines) || lines.length === 0) return null;
+    return node('section', { className }, [
+      node('h3', { text: title }),
+      lines.length === 1
+        ? node('p', { text: lines[0] })
+        : node('ul', {}, lines.map(line => node('li', { text: line }))),
+    ]);
+  }
+
   function renderFeedback(result) {
     const reviewMode = result.mode === 'review';
     const reviewRemaining = result.review?.remaining ?? 0;
     const complete = result.progress.isComplete;
-    const scored = result.scored === true;
-    const outcomeText = scored
-      ? (result.correct ? 'Réponse correcte' : 'Pas tout à fait')
-      : 'Activité terminée';
-    const outcome = node('p', {
-      className: scored
-        ? (result.correct ? 'feedback-correct' : 'feedback-incorrect')
-        : 'feedback-neutral',
-      role: 'status',
-      'aria-live': 'polite',
-      'aria-atomic': 'true',
-      tabindex: '-1',
+    const terminal = reviewMode ? reviewRemaining === 0 : complete === true;
+    const outcomeText = result.correct ? 'Bonne réponse' : 'À corriger';
+    const feedbackProjection = result.postAnswerFeedback ?? null;
+    const feedbackTitle = node('h2', {
+      id: 'feedback-title',
+      className: result.correct ? 'feedback-correct' : 'feedback-incorrect',
       text: outcomeText,
     });
-    const primaryAction = reviewMode
-      ? node('button', {
-        type: 'button',
-        className: 'primary',
-        'data-served-next-action': 'true',
-        text: reviewRemaining === 0 ? 'Retour à la bibliothèque' : 'Activité suivante à revoir',
-        onclick: reviewRemaining === 0 ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
-      })
-      : node('button', {
-        type: 'button',
-        className: 'primary',
-        'data-served-next-action': 'true',
-        text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
-        onclick: complete ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
-      });
-    const terminal = reviewMode ? reviewRemaining === 0 : complete === true;
-    const terminalObjectiveSurface = terminal && result.sessionDelta?.available === true
-      ? renderObjectiveSurface(objectiveUi, {
-        context: 'terminal-summary',
-        courseObjectives: result.courseObjectives,
-        progress: result.progress,
-        sessionDelta: result.sessionDelta,
-      })
+    const learnerAnswer = feedbackProjection
+      ? renderFeedbackLines('Votre réponse', feedbackProjection.learnerAnswer, 'feedback-answer feedback-learner-answer')
       : null;
-    const feedbackDetail = result.explanation
-      ? [
-        node('h2', { id: 'feedback-title', text: 'Explication' }),
+    const expectedAnswer = feedbackProjection
+      ? renderFeedbackLines('Réponse attendue', feedbackProjection.expectedAnswer, 'feedback-answer feedback-expected-answer')
+      : null;
+    const explanation = result.explanation
+      ? node('section', { className: 'feedback-explanation' }, [
+        node('h3', { text: 'Explication' }),
         node('p', { text: result.explanation }),
-      ]
-      : [
-        node('h2', { id: 'feedback-title', text: 'Progression enregistrée' }),
-        node('p', {
-          className: 'help',
-          text: scored
-            ? 'Votre réponse a été enregistrée.'
-            : 'Cette activité compte comme terminée, sans score de correction.',
-        }),
-      ];
+      ])
+      : null;
     const feedbackMedia =
       Array.isArray(result.feedbackMedia)
       && result.feedbackMedia.length
@@ -712,30 +702,47 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           [renderEmbeddedMediaSet(result.feedbackMedia)],
         )
         : null;
+    const terminalObjectiveSurface = terminal && result.sessionDelta?.available === true
+      ? renderObjectiveSurface(objectiveUi, {
+        context: 'terminal-summary',
+        courseObjectives: result.courseObjectives,
+        progress: result.progress,
+        sessionDelta: result.sessionDelta,
+      })
+      : null;
+    const primaryAction = reviewMode
+      ? node('button', {
+        type: 'button',
+        className: 'primary',
+        'data-served-next-action': 'true',
+        text: reviewRemaining === 0 ? 'Retour à la bibliothèque' : 'Activité suivante à revoir',
+        onclick: reviewRemaining === 0
+          ? () => renderLibrary()
+          : () => run(() => runtime.getSession(), renderSessionSnapshot),
+      })
+      : node('button', {
+        type: 'button',
+        className: 'primary',
+        'data-served-next-action': 'true',
+        text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
+        onclick: complete
+          ? () => renderLibrary()
+          : () => run(() => runtime.getSession(), renderSessionSnapshot),
+      });
     const section = node('section', {
       'aria-labelledby': 'feedback-title',
-      className: 'feedback-panel',
-      'data-served-feedback': scored ? 'scored' : 'non-scored',
+      className: 'feedback-panel learner-feedback-panel',
+      'data-served-feedback': 'scored',
     }, [
-      outcome,
-      ...feedbackDetail,
+      feedbackTitle,
+      learnerAnswer,
+      expectedAnswer,
+      explanation,
       ...(feedbackMedia ? [feedbackMedia] : []),
-      renderProgress(result.progress),
       terminalObjectiveSurface,
-      reviewMode ? node('p', {
-        text: reviewRemaining === 0
-          ? 'File À revoir vide. Cette réussite retire l’activité de la file.'
-          : `${reviewRemaining} activité${reviewRemaining > 1 ? 's' : ''} reste${reviewRemaining > 1 ? 'nt' : ''} à revoir.`,
-      }) : null,
       primaryAction,
-      reviewMode ? node('button', {
-        type: 'button',
-        className: 'secondary',
-        text: 'Revenir au parcours',
-        onclick: () => run(() => runtime.startCourse(result.courseInstallId), renderSessionSnapshot),
-      }) : null,
     ]);
-    shell(section, { focusTarget: outcome, announcement: outcomeText });
+    shell(section, { focusTarget: feedbackTitle, announcement: outcomeText });
   }
 
   async function initialize() {
