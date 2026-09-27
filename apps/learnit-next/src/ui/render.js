@@ -539,29 +539,30 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       const list = node('div', { className: 'course-grid' });
       for (const course of courses) {
         const reviewQueue = await runtime.getReviewQueue(course.courseInstallId);
+        const correctivePriority =
+          course.progress.recommendation?.action === 'correct'
+          && reviewQueue.total > 0
+          && !course.progress.isComplete;
         const courseAction = course.progress.isComplete
           ? node('p', { className: 'course-complete', text: 'Cours terminé' })
           : node('button', {
             type: 'button',
-            className: 'primary',
+            className: correctivePriority ? 'secondary' : 'primary',
             text: course.progress.completed === 0 ? 'Commencer' : 'Reprendre',
             'data-course-learning-action': 'learn',
             'data-course-install-id': course.courseInstallId,
             onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
           });
-        const reviewAction = reviewQueue.total === 0
-          ? node('p', { className: 'help', text: 'À revoir : aucune activité.' })
-          : node('div', {}, [
-            node('p', { text: `À revoir : ${reviewQueue.total} activité${reviewQueue.total > 1 ? 's' : ''}.` }),
-            node('button', {
-              type: 'button',
-              className: 'secondary',
-              text: 'Ouvrir À revoir',
-              'data-course-learning-action': 'review',
-              'data-course-install-id': course.courseInstallId,
-              onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
-            }),
-          ]);
+        const reviewAction = correctivePriority
+          ? node('button', {
+            type: 'button',
+            className: 'primary',
+            text: 'Renforcer maintenant',
+            'data-course-learning-action': 'review',
+            'data-course-install-id': course.courseInstallId,
+            onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
+          })
+          : null;
         const objectiveSurface = renderObjectiveSurface(objectiveUi, {
           context: 'library',
           courseObjectives: course.objectives,
@@ -569,25 +570,23 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         });
         const objectiveDetails = objectiveSurface;
         const settingsDetails = node('details', { className: 'course-settings-details' }, [
-          node('summary', { text: 'Options du cours' }),
+          node('summary', { text: 'Renommer' }),
           renderCourseLabelForm(course),
         ]);
         list.append(node('article', {
-          className: 'course-card course-list-row',
+          className: 'course-card course-list-row learner-course-card',
           'data-course-install-id': course.courseInstallId,
         }, [
           node('div', { className: 'course-row-main' }, [
             node('h3', { text: course.title }),
-            course.subtitle ? node('p', { text: course.subtitle }) : null,
             node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
-            renderProgress(course.progress),
           ]),
-          node('div', { className: 'course-row-actions' }, [
-            courseAction,
+          objectiveDetails,
+          node('div', { className: 'course-row-actions learner-course-actions' }, [
             reviewAction,
+            courseAction,
           ]),
           settingsDetails,
-          objectiveDetails,
         ]));
       }
       section.append(list);
