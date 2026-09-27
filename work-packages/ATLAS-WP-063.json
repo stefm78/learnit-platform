@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-063",
   "title": "Student V0.1 R15 objective progress UX restoration R2",
-  "status": "implementing",
+  "status": "qualifying",
   "purpose": "Restore the exact human-validated R15 objective-progress UX language on the qualified current V5/V8 runtime, consume JOB 20 sessionDelta exactly at terminal feedback, and produce a corrected operational HTTPS Human Replay without changing learning semantics.",
   "changeClass": "r15-objective-progress-ux-restoration-r2",
   "riskClass": "high",
@@ -22,18 +22,21 @@
   },
   "scope": {
     "allowedPaths": [
-      ".github/workflows/atlas-wp063-r15-objective-progress-restoration-r2.yml",
       ".github/workflows/atlas-wp063-r15-human-replay-deploy.yml",
+      ".github/workflows/atlas-wp063-r15-objective-progress-restoration-r2.yml",
       "apps/learnit-next/source_manifest.json",
       "apps/learnit-next/src/main.js",
       "apps/learnit-next/src/styles.css",
       "apps/learnit-next/src/ui/objective_progress.js",
       "apps/learnit-next/src/ui/render.js",
-      "apps/learnit-next/tests/r15_objective_progress_restoration_r2.py",
       "apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py",
+      "apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_ui.py",
       "apps/learnit-next/tests/fixtures/objective_progress_r15_five_states.json",
-      "work-packages/ATLAS-WP-063.json",
-      "qualification/STUDENT_V01_R15_OBJECTIVE_PROGRESS_UX_RESTORATION_R2_RESULT.md"
+      "apps/learnit-next/tests/r15_objective_progress_restoration_r2.py",
+      "apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py",
+      "qualification/STUDENT_V01_R15_OBJECTIVE_PROGRESS_UX_RESTORATION_R2_RESULT.md",
+      "work-packages/ATLAS-WP-063.json"
     ],
     "forbiddenSemanticPaths": [
       "apps/learnit-next/src/core/session.js",
