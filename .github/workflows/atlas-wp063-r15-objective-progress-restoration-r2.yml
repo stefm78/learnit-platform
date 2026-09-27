@@ -69,6 +69,7 @@ jobs:
             'apps/learnit-next/src/ui/objective_progress.js',
             'apps/learnit-next/src/ui/render.js',
             'apps/learnit-next/tests/dev_learning_loop_v2_ui.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
             'apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py',
             'apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py',
             'apps/learnit-next/tests/fixtures/objective_progress_r15_five_states.json',
@@ -85,6 +86,7 @@ jobs:
             'apps/learnit-next/src/ui/objective_progress.js',
             'apps/learnit-next/src/ui/render.js',
             'apps/learnit-next/tests/dev_learning_loop_v2_ui.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
             'apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py',
             'apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py',
             'apps/learnit-next/tests/fixtures/objective_progress_r15_five_states.json',
@@ -98,6 +100,24 @@ jobs:
           test "$(git rev-parse HEAD:apps/learnit-next/src/core/session.js)" = 9909f0712de59211d14211ef1afc27bda87fcbf5
           echo JOB21_SCOPE=PASS
           echo SESSION_JS_UNCHANGED=PASS
+
+      - name: Compute canonical manifest digest for exact candidate
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          path=Path('apps/learnit-next/source_manifest.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          item=next(x for x in manifest['workingFiles'] if x['path']=='apps/learnit-next/tests/dev_learning_loop_v2_platform.py')
+          item['fingerprint']={'kind':'git-blob-sha1','value':'471cbcfe7c5970828f4cf84180f46e442d1d890e'}
+          item['owner']='ATLAS-WP-063'
+          item['provenance']='ATLAS-WP-063 platform composition oracle for canonical R15 presenter'
+          self_item=next(x for x in manifest['workingFiles'] if x['path']=='apps/learnit-next/source_manifest.json')
+          self_item['fingerprint']['value']=None
+          canonical=json.dumps(manifest,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf-8')
+          print('EXPECTED_SOURCE_MANIFEST_SHA256='+hashlib.sha256(canonical).hexdigest())
+          PY
 
       - name: R15 restoration static contract
         run: python -B apps/learnit-next/tests/r15_objective_progress_restoration_r2.py
