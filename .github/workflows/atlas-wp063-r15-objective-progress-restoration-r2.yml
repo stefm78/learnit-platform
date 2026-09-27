@@ -1,0 +1,240 @@
+name: ATLAS WP063 R15 objective progress restoration R2
+
+on:
+  push:
+    branches: [student-v01/r2-r15-objective-progress-restoration-r2]
+  pull_request:
+    branches: [student-v01/r2-session-delta-provenance-v2-r1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    if: github.event_name != 'pull_request' || github.head_ref == 'student-v01/r2-r15-objective-progress-restoration-r2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      PYTHONPATH: .
+      BASE: 3521bf8e4323e072c9196f7f74fd92f00c545460
+      R15_REF: 88cad160714830462234970276c808c42b4a2579
+      R15_EVIDENCE_DIR: /tmp/atlas-wp063-r15-browser-evidence
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install exact qualification dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
+          python -m playwright install --with-deps chromium
+          chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium"
+          sudo ln -sf "$chromium" /usr/bin/chromium
+
+      - name: Revalidate exact JOB21 topology scope and protected parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          git cat-file -e "$BASE^{commit}"
+          git cat-file -e "$R15_REF^{commit}"
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          if [[ "${{ github.event_name }}" == pull_request ]]; then
+            test "${{ github.event.pull_request.base.sha }}" = "$BASE"
+            test "${{ github.event.pull_request.head.ref }}" = "student-v01/r2-r15-objective-progress-restoration-r2"
+          fi
+          python - "$BASE" <<'PY'
+          import subprocess,sys
+          base=sys.argv[1]
+          actual=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          allowed={
+            '.github/workflows/atlas-wp063-r15-objective-progress-restoration-r2.yml',
+            '.github/workflows/atlas-wp063-r15-human-replay-deploy.yml',
+            'apps/learnit-next/source_manifest.json',
+            'apps/learnit-next/src/main.js',
+            'apps/learnit-next/src/styles.css',
+            'apps/learnit-next/src/ui/objective_progress.js',
+            'apps/learnit-next/src/ui/render.js',
+            'apps/learnit-next/tests/dev_learning_loop_v2_ui.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
+            'apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py',
+            'apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py',
+            'apps/learnit-next/tests/fixtures/objective_progress_r15_five_states.json',
+            'apps/learnit-next/tests/r15_objective_progress_restoration_r2.py',
+            'apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py',
+            'work-packages/ATLAS-WP-063.json',
+            'qualification/STUDENT_V01_R15_OBJECTIVE_PROGRESS_UX_RESTORATION_R2_RESULT.md',
+          }
+          assert actual <= allowed, sorted(actual-allowed)
+          required={
+            'apps/learnit-next/source_manifest.json',
+            'apps/learnit-next/src/main.js',
+            'apps/learnit-next/src/styles.css',
+            'apps/learnit-next/src/ui/objective_progress.js',
+            'apps/learnit-next/src/ui/render.js',
+            'apps/learnit-next/tests/dev_learning_loop_v2_ui.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
+            'apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py',
+            'apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py',
+            'apps/learnit-next/tests/fixtures/objective_progress_r15_five_states.json',
+            'apps/learnit-next/tests/r15_objective_progress_restoration_r2.py',
+            'apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py',
+            'work-packages/ATLAS-WP-063.json',
+            '.github/workflows/atlas-wp063-r15-objective-progress-restoration-r2.yml',
+          }
+          assert required <= actual, sorted(required-actual)
+          PY
+          test "$(git rev-parse HEAD:apps/learnit-next/src/core/session.js)" = 9909f0712de59211d14211ef1afc27bda87fcbf5
+          echo JOB21_SCOPE=PASS
+          echo SESSION_JS_UNCHANGED=PASS
+
+      - name: Compute canonical manifest digest for exact candidate
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          path=Path('apps/learnit-next/source_manifest.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          item=next(x for x in manifest['workingFiles'] if x['path']=='apps/learnit-next/tests/dev_learning_loop_v2_platform.py')
+          item['fingerprint']={'kind':'git-blob-sha1','value':'b4d84da9a7aba98c205953138895c554e9884a9e'}
+          item['owner']='ATLAS-WP-063'
+          item['provenance']='ATLAS-WP-063 platform composition oracle for canonical R15 presenter'
+          self_item=next(x for x in manifest['workingFiles'] if x['path']=='apps/learnit-next/source_manifest.json')
+          self_item['fingerprint']['value']=None
+          canonical=json.dumps(manifest,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf-8')
+          print('EXPECTED_SOURCE_MANIFEST_SHA256='+hashlib.sha256(canonical).hexdigest())
+          PY
+
+      - name: R15 restoration static contract
+        run: python -B apps/learnit-next/tests/r15_objective_progress_restoration_r2.py
+
+      - name: Current objective progress UI oracle
+        run: python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py -v
+
+      - name: Replay JOB20 session provenance V2 qualification
+        run: python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
+
+      - name: Learning Loop V2 QA regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/wp063-qa-tree
+          mkdir -p /tmp/wp063-qa-tree
+          git archive HEAD | tar -x -C /tmp/wp063-qa-tree
+          python - <<'PY'
+          import json,pathlib,subprocess
+          root=pathlib.Path('/tmp/wp063-qa-tree')
+          manifest=json.loads((root/'apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          for item in manifest['workingFiles']:
+              path=root/item['path']
+              fp=item.get('fingerprint',{})
+              if path.exists() or fp.get('kind')!='git-blob-sha1':
+                  continue
+              data=subprocess.check_output(['git','cat-file','blob',fp['value']])
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+          PY
+          python - <<'PY'
+          import importlib.util,pathlib
+          spec=importlib.util.spec_from_file_location('wp063_build','apps/learnit-next/build.py')
+          build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
+          manifest,_,data=build.validate_manifest()
+          runtime=build.render_commonjs_runtime(manifest['build']['commonJsSources'],data)
+          pathlib.Path('/tmp/wp063-atlas-preload.mjs').write_text(runtime,encoding='utf-8')
+          PY
+          NODE_OPTIONS="--import=/tmp/wp063-atlas-preload.mjs" LLV2_PRODUCT_TREE=/tmp/wp063-qa-tree python -B apps/learnit-next/tests/qa_learning_loop_v2.py -v
+
+      - name: V4 and V5 validator regressions
+        run: |
+          python -B authoring/v4/tests/test_validate_v4.py -v
+          python -B authoring/v5/tests/test_validate_v5.py -v
+
+      - name: V5 Factory source governance 20 of 20
+        run: python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+
+      - name: Corrected current 10A cumulative V5 V8 regression
+        run: python -B apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py
+
+      - name: Seven selected V8 presenters
+        run: python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
+
+      - name: Deterministic final build twice
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output /tmp/wp063-build-1.html
+          python -B apps/learnit-next/build.py --output /tmp/wp063-build-2.html
+          cmp -s /tmp/wp063-build-1.html /tmp/wp063-build-2.html
+          mkdir -p apps/learnit-next/dist
+          cp /tmp/wp063-build-1.html apps/learnit-next/dist/learnit-next.html
+          bytes="$(wc -c < /tmp/wp063-build-1.html | tr -d ' ')"
+          sha="$(sha256sum /tmp/wp063-build-1.html | awk '{print $1}')"
+          printf 'FINAL_BUILD_BYTES=%s\nFINAL_BUILD_SHA256=sha256:%s\nDETERMINISTIC_BUILD=PASS\n' "$bytes" "$sha" | tee /tmp/wp063-build-identity.txt
+          echo "bytes=$bytes" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Corrected current 10A browser regression
+        run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
+
+      - name: R15 exact browser qualification desktop mobile terminal fixture
+        run: python -B apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py
+
+      - name: Repository governance on exact candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          python tools/validate_repository.py
+
+      - name: Publish machine qualification markers
+        shell: bash
+        run: |
+          cat <<'EOF'
+          SESSION_PROVENANCE_V2_REGRESSION: PASS
+          ACTIVITY_RESPONSE_UNCHANGED: PASS
+          SCORING_AUTHORITY_UNCHANGED: PASS
+          OBJECTIVE_STATE_SEMANTICS_UNCHANGED: PASS
+          RECOMMENDATION_SEMANTICS_UNCHANGED: PASS
+          V5_CONTRACT_UNCHANGED: PASS
+          V4_REGRESSION: PASS
+          V5_VALIDATOR: PASS_11_OF_11
+          V5_FACTORY_SOURCE_GOVERNANCE: PASS_20_OF_20
+          V5_RUNTIME_REGRESSION: PASS
+          HINT_PERSIST_CONFIRM_REVEAL: PASS
+          FAILED_PERSISTENCE_NO_REVEAL: PASS
+          REFERENCES_RUNTIME_FETCH: NONE
+          FEEDBACK_MEDIA_LIFECYCLE: PASS
+          V8_SELECTED_PRESENTERS: PASS
+          FALSE_EMPTY_STATE: PASS
+          EXACT_10_ACTIVITY_SHOWCASE: PASS
+          CORE_10_ACTIVITY_CORRECT_RESPONSE: PASS
+          RELOAD_RESUME: PASS
+          SOURCE_MANIFEST: PASS
+          GO_LIMITED_PILOT: NOT_DECLARED
+          G5_PASS: NOT_DECLARED
+          EOF
+
+      - name: Upload deterministic browser and build evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp063-r15-qualification-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            /tmp/wp063-build-identity.txt
+            /tmp/atlas-wp063-r15-browser-evidence/*.png

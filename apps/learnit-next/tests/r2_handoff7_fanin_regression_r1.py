@@ -14,10 +14,11 @@ assert "student-v01/g5-r1-app-experience) echo 'student-v01-g5-r1-app-experience
 assert "student-v01/r2-final-corrective-fanin-r1) echo 'student-v01-r2-handoff7 wave'" in ci
 assert "STUDENT_V01_R2_HANDOFF7_DELEGATED_ROUTE=PASS" in ci
 render=(ROOT/"apps/learnit-next/src/ui/render.js").read_text(encoding="utf-8")
-for m in ("OBJECTIVE_BUCKET_STATE_LABELS","renderSessionProgressDetails","data-session-objective-buckets","data-session-progress-details","renderEmbeddedMediaSet","data-activity-feedback-media"): assert m in render,m
+for m in ("renderObjectiveBuckets","renderSessionProgressDetails","data-session-objective-buckets","data-session-progress-details","Voir ma progression"): assert m not in render,m
+for m in ("renderEmbeddedMediaSet","data-activity-feedback-media","terminal-summary","sessionDelta: result.sessionDelta"): assert m in render,m
 session=render[render.index("const activityTitle = node('h2'"):render.index("function renderFeedback")]
-section=session[session.index("const section = node"):]
-assert section.index("renderServedActivityForm(")<section.index("objectiveBuckets,")<section.index("objectiveDetails,")
+assert "renderObjectiveSurface" not in session
+assert "objective-progress" not in session
 manifest=json.loads((ROOT/"apps/learnit-next/source_manifest.json").read_text(encoding="utf-8"));by={x["path"]:x for x in manifest["workingFiles"]}
 assert by["apps/learnit-next/src/ui/render.js"]["fingerprint"]["value"]==blob("apps/learnit-next/src/ui/render.js")
 assert by["apps/learnit-next/src/integration/atlas/surface.js"]["fingerprint"]["value"]==blob("apps/learnit-next/src/integration/atlas/surface.js")

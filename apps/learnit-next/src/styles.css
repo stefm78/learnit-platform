@@ -601,3 +601,35 @@ progress { width: min(220px, 55vw); height: 10px; accent-color: var(--accent); }
 @media(max-width:480px){.activity-match-source{grid-template-columns:1fr 1fr}.activity-pair-row{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:.3rem}.activity-pair-connector{font-size:.78rem}.activity-bucket-grid{grid-template-columns:1fr}.activity-classify-source-cards{grid-template-columns:1fr}.activity-flash-card,.activity-flash-inner{min-height:265px}}
 @media(max-width:340px){.activity-match-source{grid-template-columns:1fr}.activity-pair-row{grid-template-columns:minmax(0,1fr)}.activity-pair-connector{display:none}.activity-pair-slot,.activity-pair-target{min-width:0}}
 @media(prefers-reduced-motion:reduce){.activity-manip-card,.activity-flash-inner,.activity-order-insert-line{transition:none!important;animation:none!important}.activity-flash-card.is-back .activity-flash-inner{transform:none}.activity-flash-card.is-back .activity-flash-front{display:none}.activity-flash-back{transform:none}}
+
+
+/* ATLAS-WP-063 R15 objective-progress canonical presenter */
+.objective-progress-r15{display:grid;gap:.75rem;min-width:0;margin-top:.7rem}
+.objective-progress-r15__group{border:1px solid #d7dce5;border-radius:14px;padding:.65rem .75rem;background:#fbfcfd;min-width:0}
+.objective-progress-r15__group--consolidated{border-color:#8eae94;background:#eef7f0}
+.objective-progress-r15__group-label{display:block;font-size:.78rem;font-weight:700;color:#586276;margin-bottom:.55rem}
+.objective-progress-r15__reservoirs{display:flex;flex-wrap:wrap;gap:.42rem;align-items:flex-end;min-width:0;padding:.25rem .18rem .38rem}
+button.objective-progress-r15__reservoir{position:relative;flex:0 0 1.35rem;width:1.35rem;min-width:1.35rem;height:4.6rem;border:2px solid #68778d;border-radius:.45rem;background:#f7f9fc;overflow:hidden;padding:0}
+button.objective-progress-r15__reservoir:focus-visible{outline:3px solid #233f64;outline-offset:3px}
+.objective-progress-r15__reservoir[data-objective-progress-r15-priority="true"]{outline:2px solid #233f64;outline-offset:2px}
+button.objective-progress-r15__reservoir--not-started{border-color:#52647c;background:#fff}
+.objective-progress-r15__fill{position:absolute;left:0;right:0;bottom:0;height:var(--objective-progress-r15-level);background:#738bac}
+.objective-progress-r15__reservoir--not-started .objective-progress-r15__fill{background:#dfe3e8}
+.objective-progress-r15__reservoir--review-needed .objective-progress-r15__fill{background:repeating-linear-gradient(135deg,#b48a46 0 5px,#ead8b8 5px 10px)}
+.objective-progress-r15__reservoir--ready-for-validation .objective-progress-r15__fill{background:#7775a2}
+.objective-progress-r15__reservoir--validated-recently .objective-progress-r15__fill{background:#648a69}
+.objective-progress-r15__reservoir[data-objective-progress-r15-session-worked="true"]{box-shadow:0 0 0 2px #9bacc4}
+.objective-progress-r15__reservoir[data-objective-progress-r15-session-changed="true"]{outline:3px solid #3156d3;outline-offset:2px;box-shadow:none}
+.objective-progress-r15__state-mark{position:absolute;inset:auto 0 .1rem;text-align:center;font-size:.7rem;font-weight:800;color:#172033;z-index:1}
+.objective-progress-r15__reservoir--validated-recently .objective-progress-r15__state-mark{color:#fff}
+.objective-progress-r15__context{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:.35rem .65rem;align-items:baseline;border-top:1px solid #e3e6eb;padding-top:.65rem;min-width:0}
+.objective-progress-r15__context-kicker{font-size:.74rem;color:#657083}
+.objective-progress-r15__context-state{font-size:.82rem}
+.objective-progress-r15__context-target{font-size:.88rem;min-width:0;overflow-wrap:anywhere}
+.objective-progress-r15__detail{display:grid;gap:.15rem;border-radius:10px;background:#f5f7f9;padding:.55rem .65rem;font-size:.84rem;min-width:0;overflow-wrap:anywhere}
+.objective-progress-r15__detail[hidden]{display:none}
+@media (max-width: 520px){
+  .objective-progress-r15__group{padding:.58rem}
+  button.objective-progress-r15__reservoir{flex-basis:1.2rem;width:1.2rem;min-width:1.2rem;height:4.1rem}
+  .objective-progress-r15__context{grid-template-columns:1fr;gap:.18rem}
+}

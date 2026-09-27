@@ -88,8 +88,10 @@ function createObjectiveUiAdapter(moduleValue) {
       );
       return moduleValue.renderObjectiveProgressPanel(
         {
+          context: input.context ?? 'library',
           objectives: input.objectiveProgress ?? [],
           recommendation: presentRecommendation(input.recommendation ?? null),
+          sessionDelta: input.sessionDelta ?? null,
         },
         {
           documentRef: input.document ?? globalThis.document,
@@ -579,7 +581,7 @@ function renderAtlasR13Progress(progress, objectiveStates, target, sessionProjec
 async function enhanceAtlasR13VisualProgress(root, runtime) {
   const cards = [
     ...root.querySelectorAll(
-      '[data-atlas-course-install-id], .course-card[data-course-install-id]',
+      '[data-atlas-course-install-id].atlas-course-card',
     ),
   ];
 
@@ -761,6 +763,35 @@ function renderAtlasR13Fixture(container, states, priorityIndex = 0) {
   return container;
 }
 
+function renderObjectiveR15Fixture(container) {
+  const states = ['not-started', 'training', 'review-needed', 'ready-for-validation', 'validated-recently'];
+  const objectives = states.map((status, index) => ({
+    objectiveId: `qualification-objective-${index + 1}`,
+    trainingAttempts: status === 'not-started' ? 0 : 1,
+    latestTrainingCorrect: status === 'not-started' ? null : true,
+    needsReview: status === 'review-needed',
+    validationAttempts: status === 'validated-recently' ? 1 : 0,
+    latestValidationCorrect: status === 'validated-recently' ? true : null,
+    status,
+  }));
+  const labelsById = Object.fromEntries(objectives.map((item, index) => [
+    item.objectiveId,
+    `Objectif qualification ${index + 1}`,
+  ]));
+  const rendered = objectiveUiModule.renderObjectiveProgressPanel({
+    context: 'library',
+    objectives,
+    recommendation: { objectiveId: 'qualification-objective-3' },
+  }, {
+    documentRef: document,
+    labelsById,
+    idPrefix: 'qualification-five-states',
+  });
+  container.replaceChildren(rendered);
+  container.setAttribute('data-r15-five-state-fixture', 'true');
+  return container;
+}
+
 async function boot() {
   const root = document.getElementById('app');
   if (!root) throw new Error('Missing #app mount point');
@@ -800,6 +831,7 @@ async function boot() {
     resumeActiveCourse: runtime.resumeActiveCourse,
     getSession: runtime.getSession,
     renderAtlasR13Fixture,
+    renderObjectiveR15Fixture,
   });
 }
 

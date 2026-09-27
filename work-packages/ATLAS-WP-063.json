@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-063",
+  "title": "Student V0.1 R15 objective progress UX restoration R2",
+  "status": "human-gate",
+  "purpose": "Restore the exact human-validated R15 objective-progress UX language on the qualified current V5/V8 runtime, consume JOB 20 sessionDelta exactly at terminal feedback, and produce a corrected operational HTTPS Human Replay without changing learning semantics.",
+  "changeClass": "r15-objective-progress-ux-restoration-r2",
+  "riskClass": "high",
+  "authority": {
+    "issue": 457,
+    "parentPullRequest": 456,
+    "r15ReferencePullRequest": 354,
+    "decision": "GO_R15_OBJECTIVE_PROGRESS_UX_RESTORATION_R2",
+    "r2Decision": "GO_PRE_PILOT_V5",
+    "authorizationSource": "USER_EXPLICIT_R15_REFERENCE_CONFIRMATION_AND_BUILD_CHAT_2026-09-27"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-session-delta-provenance-v2-r1",
+    "baseCommit": "3521bf8e4323e072c9196f7f74fd92f00c545460",
+    "parentResultSha": "d9ecb093c44737e931a674869b83c390f88f7398",
+    "r15UxReferenceHead": "88cad160714830462234970276c808c42b4a2579"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-wp063-r15-human-replay-deploy.yml",
+      ".github/workflows/atlas-wp063-r15-objective-progress-restoration-r2.yml",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py",
+      "apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_ui.py",
+      "apps/learnit-next/tests/fixtures/objective_progress_r15_five_states.json",
+      "apps/learnit-next/tests/r15_objective_progress_restoration_r2.py",
+      "apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py",
+      "qualification/STUDENT_V01_R15_OBJECTIVE_PROGRESS_UX_RESTORATION_R2_RESULT.md",
+      "work-packages/ATLAS-WP-063.json"
+    ],
+    "forbiddenSemanticPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ]
+  },
+  "invariants": [
+    "R15 learner labels and visual reservoir levels are exact presentation only and do not change mastery semantics.",
+    "Priority comes only from progress.recommendation.objectiveId; no historical R15 priority heuristic is allowed.",
+    "The active activity and intermediate feedback contain no macro objective-progress surface.",
+    "Terminal session summary is rendered only for a true terminal response with sessionDelta.available === true and consumes worked/changed provenance without recomputation.",
+    "Legacy v1 session provenance is never fabricated.",
+    "Exactly one canonical objective-progress presenter is used on the current V5/V8 path.",
+    "renderObjectiveBuckets and data-session-objective-buckets are absent from the rich current path and not left as reactivatable duplicate code.",
+    "apps/learnit-next/src/core/session.js remains byte-identical to parent unless the job stops HOLD before any semantic expansion.",
+    "Parent PR #456 remains draft, open and unmerged.",
+    "No merge, promotion, GO_LIMITED_PILOT, G5 PASS or student session is authorized."
+  ],
+  "requiredEvidence": [
+    "Desktop 1365x768 and mobile/touch 390x844 deterministic browser captures cover collapsed Library, expanded R15 progress, active V8 activity, intermediate feedback, terminal session summary and the five-state fixture.",
+    "Keyboard disclosure, reservoir focus, pointer/touch activation, no horizontal page overflow, basic accessibility and seven selected V8 presenters are proved.",
+    "Current 10A oracle is corrected without rewriting historical 10A results.",
+    "JOB 20 session provenance qualification is replayed and session.js stays byte-identical.",
+    "All protected V5/H6/source identities remain byte-identical.",
+    "V4, V5 validator 11/11, Factory source governance 20/20, V5 runtime, hints, failed persistence, references, feedback media, V8 presenters, false-empty, exact 10-activity showcase, correct-response, reload/resume, scoring authority and source manifest regressions pass.",
+    "Final build is produced twice independently with byte equality.",
+    "Corrective RESULT_SHA is frozen before evidence-only closeout.",
+    "An immutable HTTPS replay bound to the exact RESULT_SHA is live-smoke-tested before the human gate."
+  ],
+  "nonGoals": [
+    "Changing scoring, objective-state semantics, recommendation semantics, V5 contract, ActivityResponse, pedagogical content or session provenance.",
+    "Returning to the old R15 runtime or reactivating old Atlas qcm/fill-only behavior.",
+    "Using MutationObserver DOM post-processing or text heuristics as the current V5/V8 objective-progress architecture.",
+    "Declaring the limited pilot ready or satisfying G5."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-r15-objective-progress-restoration-r2",
+    "parentHead": "3521bf8e4323e072c9196f7f74fd92f00c545460",
+    "pullRequestBase": "student-v01/r2-session-delta-provenance-v2-r1",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionAuthorized": false,
+    "humanReplayRequired": true,
+    "correctiveResultFrozen": true,
+    "correctiveResultSha": "360baf0ff1e548cf3d0f97421f2a9f28f8d380fc",
+    "goLimitedPilotDeclared": false,
+    "g5PassDeclared": false,
+    "atlasWp054": "BLOCKED_PENDING_CORRECTED_HUMAN_REPLAY",
+    "humanReplayStatus": "HUMAN_DECISION_REQUIRED"
+  },
+  "nextGate": "REAL_HUMAN_REPLAY_R15_RESTORED_V5_V8",
+  "finalVerdict": "PASS_MACHINE_R15_RESTORATION_READY_FOR_HUMAN_REPLAY",
+  "rollback": "Close the unmerged ATLAS-WP-063 pull request and delete student-v01/r2-r15-objective-progress-restoration-r2; parent 3521bf8e4323e072c9196f7f74fd92f00c545460 and PR #456 remain unchanged.",
+  "adversarialTests": [
+    "A current V5/V8 activity or non-terminal feedback containing any macro objective-progress surface fails qualification.",
+    "A priority outline not sourced from progress.recommendation.objectiveId fails qualification.",
+    "A terminal summary without sessionDelta.available === true fails qualification.",
+    "Any current-path recomputation of worked/changed provenance fails qualification.",
+    "Any reappearance of renderObjectiveBuckets, data-session-objective-buckets or legacy DOM enhancement on current Library cards fails qualification.",
+    "Any mutation of session.js, scoring, objective-state, recommendation, V5 contract, learner brief, Role B, Factory or H6 authorities fails qualification."
+  ],
+  "independentReview": [
+    "The corrected current 10A static and browser oracles are replayed rather than rewriting historical 10A results.",
+    "JOB 20 provenance tests are replayed byte-exactly with session.js held to blob 9909f0712de59211d14211ef1afc27bda87fcbf5.",
+    "Browser proof traverses the exact 10-activity/39-minute showcase in both desktop and mobile/touch viewports.",
+    "Repository governance and exact-head qualification must pass before evidence-only closeout and the human gate remains external."
+  ],
+  "result": {
+    "correctiveResultSha": "360baf0ff1e548cf3d0f97421f2a9f28f8d380fc",
+    "resultQualificationRun": 36312306769,
+    "resultPullRequestQualificationRun": 36312309871,
+    "resultRepositoryGovernanceRun": 36312309856,
+    "finalBuildBytes": 538625,
+    "finalBuildSha256": "4f74792365d5b6462a7784e4d9568baf6b44d12435155991e64fdade6e7adb88",
+    "deterministicBuild": "PASS",
+    "sessionJsBlob": "9909f0712de59211d14211ef1afc27bda87fcbf5",
+    "qualificationArtifactId": 10928994731
+  },
+  "replay": {
+    "deliveryRun": 36313082023,
+    "replayBundleSha256": "5494bbe6c3df20393dbe13b558fd48092642e789f14f02a667bbf42400d7bbd1",
+    "replayArtifactId": 10929751838,
+    "liveEvidenceArtifactId": 10930035598,
+    "replayUrl": "https://stefm78.github.io/learnit-platform/human-replay/360baf0ff1e548cf3d0f97421f2a9f28f8d380fc/",
+    "replayKitUrl": "https://stefm78.github.io/learnit-platform/human-replay/360baf0ff1e548cf3d0f97421f2a9f28f8d380fc/fixtures/nombres_complexes_student_v01_v5.json",
+    "httpsLiveSmoke": "PASS",
+    "oldR15Preserved": true,
+    "promotion": false,
+    "humanGateRequired": true
+  }
+}
