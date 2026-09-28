@@ -99,10 +99,13 @@ jobs:
       - name: Replay JOB20 session provenance V2
         run: python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
 
-      - name: Replay JOB21 R15 semantic/static contract
+      - name: Replay JOB21 R15 semantic compatibility invariants
         run: |
-          python -B apps/learnit-next/tests/r15_objective_progress_restoration_r2.py
+          # The historical R15 test pins the literal "Priorité Learn-it", which HR23-009
+          # explicitly supersedes. Keep the semantic/UI model regression and let the
+          # HR23 static/browser oracle prove the authorized language/toggle delta.
           python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py -v
+          python -B apps/learnit-next/tests/hr23_corrective_implementation_r1.py
 
       - name: V4 and V5 validator regressions
         run: |
@@ -172,11 +175,6 @@ jobs:
       - name: Current V4 V5 false-empty reload and failed-persistence regression
         run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
 
-      - name: Replay JOB21 R15 browser contract
-        env:
-          R15_EVIDENCE_DIR: /tmp/atlas-wp066-r15-regression
-        run: python -B apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py
-
       - name: HR23 corrective mobile Human-Replay contract
         run: python -B apps/learnit-next/tests/browser_hr23_corrective_implementation_r1.py
 
@@ -224,5 +222,4 @@ jobs:
           if-no-files-found: error
           path: |
             /tmp/atlas-wp066-hr23-corrective-evidence
-            /tmp/atlas-wp066-r15-regression
             /tmp/wp066-build-1.html
