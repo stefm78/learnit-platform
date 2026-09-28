@@ -966,6 +966,10 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
   }
 
   function renderSessionSnapshot(session, { focus = true } = {}) {
+    currentView = 'session';
+    navigation.setActiveView('session');
+    setViewElementVisible(root.querySelector('[data-atlas-int-surface]'), false);
+    setViewElementVisible(main, true);
     if (!session || !session.currentActivity) {
       const message = session?.mode === 'review'
         ? 'La file À revoir est vide. Consultez vos objectifs dans la bibliothèque.'
