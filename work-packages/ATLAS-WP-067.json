@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-067",
+  "title": "HR24 modular library boundary + navigation shell R2",
+  "status": "in-progress",
+  "purpose": "Enforce durable Library/Application Shell/Learning Loop V2/Atlas boundaries, repair mobile inline rename, and add a scalable accessible left navigation drawer without changing pedagogical semantics.",
+  "changeClass": "hr24-modular-library-boundary-r2",
+  "riskClass": "high",
+  "authority": {
+    "issue": 465,
+    "pullRequest": null,
+    "parentPullRequest": 464,
+    "humanAuthorization": "GO_HR24_MODULAR_LIBRARY_BOUNDARY_R2",
+    "humanAuthorizationSource": "USER_EXPLICIT_EXECUTE_PROMPT_CHAT_2026-09-28",
+    "parentJob": "JOB_24_HR23_CORRECTIVE_IMPLEMENTATION_R1",
+    "parentHead": "259aa22dbd7530989bdb1412f60bcfe823bead41",
+    "parentResultSha": "78357f9f7f09408db06bb9a436463bd64009cb20"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-hr23-corrective-implementation-r1",
+    "baseCommit": "259aa22dbd7530989bdb1412f60bcfe823bead41",
+    "parentPullRequest": 464,
+    "ancestorPullRequests": [
+      462,
+      460,
+      458
+    ]
+  },
+  "invariants": [
+    "Library operations do not mutate pedagogical state.",
+    "Atlas integration does not own or rewrite private Library DOM.",
+    "Learning Loop V2 and Atlas core semantic modules remain byte-identical to the parent.",
+    "HR24-003 remains READ_ONLY and is not repaired in this job.",
+    "No invented course taxonomy.",
+    "No merge, promotion, GO_LIMITED_PILOT, G5 PASS or student session."
+  ],
+  "execution": {
+    "job": "JOB_25_HR24_MODULAR_LIBRARY_BOUNDARY_R2",
+    "branch": "student-v01/r2-hr24-modular-library-boundary-r2",
+    "issue": 465,
+    "pullRequest": null,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionAuthorized": false,
+    "humanReplayRequired": true,
+    "humanReplayStatus": "NOT_YET_PUBLISHED",
+    "goLimitedPilotDeclared": false,
+    "g5PassDeclared": false
+  },
+  "nextGate": "MACHINE_QUALIFICATION_THEN_HUMAN_REPLAY",
+  "nonGoals": [
+    "Repairing HR24-003 or adding scheduler/reserving semantics.",
+    "Changing scoring, ActivityResponse, objective states, recommendations, sessionDelta or V5 authored content.",
+    "Inventing collections, shelves, subjects or chapters.",
+    "Merging or promoting."
+  ]
+}
