@@ -42,12 +42,13 @@ def no_overflow(page) -> None:
 def shot(page, scene: str) -> None:
     page.screenshot(path=str(EVIDENCE / f"mobile-390x844-{scene}.png"), full_page=True)
 
-def wait_activity(page, revision_id: str) -> None:
+def wait_activity(page, revision_id: str, activity_type: str) -> None:
     page.wait_for_function(
         """id => window.__LEARNIT_NEXT_TEST__.getSession()
           .then(s => s && s.currentActivity && s.currentActivity.activityRevisionId === id)""",
         arg=revision_id,
     )
+    page.locator(f'.served-activity-form[data-served-activity-type="{activity_type}"]').wait_for()
 
 def import_kit(page, kit: dict[str, Any]) -> dict[str, Any]:
     page.locator("#kit-file").set_input_files({
@@ -129,7 +130,7 @@ def submit_current(page, activity: dict[str, Any], correct: bool = True) -> bool
 
 def complete_course(page, activities: list[dict[str, Any]], *, final_correct: bool) -> None:
     for index, activity in enumerate(activities):
-        wait_activity(page, activity["activityRevisionId"])
+        wait_activity(page, activity["activityRevisionId"], activity["type"])
         # Prove reload/resume on a real in-progress activity.
         if index == 3:
             page.reload()
@@ -146,7 +147,7 @@ def complete_course(page, activities: list[dict[str, Any]], *, final_correct: bo
         if index < len(activities) - 1:
             if scored:
                 page.locator('[data-served-next-action="true"]').click()
-            wait_activity(page, activities[index + 1]["activityRevisionId"])
+            wait_activity(page, activities[index + 1]["activityRevisionId"], activities[index + 1]["type"])
 
 def main() -> int:
     assert ARTIFACT.is_file(), ARTIFACT
