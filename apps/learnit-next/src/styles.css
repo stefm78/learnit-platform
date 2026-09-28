@@ -965,3 +965,219 @@ button.objective-progress-r15__reservoir[data-objective-progress-r15-selected="t
     padding: .45rem .3rem;
   }
 }
+
+
+/* ATLAS-WP-067 — HR24 modular Library boundary + application-shell navigation */
+[hidden] { display: none !important; }
+
+.app-shell-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .75rem;
+}
+.nav-menu-trigger {
+  min-width: 44px;
+  padding: .55rem .8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 750;
+}
+.nav-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgb(12 21 38 / 42%);
+}
+.nav-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  width: min(84vw, 320px);
+  max-width: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: 18px 0 45px rgb(25 41 75 / 20%);
+}
+.nav-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.nav-drawer-header strong {
+  font-size: 1.15rem;
+}
+.nav-drawer nav {
+  display: grid;
+  gap: .45rem;
+  padding-top: 1rem;
+}
+.nav-drawer-group {
+  display: grid;
+  gap: .35rem;
+  margin-top: .55rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--border);
+}
+.nav-drawer-group-title {
+  padding: 0 .65rem;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.nav-drawer-link,
+.nav-drawer-close {
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+.nav-drawer-link {
+  width: 100%;
+  padding: .7rem .75rem;
+}
+.nav-drawer-link:hover,
+.nav-drawer-link[aria-current="page"] {
+  background: #eef3fb;
+}
+.nav-drawer-link[aria-current="page"] {
+  font-weight: 800;
+}
+.nav-drawer-link:disabled {
+  opacity: .45;
+  cursor: default;
+}
+body.nav-drawer-open {
+  overflow: hidden;
+}
+
+.course-title-slot {
+  min-width: 0;
+}
+.course-title-heading {
+  overflow-wrap: anywhere;
+}
+.course-inline-rename {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  min-width: 0;
+}
+.course-inline-rename input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: .55rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+}
+.course-inline-rename-actions {
+  display: flex;
+  gap: .35rem;
+}
+.course-inline-rename-actions button,
+.course-settings-menu button {
+  min-height: 40px;
+  padding: .45rem .65rem;
+}
+.learner-course-card .course-settings-details {
+  grid-column: auto;
+  position: relative;
+}
+.course-settings-menu {
+  position: absolute;
+  right: 0;
+  z-index: 12;
+  min-width: 150px;
+  margin-top: .25rem;
+  padding: .35rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgb(25 41 75 / 16%);
+}
+.course-settings-menu button {
+  width: 100%;
+  text-align: left;
+}
+.library-duration-control {
+  display: inline-flex;
+  align-items: center;
+}
+.library-duration-select {
+  min-height: 44px;
+}
+.course-learning-unavailable {
+  margin: .55rem 0 0;
+  color: var(--muted);
+  font-size: .86rem;
+}
+.library-learning-projection {
+  margin-top: .55rem;
+}
+
+.atlas-int-surface .atlas-course-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.atlas-int-surface .atlas-course-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 8px 30px rgb(25 41 75 / 8%);
+}
+.atlas-int-surface .atlas-course-row-main {
+  min-width: 0;
+  align-self: center;
+}
+.atlas-int-surface .atlas-course-row-main h3 {
+  margin: 0 0 6px;
+}
+
+@media (max-width: 600px) {
+  .app-shell-header {
+    flex-direction: row;
+    align-items: center;
+    padding: .35rem 0 .65rem;
+  }
+  .course-inline-rename {
+    grid-template-columns: 1fr;
+  }
+  .course-inline-rename-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .course-inline-rename-actions button {
+    flex: 0 1 auto;
+  }
+  .atlas-int-surface .atlas-course-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+}
+
+@media (min-width: 900px) {
+  .nav-drawer {
+    width: 300px;
+  }
+}
