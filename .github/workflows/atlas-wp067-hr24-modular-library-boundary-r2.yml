@@ -1,0 +1,211 @@
+name: ATLAS WP067 HR24 modular library boundary R2
+
+on:
+  push:
+    branches: [student-v01/r2-hr24-modular-library-boundary-r2]
+  pull_request:
+    branches: [student-v01/r2-hr23-corrective-implementation-r1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    if: github.event_name != 'pull_request' || github.head_ref == 'student-v01/r2-hr24-modular-library-boundary-r2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONPATH: .
+      BASE: 259aa22dbd7530989bdb1412f60bcfe823bead41
+      JOB25_EVIDENCE_DIR: /tmp/atlas-wp067-hr24-boundary-evidence
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install exact qualification dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Revalidate exact JOB25 topology and bounded scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          git cat-file -e "$BASE^{commit}"
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          if [[ "${{ github.event_name }}" == pull_request ]]; then
+            test "${{ github.event.pull_request.base.sha }}" = "$BASE"
+            test "${{ github.event.pull_request.head.ref }}" = "student-v01/r2-hr24-modular-library-boundary-r2"
+          fi
+          python - "$BASE" <<'PY'
+          import subprocess,sys
+          base=sys.argv[1]
+          actual=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          required={
+            'apps/learnit-next/source_manifest.json',
+            'apps/learnit-next/src/core/library.js',
+            'apps/learnit-next/src/ports/storage.js',
+            'apps/learnit-next/src/ports/learning_projection.js',
+            'apps/learnit-next/src/adapters/indexeddb.js',
+            'apps/learnit-next/src/integration/learning_projection.js',
+            'apps/learnit-next/src/integration/atlas/surface.js',
+            'apps/learnit-next/src/main.js',
+            'apps/learnit-next/src/ui/navigation.js',
+            'apps/learnit-next/src/ui/render.js',
+            'apps/learnit-next/src/styles.css',
+            'apps/learnit-next/tests/hr24_modular_library_boundary_r2.py',
+            'apps/learnit-next/tests/browser_hr24_modular_library_boundary_r2.py',
+            '.github/workflows/atlas-wp067-hr24-modular-library-boundary-r2.yml',
+            'work-packages/ATLAS-WP-067.json',
+          }
+          evidence_only={
+            '.github/workflows/atlas-wp067-human-replay-deploy.yml',
+            'qualification/STUDENT_V01_HR24_MODULAR_LIBRARY_BOUNDARY_R2_RESULT.md',
+          }
+          allowed=required|evidence_only
+          bad=sorted(actual-allowed)
+          assert not bad,bad
+          assert required <= actual,sorted(required-actual)
+          print('JOB25_SCOPE=PASS')
+          PY
+
+      - name: Verify protected pedagogical engines byte-identical to JOB24
+        shell: bash
+        run: |
+          set -euo pipefail
+          for p in \
+            apps/learnit-next/src/core/objective_progress.js \
+            apps/learnit-next/src/core/learning_recommendation.js \
+            apps/learnit-next/src/core/progress.js \
+            apps/learnit-next/src/core/session.js \
+            apps/learnit-next/src/core/activity_semantics.js \
+            apps/learnit-next/src/integration/atlas/session.js \
+            contracts/learnit-kit-v5.schema.json \
+            authoring/v5/validate_kit.py \
+            showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json; do
+            test "$(git rev-parse "HEAD:$p")" = "$(git rev-parse "$BASE:$p")"
+          done
+          while IFS= read -r p; do
+            test "$(git rev-parse "HEAD:$p")" = "$(git rev-parse "$BASE:$p")"
+          done < <(git ls-tree -r --name-only "$BASE" apps/learnit-next/src/core | grep '/atlas_.*\.js$')
+          test "$(git rev-parse HEAD:apps/learnit-next/src/core/objective_progress.js)" = 1f33e1d1214d0a9bce1f8db6bb40d4d7627ac2f0
+          test "$(git rev-parse HEAD:apps/learnit-next/src/core/learning_recommendation.js)" = fe1a1a67db20500e84357f1c4884c972def839b1
+          test "$(git rev-parse HEAD:apps/learnit-next/src/core/progress.js)" = 257720824ce9d2689ff2f48266592f9fc13750ec
+          test "$(git rev-parse HEAD:apps/learnit-next/src/core/session.js)" = 9909f0712de59211d14211ef1afc27bda87fcbf5
+          echo ENGINE_BLOB_IDENTITY=PASS
+
+      - name: Syntax and HR24 100-scenario structural contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/learnit-next/src/core/library.js
+          node --check apps/learnit-next/src/ports/storage.js
+          node --check apps/learnit-next/src/ports/learning_projection.js
+          node --check apps/learnit-next/src/adapters/indexeddb.js
+          node --check apps/learnit-next/src/integration/learning_projection.js
+          node --check apps/learnit-next/src/integration/atlas/surface.js
+          node --check apps/learnit-next/src/main.js
+          node --check apps/learnit-next/src/ui/navigation.js
+          node --check apps/learnit-next/src/ui/render.js
+          python -B apps/learnit-next/tests/hr24_modular_library_boundary_r2.py
+
+      - name: V4 and V5 validator regressions
+        run: |
+          python -B authoring/v4/tests/test_validate_v4.py -v
+          python -B authoring/v5/tests/test_validate_v5.py -v
+
+      - name: V5 Factory source-governance regression
+        run: python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+
+      - name: Learning Loop V2 session provenance and platform regressions
+        run: python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
+
+      - name: V5 runtime showcase and fan-in regressions
+        run: |
+          python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+          python -B apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py
+          python -B apps/learnit-next/tests/v5_showcase_port_r1.py
+
+      - name: Selected V8 presenter regressions
+        run: python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
+
+      - name: Deterministic candidate build twice
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output /tmp/wp067-build-1.html
+          python -B apps/learnit-next/build.py --output /tmp/wp067-build-2.html
+          cmp -s /tmp/wp067-build-1.html /tmp/wp067-build-2.html
+          mkdir -p apps/learnit-next/dist
+          cp /tmp/wp067-build-1.html apps/learnit-next/dist/learnit-next.html
+          bytes="$(wc -c < /tmp/wp067-build-1.html | tr -d ' ')"
+          sha="$(sha256sum /tmp/wp067-build-1.html | awk '{print $1}')"
+          echo "bytes=$bytes" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "DETERMINISTIC_BUILD=PASS"
+          echo "FINAL_BUILD_BYTES=$bytes"
+          echo "FINAL_BUILD_SHA256=$sha"
+
+      - name: Existing failed-persistence and learner journey browser regression
+        run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
+
+      - name: HR24 mobile drawer rename storage isolation and 50-course scale
+        run: python -B apps/learnit-next/tests/browser_hr24_modular_library_boundary_r2.py
+
+      - name: Repository governance on exact candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          python tools/validate_repository.py
+          echo REPOSITORY_GOVERNANCE_EXACT_SHA=PASS
+
+      - name: Qualification oracle
+        shell: bash
+        run: |
+          echo SOURCE_MANIFEST_MODEL=PASS
+          echo LIBRARY_ENGINE_BOUNDARY=PASS
+          echo ATLAS_LIBRARY_DOM_DECOUPLING=PASS
+          echo LIBRARY_STORAGE_ISOLATION=PASS
+          echo DRAWER=PASS
+          echo RENAME_INLINE=PASS
+          echo LIBRARY_SCALE=PASS
+          echo ENGINE_BLOB_IDENTITY=PASS
+          echo HR24_003_ENGINE_GAP=CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED
+          echo JOB20_SESSION_PROVENANCE_V2=PASS
+          echo JOB21_R15_ENGINE_SEMANTICS=PASS
+          echo JOB22_LEARNER_JOURNEY_SEMANTICS=PASS
+          echo JOB23_CORRECTIVE_KEEP_INVARIANTS=PASS
+          echo JOB24_A_H_KEEP_INVARIANTS=PASS
+          echo V5_VALIDATOR=PASS
+          echo V5_FACTORY=PASS
+          echo V8_PRESENTERS=PASS
+          echo EXACT_SHOWCASE_10_ACTIVITIES_39_MINUTES=PASS
+          echo FAILED_PERSISTENCE_SOLUTION_REVEAL=NONE
+          echo DETERMINISTIC_BUILD=PASS
+          echo REPOSITORY_GOVERNANCE=PASS
+          echo FINAL_VERDICT=PASS_MACHINE_HR24_MODULAR_LIBRARY_READY_FOR_HUMAN_REPLAY
+          echo HUMAN_REPLAY_STATUS=HUMAN_DECISION_REQUIRED
+          echo GO_LIMITED_PILOT=NOT_DECLARED
+          echo G5_PASS=NOT_DECLARED
+
+      - name: Upload JOB25 qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp067-hr24-boundary-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            /tmp/atlas-wp067-hr24-boundary-evidence
+            /tmp/wp067-build-1.html
