@@ -272,10 +272,10 @@ def main() -> int:
         f"{viewport}-{index:02d}-{slug}.png"
         for viewport in ("desktop-1365x768", "mobile-390x844")
         for index, slug in (
-            (1, "library-collapsed"),
-            (2, "library-r15-expanded"),
+            (1, "library-r15-direct"),
+            (2, "library-r15-detail"),
             (3, "active-v8-no-macro"),
-            (4, "intermediate-feedback-no-macro"),
+            (4, "non-scored-direct-next"),
             (5, "terminal-session-r15-summary"),
             (6, "five-state-fixture"),
         )
