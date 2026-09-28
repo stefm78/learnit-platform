@@ -255,7 +255,7 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "93ecf1b44ad947569161e3bb65d9b9b4ec10d4c5"
+        "value": "c57d4f7c2906aefe954f2929c8e69f71f15339bf"
       },
       "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/ui/render.js",
@@ -372,7 +372,7 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "08ed5ca8f7795a2abe3842019e1f8d10745e5f961407c01cc90f46a61def0c4f"
+        "value": "6b204152f16b8363f5f4ab67cada2ce01b3aa358cf64d51eee4321bd68d1c9d9"
       },
       "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/source_manifest.json",
