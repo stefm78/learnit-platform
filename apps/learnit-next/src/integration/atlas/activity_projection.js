@@ -115,9 +115,9 @@ export function projectPostAnswerFeedback(
       const submitted = new Map((normalizedAnswer.associations ?? []).map(entry => [entry.leftItemId, entry.rightItemId]));
       const expected = new Map((activity.matches ?? []).map(entry => [entry.leftItemId, entry.rightItemId]));
       learnerAnswer = frozenLines((activity.leftItems ?? []).map(left =>
-        `${left.label} → ${readableLabel(activity.rightItems, submitted.get(left.itemId), 'itemId')}`));
+        `Élément : ${left.label} — votre choix : ${readableLabel(activity.rightItems, submitted.get(left.itemId), 'itemId')}`));
       expectedAnswer = frozenLines((activity.leftItems ?? []).map(left =>
-        `${left.label} → ${readableLabel(activity.rightItems, expected.get(left.itemId), 'itemId')}`));
+        `Élément : ${left.label} — réponse attendue : ${readableLabel(activity.rightItems, expected.get(left.itemId), 'itemId')}`));
       break;
     }
     case 'order':
@@ -130,9 +130,9 @@ export function projectPostAnswerFeedback(
       const submitted = new Map((normalizedAnswer.assignments ?? []).map(entry => [entry.itemId, entry.bucketId]));
       const expected = new Map((activity.assignments ?? []).map(entry => [entry.itemId, entry.bucketId]));
       learnerAnswer = frozenLines((activity.items ?? []).map(item =>
-        `${item.label} → ${readableLabel(activity.buckets, submitted.get(item.itemId), 'bucketId')}`));
+        `Élément : ${item.label} — votre choix : ${readableLabel(activity.buckets, submitted.get(item.itemId), 'bucketId')}`));
       expectedAnswer = frozenLines((activity.items ?? []).map(item =>
-        `${item.label} → ${readableLabel(activity.buckets, expected.get(item.itemId), 'bucketId')}`));
+        `Élément : ${item.label} — réponse attendue : ${readableLabel(activity.buckets, expected.get(item.itemId), 'bucketId')}`));
       break;
     }
     case 'lesson':
