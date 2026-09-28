@@ -126,11 +126,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "7fd972bbd5e1968be2c75be5e9003622baea4bca"
+        "value": "26c21cd74bb610c501e5d69b1b7ecb54996d98c4"
       },
-      "owner": "ATLAS-WP-065",
+      "owner": "ATLAS-WP-066",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
+      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
     },
     {
       "fingerprint": {
@@ -234,29 +234,29 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "f3511005a0b1effb4af4dc97ee49a21adc4dc98b"
+        "value": "56c8ab979091157f3dd8f254570ab8cd63c4ad08"
       },
-      "owner": "DEV-PLATFORM",
+      "owner": "ATLAS-WP-066",
       "path": "apps/learnit-next/src/adapters/indexeddb.js",
-      "provenance": "DEV-PLATFORM:f260093914542f93ff9145cbac8e98aae415fe01"
+      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "6f2936070e2cb68e55abd95d5235165a62cf514d"
+        "value": "65aaa74130cd81f2d24c88a40713613ab5f9d9ad"
       },
-      "owner": "ATLAS-WP-065",
+      "owner": "ATLAS-WP-066",
       "path": "apps/learnit-next/src/ui/objective_progress.js",
-      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
+      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "0714e4110f96279bfebf000d95797b3ab8068bb9"
+        "value": "5662718fe78c39c1021446fb2dff372ec8024ac4"
       },
-      "owner": "ATLAS-WP-065",
+      "owner": "ATLAS-WP-066",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
+      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
     },
     {
       "fingerprint": {
@@ -369,11 +369,11 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "a2375ac11e0341f1cd8d57247e0fd57ce66c11dd8211562e136b4a54ddfcdcef"
+        "value": "d5c8892dc056daf11106f6ac4f22025e504e263eca7841af94e24b21dfdce903"
       },
-      "owner": "ATLAS-WP-065",
+      "owner": "ATLAS-WP-066",
       "path": "apps/learnit-next/source_manifest.json",
-      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1 manifest rebind"
+      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1 manifest rebind"
     },
     {
       "fingerprint": {
@@ -630,20 +630,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "f97f70717f8e4047ad697ecbfe9f6594c9d84a43"
+        "value": "ee636a5d8f51046bffbc5be3b28b9b4022ced77e"
       },
-      "owner": "ATLAS-WP-065",
+      "owner": "ATLAS-WP-066",
       "path": "apps/learnit-next/src/integration/atlas/activity_projection.js",
-      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
+      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "4de0b15978e6ae770cdda449e9b87c4fc2e98155"
+        "value": "091495c2bae569ec0f995d458ed32ad088a8489e"
       },
-      "owner": "ATLAS-WP-064",
+      "owner": "ATLAS-WP-066",
       "path": "apps/learnit-next/src/ui/activity_presenters.js",
-      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
+      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
     },
     {
       "fingerprint": {
