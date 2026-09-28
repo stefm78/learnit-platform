@@ -383,10 +383,10 @@ jobs:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           gh issue comment 463 --repo "$GITHUB_REPOSITORY" --body "JOB24_HR23_REPLAY_RECEIPT
-          HUMAN_REPLAY_RUN_ID: `$GITHUB_RUN_ID`
-          RESULT_SHA: `$RESULT_SHA`
-          REPLAY_URL: `${PAGE_URL}human-replay/${RESULT_SHA}/`
-          REPLAY_HTTPS_LIVE_SMOKE: `PASS`
-          HUMAN_REPLAY_STATUS: `HUMAN_DECISION_REQUIRED`
-          GO_LIMITED_PILOT: `NOT_DECLARED`
-          G5_PASS: `NOT_DECLARED`"
+          HUMAN_REPLAY_RUN_ID: $GITHUB_RUN_ID
+          RESULT_SHA: $RESULT_SHA
+          REPLAY_URL: ${PAGE_URL}human-replay/${RESULT_SHA}/
+          REPLAY_HTTPS_LIVE_SMOKE: PASS
+          HUMAN_REPLAY_STATUS: HUMAN_DECISION_REQUIRED
+          GO_LIMITED_PILOT: NOT_DECLARED
+          G5_PASS: NOT_DECLARED"
