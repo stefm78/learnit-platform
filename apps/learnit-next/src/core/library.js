@@ -1,3 +1,18 @@
+export function normalizeLibrarySearchTerms(query) {
+  const normalized = String(query ?? '').trim().toLocaleLowerCase('fr');
+  return normalized ? normalized.split(/\\s+/u).filter(Boolean) : [];
+}
+
+export function matchesLibrarySearch(query, searchableValues) {
+  const terms = normalizeLibrarySearchTerms(query);
+  if (terms.length === 0) return true;
+  const haystack = (Array.isArray(searchableValues) ? searchableValues : [searchableValues])
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase('fr');
+  return terms.every(term => haystack.includes(term));
+}
+
 export function createLibraryService(storage) {
   async function listCourses() {
     const courses = await storage.listCourses();
@@ -18,16 +33,12 @@ export function createLibraryService(storage) {
     listCourses,
 
     async searchCourses(query) {
-      const normalized = String(query ?? '').trim().toLocaleLowerCase('fr');
       const courses = await listCourses();
-      if (!normalized) return courses;
-      return courses.filter(course => (
-        [course.title, course.canonicalTitle, course.subtitle]
-          .filter(Boolean)
-          .join(' ')
-          .toLocaleLowerCase('fr')
-          .includes(normalized)
-      ));
+      return courses.filter(course => matchesLibrarySearch(query, [
+        course.title,
+        course.canonicalTitle,
+        course.subtitle,
+      ]));
     },
 
     async getCourse(courseInstallId) {
