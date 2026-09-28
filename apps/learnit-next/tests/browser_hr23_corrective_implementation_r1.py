@@ -223,8 +223,9 @@ def main() -> int:
         first = page.locator(".course-card").first
         assert "min estimées au total" in first.inner_text()
         assert first.get_by_text("Gérer", exact=True).count() == 0
-        assert first.get_by_role("button", name=lambda name: name and name.startswith("Options du cours")).count() == 0
-        assert first.locator(".course-settings-details > summary").count() == 1
+        options_summary = first.locator(".course-settings-details > summary")
+        assert options_summary.count() == 1
+        assert (options_summary.get_attribute("aria-label") or "").startswith("Options du cours")
         assert first.locator(".course-objectives-details").count() == 1
         assert first.locator('[data-objective-progress-r15="true"]').is_hidden()
         no_overflow(page)
