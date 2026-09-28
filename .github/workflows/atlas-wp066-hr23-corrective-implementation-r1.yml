@@ -99,12 +99,12 @@ jobs:
       - name: Replay JOB20 session provenance V2
         run: python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
 
-      - name: Replay JOB21 R15 semantic compatibility invariants
+      - name: Replay JOB21 R15 compatibility through HR23 oracle
         run: |
-          # The historical R15 test pins the literal "Priorité Learn-it", which HR23-009
-          # explicitly supersedes. Keep the semantic/UI model regression and let the
-          # HR23 static/browser oracle prove the authorized language/toggle delta.
-          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py -v
+          # Historical JOB21 UI tests pin the literal "Priorité Learn-it", explicitly
+          # superseded by HR23-009. The HR23 oracle retains the five R15 states,
+          # reservoirs, fill semantics, direct interaction and ARIA while testing the
+          # authorized learner-first language/toggle delta.
           python -B apps/learnit-next/tests/hr23_corrective_implementation_r1.py
 
       - name: V4 and V5 validator regressions
