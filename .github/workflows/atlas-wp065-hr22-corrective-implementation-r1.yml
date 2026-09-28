@@ -1,0 +1,233 @@
+name: ATLAS WP065 HR22 corrective implementation R1
+
+on:
+  push:
+    branches: [student-v01/r2-hr22-corrective-implementation-r1]
+  pull_request:
+    branches: [student-v01/r2-learner-journey-ux-coherence-r1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    if: github.event_name != 'pull_request' || github.head_ref == 'student-v01/r2-hr22-corrective-implementation-r1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONPATH: .
+      BASE: c5f82d27b67c680cf18f07a79f390391a83d7a68
+      JOB23_EVIDENCE_DIR: /tmp/atlas-wp065-hr22-corrective-evidence
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install exact qualification dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
+          python -m playwright install --with-deps chromium
+          chromium="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              print(pw.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium"
+          sudo ln -sf "$chromium" /usr/bin/chromium
+
+      - name: Revalidate exact JOB23 topology and bounded scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          git cat-file -e "$BASE^{commit}"
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          if [[ "${{ github.event_name }}" == pull_request ]]; then
+            test "${{ github.event.pull_request.base.sha }}" = "$BASE"
+            test "${{ github.event.pull_request.head.ref }}" = "student-v01/r2-hr22-corrective-implementation-r1"
+          fi
+          python - "$BASE" <<'PY'
+          import subprocess,sys
+          base=sys.argv[1]
+          actual=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          allowed={
+            'apps/learnit-next/source_manifest.json',
+            'apps/learnit-next/src/integration/atlas/activity_projection.js',
+            'apps/learnit-next/src/ui/objective_progress.js',
+            'apps/learnit-next/src/ui/render.js',
+            'apps/learnit-next/src/styles.css',
+            'apps/learnit-next/tests/hr22_corrective_implementation_r1.py',
+            'apps/learnit-next/tests/browser_hr22_corrective_implementation_r1.py',
+            '.github/workflows/atlas-wp065-hr22-corrective-implementation-r1.yml',
+            'work-packages/ATLAS-WP-065.json',
+          }
+          bad=sorted(actual-allowed)
+          assert not bad,bad
+          assert allowed <= actual,sorted(allowed-actual)
+          print('JOB23_SCOPE=PASS')
+          PY
+          for p in \
+            apps/learnit-next/src/core/session.js \
+            apps/learnit-next/src/core/activity_semantics.js \
+            apps/learnit-next/src/core/progress.js \
+            apps/learnit-next/src/core/objective_progress.js \
+            apps/learnit-next/src/core/learning_recommendation.js \
+            apps/learnit-next/src/main.js \
+            apps/learnit-next/src/integration/atlas/session.js \
+            apps/learnit-next/src/ui/activity_presenters.js \
+            apps/learnit-next/src/ui/media.js \
+            contracts/learnit-kit-v5.schema.json \
+            authoring/v5/validate_kit.py \
+            showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json \
+            showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json \
+            showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json \
+            showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json \
+            showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json \
+            showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json; do
+            test "$(git rev-parse "HEAD:$p")" = "$(git rev-parse "$BASE:$p")"
+          done
+          test "$(git rev-parse HEAD:apps/learnit-next/src/core/session.js)" = 9909f0712de59211d14211ef1afc27bda87fcbf5
+          echo PROTECTED_SEMANTIC_AUTHORITIES_UNCHANGED=PASS
+
+      - name: Syntax and HR22 corrective static contract
+        run: |
+          node --check apps/learnit-next/src/integration/atlas/activity_projection.js
+          node --check apps/learnit-next/src/ui/objective_progress.js
+          node --check apps/learnit-next/src/ui/render.js
+          python -B apps/learnit-next/tests/hr22_corrective_implementation_r1.py
+          python -B apps/learnit-next/tests/learner_journey_ux_coherence_r1.py
+
+      - name: Replay JOB20 session provenance V2
+        run: python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
+
+      - name: Replay JOB21 R15 semantic/static contract
+        run: |
+          python -B apps/learnit-next/tests/r15_objective_progress_restoration_r2.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py -v
+
+      - name: V4 and V5 validator regressions
+        run: |
+          python -B authoring/v4/tests/test_validate_v4.py -v
+          python -B authoring/v5/tests/test_validate_v5.py -v
+
+      - name: V5 Factory source-governance 20 of 20
+        run: python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+
+      - name: V5 runtime hints media references and exact showcase regressions
+        run: |
+          python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+          python -B apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py
+          python -B apps/learnit-next/tests/v5_showcase_port_r1.py
+
+      - name: Selected V8 presenter mechanics
+        run: python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
+
+      - name: Learning Loop V2 QA regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/wp065-qa-tree
+          mkdir -p /tmp/wp065-qa-tree
+          git archive HEAD | tar -x -C /tmp/wp065-qa-tree
+          python - <<'PY'
+          import json,pathlib,subprocess
+          root=pathlib.Path('/tmp/wp065-qa-tree')
+          manifest=json.loads((root/'apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          for item in manifest['workingFiles']:
+              path=root/item['path']
+              fp=item.get('fingerprint',{})
+              if path.exists() or fp.get('kind')!='git-blob-sha1':
+                  continue
+              data=subprocess.check_output(['git','cat-file','blob',fp['value']])
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+          PY
+          python - <<'PY'
+          import importlib.util,pathlib
+          spec=importlib.util.spec_from_file_location('wp065_build','apps/learnit-next/build.py')
+          build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
+          manifest,_,data=build.validate_manifest()
+          runtime=build.render_commonjs_runtime(manifest['build']['commonJsSources'],data)
+          pathlib.Path('/tmp/wp065-atlas-preload.mjs').write_text(runtime,encoding='utf-8')
+          PY
+          NODE_OPTIONS="--import=/tmp/wp065-atlas-preload.mjs" LLV2_PRODUCT_TREE=/tmp/wp065-qa-tree python -B apps/learnit-next/tests/qa_learning_loop_v2.py -v
+
+      - name: Deterministic candidate build twice
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output /tmp/wp065-build-1.html
+          python -B apps/learnit-next/build.py --output /tmp/wp065-build-2.html
+          cmp -s /tmp/wp065-build-1.html /tmp/wp065-build-2.html
+          mkdir -p apps/learnit-next/dist
+          cp /tmp/wp065-build-1.html apps/learnit-next/dist/learnit-next.html
+          bytes="$(wc -c < /tmp/wp065-build-1.html | tr -d ' ')"
+          sha="$(sha256sum /tmp/wp065-build-1.html | awk '{print $1}')"
+          echo "bytes=$bytes" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "DETERMINISTIC_BUILD=PASS"
+          echo "FINAL_BUILD_BYTES=$bytes"
+          echo "FINAL_BUILD_SHA256=$sha"
+
+      - name: Current V4 V5 false-empty reload and failed-persistence regression
+        run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
+
+      - name: Replay JOB21 R15 browser contract
+        env:
+          R15_EVIDENCE_DIR: /tmp/atlas-wp065-r15-regression
+        run: python -B apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py
+
+      - name: HR22 corrective mobile Human-Replay contract
+        run: python -B apps/learnit-next/tests/browser_hr22_corrective_implementation_r1.py
+
+      - name: Repository governance on exact candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          python tools/validate_repository.py
+          echo REPOSITORY_GOVERNANCE_EXACT_SHA=PASS
+
+      - name: Qualification oracle
+        shell: bash
+        run: |
+          echo HR22_A_LIBRARY_DENSITY=PASS
+          echo HR22_B_TERMINAL_TRUTHFULNESS=PASS
+          echo HR22_C_FEEDBACK_CLARITY=PASS
+          echo HR22_D_HIERARCHY=NO_CHANGE_AFTER_AUDIT
+          echo HR22_E_SELECTED_OBJECTIVE=PASS
+          echo JOB20_SESSION_PROVENANCE_V2=PASS
+          echo JOB21_R15_REPLAY=PASS
+          echo JOB22_INVARIANTS_REPLAY=PASS
+          echo V5_VALIDATOR=PASS
+          echo V5_FACTORY=PASS
+          echo V8_PRESENTERS=PASS
+          echo EXACT_SHOWCASE_10_ACTIVITIES_39_MINUTES=PASS
+          echo FAILED_PERSISTENCE_SOLUTION_REVEAL=NONE
+          echo DETERMINISTIC_BUILD=PASS
+          echo SOURCE_MANIFEST=PASS
+          echo REPOSITORY_GOVERNANCE=PASS
+          echo FINAL_VERDICT=PASS_MACHINE_HR22_CORRECTIVE_READY_FOR_HUMAN_REPLAY
+          echo HUMAN_REPLAY_STATUS=HUMAN_DECISION_REQUIRED
+          echo GO_LIMITED_PILOT=NOT_DECLARED
+          echo G5_PASS=NOT_DECLARED
+
+      - name: Upload JOB23 qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp065-hr22-corrective-evidence-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            /tmp/atlas-wp065-hr22-corrective-evidence
+            /tmp/atlas-wp065-r15-regression
+            /tmp/wp065-build-1.html
