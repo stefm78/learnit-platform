@@ -100,5 +100,11 @@
     "promotionAuthorized": false,
     "studentSessionsAuthorized": 0
   },
-  "nextGate": "CONDITIONAL: G5_EVIDENCE_COMPLETE_FINAL_DECISION_REQUIRED | G5_DELTA_HUMAN_REPLAY_REQUIRED | HOLD_G5_MATERIAL_BLOCKER"
+  "nextGate": "CONDITIONAL: G5_EVIDENCE_COMPLETE_FINAL_DECISION_REQUIRED | G5_DELTA_HUMAN_REPLAY_REQUIRED | HOLD_G5_MATERIAL_BLOCKER",
+  "independentReview": [
+    "Revalidate exact JOB26 RESULT_SHA, EVIDENCE_HEAD, qualification/repository-governance runs and immutable replay identity independently of chat claims.",
+    "Challenge every G5 matrix row against the canonical JOB09 human-only protocol; machine evidence must never be promoted to a human PASS.",
+    "Verify that historical human evidence marked current actually survived later material changes; otherwise require only the affected delta dimension.",
+    "Compare the JOB27 PR diff to the exact allowlist and confirm zero product/workflow mutation, zero merge/promotion and zero student-session authorization."
+  ]
 }
