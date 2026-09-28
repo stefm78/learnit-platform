@@ -401,11 +401,17 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
   });
   root.addEventListener('learnit:learning-projection', event => {
     if (event.detail?.source !== 'atlas') return;
+    const incoming = (event.detail.courses ?? [])
+      .filter(projection => projection?.courseInstallId);
+    const changed = incoming.length !== atlasLearningProjections.size
+      || incoming.some(projection => (
+        JSON.stringify(atlasLearningProjections.get(projection.courseInstallId) ?? null)
+        !== JSON.stringify(projection)
+      ));
+    if (!changed) return;
     atlasLearningProjections.clear();
-    for (const projection of event.detail.courses ?? []) {
-      if (projection?.courseInstallId) {
-        atlasLearningProjections.set(projection.courseInstallId, projection);
-      }
+    for (const projection of incoming) {
+      atlasLearningProjections.set(projection.courseInstallId, projection);
     }
     if (currentView === 'library') void renderLibrary({ focus: false });
   });
