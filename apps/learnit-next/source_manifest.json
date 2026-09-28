@@ -129,11 +129,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "a961b45b0f3fbe6f12da4f050671048849654651"
+        "value": "bfc49a9c0b61e8567898e6ea9958bdf46a99ce4f"
       },
-      "owner": "ATLAS-WP-067",
+      "owner": "ATLAS-WP-068",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
+      "provenance": "ATLAS-WP-068 HR24 Human Replay corrective R1"
     },
     {
       "fingerprint": {
@@ -183,11 +183,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "644bc7a827d6ef313a46ad3483cbb62897e77c76"
+        "value": "495d9897cd8a09113c45c199ac6bd98a28553663"
       },
-      "owner": "ATLAS-WP-067",
+      "owner": "ATLAS-WP-068",
       "path": "apps/learnit-next/src/core/library.js",
-      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
+      "provenance": "ATLAS-WP-068 HR24 Human Replay corrective R1"
     },
     {
       "fingerprint": {
@@ -255,11 +255,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "cca5245e17c595568bb60addbb1562f3b1ede751"
+        "value": "d8ca94c5dc42a96c08090aabe948713553af1607"
       },
-      "owner": "ATLAS-WP-067",
+      "owner": "ATLAS-WP-068",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
+      "provenance": "ATLAS-WP-068 HR24 Human Replay corrective R1"
     },
     {
       "fingerprint": {
@@ -372,7 +372,7 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "4d036a043078ba21db1b693c39990573733ade9a88f0e9f1a0ecfec29c7d19dd"
+        "value": "65afcb12fe6569ba4a3abac12fedb568dd6939db344473f866352339549d1aa1"
       },
       "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/source_manifest.json",
@@ -678,11 +678,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "279ba36800fb5c598a6635d097f63301f5eb2364"
+        "value": "d78b5ee3324da06a029fe7afa55b46a40c562216"
       },
-      "owner": "ATLAS-WP-067",
+      "owner": "ATLAS-WP-068",
       "path": "apps/learnit-next/src/ui/navigation.js",
-      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
+      "provenance": "ATLAS-WP-068 HR24 Human Replay corrective R1"
     }
   ]
 }

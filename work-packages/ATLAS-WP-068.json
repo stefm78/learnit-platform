@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-068",
+  "title": "HR24 Human Replay corrective R1",
+  "status": "in-progress",
+  "purpose": "Apply only the two human-requested secondary HR24 corrections: implicit multi-term AND library search and an icon-only accessible three-bar navigation trigger, then requalify and publish an immutable delta Human Replay.",
+  "changeClass": "hr24-human-replay-corrective-r1",
+  "riskClass": "bounded",
+  "authority": {
+    "issue": 467,
+    "pullRequest": 468,
+    "parentPullRequest": 466,
+    "humanReplayDecision": "ACCEPTED_WITH_TWO_SECONDARY_CORRECTIONS",
+    "humanAuthorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_CHAT_2026-09-28",
+    "parentJob": "JOB_25_HR24_MODULAR_LIBRARY_BOUNDARY_R2",
+    "parentBranchHead": "cb8ceb579dd65230f5300e9f58bd15cfa861578f",
+    "parentProductResultSha": "68a852f1b46564fd9f1cb21c0f848c44845e16d0"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-hr24-modular-library-boundary-r2",
+    "baseCommit": "cb8ceb579dd65230f5300e9f58bd15cfa861578f",
+    "parentPullRequest": 466
+  },
+  "corrections": [
+    "LIBRARY_MULTI_TERM_AND_SEARCH",
+    "ICON_ONLY_HAMBURGER_MENU_TRIGGER"
+  ],
+  "invariants": [
+    "All HR24 Human Replay behavior other than the two authorized corrections remains accepted and frozen.",
+    "Library search uses one deterministic term-normalization/matching contract without pedagogical state mutation or query persistence.",
+    "The closed navigation trigger has no visible Menu word, remains a real accessible button, and preserves existing drawer semantics.",
+    "Scoring, ActivityResponse, objective states, recommendations, sessionDelta, V5 authored content and kit contracts remain byte-identical to the JOB25 frozen product result.",
+    "HR24-003 remains CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED / READ_ONLY_HOLD.",
+    "No merge, promotion, GO_LIMITED_PILOT, G5 PASS or real student session."
+  ],
+  "scope": {
+    "allowedProductPaths": [
+      "apps/learnit-next/src/core/library.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/navigation.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/source_manifest.json"
+    ],
+    "evidencePaths": [
+      "apps/learnit-next/tests/hr24_human_replay_corrective_r1.py",
+      "apps/learnit-next/tests/browser_hr24_human_replay_corrective_r1.py",
+      ".github/workflows/atlas-wp068-hr24-human-replay-corrective-r1.yml",
+      ".github/workflows/atlas-wp068-human-replay-deploy.yml",
+      "work-packages/ATLAS-WP-068.json",
+      "qualification/STUDENT_V01_HR24_HUMAN_REPLAY_CORRECTIVE_R1_RESULT.md"
+    ],
+    "forbiddenSemanticPaths": [
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json"
+    ],
+    "allowedPaths": [
+      "apps/learnit-next/src/core/library.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/navigation.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/tests/hr24_human_replay_corrective_r1.py",
+      "apps/learnit-next/tests/browser_hr24_human_replay_corrective_r1.py",
+      ".github/workflows/atlas-wp068-hr24-human-replay-corrective-r1.yml",
+      ".github/workflows/atlas-wp068-human-replay-deploy.yml",
+      "work-packages/ATLAS-WP-068.json",
+      "qualification/STUDENT_V01_HR24_HUMAN_REPLAY_CORRECTIVE_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json"
+    ]
+  },
+  "rollback": "Close unmerged PR #468 and delete branch student-v01/r2-hr24-human-replay-corrective-r1; parent PR #466 and frozen JOB25 result remain unchanged.",
+  "execution": {
+    "job": "JOB_26_HR24_HUMAN_REPLAY_CORRECTIVE_R1",
+    "branch": "student-v01/r2-hr24-human-replay-corrective-r1",
+    "issue": 467,
+    "pullRequest": 468,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionAuthorized": false,
+    "humanReplayRequired": true,
+    "humanReplayStatus": "PENDING_MACHINE_QUALIFICATION",
+    "goLimitedPilotDeclared": false,
+    "g5PassDeclared": false
+  },
+  "nextGate": "DELTA_HUMAN_REPLAY",
+  "nonGoals": [
+    "Repair HR24-003 or add scheduler, reservation, dates, validation CTA, engine states or learner-session scheduling semantics.",
+    "Change scoring, ActivityResponse, objective states, recommendations, sessionDelta, authored V5 content or kit contracts.",
+    "Redesign any HR24 behavior accepted by the Human Replay outside the two authorized corrections.",
+    "Add fuzzy search, stemming, synonyms, ranking, OR/query operators, quoted syntax, taxonomy or visible Boolean-search explanations.",
+    "Merge or promote either PR, declare GO_LIMITED_PILOT or G5 PASS, or start a real student session."
+  ],
+  "requiredEvidence": [
+    "One deterministic Library matching contract tokenizes on Unicode whitespace, uses French locale-aware lowercase, applies every-term substring matching, and is reused by every active library search path.",
+    "Search unit/service and browser evidence covers term order, repeated/leading/trailing whitespace, missing terms, case behavior, cross-field matching, empty queries, stable ordering and absence of state/persistence mutation.",
+    "At 390x844 the closed trigger has no visible Menu word, renders three local horizontal bars, is a real accessible button with aria-controls/aria-expanded and an effective 44x44 target.",
+    "Drawer click/keyboard, focus transfer, inert background, Escape, backdrop, Fermer and focus restoration remain functional with no horizontal overflow.",
+    "Accepted HR24 import, all-courses, inline rename, alias persistence/canonical title, V5/V8 launch/resume, Aujourd’hui disabled behavior and storage isolation regressions pass.",
+    "Protected learning/Atlas semantic blobs and the exact V5 showcase kit remain byte-identical to the JOB25 frozen product result.",
+    "V4/V5 validators, V5 Factory, V5 runtime/showcase, selected V8 presenters, session provenance, persistence regression, deterministic double build and repository governance pass on the exact RESULT_SHA.",
+    "A new immutable HTTPS delta Human Replay is published from the exact RESULT_SHA and stops at HUMAN_DECISION_REQUIRED."
+  ],
+  "adversarialTests": [
+    "Whole-query substring search, OR behavior, term-order sensitivity, divergent active search paths or search-caused state/persistence mutation fails qualification.",
+    "Visible AND/ET/Boolean/advanced-search instructional copy, fuzzy/ranking/taxonomy expansion or new query language fails qualification.",
+    "Visible Menu text, missing accessible name/aria state, fewer than three intended bars, target below 44x44, external icon dependency or confusion with the per-course ⋯ affordance fails qualification.",
+    "Any drawer focus, inert, Escape, backdrop, Fermer, keyboard activation, focus restoration or 390x844 overflow regression fails qualification.",
+    "Any mutation of protected learning/Atlas engines, V5 contract/validator, exact showcase kit, canonical title or pedagogical storage fails qualification.",
+    "Any implementation or visual implication of HR24-003 fails qualification.",
+    "Any merge, promotion, GO_LIMITED_PILOT, G5 PASS or real student session fails governance."
+  ],
+  "independentReview": [
+    "Run the JOB26 static/service search and hamburger oracle.",
+    "Run the JOB26 browser oracle at 390x844 with the 50-course stress corpus and accepted HR24 regression smoke.",
+    "Replay V4/V5 validators, V5 Factory, Learning Loop/session provenance, V5 runtime/showcase and selected V8 presenter regressions.",
+    "Replay failed-persistence and learner-journey browser regression.",
+    "Build twice with byte identity, verify protected blobs and exact kit identity, and run repository governance on the exact candidate SHA.",
+    "Publish the immutable delta Human Replay only after machine PASS, verify live smoke, and stop at HUMAN_DECISION_REQUIRED."
+  ]
+}

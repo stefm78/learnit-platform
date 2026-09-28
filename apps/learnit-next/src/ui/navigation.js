@@ -20,13 +20,21 @@ export function createNavigationDrawer(root, onNavigate) {
   }
 
   const drawerId = 'learnit-navigation-drawer';
+  const triggerIcon = element('span', {
+    className: 'nav-menu-icon',
+    'aria-hidden': 'true',
+  }, [
+    element('span', { className: 'nav-menu-bar' }),
+    element('span', { className: 'nav-menu-bar' }),
+    element('span', { className: 'nav-menu-bar' }),
+  ]);
   const trigger = element('button', {
     type: 'button',
     className: 'nav-menu-trigger',
-    text: 'Menu',
+    'aria-label': 'Ouvrir la navigation',
     'aria-expanded': 'false',
     'aria-controls': drawerId,
-  });
+  }, [triggerIcon]);
   const closeButton = element('button', {
     type: 'button',
     className: 'nav-drawer-close',

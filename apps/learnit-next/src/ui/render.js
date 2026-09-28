@@ -1,6 +1,7 @@
 import { renderActivityPresentation, readActivityResponse } from './activity_presenters.js';
 import { renderEmbeddedMediaSet } from './media.js';
 import { createNavigationDrawer } from './navigation.js';
+import { matchesLibrarySearch } from '../core/library.js';
 
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
@@ -712,14 +713,15 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         'aria-label': 'Rechercher dans vos cours',
       });
       const filterCourses = () => {
-        const query = searchInput.value.trim().toLocaleLowerCase('fr');
+        const query = searchInput.value;
+        const hasQuery = query.trim().length > 0;
         let visible = 0;
         for (const entry of courseEntries) {
-          const match = !query || entry.searchable.includes(query);
+          const match = matchesLibrarySearch(query, entry.searchable);
           entry.article.hidden = !match;
           if (match) visible += 1;
         }
-        searchStatus.textContent = query
+        searchStatus.textContent = hasQuery
           ? `${visible} cours trouvé${visible > 1 ? 's' : ''} sur ${courses.length}.`
           : '';
       };
@@ -947,7 +949,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             course.canonicalTitle ?? '',
             course.subtitle ?? '',
             ...(externalProjection?.objectiveStates ?? course.objectives ?? []).map(item => item.label ?? ''),
-          ].join(' ').toLocaleLowerCase('fr'),
+          ],
         });
         list.append(article);
       }
