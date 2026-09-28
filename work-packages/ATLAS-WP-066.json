@@ -170,7 +170,7 @@
   ],
   "independentReview": [
     "Replay JOB20 session provenance V2 regression.",
-    "Replay JOB21 R15 static and browser contracts while accepting the authorized toggle extension.",
+    "Replay JOB21 R15 semantic/UI compatibility invariants, with HR23 static/browser oracles replacing the obsolete literal `Priorité Learn-it` assertion explicitly superseded by HR23-009.",
     "Replay JOB22/JOB23 learner-journey KEEP invariants through the new HR23 browser oracle.",
     "Run V4/V5 validators, V5 Factory source governance, V5 runtime/showcase and selected V8 presenter regressions.",
     "Exercise reset, 12-course search, objective toggle, tap destination, structured feedback, terminal recap and exact awaiting-validation state on mobile 390x844.",
