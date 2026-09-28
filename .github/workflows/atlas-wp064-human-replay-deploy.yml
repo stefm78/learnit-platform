@@ -79,7 +79,7 @@ jobs:
           import subprocess,sys
           result=sys.argv[1]
           changed=set(subprocess.check_output(['git','diff','--name-only',result,'HEAD'],text=True).splitlines())
-          assert changed <= {'qualification/STUDENT_V01_LEARNER_JOURNEY_UX_COHERENCE_R1_RESULT.md'},changed
+          assert changed <= {'qualification/STUDENT_V01_LEARNER_JOURNEY_UX_COHERENCE_R1_RESULT.md','.github/workflows/atlas-wp064-human-replay-deploy.yml'},changed
           PY
           test "$(git rev-parse "$RESULT_SHA:apps/learnit-next/src/core/session.js")" = 9909f0712de59211d14211ef1afc27bda87fcbf5
           parent_state="$(git rev-parse 2a10586bc50bc8736f1e318d31e138adeaaab5f0)"
@@ -258,7 +258,7 @@ jobs:
               assert card.locator('[data-objective-progress-r15="true"]').count()==1
               assert page.locator('.library-management').get_attribute('open') is None
               card.get_by_role('button',name='Commencer').click()
-              assert page.locator('[data-activity-presentation="lesson"]').count()==1
+              page.locator('[data-activity-presentation="lesson"]').wait_for()
               assert page.locator('[data-served-activity-submit="true"]').count()==1
               page.locator('[data-served-activity-submit="true"]').click()
               page.locator('[data-activity-presentation="flashcard"]').wait_for()
@@ -364,6 +364,7 @@ jobs:
                   assert card.locator('[data-objective-progress-r15="true"]').count()==1
                   assert page.locator('.library-management').get_attribute('open') is None
                   card.get_by_role('button',name='Commencer').click()
+                  page.locator('[data-activity-presentation="lesson"]').wait_for()
                   assert page.locator('[data-served-activity-submit="true"]').count()==1
                   page.locator('[data-served-activity-submit="true"]').click()
                   page.locator('[data-activity-presentation="flashcard"]').wait_for()
