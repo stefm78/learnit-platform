@@ -186,10 +186,11 @@ def run_viewport(browser, url: str, kit: dict[str, Any], viewport: dict[str, int
     # 05 — management is secondary and collapsed by default.
     management = page.locator(".library-management")
     assert management.get_attribute("open") is None
-    assert page.get_by_text("Réinitialiser les données locales", exact=True).count() == 0
+    reset_action = page.get_by_text("Réinitialiser les données locales", exact=True)
+    assert reset_action.count() == 1 and not reset_action.is_visible()
     management.locator("summary").click()
     assert management.get_attribute("open") is not None
-    assert page.get_by_text("Réinitialiser les données locales", exact=True).count() == 1
+    assert reset_action.is_visible()
     shot(page, name, "05-library-management-open")
 
     # 06 — rename remains contextual with a short label and no explanatory paragraph.
