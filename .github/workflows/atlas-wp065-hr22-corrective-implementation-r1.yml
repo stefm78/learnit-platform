@@ -58,7 +58,7 @@ jobs:
           import subprocess,sys
           base=sys.argv[1]
           actual=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
-          allowed={
+          required={
             'apps/learnit-next/source_manifest.json',
             'apps/learnit-next/src/integration/atlas/activity_projection.js',
             'apps/learnit-next/src/ui/objective_progress.js',
@@ -69,9 +69,14 @@ jobs:
             '.github/workflows/atlas-wp065-hr22-corrective-implementation-r1.yml',
             'work-packages/ATLAS-WP-065.json',
           }
+          evidence_only={
+            '.github/workflows/atlas-wp065-human-replay-deploy.yml',
+            'qualification/STUDENT_V01_HR22_CORRECTIVE_IMPLEMENTATION_R1_RESULT.md',
+          }
+          allowed=required|evidence_only
           bad=sorted(actual-allowed)
           assert not bad,bad
-          assert allowed <= actual,sorted(allowed-actual)
+          assert required <= actual,sorted(required-actual)
           print('JOB23_SCOPE=PASS')
           PY
           for p in \
@@ -223,7 +228,7 @@ jobs:
       - name: Upload JOB23 qualification evidence
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-wp065-hr22-corrective-evidence-${{ github.sha }}
+          name: atlas-wp065-hr22-corrective-evidence-${{ github.event.pull_request.head.sha || github.sha }}
           retention-days: 30
           if-no-files-found: error
           path: |
