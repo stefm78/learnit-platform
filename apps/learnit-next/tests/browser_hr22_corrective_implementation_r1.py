@@ -135,7 +135,7 @@ def complete_course(page, activities: list[dict[str, Any]], *, final_correct: bo
         if index == 3:
             page.reload()
             page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
-            wait_activity(page, activity["activityRevisionId"])
+            wait_activity(page, activity["activityRevisionId"], activity["type"])
         scored = submit_current(page, activity, correct=(final_correct if index == len(activities)-1 else True))
         if index == 4:
             progress = page.evaluate(
