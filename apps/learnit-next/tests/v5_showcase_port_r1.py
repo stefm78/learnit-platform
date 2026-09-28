@@ -127,9 +127,9 @@ window.wp59={{
           meta=page.evaluate("(i)=>window.wp59.render(i)",i); assert meta["type"]==a["type"] and meta["lineage"]==a["activityLineageId"]
           t=a["type"]
           if t=="lesson":
-            page.locator('[data-activity-continue="lesson"]').click()
+            assert page.locator('[data-activity-presentation="lesson"]').get_attribute("data-activity-ready")=="true"
           elif t=="flashcard":
-            page.locator(".activity-flash-card").click(); page.locator('[data-activity-continue="flashcard"]').click()
+            page.locator(".activity-flash-card").click(); assert page.locator('[data-activity-presentation="flashcard"]').get_attribute("data-activity-ready")=="true"
           elif t=="qcm":
             page.locator(f'[data-activity-choice="true"][value="{a["correctChoiceId"]}"]').check()
           elif t=="matching":
@@ -193,8 +193,8 @@ window.wp59={{
           for i,a in enumerate(candidate["courses"][0]["activities"]):
             meta=page.evaluate("(i)=>window.wp59.render(i)",i);assert meta=={"type":a["type"],"lineage":a["activityLineageId"]}
             t=a["type"]
-            if t=="lesson": page.locator('[data-activity-continue="lesson"]').click()
-            elif t=="flashcard": page.locator(".activity-flash-card").click();page.locator('[data-activity-continue="flashcard"]').click()
+            if t=="lesson": assert page.locator('[data-activity-presentation="lesson"]').get_attribute("data-activity-ready")=="true"
+            elif t=="flashcard": page.locator(".activity-flash-card").click();assert page.locator('[data-activity-presentation="flashcard"]').get_attribute("data-activity-ready")=="true"
             elif t=="qcm": page.locator(f'[data-activity-choice="true"][value="{a["correctChoiceId"]}"]').check()
             elif t=="matching":
               for m in a["matches"]:
@@ -228,8 +228,27 @@ window.wp59={{
     assert json.loads(vr.stdout)==json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_VALIDATION_REPORT.json").read_text(encoding="utf-8"))
     d=json.loads((ROOT/"showcase/student-v0.1/nombres-complexes/V5_PORT_DECISIONS.json").read_text(encoding="utf-8")); assert len(d["entries"])==10
     assert all(x["hints"]["decision"]==x["media"]["decision"]==x["references"]["decision"]=="NONE" for x in d["entries"])
-    assert not subprocess.check_output(["git","diff",PARENT,"HEAD","--","apps/learnit-next/src","contracts","authoring"],cwd=ROOT,text=True).strip()
-    print("V8_EXACT_10_ACTIVITY_RENDER_RESPONSE: PASS");print("ACTIVITY_RESPONSE_UNCHANGED: PASS");print("UPSTREAM_PRODUCT_MUTATION: NONE");print("CLASSIC_V8_PATH_REFUTES_ATLAS_SURFACE_ONLY_BLOCKER: PASS")
+    job22_parent="2a10586bc50bc8736f1e318d31e138adeaaab5f0"
+    protected=[
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json",
+    ]
+    for protected_path in protected:
+      head_blob=subprocess.check_output(["git","rev-parse",f"HEAD:{protected_path}"],cwd=ROOT,text=True).strip()
+      parent_blob=subprocess.check_output(["git","rev-parse",f"{job22_parent}:{protected_path}"],cwd=ROOT,text=True).strip()
+      assert head_blob==parent_blob,(protected_path,head_blob,parent_blob)
+    print("V8_EXACT_10_ACTIVITY_RENDER_RESPONSE: PASS");print("ACTIVITY_RESPONSE_UNCHANGED: PASS");print("UPSTREAM_SEMANTIC_MUTATION: NONE");print("JOB22_PRESENTATION_SUPERSESSION: BOUNDED");print("CLASSIC_V8_PATH_REFUTES_ATLAS_SURFACE_ONLY_BLOCKER: PASS")
 if __name__=="__main__": main()
 
 # second-push trigger: workflow now exists on branch

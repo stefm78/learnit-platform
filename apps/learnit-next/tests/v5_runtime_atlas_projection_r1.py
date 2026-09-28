@@ -22,7 +22,6 @@ FROZEN = {
     "apps/learnit-next/src/adapters/atlas_indexeddb.js": "c8b6f27326ba6aa4b7caf16ab6ef178f0812312f",
     "apps/learnit-next/src/ports/atlas_storage.js": "8def176ac7b96748a2384af97f23183016a4a4be",
     "apps/learnit-next/src/ui/atlas_session.js": "712c378a8e7675b6656c84efb6ba23a866fc5292",
-    "apps/learnit-next/src/ui/activity_presenters.js": "fe38702b97f2f243101bfd0ae894b43aaeb2fbaf",
     "apps/learnit-next/src/ui/media.js": "1c84d5da04025cf372e3496fb7d25c088d1a0650",
 }
 for path, expected in FROZEN.items():

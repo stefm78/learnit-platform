@@ -126,20 +126,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "baeb777031b9db6c5c2bfd906c8cad3f0d13e5ae"
+        "value": "780c04da9431693eb4fdec3021f5b7c5c5f35e81"
       },
-      "owner": "ATLAS-WP-063",
+      "owner": "ATLAS-WP-064",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-063 R15 canonical objective-progress visual contract"
+      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "76f499b64289ecacaa41832fb071391c73673d62"
+        "value": "164cf66e9ef8e6eabf190f4a7c6f79a892c8818f"
       },
-      "owner": "ATLAS-WP-063",
+      "owner": "ATLAS-WP-064",
       "path": "apps/learnit-next/src/main.js",
-      "provenance": "ATLAS-WP-063 current-path legacy-enhancer isolation and fixture"
+      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
     },
     {
       "fingerprint": {
@@ -252,11 +252,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "1fb545e9d1df52503ceb83bb62026bccc5bfd57d"
+        "value": "cfdbf0f09485d3c5bf7b4d7b181d3a2a075ca81c"
       },
-      "owner": "ATLAS-WP-063",
+      "owner": "ATLAS-WP-064",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-063 R15 placement and terminal sessionDelta consumption"
+      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
     },
     {
       "fingerprint": {
@@ -369,11 +369,11 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "0e7ec941fc38285736c8619e9cc673ad9e1bb78fcc6a41cfea2b92a0cd4cb08a"
+        "value": "85eff7aff02cad4667ae6c7fa1773fb2e56424ab81d1d7a931abf9b66985d1e5"
       },
-      "owner": "ATLAS-WP-063",
+      "owner": "ATLAS-WP-064",
       "path": "apps/learnit-next/source_manifest.json",
-      "provenance": "ATLAS-WP-063 R15 objective-progress restoration R2 manifest rebind"
+      "provenance": "ATLAS-WP-064 learner journey UX coherence R1 manifest rebind"
     },
     {
       "fingerprint": {
@@ -630,20 +630,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "06025e76b6b60d1dc3bee3af43e661689da99d08"
+        "value": "f273ffcebeef85894f6284b1b1fbb0730c72796b"
       },
-      "owner": "STUDENT-V01-JOB01",
+      "owner": "ATLAS-WP-064",
       "path": "apps/learnit-next/src/integration/atlas/activity_projection.js",
-      "provenance": "JOB01:d937592fb4d1e6dba6fcd02e290290f1a98cff71"
+      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "47afc02200b7a3f9be9df10c415341efe8e0e2a8"
+        "value": "4de0b15978e6ae770cdda449e9b87c4fc2e98155"
       },
-      "owner": "ATLAS-WP-058",
+      "owner": "ATLAS-WP-064",
       "path": "apps/learnit-next/src/ui/activity_presenters.js",
-      "provenance": "ATLAS-WP-058 V8 selected presenters R1"
+      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
     },
     {
       "fingerprint": {

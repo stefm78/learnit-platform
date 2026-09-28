@@ -77,17 +77,6 @@ function renderObjectiveSurface(objectiveUi, model) {
   throw new TypeError('renderObjectiveProgress() must return a Node, an array of Nodes, or null');
 }
 
-function renderLibraryObjectiveDetails(objectiveSurface) {
-  if (!objectiveSurface) return null;
-  return node('details', {
-    className: 'course-progress-details',
-    'data-library-objective-details': 'true',
-  }, [
-    node('summary', { text: 'Voir la progression détaillée' }),
-    objectiveSurface,
-  ]);
-}
-
 function renderQcmForm(activity, submit) {
   const fieldset = node('fieldset', { className: 'answer-fieldset' });
   fieldset.append(node('legend', { text: 'Choisissez une réponse' }));
@@ -188,19 +177,24 @@ function renderServedActivityForm(activity, submit) {
   const submitLabel = ['lesson', 'flashcard'].includes(presentation.type)
     ? 'Continuer'
     : 'Valider';
+  const submitButton = node('button', {
+    type: 'submit',
+    className: 'primary',
+    text: submitLabel,
+    'data-served-activity-submit': 'true',
+    disabled: presentation.type === 'flashcard',
+  });
   const form = node('form', {
     className: 'activity-form served-activity-form',
     'data-served-activity-type': presentation.type,
   }, [
     renderActivityPresentation(presentation),
     responseStatus,
-    node('button', {
-      type: 'submit',
-      className: 'primary',
-      text: submitLabel,
-      'data-served-activity-submit': 'true',
-    }),
+    submitButton,
   ]);
+  form.addEventListener('learnit:activity-ready', () => {
+    submitButton.disabled = false;
+  });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     responseStatus.textContent = '';
@@ -344,6 +338,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
 
   root.addEventListener('learnit:show-library', () => {
     main.replaceChildren(node('p', {
+      className: 'sr-only',
       role: 'status',
       text: 'Ouverture de la bibliothèque…',
     }));
@@ -400,7 +395,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
 
   function renderCourseLabelForm(course) {
     const inputId = `course-display-label-${course.courseInstallId}`;
-    const helpId = `${inputId}-help`;
     const input = node('input', {
       id: inputId,
       name: 'display-label',
@@ -408,7 +402,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       value: course.title,
       required: 'required',
       autocomplete: 'off',
-      'aria-describedby': helpId,
     });
     const form = node('form', { className: 'course-label-form' }, [
       node('label', { className: 'field-label', for: inputId, text: 'Nom local du cours' }),
@@ -416,11 +409,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         input,
         node('button', { type: 'submit', className: 'secondary', text: 'Enregistrer' }),
       ]),
-      node('p', {
-        id: helpId,
-        className: 'help',
-        text: 'Ce nom est utilisé uniquement sur cet appareil.',
-      }),
     ]);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -479,20 +467,19 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     const courses = await runtime.listCourses();
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
-    section.append(node('div', { className: 'section-heading' }, [
+    section.append(node('div', { className: 'section-heading library-heading' }, [
       node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque' }), libraryTitle]),
-      renderResetAction(),
     ]));
 
     const importForm = node('form', { className: 'import-panel' });
-    const fileInput = node('input', { id: 'kit-file', type: 'file', accept: '.json,application/json', required: 'required' });
-    const importButton = node('button', { type: 'submit', className: 'primary', text: 'Importer', disabled: true });
+    const fileInput = node('input', { id: 'kit-file', className: 'sr-only library-file-input', type: 'file', accept: '.json,application/json', required: 'required' });
+    const importButton = node('button', { type: 'submit', className: 'primary', text: 'Ajouter à la bibliothèque', disabled: true });
     const fileStatus = node('p', {
       className: 'help',
       role: 'status',
       'aria-live': 'polite',
       'aria-atomic': 'true',
-      text: 'Choisissez un fichier de cours à importer.',
+      text: '',
     });
     let selectionVersion = 0;
     let selectedFileText = null;
@@ -504,17 +491,17 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       importButton.disabled = true;
       const file = fileInput.files?.[0];
       if (!file) {
-        fileStatus.textContent = 'Choisissez un fichier de cours à importer.';
+        fileStatus.textContent = '';
         return;
       }
 
-      fileStatus.textContent = `Lecture de « ${file.name} »…`;
       try {
         const text = await file.text();
+        const preview = await runtime.previewImport(text);
         if (version !== selectionVersion) return;
         selectedFileText = text;
         importButton.disabled = false;
-        fileStatus.textContent = `« ${file.name} » est prêt à être importé.`;
+        fileStatus.textContent = preview.title;
       } catch (error) {
         if (version !== selectionVersion) return;
         const message = `Lecture du fichier impossible : ${error?.message ?? String(error)}`;
@@ -524,12 +511,11 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     });
 
     importForm.append(
-      node('div', {}, [
-        node('label', { for: 'kit-file', className: 'field-label', text: 'Importer un cours' }),
-        node('p', { className: 'help', text: 'Le fichier est vérifié avant l’import.' }),
+      node('div', { className: 'library-import-controls' }, [
+        node('label', { for: 'kit-file', className: 'secondary library-file-picker', text: 'Choisir un cours' }),
+        fileInput,
         fileStatus,
       ]),
-      fileInput,
       importButton,
     );
     importForm.addEventListener('submit', (event) => {
@@ -537,79 +523,97 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       if (selectedFileText === null) return;
       const payload = selectedFileText;
       run(() => runtime.importPackage(payload), async (result) => {
-        const message = `${result.courseCount} cours importé(s) depuis « ${result.title} ».`;
-        notice = renderNotice([message], 'success');
-        await renderLibrary({ announcement: message });
+        await renderLibrary({ announcement: `${result.title} ajouté à la bibliothèque.` });
       });
     });
-    section.append(importForm);
-
     if (courses.length === 0) {
-      section.append(node('div', { className: 'empty-state' }, [
-        node('h3', { text: 'Bibliothèque vide' }),
-        node('p', { text: 'Importez un cours pour commencer.' }),
+      section.append(node('div', { className: 'empty-state empty-library-import' }, [
+        node('h3', { text: 'Importer votre premier cours' }),
+        importForm,
       ]));
     } else {
       const list = node('div', { className: 'course-grid' });
       for (const course of courses) {
         const reviewQueue = await runtime.getReviewQueue(course.courseInstallId);
+        const correctivePriority =
+          course.progress.recommendation?.action === 'correct'
+          && reviewQueue.total > 0
+          && !course.progress.isComplete;
         const courseAction = course.progress.isComplete
           ? node('p', { className: 'course-complete', text: 'Cours terminé' })
           : node('button', {
             type: 'button',
-            className: 'primary',
+            className: correctivePriority ? 'secondary' : 'primary',
             text: course.progress.completed === 0 ? 'Commencer' : 'Reprendre',
             'data-course-learning-action': 'learn',
             'data-course-install-id': course.courseInstallId,
             onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
           });
-        const reviewAction = reviewQueue.total === 0
-          ? node('p', { className: 'help', text: 'À revoir : aucune activité.' })
-          : node('div', {}, [
-            node('p', { text: `À revoir : ${reviewQueue.total} activité${reviewQueue.total > 1 ? 's' : ''}.` }),
-            node('button', {
-              type: 'button',
-              className: 'secondary',
-              text: 'Ouvrir À revoir',
-              'data-course-learning-action': 'review',
-              'data-course-install-id': course.courseInstallId,
-              onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
-            }),
-          ]);
+        const reviewAction = correctivePriority
+          ? node('button', {
+            type: 'button',
+            className: 'primary',
+            text: 'Renforcer maintenant',
+            'data-course-learning-action': 'review',
+            'data-course-install-id': course.courseInstallId,
+            onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
+          })
+          : null;
         const objectiveSurface = renderObjectiveSurface(objectiveUi, {
           context: 'library',
           courseObjectives: course.objectives,
           progress: course.progress,
         });
-        const objectiveDetails = renderLibraryObjectiveDetails(objectiveSurface);
+        const objectiveDetails = objectiveSurface;
         const settingsDetails = node('details', { className: 'course-settings-details' }, [
-          node('summary', { text: 'Options du cours' }),
+          node('summary', { text: 'Renommer' }),
           renderCourseLabelForm(course),
         ]);
         list.append(node('article', {
-          className: 'course-card course-list-row',
+          className: 'course-card course-list-row learner-course-card',
           'data-course-install-id': course.courseInstallId,
         }, [
           node('div', { className: 'course-row-main' }, [
             node('h3', { text: course.title }),
-            course.subtitle ? node('p', { text: course.subtitle }) : null,
             node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
-            renderProgress(course.progress),
           ]),
-          node('div', { className: 'course-row-actions' }, [
-            courseAction,
+          objectiveDetails,
+          node('div', { className: 'course-row-actions learner-course-actions' }, [
             reviewAction,
+            courseAction,
           ]),
           settingsDetails,
-          objectiveDetails,
         ]));
       }
       section.append(list);
+      section.append(node('details', { className: 'library-management' }, [
+        node('summary', { text: 'Gérer la bibliothèque' }),
+        node('div', { className: 'library-management-body' }, [
+          node('h3', { text: 'Ajouter un cours' }),
+          importForm,
+          node('div', { className: 'library-reset-zone' }, [
+            node('h3', { text: 'Données locales' }),
+            renderResetAction(),
+          ]),
+        ]),
+      ]));
     }
     shell(section, { focusTarget: focus ? libraryTitle : null, announcement });
   }
   async function submitAnswer(activityRevisionId, answer) {
-    await run(() => runtime.answer(activityRevisionId, answer), renderFeedback);
+    await run(() => runtime.answer(activityRevisionId, answer), async (result) => {
+      if (result.scored !== true) {
+        if (result.nextActivity) {
+          const nextSession = await runtime.getSession();
+          renderSessionSnapshot(nextSession, { focus: false });
+          announce('Activité suivante.');
+        } else {
+          await renderLibrary({ focus: false, announcement: 'Cours terminé.' });
+        }
+        return;
+      }
+      renderFeedback(result);
+    });
   }
 
   function renderSessionSnapshot(session, { focus = true } = {}) {
@@ -621,85 +625,64 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       return renderLibrary({ announcement: message });
     }
     const activity = session.currentActivity;
-    const presentation = activity.presentation;
     const reviewMode = session.mode === 'review';
-    const activityTitle = node('h2', { id: 'activity-title', tabindex: '-1', text: activityPresentationHeading(presentation) });
-    const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel' }, [
+    const total = Number(session.progress?.total ?? 0);
+    const completed = Number(session.progress?.completed ?? 0);
+    const currentPosition = total > 0 ? Math.min(completed + 1, total) : 1;
+    const activityTitle = node('h2', {
+      id: 'activity-title',
+      className: 'sr-only',
+      text: reviewMode ? 'Activité à renforcer' : 'Activité en cours',
+    });
+    const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel learner-session-panel' }, [
       node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: () => renderLibrary() }),
-      node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
+      node('div', { className: 'activity-context-row' }, [
+        node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
+        node('p', { className: 'activity-position', text: `${currentPosition}/${total || 1} activités` }),
+      ]),
       activityTitle,
-      renderProgress(session.progress),
       renderServedActivityForm(
         activity,
         (answer) => submitAnswer(activity.activityRevisionId, answer),
       ),
-      reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
-      reviewMode ? node('button', {
-        type: 'button',
-        className: 'secondary',
-        text: 'Revenir au parcours',
-        onclick: () => run(() => runtime.startCourse(session.courseInstallId), renderSessionSnapshot),
-      }) : null,
     ]);
-    shell(section, { focusTarget: focus ? activityTitle : null });
+    shell(section);
+  }
+
+  function renderFeedbackLines(title, lines, className) {
+    if (!Array.isArray(lines) || lines.length === 0) return null;
+    return node('section', { className }, [
+      node('h3', { text: title }),
+      lines.length === 1
+        ? node('p', { text: lines[0] })
+        : node('ul', {}, lines.map(line => node('li', { text: line }))),
+    ]);
   }
 
   function renderFeedback(result) {
     const reviewMode = result.mode === 'review';
     const reviewRemaining = result.review?.remaining ?? 0;
     const complete = result.progress.isComplete;
-    const scored = result.scored === true;
-    const outcomeText = scored
-      ? (result.correct ? 'Réponse correcte' : 'Pas tout à fait')
-      : 'Activité terminée';
-    const outcome = node('p', {
-      className: scored
-        ? (result.correct ? 'feedback-correct' : 'feedback-incorrect')
-        : 'feedback-neutral',
-      role: 'status',
-      'aria-live': 'polite',
-      'aria-atomic': 'true',
-      tabindex: '-1',
+    const terminal = reviewMode ? reviewRemaining === 0 : complete === true;
+    const outcomeText = result.correct ? 'Bonne réponse' : 'À corriger';
+    const feedbackProjection = result.postAnswerFeedback ?? null;
+    const feedbackTitle = node('h2', {
+      id: 'feedback-title',
+      className: result.correct ? 'feedback-correct' : 'feedback-incorrect',
       text: outcomeText,
     });
-    const primaryAction = reviewMode
-      ? node('button', {
-        type: 'button',
-        className: 'primary',
-        'data-served-next-action': 'true',
-        text: reviewRemaining === 0 ? 'Retour à la bibliothèque' : 'Activité suivante à revoir',
-        onclick: reviewRemaining === 0 ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
-      })
-      : node('button', {
-        type: 'button',
-        className: 'primary',
-        'data-served-next-action': 'true',
-        text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
-        onclick: complete ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
-      });
-    const terminal = reviewMode ? reviewRemaining === 0 : complete === true;
-    const terminalObjectiveSurface = terminal && result.sessionDelta?.available === true
-      ? renderObjectiveSurface(objectiveUi, {
-        context: 'terminal-summary',
-        courseObjectives: result.courseObjectives,
-        progress: result.progress,
-        sessionDelta: result.sessionDelta,
-      })
+    const learnerAnswer = feedbackProjection
+      ? renderFeedbackLines('Votre réponse', feedbackProjection.learnerAnswer, 'feedback-answer feedback-learner-answer')
       : null;
-    const feedbackDetail = result.explanation
-      ? [
-        node('h2', { id: 'feedback-title', text: 'Explication' }),
+    const expectedAnswer = feedbackProjection
+      ? renderFeedbackLines('Réponse attendue', feedbackProjection.expectedAnswer, 'feedback-answer feedback-expected-answer')
+      : null;
+    const explanation = result.explanation
+      ? node('section', { className: 'feedback-explanation' }, [
+        node('h3', { text: 'Explication' }),
         node('p', { text: result.explanation }),
-      ]
-      : [
-        node('h2', { id: 'feedback-title', text: 'Progression enregistrée' }),
-        node('p', {
-          className: 'help',
-          text: scored
-            ? 'Votre réponse a été enregistrée.'
-            : 'Cette activité compte comme terminée, sans score de correction.',
-        }),
-      ];
+      ])
+      : null;
     const feedbackMedia =
       Array.isArray(result.feedbackMedia)
       && result.feedbackMedia.length
@@ -712,30 +695,47 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           [renderEmbeddedMediaSet(result.feedbackMedia)],
         )
         : null;
+    const terminalObjectiveSurface = terminal && result.sessionDelta?.available === true
+      ? renderObjectiveSurface(objectiveUi, {
+        context: 'terminal-summary',
+        courseObjectives: result.courseObjectives,
+        progress: result.progress,
+        sessionDelta: result.sessionDelta,
+      })
+      : null;
+    const primaryAction = reviewMode
+      ? node('button', {
+        type: 'button',
+        className: 'primary',
+        'data-served-next-action': 'true',
+        text: reviewRemaining === 0 ? 'Retour à la bibliothèque' : 'Activité suivante à revoir',
+        onclick: reviewRemaining === 0
+          ? () => renderLibrary()
+          : () => run(() => runtime.getSession(), renderSessionSnapshot),
+      })
+      : node('button', {
+        type: 'button',
+        className: 'primary',
+        'data-served-next-action': 'true',
+        text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
+        onclick: complete
+          ? () => renderLibrary()
+          : () => run(() => runtime.getSession(), renderSessionSnapshot),
+      });
     const section = node('section', {
       'aria-labelledby': 'feedback-title',
-      className: 'feedback-panel',
-      'data-served-feedback': scored ? 'scored' : 'non-scored',
+      className: 'feedback-panel learner-feedback-panel',
+      'data-served-feedback': 'scored',
     }, [
-      outcome,
-      ...feedbackDetail,
+      feedbackTitle,
+      learnerAnswer,
+      expectedAnswer,
+      explanation,
       ...(feedbackMedia ? [feedbackMedia] : []),
-      renderProgress(result.progress),
       terminalObjectiveSurface,
-      reviewMode ? node('p', {
-        text: reviewRemaining === 0
-          ? 'File À revoir vide. Cette réussite retire l’activité de la file.'
-          : `${reviewRemaining} activité${reviewRemaining > 1 ? 's' : ''} reste${reviewRemaining > 1 ? 'nt' : ''} à revoir.`,
-      }) : null,
       primaryAction,
-      reviewMode ? node('button', {
-        type: 'button',
-        className: 'secondary',
-        text: 'Revenir au parcours',
-        onclick: () => run(() => runtime.startCourse(result.courseInstallId), renderSessionSnapshot),
-      }) : null,
     ]);
-    shell(section, { focusTarget: outcome, announcement: outcomeText });
+    shell(section, { focusTarget: feedbackTitle, announcement: outcomeText });
   }
 
   async function initialize() {

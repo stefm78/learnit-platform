@@ -66,7 +66,7 @@ def main():
             out=page.evaluate("""async (id) => window.__LEARNIT_NEXT_TEST__.answer(id,{acknowledged:true})""",first["activityRevisionId"]);assert out["progress"]["completed"]==1 and out["progress"]["total"]==10
             page.reload();page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)");page.locator('[data-activity-presentation="flashcard"]').wait_for()
             s=page.evaluate("() => window.__LEARNIT_NEXT_TEST__.getSession()");assert s["currentActivity"]["activityRevisionId"]==second["activityRevisionId"]
-            assert page.get_by_text("1/10 activités",exact=True).count()==1
+            assert page.get_by_text("2/10 activités",exact=True).count()==1
             assert page.locator('[data-session-objective-buckets="true"]').count()==0
             assert page.locator('[data-session-progress-details="true"]').count()==0
             assert page.locator('[data-objective-progress-r15="true"]').count()==0

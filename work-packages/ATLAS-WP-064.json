@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-064",
+  "title": "Learner journey UX coherence R1",
+  "status": "in-progress",
+  "purpose": "Correct learner-journey composition after the real JOB 21 Human Replay HOLD_MAJOR_UX_FLOW without changing qualified learning semantics.",
+  "changeClass": "learner-journey-ux-coherence-r1",
+  "riskClass": "high",
+  "authority": {
+    "issue": 459,
+    "parentPullRequest": 458,
+    "decision": "GO_LEARNER_JOURNEY_UX_COHERENCE_R1",
+    "humanReplayVerdict": "HOLD_MAJOR_UX_FLOW",
+    "authorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_CHAT_2026-09-27"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-r15-objective-progress-restoration-r2",
+    "baseCommit": "2a10586bc50bc8736f1e318d31e138adeaaab5f0",
+    "parentResultSha": "360baf0ff1e548cf3d0f97421f2a9f28f8d380fc",
+    "parentPullRequest": 458
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/tests/**",
+      ".github/workflows/atlas-wp064-*.yml",
+      "qualification/STUDENT_V01_LEARNER_JOURNEY_UX_COHERENCE_R1_RESULT.md",
+      "work-packages/ATLAS-WP-064.json"
+    ],
+    "forbiddenSemanticPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ]
+  },
+  "invariants": [
+    "Library is learner-first; management is secondary and collapsed when courses exist.",
+    "R15 reservoirs and Priorité Learn-it are directly visible on each course card.",
+    "The qualified recommendation only arbitrates presentation of the primary CTA; recommendation computation is unchanged.",
+    "Exactly one presenter-owned pedagogical prompt/title and one continuation CTA are visible per activity state.",
+    "Non-scored lesson/flashcard transitions skip generic feedback after successful persistence.",
+    "Visible interaction chatter is removed while SR-only announcements remain.",
+    "Scored feedback shows learner answer, authored expected answer and explanation without UI rescoring.",
+    "Post-answer truth is projected only after successful persisted transition from existing authored answer keys.",
+    "Failed persistence reveals no answer key.",
+    "ActivityResponse, scoring, objective states, recommendation, sessionDelta v2, V5 contract/schema/validator, content/sources, H6/Factory evidence, V8 mechanics, hints/media/references remain unchanged.",
+    "apps/learnit-next/src/core/session.js remains blob 9909f0712de59211d14211ef1afc27bda87fcbf5.",
+    "Parent PR #458 remains DRAFT / OPEN / UNMERGED.",
+    "No merge, promotion, GO_LIMITED_PILOT, G5 PASS or student session is authorized."
+  ],
+  "execution": {
+    "branch": "student-v01/r2-learner-journey-ux-coherence-r1",
+    "pullRequestBase": "student-v01/r2-r15-objective-progress-restoration-r2",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionAuthorized": false,
+    "humanReplayRequired": true,
+    "resultFrozen": false,
+    "humanReplayStatus": "PENDING_MACHINE_QUALIFICATION"
+  },
+  "nextGate": "REAL_HUMAN_REPLAY_LEARNER_JOURNEY_UX_COHERENCE_R1",
+  "rollback": "Close the unmerged ATLAS-WP-064 pull request #460 and delete student-v01/r2-learner-journey-ux-coherence-r1; exact parent 2a10586bc50bc8736f1e318d31e138adeaaab5f0 and parent PR #458 remain unchanged.",
+  "requiredEvidence": [
+    "Desktop 1365x768 and mobile/touch 390x844 deterministic browser captures cover all 12 JOB 22 Human Replay scenes.",
+    "Empty and non-empty Library hierarchy, direct R15 reservoirs, collapsed management, contextual rename and recommendation-led CTA arbitration pass.",
+    "Lesson and flashcard expose one transition CTA and skip generic non-scored feedback after successful persistence.",
+    "Scored matching and QCM feedback show learner response, authored expected correction, explanation and one next action; synthetic fill/order/classify post-answer projection passes.",
+    "No learner-safe pre-response presentation contains answer-key fields and failed persistence has no post-answer projection path.",
+    "JOB 20 provenance and JOB 21 R15 regressions pass while apps/learnit-next/src/core/session.js remains blob 9909f0712de59211d14211ef1afc27bda87fcbf5.",
+    "V4, V5 validator 11/11, Factory source governance 20/20, V5 runtime, hints, references NONE, feedback media, V8 presenters, false-empty, exact 10-activity/39-minute showcase, reload/resume and scoring authority pass.",
+    "Final build is produced twice independently with byte equality and source manifest validation.",
+    "Repository governance passes on the exact RESULT_SHA.",
+    "An immutable HTTPS Human Replay bound to the exact RESULT_SHA is live-smoke-tested before the external human gate."
+  ],
+  "adversarialTests": [
+    "Any answer key present in learner-safe presentation or DOM before a successful response transition fails qualification.",
+    "A failed persistence path that can reveal authored expected answers fails qualification.",
+    "Any UI-side scoring or recomputation of objective state, recommendation or sessionDelta fails qualification.",
+    "Any second visible prompt/title or second transition CTA in an activity state fails qualification.",
+    "Any non-scored lesson/flashcard generic feedback page before the next non-terminal activity fails qualification.",
+    "Any current course card that hides R15 reservoirs/priority behind a disclosure or exposes destructive management by default fails qualification.",
+    "Any mutation of protected semantic core, V5 contract/content/source, H6/Factory evidence or parent PR state fails qualification."
+  ],
+  "nonGoals": [
+    "Changing ActivityResponse, scoring, objective-state semantics, recommendation semantics, sessionDelta v2 or V5 contract/schema/validator.",
+    "Changing pedagogical kit content, learner brief, Role B sources, Factory context, H6 semantic review or Factory evidence.",
+    "Changing V8 drag, keyboard, pointer/touch, shuffle, hints, media or references mechanics beyond transition composition.",
+    "Returning to the old R15 runtime or reactivating legacy qcm/fill-only Atlas behavior.",
+    "Declaring GO_LIMITED_PILOT, G5 PASS, merging, promoting or launching a student session."
+  ],
+  "independentReview": [
+    "JOB 20 session provenance tests and JOB 21 R15 semantic/browser tests are replayed on the JOB 22 candidate.",
+    "V8 presenter tests cover QCM, Fill, Lesson, Flashcard, Matching, Order and Classify response shapes and pointer/keyboard/touch mechanics.",
+    "The exact V5 10-activity/39-minute showcase is replayed in desktop and mobile/touch with deterministic screenshots.",
+    "Repository governance and exact-head qualification must pass before evidence-only closeout.",
+    "The final Human Replay decision remains external: machine success stops at HUMAN_DECISION_REQUIRED."
+  ]
+}

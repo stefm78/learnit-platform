@@ -1,0 +1,388 @@
+name: ATLAS WP064 immutable learner journey human replay deploy
+
+on:
+  push:
+    branches: [student-v01/r2-learner-journey-ux-coherence-r1]
+    paths:
+      - 'qualification/STUDENT_V01_LEARNER_JOURNEY_UX_COHERENCE_R1_RESULT.md'
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atlas-wp064-immutable-human-replay
+  cancel-in-progress: false
+
+env:
+  BASE_SITE_RUN_ID: '36313082023'
+  BASE_SITE_ARTIFACT: atlas-wp063-human-replay-c5353a467553dee8ea290a7de3fc294f2fdaed2f
+  STABLE_LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  WP063_HEAD: 360baf0ff1e548cf3d0f97421f2a9f28f8d380fc
+  WP063_SHA256: 4f74792365d5b6462a7784e4d9568baf6b44d12435155991e64fdade6e7adb88
+  KIT_SHA256: aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      site_artifact: ${{ steps.names.outputs.site_artifact }}
+      result_sha: ${{ steps.identity.outputs.result_sha }}
+      artifact_sha: ${{ steps.identity.outputs.artifact_sha }}
+      artifact_bytes: ${{ steps.identity.outputs.artifact_bytes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: student-v01/r2-learner-journey-ux-coherence-r1
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Parse frozen RESULT identity
+        id: identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' > "$RUNNER_TEMP/result.env"
+          import re
+          from pathlib import Path
+          p=Path('qualification/STUDENT_V01_LEARNER_JOURNEY_UX_COHERENCE_R1_RESULT.md')
+          text=p.read_text(encoding='utf-8')
+          def pick(label,pattern):
+              m=re.search(rf'^{label}: `({pattern})`$',text,re.M)
+              assert m,label
+              return m.group(1)
+          print('RESULT_SHA='+pick('RESULT_SHA','[0-9a-f]{40}'))
+          print('FINAL_BUILD_SHA256='+pick('FINAL_BUILD_SHA256','[0-9a-f]{64}'))
+          print('FINAL_BUILD_BYTES='+pick('FINAL_BUILD_BYTES','[0-9]+'))
+          print('QUALIFICATION_RUN_ID='+pick('QUALIFICATION_RUN_ID','[0-9]+'))
+          PY
+          cat "$RUNNER_TEMP/result.env" >> "$GITHUB_ENV"
+          source "$RUNNER_TEMP/result.env"
+          echo "result_sha=$RESULT_SHA" >> "$GITHUB_OUTPUT"
+          echo "artifact_sha=$FINAL_BUILD_SHA256" >> "$GITHUB_OUTPUT"
+          echo "artifact_bytes=$FINAL_BUILD_BYTES" >> "$GITHUB_OUTPUT"
+
+      - name: Revalidate frozen SHA and evidence-only closeout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "$RESULT_SHA^{commit}"
+          test "$(git merge-base "$RESULT_SHA" HEAD)" = "$RESULT_SHA"
+          python - "$RESULT_SHA" <<'PY'
+          import subprocess,sys
+          result=sys.argv[1]
+          changed=set(subprocess.check_output(['git','diff','--name-only',result,'HEAD'],text=True).splitlines())
+          assert changed <= {'qualification/STUDENT_V01_LEARNER_JOURNEY_UX_COHERENCE_R1_RESULT.md','.github/workflows/atlas-wp064-human-replay-deploy.yml'},changed
+          PY
+          test "$(git rev-parse "$RESULT_SHA:apps/learnit-next/src/core/session.js")" = 9909f0712de59211d14211ef1afc27bda87fcbf5
+          parent_state="$(git rev-parse 2a10586bc50bc8736f1e318d31e138adeaaab5f0)"
+          test "$parent_state" = 2a10586bc50bc8736f1e318d31e138adeaaab5f0
+          git worktree add --detach "$RUNNER_TEMP/result-tree" "$RESULT_SHA"
+          test "$(git -C "$RUNNER_TEMP/result-tree" rev-parse HEAD)" = "$RESULT_SHA"
+
+      - name: Repository governance on exact RESULT_SHA
+        working-directory: ${{ runner.temp }}/result-tree
+        run: python tools/validate_repository.py
+
+      - name: Build exact RESULT_SHA twice with byte identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          tree="$RUNNER_TEMP/result-tree"
+          python -B "$tree/apps/learnit-next/build.py" --output "$RUNNER_TEMP/result-a.html"
+          python -B "$tree/apps/learnit-next/build.py" --output "$RUNNER_TEMP/result-b.html"
+          cmp -s "$RUNNER_TEMP/result-a.html" "$RUNNER_TEMP/result-b.html"
+          test "$(sha256sum "$RUNNER_TEMP/result-a.html" | awk '{print $1}')" = "$FINAL_BUILD_SHA256"
+          test "$(wc -c < "$RUNNER_TEMP/result-a.html" | tr -d ' ')" = "$FINAL_BUILD_BYTES"
+          echo RESULT_SHA_GOVERNANCE=PASS
+          echo RESULT_SHA_DOUBLE_BUILD=PASS
+
+      - name: Restore exact verified WP063 Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BASE_SITE_ARTIFACT }}
+          path: ${{ runner.temp }}/site
+          github-token: ${{ github.token }}
+          run-id: ${{ env.BASE_SITE_RUN_ID }}
+
+      - name: Verify preserved Pages base
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          test "$(sha256sum "$site/index.html" | awk '{print $1}')" = "$STABLE_LEARNER_SHA256"
+          test "$(sha256sum "$site/human-replay/$WP063_HEAD/index.html" | awk '{print $1}')" = "$WP063_SHA256"
+          grep -q "\"productHead\":\"$WP063_HEAD\"" "$site/human-replay/$WP063_HEAD/candidate-identity.json"
+          echo EXISTING_REPLAY_HISTORY_PRESERVED=PASS
+
+      - name: Download exact JOB22 qualification evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: atlas-wp064-learner-journey-evidence-${{ env.RESULT_SHA }}
+          path: ${{ runner.temp }}/qualification-evidence
+          github-token: ${{ github.token }}
+          run-id: ${{ env.QUALIFICATION_RUN_ID }}
+
+      - name: Assemble immutable JOB22 replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          tree="$RUNNER_TEMP/result-tree"
+          dir="$RUNNER_TEMP/site/human-replay/$RESULT_SHA"
+          mkdir -p "$dir/fixtures" "$dir/evidence"
+          cp "$RUNNER_TEMP/result-a.html" "$dir/index.html"
+          cp "$RUNNER_TEMP/result-a.html" "$dir/learnit-next.html"
+          cp "$tree/showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json" "$dir/fixtures/nombres_complexes_student_v01_v5.json"
+          test "$(sha256sum "$dir/fixtures/nombres_complexes_student_v01_v5.json" | awk '{print $1}')" = "$KIT_SHA256"
+          find "$RUNNER_TEMP/qualification-evidence" -type f -name '*.png' -path '*atlas-wp064-learner-journey-evidence*' -exec cp {} "$dir/evidence/" \;
+          test "$(find "$dir/evidence" -type f -name '*.png' | wc -l | tr -d ' ')" = 24
+
+          python - "$dir/fixtures/nombres_complexes_student_v01_v5.json" "$dir/fixtures/nombres_complexes_student_v01_v5-answer-guide.txt" <<'PY'
+          import json,sys
+          source,target=sys.argv[1:]
+          data=json.load(open(source,encoding='utf-8'))
+          lines=['Guide de réponses — Human Replay JOB 22 learner journey UX coherence R1','Kit exact : Nombres complexes V5 — 10 activités — 39 minutes.','']
+          for course in data['courses']:
+              lines += [course['title'], '='*len(course['title'])]
+              for index,a in enumerate(course['activities'],1):
+                  label=a.get('prompt') or a.get('title') or a.get('front') or a['activityRevisionId']
+                  lines.append(f"{index}. [{a['type']}] {label}")
+                  t=a['type']
+                  if t=='qcm':
+                      by={x['choiceId']:x['label'] for x in a['choices']}; answer=by[a['correctChoiceId']]
+                  elif t=='lesson': answer='Lire puis utiliser le bouton Continuer unique.'
+                  elif t=='flashcard': answer='Révéler la carte puis utiliser le bouton Continuer unique.'
+                  elif t=='matching':
+                      left={x['itemId']:x['label'] for x in a['leftItems']}; right={x['itemId']:x['label'] for x in a['rightItems']}
+                      answer=' ; '.join(f"{left[x['leftItemId']]} → {right[x['rightItemId']]}" for x in a['matches'])
+                  elif t=='order':
+                      labels={x['itemId']:x['label'] for x in a['items']}; answer=' → '.join(labels[x] for x in a['correctOrder'])
+                  else: answer='Suivre le contrôle de l’activité.'
+                  lines += [f'   Réponse/interaction attendue : {answer}','']
+          open(target,'w',encoding='utf-8').write('\n'.join(lines)+'\n')
+          PY
+
+          cat > "$dir/HUMAN_REPLAY_CHECKLIST.md" <<EOF
+          # Human Replay — JOB 22 learner journey UX coherence R1
+
+          RESULT_SHA exact : $RESULT_SHA
+          Parcours exact : Nombres complexes V5 — 10 activités — 39 minutes.
+          Viewports de référence : desktop 1365×768 ; mobile/touch 390×844.
+
+          Vérifier explicitement :
+          - Bibliothèque vide centrée sur l'import, sans action destructive visible ;
+          - après import, carte cours visible en premier et gestion secondaire repliée ;
+          - réservoirs R15 et Priorité Learn-it visibles directement ;
+          - recommandation cohérente avec le CTA principal ;
+          - renommage léger et contextuel ;
+          - un seul prompt/titre pédagogique visible par activité ;
+          - un seul CTA de transition ;
+          - lesson/flashcard passent directement à l'activité suivante sans feedback générique ;
+          - narration de manipulation non visible mais annonces lecteur d'écran conservées ;
+          - feedback scoré : réponse de l'élève + réponse attendue + explication ;
+          - aucune solution visible avant réponse ;
+          - matching/order/classify restent propres au clavier, pointeur et tactile ;
+          - aucun rectangle noir statique assimilable à une sélection ;
+          - densité et absence de débordement horizontal sur mobile ;
+          - reload/resume cohérent ;
+          - confiance pour un replay humain réel.
+
+          Décision attendue : HUMAN_DECISION_REQUIRED.
+          Ne pas déclarer GO_LIMITED_PILOT ni G5: PASS depuis cette machine.
+          EOF
+
+          kit_sha="$(sha256sum "$dir/fixtures/nombres_complexes_student_v01_v5.json" | awk '{print $1}')"
+          guide_sha="$(sha256sum "$dir/fixtures/nombres_complexes_student_v01_v5-answer-guide.txt" | awk '{print $1}')"
+          checklist_sha="$(sha256sum "$dir/HUMAN_REPLAY_CHECKLIST.md" | awk '{print $1}')"
+          python - "$dir" "$RESULT_SHA" "$FINAL_BUILD_SHA256" "$FINAL_BUILD_BYTES" "$kit_sha" "$guide_sha" "$checklist_sha" "$QUALIFICATION_RUN_ID" <<'PY'
+          import hashlib,json,pathlib,sys
+          d=pathlib.Path(sys.argv[1]); result,artifact_sha,artifact_bytes,kit_sha,guide_sha,checklist_sha,run=sys.argv[2:]
+          identity={
+            'schema':'learnit.wp064.human-replay.identity.v1','workPackage':'ATLAS-WP-064','issue':459,'pullRequest':460,
+            'productHead':result,'learnerArtifactBytes':int(artifact_bytes),'learnerArtifactSha256':artifact_sha,
+            'kit':'fixtures/nombres_complexes_student_v01_v5.json','kitSha256':kit_sha,
+            'answerGuide':'fixtures/nombres_complexes_student_v01_v5-answer-guide.txt','answerGuideSha256':guide_sha,
+            'checklist':'HUMAN_REPLAY_CHECKLIST.md','checklistSha256':checklist_sha,'qualificationRunId':int(run),
+            'parentHead':'2a10586bc50bc8736f1e318d31e138adeaaab5f0','parentPullRequest':458,
+            'promotion':False,'humanGateRequired':True,'goLimitedPilotDeclared':False,'g5PassDeclared':False
+          }
+          (d/'candidate-identity.json').write_text(json.dumps(identity,separators=(',',':'))+'\n',encoding='utf-8')
+          files=[]
+          for p in sorted(x for x in d.rglob('*') if x.is_file() and x.name not in {'bundle-manifest.json','REPLAY_BUNDLE_SHA256.txt'}):
+              data=p.read_bytes(); files.append({'path':p.relative_to(d).as_posix(),'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data)})
+          manifest={'schema':'learnit.wp064.human-replay.bundle.v1','productHead':result,'files':files,'promotion':False,'humanGateRequired':True}
+          (d/'bundle-manifest.json').write_text(json.dumps(manifest,separators=(',',':'))+'\n',encoding='utf-8')
+          PY
+          identity_sha="$(sha256sum "$dir/candidate-identity.json" | awk '{print $1}')"
+          manifest_sha="$(sha256sum "$dir/bundle-manifest.json" | awk '{print $1}')"
+          tar --sort=name --mtime='UTC 2020-01-01' --owner=0 --group=0 --numeric-owner -cf "$RUNNER_TEMP/wp064-human-replay.tar" -C "$dir" .
+          replay_bundle_sha="$(sha256sum "$RUNNER_TEMP/wp064-human-replay.tar" | awk '{print $1}')"
+          printf 'sha256:%s\n' "$replay_bundle_sha" > "$dir/REPLAY_BUNDLE_SHA256.txt"
+          printf 'sha256:%s\n' "$replay_bundle_sha" > "$RUNNER_TEMP/wp064-human-replay.sha256"
+          echo "REPLAY_BUNDLE_SHA256=$replay_bundle_sha" >> "$GITHUB_ENV"
+          echo "CANDIDATE_IDENTITY_SHA256=$identity_sha" >> "$GITHUB_ENV"
+          echo "BUNDLE_MANIFEST_SHA256=$manifest_sha" >> "$GITHUB_ENV"
+
+      - name: Install local replay browser
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Local smoke exact immutable replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          python -m http.server 8765 --directory "$site" >"$RUNNER_TEMP/http.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" || true' EXIT
+          python - "$RESULT_SHA" "$site/human-replay/$RESULT_SHA/fixtures/nombres_complexes_student_v01_v5.json" <<'PY'
+          import sys
+          from playwright.sync_api import sync_playwright
+          head,kit=sys.argv[1:]
+          with sync_playwright() as p:
+              b=p.chromium.launch(headless=True)
+              page=b.new_page(viewport={'width':1365,'height':768})
+              page.goto(f'http://127.0.0.1:8765/human-replay/{head}/',wait_until='load')
+              page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__)')
+              page.locator('#kit-file').set_input_files(kit)
+              page.get_by_role('button',name='Ajouter à la bibliothèque').click()
+              card=page.locator('.course-card[data-course-install-id]').first;card.wait_for()
+              assert card.locator('[data-objective-progress-r15="true"]').count()==1
+              assert page.locator('.library-management').get_attribute('open') is None
+              card.get_by_role('button',name='Commencer').click()
+              page.locator('[data-activity-presentation="lesson"]').wait_for()
+              assert page.locator('[data-served-activity-submit="true"]').count()==1
+              page.locator('[data-served-activity-submit="true"]').click()
+              page.locator('[data-activity-presentation="flashcard"]').wait_for()
+              assert page.locator('[data-served-feedback]').count()==0
+              b.close()
+          print('WP064_LOCAL_REPLAY_SMOKE=PASS')
+          PY
+
+      - name: Name verified site artifact
+        id: names
+        run: echo "site_artifact=atlas-wp064-human-replay-site-${RESULT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified full site
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.site_artifact }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/site
+
+      - name: Upload deterministic JOB22 replay bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp064-human-replay-${{ env.RESULT_SHA }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/wp064-human-replay.tar
+            ${{ runner.temp }}/wp064-human-replay.sha256
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download verified full site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.site_artifact }}
+          path: ${{ runner.temp }}/site
+
+      - name: Recheck exact candidate before Pages upload
+        shell: bash
+        env:
+          RESULT_SHA: ${{ needs.verify.outputs.result_sha }}
+          FINAL_BUILD_SHA256: ${{ needs.verify.outputs.artifact_sha }}
+          FINAL_BUILD_BYTES: ${{ needs.verify.outputs.artifact_bytes }}
+        run: |
+          set -euo pipefail
+          replay="$RUNNER_TEMP/site/human-replay/$RESULT_SHA/index.html"
+          test "$(sha256sum "$replay" | awk '{print $1}')" = "$FINAL_BUILD_SHA256"
+          test "$(wc -c < "$replay" | tr -d ' ')" = "$FINAL_BUILD_BYTES"
+          test "$(sha256sum "$RUNNER_TEMP/site/human-replay/$WP063_HEAD/index.html" | awk '{print $1}')" = "$WP063_SHA256"
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+      - name: Deploy immutable replay
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Install live smoke browser
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Live HTTPS smoke exact RESULT_SHA
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          RESULT_SHA: ${{ needs.verify.outputs.result_sha }}
+          FINAL_BUILD_SHA256: ${{ needs.verify.outputs.artifact_sha }}
+          FINAL_BUILD_BYTES: ${{ needs.verify.outputs.artifact_bytes }}
+        run: |
+          set -euo pipefail
+          base="${PAGE_URL}human-replay/${RESULT_SHA}/"
+          curl --fail --silent --show-error "$base" -o "$RUNNER_TEMP/live.html"
+          curl --fail --silent --show-error "${base}candidate-identity.json" -o "$RUNNER_TEMP/identity.json"
+          curl --fail --silent --show-error "${base}bundle-manifest.json" -o "$RUNNER_TEMP/manifest.json"
+          curl --fail --silent --show-error "${base}fixtures/nombres_complexes_student_v01_v5.json" -o "$RUNNER_TEMP/kit.json"
+          test "$(sha256sum "$RUNNER_TEMP/live.html" | awk '{print $1}')" = "$FINAL_BUILD_SHA256"
+          test "$(wc -c < "$RUNNER_TEMP/live.html" | tr -d ' ')" = "$FINAL_BUILD_BYTES"
+          test "$(sha256sum "$RUNNER_TEMP/kit.json" | awk '{print $1}')" = "$KIT_SHA256"
+          grep -q "\"productHead\":\"${RESULT_SHA}\"" "$RUNNER_TEMP/identity.json"
+
+          python - "$base" "$RUNNER_TEMP/kit.json" <<'PY'
+          import sys
+          from playwright.sync_api import sync_playwright
+          url,kit=sys.argv[1:]
+          with sync_playwright() as p:
+              b=p.chromium.launch(headless=True)
+              for viewport,touch in [({'width':1365,'height':768},False),({'width':390,'height':844},True)]:
+                  page=b.new_page(viewport=viewport,has_touch=touch,is_mobile=touch)
+                  errors=[];page.on('pageerror',lambda e: errors.append(str(e)))
+                  page.goto(url,wait_until='load');page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__)')
+                  page.locator('#kit-file').set_input_files(kit)
+                  page.get_by_role('button',name='Ajouter à la bibliothèque').click()
+                  card=page.locator('.course-card[data-course-install-id]').first;card.wait_for()
+                  assert card.locator('[data-objective-progress-r15="true"]').count()==1
+                  assert page.locator('.library-management').get_attribute('open') is None
+                  card.get_by_role('button',name='Commencer').click()
+                  page.locator('[data-activity-presentation="lesson"]').wait_for()
+                  assert page.locator('[data-served-activity-submit="true"]').count()==1
+                  page.locator('[data-served-activity-submit="true"]').click()
+                  page.locator('[data-activity-presentation="flashcard"]').wait_for()
+                  assert page.locator('[data-served-feedback]').count()==0
+                  assert not errors,errors
+                  page.close()
+              b.close()
+          print('REPLAY_HTTPS_LIVE_SMOKE=PASS')
+          PY
+          cat > wp064-live-evidence.json <<EOF
+          {"schema":"learnit.wp064.human-replay.live.v1","productHead":"$RESULT_SHA","replayUrl":"$base","replayHttpsLiveSmoke":"PASS","promotion":false,"humanGateRequired":true}
+          EOF
+          echo "REPLAY_URL=$base" >> "$GITHUB_STEP_SUMMARY"
+          echo "REPLAY_HTTPS_LIVE_SMOKE=PASS" >> "$GITHUB_STEP_SUMMARY"
+          echo "HUMAN_REPLAY_STATUS=HUMAN_DECISION_REQUIRED" >> "$GITHUB_STEP_SUMMARY"
+          echo "NEXT=REAL_HUMAN_REPLAY_LEARNER_JOURNEY_UX_COHERENCE_R1" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload live evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp064-human-replay-live-${{ needs.verify.outputs.result_sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: wp064-live-evidence.json

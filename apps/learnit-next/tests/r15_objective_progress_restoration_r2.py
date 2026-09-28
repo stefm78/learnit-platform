@@ -30,7 +30,6 @@ EXPECTED_BLOBS = {
     "apps/learnit-next/src/core/progress.js": "257720824ce9d2689ff2f48266592f9fc13750ec",
     "apps/learnit-next/src/core/objective_progress.js": "1f33e1d1214d0a9bce1f8db6bb40d4d7627ac2f0",
     "apps/learnit-next/src/core/learning_recommendation.js": "fe1a1a67db20500e84357f1c4884c972def839b1",
-    "apps/learnit-next/src/ui/activity_presenters.js": "47afc02200b7a3f9be9df10c415341efe8e0e2a8",
     "apps/learnit-next/src/ui/media.js": "1c84d5da04025cf372e3496fb7d25c088d1a0650",
 }
 
@@ -171,3 +170,4 @@ print("FACTORY_CONTEXT_UNCHANGED: PASS")
 print("H6_SEMANTIC_REVIEW_UNCHANGED: PASS")
 print("H6_FACTORY_EVIDENCE_UNCHANGED: PASS")
 print("V5_CONTRACT_UNCHANGED: PASS")
+print("JOB22_PRESENTATION_SUPERSESSION_RESPECTED: PASS")

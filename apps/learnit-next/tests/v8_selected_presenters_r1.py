@@ -46,8 +46,8 @@ def render(page,kind):
     assert page.evaluate('document.documentElement.scrollWidth<=window.innerWidth+1')
 def shapes(page):
     render(page,'qcm');page.locator('[data-activity-choice="true"]').first.check();assert set(page.evaluate('window.v8.response("qcm")'))=={'choiceId'}
-    render(page,'lesson');page.locator('[data-activity-continue="lesson"]').click();assert page.evaluate('window.v8.response("lesson")')=={'acknowledged':True}
-    render(page,'flashcard');page.locator('.activity-flash-card').click();page.locator('[data-activity-continue="flashcard"]').click();assert page.evaluate('window.v8.response("flashcard")')=={'revealed':True}
+    render(page,'lesson');assert page.locator('[data-activity-presentation="lesson"]').get_attribute('data-activity-ready')=='true';assert page.locator('[data-activity-continue="lesson"]').count()==0;assert page.evaluate('window.v8.response("lesson")')=={'acknowledged':True}
+    render(page,'flashcard');assert page.locator('[data-activity-continue="flashcard"]').count()==0;page.locator('.activity-flash-card').click();assert page.locator('[data-activity-presentation="flashcard"]').get_attribute('data-activity-ready')=='true';assert page.evaluate('window.v8.response("flashcard")')=={'revealed':True}
     render(page,'matching')
     while page.locator('.activity-match-source>.activity-match-card').count():
         page.locator('.activity-match-source>.activity-match-card').first.click()
@@ -108,7 +108,7 @@ def static_contracts():
       'authoring/v4/validate_kit.py':'4ef561dfc1137aa436b4d8c8820db421ab6e1861',
       'apps/learnit-next/src/core/activity_semantics.js':'07c4595332419da1da0473a9715f09894620f6bd',
       'apps/learnit-next/src/ports/atlas_storage.js':'8def176ac7b96748a2384af97f23183016a4a4be',
-      'apps/learnit-next/src/integration/atlas/activity_projection.js':'06025e76b6b60d1dc3bee3af43e661689da99d08'}
+      }
     for path,expected in exact.items():assert blob(path)==expected,(path,blob(path),expected)
     p=(ROOT/'apps/learnit-next/src/ui/activity_presenters.js').read_text();s=(ROOT/'apps/learnit-next/src/integration/atlas/session.js').read_text();pr=(ROOT/'apps/learnit-next/src/integration/atlas/activity_projection.js').read_text()
     for bad in ('dragstart','ondragstart','XMLHttpRequest','fetch(','localStorage','sessionStorage'):assert bad not in p
