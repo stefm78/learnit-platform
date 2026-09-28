@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: write
   pages: write
   id-token: write
 
@@ -320,7 +321,7 @@ jobs:
 
       - name: Install live smoke browser
         run: |
-          python -m pip install --disable-pip-check --no-cache-dir playwright==1.55.0 || python -m pip install --disable-pip-version-check --no-cache-dir playwright==1.55.0
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright==1.55.0
           python -m playwright install --with-deps chromium
 
       - name: Live HTTPS smoke exact RESULT_SHA
@@ -374,3 +375,18 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           path: wp066-live-evidence.json
+
+      - name: Publish governed replay receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT_SHA: ${{ needs.verify.outputs.result_sha }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          gh issue comment 463 --repo "$GITHUB_REPOSITORY" --body "JOB24_HR23_REPLAY_RECEIPT
+          HUMAN_REPLAY_RUN_ID: `$GITHUB_RUN_ID`
+          RESULT_SHA: `$RESULT_SHA`
+          REPLAY_URL: `${PAGE_URL}human-replay/${RESULT_SHA}/`
+          REPLAY_HTTPS_LIVE_SMOKE: `PASS`
+          HUMAN_REPLAY_STATUS: `HUMAN_DECISION_REQUIRED`
+          GO_LIMITED_PILOT: `NOT_DECLARED`
+          G5_PASS: `NOT_DECLARED`"
