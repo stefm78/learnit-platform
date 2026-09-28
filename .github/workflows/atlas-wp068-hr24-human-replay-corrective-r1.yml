@@ -80,7 +80,7 @@ jobs:
           print('JOB26_SCOPE=PASS')
           PY
 
-      - name: Verify protected pedagogical engines byte-identical to JOB24
+      - name: Verify protected pedagogical engines byte-identical to JOB25 frozen product
         shell: bash
         run: |
           set -euo pipefail
@@ -103,6 +103,8 @@ jobs:
           test "$(git rev-parse HEAD:apps/learnit-next/src/core/learning_recommendation.js)" = fe1a1a67db20500e84357f1c4884c972def839b1
           test "$(git rev-parse HEAD:apps/learnit-next/src/core/progress.js)" = 257720824ce9d2689ff2f48266592f9fc13750ec
           test "$(git rev-parse HEAD:apps/learnit-next/src/core/session.js)" = 9909f0712de59211d14211ef1afc27bda87fcbf5
+          test "$(sha256sum showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json | awk '{print $1}')" = aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b
+          echo EXACT_V5_KIT_SHA256=PASS
           echo ENGINE_BLOB_IDENTITY=PASS
 
       - name: Syntax and JOB26 corrective structural/service contract
