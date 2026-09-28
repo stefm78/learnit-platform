@@ -185,7 +185,7 @@ def main() -> int:
         # Import route is real and immediately useful.
         trigger.click()
         page.get_by_role("button", name="Importer un cours").click()
-        page.locator(".library-management").wait_for()
+        page.locator(".library-file-picker").wait_for()
         import_kit(page)
         page.wait_for_function("""() => document.querySelector('.nav-drawer-link[data-shell-view="today"]')?.disabled === false""")
         card = page.locator(".course-card[data-course-install-id]").first
