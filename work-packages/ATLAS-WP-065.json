@@ -51,6 +51,24 @@
       "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
       "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
       "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
     ]
   },
   "audit": {
@@ -113,5 +131,32 @@
     "Immutable HTTPS Human Replay and exact kit are published before the external human decision."
   ],
   "nextGate": "REAL_HUMAN_REPLAY_HR22_CORRECTIVE_IMPLEMENTATION_R1",
-  "rollback": "Close unmerged PR #462 and delete student-v01/r2-hr22-corrective-implementation-r1; exact parent c5f82d27b67c680cf18f07a79f390391a83d7a68 and parent PR #460 remain unchanged."
+  "rollback": "Close unmerged PR #462 and delete student-v01/r2-hr22-corrective-implementation-r1; exact parent c5f82d27b67c680cf18f07a79f390391a83d7a68 and parent PR #460 remain unchanged.",
+  "adversarialTests": [
+    "Any mutation of protected semantic core, ActivityResponse, scoring, objective-state or recommendation authority fails qualification.",
+    "Any completed activity path that is presented as mastered while an objective remains non-mastered fails qualification.",
+    "Any completed course with a real corrective review queue that suppresses the review action fails qualification.",
+    "Any correct scored answer that repeats an identical expected-answer panel fails qualification.",
+    "Any matching/classify post-answer comparison that relies on bullet or arrow notation instead of explicit learner/expected labels fails qualification.",
+    "Any removal of the R15 reservoir interaction or absence of explicit selected-state accessibility semantics fails qualification.",
+    "Any invented chapter/phase/group hierarchy not encoded by the V5 contract/authored kit fails qualification.",
+    "Any failed persistence path that reveals authored answer truth fails qualification."
+  ],
+  "nonGoals": [
+    "Changing ActivityResponse, scoring, objective-state or recommendation semantics.",
+    "Changing sessionDelta V2, learnit.kit.v5 schema/validator, authored content or Factory/H6 evidence.",
+    "Redesigning the Library with search, filters, shelves or a new taxonomy.",
+    "Inventing chapter, phase, group or bucket hierarchy.",
+    "Changing V8 activity interaction mechanics.",
+    "Merging, promoting, declaring GO_LIMITED_PILOT or G5 PASS, or starting a student session."
+  ],
+  "independentReview": [
+    "Replay JOB20 session provenance V2 regression on the corrective candidate.",
+    "Replay JOB21 R15 static and browser contracts with the selected-state extension.",
+    "Replay JOB22 static learner-journey invariants while accepting only the explicitly authorized feedback/terminal composition changes.",
+    "Run V4/V5 validators, V5 Factory governance, V5 runtime/showcase and selected V8 presenter regressions.",
+    "Run exact mobile Human-Replay browser coverage for one-course, scale, terminal validate, terminal review, feedback, selection and reload/resume.",
+    "Build twice with byte equality, validate source manifest and repository governance on the exact candidate.",
+    "Stop after publishing immutable Human Replay with HUMAN_DECISION_REQUIRED."
+  ]
 }
