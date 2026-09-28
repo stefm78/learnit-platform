@@ -435,10 +435,15 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             type: 'button',
             className: 'danger-quiet',
             text: 'Confirmer la réinitialisation',
-            onclick: () => run(() => runtime.resetNextData(), () => {
+            onclick: () => run(() => runtime.resetNextData(), async (report) => {
+              const remaining = Object.values(report?.counts ?? {}).reduce(
+                (total, value) => total + (Number.isInteger(value) ? value : 0),
+                0,
+              );
+              if (remaining !== 0) throw new Error('La réinitialisation n’a pas vidé toutes les données locales.');
               const message = 'Les données locales ont été supprimées.';
               notice = renderNotice([message], 'success');
-              return renderLibrary({ announcement: message });
+              await renderLibrary({ announcement: message });
             }),
           });
           const cancelButton = node('button', {
@@ -463,6 +468,24 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     return container;
   }
 
+  function objectiveStatusLabel(status) {
+    return ({
+      'not-started': 'À découvrir',
+      training: 'En apprentissage',
+      'review-needed': 'À renforcer',
+      'ready-for-validation': 'À confirmer',
+      'validated-recently': 'Acquis récemment',
+    })[status] ?? 'Objectifs';
+  }
+
+  function courseObjectiveSummary(course) {
+    const recommendation = course.progress.recommendation ?? null;
+    if (!recommendation?.objectiveId) return 'Voir les objectifs';
+    const objective = (course.objectives ?? []).find(item => item.objectiveId === recommendation.objectiveId);
+    if (!objective) return 'Voir les objectifs';
+    return `${objectiveStatusLabel(recommendation.status)} — ${objective.label}`;
+  }
+
   function renderCourseCompletionGuidance(course, reviewQueue) {
     if (!course.progress.isComplete) return null;
     const recommendation = course.progress.recommendation ?? null;
@@ -470,9 +493,12 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     if (recommendation?.action === 'correct' && reviewQueue.total > 0) {
       detail = 'Un objectif reste à renforcer. Reprenez une activité incorrecte pour continuer.';
     } else if (recommendation?.action === 'validate') {
-      detail = 'Un objectif est à confirmer. Toutes les activités disponibles ont été réalisées ; Learn-it ne propose pas encore de nouvelle validation.';
+      const acquired = (course.progress.objectives ?? []).filter(item => item.status === 'validated-recently').length;
+      detail = acquired > 0
+        ? 'Un objectif est acquis récemment et un autre reste à confirmer. Son entraînement est réussi, mais une validation distincte doit encore le confirmer. Toutes les activités disponibles ont été réalisées ; Learn-it n’a actuellement ni nouvelle activité de validation à proposer ni date de disponibilité.'
+        : 'Un objectif reste à confirmer. Son entraînement est réussi, mais une validation distincte doit encore le confirmer. Toutes les activités disponibles ont été réalisées ; Learn-it n’a actuellement ni nouvelle activité de validation à proposer ni date de disponibilité.';
     } else if (recommendation?.action === 'revisit-later') {
-      detail = 'Les acquis sont récents. Revenez plus tard pour les consolider ; Learn-it n’indique pas encore de moment précis.';
+      detail = 'Les acquis sont récents. Learn-it n’indique actuellement ni action supplémentaire ni date précise de consolidation.';
     } else if (recommendation?.action === 'continue-training' || recommendation?.action === 'start-training') {
       detail = 'Un objectif reste en apprentissage. Toutes les activités disponibles ont été réalisées ; aucune activité supplémentaire n’est proposée actuellement.';
     }
@@ -554,7 +580,36 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         importForm,
       ]));
     } else {
-      const list = node('div', { className: 'course-grid' });
+      const list = node('div', { className: 'course-grid', 'data-library-course-list': 'true' });
+      const courseEntries = [];
+      const searchStatus = node('p', {
+        className: 'sr-only',
+        role: 'status',
+        'aria-live': 'polite',
+        text: '',
+      });
+      const searchInput = node('input', {
+        type: 'search',
+        className: 'library-search-input',
+        placeholder: 'Rechercher un cours',
+        'aria-label': 'Rechercher dans vos cours',
+      });
+      const filterCourses = () => {
+        const query = searchInput.value.trim().toLocaleLowerCase('fr');
+        let visible = 0;
+        for (const entry of courseEntries) {
+          const match = !query || entry.searchable.includes(query);
+          entry.article.hidden = !match;
+          if (match) visible += 1;
+        }
+        searchStatus.textContent = query
+          ? `${visible} cours trouvé${visible > 1 ? 's' : ''} sur ${courses.length}.`
+          : '';
+      };
+      searchInput.addEventListener('input', filterCourses);
+      if (courses.length >= 3) {
+        section.append(node('div', { className: 'library-search' }, [searchInput, searchStatus]));
+      }
       for (const course of courses) {
         const reviewQueue = await runtime.getReviewQueue(course.courseInstallId);
         const correctivePriority =
@@ -586,27 +641,44 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           courseObjectives: course.objectives,
           progress: course.progress,
         });
-        const objectiveDetails = objectiveSurface;
+        const objectiveDetails = objectiveSurface
+          ? node('details', { className: 'course-objectives-details' }, [
+            node('summary', { text: courseObjectiveSummary(course) }),
+            objectiveSurface,
+          ])
+          : null;
         const settingsDetails = node('details', { className: 'course-settings-details' }, [
-          node('summary', { text: 'Gérer' }),
+          node('summary', { 'aria-label': `Options du cours ${course.title}` }, [
+            node('span', { 'aria-hidden': 'true', text: '⋯' }),
+            node('span', { className: 'sr-only', text: 'Options du cours' }),
+          ]),
           renderCourseLabelForm(course),
         ]);
-        list.append(node('article', {
+        const article = node('article', {
           className: 'course-card course-list-row learner-course-card',
           'data-course-install-id': course.courseInstallId,
         }, [
           node('div', { className: 'course-row-main' }, [
             node('h3', { text: course.title }),
-            node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
+            node('p', { className: 'course-meta', text: `${course.activityCount} activités · ${course.estimatedMinutes} min estimées au total` }),
           ]),
           objectiveDetails,
           completionGuidance,
           node('div', { className: 'course-row-actions learner-course-actions' }, [
             reviewAction,
             courseAction,
+            settingsDetails,
           ]),
-          settingsDetails,
-        ]));
+        ]);
+        courseEntries.push({
+          article,
+          searchable: [
+            course.title,
+            course.subtitle ?? '',
+            ...(course.objectives ?? []).map(item => item.label ?? ''),
+          ].join(' ').toLocaleLowerCase('fr'),
+        });
+        list.append(article);
       }
       section.append(list);
       section.append(node('details', { className: 'library-management' }, [
@@ -681,6 +753,76 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     ]);
   }
 
+  function renderFeedbackComparison(rows, includeExpected) {
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const headers = [
+      node('th', { scope: 'col', text: 'Élément' }),
+      node('th', { scope: 'col', text: 'Votre réponse' }),
+      includeExpected ? node('th', { scope: 'col', text: 'Attendu' }) : null,
+    ];
+    const bodyRows = rows.map(row => node('tr', {}, [
+      node('th', { scope: 'row', text: row.item }),
+      node('td', { text: row.learner }),
+      includeExpected ? node('td', { text: row.expected }) : null,
+    ]));
+    return node('section', { className: 'feedback-comparison' }, [
+      node('h3', { text: 'Correspondances' }),
+      node('div', { className: 'feedback-comparison-scroll' }, [
+        node('table', {}, [
+          node('thead', {}, [node('tr', {}, headers)]),
+          node('tbody', {}, bodyRows),
+        ]),
+      ]),
+    ]);
+  }
+
+  function renderSessionSummary(result) {
+    const title = node('h2', {
+      id: 'session-summary-title',
+      tabindex: '-1',
+      text: 'Bilan de la séance',
+    });
+    const objectiveSurface = result.sessionDelta?.available === true
+      ? renderObjectiveSurface(objectiveUi, {
+        context: 'terminal-summary',
+        courseObjectives: result.courseObjectives,
+        progress: result.progress,
+        sessionDelta: result.sessionDelta,
+      })
+      : null;
+    const worked = result.sessionDelta?.available === true
+      ? result.sessionDelta.workedObjectiveIds.length
+      : 0;
+    const changed = result.sessionDelta?.available === true
+      ? result.sessionDelta.changedObjectiveIds.length
+      : 0;
+    const summary = result.sessionDelta?.available === true
+      ? node('p', {
+        className: 'session-summary-intro',
+        text: `Cette séance a travaillé ${worked} objectif${worked > 1 ? 's' : ''} ; ${changed} changement${changed > 1 ? 's' : ''} d’état ${changed > 1 ? 'sont' : 'est'} enregistré${changed > 1 ? 's' : ''}.`,
+      })
+      : node('p', {
+        className: 'session-summary-intro',
+        text: 'Le détail avant/après de cette séance n’est pas disponible.',
+      });
+    const section = node('section', {
+      'aria-labelledby': 'session-summary-title',
+      className: 'session-summary-panel',
+      'data-session-summary': 'true',
+    }, [
+      title,
+      summary,
+      objectiveSurface,
+      node('button', {
+        type: 'button',
+        className: 'primary',
+        text: 'Retour à la bibliothèque',
+        onclick: () => renderLibrary(),
+      }),
+    ]);
+    shell(section, { focusTarget: title, announcement: 'Bilan de la séance' });
+  }
+
   function renderFeedback(result) {
     const reviewMode = result.mode === 'review';
     const reviewRemaining = result.review?.remaining ?? 0;
@@ -693,10 +835,13 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       className: result.correct ? 'feedback-correct' : 'feedback-incorrect',
       text: outcomeText,
     });
-    const learnerAnswer = feedbackProjection
+    const comparison = feedbackProjection?.comparisonRows
+      ? renderFeedbackComparison(feedbackProjection.comparisonRows, !result.correct)
+      : null;
+    const learnerAnswer = feedbackProjection && !comparison
       ? renderFeedbackLines('Votre réponse', feedbackProjection.learnerAnswer, 'feedback-answer feedback-learner-answer')
       : null;
-    const expectedAnswer = feedbackProjection && !result.correct
+    const expectedAnswer = feedbackProjection && !comparison && !result.correct
       ? renderFeedbackLines('Réponse attendue', feedbackProjection.expectedAnswer, 'feedback-answer feedback-expected-answer')
       : null;
     const explanation = result.explanation
@@ -717,44 +862,40 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           [renderEmbeddedMediaSet(result.feedbackMedia)],
         )
         : null;
-    const terminalObjectiveSurface = terminal && result.sessionDelta?.available === true
-      ? renderObjectiveSurface(objectiveUi, {
-        context: 'terminal-summary',
-        courseObjectives: result.courseObjectives,
-        progress: result.progress,
-        sessionDelta: result.sessionDelta,
-      })
-      : null;
-    const primaryAction = reviewMode
+    const primaryAction = terminal
       ? node('button', {
         type: 'button',
         className: 'primary',
         'data-served-next-action': 'true',
-        text: reviewRemaining === 0 ? 'Retour à la bibliothèque' : 'Activité suivante à revoir',
-        onclick: reviewRemaining === 0
-          ? () => renderLibrary()
-          : () => run(() => runtime.getSession(), renderSessionSnapshot),
+        text: 'Voir le bilan de la séance',
+        onclick: () => renderSessionSummary(result),
       })
-      : node('button', {
-        type: 'button',
-        className: 'primary',
-        'data-served-next-action': 'true',
-        text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
-        onclick: complete
-          ? () => renderLibrary()
-          : () => run(() => runtime.getSession(), renderSessionSnapshot),
-      });
+      : reviewMode
+        ? node('button', {
+          type: 'button',
+          className: 'primary',
+          'data-served-next-action': 'true',
+          text: 'Activité suivante à revoir',
+          onclick: () => run(() => runtime.getSession(), renderSessionSnapshot),
+        })
+        : node('button', {
+          type: 'button',
+          className: 'primary',
+          'data-served-next-action': 'true',
+          text: 'Activité suivante',
+          onclick: () => run(() => runtime.getSession(), renderSessionSnapshot),
+        });
     const section = node('section', {
       'aria-labelledby': 'feedback-title',
       className: 'feedback-panel learner-feedback-panel',
       'data-served-feedback': 'scored',
     }, [
       feedbackTitle,
+      comparison,
       learnerAnswer,
       expectedAnswer,
       explanation,
       ...(feedbackMedia ? [feedbackMedia] : []),
-      terminalObjectiveSurface,
       primaryAction,
     ]);
     shell(section, { focusTarget: feedbackTitle, announcement: outcomeText });

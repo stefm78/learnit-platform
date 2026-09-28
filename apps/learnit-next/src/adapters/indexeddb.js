@@ -268,12 +268,26 @@ export function createIndexedDbStorage({
     },
 
     async resetNextData() {
-      if (databasePromise) {
-        const db = await databasePromise;
-        db.close();
-        databasePromise = null;
+      const db = await database();
+      const transaction = db.transaction(NEXT_STORES, 'readwrite');
+      const completion = transactionDone(transaction);
+      try {
+        await Promise.all(NEXT_STORES.map(storeName =>
+          requestResult(transaction.objectStore(storeName).clear())));
+        await completion;
+      } catch (error) {
+        try {
+          transaction.abort();
+        } catch {
+          // A failed clear may already have aborted the transaction.
+        }
+        try {
+          await completion;
+        } catch {
+          // Preserve the request error that caused the abort.
+        }
+        throw error;
       }
-      await deleteDatabase(indexedDbApi, NEXT_INDEXED_DB_NAME);
       if (localStorageApi) {
         const keys = [];
         for (let index = 0; index < localStorageApi.length; index += 1) {

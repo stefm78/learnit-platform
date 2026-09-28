@@ -86,6 +86,7 @@ export function projectPostAnswerFeedback(
 
   let learnerAnswer;
   let expectedAnswer;
+  let comparisonRows = null;
 
   switch (activity.type) {
     case 'qcm':
@@ -114,10 +115,13 @@ export function projectPostAnswerFeedback(
     case 'matching': {
       const submitted = new Map((normalizedAnswer.associations ?? []).map(entry => [entry.leftItemId, entry.rightItemId]));
       const expected = new Map((activity.matches ?? []).map(entry => [entry.leftItemId, entry.rightItemId]));
-      learnerAnswer = frozenLines((activity.leftItems ?? []).map(left =>
-        `Élément : ${left.label} — votre choix : ${readableLabel(activity.rightItems, submitted.get(left.itemId), 'itemId')}`));
-      expectedAnswer = frozenLines((activity.leftItems ?? []).map(left =>
-        `Élément : ${left.label} — réponse attendue : ${readableLabel(activity.rightItems, expected.get(left.itemId), 'itemId')}`));
+      comparisonRows = freezeList((activity.leftItems ?? []).map(left => ({
+        item: left.label,
+        learner: readableLabel(activity.rightItems, submitted.get(left.itemId), 'itemId'),
+        expected: readableLabel(activity.rightItems, expected.get(left.itemId), 'itemId'),
+      })));
+      learnerAnswer = frozenLines(comparisonRows.map(row => row.learner));
+      expectedAnswer = frozenLines(comparisonRows.map(row => row.expected));
       break;
     }
     case 'order':
@@ -129,10 +133,13 @@ export function projectPostAnswerFeedback(
     case 'classify': {
       const submitted = new Map((normalizedAnswer.assignments ?? []).map(entry => [entry.itemId, entry.bucketId]));
       const expected = new Map((activity.assignments ?? []).map(entry => [entry.itemId, entry.bucketId]));
-      learnerAnswer = frozenLines((activity.items ?? []).map(item =>
-        `Élément : ${item.label} — votre choix : ${readableLabel(activity.buckets, submitted.get(item.itemId), 'bucketId')}`));
-      expectedAnswer = frozenLines((activity.items ?? []).map(item =>
-        `Élément : ${item.label} — réponse attendue : ${readableLabel(activity.buckets, expected.get(item.itemId), 'bucketId')}`));
+      comparisonRows = freezeList((activity.items ?? []).map(item => ({
+        item: item.label,
+        learner: readableLabel(activity.buckets, submitted.get(item.itemId), 'bucketId'),
+        expected: readableLabel(activity.buckets, expected.get(item.itemId), 'bucketId'),
+      })));
+      learnerAnswer = frozenLines(comparisonRows.map(row => row.learner));
+      expectedAnswer = frozenLines(comparisonRows.map(row => row.expected));
       break;
     }
     case 'lesson':
@@ -148,6 +155,7 @@ export function projectPostAnswerFeedback(
     prompt: String(promptText),
     learnerAnswer,
     expectedAnswer,
+    ...(comparisonRows ? { comparisonRows } : {}),
   });
 }
 
