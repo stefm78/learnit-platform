@@ -245,7 +245,7 @@ def main() -> int:
         text = status.inner_text()
         assert "Parcours d’activités terminé" in text
         assert "à confirmer" in text
-        assert "aucune nouvelle validation" in text
+        assert "ne propose pas encore de nouvelle validation" in text
         assert "Cours terminé" not in card.inner_text()
         assert card.locator('[data-course-learning-action="learn"]').count() == 0
         shot(page, "04-complete-ready-for-validation-guidance")
