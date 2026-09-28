@@ -4,6 +4,7 @@ import { attachAtlasPreviewSurface } from './integration/atlas/surface.js';
 import { createAtlasCompatibleImportService } from './integration/atlas/import_adapter.js';
 import { createImportService } from './core/import.js';
 import { createLibraryService } from './core/library.js';
+import { createLearningLoopProjectionAdapter } from './integration/learning_projection.js';
 import {
   createLearningLoopV2DomainAdapters,
   createProgressService,
@@ -134,7 +135,8 @@ export function createLearnitRuntime(
   const storage = assertStoragePort(storageAdapter);
   const resolvedIntegrations = resolveIntegrations(integrations);
   const progress = createProgressService(storage, resolvedIntegrations);
-  const library = createLibraryService(storage, progress);
+  const library = createLibraryService(storage);
+  const learningProjection = createLearningLoopProjectionAdapter(storage, progress);
   const imports = createAtlasCompatibleImportService(
     storage,
     createImportService(storage),
@@ -234,27 +236,38 @@ export function createLearnitRuntime(
     importPackage: (payload) => imports.importPackage(payload),
     async listCourses() {
       const courses = await library.listCourses();
-      if (!progress.learningLoopV2Enabled) return courses;
-      const enriched = [];
+      const projected = [];
       for (const course of courses) {
-        const courseRecord = await library.getCourse(course.courseInstallId);
-        if (!courseRecord) continue;
-        const courseProgress = await progress.getCourseProgress(
-          course.courseInstallId,
-          courseRecord.course,
-        );
-        enriched.push({
-          ...course,
-          objectives: structuredClone(courseRecord.course.objectives ?? []),
-          progress: {
-            ...course.progress,
-            needsReview: courseProgress.needsReview,
-            objectives: courseProgress.objectives ?? [],
-            recommendation: courseProgress.recommendation ?? null,
-          },
-        });
+        try {
+          const learning = await learningProjection.projectCourse(course.courseInstallId);
+          projected.push({
+            ...course,
+            ...learning,
+            learningProjectionAvailable: true,
+          });
+        } catch {
+          projected.push({
+            ...course,
+            objectives: [],
+            progress: null,
+            learningProjectionAvailable: false,
+          });
+        }
       }
-      return enriched;
+      return projected;
+    },
+    async searchCourses(query) {
+      const courses = await library.searchCourses(query);
+      const projected = [];
+      for (const course of courses) {
+        try {
+          const learning = await learningProjection.projectCourse(course.courseInstallId);
+          projected.push({...course, ...learning, learningProjectionAvailable: true});
+        } catch {
+          projected.push({...course, objectives: [], progress: null, learningProjectionAvailable: false});
+        }
+      }
+      return projected;
     },
     setCourseDisplayLabel: (courseInstallId, label) => library.setDisplayLabel(courseInstallId, label),
     startCourse: async (courseInstallId) => projectLearnerSession(await sessions.startCourse(courseInstallId)),

@@ -51,6 +51,7 @@
       "apps/learnit-next/src/integration/atlas/session.js",
       "apps/learnit-next/src/integration/atlas/import_adapter.js",
       "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/integration/learning_projection.js",
       "apps/learnit-next/src/main.js",
       "apps/learnit-next/src/core/canonical_json.js",
       "apps/learnit-next/src/core/identity.js",
@@ -63,8 +64,10 @@
       "apps/learnit-next/src/core/session.js",
       "apps/learnit-next/src/core/progress.js",
       "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/ports/learning_projection.js",
       "apps/learnit-next/src/adapters/indexeddb.js",
       "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/ui/navigation.js",
       "apps/learnit-next/src/ui/render.js",
       "apps/learnit-next/src/ui/media.js",
       "apps/learnit-next/src/ui/activity_presenters.js",
@@ -92,7 +95,7 @@
     "output": "apps/learnit-next/dist/learnit-next.html",
     "standardLibraryOnly": true
   },
-  "fileBudget": 61,
+  "fileBudget": 64,
   "integrationOrder": [
     "ATLAS-LEARNING",
     "ATLAS-CORE",
@@ -126,20 +129,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "26c21cd74bb610c501e5d69b1b7ecb54996d98c4"
+        "value": "a961b45b0f3fbe6f12da4f050671048849654651"
       },
-      "owner": "ATLAS-WP-066",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "164cf66e9ef8e6eabf190f4a7c6f79a892c8818f"
+        "value": "fd8661af470b4e26a4410f70cd621ef54133e7d4"
       },
-      "owner": "ATLAS-WP-064",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/main.js",
-      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     },
     {
       "fingerprint": {
@@ -180,11 +183,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "d94dcb05b5afbb83bd957a942565001f9bd74bf2"
+        "value": "644bc7a827d6ef313a46ad3483cbb62897e77c76"
       },
-      "owner": "baseline-runtime",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/core/library.js",
-      "provenance": "operational-baseline:8ebafee48cc5277b92776982639a0146ae7e76d0"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     },
     {
       "fingerprint": {
@@ -225,20 +228,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "a5a9acc32043876b76982f9bd8e11aec6230a83b"
+        "value": "aa7cf8a426af0a7167b03d7262e8d850ca432976"
       },
-      "owner": "DEV-PLATFORM",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/ports/storage.js",
-      "provenance": "DEV-PLATFORM:f260093914542f93ff9145cbac8e98aae415fe01"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "56c8ab979091157f3dd8f254570ab8cd63c4ad08"
+        "value": "8866cc6586a02fd8d75077aa24cf1a92e290e7a1"
       },
-      "owner": "ATLAS-WP-066",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/adapters/indexeddb.js",
-      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     },
     {
       "fingerprint": {
@@ -252,11 +255,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "5662718fe78c39c1021446fb2dff372ec8024ac4"
+        "value": "cca5245e17c595568bb60addbb1562f3b1ede751"
       },
-      "owner": "ATLAS-WP-066",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     },
     {
       "fingerprint": {
@@ -369,11 +372,11 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "d5c8892dc056daf11106f6ac4f22025e504e263eca7841af94e24b21dfdce903"
+        "value": "4d036a043078ba21db1b693c39990573733ade9a88f0e9f1a0ecfec29c7d19dd"
       },
-      "owner": "ATLAS-WP-066",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/source_manifest.json",
-      "provenance": "ATLAS-WP-066 HR23 corrective implementation R1 manifest rebind"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2 manifest rebind"
     },
     {
       "fingerprint": {
@@ -558,11 +561,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "38e49785afc674c53436ec875782a2a07a47c18f"
+        "value": "de13e588080e83e2ad33261cb4f4a9583fc0ebde"
       },
-      "owner": "ATLAS-WP-051",
+      "owner": "ATLAS-WP-067",
       "path": "apps/learnit-next/src/integration/atlas/surface.js",
-      "provenance": "ATLAS-WP-051 accepted App Experience exact payload"
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     },
     {
       "fingerprint": {
@@ -653,6 +656,33 @@
       "owner": "STUDENT-V01-JOB02",
       "path": "apps/learnit-next/src/ui/media.js",
       "provenance": "JOB02:6c91346d07c934cfb2917799084647b13e4fb931"
+    },
+    {
+      "fingerprint": {
+        "kind": "git-blob-sha1",
+        "value": "68491a98ee41c2785fd1a4d13f1780b9a85b7956"
+      },
+      "owner": "ATLAS-WP-067",
+      "path": "apps/learnit-next/src/integration/learning_projection.js",
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
+    },
+    {
+      "fingerprint": {
+        "kind": "git-blob-sha1",
+        "value": "c1387b12bcb89c5796fb9c5dfc62903ebca229bc"
+      },
+      "owner": "ATLAS-WP-067",
+      "path": "apps/learnit-next/src/ports/learning_projection.js",
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
+    },
+    {
+      "fingerprint": {
+        "kind": "git-blob-sha1",
+        "value": "279ba36800fb5c598a6635d097f63301f5eb2364"
+      },
+      "owner": "ATLAS-WP-067",
+      "path": "apps/learnit-next/src/ui/navigation.js",
+      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2"
     }
   ]
 }
