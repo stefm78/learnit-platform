@@ -62,7 +62,7 @@ jobs:
           print('FINAL_BUILD_SHA256='+pick('FINAL_BUILD_SHA256','[0-9a-f]{64}'))
           print('FINAL_BUILD_BYTES='+pick('FINAL_BUILD_BYTES','[0-9]+'))
           print('QUALIFICATION_RUN_ID='+pick('QUALIFICATION_RUN_ID','[0-9]+'))
-          print('QUALIFICATION_EVIDENCE_ARTIFACT='+pick('QUALIFICATION_EVIDENCE_ARTIFACT','[^\`]+'))
+          print('QUALIFICATION_EVIDENCE_ARTIFACT='+pick('QUALIFICATION_EVIDENCE_ARTIFACT','[^`]+'))
           PY
           cat "$RUNNER_TEMP/result.env" >> "$GITHUB_ENV"
           source "$RUNNER_TEMP/result.env"
@@ -87,15 +87,12 @@ jobs:
           }
           assert changed <= allowed,changed
           PY
-          for p in \
-            apps/learnit-next/src/core/objective_progress.js \
-            apps/learnit-next/src/core/learning_recommendation.js \
-            apps/learnit-next/src/core/progress.js \
-            apps/learnit-next/src/core/session.js \
-            contracts/learnit-kit-v5.schema.json \
-            showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json; do
-            test "$(git rev-parse "$RESULT_SHA:$p")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:$p")"
-          done
+          test "$(git rev-parse "$RESULT_SHA:apps/learnit-next/src/core/objective_progress.js")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:apps/learnit-next/src/core/objective_progress.js)"
+          test "$(git rev-parse "$RESULT_SHA:apps/learnit-next/src/core/learning_recommendation.js")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:apps/learnit-next/src/core/learning_recommendation.js)"
+          test "$(git rev-parse "$RESULT_SHA:apps/learnit-next/src/core/progress.js")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:apps/learnit-next/src/core/progress.js)"
+          test "$(git rev-parse "$RESULT_SHA:apps/learnit-next/src/core/session.js")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:apps/learnit-next/src/core/session.js)"
+          test "$(git rev-parse "$RESULT_SHA:contracts/learnit-kit-v5.schema.json")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:contracts/learnit-kit-v5.schema.json)"
+          test "$(git rev-parse "$RESULT_SHA:showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json)"
           git worktree add --detach "$RUNNER_TEMP/result-tree" "$RESULT_SHA"
           test "$(git -C "$RUNNER_TEMP/result-tree" rev-parse HEAD)" = "$RESULT_SHA"
 
