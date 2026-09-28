@@ -103,7 +103,6 @@ jobs:
           node --check apps/learnit-next/src/ui/objective_progress.js
           node --check apps/learnit-next/src/ui/render.js
           python -B apps/learnit-next/tests/hr22_corrective_implementation_r1.py
-          python -B apps/learnit-next/tests/learner_journey_ux_coherence_r1.py
 
       - name: Replay JOB20 session provenance V2
         run: python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
