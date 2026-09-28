@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ATLAS-WP-067",
   "title": "HR24 modular library boundary + navigation shell R2",
-  "status": "machine-qualified-human-replay-pending",
+  "status": "in-progress",
   "purpose": "Enforce durable Library/Application Shell/Learning Loop V2/Atlas boundaries, repair mobile inline rename, and add a scalable accessible left navigation drawer without changing pedagogical semantics.",
   "changeClass": "hr24-modular-library-boundary-r2",
   "riskClass": "high",
