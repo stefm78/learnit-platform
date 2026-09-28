@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-065",
+  "title": "HR22 corrective implementation R1",
+  "status": "in-progress",
+  "purpose": "Implement the bounded Human Replay JOB22 corrections A-E without changing qualified learning semantics.",
+  "changeClass": "hr22-corrective-implementation-r1",
+  "riskClass": "high",
+  "authority": {
+    "issue": 461,
+    "parentPullRequest": 460,
+    "humanAuthorization": "NEXT_SESSION_PROMPT_HR22_CORRECTIVE_IMPLEMENTATION_R1.md",
+    "parentHumanReplay": "JOB_22_LEARNER_JOURNEY_UX_COHERENCE_R1"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-learner-journey-ux-coherence-r1",
+    "baseCommit": "c5f82d27b67c680cf18f07a79f390391a83d7a68",
+    "parentResultSha": "9b5b820b27477ec7afa6ac281237bae69780b602",
+    "parentPullRequest": 460
+  },
+  "execution": {
+    "job": "JOB_23_HR22_CORRECTIVE_IMPLEMENTATION_R1",
+    "branch": "student-v01/r2-hr22-corrective-implementation-r1",
+    "pullRequest": null,
+    "pullRequestBase": "student-v01/r2-learner-journey-ux-coherence-r1",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "humanReplayRequired": true,
+    "humanReplayStatus": "PENDING_IMPLEMENTATION"
+  },
+  "audit": {
+    "A": "CHANGE_REQUIRED",
+    "B": "CHANGE_REQUIRED",
+    "C": "CHANGE_REQUIRED",
+    "D": "NO_CHANGE_AFTER_AUDIT",
+    "E": "CHANGE_REQUIRED"
+  },
+  "nextGate": "REAL_HUMAN_REPLAY_HR22_CORRECTIVE_IMPLEMENTATION_R1"
+}
