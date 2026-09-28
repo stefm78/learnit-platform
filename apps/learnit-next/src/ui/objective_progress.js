@@ -379,13 +379,9 @@ function renderR15ObjectiveProgress(data, options) {
     'aria-live': 'polite',
     hidden: true,
   }, [detailState, detailLabel]);
-  const showDetail = (item, selectedReservoir) => {
+  let selectedReservoir = null;
+  const renderDetail = (item) => {
     detail.hidden = false;
-    for (const reservoir of reservoirs.querySelectorAll('[data-objective-progress-r15-objective]')) {
-      const selected = reservoir === selectedReservoir;
-      reservoir.setAttribute('aria-pressed', String(selected));
-      reservoir.setAttribute('data-objective-progress-r15-selected', String(selected));
-    }
     detailState.textContent = statusPresentation(item.status).label;
     if (context !== 'terminal-summary' || !worked.has(item.objectiveId)) {
       detailLabel.textContent = item.label;
@@ -397,6 +393,25 @@ function renderR15ObjectiveProgress(data, options) {
     } else {
       detailLabel.textContent = `${item.label} · Travaillé pendant cette séance, état inchangé`;
     }
+  };
+  const clearDetail = () => {
+    selectedReservoir = null;
+    detail.hidden = true;
+    for (const reservoir of reservoirs.querySelectorAll('[data-objective-progress-r15-objective]')) {
+      reservoir.setAttribute('aria-pressed', 'false');
+      reservoir.setAttribute('aria-expanded', 'false');
+      reservoir.setAttribute('data-objective-progress-r15-selected', 'false');
+    }
+  };
+  const selectDetail = (item, reservoirToSelect) => {
+    selectedReservoir = reservoirToSelect;
+    for (const reservoir of reservoirs.querySelectorAll('[data-objective-progress-r15-objective]')) {
+      const selected = reservoir === reservoirToSelect;
+      reservoir.setAttribute('aria-pressed', String(selected));
+      reservoir.setAttribute('aria-expanded', String(selected));
+      reservoir.setAttribute('data-objective-progress-r15-selected', String(selected));
+    }
+    renderDetail(item);
   };
 
   const reservoirs = element(documentRef, 'div', {
@@ -411,7 +426,7 @@ function renderR15ObjectiveProgress(data, options) {
     const didChange = context === 'terminal-summary' && changed.has(item.objectiveId);
     const aria = [
       `${item.label}. ${presentation.label}.`,
-      isPriority ? 'Priorité Learn-it' : null,
+      isPriority ? 'Objectif proposé en priorité' : null,
       wasWorked ? 'Travaillé pendant cette séance' : null,
       didChange ? 'État modifié pendant cette séance' : null,
     ].filter(Boolean).join('. ');
@@ -427,6 +442,7 @@ function renderR15ObjectiveProgress(data, options) {
       'data-objective-progress-r15-selected': 'false',
       'aria-label': aria,
       'aria-pressed': 'false',
+      'aria-expanded': 'false',
       'aria-controls': detailId,
       title: `${item.label} — ${presentation.label}`,
     }, [
@@ -441,8 +457,13 @@ function renderR15ObjectiveProgress(data, options) {
         text: R15_STATE_MARK[item.status],
       }) : null,
     ]);
-    reservoir.addEventListener('click', () => showDetail(item, reservoir));
-    reservoir.addEventListener('focus', () => showDetail(item, reservoir));
+    reservoir.addEventListener('click', () => {
+      if (selectedReservoir === reservoir) clearDetail();
+      else selectDetail(item, reservoir);
+    });
+    reservoir.addEventListener('focus', () => {
+      if (selectedReservoir === null) renderDetail(item);
+    });
     reservoirs.appendChild(reservoir);
   });
   const group = element(documentRef, 'div', {
@@ -480,7 +501,6 @@ function renderR15ObjectiveProgress(data, options) {
       className: 'objective-progress-r15__context objective-progress-r15__priority-context',
       'data-objective-progress-r15-priority-context': 'true',
     }, [
-      element(documentRef, 'span', {className: 'objective-progress-r15__context-kicker', text: 'Priorité Learn-it'}),
       element(documentRef, 'strong', {className: 'objective-progress-r15__context-state', text: statusPresentation(target.status).label}),
       element(documentRef, 'span', {className: 'objective-progress-r15__context-target', text: target.label}),
     ]));
