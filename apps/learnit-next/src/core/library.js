@@ -1,6 +1,6 @@
 export function normalizeLibrarySearchTerms(query) {
   const normalized = String(query ?? '').trim().toLocaleLowerCase('fr');
-  return normalized ? normalized.split(/\\s+/u).filter(Boolean) : [];
+  return normalized ? normalized.split(/\s+/u).filter(Boolean) : [];
 }
 
 export function matchesLibrarySearch(query, searchableValues) {
