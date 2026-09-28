@@ -46,7 +46,7 @@ def wait_activity(page, revision_id: str) -> None:
     page.wait_for_function(
         """id => window.__LEARNIT_NEXT_TEST__.getSession()
           .then(s => s && s.currentActivity && s.currentActivity.activityRevisionId === id)""",
-        revision_id,
+        arg=revision_id,
     )
 
 def import_kit(page, kit: dict[str, Any]) -> dict[str, Any]:
