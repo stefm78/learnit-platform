@@ -881,7 +881,10 @@ export async function attachAtlasPreviewSurface({root, runtime, atlasRuntime}) {
   }
 
   await refresh();
-  if (atlasContextsByInstallId.size) {
+  const shellOwnsActiveSession = Boolean(
+    root.querySelector('.learner-session-panel, [data-served-feedback="scored"]'),
+  );
+  if (atlasContextsByInstallId.size && !shellOwnsActiveSession) {
     root.dispatchEvent(new CustomEvent('learnit:navigate', {detail: {view: 'today'}}));
   }
   return Object.freeze({ready: true, durations: DURATIONS, memoryPolicy: 'atlas.memory-policy.v1'});
