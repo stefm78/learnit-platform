@@ -56,6 +56,23 @@
       "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
       "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
       "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
     ]
   },
   "audit": {
@@ -139,5 +156,25 @@
     "Changing sessionDelta V2 or authored content.",
     "Inventing shelves/chapters/phases/groups without canonical model identity.",
     "Merging, promoting, declaring GO_LIMITED_PILOT or G5 PASS, or starting a student session."
+  ],
+  "adversarialTests": [
+    "Any mutation of core/session.js, ActivityResponse, scoring, objective-state, recommendation, V5 contract or authored showcase fails qualification.",
+    "Any reset that requires reload/reopen, leaves a non-zero store count or resumes a deleted active course fails qualification.",
+    "Any library-scale solution that invents shelves/chapters/groups without canonical model identity fails qualification.",
+    "Any selected R15 reservoir that cannot be toggled closed, or whose focus/keyboard semantics make toggling impossible, fails qualification.",
+    "Any matching interaction that still requires dragging or tapping only the label while the visible Déposer ici slot is inert fails qualification.",
+    "Any matching/classify feedback that carries the primary relationship through repeated punctuation instead of programmatic structure fails qualification.",
+    "Any terminal flow that injects the session recap directly into the last-answer correction instead of a separate perceptual state fails qualification.",
+    "Any awaiting-validation copy that invents a date, scheduler, future eligibility or false CTA fails qualification.",
+    "Any failed persistence path that reveals authored answer truth fails qualification."
+  ],
+  "independentReview": [
+    "Replay JOB20 session provenance V2 regression.",
+    "Replay JOB21 R15 static and browser contracts while accepting the authorized toggle extension.",
+    "Replay JOB22/JOB23 learner-journey KEEP invariants through the new HR23 browser oracle.",
+    "Run V4/V5 validators, V5 Factory source governance, V5 runtime/showcase and selected V8 presenter regressions.",
+    "Exercise reset, 12-course search, objective toggle, tap destination, structured feedback, terminal recap and exact awaiting-validation state on mobile 390x844.",
+    "Build twice with byte identity, validate source manifest and repository governance on exact RESULT_SHA.",
+    "Publish immutable Human Replay only after the machine candidate is frozen, then stop at HUMAN_DECISION_REQUIRED."
   ]
 }
