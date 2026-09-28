@@ -1,0 +1,421 @@
+name: ATLAS WP067 immutable HR24 modular library human replay deploy
+
+on:
+  push:
+    branches: [student-v01/r2-hr24-modular-library-boundary-r2]
+    paths:
+      - 'qualification/STUDENT_V01_HR24_MODULAR_LIBRARY_BOUNDARY_R2_RESULT.md'
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atlas-wp067-immutable-human-replay
+  cancel-in-progress: false
+
+env:
+  BASE_SITE_RUN_ID: '36422614021'
+  BASE_SITE_ARTIFACT: atlas-wp066-human-replay-site-78357f9f7f09408db06bb9a436463bd64009cb20
+  WP066_HEAD: 78357f9f7f09408db06bb9a436463bd64009cb20
+  WP066_SHA256: 758097fa82a4227bbf95bee91358ce69a9c233dd48e7ebc7dc38a4423d6fdd23
+  KIT_SHA256: aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      site_artifact: ${{ steps.names.outputs.site_artifact }}
+      result_sha: ${{ steps.identity.outputs.result_sha }}
+      artifact_sha: ${{ steps.identity.outputs.artifact_sha }}
+      artifact_bytes: ${{ steps.identity.outputs.artifact_bytes }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: student-v01/r2-hr24-modular-library-boundary-r2
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Parse frozen RESULT identity
+        id: identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' > "$RUNNER_TEMP/result.env"
+          import re
+          from pathlib import Path
+          text=Path('qualification/STUDENT_V01_HR24_MODULAR_LIBRARY_BOUNDARY_R2_RESULT.md').read_text(encoding='utf-8')
+          def pick(label,pattern):
+              m=re.search(rf'^{label}: `({pattern})`$',text,re.M)
+              assert m,label
+              return m.group(1)
+          print('RESULT_SHA='+pick('RESULT_SHA','[0-9a-f]{40}'))
+          print('FINAL_BUILD_SHA256='+pick('FINAL_BUILD_SHA256','[0-9a-f]{64}'))
+          print('FINAL_BUILD_BYTES='+pick('FINAL_BUILD_BYTES','[0-9]+'))
+          print('QUALIFICATION_RUN_ID='+pick('QUALIFICATION_RUN_ID','[0-9]+'))
+          print('QUALIFICATION_EVIDENCE_ARTIFACT='+pick('QUALIFICATION_EVIDENCE_ARTIFACT','[^\`]+'))
+          PY
+          cat "$RUNNER_TEMP/result.env" >> "$GITHUB_ENV"
+          source "$RUNNER_TEMP/result.env"
+          echo "result_sha=$RESULT_SHA" >> "$GITHUB_OUTPUT"
+          echo "artifact_sha=$FINAL_BUILD_SHA256" >> "$GITHUB_OUTPUT"
+          echo "artifact_bytes=$FINAL_BUILD_BYTES" >> "$GITHUB_OUTPUT"
+
+      - name: Revalidate frozen SHA and evidence-only closeout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "$RESULT_SHA^{commit}"
+          test "$(git merge-base "$RESULT_SHA" HEAD)" = "$RESULT_SHA"
+          python - "$RESULT_SHA" <<'PY'
+          import subprocess,sys
+          result=sys.argv[1]
+          changed=set(subprocess.check_output(['git','diff','--name-only',result,'HEAD'],text=True).splitlines())
+          allowed={
+            '.github/workflows/atlas-wp067-human-replay-deploy.yml',
+            'qualification/STUDENT_V01_HR24_MODULAR_LIBRARY_BOUNDARY_R2_RESULT.md',
+            'work-packages/ATLAS-WP-067.json',
+          }
+          assert changed <= allowed,changed
+          PY
+          for p in \
+            apps/learnit-next/src/core/objective_progress.js \
+            apps/learnit-next/src/core/learning_recommendation.js \
+            apps/learnit-next/src/core/progress.js \
+            apps/learnit-next/src/core/session.js \
+            contracts/learnit-kit-v5.schema.json \
+            showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json; do
+            test "$(git rev-parse "$RESULT_SHA:$p")" = "$(git rev-parse 259aa22dbd7530989bdb1412f60bcfe823bead41:$p")"
+          done
+          git worktree add --detach "$RUNNER_TEMP/result-tree" "$RESULT_SHA"
+          test "$(git -C "$RUNNER_TEMP/result-tree" rev-parse HEAD)" = "$RESULT_SHA"
+
+      - name: Repository governance on exact RESULT_SHA
+        working-directory: ${{ runner.temp }}/result-tree
+        run: python tools/validate_repository.py
+
+      - name: Build exact RESULT_SHA twice with byte identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          tree="$RUNNER_TEMP/result-tree"
+          python -B "$tree/apps/learnit-next/build.py" --output "$RUNNER_TEMP/result-a.html"
+          python -B "$tree/apps/learnit-next/build.py" --output "$RUNNER_TEMP/result-b.html"
+          cmp -s "$RUNNER_TEMP/result-a.html" "$RUNNER_TEMP/result-b.html"
+          test "$(sha256sum "$RUNNER_TEMP/result-a.html" | awk '{print $1}')" = "$FINAL_BUILD_SHA256"
+          test "$(wc -c < "$RUNNER_TEMP/result-a.html" | tr -d ' ')" = "$FINAL_BUILD_BYTES"
+          echo RESULT_SHA_GOVERNANCE=PASS
+          echo RESULT_SHA_DOUBLE_BUILD=PASS
+
+      - name: Restore exact verified WP066 Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BASE_SITE_ARTIFACT }}
+          path: ${{ runner.temp }}/site
+          github-token: ${{ github.token }}
+          run-id: ${{ env.BASE_SITE_RUN_ID }}
+
+      - name: Verify preserved replay history
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          test "$(sha256sum "$site/human-replay/$WP066_HEAD/index.html" | awk '{print $1}')" = "$WP066_SHA256"
+          grep -q "\"productHead\":\"$WP066_HEAD\"" "$site/human-replay/$WP066_HEAD/candidate-identity.json"
+          echo EXISTING_REPLAY_HISTORY_PRESERVED=PASS
+
+      - name: Download exact JOB25 qualification evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.QUALIFICATION_EVIDENCE_ARTIFACT }}
+          path: ${{ runner.temp }}/qualification-evidence
+          github-token: ${{ github.token }}
+          run-id: ${{ env.QUALIFICATION_RUN_ID }}
+
+      - name: Assemble immutable JOB25 replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          tree="$RUNNER_TEMP/result-tree"
+          dir="$RUNNER_TEMP/site/human-replay/$RESULT_SHA"
+          mkdir -p "$dir/fixtures" "$dir/evidence"
+          cp "$RUNNER_TEMP/result-a.html" "$dir/index.html"
+          cp "$RUNNER_TEMP/result-a.html" "$dir/learnit-next.html"
+          cp "$tree/showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json" "$dir/fixtures/nombres_complexes_student_v01_v5.json"
+          test "$(sha256sum "$dir/fixtures/nombres_complexes_student_v01_v5.json" | awk '{print $1}')" = "$KIT_SHA256"
+          find "$RUNNER_TEMP/qualification-evidence" -type f -name '*.png' -exec cp {} "$dir/evidence/" \;
+          test "$(find "$dir/evidence" -type f -name '*.png' | wc -l | tr -d ' ')" -ge 4
+
+          python - "$dir/fixtures/nombres_complexes_student_v01_v5.json" "$dir/fixtures/nombres_complexes_student_v01_v5-answer-guide.txt" <<'PY'
+          import json,sys
+          source,target=sys.argv[1:]
+          data=json.load(open(source,encoding='utf-8'))
+          lines=['Guide de réponses — Human Replay JOB 25 HR24 modular library boundary R2',
+                 'Kit exact : Nombres complexes V5 — 10 activités — 39 minutes.','']
+          for course in data['courses']:
+              lines += [course['title'], '='*len(course['title'])]
+              for index,a in enumerate(course['activities'],1):
+                  label=a.get('prompt') or a.get('title') or a.get('front') or a['activityRevisionId']
+                  lines.append(f"{index}. [{a['type']}] {label}")
+                  t=a['type']
+                  if t=='qcm':
+                      by={x['choiceId']:x['label'] for x in a['choices']}; answer=by[a['correctChoiceId']]
+                  elif t=='lesson': answer='Lire puis utiliser Continuer.'
+                  elif t=='flashcard': answer='Révéler la carte puis utiliser Continuer.'
+                  elif t=='matching':
+                      left={x['itemId']:x['label'] for x in a['leftItems']}; right={x['itemId']:x['label'] for x in a['rightItems']}
+                      answer=' ; '.join(f"{left[x['leftItemId']]} = {right[x['rightItemId']]}" for x in a['matches'])
+                  elif t=='order':
+                      labels={x['itemId']:x['label'] for x in a['items']}; answer=' puis '.join(labels[x] for x in a['correctOrder'])
+                  else: answer='Suivre le contrôle de l’activité.'
+                  lines += [f'   Réponse/interaction attendue : {answer}','']
+          open(target,'w',encoding='utf-8').write('\n'.join(lines)+'\n')
+          PY
+
+          cat > "$dir/HUMAN_REPLAY_CHECKLIST.md" <<EOF
+          # Human Replay — JOB 25 HR24 modular library boundary R2
+
+          RESULT_SHA exact : $RESULT_SHA
+          Parcours exact : Nombres complexes V5 — 10 activités — 39 minutes.
+          Viewport prioritaire : mobile/touch 390×844.
+
+          ## A — Navigation / drawer
+          1. Ouvrir Menu : le drawer gauche doit prendre le focus et le fond doit être inert.
+          2. Fermer par Escape, par Fermer et par le backdrop ; le focus revient au déclencheur.
+          3. Vérifier les seuls groupes actuels : Aujourd’hui, Bibliothèque, Tous les cours, Importer un cours.
+          4. Sur ce kit V5 riche, Aujourd’hui reste désactivé : le planner Atlas qcm/fill ne doit pas prétendre supporter les familles V8 riches.
+
+          ## B — Import / bibliothèque
+          5. Importer le JSON exact fourni ; aucune sélection de fichier ne doit disparaître pendant la prévisualisation.
+          6. Revenir par Menu > Tous les cours ; le cours reste visible et utilisable.
+          7. La recherche locale doit filtrer sans modifier la progression.
+
+          ## C — Renommage inline
+          8. Options du cours > Renommer : l’input remplace le titre dans la carte, sans grand formulaire sous la carte.
+          9. Saisir un nom puis Escape/Annuler : le titre initial reste inchangé et le focus revient logiquement.
+          10. Renommer de nouveau, saisir un alias, valider par Enter ou Enregistrer : l’alias devient visible.
+          11. Recharger la page : l’alias persiste.
+          12. Vérifier un titre long : pas de débordement horizontal à 390×844.
+
+          ## D — Frontières / non-régression
+          13. Lancer le parcours V5/V8 classique : le premier écran d’activité reste prioritaire.
+          14. Après progression puis reload, la session reprend exactement à l’activité suivante.
+          15. Les états objectifs, scoring, ActivityResponse, sessionDelta et contenu V5 ne doivent présenter aucun changement sémantique.
+          16. HR24-003 reste volontairement non résolu : aucun scheduler/date/CTA de validation inventé.
+
+          Décision attendue après replay réel : HUMAN_DECISION_REQUIRED.
+          Aucun merge, GO_LIMITED_PILOT ou G5 PASS n’est autorisé par ce replay.
+          EOF
+
+          cat > "$dir/candidate-identity.json" <<EOF
+          {"schema":"learnit.wp067.human-replay.identity.v1","productHead":"$RESULT_SHA","finalBuildSha256":"$FINAL_BUILD_SHA256","finalBuildBytes":$FINAL_BUILD_BYTES,"qualificationRunId":$QUALIFICATION_RUN_ID,"kitSha256":"$KIT_SHA256","promotion":false,"humanGateRequired":true,"hr24_003":"HOLD_SEPARATE_ENGINE_JOB"}
+          EOF
+
+          cat > "$dir/MACHINE_QUALIFICATION.md" <<EOF
+          # Machine qualification
+          - RESULT_SHA: $RESULT_SHA
+          - FINAL_BUILD_SHA256: $FINAL_BUILD_SHA256
+          - FINAL_BUILD_BYTES: $FINAL_BUILD_BYTES
+          - QUALIFICATION_RUN_ID: $QUALIFICATION_RUN_ID
+          - 100-scenario structural/boundary matrix: PASS
+          - Existing V5/V8 reload/browser regression: PASS
+          - HR24 mobile drawer/rename/storage/50-course oracle: PASS
+          - Repository governance: PASS
+          - HR24-003: CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED
+          EOF
+
+          tar --sort=name --mtime='UTC 2026-09-28' --owner=0 --group=0 --numeric-owner \
+            -cf "$RUNNER_TEMP/wp067-human-replay.tar" -C "$dir" .
+          sha256sum "$RUNNER_TEMP/wp067-human-replay.tar" > "$RUNNER_TEMP/wp067-human-replay.sha256"
+
+      - name: Local smoke exact immutable replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          python -m http.server 8765 --directory "$site" >"$RUNNER_TEMP/http.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" || true' EXIT
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright==1.55.0
+          python -m playwright install --with-deps chromium
+          python - "$RESULT_SHA" "$site/human-replay/$RESULT_SHA/fixtures/nombres_complexes_student_v01_v5.json" <<'PY'
+          import sys
+          from playwright.sync_api import sync_playwright
+          head,kit=sys.argv[1:]
+          with sync_playwright() as p:
+              b=p.chromium.launch(headless=True)
+              page=b.new_page(viewport={'width':390,'height':844},has_touch=True,is_mobile=True)
+              errors=[];page.on('pageerror',lambda e: errors.append(str(e)))
+              page.goto(f'http://127.0.0.1:8765/human-replay/{head}/',wait_until='load')
+              page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__)')
+              menu=page.get_by_role('button',name='Menu');menu.click()
+              page.get_by_role('button',name='Importer un cours').click()
+              page.locator('#kit-file').set_input_files(kit)
+              add=page.get_by_role('button',name='Ajouter à la bibliothèque')
+              add.wait_for();page.wait_for_function("() => !document.querySelector('button.primary[type=submit]')?.disabled")
+              add.click()
+              card=page.locator('.course-card[data-course-install-id]').first;card.wait_for()
+              menu.click();today=page.get_by_role('button',name="Aujourd’hui")
+              assert today.is_disabled()
+              page.keyboard.press('Escape')
+              opts=card.locator('.course-settings-details > summary');opts.click()
+              card.get_by_role('button',name='Renommer').click()
+              edit=card.locator('[data-course-inline-rename] input');edit.fill('Alias replay')
+              edit.press('Escape')
+              assert card.get_by_role('heading').first.inner_text() != 'Alias replay'
+              assert page.evaluate('() => document.documentElement.scrollWidth <= window.innerWidth + 1')
+              assert not errors,errors
+              b.close()
+          print('WP067_LOCAL_REPLAY_SMOKE=PASS')
+          PY
+
+      - name: Name verified site artifact
+        id: names
+        run: echo "site_artifact=atlas-wp067-human-replay-site-$RESULT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified full site
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.site_artifact }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/site
+
+      - name: Upload deterministic JOB25 replay bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp067-human-replay-${{ env.RESULT_SHA }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/wp067-human-replay.tar
+            ${{ runner.temp }}/wp067-human-replay.sha256
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download verified full site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.site_artifact }}
+          path: ${{ runner.temp }}/site
+
+      - name: Recheck exact candidate before Pages upload
+        shell: bash
+        env:
+          RESULT_SHA: ${{ needs.verify.outputs.result_sha }}
+          FINAL_BUILD_SHA256: ${{ needs.verify.outputs.artifact_sha }}
+          FINAL_BUILD_BYTES: ${{ needs.verify.outputs.artifact_bytes }}
+        run: |
+          set -euo pipefail
+          replay="$RUNNER_TEMP/site/human-replay/$RESULT_SHA/index.html"
+          test "$(sha256sum "$replay" | awk '{print $1}')" = "$FINAL_BUILD_SHA256"
+          test "$(wc -c < "$replay" | tr -d ' ')" = "$FINAL_BUILD_BYTES"
+          test "$(sha256sum "$RUNNER_TEMP/site/human-replay/$WP066_HEAD/index.html" | awk '{print $1}')" = "$WP066_SHA256"
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+      - name: Deploy immutable replay
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Install live smoke browser
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Live HTTPS smoke exact RESULT_SHA
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          RESULT_SHA: ${{ needs.verify.outputs.result_sha }}
+          FINAL_BUILD_SHA256: ${{ needs.verify.outputs.artifact_sha }}
+          FINAL_BUILD_BYTES: ${{ needs.verify.outputs.artifact_bytes }}
+        run: |
+          set -euo pipefail
+          base="${PAGE_URL}human-replay/${RESULT_SHA}/"
+          curl --fail --silent --show-error "$base" -o "$RUNNER_TEMP/live.html"
+          curl --fail --silent --show-error "${base}candidate-identity.json" -o "$RUNNER_TEMP/identity.json"
+          curl --fail --silent --show-error "${base}fixtures/nombres_complexes_student_v01_v5.json" -o "$RUNNER_TEMP/kit.json"
+          test "$(sha256sum "$RUNNER_TEMP/live.html" | awk '{print $1}')" = "$FINAL_BUILD_SHA256"
+          test "$(wc -c < "$RUNNER_TEMP/live.html" | tr -d ' ')" = "$FINAL_BUILD_BYTES"
+          test "$(sha256sum "$RUNNER_TEMP/kit.json" | awk '{print $1}')" = "$KIT_SHA256"
+          grep -q "\"productHead\":\"${RESULT_SHA}\"" "$RUNNER_TEMP/identity.json"
+
+          python - "$base" "$RUNNER_TEMP/kit.json" <<'PY'
+          import sys
+          from playwright.sync_api import sync_playwright
+          url,kit=sys.argv[1:]
+          with sync_playwright() as p:
+              b=p.chromium.launch(headless=True)
+              page=b.new_page(viewport={'width':390,'height':844},has_touch=True,is_mobile=True)
+              errors=[];external=[]
+              page.on('pageerror',lambda e: errors.append(str(e)))
+              page.on('request',lambda r: external.append(r.url) if r.url.startswith(('http://','https://')) and not r.url.startswith(url) else None)
+              page.goto(url,wait_until='load')
+              page.wait_for_function('() => Boolean(window.__LEARNIT_NEXT_TEST__)')
+              menu=page.get_by_role('button',name='Menu');menu.click()
+              page.get_by_role('button',name='Importer un cours').click()
+              page.locator('#kit-file').set_input_files(kit)
+              add=page.get_by_role('button',name='Ajouter à la bibliothèque')
+              page.wait_for_function("() => !document.querySelector('button.primary[type=submit]')?.disabled")
+              add.click()
+              card=page.locator('.course-card[data-course-install-id]').first;card.wait_for()
+              opts=card.locator('.course-settings-details > summary');opts.click()
+              card.get_by_role('button',name='Renommer').click()
+              edit=card.locator('[data-course-inline-rename] input');edit.fill('Alias HTTPS replay');edit.press('Enter')
+              page.get_by_role('heading',name='Alias HTTPS replay').wait_for()
+              assert page.evaluate('() => document.documentElement.scrollWidth <= window.innerWidth + 1')
+              assert not errors,errors
+              assert not external,external
+              b.close()
+          print('REPLAY_HTTPS_LIVE_SMOKE=PASS')
+          PY
+
+          cat > wp067-live-evidence.json <<EOF
+          {"schema":"learnit.wp067.human-replay.live.v1","productHead":"$RESULT_SHA","replayUrl":"$base","replayHttpsLiveSmoke":"PASS","promotion":false,"humanGateRequired":true,"hr24_003":"HOLD_SEPARATE_ENGINE_JOB"}
+          EOF
+          echo "REPLAY_URL=$base" >> "$GITHUB_STEP_SUMMARY"
+          echo "REPLAY_HTTPS_LIVE_SMOKE=PASS" >> "$GITHUB_STEP_SUMMARY"
+          echo "HUMAN_REPLAY_STATUS=HUMAN_DECISION_REQUIRED" >> "$GITHUB_STEP_SUMMARY"
+          echo "NEXT=REAL_HUMAN_REPLAY_HR24_MODULAR_LIBRARY_BOUNDARY_R2" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload live evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp067-human-replay-live-${{ needs.verify.outputs.result_sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: wp067-live-evidence.json
+
+      - name: Publish governed replay receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT_SHA: ${{ needs.verify.outputs.result_sha }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          gh issue comment 465 --repo "$GITHUB_REPOSITORY" --body "JOB25_HR24_REPLAY_RECEIPT
+          HUMAN_REPLAY_RUN_ID: $GITHUB_RUN_ID
+          RESULT_SHA: $RESULT_SHA
+          REPLAY_URL: ${PAGE_URL}human-replay/${RESULT_SHA}/
+          REPLAY_HTTPS_LIVE_SMOKE: PASS
+          HR24_003_ENGINE_GAP: CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED
+          HUMAN_REPLAY_STATUS: HUMAN_DECISION_REQUIRED
+          GO_LIMITED_PILOT: NOT_DECLARED
+          G5_PASS: NOT_DECLARED"
