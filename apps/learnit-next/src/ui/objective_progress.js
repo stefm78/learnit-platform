@@ -369,16 +369,23 @@ function renderR15ObjectiveProgress(data, options) {
     ? requestedPriority : null;
   const allAcquired = objectives.length > 0 && objectives.every(item => item.status === 'validated-recently');
 
+  const detailId = `${idPrefix}-r15-selected-objective-detail`;
   const detailState = element(documentRef, 'strong', {className: 'objective-progress-r15__detail-state'});
   const detailLabel = element(documentRef, 'span', {className: 'objective-progress-r15__detail-label'});
   const detail = element(documentRef, 'div', {
+    id: detailId,
     className: 'objective-progress-r15__detail',
     'data-objective-progress-r15-detail': 'true',
     'aria-live': 'polite',
     hidden: true,
   }, [detailState, detailLabel]);
-  const showDetail = (item) => {
+  const showDetail = (item, selectedReservoir) => {
     detail.hidden = false;
+    for (const reservoir of reservoirs.querySelectorAll('[data-objective-progress-r15-objective]')) {
+      const selected = reservoir === selectedReservoir;
+      reservoir.setAttribute('aria-pressed', String(selected));
+      reservoir.setAttribute('data-objective-progress-r15-selected', String(selected));
+    }
     detailState.textContent = statusPresentation(item.status).label;
     if (context !== 'terminal-summary' || !worked.has(item.objectiveId)) {
       detailLabel.textContent = item.label;
@@ -417,7 +424,10 @@ function renderR15ObjectiveProgress(data, options) {
       'data-objective-progress-r15-priority': String(isPriority),
       'data-objective-progress-r15-session-worked': String(wasWorked),
       'data-objective-progress-r15-session-changed': String(didChange),
+      'data-objective-progress-r15-selected': 'false',
       'aria-label': aria,
+      'aria-pressed': 'false',
+      'aria-controls': detailId,
       title: `${item.label} — ${presentation.label}`,
     }, [
       element(documentRef, 'span', {
@@ -431,8 +441,8 @@ function renderR15ObjectiveProgress(data, options) {
         text: R15_STATE_MARK[item.status],
       }) : null,
     ]);
-    reservoir.addEventListener('click', () => showDetail(item));
-    reservoir.addEventListener('focus', () => showDetail(item));
+    reservoir.addEventListener('click', () => showDetail(item, reservoir));
+    reservoir.addEventListener('focus', () => showDetail(item, reservoir));
     reservoirs.appendChild(reservoir);
   });
   const group = element(documentRef, 'div', {
