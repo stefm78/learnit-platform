@@ -463,12 +463,34 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     return container;
   }
 
+  function renderCourseCompletionGuidance(course, reviewQueue) {
+    if (!course.progress.isComplete) return null;
+    const recommendation = course.progress.recommendation ?? null;
+    let detail = 'Toutes les activités prévues ont été réalisées.';
+    if (recommendation?.action === 'correct' && reviewQueue.total > 0) {
+      detail = 'Un objectif reste à renforcer. Reprenez une activité incorrecte pour continuer.';
+    } else if (recommendation?.action === 'validate') {
+      detail = 'Un objectif est à confirmer. Toutes les activités disponibles ont été réalisées ; Learn-it ne propose pas encore de nouvelle validation.';
+    } else if (recommendation?.action === 'revisit-later') {
+      detail = 'Les acquis sont récents. Revenez plus tard pour les consolider ; Learn-it n’indique pas encore de moment précis.';
+    } else if (recommendation?.action === 'continue-training' || recommendation?.action === 'start-training') {
+      detail = 'Un objectif reste en apprentissage. Toutes les activités disponibles ont été réalisées ; aucune activité supplémentaire n’est proposée actuellement.';
+    }
+    return node('div', {
+      className: 'course-path-status',
+      'data-course-path-status': recommendation?.action ?? 'none',
+    }, [
+      node('strong', { text: 'Parcours d’activités terminé' }),
+      node('span', { text: detail }),
+    ]);
+  }
+
   async function renderLibrary({ focus = true, announcement = null } = {}) {
     const courses = await runtime.listCourses();
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
     section.append(node('div', { className: 'section-heading library-heading' }, [
-      node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque' }), libraryTitle]),
+      libraryTitle,
     ]));
 
     const importForm = node('form', { className: 'import-panel' });
@@ -537,10 +559,9 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         const reviewQueue = await runtime.getReviewQueue(course.courseInstallId);
         const correctivePriority =
           course.progress.recommendation?.action === 'correct'
-          && reviewQueue.total > 0
-          && !course.progress.isComplete;
+          && reviewQueue.total > 0;
         const courseAction = course.progress.isComplete
-          ? node('p', { className: 'course-complete', text: 'Cours terminé' })
+          ? null
           : node('button', {
             type: 'button',
             className: correctivePriority ? 'secondary' : 'primary',
@@ -549,6 +570,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             'data-course-install-id': course.courseInstallId,
             onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
           });
+        const completionGuidance = renderCourseCompletionGuidance(course, reviewQueue);
         const reviewAction = correctivePriority
           ? node('button', {
             type: 'button',
@@ -566,7 +588,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         });
         const objectiveDetails = objectiveSurface;
         const settingsDetails = node('details', { className: 'course-settings-details' }, [
-          node('summary', { text: 'Renommer' }),
+          node('summary', { text: 'Gérer' }),
           renderCourseLabelForm(course),
         ]);
         list.append(node('article', {
@@ -578,6 +600,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
           ]),
           objectiveDetails,
+          completionGuidance,
           node('div', { className: 'course-row-actions learner-course-actions' }, [
             reviewAction,
             courseAction,
@@ -608,7 +631,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           renderSessionSnapshot(nextSession, { focus: false });
           announce('Activité suivante.');
         } else {
-          await renderLibrary({ focus: false, announcement: 'Cours terminé.' });
+          await renderLibrary({ focus: false, announcement: 'Parcours d’activités terminé. Consultez vos objectifs dans la bibliothèque.' });
         }
         return;
       }
@@ -619,8 +642,8 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
   function renderSessionSnapshot(session, { focus = true } = {}) {
     if (!session || !session.currentActivity) {
       const message = session?.mode === 'review'
-        ? 'La file À revoir est vide. Vous pouvez reprendre le parcours normal.'
-        : 'Cours terminé. La progression a été enregistrée.';
+        ? 'La file À revoir est vide. Consultez vos objectifs dans la bibliothèque.'
+        : 'Parcours d’activités terminé. Consultez vos objectifs dans la bibliothèque.';
       notice = renderNotice([message], 'success');
       return renderLibrary({ announcement: message });
     }
@@ -653,9 +676,8 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     if (!Array.isArray(lines) || lines.length === 0) return null;
     return node('section', { className }, [
       node('h3', { text: title }),
-      lines.length === 1
-        ? node('p', { text: lines[0] })
-        : node('ul', {}, lines.map(line => node('li', { text: line }))),
+      node('div', { className: 'feedback-lines' },
+        lines.map(line => node('p', { className: 'feedback-line', text: line }))),
     ]);
   }
 
@@ -674,7 +696,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     const learnerAnswer = feedbackProjection
       ? renderFeedbackLines('Votre réponse', feedbackProjection.learnerAnswer, 'feedback-answer feedback-learner-answer')
       : null;
-    const expectedAnswer = feedbackProjection
+    const expectedAnswer = feedbackProjection && !result.correct
       ? renderFeedbackLines('Réponse attendue', feedbackProjection.expectedAnswer, 'feedback-answer feedback-expected-answer')
       : null;
     const explanation = result.explanation

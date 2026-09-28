@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-065",
+  "title": "HR22 corrective implementation R1",
+  "status": "in-progress",
+  "purpose": "Implement the bounded Human Replay JOB22 corrections A-E without changing qualified learning semantics.",
+  "changeClass": "hr22-corrective-implementation-r1",
+  "riskClass": "high",
+  "authority": {
+    "issue": 461,
+    "pullRequest": 462,
+    "parentPullRequest": 460,
+    "humanAuthorization": "NEXT_SESSION_PROMPT_HR22_CORRECTIVE_IMPLEMENTATION_R1.md",
+    "parentHumanReplay": "JOB_22_LEARNER_JOURNEY_UX_COHERENCE_R1",
+    "parentHumanReplayResult": "9b5b820b27477ec7afa6ac281237bae69780b602"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-learner-journey-ux-coherence-r1",
+    "baseCommit": "c5f82d27b67c680cf18f07a79f390391a83d7a68",
+    "parentResultSha": "9b5b820b27477ec7afa6ac281237bae69780b602",
+    "parentPullRequest": 460,
+    "grandparentPullRequest": 458
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/tests/hr22_corrective_implementation_r1.py",
+      "apps/learnit-next/tests/browser_hr22_corrective_implementation_r1.py",
+      ".github/workflows/atlas-wp065-*.yml",
+      "qualification/STUDENT_V01_HR22_CORRECTIVE_IMPLEMENTATION_R1_RESULT.md",
+      "work-packages/ATLAS-WP-065.json"
+    ],
+    "forbiddenSemanticPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json",
+      "showcase/student-v0.1/nombres-complexes/LEARNER_BRIEF.json",
+      "showcase/student-v0.1/nombres-complexes/ROLE_B_SOURCE_MANIFEST_V5.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_CONTEXT_V5.json",
+      "showcase/student-v0.1/nombres-complexes/SEMANTIC_REVIEW_V5_R2.json",
+      "showcase/student-v0.1/nombres-complexes/FACTORY_EVIDENCE_V5_FINAL.json"
+    ]
+  },
+  "audit": {
+    "A": {
+      "verdict": "CHANGE_REQUIRED",
+      "rootCause": "Mobile header and one-course card composition spend too much vertical space; rename management is visually over-weighted."
+    },
+    "B": {
+      "verdict": "CHANGE_REQUIRED",
+      "rootCause": "progress.isComplete means all authored activities completed, while objective state and recommendation remain separate; UI incorrectly presented this as terminal course mastery and suppressed corrective review when complete."
+    },
+    "C": {
+      "verdict": "CHANGE_REQUIRED",
+      "rootCause": "Scored feedback always repeated expected answer, including correct responses, and list/arrow formatting can resemble mathematical notation."
+    },
+    "D": {
+      "verdict": "NO_CHANGE_AFTER_AUDIT",
+      "rootCause": "The current V5 course schema and exact showcase expose objectives and activities but no canonical chapter/phase/group hierarchy."
+    },
+    "E": {
+      "verdict": "CHANGE_REQUIRED",
+      "rootCause": "R15 reservoir focus/click updates the detail but carried no persistent visual/ARIA selected state."
+    }
+  },
+  "invariants": [
+    "ActivityResponse unchanged.",
+    "Scoring authority unchanged; no UI rescoring.",
+    "Objective state semantics unchanged.",
+    "Recommendation semantics unchanged.",
+    "sessionDelta V2 unchanged.",
+    "learnit.kit.v5 contract/schema/validator and exact authored showcase unchanged.",
+    "V8 selected presenters and mechanics unchanged.",
+    "R15 reservoirs remain interactive and retain their canonical state language.",
+    "apps/learnit-next/src/core/session.js remains blob 9909f0712de59211d14211ef1afc27bda87fcbf5.",
+    "Parent PR #460 remains DRAFT / OPEN / UNMERGED.",
+    "Grandparent PR #458 remains DRAFT / OPEN / UNMERGED.",
+    "No merge, promotion, GO_LIMITED_PILOT, G5 PASS or student session is authorized."
+  ],
+  "execution": {
+    "job": "JOB_23_HR22_CORRECTIVE_IMPLEMENTATION_R1",
+    "branch": "student-v01/r2-hr22-corrective-implementation-r1",
+    "pullRequest": 462,
+    "pullRequestBase": "student-v01/r2-learner-journey-ux-coherence-r1",
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionAuthorized": false,
+    "humanReplayRequired": true,
+    "resultFrozen": true,
+    "humanReplayStatus": "HUMAN_DECISION_REQUIRED",
+    "resultSha": "af0fb7214510f9144c56219fe770f0653cdc6315",
+    "finalBuildSha256": "959327e5052401c1d5dc2df299d79b77ea538f1b0ff4e249c275d5011c46a385",
+    "finalBuildBytes": 550052,
+    "qualificationRunId": 36410784314,
+    "qualificationEvidenceArtifactId": 10963949500,
+    "humanReplayRunId": 36411188128,
+    "replayUrl": "https://stefm78.github.io/learnit-platform/human-replay/af0fb7214510f9144c56219fe770f0653cdc6315/",
+    "replayKitUrl": "https://stefm78.github.io/learnit-platform/human-replay/af0fb7214510f9144c56219fe770f0653cdc6315/fixtures/nombres_complexes_student_v01_v5.json",
+    "replaySiteArtifactId": 10963414959,
+    "replayBundleArtifactId": 10964490934,
+    "replayLiveEvidenceArtifactId": 10963469954,
+    "replayHttpsLiveSmoke": "PASS",
+    "goLimitedPilotDeclared": false,
+    "g5PassDeclared": false,
+    "finalMachineVerdict": "PASS_MACHINE_HR22_CORRECTIVE_READY_FOR_HUMAN_REPLAY"
+  },
+  "requiredEvidence": [
+    "Library with one real course and a representative 12-course scale fixture is compact, scrollable and mobile-safe.",
+    "Non-started, validated-recently, ready-for-validation and review-needed objective states are exercised on the exact showcase.",
+    "Activity-complete plus ready-for-validation is explained without claiming the course is mastered.",
+    "Activity-complete plus review-needed exposes Renforcer maintenant and opens the real review queue.",
+    "Correct feedback omits redundant expected answer; incorrect feedback retains learner/expected/explanation context without list bullets or arrow notation.",
+    "R15 reservoir focus/touch preserves detail behavior and exposes explicit aria-pressed selected state.",
+    "JOB20 provenance, JOB21 R15, JOB22 learner-journey static invariants, V5/V8/showcase/reload/persistence regressions pass.",
+    "Build is deterministic and repository governance passes on exact RESULT_SHA.",
+    "Immutable HTTPS Human Replay and exact kit are published before the external human decision."
+  ],
+  "nextGate": "REAL_HUMAN_REPLAY_HR22_CORRECTIVE_IMPLEMENTATION_R1",
+  "rollback": "Close unmerged PR #462 and delete student-v01/r2-hr22-corrective-implementation-r1; exact parent c5f82d27b67c680cf18f07a79f390391a83d7a68 and parent PR #460 remain unchanged.",
+  "adversarialTests": [
+    "Any mutation of protected semantic core, ActivityResponse, scoring, objective-state or recommendation authority fails qualification.",
+    "Any completed activity path that is presented as mastered while an objective remains non-mastered fails qualification.",
+    "Any completed course with a real corrective review queue that suppresses the review action fails qualification.",
+    "Any correct scored answer that repeats an identical expected-answer panel fails qualification.",
+    "Any matching/classify post-answer comparison that relies on bullet or arrow notation instead of explicit learner/expected labels fails qualification.",
+    "Any removal of the R15 reservoir interaction or absence of explicit selected-state accessibility semantics fails qualification.",
+    "Any invented chapter/phase/group hierarchy not encoded by the V5 contract/authored kit fails qualification.",
+    "Any failed persistence path that reveals authored answer truth fails qualification."
+  ],
+  "nonGoals": [
+    "Changing ActivityResponse, scoring, objective-state or recommendation semantics.",
+    "Changing sessionDelta V2, learnit.kit.v5 schema/validator, authored content or Factory/H6 evidence.",
+    "Redesigning the Library with search, filters, shelves or a new taxonomy.",
+    "Inventing chapter, phase, group or bucket hierarchy.",
+    "Changing V8 activity interaction mechanics.",
+    "Merging, promoting, declaring GO_LIMITED_PILOT or G5 PASS, or starting a student session."
+  ],
+  "independentReview": [
+    "Replay JOB20 session provenance V2 regression on the corrective candidate.",
+    "Replay JOB21 R15 static and browser contracts with the selected-state extension.",
+    "Replay JOB22 static learner-journey invariants while accepting only the explicitly authorized feedback/terminal composition changes.",
+    "Run V4/V5 validators, V5 Factory governance, V5 runtime/showcase and selected V8 presenter regressions.",
+    "Run exact mobile Human-Replay browser coverage for one-course, scale, terminal validate, terminal review, feedback, selection and reload/resume.",
+    "Build twice with byte equality, validate source manifest and repository governance on the exact candidate.",
+    "Stop after publishing immutable Human Replay with HUMAN_DECISION_REQUIRED."
+  ]
+}

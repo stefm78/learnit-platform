@@ -126,11 +126,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "780c04da9431693eb4fdec3021f5b7c5c5f35e81"
+        "value": "7fd972bbd5e1968be2c75be5e9003622baea4bca"
       },
-      "owner": "ATLAS-WP-064",
+      "owner": "ATLAS-WP-065",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
+      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
     },
     {
       "fingerprint": {
@@ -243,20 +243,20 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "0e219f5570ce4d366ad97e0ba5d1101c81ee7909"
+        "value": "6f2936070e2cb68e55abd95d5235165a62cf514d"
       },
-      "owner": "ATLAS-WP-063",
+      "owner": "ATLAS-WP-065",
       "path": "apps/learnit-next/src/ui/objective_progress.js",
-      "provenance": "ATLAS-WP-063 R15 canonical objective-progress presenter"
+      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
     },
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "cfdbf0f09485d3c5bf7b4d7b181d3a2a075ca81c"
+        "value": "0714e4110f96279bfebf000d95797b3ab8068bb9"
       },
-      "owner": "ATLAS-WP-064",
+      "owner": "ATLAS-WP-065",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
+      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
     },
     {
       "fingerprint": {
@@ -369,11 +369,11 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "85eff7aff02cad4667ae6c7fa1773fb2e56424ab81d1d7a931abf9b66985d1e5"
+        "value": "a2375ac11e0341f1cd8d57247e0fd57ce66c11dd8211562e136b4a54ddfcdcef"
       },
-      "owner": "ATLAS-WP-064",
+      "owner": "ATLAS-WP-065",
       "path": "apps/learnit-next/source_manifest.json",
-      "provenance": "ATLAS-WP-064 learner journey UX coherence R1 manifest rebind"
+      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1 manifest rebind"
     },
     {
       "fingerprint": {
@@ -630,11 +630,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "f273ffcebeef85894f6284b1b1fbb0730c72796b"
+        "value": "f97f70717f8e4047ad697ecbfe9f6594c9d84a43"
       },
-      "owner": "ATLAS-WP-064",
+      "owner": "ATLAS-WP-065",
       "path": "apps/learnit-next/src/integration/atlas/activity_projection.js",
-      "provenance": "ATLAS-WP-064 learner journey UX coherence R1"
+      "provenance": "ATLAS-WP-065 HR22 corrective implementation R1"
     },
     {
       "fingerprint": {
