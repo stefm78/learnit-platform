@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-068",
+  "title": "HR24 Human Replay corrective R1",
+  "status": "in-progress",
+  "purpose": "Apply only the two human-requested secondary HR24 corrections: implicit multi-term AND library search and an icon-only accessible three-bar navigation trigger, then requalify and publish an immutable delta Human Replay.",
+  "changeClass": "hr24-human-replay-corrective-r1",
+  "riskClass": "bounded",
+  "authority": {
+    "issue": 467,
+    "pullRequest": 468,
+    "parentPullRequest": 466,
+    "humanReplayDecision": "ACCEPTED_WITH_TWO_SECONDARY_CORRECTIONS",
+    "humanAuthorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_CHAT_2026-09-28",
+    "parentJob": "JOB_25_HR24_MODULAR_LIBRARY_BOUNDARY_R2",
+    "parentBranchHead": "cb8ceb579dd65230f5300e9f58bd15cfa861578f",
+    "parentProductResultSha": "68a852f1b46564fd9f1cb21c0f848c44845e16d0"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-hr24-modular-library-boundary-r2",
+    "baseCommit": "cb8ceb579dd65230f5300e9f58bd15cfa861578f",
+    "parentPullRequest": 466
+  },
+  "corrections": [
+    "LIBRARY_MULTI_TERM_AND_SEARCH",
+    "ICON_ONLY_HAMBURGER_MENU_TRIGGER"
+  ],
+  "invariants": [
+    "All HR24 Human Replay behavior other than the two authorized corrections remains accepted and frozen.",
+    "Library search uses one deterministic term-normalization/matching contract without pedagogical state mutation or query persistence.",
+    "The closed navigation trigger has no visible Menu word, remains a real accessible button, and preserves existing drawer semantics.",
+    "Scoring, ActivityResponse, objective states, recommendations, sessionDelta, V5 authored content and kit contracts remain byte-identical to the JOB25 frozen product result.",
+    "HR24-003 remains CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED / READ_ONLY_HOLD.",
+    "No merge, promotion, GO_LIMITED_PILOT, G5 PASS or real student session."
+  ],
+  "scope": {
+    "allowedProductPaths": [
+      "apps/learnit-next/src/core/library.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/navigation.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/source_manifest.json"
+    ],
+    "evidencePaths": [
+      "apps/learnit-next/tests/hr24_human_replay_corrective_r1.py",
+      "apps/learnit-next/tests/browser_hr24_human_replay_corrective_r1.py",
+      ".github/workflows/atlas-wp068-hr24-human-replay-corrective-r1.yml",
+      ".github/workflows/atlas-wp068-human-replay-deploy.yml",
+      "work-packages/ATLAS-WP-068.json",
+      "qualification/STUDENT_V01_HR24_HUMAN_REPLAY_CORRECTIVE_R1_RESULT.md"
+    ],
+    "forbiddenSemanticPaths": [
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json"
+    ]
+  },
+  "rollback": "Close unmerged PR #468 and delete branch student-v01/r2-hr24-human-replay-corrective-r1; parent PR #466 and frozen JOB25 result remain unchanged.",
+  "execution": {
+    "job": "JOB_26_HR24_HUMAN_REPLAY_CORRECTIVE_R1",
+    "branch": "student-v01/r2-hr24-human-replay-corrective-r1",
+    "issue": 467,
+    "pullRequest": 468,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionAuthorized": false,
+    "humanReplayRequired": true,
+    "humanReplayStatus": "PENDING_MACHINE_QUALIFICATION",
+    "goLimitedPilotDeclared": false,
+    "g5PassDeclared": false
+  },
+  "nextGate": "DELTA_HUMAN_REPLAY"
+}
