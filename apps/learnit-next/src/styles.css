@@ -782,23 +782,45 @@ button.objective-progress-r15__reservoir[data-objective-progress-r15-selected="t
     padding: .35rem 0 .65rem;
   }
   .learner-course-card {
-    grid-template-columns: 1fr;
-    gap: .55rem;
-    padding: .75rem .8rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .45rem .65rem;
+    padding: .7rem .8rem;
   }
   .learner-course-card .learner-course-actions {
-    grid-column: 1;
-    grid-row: auto;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
   }
   .learner-course-actions {
     flex-direction: row;
     align-items: center;
-    gap: .5rem;
+    gap: .4rem;
   }
   .learner-course-actions button {
     width: auto;
     min-height: 44px;
-    flex: 1 1 9rem;
+    flex: 0 0 auto;
+    padding-inline: .75rem;
+  }
+  .learner-course-card .objective-progress-r15 {
+    gap: .3rem;
+    margin-top: 0;
+  }
+  .learner-course-card .objective-progress-r15__group {
+    padding-block: .4rem;
+  }
+  .learner-course-card .objective-progress-r15__priority-context {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: .2rem .4rem;
+    padding-top: .45rem;
+  }
+  .learner-course-card .objective-progress-r15__context-kicker,
+  .learner-course-card .objective-progress-r15__context-state,
+  .learner-course-card .objective-progress-r15__context-target {
+    font-size: .76rem;
+  }
+  .learner-course-card .course-settings-details > summary {
+    min-height: 32px;
   }
   .learner-course-card button.objective-progress-r15__reservoir {
     width: 1.15rem;
