@@ -62,7 +62,7 @@ assert "course.progress.recommendation?.action === 'correct'\n          && revie
 assert "&& !course.progress.isComplete" not in render
 for action in ("correct", "validate", "revisit-later", "continue-training", "start-training"):
     assert f"recommendation?.action === '{action}'" in render
-assert "aucune nouvelle validation" in render.lower()
+assert "ne propose pas encore de nouvelle validation" in render.lower()
 assert "n’indique pas encore de moment précis" in render
 
 # C — correct feedback does not echo an identical expected answer; comparisons use no list bullets/arrows.
