@@ -61,7 +61,7 @@ assert "Réinitialiser les données locales" in render
 assert "library-file-input" in render and "library-file-picker" in render
 assert "const preview = await runtime.previewImport(text);" in render
 assert "fileStatus.textContent = preview.title;" in render
-assert "fileInput.value = '';" in render
+assert "fileInput.value = '';" not in render
 assert "course.progress.recommendation?.action === 'correct'" in render
 assert "Renforcer maintenant" in render
 assert "Nom local du cours" in render
