@@ -16,7 +16,7 @@ const STATUS_PRESENTATION = Object.freeze({
   }),
   'ready-for-validation': Object.freeze({
     label: 'À confirmer',
-    description: 'L’entraînement est à jour et une activité de validation peut être proposée.',
+    description: 'L’entraînement est à jour ; cet objectif doit encore être confirmé par une validation distincte.',
     className: 'objective-progress__item--ready-for-validation',
   }),
   'validated-recently': Object.freeze({
