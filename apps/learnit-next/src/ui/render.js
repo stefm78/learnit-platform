@@ -326,6 +326,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
   let currentView = 'library';
   let todayAvailable = false;
   let libraryImportActive = false;
+  let libraryRenderEpoch = 0;
   const atlasLearningProjections = new Map();
   const objectiveUi = assertObjectiveUi(objectiveUiIntegration);
 
@@ -619,7 +620,9 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
   }
 
   async function renderLibrary({ focus = true, announcement = null, focusCourseInstallId = null } = {}) {
+    const renderEpoch = ++libraryRenderEpoch;
     const courses = await runtime.listCourses();
+    if (renderEpoch !== libraryRenderEpoch) return;
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
     let requestedCourseFocusTarget = null;
@@ -653,6 +656,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       }
 
       libraryImportActive = true;
+      libraryRenderEpoch += 1;
       try {
         const text = await file.text();
         const preview = await runtime.previewImport(text);
@@ -960,6 +964,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         ]),
       ]));
     }
+    if (renderEpoch !== libraryRenderEpoch) return;
     shell(section, { focusTarget: requestedCourseFocusTarget ?? (focus ? libraryTitle : null), announcement });
   }
   async function submitAnswer(activityRevisionId, answer) {
