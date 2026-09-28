@@ -183,7 +183,7 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "3fd3adddf619d952b6f674e6c6e76168d0d7d186"
+        "value": "495d9897cd8a09113c45c199ac6bd98a28553663"
       },
       "owner": "ATLAS-WP-068",
       "path": "apps/learnit-next/src/core/library.js",
