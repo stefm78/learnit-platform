@@ -325,6 +325,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
   let busy = false;
   let currentView = 'library';
   let todayAvailable = false;
+  let libraryImportActive = false;
   const atlasLearningProjections = new Map();
   const objectiveUi = assertObjectiveUi(objectiveUiIntegration);
 
@@ -413,7 +414,9 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     for (const projection of incoming) {
       atlasLearningProjections.set(projection.courseInstallId, projection);
     }
-    if (currentView === 'library') void renderLibrary({ focus: false });
+    if (currentView === 'library' && !libraryImportActive) {
+      void renderLibrary({ focus: false });
+    }
   });
 
   function setBusy(value) {
@@ -644,10 +647,12 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       importButton.disabled = true;
       const file = fileInput.files?.[0];
       if (!file) {
+        libraryImportActive = false;
         fileStatus.textContent = '';
         return;
       }
 
+      libraryImportActive = true;
       try {
         const text = await file.text();
         const preview = await runtime.previewImport(text);
@@ -657,6 +662,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         fileStatus.textContent = preview.title;
       } catch (error) {
         if (version !== selectionVersion) return;
+        libraryImportActive = false;
         const message = `Lecture du fichier impossible : ${error?.message ?? String(error)}`;
         fileStatus.textContent = message;
         announce(message);
@@ -676,6 +682,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       if (selectedFileText === null) return;
       const payload = selectedFileText;
       run(() => runtime.importPackage(payload), async (result) => {
+        libraryImportActive = false;
         root.dispatchEvent(new CustomEvent('learnit:library-changed', { detail: { reason: 'import' } }));
         await renderLibrary({ announcement: `${result.title} ajouté à la bibliothèque.` });
       });
