@@ -67,7 +67,8 @@ assert "n’indique pas encore de moment précis" in render
 
 # C — correct feedback does not echo an identical expected answer; comparisons use no list bullets/arrows.
 assert "feedbackProjection && !result.correct" in render
-feedback_lines = render[render.index("function renderFeedbackLines"):render.index("function renderFeedback")]
+feedback_start = render.index("function renderFeedbackLines")
+feedback_lines = render[feedback_start:render.index("function renderFeedback(", feedback_start)]
 assert "node('ul'" not in feedback_lines and "node('li'" not in feedback_lines
 assert "feedback-lines" in feedback_lines and "feedback-line" in feedback_lines
 post = projection[projection.index("export function projectPostAnswerFeedback"):projection.index("export function projectActivityPresentation")]
