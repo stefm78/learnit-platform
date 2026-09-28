@@ -187,7 +187,7 @@ def main() -> int:
         page.get_by_role("button", name="Importer un cours").click()
         page.locator(".library-management").wait_for()
         import_kit(page)
-        page.wait_for_function("() => document.querySelector('.nav-drawer-link[data-shell-view="today"]')?.disabled === false")
+        page.wait_for_function("""() => document.querySelector('.nav-drawer-link[data-shell-view="today"]')?.disabled === false""")
         card = page.locator(".course-card[data-course-install-id]").first
         card.wait_for()
         assert card.get_by_role("heading", name=canonical).count() == 1
