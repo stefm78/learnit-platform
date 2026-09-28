@@ -187,7 +187,10 @@ def main() -> int:
         page.get_by_role("button", name="Importer un cours").click()
         page.locator(".library-file-picker").wait_for()
         import_kit(page)
-        page.wait_for_function("""() => document.querySelector('.nav-drawer-link[data-shell-view="today"]')?.disabled === false""")
+        # Exact V5 showcase contains rich V8 activity families beyond the current
+        # Atlas qcm/fill planner contract. Today remains a truthful real route but
+        # disabled; the canonical V5/V8 library/session path stays authoritative.
+        assert page.locator('.nav-drawer-link[data-shell-view="today"]').is_disabled()
         card = page.locator(".course-card[data-course-install-id]").first
         card.wait_for()
         assert card.get_by_role("heading", name=canonical).count() == 1
