@@ -8,7 +8,7 @@
   "riskClass": "high",
   "authority": {
     "issue": 465,
-    "pullRequest": null,
+    "pullRequest": 466,
     "parentPullRequest": 464,
     "humanAuthorization": "GO_HR24_MODULAR_LIBRARY_BOUNDARY_R2",
     "humanAuthorizationSource": "USER_EXPLICIT_EXECUTE_PROMPT_CHAT_2026-09-28",
@@ -38,14 +38,15 @@
     "job": "JOB_25_HR24_MODULAR_LIBRARY_BOUNDARY_R2",
     "branch": "student-v01/r2-hr24-modular-library-boundary-r2",
     "issue": 465,
-    "pullRequest": null,
+    "pullRequest": 466,
     "mergeAuthorized": false,
     "promotionAuthorized": false,
     "studentSessionAuthorized": false,
     "humanReplayRequired": true,
     "humanReplayStatus": "NOT_YET_PUBLISHED",
     "goLimitedPilotDeclared": false,
-    "g5PassDeclared": false
+    "g5PassDeclared": false,
+    "pullRequestBase": "student-v01/r2-hr23-corrective-implementation-r1"
   },
   "nextGate": "MACHINE_QUALIFICATION_THEN_HUMAN_REPLAY",
   "nonGoals": [
@@ -53,5 +54,109 @@
     "Changing scoring, ActivityResponse, objective states, recommendations, sessionDelta or V5 authored content.",
     "Inventing collections, shelves, subjects or chapters.",
     "Merging or promoting."
+  ],
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/core/library.js",
+      "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/ports/learning_projection.js",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/src/integration/learning_projection.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ui/navigation.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/tests/hr24_modular_library_boundary_r2.py",
+      "apps/learnit-next/tests/browser_hr24_modular_library_boundary_r2.py",
+      ".github/workflows/atlas-wp067-*.yml",
+      "qualification/STUDENT_V01_HR24_MODULAR_LIBRARY_BOUNDARY_R2_RESULT.md",
+      "work-packages/ATLAS-WP-067.json"
+    ],
+    "forbiddenSemanticPaths": [
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "contracts/learnit-kit-v5.schema.json",
+      "authoring/v5/validate_kit.py",
+      "showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json"
+    ]
+  },
+  "audit": {
+    "A": {
+      "verdict": "PASS_SOURCE_MODEL_UNDERSTOOD",
+      "evidence": "core/library.js parent is manifest-backed blob d94dcb05b5afbb83bd957a942565001f9bd74bf2; deterministic build supports git cat-file materialization; WP067 materializes and rebinds it."
+    },
+    "B": {
+      "verdict": "CHANGE_REQUIRED_IMPLEMENTED",
+      "evidence": "Removed Library->progress constructor dependency and Atlas integration->private Library DOM mutation."
+    },
+    "C": {
+      "verdict": "MINIMAL_CONTRACTS",
+      "evidence": "Library query/command service; read-only learning projection port; shell semantic events; shell-owned navigation state."
+    },
+    "D": {
+      "verdict": "PHYSICAL_ADDITIVE_ISOLATION",
+      "evidence": "IndexedDB v3 adds libraryMetadata and migrates aliases additively; rename writes no courses/progress/objectiveProgress record."
+    },
+    "E": {
+      "verdict": "DRAWER_V1_NO_INVENTED_TAXONOMY",
+      "evidence": "Learn-it / Aujourd’hui / Bibliothèque / Tous les cours / Importer un cours only."
+    },
+    "F": {
+      "verdict": "READ_ONLY_HOLD",
+      "evidence": "HR24-003 remains truthful UI plus unchanged protected engine semantics; separate engine job required."
+    }
+  },
+  "rollback": "Close unmerged PR #466 and delete student-v01/r2-hr24-modular-library-boundary-r2; exact JOB24 closeout 259aa22dbd7530989bdb1412f60bcfe823bead41 and PR #464 remain unchanged.",
+  "requiredEvidence": [
+    "Source-manifest model validates the materialized library source and all new boundary modules deterministically.",
+    "Library lists/searches courses without Atlas or Learning Loop internals and remains usable when a projection is unavailable.",
+    "Atlas integration no longer queries or mutates private Library DOM selectors and communicates only through semantic shell contracts.",
+    "Rename writes only libraryMetadata; courses, progress and objectiveProgress records remain identical before/after.",
+    "Existing aliases migrate additively and persist after reload; canonical authored title remains unchanged.",
+    "Mobile 390x844 drawer opens/closes by trigger, Escape and backdrop, traps focus, makes background inert and restores focus.",
+    "Inline rename edits in the title slot with Save/Cancel/Enter/Escape, remains mobile-safe and has no horizontal overflow.",
+    "50 synthetic courses remain searchable with stable ordering and no authored production-content mutation.",
+    "Learning Loop and Atlas protected engine blobs remain byte-identical to JOB24.",
+    "HR24-003 remains truthful and unchanged semantically, recorded as a separate engine capability gap.",
+    "V4/V5 validators, V5 runtime/showcase, V8 presenters, session provenance, persistence and deterministic build regressions pass.",
+    "Immutable HTTPS Human Replay with exact kit is published before the next human decision."
+  ],
+  "adversarialTests": [
+    "Any Library import of Atlas core, Learning Loop core or direct progress semantics fails qualification.",
+    "Any Atlas integration query or mutation of .course-card, .course-row-actions, .course-settings-details or Library objective details fails qualification.",
+    "Any rename write to courses, progress or objectiveProgress fails qualification.",
+    "Any destructive alias migration or progress reset fails qualification.",
+    "Any drawer without Escape, focus restoration, inert background or truthful aria-expanded fails qualification.",
+    "Any rename that injects a large form below the card, changes canonical title, or permits more than 180 code points fails qualification.",
+    "Any invented Collections/Rayonnages/Matières/Chapitres navigation taxonomy fails qualification.",
+    "Any mutation of objective_progress, learning_recommendation, progress, session or atlas_*.js core modules fails qualification.",
+    "Any implementation of HR24-003 scheduler/reserving/state/recommendation semantics in this job fails qualification.",
+    "Any merge, promotion, GO_LIMITED_PILOT, G5 PASS or real student session fails governance."
+  ],
+  "independentReview": [
+    "Run the explicit 100-scenario HR24 structural/boundary matrix.",
+    "Run browser mobile 390x844 drawer, inline rename, storage-isolation and 50-course scale oracle.",
+    "Replay Learning Loop V2 session-provenance regression.",
+    "Replay V4/V5 validator, V5 Factory, V5 runtime/showcase/fan-in and V8 selected presenter regressions.",
+    "Replay existing failed-persistence browser regression.",
+    "Build twice with byte identity and validate repository governance on the exact candidate SHA.",
+    "Publish immutable Human Replay only after machine qualification and stop at HUMAN_DECISION_REQUIRED."
   ]
 }
