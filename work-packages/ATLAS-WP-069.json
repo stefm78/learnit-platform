@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-069",
+  "title": "HR24 formal acceptance closeout + G5 evidence reconciliation R1",
+  "status": "in-progress",
+  "purpose": "Durably record formal human acceptance of the exact JOB26 reviewed/commented/corrected candidate, close the JOB26 human gate, reconcile historical G5 evidence without redundant human replay, and identify the smallest remaining human gate.",
+  "changeClass": "human-gate-evidence-reconciliation",
+  "riskClass": "bounded",
+  "authority": {
+    "canonicalG5Issue": 427,
+    "executionIssue": 469,
+    "sourceJob": "JOB_26_HR24_HUMAN_REPLAY_CORRECTIVE_R1",
+    "sourceIssue": 467,
+    "sourcePullRequest": 468,
+    "parentPullRequest": 466,
+    "humanAuthorizationSource": "USER_EXPLICIT_CLARIFICATION_CHAT_2026-09-28_FORMAL_VALIDATION_OF_COMMENTED_JOB26_VERSION"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/r2-hr24-human-replay-corrective-r1",
+    "baseCommit": "0a0251df5f085c203fd43456bad63af33bb1a9a7",
+    "reviewedProductSha": "8eceb94b8003adc539d34d2cfeeca62ff0c565a0",
+    "job26BuildSha256": "96531b5eba19056268b2c451a0518e36c129464085ba5fcc73a318e6569b7128",
+    "job26BuildBytes": 583482,
+    "showcaseSha256": "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b",
+    "qualificationRunId": 36471117708,
+    "repositoryGovernanceRunId": 36471117690,
+    "humanReplayRunId": 36471437763,
+    "humanReplayUrl": "https://stefm78.github.io/learnit-platform/human-replay/8eceb94b8003adc539d34d2cfeeca62ff0c565a0/"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-069.json",
+      "qualification/STUDENT_V01_JOB26_FORMAL_HUMAN_VALIDATION.md",
+      "qualification/STUDENT_V01_G5_EVIDENCE_RECONCILIATION_R1.md",
+      "qualification/STUDENT_V01_G5_DELTA_REPLAY_PROTOCOL_R1.md",
+      "qualification/STUDENT_V01_JOB27_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      "qa/**",
+      "governance/**",
+      "tools/**",
+      "docs/architecture/**",
+      "docs/programs/student-v0.1/PROGRAM_CHARTER.md",
+      "docs/programs/student-v0.1/COORDINATION.yaml"
+    ]
+  },
+  "invariants": [
+    "REVIEWED_PRODUCT_SHA remains exactly 8eceb94b8003adc539d34d2cfeeca62ff0c565a0.",
+    "JOB26 RESULT_SHA and JOB26 EVIDENCE_HEAD remain distinct and must never be conflated.",
+    "JOB26 formal human validation closes only the JOB26 HUMAN_DECISION_REQUIRED gate and does not imply GO_LIMITED_PILOT or G5 PASS.",
+    "No machine assertion may substitute for a human-only G5 observation.",
+    "No historical human evidence may be reused after a material later change unless the affected dimension was revalidated.",
+    "HR24-003 remains CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED / READ_ONLY_HOLD.",
+    "No product or workflow mutation is authorized.",
+    "No real student session is authorized.",
+    "PR #468 and PR #466 remain DRAFT / OPEN / UNMERGED.",
+    "Issue #427 remains the sole canonical G5 authority."
+  ],
+  "requiredEvidence": [
+    "Exact constitutionally anchored UCP/HEAD/UAO/kernel closure verified before governed work.",
+    "Exact JOB26 product/evidence identities, qualification run, repository governance run and immutable replay identity revalidated.",
+    "Formal human acceptance source is durably recorded without expanding its scope.",
+    "Historical G5 protocol, initial human findings, corrective waves, R2 handoffs, R15/learner-journey/HR22/HR23/HR24 evidence and JOB26 replay are reconciled dimension by dimension.",
+    "Each G5 dimension records strongest evidence, observed candidate/version, human-vs-machine character, survival across later material changes and governed disposition.",
+    "Any remaining replay protocol contains only insufficient or superseded human dimensions and reuses the existing immutable JOB26 replay where possible.",
+    "Repository governance passes on the final JOB27 evidence-only head."
+  ],
+  "adversarialTests": [
+    "Fail if JOB26 formal acceptance is ignored or a complete JOB26 replay is requested again.",
+    "Fail if JOB26 acceptance is converted into GO_LIMITED_PILOT, G5 PASS, merge, promotion or student-session authorization.",
+    "Fail if screen-reader, keyboard-only, touch, full-journey or pilot-confidence evidence is invented from automation.",
+    "Fail if superseded human evidence is treated as current after later material UX changes.",
+    "Fail if HR24-003 is declared resolved or non-blocking without explicit human authority.",
+    "Fail if any path outside the exact allowlist changes.",
+    "Fail if any product/workflow byte changes.",
+    "Fail if #427 is replaced as G5 authority or #428/WP045 history is rewritten.",
+    "Fail if repository governance fails."
+  ],
+  "nonGoals": [
+    "Modify product, workflow, architecture, scoring, ActivityResponse, objective semantics, recommendation semantics, authored content or Atlas engine behavior.",
+    "Repair HR24-003.",
+    "Redo dimensions already sufficiently proven by current human evidence.",
+    "Declare GO_LIMITED_PILOT or G5 PASS.",
+    "Merge or promote any pull request.",
+    "Start or authorize real student sessions."
+  ],
+  "rollback": "Close the unmerged JOB27 pull request and delete branch student-v01/g5-evidence-reconciliation-r1. No product rollback is required because JOB27 is evidence-only.",
+  "execution": {
+    "job": "JOB_27_HR24_FORMAL_ACCEPTANCE_CLOSEOUT_G5_EVIDENCE_RECONCILIATION_R1",
+    "branch": "student-v01/g5-evidence-reconciliation-r1",
+    "issue": 469,
+    "canonicalG5Issue": 427,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionsAuthorized": 0
+  },
+  "nextGate": "CONDITIONAL: G5_EVIDENCE_COMPLETE_FINAL_DECISION_REQUIRED | G5_DELTA_HUMAN_REPLAY_REQUIRED | HOLD_G5_MATERIAL_BLOCKER"
+}
