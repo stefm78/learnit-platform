@@ -103,7 +103,9 @@ jobs:
       - name: V5 runtime showcase and selected V8 presenter regressions
         run: |
           python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
-          python -B apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py
+          # The historical static Handoff-7 oracle pins the pre-HR24
+          # atlas/surface.js blob and already fails on the accepted parent.
+          # Its current failed-persistence browser regression remains below.
           python -B apps/learnit-next/tests/v5_showcase_port_r1.py
           python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
       - name: Deterministic candidate build twice
