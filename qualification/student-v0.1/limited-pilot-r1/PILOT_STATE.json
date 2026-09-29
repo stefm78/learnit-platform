@@ -1,0 +1,16 @@
+{
+  "schema": "student.v0.1.limited-pilot-state.v1",
+  "job": "JOB_31_LIMITED_PILOT_5_6_STUDENTS_EXECUTION_R1",
+  "workPackage": "ATLAS-WP-073",
+  "candidateSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+  "learnerPackageSha256": "PENDING_QUALIFICATION",
+  "facilitatorPackageSha256": "PENDING_QUALIFICATION",
+  "completedRealSessions": 0,
+  "maxAuthorizedStudentSessions": 6,
+  "state": "PREPARING",
+  "holdStatus": "NONE",
+  "hr24_003": {
+    "status": "CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED",
+    "pilotAcceptance": "ACCEPT"
+  }
+}
