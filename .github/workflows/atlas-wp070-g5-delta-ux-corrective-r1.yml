@@ -1,0 +1,154 @@
+name: ATLAS WP070 G5 delta UX corrective R1
+
+on:
+  push:
+    branches: [student-v01/g5-delta-ux-corrective-r1]
+  pull_request:
+    branches: [student-v01/g5-evidence-reconciliation-r1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    if: github.event_name != 'pull_request' || github.head_ref == 'student-v01/g5-delta-ux-corrective-r1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONPATH: .
+      BASE: b6a24a5b2d300d3e10fc8a413148071636653a06
+      KIT_SHA256: aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b
+      JOB28_EVIDENCE_DIR: /tmp/atlas-wp070-g5-delta-ux-evidence
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          clean: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install exact qualification dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir jsonschema==4.25.1 playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Revalidate exact JOB28 topology and allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          git cat-file -e "$BASE^{commit}"
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          if [[ "${{ github.event_name }}" == pull_request ]]; then
+            test "${{ github.event.pull_request.base.sha }}" = "$BASE"
+            test "${{ github.event.pull_request.base.ref }}" = "student-v01/g5-evidence-reconciliation-r1"
+            test "${{ github.event.pull_request.head.ref }}" = "student-v01/g5-delta-ux-corrective-r1"
+          fi
+          python - "$BASE" <<'PY'
+          import subprocess,sys
+          base=sys.argv[1]
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          allowed={
+            'apps/learnit-next/src/ui/render.js','apps/learnit-next/src/styles.css','apps/learnit-next/source_manifest.json',
+            'apps/learnit-next/tests/g5_delta_ux_corrective_r1.py','apps/learnit-next/tests/browser_g5_delta_ux_corrective_r1.py',
+            '.github/workflows/atlas-wp070-g5-delta-ux-corrective-r1.yml','.github/workflows/atlas-wp070-human-replay-deploy.yml',
+            'work-packages/ATLAS-WP-070.json','qualification/STUDENT_V01_G5_DELTA_UX_FINDINGS_R1.md',
+            'qualification/STUDENT_V01_G5_DELTA_REPLAY_PROTOCOL_R2.md','qualification/STUDENT_V01_JOB28_G5_DELTA_UX_CORRECTIVE_R1_RESULT.md',
+          }
+          required={
+            'apps/learnit-next/src/ui/render.js','apps/learnit-next/src/styles.css','apps/learnit-next/source_manifest.json',
+            'apps/learnit-next/tests/g5_delta_ux_corrective_r1.py','apps/learnit-next/tests/browser_g5_delta_ux_corrective_r1.py',
+            '.github/workflows/atlas-wp070-g5-delta-ux-corrective-r1.yml','.github/workflows/atlas-wp070-human-replay-deploy.yml',
+            'work-packages/ATLAS-WP-070.json','qualification/STUDENT_V01_G5_DELTA_UX_FINDINGS_R1.md',
+          }
+          assert changed <= allowed,sorted(changed-allowed)
+          assert required <= changed,sorted(required-changed)
+          print('JOB28_SCOPE=PASS')
+          PY
+      - name: Verify protected semantics and exact V5 kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          for p in apps/learnit-next/src/core/session.js apps/learnit-next/src/core/activity_semantics.js apps/learnit-next/src/core/progress.js apps/learnit-next/src/core/objective_progress.js apps/learnit-next/src/core/learning_recommendation.js apps/learnit-next/src/integration/atlas/session.js apps/learnit-next/src/ui/activity_presenters.js contracts/learnit-kit-v5.schema.json authoring/v5/validate_kit.py showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json; do
+            test "$(git rev-parse "HEAD:$p")" = "$(git rev-parse "$BASE:$p")"
+          done
+          test "$(sha256sum showcase/student-v0.1/nombres-complexes/nombres_complexes_student_v01_v5.json | awk '{print $1}')" = "$KIT_SHA256"
+          echo PROTECTED_SEMANTICS_IDENTITY=PASS
+          echo EXACT_V5_KIT_SHA256=PASS
+      - name: JOB28 static and accessibility contract
+        run: |
+          node --check apps/learnit-next/src/ui/render.js
+          python -B apps/learnit-next/tests/g5_delta_ux_corrective_r1.py
+      - name: V4 and V5 validator regressions
+        run: |
+          python -B authoring/v4/tests/test_validate_v4.py -v
+          python -B authoring/v5/tests/test_validate_v5.py -v
+      - name: V5 Factory source-governance regression
+        run: python -B authoring/factory/tests/test_v5_authoring_factory_source_governance.py -v
+      - name: Session provenance and objective-progress regressions
+        run: |
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py -v
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py -v
+          python -B apps/learnit-next/tests/r15_objective_progress_restoration_r2.py
+      - name: V5 runtime showcase and selected V8 presenter regressions
+        run: |
+          python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
+          python -B apps/learnit-next/tests/r2_handoff7_fanin_regression_r1.py
+          python -B apps/learnit-next/tests/v5_showcase_port_r1.py
+          python -B apps/learnit-next/tests/v8_selected_presenters_r1.py
+      - name: Deterministic candidate build twice
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output /tmp/wp070-build-1.html
+          python -B apps/learnit-next/build.py --output /tmp/wp070-build-2.html
+          cmp -s /tmp/wp070-build-1.html /tmp/wp070-build-2.html
+          mkdir -p apps/learnit-next/dist
+          cp /tmp/wp070-build-1.html apps/learnit-next/dist/learnit-next.html
+          bytes="$(wc -c < /tmp/wp070-build-1.html | tr -d ' ')"
+          sha="$(sha256sum /tmp/wp070-build-1.html | awk '{print $1}')"
+          echo "bytes=$bytes" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo DETERMINISTIC_BUILD=PASS
+          echo "FINAL_BUILD_BYTES=$bytes"
+          echo "FINAL_BUILD_SHA256=$sha"
+      - name: Failed-persistence and learner-journey browser regression
+        run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
+      - name: R15 objective-progress browser regression
+        run: python -B apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py
+      - name: JOB28 direct rename no-reflow mobile browser qualification
+        run: python -B apps/learnit-next/tests/browser_g5_delta_ux_corrective_r1.py
+      - name: Repository governance on exact candidate
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          python tools/validate_repository.py
+          echo REPOSITORY_GOVERNANCE_EXACT_SHA=PASS
+      - name: Qualification oracle
+        shell: bash
+        run: |
+          mkdir -p "$JOB28_EVIDENCE_DIR"
+          cat > "$JOB28_EVIDENCE_DIR/MACHINE_QUALIFICATION.txt" <<EOF
+          FINDING_001_TERMINAL_GUIDANCE_TOO_VERBOSE=CORRECTED_MACHINE
+          FINDING_002_RENAME_MENU_AND_REFLOW=CORRECTED_MACHINE
+          NAVIGATION_SEARCH_CLARITY=PRESERVED_SATISFIED
+          PROTECTED_SEMANTICS=PASS
+          V5_SHOWCASE_SHA256=$KIT_SHA256
+          HR24_003=CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED
+          HUMAN_REPLAY_STATUS=HUMAN_DECISION_REQUIRED
+          G5_PASS=NOT_DECLARED
+          GO_LIMITED_PILOT=NOT_DECLARED
+          AUTHORIZED_STUDENT_SESSIONS=0
+          EOF
+          echo FINAL_VERDICT=PASS_MACHINE_G5_DELTA_UX_CORRECTIVE_READY_FOR_EVIDENCE_CLOSEOUT
+      - name: Upload JOB28 qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-wp070-g5-delta-ux-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            /tmp/atlas-wp070-g5-delta-ux-evidence
+            /tmp/wp070-build-1.html

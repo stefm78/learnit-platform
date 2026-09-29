@@ -5,19 +5,38 @@
   "status": "in-progress",
   "purpose": "Correct exactly two human-observed G5 presentation defects: overly verbose terminal guidance and the one-action rename menu/in-flow editor reflow, then requalify the exact candidate and prepare one immutable delta Human Replay.",
   "changeClass": "g5-delta-ux-corrective-r1",
-  "riskClass": "bounded",
+  "riskClass": "bounded learner-facing UX correction",
   "authority": {
     "canonicalG5Issue": 427,
     "executionIssue": 471,
+    "parentJob": "JOB_27_HR24_FORMAL_ACCEPTANCE_CLOSEOUT_G5_EVIDENCE_RECONCILIATION_R1",
+    "parentExecutionIssue": 469,
     "parentPullRequest": 470,
-    "humanAuthorizationSource": "USER_EXPLICIT_BUILD_CHAT_2026-09-29"
+    "parentJob27Head": "b6a24a5b2d300d3e10fc8a413148071636653a06",
+    "humanAuthorizationSource": "USER_EXPLICIT_G5_DELTA_UX_FINDINGS_CHAT_2026-09-29"
   },
   "baseline": {
     "baseBranch": "student-v01/g5-evidence-reconciliation-r1",
     "baseCommit": "b6a24a5b2d300d3e10fc8a413148071636653a06",
     "reviewedProductSha": "8eceb94b8003adc539d34d2cfeeca62ff0c565a0",
+    "sourceEvidenceHead": "0a0251df5f085c203fd43456bad63af33bb1a9a7",
+    "job26FormalValidationSha": "eb46abc4910f70b68cb3c615c2522682bc7c9db1",
     "showcaseSha256": "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b"
   },
+  "findings": [
+    {
+      "id": "G5-UX-001",
+      "code": "TERMINAL_GUIDANCE_TOO_VERBOSE",
+      "rootCause": "The validate completion branch hard-coded a long learner-facing explanation in apps/learnit-next/src/ui/render.js.",
+      "correction": "Replace only that branch copy with at most two short truthful sentences while preserving the À confirmer state and all learning semantics."
+    },
+    {
+      "id": "G5-UX-002",
+      "code": "RENAME_MENU_AND_REFLOW",
+      "rootCause": "A one-action ellipsis details menu launched a rename form by replacing the title slot in normal flow.",
+      "correction": "Expose one direct accessible edit button and render the rename editor out of normal layout flow without moving the course card geometry."
+    }
+  ],
   "scope": {
     "allowedPaths": [
       "apps/learnit-next/src/ui/render.js",
@@ -50,52 +69,51 @@
       "docs/programs/student-v0.1/COORDINATION.yaml"
     ]
   },
+  "noLayoutShiftOracle": {
+    "viewport": "390x844",
+    "stableGeometryToleranceCssPx": 1,
+    "stableTargets": ["course card height","title slot rectangle","Commencer rectangle","objective summary rectangle","next course card rectangle"],
+    "horizontalOverflowAllowed": false
+  },
   "invariants": [
     "G5-UX-001 changes learner-facing terminal guidance only.",
     "G5-UX-002 changes the per-course rename presentation only.",
     "The title remains in normal flow while the rename editor is open.",
     "Display-label persistence continues through runtime.setCourseDisplayLabel.",
     "Scoring, ActivityResponse, objective states, recommendations, sessionDelta and V5 authored content remain unchanged.",
-    "HR24-003 remains a separate unresolved engine limitation.",
+    "Implicit multi-term AND search and the main three-bar navigation trigger remain unchanged.",
+    "HR24-003 remains CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED and is not repaired by JOB28.",
     "The exact V5 showcase kit remains byte-identical.",
-    "Parent PR #470 remains draft, open and unmerged.",
-    "No merge or promotion is part of this work package."
+    "Parent PR #470 remains DRAFT / OPEN / UNMERGED.",
+    "No merge, promotion, G5 PASS, GO_LIMITED_PILOT or real student session is authorized."
   ],
-  "requiredEvidence": [
-    "Exact parent and bounded changed-path scope.",
-    "Static oracle for the concise validate copy and direct rename overlay contract.",
-    "390x844 browser proof with no layout shift above 1 CSS px.",
-    "Rename keyboard, focus restoration, persistence and canonical-title regression.",
-    "Search and navigation regression.",
-    "Protected semantic blob identity and exact V5 showcase identity.",
-    "V4/V5 validator, V5 Factory, V5 runtime/showcase and selected V8 presenter regressions.",
-    "Deterministic double build and repository governance on the exact candidate.",
-    "Immutable HTTPS Human Replay for the exact candidate."
+  "requiredRegressions": [
+    "JOB26 search/hamburger behavior",
+    "HR24 library/import/rename/canonical-title persistence",
+    "R15 objective-progress",
+    "learner journey and failed-persistence browser regression",
+    "session provenance V2",
+    "V4/V5 validators",
+    "V5 Factory source governance",
+    "V5 runtime/showcase",
+    "selected V8 presenters",
+    "accessibility static checks",
+    "deterministic double build",
+    "source manifest validation",
+    "repository governance"
   ],
-  "adversarialTests": [
-    "Fail if the validate copy adds a scheduler/date promise, validation action or false mastery claim.",
-    "Fail if rename retains a one-action ellipsis menu.",
-    "Fail if opening rename replaces the title or changes card height/neighbor positions by more than 1 CSS px at 390x844.",
-    "Fail if rename bypasses runtime.setCourseDisplayLabel or changes canonical course title.",
-    "Fail if any forbidden path changes.",
-    "Fail if exact V5 showcase identity changes."
-  ],
-  "nonGoals": [
-    "Repair HR24-003.",
-    "Change learning, scoring, recommendation, objective or session semantics.",
-    "Change authored V5 content or kit contracts.",
-    "Redesign unrelated library or activity UX.",
-    "Merge or promote any pull request."
-  ],
-  "rollback": "Close the unmerged JOB28 pull request and delete branch student-v01/g5-delta-ux-corrective-r1; parent PR #470 remains unchanged.",
+  "rollback": "Close the unmerged JOB28 draft pull request and delete branch student-v01/g5-delta-ux-corrective-r1; JOB27 head b6a24a5b2d300d3e10fc8a413148071636653a06 and PR #470 remain unchanged.",
   "execution": {
     "job": "JOB_28_G5_DELTA_UX_FINDINGS_CORRECTIVE_R1",
     "branch": "student-v01/g5-delta-ux-corrective-r1",
     "issue": 471,
     "canonicalG5Issue": 427,
+    "humanReplayRequired": true,
     "mergeAuthorized": false,
     "promotionAuthorized": false,
+    "g5PassDeclared": false,
+    "goLimitedPilotDeclared": false,
     "studentSessionsAuthorized": 0
   },
-  "nextGate": "MACHINE_QUALIFICATION_THEN_DELTA_HUMAN_REPLAY"
+  "nextGate": "MACHINE_QUALIFICATION_THEN_G5_DELTA_HUMAN_REPLAY_R2"
 }

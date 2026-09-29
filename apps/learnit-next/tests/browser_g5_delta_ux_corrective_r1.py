@@ -210,6 +210,11 @@ def main() -> int:
         edit.click()
         overlay = card.locator("[data-course-rename-overlay='true']")
         overlay.wait_for()
+        overlay_box = rect(overlay)
+        viewport = page.evaluate("() => ({width: window.innerWidth, height: window.innerHeight})")
+        assert overlay_box["x"] >= -1 and overlay_box["y"] >= -1, overlay_box
+        assert overlay_box["x"] + overlay_box["width"] <= viewport["width"] + 1, (overlay_box, viewport)
+        assert overlay_box["y"] + overlay_box["height"] <= viewport["height"] + 1, (overlay_box, viewport)
         input_box = overlay.locator("input")
         assert page.evaluate("() => document.activeElement?.matches('[data-course-rename-overlay] input')") is True
         assert input_box.input_value() == canonical
