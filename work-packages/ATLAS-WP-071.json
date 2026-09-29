@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-071",
+  "title": "G5 inline course-title rename affordance R1",
+  "status": "in-progress",
+  "purpose": "Correct only G5-UX-003 by making the course-title rename pencil a compact inline affordance while preserving semantic keyboard/touch accessibility, out-of-flow editing, local alias persistence, canonical-title immutability, and all accepted JOB28 behavior.",
+  "changeClass": "g5-inline-course-title-rename-affordance-r1",
+  "riskClass": "bounded learner-facing UX micro-correction",
+  "authority": {
+    "canonicalG5Issue": 427,
+    "executionIssue": 473,
+    "parentJob": "JOB_28_G5_DELTA_UX_FINDINGS_CORRECTIVE_R1",
+    "parentExecutionIssue": 471,
+    "parentPullRequest": 472,
+    "parentEvidenceHead": "829b51caa638bbbb6c81ca9a0ee8f60ab5d59b30",
+    "parentReviewedProductSha": "562af21e9b5fb1decd6a902dfdfa76873fa9c8bc",
+    "humanAuthorizationSource": "USER_EXPLICIT_JOB28_THREE_DIMENSIONS_PASS_WITH_INLINE_PENCIL_MINOR_FINDING_CHAT_2026-09-29"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/g5-delta-ux-corrective-r1",
+    "baseCommit": "829b51caa638bbbb6c81ca9a0ee8f60ab5d59b30",
+    "reviewedProductSha": "562af21e9b5fb1decd6a902dfdfa76873fa9c8bc",
+    "buildSha256": "a5e8c1d9538bca6cf1885d226e61b0e0b3125c37a48663341af2a2c857a5b373",
+    "buildBytes": 583656,
+    "showcaseSha256": "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b"
+  },
+  "humanDecision": {
+    "informationDensity": "PASS",
+    "interactionGestureQuality": "PASS",
+    "mobileTouchUsability": "PASS",
+    "blockerFindings": "NONE_REPORTED",
+    "majorFindings": "NONE_REPORTED",
+    "minorFinding": "G5-UX-003_INLINE_TITLE_EDIT_AFFORDANCE_VISUAL_WEIGHT",
+    "job28Disposition": "ACCEPTED_WITH_MINOR_FINDING"
+  },
+  "finding": {
+    "id": "G5-UX-003",
+    "code": "INLINE_TITLE_EDIT_AFFORDANCE_VISUAL_WEIGHT",
+    "correction": "Move the semantic pencil control from the separate course action area into the course-title region, make its visible box compact/chromeless, retain an approximately 44x44 transparent hit target, and keep the existing rename overlay out of normal flow."
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/tests/g5_inline_title_rename_affordance_r1.py",
+      "apps/learnit-next/tests/browser_g5_inline_title_rename_affordance_r1.py",
+      ".github/workflows/atlas-wp071-g5-inline-title-rename-affordance-r1.yml",
+      ".github/workflows/atlas-wp071-human-replay-deploy.yml",
+      "work-packages/ATLAS-WP-071.json",
+      "qualification/STUDENT_V01_JOB28_HUMAN_VALIDATION_R2.md",
+      "qualification/STUDENT_V01_G5_INLINE_TITLE_RENAME_FINDING_R1.md",
+      "qualification/STUDENT_V01_G5_INLINE_TITLE_RENAME_REPLAY_PROTOCOL_R1.md",
+      "qualification/STUDENT_V01_JOB29_G5_INLINE_TITLE_RENAME_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "contracts/**",
+      "authoring/**",
+      "showcase/**",
+      "pilot/**",
+      "program charter / coordination authority"
+    ]
+  },
+  "invariants": [
+    "INFORMATION_DENSITY remains human PASS and is not reopened.",
+    "The title remains a heading whose accessible identity is the displayed course title.",
+    "The pencil remains a semantic button with a precise accessible name and is not in learner-course-actions.",
+    "Visible pencil footprint is compact while effective touch target remains approximately 44x44.",
+    "Rename overlay remains absolute/out-of-flow and produces <=1 CSS px protected geometry movement.",
+    "Enter still saves through runtime.setCourseDisplayLabel; Escape cancels and focus returns to the current pencil.",
+    "Local alias persists across reload; canonical authored title remains immutable.",
+    "Implicit multi-term AND search, hamburger navigation, R15 objective progress, learner journey, runtime/presenter behavior, and terminal guidance remain unchanged.",
+    "Exact V5 showcase bytes remain unchanged.",
+    "HR24-003 remains CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED.",
+    "No merge, promotion, G5 PASS, GO_LIMITED_PILOT or real student session is authorized."
+  ],
+  "requiredRegressions": [
+    "JOB29 static oracle",
+    "JOB29 390x844 touch/browser oracle",
+    "V4/V5 validators",
+    "V5 Factory source governance",
+    "session provenance/API invariants",
+    "V5 runtime/showcase",
+    "selected V8 presenters",
+    "current R15 objective-progress",
+    "learner journey/failed persistence",
+    "deterministic double build",
+    "exact V5 showcase SHA256",
+    "protected semantic blob identity",
+    "source-manifest validation",
+    "repository governance"
+  ],
+  "execution": {
+    "job": "JOB_29_G5_INLINE_COURSE_TITLE_RENAME_AFFORDANCE_R1",
+    "branch": "student-v01/g5-inline-title-rename-affordance-r1",
+    "issue": 473,
+    "canonicalG5Issue": 427,
+    "humanReplayRequired": true,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "g5PassDeclared": false,
+    "goLimitedPilotDeclared": false,
+    "studentSessionsAuthorized": 0
+  },
+  "nextGate": "MACHINE_QUALIFICATION_THEN_JOB29_HUMAN_MICRO_REPLAY_R1",
+  "rollback": "Close the unmerged JOB29 draft pull request and delete branch student-v01/g5-inline-title-rename-affordance-r1; exact JOB28 parent head 829b51caa638bbbb6c81ca9a0ee8f60ab5d59b30 and PR #472 remain unchanged.",
+  "requiredEvidence": [
+    "Exact UCP/HEAD/selected-kernel closure and exact JOB28 parent topology are revalidated before mutation.",
+    "JOB28 human acceptance plus G5-UX-003 minor finding is durably recorded without rewriting JOB28 history.",
+    "Static oracle proves the rename control is a semantic button in the title region, compact/chromeless, with transparent 44x44 hit envelope and unchanged persistence API.",
+    "390x844 touch browser oracle proves inline end-of-title placement including wrapped title, effective hit target, no layout shift, no horizontal overflow, Escape/Enter/focus behavior, persistence and multi-course isolation.",
+    "Search, hamburger, current R15, learner-journey/failed-persistence, validators, Factory, V5 runtime/showcase and selected V8 presenter regressions pass.",
+    "Protected semantic blobs and exact V5 showcase SHA256 remain unchanged from the exact JOB28 parent.",
+    "Deterministic double build, source-manifest validation and repository governance pass on one exact JOB29_RESULT_SHA.",
+    "Immutable HTTPS JOB29 Human Replay is published for JOB29_RESULT_SHA and stops at HUMAN_DECISION_REQUIRED."
+  ],
+  "adversarialTests": [
+    "Fail if the pencil remains in learner-course-actions or presents a visible standalone 44x44 action box.",
+    "Fail if the pencil is fixed-positioned independently of rendered title text or does not follow a wrapped title's final line.",
+    "Fail if the rename affordance is non-semantic, title-wide clickable, contenteditable, or keyboard-inoperable.",
+    "Fail if the transparent effective hit target is materially below 44x44 or blocks a neighboring interactive control.",
+    "Fail if opening the absolute editor causes more than 1 CSS px protected geometry movement or horizontal overflow.",
+    "Fail if Escape/Enter/focus restoration, local alias persistence, canonical-title immutability or multi-course isolation regress.",
+    "Fail if terminal guidance, search/hamburger, R15, learner journey, protected semantics or exact V5 showcase identity changes.",
+    "Fail if a human PASS, G5 PASS, GO_LIMITED_PILOT, merge, promotion or student session is inferred or authorized."
+  ],
+  "nonGoals": [
+    "Redesign course cards, Library, activity, feedback, progress, recovery, navigation or content UX.",
+    "Change scoring, ActivityResponse, objective-state, recommendation, sessionDelta, scheduler/date, V5/V8 presenter, activity-content or authored-course semantics.",
+    "Repair or reinterpret HR24-003.",
+    "Reopen JOB28 INFORMATION_DENSITY human PASS.",
+    "Merge or promote any PR, declare G5 PASS or GO_LIMITED_PILOT, or authorize a real student session."
+  ],
+  "independentReview": [
+    "Revalidate exact JOB28 parent/head topology and compare the entire JOB29 diff to the allowlist.",
+    "Run the JOB29 static oracle and independent 390x844 browser oracle, including rendered Range geometry and transparent hit testing.",
+    "Replay protected semantic identity, exact V5 showcase identity, session provenance, R15, learner-journey/failed-persistence, validators, Factory, runtime/showcase and V8 presenter regressions.",
+    "Build twice from the exact candidate and run repository governance on that exact SHA.",
+    "Only after machine PASS, freeze RESULT_SHA, write evidence-only closeout, publish one immutable Human Replay and stop for real human decision."
+  ]
+}
