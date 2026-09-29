@@ -129,11 +129,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "bfc49a9c0b61e8567898e6ea9958bdf46a99ce4f"
+        "value": "9be6632356e52cf1ec5ac58c49e7c42b43d60711"
       },
-      "owner": "ATLAS-WP-068",
+      "owner": "ATLAS-WP-070",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-068 HR24 Human Replay corrective R1"
+      "provenance": "ATLAS-WP-070 G5 delta UX findings corrective R1"
     },
     {
       "fingerprint": {
@@ -255,11 +255,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "d8ca94c5dc42a96c08090aabe948713553af1607"
+        "value": "059a302ad3abbaa830242272ae59069299e970e9"
       },
-      "owner": "ATLAS-WP-068",
+      "owner": "ATLAS-WP-070",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-068 HR24 Human Replay corrective R1"
+      "provenance": "ATLAS-WP-070 G5 delta UX findings corrective R1"
     },
     {
       "fingerprint": {
@@ -372,11 +372,11 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "65afcb12fe6569ba4a3abac12fedb568dd6939db344473f866352339549d1aa1"
+        "value": "e04910626bcfd9fb1d514c0424c7e54596ea899e29dcc58992e60bcee2e30151"
       },
-      "owner": "ATLAS-WP-067",
+      "owner": "ATLAS-WP-070",
       "path": "apps/learnit-next/source_manifest.json",
-      "provenance": "ATLAS-WP-067 HR24 modular library boundary + navigation shell R2 manifest rebind"
+      "provenance": "ATLAS-WP-070 G5 delta UX findings corrective R1 manifest rebind"
     },
     {
       "fingerprint": {

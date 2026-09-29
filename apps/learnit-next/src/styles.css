@@ -1083,15 +1083,50 @@ body.nav-drawer-open {
 .course-title-heading {
   overflow-wrap: anywhere;
 }
-.course-inline-rename {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+.course-rename-control {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: .45rem;
-  width: 100%;
-  min-width: 0;
+  align-self: center;
 }
-.course-inline-rename input {
+.course-rename-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+.course-rename-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.course-rename-overlay {
+  position: absolute;
+  top: calc(100% + .4rem);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: .6rem;
+  width: min(320px, calc(100vw - 64px));
+  padding: .75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgb(25 41 75 / 16%);
+}
+.course-rename-label {
+  display: grid;
+  gap: .35rem;
+  font-weight: 700;
+}
+.course-rename-overlay input {
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -1101,35 +1136,16 @@ body.nav-drawer-open {
   background: var(--surface);
   color: var(--text);
 }
-.course-inline-rename-actions {
+.course-rename-overlay-actions {
   display: flex;
-  gap: .35rem;
+  justify-content: flex-end;
+  gap: .4rem;
+  flex-wrap: wrap;
 }
-.course-inline-rename-actions button,
-.course-settings-menu button {
-  min-height: 40px;
-  padding: .45rem .65rem;
+.course-rename-overlay-actions button {
+  min-height: 44px;
 }
-.learner-course-card .course-settings-details {
-  grid-column: auto;
-  position: relative;
-}
-.course-settings-menu {
-  position: absolute;
-  right: 0;
-  z-index: 12;
-  min-width: 150px;
-  margin-top: .25rem;
-  padding: .35rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: 0 10px 30px rgb(25 41 75 / 16%);
-}
-.course-settings-menu button {
-  width: 100%;
-  text-align: left;
-}
+
 .library-duration-control {
   display: inline-flex;
   align-items: center;
@@ -1176,15 +1192,15 @@ body.nav-drawer-open {
     align-items: center;
     padding: .35rem 0 .65rem;
   }
-  .course-inline-rename {
-    grid-template-columns: 1fr;
+  .learner-course-actions .course-rename-control {
+    align-self: flex-end;
   }
-  .course-inline-rename-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+  .learner-course-actions .course-rename-button {
+    width: 44px;
+    min-width: 44px;
   }
-  .course-inline-rename-actions button {
-    flex: 0 1 auto;
+  .course-rename-overlay-actions button {
+    width: auto;
   }
   .atlas-int-surface .atlas-course-card {
     grid-template-columns: 1fr;
