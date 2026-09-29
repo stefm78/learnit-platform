@@ -1,0 +1,13 @@
+{
+  "schema": "student.v0.1.limited-pilot-ledger.v1",
+  "candidateSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+  "maxAuthorizedStudentSessions": 6,
+  "slots": [
+    {"sessionId": "LP01", "status": "NOT_RUN"},
+    {"sessionId": "LP02", "status": "NOT_RUN"},
+    {"sessionId": "LP03", "status": "NOT_RUN"},
+    {"sessionId": "LP04", "status": "NOT_RUN"},
+    {"sessionId": "LP05", "status": "NOT_RUN"},
+    {"sessionId": "LP06", "status": "NOT_RUN"}
+  ]
+}
