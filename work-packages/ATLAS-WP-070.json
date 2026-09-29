@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-070",
+  "title": "G5 delta UX findings corrective R1",
+  "status": "in-progress",
+  "purpose": "Correct exactly two human-observed G5 presentation defects: overly verbose terminal guidance and the one-action rename menu/in-flow editor reflow, then requalify the exact candidate and prepare one immutable delta Human Replay.",
+  "changeClass": "g5-delta-ux-corrective-r1",
+  "riskClass": "bounded",
+  "authority": {
+    "canonicalG5Issue": 427,
+    "executionIssue": 471,
+    "parentPullRequest": 470,
+    "humanAuthorizationSource": "USER_EXPLICIT_BUILD_CHAT_2026-09-29"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/g5-evidence-reconciliation-r1",
+    "baseCommit": "b6a24a5b2d300d3e10fc8a413148071636653a06",
+    "reviewedProductSha": "8eceb94b8003adc539d34d2cfeeca62ff0c565a0",
+    "showcaseSha256": "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b"
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/tests/g5_delta_ux_corrective_r1.py",
+      "apps/learnit-next/tests/browser_g5_delta_ux_corrective_r1.py",
+      ".github/workflows/atlas-wp070-g5-delta-ux-corrective-r1.yml",
+      ".github/workflows/atlas-wp070-human-replay-deploy.yml",
+      "work-packages/ATLAS-WP-070.json",
+      "qualification/STUDENT_V01_G5_DELTA_UX_FINDINGS_R1.md",
+      "qualification/STUDENT_V01_G5_DELTA_REPLAY_PROTOCOL_R2.md",
+      "qualification/STUDENT_V01_JOB28_G5_DELTA_UX_CORRECTIVE_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/objective_progress.js",
+      "apps/learnit-next/src/core/learning_recommendation.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "contracts/**",
+      "authoring/**",
+      "showcase/**",
+      "pilot/**",
+      "governance/**",
+      "docs/architecture/**",
+      "docs/programs/student-v0.1/PROGRAM_CHARTER.md",
+      "docs/programs/student-v0.1/COORDINATION.yaml"
+    ]
+  },
+  "invariants": [
+    "G5-UX-001 changes learner-facing terminal guidance only.",
+    "G5-UX-002 changes the per-course rename presentation only.",
+    "The title remains in normal flow while the rename editor is open.",
+    "Display-label persistence continues through runtime.setCourseDisplayLabel.",
+    "Scoring, ActivityResponse, objective states, recommendations, sessionDelta and V5 authored content remain unchanged.",
+    "HR24-003 remains a separate unresolved engine limitation.",
+    "The exact V5 showcase kit remains byte-identical.",
+    "Parent PR #470 remains draft, open and unmerged.",
+    "No merge or promotion is part of this work package."
+  ],
+  "requiredEvidence": [
+    "Exact parent and bounded changed-path scope.",
+    "Static oracle for the concise validate copy and direct rename overlay contract.",
+    "390x844 browser proof with no layout shift above 1 CSS px.",
+    "Rename keyboard, focus restoration, persistence and canonical-title regression.",
+    "Search and navigation regression.",
+    "Protected semantic blob identity and exact V5 showcase identity.",
+    "V4/V5 validator, V5 Factory, V5 runtime/showcase and selected V8 presenter regressions.",
+    "Deterministic double build and repository governance on the exact candidate.",
+    "Immutable HTTPS Human Replay for the exact candidate."
+  ],
+  "adversarialTests": [
+    "Fail if the validate copy adds a scheduler/date promise, validation action or false mastery claim.",
+    "Fail if rename retains a one-action ellipsis menu.",
+    "Fail if opening rename replaces the title or changes card height/neighbor positions by more than 1 CSS px at 390x844.",
+    "Fail if rename bypasses runtime.setCourseDisplayLabel or changes canonical course title.",
+    "Fail if any forbidden path changes.",
+    "Fail if exact V5 showcase identity changes."
+  ],
+  "nonGoals": [
+    "Repair HR24-003.",
+    "Change learning, scoring, recommendation, objective or session semantics.",
+    "Change authored V5 content or kit contracts.",
+    "Redesign unrelated library or activity UX.",
+    "Merge or promote any pull request."
+  ],
+  "rollback": "Close the unmerged JOB28 pull request and delete branch student-v01/g5-delta-ux-corrective-r1; parent PR #470 remains unchanged.",
+  "execution": {
+    "job": "JOB_28_G5_DELTA_UX_FINDINGS_CORRECTIVE_R1",
+    "branch": "student-v01/g5-delta-ux-corrective-r1",
+    "issue": 471,
+    "canonicalG5Issue": 427,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "studentSessionsAuthorized": 0
+  },
+  "nextGate": "MACHINE_QUALIFICATION_THEN_DELTA_HUMAN_REPLAY"
+}
