@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-073",
+  "title": "Student V0.1 limited pilot first cohort R1",
+  "status": "in-progress",
+  "changeClass": "limited-pilot-operational-evidence-r1",
+  "riskClass": "moderate",
+  "purpose": "Prepare the exact G5-approved V5 learner candidate for the first bounded 5–6 real-student cohort, with deterministic learner/facilitator packages and fail-closed evidence handling, without product mutation or synthetic student evidence.",
+  "authority": {
+    "canonicalG5Issue": 427,
+    "job30Issue": 475,
+    "job30PullRequest": 476,
+    "executionIssue": 477,
+    "pullRequest": null,
+    "parentHead": "af14bc0a9b1988b5d42b158ae4a6b3afa544221f",
+    "reviewedProductSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c"
+  },
+  "baseline": {
+    "baseBranch": "student-v01/g5-final-closeout-limited-pilot-r1",
+    "baseCommit": "af14bc0a9b1988b5d42b158ae4a6b3afa544221f",
+    "buildSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553",
+    "buildBytes": 583764,
+    "showcaseSha256": "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b",
+    "kitContract": "learnit.kit.v5"
+  },
+  "scope": {
+    "allowedPaths": [
+      "pilot/student-v0.1/limited-pilot-r1/**",
+      "qualification/student-v0.1/limited-pilot-r1/**",
+      "qualification/STUDENT_V01_JOB31_LIMITED_PILOT_R1_PREPARATION_RESULT.md",
+      "qualification/STUDENT_V01_JOB31_LIMITED_PILOT_R1_COHORT_RESULT.md",
+      "work-packages/ATLAS-WP-073.json",
+      ".github/workflows/atlas-wp073-limited-pilot-r1.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/learnit-next/**",
+      "contracts/**",
+      "authoring/**",
+      "showcase/**",
+      "docs/programs/student-v0.1/PROGRAM_CHARTER.md",
+      "docs/programs/student-v0.1/COORDINATION.yaml"
+    ]
+  },
+  "invariants": [
+    "Frozen learner product remains e04cf62963faae83e073cde9cffd9d33ae42dc9c.",
+    "Exact deterministic build remains 583764 bytes / SHA-256 7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553.",
+    "Exact V5 showcase remains SHA-256 aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b and contract learnit.kit.v5.",
+    "Maximum authorized real-student sessions is six, with no automatic LP06 after five.",
+    "Machine qualification never increments the real-session count.",
+    "HR24-003 remains CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED and accepted only as a known pilot limitation.",
+    "No product repair, main merge, release promotion, second cohort, or expansion is authorized."
+  ],
+  "requiredEvidence": [
+    "UCP/CONTROL_PLANE_HEAD/UAO/selected-kernel closure verified before mutation.",
+    "JOB30 PR #476 remains open/draft/unmerged at exact head af14bc0a9b1988b5d42b158ae4a6b3afa544221f.",
+    "JOB30 G5 PASS and first-cohort authorization are reconciled from durable evidence.",
+    "Exact learner app is rebuilt twice and matches frozen bytes/SHA-256.",
+    "Exact V5 showcase validates with authoring/v5/validate_kit.py and preserves exact SHA-256.",
+    "Learner and facilitator packages are deterministic and uploaded as workflow artifacts.",
+    "Desktop, 390x844 touch, recovery/reset, offline/no-remote and secret-projection checks pass.",
+    "Session validator adversarial checks pass.",
+    "Repository governance passes on the preparation head."
+  ],
+  "execution": {
+    "job": "JOB_31_LIMITED_PILOT_5_6_STUDENTS_EXECUTION_R1",
+    "phase": "PREPARE",
+    "branch": "student-v01/limited-pilot-5-6-students-r1",
+    "issue": 477,
+    "pullRequest": null,
+    "productMutationAuthorized": false,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "maxAuthorizedStudentSessions": 6,
+    "realStudentSessionsRecorded": 0
+  },
+  "nextGate": "REAL_STUDENT_SESSION_LP01_REQUIRED",
+  "rollback": "Close the unmerged JOB31 PR and delete the JOB31 branch if permitted; preserve JOB30 and the frozen candidate. Generated ZIPs are workflow artifacts only and are never committed."
+}
