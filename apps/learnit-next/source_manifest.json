@@ -129,11 +129,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "9be6632356e52cf1ec5ac58c49e7c42b43d60711"
+        "value": "b0ef2269a78ebe541000d3cc7a0a1236e7a8473f"
       },
-      "owner": "ATLAS-WP-070",
+      "owner": "ATLAS-WP-071",
       "path": "apps/learnit-next/src/styles.css",
-      "provenance": "ATLAS-WP-070 G5 delta UX findings corrective R1"
+      "provenance": "ATLAS-WP-071 G5 inline course-title rename affordance R1"
     },
     {
       "fingerprint": {
@@ -255,11 +255,11 @@
     {
       "fingerprint": {
         "kind": "git-blob-sha1",
-        "value": "059a302ad3abbaa830242272ae59069299e970e9"
+        "value": "250c5be2cc25c2d22fd74e0a2996166d2009228f"
       },
-      "owner": "ATLAS-WP-070",
+      "owner": "ATLAS-WP-071",
       "path": "apps/learnit-next/src/ui/render.js",
-      "provenance": "ATLAS-WP-070 G5 delta UX findings corrective R1"
+      "provenance": "ATLAS-WP-071 G5 inline course-title rename affordance R1"
     },
     {
       "fingerprint": {
@@ -372,11 +372,11 @@
     {
       "fingerprint": {
         "kind": "canonical-self-sha256",
-        "value": "e04910626bcfd9fb1d514c0424c7e54596ea899e29dcc58992e60bcee2e30151"
+        "value": "2ec18a3f7af5574037efd9502740bd4a265f2c7ebef1e2d1e9cd83c9afbbdf0c"
       },
-      "owner": "ATLAS-WP-070",
+      "owner": "ATLAS-WP-071",
       "path": "apps/learnit-next/source_manifest.json",
-      "provenance": "ATLAS-WP-070 G5 delta UX findings corrective R1 manifest rebind"
+      "provenance": "ATLAS-WP-071 G5 inline course-title rename affordance R1 manifest rebind"
     },
     {
       "fingerprint": {
