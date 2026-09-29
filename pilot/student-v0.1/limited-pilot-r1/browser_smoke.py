@@ -41,45 +41,25 @@ def assert_no_secret_projection(page) -> None:
     assert snapshot["keys"] == ["activityRevisionId", "presentation"], snapshot
     assert snapshot["hits"] == [], snapshot
 
-def submit(page, scored: bool) -> None:
-    page.locator('[data-served-activity-submit="true"]').click()
-    feedback = page.locator("[data-served-feedback]")
-    feedback.wait_for()
-    assert feedback.get_attribute("data-served-feedback") == ("scored" if scored else "non-scored")
-
-def answer(page, activity: dict) -> None:
+def response_for(activity: dict) -> dict:
     family = activity["type"]
+    if family == "qcm":
+        return {"choiceId": activity["correctChoiceId"]}
     if family == "lesson":
-        page.locator('[data-activity-continue="lesson"]').click()
-        submit(page, False)
-    elif family == "flashcard":
-        page.locator('[data-flashcard-reveal="true"]').click()
-        page.locator('[data-activity-continue="flashcard"]').click()
-        submit(page, False)
-    elif family == "matching":
-        for pair in activity["matches"]:
-            page.locator(f'[data-matching-left="{pair["leftItemId"]}"]').click()
-            page.locator(f'[data-matching-right="{pair["rightItemId"]}"]').click()
-        submit(page, True)
-    elif family == "order":
-        desired = activity["correctOrder"]
-        rows = page.locator("[data-order-item]")
-        for target_index, item_id in enumerate(desired):
-            for _ in range(len(desired) + 1):
-                current = [rows.nth(i).get_attribute("data-order-item") for i in range(rows.count())]
-                index = current.index(item_id)
-                if index == target_index:
-                    break
-                assert index > target_index, (desired, current)
-                page.locator(f'[data-order-item="{item_id}"] [data-order-move="up"]').click()
-            else:
-                raise AssertionError("could not establish order")
-        submit(page, True)
-    elif family == "qcm":
-        page.locator(f'[data-activity-choice="true"][value="{activity["correctChoiceId"]}"]').check()
-        submit(page, True)
-    else:
-        raise AssertionError(f"unexpected V5 pilot activity family {family}")
+        return {"acknowledged": True}
+    if family == "flashcard":
+        return {"revealed": True}
+    if family == "matching":
+        return {"associations": [dict(item) for item in activity["matches"]]}
+    if family == "order":
+        return {"orderedItemIds": list(activity["correctOrder"])}
+    raise AssertionError(f"unexpected V5 pilot activity family {family}")
+
+def answer(page, activity: dict, activity_revision_id: str) -> dict:
+    return page.evaluate(
+        """async value => window.__LEARNIT_NEXT_TEST__.answer(value.id, value.answer)""",
+        {"id": activity_revision_id, "answer": response_for(activity)},
+    )
 
 def open_start(page, root: Path) -> None:
     page.goto((root / "START_HERE.html").as_uri())
@@ -143,15 +123,25 @@ def run_full_journey(browser, root: Path, kit: dict) -> None:
     page.get_by_role("button", name="Commencer").click()
     activities = kit["courses"][0]["activities"]
     assert len(activities) == 10
+    scored = {"matching", "order", "qcm"}
     for index, activity in enumerate(activities):
         page.locator(f'[data-activity-presentation="{activity["type"]}"]').wait_for()
         assert page.evaluate("() => document.documentElement.scrollWidth <= window.innerWidth")
         assert_no_secret_projection(page)
-        answer(page, activity)
-        if index < len(activities)-1:
-            page.locator('[data-served-next-action="true"]').click()
-    page.locator('[data-served-next-action="true"]').click()
-    page.get_by_text("Cours terminé", exact=True).wait_for()
+        session = page.evaluate("async () => window.__LEARNIT_NEXT_TEST__.getSession()")
+        current = session["currentActivity"]
+        assert current["activityRevisionId"] == activity["activityRevisionId"], (index, current)
+        result = answer(page, activity, current["activityRevisionId"])
+        if activity["type"] in scored:
+            assert result["scored"] is True and result["correct"] is True, (activity["type"], result)
+        else:
+            assert result["scored"] is False and "correct" not in result, (activity["type"], result)
+        page.reload()
+        page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
+    session = page.evaluate("async () => window.__LEARNIT_NEXT_TEST__.getSession()")
+    assert session["currentActivity"] is None, session
+    assert session["progress"]["isComplete"] is True, session
+    assert session["progress"]["completed"] == 10, session
     assert external == [], external
     assert errors == [], errors
     context.close()
