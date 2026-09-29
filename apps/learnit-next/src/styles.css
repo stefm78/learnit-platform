@@ -1079,38 +1079,53 @@ body.nav-drawer-open {
 
 .course-title-slot {
   min-width: 0;
+  position: relative;
+  margin: 0 0 6px;
 }
 .course-title-heading {
+  display: inline;
+  margin: 0;
   overflow-wrap: anywhere;
 }
 .course-rename-control {
   position: relative;
   display: inline-flex;
   align-items: center;
-  align-self: center;
+  vertical-align: text-bottom;
 }
 .course-rename-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  min-height: 44px;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  min-height: 24px;
+  margin-left: .25rem;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent-strong);
+}
+.course-rename-button::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 .course-rename-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1;
 }
 .course-rename-overlay {
   position: absolute;
   top: calc(100% + .4rem);
-  right: 0;
+  left: 0;
   z-index: 20;
   display: grid;
   gap: .6rem;
@@ -1191,13 +1206,6 @@ body.nav-drawer-open {
     flex-direction: row;
     align-items: center;
     padding: .35rem 0 .65rem;
-  }
-  .learner-course-actions .course-rename-control {
-    align-self: flex-end;
-  }
-  .learner-course-actions .course-rename-button {
-    width: 44px;
-    min-width: 44px;
   }
   .course-rename-overlay-actions button {
     width: auto;
