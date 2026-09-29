@@ -224,7 +224,7 @@ def build(app_path: Path, kit_path: Path, learner_out: Path, facilitator_out: Pa
         "candidateSha": CANDIDATE_SHA,
         "app": {"bytes": APP_BYTES, "sha256": APP_SHA256},
         "kit": {"contract": KIT_CONTRACT, "sha256": KIT_SHA256},
-        "learnerPackage": {"filename": learner_out.name, "sha256": learner_sha},
+        "learnerPackage": {"filename": "student-v01-limited-pilot-r1-learner.zip", "sha256": learner_sha},
         "job30EvidenceHead": JOB30_EVIDENCE_HEAD,
     }
     facilitator_entries = {
