@@ -72,7 +72,13 @@
   "noLayoutShiftOracle": {
     "viewport": "390x844",
     "stableGeometryToleranceCssPx": 1,
-    "stableTargets": ["course card height","title slot rectangle","Commencer rectangle","objective summary rectangle","next course card rectangle"],
+    "stableTargets": [
+      "course card height",
+      "title slot rectangle",
+      "Commencer rectangle",
+      "objective summary rectangle",
+      "next course card rectangle"
+    ],
     "horizontalOverflowAllowed": false
   },
   "invariants": [
@@ -115,5 +121,40 @@
     "goLimitedPilotDeclared": false,
     "studentSessionsAuthorized": 0
   },
-  "nextGate": "MACHINE_QUALIFICATION_THEN_G5_DELTA_HUMAN_REPLAY_R2"
+  "nextGate": "MACHINE_QUALIFICATION_THEN_G5_DELTA_HUMAN_REPLAY_R2",
+  "requiredEvidence": [
+    "Exact parent, JOB28 allowlist and DRAFT/OPEN/UNMERGED parent PR topology are revalidated.",
+    "Static oracle proves concise validate guidance, direct accessible rename control, no one-action menu and unchanged persistence API.",
+    "390x844 browser oracle proves at most 1 CSS px layout movement for the protected geometry and no horizontal overflow.",
+    "Rename save/cancel, keyboard focus restoration, local alias persistence, canonical authored title and multi-course isolation pass.",
+    "Implicit multi-term AND search, main three-bar navigation, R15 objective progress, learner-journey/failed-persistence and session provenance regressions pass.",
+    "Protected semantic blobs and exact V5 showcase kit SHA256 remain unchanged.",
+    "V4/V5 validators, V5 Factory, V5 runtime/showcase and selected V8 presenters pass.",
+    "Deterministic double build, source manifest validation and repository governance pass on the exact RESULT_SHA.",
+    "A new immutable HTTPS Human Replay is published for the exact RESULT_SHA and stops at HUMAN_DECISION_REQUIRED."
+  ],
+  "adversarialTests": [
+    "Fail if the long validate paragraph remains active, all objectives are implied mastered, or scheduler/date/CTA semantics are invented.",
+    "Fail if ellipsis remains the one-action rename path, a Renommer menu step is still required, or the editor replaces the title in normal flow.",
+    "Fail if stable course-card geometry moves by more than 1 CSS px at 390x844 or horizontal overflow appears.",
+    "Fail if the direct edit target is below 44x44, lacks an accessible name, or keyboard Enter/Escape/focus restoration regresses.",
+    "Fail if runtime.setCourseDisplayLabel persistence, canonical title immutability or multi-course isolation regresses.",
+    "Fail if search/hamburger accepted behavior, scoring/objective/recommendation/session semantics, protected blobs or exact V5 kit identity change.",
+    "Fail if HR24-003 is represented as repaired/resolved, a human PASS is invented, or G5 PASS/GO_LIMITED_PILOT/student sessions are authorized.",
+    "Fail if any path outside the exact allowlist changes or repository governance fails."
+  ],
+  "nonGoals": [
+    "Repair HR24-003 or add scheduler, reservation, validation CTA, availability date or new learning-engine state.",
+    "Change scoring, ActivityResponse, objective states, recommendations, sessionDelta, V5 contracts, validators or authored content.",
+    "Redo the already accepted human replay for Library search or the main hamburger navigation.",
+    "Redesign unrelated Library, activity, feedback or learner-journey UX.",
+    "Merge or promote any pull request, declare G5 PASS or GO_LIMITED_PILOT, or authorize a real student session."
+  ],
+  "independentReview": [
+    "Revalidate exact parent/head topology and compare the entire PR diff to the JOB28 allowlist.",
+    "Run the JOB28 static oracle and the 390x844 browser no-layout-shift oracle without weakening historical tests.",
+    "Replay protected semantic identity, exact V5 kit identity, session provenance, R15, learner-journey/failed-persistence, validators, factory, runtime/showcase and V8 presenter regressions.",
+    "Build twice from the exact candidate and run repository governance on that exact SHA.",
+    "Only after machine PASS, bind G5 Delta Replay Protocol R2 to the exact RESULT_SHA and publish one immutable Human Replay; do not simulate or pre-fill human PASS."
+  ]
 }
