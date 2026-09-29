@@ -53,7 +53,7 @@
       "qualification/STUDENT_V01_G5_INLINE_TITLE_RENAME_REPLAY_PROTOCOL_R1.md",
       "qualification/STUDENT_V01_JOB29_G5_INLINE_TITLE_RENAME_R1_RESULT.md"
     ],
-    "forbiddenSemanticPaths": [
+    "forbiddenPaths": [
       "apps/learnit-next/src/core/session.js",
       "apps/learnit-next/src/core/activity_semantics.js",
       "apps/learnit-next/src/core/progress.js",
@@ -64,7 +64,8 @@
       "contracts/**",
       "authoring/**",
       "showcase/**",
-      "pilot/**"
+      "pilot/**",
+      "program charter / coordination authority"
     ]
   },
   "invariants": [
@@ -108,5 +109,40 @@
     "goLimitedPilotDeclared": false,
     "studentSessionsAuthorized": 0
   },
-  "nextGate": "MACHINE_QUALIFICATION_THEN_JOB29_HUMAN_MICRO_REPLAY_R1"
+  "nextGate": "MACHINE_QUALIFICATION_THEN_JOB29_HUMAN_MICRO_REPLAY_R1",
+  "rollback": "Close the unmerged JOB29 draft pull request and delete branch student-v01/g5-inline-title-rename-affordance-r1; exact JOB28 parent head 829b51caa638bbbb6c81ca9a0ee8f60ab5d59b30 and PR #472 remain unchanged.",
+  "requiredEvidence": [
+    "Exact UCP/HEAD/selected-kernel closure and exact JOB28 parent topology are revalidated before mutation.",
+    "JOB28 human acceptance plus G5-UX-003 minor finding is durably recorded without rewriting JOB28 history.",
+    "Static oracle proves the rename control is a semantic button in the title region, compact/chromeless, with transparent 44x44 hit envelope and unchanged persistence API.",
+    "390x844 touch browser oracle proves inline end-of-title placement including wrapped title, effective hit target, no layout shift, no horizontal overflow, Escape/Enter/focus behavior, persistence and multi-course isolation.",
+    "Search, hamburger, current R15, learner-journey/failed-persistence, validators, Factory, V5 runtime/showcase and selected V8 presenter regressions pass.",
+    "Protected semantic blobs and exact V5 showcase SHA256 remain unchanged from the exact JOB28 parent.",
+    "Deterministic double build, source-manifest validation and repository governance pass on one exact JOB29_RESULT_SHA.",
+    "Immutable HTTPS JOB29 Human Replay is published for JOB29_RESULT_SHA and stops at HUMAN_DECISION_REQUIRED."
+  ],
+  "adversarialTests": [
+    "Fail if the pencil remains in learner-course-actions or presents a visible standalone 44x44 action box.",
+    "Fail if the pencil is fixed-positioned independently of rendered title text or does not follow a wrapped title's final line.",
+    "Fail if the rename affordance is non-semantic, title-wide clickable, contenteditable, or keyboard-inoperable.",
+    "Fail if the transparent effective hit target is materially below 44x44 or blocks a neighboring interactive control.",
+    "Fail if opening the absolute editor causes more than 1 CSS px protected geometry movement or horizontal overflow.",
+    "Fail if Escape/Enter/focus restoration, local alias persistence, canonical-title immutability or multi-course isolation regress.",
+    "Fail if terminal guidance, search/hamburger, R15, learner journey, protected semantics or exact V5 showcase identity changes.",
+    "Fail if a human PASS, G5 PASS, GO_LIMITED_PILOT, merge, promotion or student session is inferred or authorized."
+  ],
+  "nonGoals": [
+    "Redesign course cards, Library, activity, feedback, progress, recovery, navigation or content UX.",
+    "Change scoring, ActivityResponse, objective-state, recommendation, sessionDelta, scheduler/date, V5/V8 presenter, activity-content or authored-course semantics.",
+    "Repair or reinterpret HR24-003.",
+    "Reopen JOB28 INFORMATION_DENSITY human PASS.",
+    "Merge or promote any PR, declare G5 PASS or GO_LIMITED_PILOT, or authorize a real student session."
+  ],
+  "independentReview": [
+    "Revalidate exact JOB28 parent/head topology and compare the entire JOB29 diff to the allowlist.",
+    "Run the JOB29 static oracle and independent 390x844 browser oracle, including rendered Range geometry and transparent hit testing.",
+    "Replay protected semantic identity, exact V5 showcase identity, session provenance, R15, learner-journey/failed-persistence, validators, Factory, runtime/showcase and V8 presenter regressions.",
+    "Build twice from the exact candidate and run repository governance on that exact SHA.",
+    "Only after machine PASS, freeze RESULT_SHA, write evidence-only closeout, publish one immutable Human Replay and stop for real human decision."
+  ]
 }
