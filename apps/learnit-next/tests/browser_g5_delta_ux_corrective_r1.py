@@ -99,7 +99,7 @@ def import_kit(page) -> dict[str, Any]:
     assert len(rows) == 1
     return rows[0]
 
-def clone_second_course(page) -> None:
+def clone_extra_courses(page) -> None:
     page.evaluate(
         """async () => {
           const report=await window.__LEARNIT_NEXT_TEST__.storageReport();
@@ -116,17 +116,22 @@ def clone_second_course(page) -> None:
               get.onerror=()=>reject(get.error);
               get.onsuccess=()=>{
                 const source=get.result[0];
-                const clone=structuredClone(source);
-                clone.courseInstallId=source.courseInstallId+'-second';
-                clone.packageRevisionId='synthetic-layout-second';
-                clone.displayLabel='Deuxième cours';
-                clone.installedAt='2099-01-01T00:00:00Z';
-                courses.put(clone);
-                if(names.includes('libraryMetadata')){
-                  tx.objectStore('libraryMetadata').put({
-                    courseInstallId: clone.courseInstallId,
-                    displayLabel: 'Deuxième cours',
-                  });
+                for (const [suffix,label,second] of [
+                  ['second','Deuxième cours','00'],
+                  ['third','Troisième cours','01'],
+                ]) {
+                  const clone=structuredClone(source);
+                  clone.courseInstallId=source.courseInstallId+'-'+suffix;
+                  clone.packageRevisionId='synthetic-layout-'+suffix;
+                  clone.displayLabel=label;
+                  clone.installedAt='2099-01-01T00:00:'+second+'Z';
+                  courses.put(clone);
+                  if(names.includes('libraryMetadata')){
+                    tx.objectStore('libraryMetadata').put({
+                      courseInstallId: clone.courseInstallId,
+                      displayLabel: label,
+                    });
+                  }
                 }
               };
               tx.oncomplete=()=>{db.close();resolve();};
@@ -166,12 +171,12 @@ def main() -> int:
 
         open_import(page)
         import_kit(page)
-        clone_second_course(page)
+        clone_extra_courses(page)
         page.reload()
         page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
         open_library(page)
         cards = page.locator(".learner-course-card")
-        assert cards.count() == 2
+        assert cards.count() == 3
         card = cards.first
         next_card = cards.nth(1)
         title = card.locator(".course-title-slot")
@@ -200,7 +205,7 @@ def main() -> int:
         search.fill("complexes absent")
         assert page.locator(".course-card:not([hidden])").count() == 0
         search.fill("")
-        assert page.locator(".course-card:not([hidden])").count() == 2
+        assert page.locator(".course-card:not([hidden])").count() == 3
 
         # Direct edit control: accessible icon-only target, no one-action menu.
         edit = card.get_by_role("button", name=f"Renommer le cours {canonical}")
