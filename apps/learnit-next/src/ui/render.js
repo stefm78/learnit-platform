@@ -889,7 +889,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             announce('Renommage annulé.');
           });
           renameOverlay = form;
-          renameControl.append(form);
+          titleSlot.append(form);
           queueMicrotask(() => {
             input.focus();
             input.select();
@@ -905,7 +905,8 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
         }, [
           node('span', { className: 'course-rename-icon', 'aria-hidden': 'true', text: '✎' }),
         ]);
-        const renameControl = node('div', { className: 'course-rename-control' }, [renameButton]);
+        const renameControl = node('span', { className: 'course-rename-control' }, [renameButton]);
+        titleSlot.append(renameControl);
 
         const externalSummary = renderExternalLearningProjection(externalProjection);
         const learningUnavailable = !learningAvailable
@@ -947,7 +948,6 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             reviewAction,
             durationControl,
             courseAction,
-            renameControl,
           ]),
         ]);
         if (focusCourseRenameInstallId === course.courseInstallId) requestedCourseFocusTarget = renameButton;
