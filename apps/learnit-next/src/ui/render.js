@@ -617,7 +617,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     ]);
   }
 
-  async function renderLibrary({ focus = true, announcement = null, focusCourseInstallId = null } = {}) {
+  async function renderLibrary({ focus = true, announcement = null, focusCourseInstallId = null, focusCourseRenameInstallId = null } = {}) {
     const renderEpoch = ++libraryRenderEpoch;
     const courses = await runtime.listCourses();
     if (renderEpoch !== libraryRenderEpoch) return;
@@ -808,10 +808,26 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           text: course.title,
         });
         const titleSlot = node('div', { className: 'course-title-slot' }, [titleHeading]);
-        let settingsDetails = null;
-        let settingsSummary = null;
+        let renameOverlay = null;
+        let renameButton = null;
+
+        function closeRename({ restoreFocus = true } = {}) {
+          if (!renameOverlay) return;
+          const overlay = renameOverlay;
+          renameOverlay = null;
+          overlay.remove();
+          if (restoreFocus) queueMicrotask(() => renameButton?.focus());
+        }
 
         function beginRename() {
+          if (renameOverlay) {
+            const existingInput = renameOverlay.querySelector('input');
+            queueMicrotask(() => {
+              existingInput?.focus();
+              existingInput?.select();
+            });
+            return;
+          }
           const inputId = `course-display-label-${course.courseInstallId}`;
           const input = node('input', {
             id: inputId,
@@ -823,23 +839,24 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             autocomplete: 'off',
             'aria-label': `Nouveau nom local pour ${course.title}`,
           });
-          const restoreTitle = ({ focusOptions = true } = {}) => {
-            titleSlot.replaceChildren(titleHeading);
-            if (focusOptions) queueMicrotask(() => settingsSummary?.focus());
-          };
           const form = node('form', {
-            className: 'course-inline-rename',
-            'data-course-inline-rename': 'true',
+            className: 'course-rename-overlay',
+            'data-course-rename-overlay': 'true',
+            role: 'dialog',
+            'aria-label': `Renommer le cours ${course.title}`,
           }, [
-            input,
-            node('div', { className: 'course-inline-rename-actions' }, [
+            node('label', { className: 'course-rename-label', for: inputId }, [
+              node('span', { text: 'Nom du cours' }),
+              input,
+            ]),
+            node('div', { className: 'course-rename-overlay-actions' }, [
               node('button', { type: 'submit', className: 'secondary', text: 'Enregistrer' }),
               node('button', {
                 type: 'button',
                 className: 'quiet',
                 text: 'Annuler',
                 onclick: () => {
-                  restoreTitle();
+                  closeRename();
                   announce('Renommage annulé.');
                 },
               }),
@@ -860,7 +877,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
                 await renderLibrary({
                   focus: false,
                   announcement: message,
-                  focusCourseInstallId: course.courseInstallId,
+                  focusCourseRenameInstallId: course.courseInstallId,
                 });
               },
             );
@@ -868,32 +885,27 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
           input.addEventListener('keydown', event => {
             if (event.key !== 'Escape') return;
             event.preventDefault();
-            restoreTitle();
+            closeRename();
             announce('Renommage annulé.');
           });
-          settingsDetails.open = false;
-          titleSlot.replaceChildren(form);
+          renameOverlay = form;
+          renameControl.append(form);
           queueMicrotask(() => {
             input.focus();
             input.select();
           });
         }
 
-        settingsSummary = node('summary', { 'aria-label': `Options du cours ${course.title}` }, [
-          node('span', { 'aria-hidden': 'true', text: '⋯' }),
-          node('span', { className: 'sr-only', text: 'Options du cours' }),
+        renameButton = node('button', {
+          type: 'button',
+          className: 'quiet course-rename-button',
+          'aria-label': `Renommer le cours ${course.title}`,
+          title: 'Renommer',
+          onclick: beginRename,
+        }, [
+          node('span', { className: 'course-rename-icon', 'aria-hidden': 'true', text: '✎' }),
         ]);
-        settingsDetails = node('details', { className: 'course-settings-details' }, [
-          settingsSummary,
-          node('div', { className: 'course-settings-menu' }, [
-            node('button', {
-              type: 'button',
-              className: 'quiet',
-              text: 'Renommer',
-              onclick: beginRename,
-            }),
-          ]),
-        ]);
+        const renameControl = node('div', { className: 'course-rename-control' }, [renameButton]);
 
         const externalSummary = renderExternalLearningProjection(externalProjection);
         const learningUnavailable = !learningAvailable
@@ -935,10 +947,11 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             reviewAction,
             durationControl,
             courseAction,
-            settingsDetails,
+            renameControl,
           ]),
         ]);
-        if (focusCourseInstallId === course.courseInstallId) requestedCourseFocusTarget = titleHeading;
+        if (focusCourseRenameInstallId === course.courseInstallId) requestedCourseFocusTarget = renameButton;
+        else if (focusCourseInstallId === course.courseInstallId) requestedCourseFocusTarget = titleHeading;
         courseEntries.push({
           article,
           searchable: [
