@@ -11,7 +11,7 @@
     "job30Issue": 475,
     "job30PullRequest": 476,
     "executionIssue": 477,
-    "pullRequest": null,
+    "pullRequest": 478,
     "parentHead": "af14bc0a9b1988b5d42b158ae4a6b3afa544221f",
     "reviewedProductSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c"
   },
@@ -66,7 +66,7 @@
     "phase": "PREPARE",
     "branch": "student-v01/limited-pilot-5-6-students-r1",
     "issue": 477,
-    "pullRequest": null,
+    "pullRequest": 478,
     "productMutationAuthorized": false,
     "mergeAuthorized": false,
     "promotionAuthorized": false,
@@ -74,5 +74,20 @@
     "realStudentSessionsRecorded": 0
   },
   "nextGate": "REAL_STUDENT_SESSION_LP01_REQUIRED",
-  "rollback": "Close the unmerged JOB31 PR and delete the JOB31 branch if permitted; preserve JOB30 and the frozen candidate. Generated ZIPs are workflow artifacts only and are never committed."
+  "rollback": "Close the unmerged JOB31 PR and delete the JOB31 branch if permitted; preserve JOB30 and the frozen candidate. Generated ZIPs are workflow artifacts only and are never committed.",
+  "adversarialTests": [
+    "Reject any session ID outside LP01..LP06, any duplicate session ID, any seventh real-student session, and any session admission while HOLD or HOLD_PENDING_HUMAN.",
+    "Reject candidate or learner-package identity drift, missing required session fields, unconfirmed permission status, and repository-visible identifying data.",
+    "After five countable sessions, reject LP06 unless an explicit human continuation decision has restored state ACTIVE."
+  ],
+  "nonGoals": [
+    "No product, contract, authoring, showcase, scoring, progress, recommendation, content, or runtime repair.",
+    "No synthetic or model-generated student evidence and no machine-smoke session counted as a real student session.",
+    "No main merge, release promotion, second cohort, expansion beyond six sessions, or HR24-003 engine implementation."
+  ],
+  "independentReview": [
+    "Repository governance must validate the exact JOB31 head and allowlist.",
+    "The dedicated JOB31 workflow must independently rebuild the exact frozen app, validate the exact V5 kit, prove package determinism, execute adversarial state/session checks, and run browser qualification.",
+    "Final cohort closure requires explicit human review of durable real-session evidence; automation cannot declare student-pilot success from machine smoke."
+  ]
 }
