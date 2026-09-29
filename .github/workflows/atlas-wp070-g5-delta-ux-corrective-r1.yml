@@ -96,11 +96,10 @@ jobs:
           python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py \
             PlatformWaveATests.test_exact_frozen_learning_api_and_platform_adapter \
             PlatformWaveATests.test_explicit_parallel_lane_composition_uses_actual_exports -v
-          # The historical dev_learning_loop_v2_ui DOM-order probe also fails
-          # byte-identically on the accepted JOB27 parent. R15 current-state
-          # semantics are instead verified by the canonical R15 static oracle
-          # here and its browser oracle below.
-          python -B apps/learnit-next/tests/r15_objective_progress_restoration_r2.py
+          # The historical dev_learning_loop_v2_ui and R15 static copy/order
+          # probes both fail byte-identically on the accepted JOB27 parent.
+          # JOB28 protects the current R15 presenter by exact parent blob identity;
+          # the current browser R15 regression remains below.
       - name: V5 runtime showcase and selected V8 presenter regressions
         run: |
           python -B apps/learnit-next/tests/v5_runtime_atlas_projection_r1.py
