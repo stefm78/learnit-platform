@@ -602,10 +602,7 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     if (recommendation?.action === 'correct' && reviewQueue.total > 0) {
       detail = 'Un objectif reste à renforcer. Reprenez une activité incorrecte pour continuer.';
     } else if (recommendation?.action === 'validate') {
-      const acquired = (course.progress.objectives ?? []).filter(item => item.status === 'validated-recently').length;
-      detail = acquired > 0
-        ? 'Un objectif est acquis récemment et un autre reste à confirmer. Son entraînement est réussi, mais une validation distincte doit encore le confirmer. Toutes les activités disponibles ont été réalisées ; Learn-it n’a actuellement ni nouvelle activité de validation à proposer ni date de disponibilité.'
-        : 'Un objectif reste à confirmer. Son entraînement est réussi, mais une validation distincte doit encore le confirmer. Toutes les activités disponibles ont été réalisées ; Learn-it n’a actuellement ni nouvelle activité de validation à proposer ni date de disponibilité.';
+      detail = 'Un objectif reste à confirmer. Rien à faire pour le moment.';
     } else if (recommendation?.action === 'revisit-later') {
       detail = 'Les acquis sont récents. Learn-it n’indique actuellement ni action supplémentaire ni date précise de consolidation.';
     } else if (recommendation?.action === 'continue-training' || recommendation?.action === 'start-training') {
