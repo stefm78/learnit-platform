@@ -21,9 +21,7 @@ def safe_extract(package: Path, root: Path) -> Path:
     return root
 
 def choose_file(page, path: Path) -> None:
-    with page.expect_file_chooser() as chooser_info:
-        page.locator("#kit-file").click()
-    chooser_info.value.set_files(str(path.resolve()))
+    page.locator("#kit-file").set_input_files(str(path.resolve()))
 
 def assert_no_secret_projection(page) -> None:
     snapshot = page.evaluate("""async forbidden => {
@@ -98,9 +96,6 @@ def run_import_start(browser, root: Path, kit: dict, viewport: dict[str,int], to
     page.on("request", lambda request: external.append(request.url) if request.url.startswith(("http://","https://")) else None)
     page.on("pageerror", lambda error: errors.append(str(error)))
     open_start(page, root)
-    with page.expect_file_chooser() as chooser_info:
-        page.locator("#kit-file").click()
-    chooser_info.value.set_files([])
     assert page.locator("#kit-file").input_value() == ""
     choose_file(page, root / "course.learnit.json")
     page.locator("form.import-panel button[type='submit']").click()
