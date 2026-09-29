@@ -5,7 +5,7 @@ WORK_PACKAGE: `ATLAS-WP-072`
 EXECUTION_ISSUE: `#475`
 CANONICAL_G5_AUTHORITY: `#427`
 BRANCH: `student-v01/g5-final-closeout-limited-pilot-r1`
-JOB30_PR: `PENDING_ALLOCATION`
+JOB30_PR: `#476`
 
 EXACT_PARENT_EVIDENCE_HEAD: `4ee139018936d56a5516568fd2660ef741bd8aa2`
 REVIEWED_PRODUCT_SHA: `e04cf62963faae83e073cde9cffd9d33ae42dc9c`
@@ -38,7 +38,7 @@ CHANGED_PATH_SET:
 - `qualification/STUDENT_V01_JOB30_G5_FINAL_CLOSEOUT_R1_RESULT.md`
 - `work-packages/ATLAS-WP-072.json`
 
-REPOSITORY_GOVERNANCE_RUN: `PENDING_FINAL_HEAD`
+REPOSITORY_GOVERNANCE_RUN: `TO_BE_RECORDED_IN_CANONICAL_FINAL_RECEIPT_AFTER_FINAL_HEAD_CHECK`
 
 Rollback: close the unmerged JOB30 PR and delete the branch if permitted; preserve reviewed product `e04cf629...` and all parent PRs/branches. If a wrong canonical receipt is posted, supersede it explicitly and restore student authorization to zero when the error invalidates authorization. Never alter product bytes.
 
