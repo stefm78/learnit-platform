@@ -1,0 +1,67 @@
+{
+  "schema": "atlas.work-package.v1",
+  "workPackage": "ATLAS-WP-072",
+  "job": "JOB_30_G5_FINAL_CLOSEOUT_LIMITED_PILOT_AUTHORIZATION_R1",
+  "purpose": "Durable G5 evidence/authority closeout and first bounded limited-pilot authorization only",
+  "parentEvidenceHead": "4ee139018936d56a5516568fd2660ef741bd8aa2",
+  "reviewedProductSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+  "branch": "student-v01/g5-final-closeout-limited-pilot-r1",
+  "issue": 475,
+  "pr": null,
+  "humanAuthoritySources": [
+    "USER_EXPLICIT_JOB29_HUMAN_REVIEW_ACCEPTED_CHAT_2026-09-29",
+    "USER_EXPLICIT_G5_NINE_REMAINING_HUMAN_DIMENSIONS_PASS_CHAT_2026-09-29",
+    "USER_EXPLICIT_HR24_003_ACCEPT_AND_GO_LIMITED_PILOT_CHAT_2026-09-29"
+  ],
+  "allowlist": [
+    "work-packages/ATLAS-WP-072.json",
+    "qualification/STUDENT_V01_JOB29_HUMAN_VALIDATION_R1.md",
+    "qualification/STUDENT_V01_G5_FINAL_HUMAN_DECISION_R1.md",
+    "qualification/STUDENT_V01_JOB30_G5_FINAL_CLOSEOUT_R1_RESULT.md"
+  ],
+  "forbidden": [
+    "apps/**",
+    "authoring/**",
+    "contracts/**",
+    "showcase/**",
+    "pilot/**",
+    ".github/**",
+    "qa/**",
+    "tools/**",
+    "governance/**",
+    "docs/architecture/**",
+    "docs/programs/student-v0.1/PROGRAM_CHARTER.md",
+    "docs/programs/student-v0.1/COORDINATION.yaml"
+  ],
+  "invariants": [
+    "exact frozen reviewed candidate",
+    "evidence-only mutation",
+    "HR24-003 remains unresolved engine gap",
+    "no pilot execution in JOB30",
+    "no expansion beyond 6",
+    "no merge/promotion"
+  ],
+  "adversarialChecks": [
+    "no product/application/content/contract/validator/workflow byte changes",
+    "no machine assertion promoted to human PASS",
+    "no current unresolved blocker/major on reviewed candidate",
+    "no new replay/candidate",
+    "no student sessions started"
+  ],
+  "rollback": "Close unmerged JOB30 PR and delete JOB30 branch if permitted; preserve JOB29 product and parent topology; supersede any erroneous canonical receipt explicitly; never change product bytes.",
+  "productMutationAuthorized": false,
+  "mergeAuthorized": false,
+  "promotionAuthorized": false,
+  "pilotExecutionAuthorizedByThisJob": false,
+  "limitedPilotFirstCohortAuthorizedAfterCloseout": true,
+  "limitedPilotTargetSessions": "5-6",
+  "limitedPilotMaximumSessions": 6,
+  "requiredEvidence": [
+    "JOB29 human validation",
+    "final G5 dimension reconciliation",
+    "JOB30 result",
+    "repository-governance PASS on evidence head",
+    "canonical issue receipts"
+  ],
+  "nextGate": "JOB31_LIMITED_PILOT_5_6_STUDENTS_EXECUTION_R1"
+}
