@@ -138,10 +138,11 @@ def run_full_journey(browser, root: Path, kit: dict) -> None:
             assert result["scored"] is False and "correct" not in result, (activity["type"], result)
         page.reload()
         page.wait_for_function("() => Boolean(window.__LEARNIT_NEXT_TEST__)")
-    session = page.evaluate("async () => window.__LEARNIT_NEXT_TEST__.getSession()")
-    assert session["currentActivity"] is None, session
-    assert session["progress"]["isComplete"] is True, session
-    assert session["progress"]["completed"] == 10, session
+    assert page.evaluate("async () => (await window.__LEARNIT_NEXT_TEST__.getSession()) === null")
+    courses = page.evaluate("async () => window.__LEARNIT_NEXT_TEST__.listCourses()")
+    progress = courses[0]["progress"]
+    assert progress["isComplete"] is True, progress
+    assert progress["completed"] == 10 and progress["total"] == 10, progress
     assert external == [], external
     assert errors == [], errors
     context.close()
