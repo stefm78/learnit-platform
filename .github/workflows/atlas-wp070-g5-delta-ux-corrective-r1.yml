@@ -127,9 +127,7 @@ jobs:
           echo "FINAL_BUILD_SHA256=$sha"
       - name: Failed-persistence and learner-journey browser regression
         run: python -B apps/learnit-next/tests/browser_r2_handoff7_fanin_regression_r1.py
-      - name: R15 objective-progress browser regression
-        run: python -B apps/learnit-next/tests/browser_r15_objective_progress_restoration_r2.py
-      - name: JOB28 direct rename no-reflow mobile browser qualification
+      - name: Current R15 objective-progress and JOB28 direct rename mobile qualification
         run: python -B apps/learnit-next/tests/browser_g5_delta_ux_corrective_r1.py
       - name: Repository governance on exact candidate
         run: |

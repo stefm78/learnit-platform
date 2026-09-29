@@ -179,6 +179,20 @@ def main() -> int:
         objective = card.locator(".course-objectives-details > summary")
         assert title.count() == 1 and start.count() == 1 and objective.count() == 1
 
+        # Current R15 objective-progress contract: grouped reservoirs are present
+        # and clicking a reservoir exposes the selected affordance. Do not pin
+        # the superseded historical post-click focus behavior.
+        objective.click()
+        r15 = card.locator('[data-objective-progress-r15="true"]')
+        assert r15.count() == 1
+        groups = r15.locator('.objective-progress-r15__group')
+        assert groups.count() >= 1
+        reservoirs = r15.locator('button.objective-progress-r15__reservoir')
+        assert reservoirs.count() >= 1
+        reservoirs.first.click()
+        assert r15.locator('[data-objective-progress-r15-selected="true"]').count() == 1
+        objective.click()
+
         # Accepted multi-term AND search remains behaviorally intact.
         search = page.locator(".library-search-input")
         search.fill("nombres complexes")
