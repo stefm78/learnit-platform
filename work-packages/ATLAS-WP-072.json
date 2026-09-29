@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-072",
+  "title": "G5 final closeout + limited pilot authorization R1",
+  "status": "in-progress",
+  "changeClass": "g5-final-closeout-limited-pilot-authorization-r1",
+  "riskClass": "moderate",
+  "purpose": "Persist the explicit final G5 human decisions for the exact frozen JOB29 candidate, close G5 in durable evidence, and authorize only the first bounded 5–6-student pilot cohort with a hard cap of 6, without product mutation or pilot execution.",
+  "authority": {
+    "canonicalG5Issue": 427,
+    "executionIssue": 475,
+    "pullRequest": 476,
+    "parentPullRequest": 474,
+    "parentEvidenceHead": "4ee139018936d56a5516568fd2660ef741bd8aa2",
+    "reviewedProductSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+    "humanAuthorizationSources": [
+      "USER_EXPLICIT_JOB29_HUMAN_REVIEW_ACCEPTED_CHAT_2026-09-29",
+      "USER_EXPLICIT_G5_NINE_REMAINING_HUMAN_DIMENSIONS_PASS_CHAT_2026-09-29",
+      "USER_EXPLICIT_HR24_003_ACCEPT_AND_GO_LIMITED_PILOT_CHAT_2026-09-29"
+    ]
+  },
+  "baseline": {
+    "baseBranch": "student-v01/g5-inline-title-rename-affordance-r1",
+    "baseCommit": "4ee139018936d56a5516568fd2660ef741bd8aa2",
+    "reviewedProductSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+    "buildSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553",
+    "buildBytes": 583764,
+    "showcaseSha256": "aeac0925e686d6055405382142ad14831c27f73992401a1748ec76b85665c62b",
+    "artifactSha256": null
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/ATLAS-WP-072.json",
+      "qualification/STUDENT_V01_JOB29_HUMAN_VALIDATION_R1.md",
+      "qualification/STUDENT_V01_G5_FINAL_HUMAN_DECISION_R1.md",
+      "qualification/STUDENT_V01_JOB30_G5_FINAL_CLOSEOUT_R1_RESULT.md"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "showcase/**",
+      "pilot/**",
+      ".github/**",
+      "qa/**",
+      "tools/**",
+      "governance/**",
+      "docs/architecture/**",
+      "docs/programs/student-v0.1/PROGRAM_CHARTER.md",
+      "docs/programs/student-v0.1/COORDINATION.yaml"
+    ]
+  },
+  "invariants": [
+    "The reviewed product remains exactly e04cf62963faae83e073cde9cffd9d33ae42dc9c.",
+    "JOB30 is evidence/governance only and changes no product/application/content/contract/validator/workflow bytes.",
+    "HR24-003 remains CONFIRMED_SEPARATE_ENGINE_JOB_REQUIRED and is accepted only as a known limitation for the first bounded pilot.",
+    "The first pilot target is 5-6 real student sessions with a hard cap of 6.",
+    "JOB30 starts no student session and authorizes no second cohort, expansion, main merge, promotion, production readiness or broader rollout.",
+    "PRs 470, 472, 474 and 476 remain draft/open/unmerged unless separate live authority says otherwise."
+  ],
+  "requiredEvidence": [
+    "Exact UCP 1.1-R4 / CONTROL_PLANE_HEAD / UAO 2.6 / selected UAA-UAS-UAB closure verified.",
+    "PR #474 exact topology and evidence-only ancestry above JOB29_RESULT_SHA verified.",
+    "JOB29 qualification, repository-governance, replay-deploy and evidence-head checks verified successful.",
+    "JOB26 formal human validation, JOB27 reconciliation, JOB28 human validation and JOB29 human acceptance reconciled without rewriting history.",
+    "Nine remaining explicit human PASS decisions and HR24-003 pilot acceptance / GO_LIMITED_PILOT are durably recorded.",
+    "No current unresolved blocker or major finding applies to the exact frozen candidate.",
+    "Repository governance passes on the final JOB30 evidence head.",
+    "Canonical G5 receipt is posted only after that PASS."
+  ],
+  "adversarialTests": [
+    "Fail if reviewed product SHA changes.",
+    "Fail if any product/application/content/contract/validator/workflow byte changes.",
+    "Fail if a new replay or candidate is created.",
+    "Fail if machine evidence is promoted into human PASS.",
+    "Fail if HR24-003 is described as repaired or resolved.",
+    "Fail if a current unresolved blocker/major applies to the frozen candidate.",
+    "Fail if authorization exceeds the first cohort or 6 sessions.",
+    "Fail if JOB30 starts or fabricates a student session.",
+    "Fail if any merge, promotion, production-readiness or expansion authority is inferred."
+  ],
+  "nonGoals": [
+    "Modify product code, authored learning content, contracts, validators, workflows, QA, showcase, pilot data or program charter/coordination.",
+    "Repair HR24-003.",
+    "Start, simulate or fabricate real student sessions.",
+    "Create JOB31 or authorize any second cohort.",
+    "Merge any PR or promote/release the product."
+  ],
+  "independentReview": [
+    "Compare the complete JOB30 diff against the four-path allowlist.",
+    "Prove all product/application/content/workflow blobs are unchanged from parent evidence head.",
+    "Confirm exact product/build/showcase/replay identities from durable machine evidence and live workflow receipts.",
+    "Run repository governance on the exact final evidence head.",
+    "Re-fetch parent and JOB30 PR/issue state after material GitHub mutations."
+  ],
+  "execution": {
+    "job": "JOB_30_G5_FINAL_CLOSEOUT_LIMITED_PILOT_AUTHORIZATION_R1",
+    "branch": "student-v01/g5-final-closeout-limited-pilot-r1",
+    "issue": 475,
+    "pullRequest": 476,
+    "productMutationAuthorized": false,
+    "mergeAuthorized": false,
+    "promotionAuthorized": false,
+    "pilotExecutionAuthorizedByThisJob": false,
+    "limitedPilotFirstCohortAuthorizedAfterCloseout": true,
+    "limitedPilotTargetSessions": "5-6",
+    "limitedPilotMaximumSessions": 6
+  },
+  "nextGate": "JOB31_LIMITED_PILOT_5_6_STUDENTS_EXECUTION_R1",
+  "rollback": "Close the unmerged JOB30 PR and delete the JOB30 branch if permitted; preserve JOB29 product e04cf62963faae83e073cde9cffd9d33ae42dc9c and all parent branches/PRs. If an incorrect canonical receipt was posted, supersede it explicitly and restore authorized student sessions to zero if the error invalidates authorization. Never change product bytes."
+}
