@@ -120,7 +120,7 @@ def run_recovery(browser, root: Path, kit: dict) -> None:
     page.get_by_text("Gérer la bibliothèque", exact=True).click()
     page.get_by_role("button", name="Réinitialiser les données locales").click()
     page.get_by_role("button", name="Confirmer la réinitialisation").click()
-    page.get_by_text("Bibliothèque vide", exact=True).wait_for()
+    page.get_by_text("Importer votre premier cours", exact=True).wait_for()
     choose_file(page, root / "course.learnit.json")
     page.locator("form.import-panel button[type='submit']").click()
     page.get_by_text(kit["courses"][0]["title"], exact=True).wait_for()
