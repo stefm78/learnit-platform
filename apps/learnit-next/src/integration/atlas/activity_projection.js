@@ -46,7 +46,7 @@ export function projectFeedbackMedia(
   activity,
   { assets = [], contract = null, transitionAuthorized = false } = {},
 ) {
-  if (contract !== V5_CONTRACT) return Object.freeze([]);
+  if (contract !== V5_CONTRACT && contract !== V6_CONTRACT) return Object.freeze([]);
   if (transitionAuthorized !== true) {
     throw new Error('V5_FEEDBACK_MEDIA_TRANSITION_REQUIRED');
   }
@@ -74,7 +74,7 @@ export function projectPostAnswerFeedback(
   normalizedAnswer,
   { contract = null, transitionAuthorized = false } = {},
 ) {
-  if (contract !== V5_CONTRACT) return null;
+  if (contract !== V5_CONTRACT && contract !== V6_CONTRACT) return null;
   if (transitionAuthorized !== true) {
     throw new Error('V5_POST_ANSWER_TRANSITION_REQUIRED');
   }
@@ -145,6 +145,7 @@ export function projectPostAnswerFeedback(
     }
     case 'lesson':
     case 'flashcard':
+    case 'productive':
       return null;
     default:
       throw new Error(`ACTIVITY_TYPE_UNSUPPORTED:${String(activity.type)}`);
