@@ -236,6 +236,23 @@ function fill(p) {
   p.segments.forEach(segment=>{if(Object.hasOwn(segment,'text'))sentence.append(el('span',{text:segment.text}));else{const slot=el('span',{className:'activity-fill-b-slot empty activity-drop-target','data-fill-drop':segment.slotId,'data-activity-slot':segment.slotId,'data-token-id':'',role:'button',tabindex:'0','aria-label':'Emplacement '+segment.slotId});slot.addEventListener('click',e=>{if(e.target.closest('.activity-token-chip'))return;if(selected&&!assignments.has(segment.slotId))put(selected,segment.slotId);});keyActivate(slot,()=>selected&&!assignments.has(segment.slotId)&&put(selected,segment.slotId));slots.set(segment.slotId,slot);sentence.append(slot);}});
   shuffledOnce(p.tokens).forEach(token=>{const chip=el('button',{type:'button',className:'activity-manip-card activity-drag-card activity-token-chip','data-token-id':token.tokenId,'aria-pressed':'false'},[el('span',{className:'activity-grip','aria-hidden':'true',text:'⠿'}),el('span',{text:token.label})]);chip.addEventListener('click',e=>{e.stopPropagation();if(chip.dataset.suppressClick==='true'){chip.dataset.suppressClick='false';return;}select(token.tokenId);});pointerDrag(chip,{onStart:()=>{clearSignals(root);chip.classList.add('dragging');chip.style.width=chip.getBoundingClientRect().width+'px';},onMove:s=>{if(!s.moved)return;chip.style.transform='translate('+(s.x-s.startX)+'px,'+(s.y-s.startY)+'px)';const hit=targetAt(s.x,s.y,'[data-fill-drop]',chip);markActive(root,hit?.matches('.activity-fill-b-slot')?hit:hit?.querySelector('.activity-fill-bank-title')??null);},onDrop:s=>{const hit=targetAt(s.x,s.y,'[data-fill-drop]',chip);chip.classList.remove('dragging');chip.style.cssText='';markActive(root,null);clearSignals(root);if(s.moved&&hit){const dest=hit.dataset.fillDrop;if(dest==='bank')returnBank(token.tokenId);else put(token.tokenId,dest);}if(s.moved){chip.dataset.suppressClick='true';setTimeout(()=>{chip.dataset.suppressClick='false';},0);}},onCancel:()=>{chip.classList.remove('dragging');chip.style.cssText='';markActive(root,null);clearSignals(root);}});tokens.set(token.tokenId,chip);bankBox.append(chip);});paint();return root;
 }
+function productive(p) {
+  const fields=(p.parts??[]).map((part,index)=>{
+    const inputId=uid('activity-productive-part'),label=el('label',{for:inputId,text:part.label});
+    const input=part.responseKind==='text'
+      ? el('textarea',{id:inputId,rows:'5',maxlength:'4000','data-productive-part':part.partId,'data-response-kind':part.responseKind})
+      : el('input',{id:inputId,type:'text',maxlength:'1000',inputmode:part.responseKind==='number'?'decimal':'text','data-productive-part':part.partId,'data-response-kind':part.responseKind});
+    const children=[label,input];
+    if(part.unitPrompt){
+      const unitId=uid('activity-productive-unit');
+      children.push(el('label',{for:unitId,className:'help',text:part.unitPrompt}));
+      children.push(el('input',{id:unitId,type:'text',maxlength:'40','data-productive-unit':part.partId}));
+    }
+    return el('fieldset',{className:'activity-productive-part','data-productive-index':String(index)},children);
+  });
+  return shell(p,[prompt(p.prompt),el('div',{className:'activity-productive','data-productive-response':'true'},fields)]);
+}
+
 function constructed(p) {
   const id=uid('activity-constructed');
   return shell(p,[prompt(p.prompt),el('div',{className:'activity-constructed'},[el('label',{for:id,text:'Votre réponse'}),el('textarea',{id,rows:'6',maxlength:'4000','data-constructed-response':'true'}),el('p',{className:'help',text:'Réponse attendue : un texte non vide.'})])]);
@@ -252,6 +269,7 @@ export function renderActivityPresentation(presentation) {
     case 'order': return order(presentation);
     case 'classify': return classify(presentation);
     case 'constructed': return constructed(presentation);
+    case 'productive': return productive(presentation);
     default: throw new Error('ACTIVITY_PRESENTATION_TYPE_UNSUPPORTED: ' + presentation.type);
   }
 }
@@ -278,5 +296,18 @@ export function readActivityResponse(container, presentation) {
   if(presentation.type==='order'){const orderedItemIds=[...root.querySelectorAll('[data-order-item]')].map(item=>item.dataset.orderItem);if(orderedItemIds.length!==presentation.items.length)throw required('Ordre incomplet.');return {orderedItemIds};}
   if(presentation.type==='classify'){const assignments=[...root.querySelectorAll('[data-classify-item]')].map(card=>({itemId:card.dataset.classifyItem,bucketId:card.dataset.classifyBucket})).filter(item=>item.bucketId);if(assignments.length!==presentation.items.length)throw required('Classez chaque élément avant de continuer.');return {assignments:presentation.items.map(item=>assignments.find(candidate=>candidate.itemId===item.itemId))};}
   if(presentation.type==='constructed'){const text=root.querySelector('[data-constructed-response]')?.value?.trim()||'';if(!text)throw required('Saisissez une réponse avant de continuer.');return {text};}
+  if(presentation.type==='productive'){
+    const productiveRoot=container.querySelector('[data-productive-response="true"]');
+    const parts=(presentation.parts??[]).map(part=>{
+      const field=productiveRoot?.querySelector('[data-productive-part="'+part.partId+'"]');
+      const value=field?.value?.trim()||'';
+      if(!value)throw required('Complétez chaque partie requise avant de continuer.');
+      const unitField=productiveRoot?.querySelector('[data-productive-unit="'+part.partId+'"]');
+      const unit=unitField?.value?.trim()||'';
+      if(part.unitPrompt&&!unit)throw required('Indiquez l’unité demandée avant de continuer.');
+      return {partId:part.partId,value,...(part.unitPrompt?{unit}:{})};
+    });
+    return {parts};
+  }
   throw new Error('ACTIVITY_PRESENTATION_TYPE_UNSUPPORTED: '+presentation.type);
 }
