@@ -444,7 +444,7 @@ function atlasR13PriorityTarget(currentNext, objectiveStates) {
   return objectiveStates.find(item => text.includes(item.label))
     ?? objectiveStates.find(item => item.state === 'review-needed')
     ?? objectiveStates.find(item => item.state === 'ready-for-validation')
-    ?? objectiveStates.find(item => item.state !== 'validated-recently')
+    ?? objectiveStates.find(item => item.state !== 'validated-recently' && item.state !== 'mastery-evidence-complete')
     ?? objectiveStates[0]
     ?? null;
 }
@@ -484,7 +484,7 @@ function atlasR13JsonAttribute(element, name, fallback) {
 
 function renderAtlasR13Progress(progress, objectiveStates, target, sessionProjection = null) {
   const allAcquired = objectiveStates.length > 0
-    && objectiveStates.every(item => item.state === 'validated-recently');
+    && objectiveStates.every(item => item.state === 'validated-recently' || item.state === 'mastery-evidence-complete');
   const worked = new Set(sessionProjection?.workedObjectiveIds ?? []);
   const changed = new Set(sessionProjection?.changedObjectiveIds ?? []);
   const beforeStates = sessionProjection?.beforeStates ?? {};
@@ -735,10 +735,13 @@ function installAtlasR13Styles(documentRef = globalThis.document) {
     .atlas-r13-reservoir--ready-for-validation .atlas-r13-fill{background:#7775a2}
     .atlas-r13-reservoir--review-needed .atlas-r13-fill{background:repeating-linear-gradient(135deg,#b48a46 0 5px,#ead8b8 5px 10px)}
     .atlas-r13-reservoir--validated-recently .atlas-r13-fill{background:#648a69}
+    .atlas-r13-reservoir--validation-a-complete .atlas-r13-fill{background:#7775a2}
+    .atlas-r13-reservoir--mastery-evidence-complete .atlas-r13-fill{background:#648a69}
     .atlas-r13-reservoir[data-atlas-r13-session-worked="true"]{box-shadow:0 0 0 2px #9bacc4}
     .atlas-r13-reservoir[data-atlas-r13-session-changed="true"]{outline:3px solid #3156d3;outline-offset:2px;box-shadow:none}
     .atlas-r13-state-mark{position:absolute;inset:auto 0 .1rem;text-align:center;font-size:.7rem;font-weight:800;color:#172033;z-index:1}
     .atlas-r13-reservoir--validated-recently .atlas-r13-state-mark{color:#fff}
+    .atlas-r13-reservoir--mastery-evidence-complete .atlas-r13-state-mark{color:#fff}
     .atlas-r13-context{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:.35rem .65rem;align-items:baseline;border-top:1px solid #e3e6eb;padding-top:.65rem}
     .atlas-r13-context-kicker{font-size:.74rem;color:#657083}
     .atlas-r13-context-state{font-size:.82rem}
