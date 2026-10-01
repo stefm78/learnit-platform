@@ -243,7 +243,7 @@ function decimalRational(value){
   return {numerator,denominator};
 }
 function authoredRational(value,label){
-  if(!value||!Number.isInteger(value.numerator)||!Number.isInteger(value.denominator)||value.denominator<=0)throw new ActivityResponseValidationError(`${label} must be an integer rational with positive denominator`,'invalid_productive_evaluator');
+  if(!value||!Number.isSafeInteger(value.numerator)||!Number.isSafeInteger(value.denominator)||value.denominator<=0)throw new ActivityResponseValidationError(`${label} must use safe integer rational components with positive denominator`,'invalid_productive_evaluator');
   return {numerator:BigInt(value.numerator),denominator:BigInt(value.denominator)};
 }
 function withinAbsoluteTolerance(actual,expected,tolerance){
