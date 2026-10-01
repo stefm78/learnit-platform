@@ -3,11 +3,13 @@ import { isNonScoredActivity } from './activity_semantics.js';
 
 export const LEARNING_LOOP_V2_STATUSES = Object.freeze([
   'not-started', 'training', 'review-needed', 'ready-for-validation', 'validated-recently',
+  'validation-a-complete', 'mastery-evidence-complete',
 ]);
 const STATUS_SET = new Set(LEARNING_LOOP_V2_STATUSES);
 const OBJECTIVE_FIELDS = [
   'objectiveId', 'trainingAttempts', 'latestTrainingCorrect', 'needsReview',
   'validationAttempts', 'latestValidationCorrect', 'status',
+  'validationAComplete', 'validationBComplete', 'masteryEvidenceComplete',
 ];
 
 export function deriveReviewQueue(course, records) {
@@ -104,6 +106,9 @@ function requireAuthoredCourse(course) {
     if (!isNonScoredActivity(activity) && (typeof activity.assessmentRole !== 'string' || activity.assessmentRole.trim() === '')) {
       throw new TypeError(`Learning Loop V2 activity ${activityRevisionId} requires assessmentRole`);
     }
+    if (activity.assessmentRole === 'validation' && (activity.validationSlot === 'A' || activity.validationSlot === 'B') && activity.objectiveIds.length !== 1) {
+      throw new TypeError(`V6 validation activity ${activityRevisionId} must target exactly one objective`);
+    }
     const normalized = { activity, activityRevisionId, authorIndex };
     activityByRevisionId.set(activityRevisionId, normalized); activities.push(normalized);
   });
@@ -152,7 +157,11 @@ export function createLearningLoopV2DomainAdapters(objectiveProgressModule, lear
         for (const { activity, record, nonScored } of progressEntries) {
           if (nonScored || !activity.objectiveIds.includes(objectiveId)) continue;
           const type = activity.assessmentRole === 'validation' ? 'validation-result' : 'training-result';
-          for (let index = 0; index < record.attempts; index += 1) events.push({ type, objectiveId, correct: record.correct });
+          const slot = type === 'validation-result' && (activity.validationSlot === 'A' || activity.validationSlot === 'B')
+            ? activity.validationSlot : null;
+          for (let index = 0; index < record.attempts; index += 1) {
+            events.push({ type, objectiveId, correct: record.correct, ...(slot ? { validationSlot: slot } : {}) });
+          }
         }
         return normalizeObjectiveProgress(reduceObjectiveEvents(objectiveId, events));
       });
@@ -186,6 +195,11 @@ function normalizeObjectiveProjection(courseInstallId, course, projected, existi
       validationAttempts: nonNegativeInteger(state.validationAttempts, 'validationAttempts', objectiveId),
       latestValidationCorrect: optionalBoolean(state.latestValidationCorrect, 'latestValidationCorrect', objectiveId),
       status: STATUS_SET.has(state.status) ? state.status : (() => { throw new TypeError(`Objective ${objectiveId} has invalid status`); })(),
+      ...(Object.hasOwn(state, 'validationAComplete') ? {
+        validationAComplete: typeof state.validationAComplete === 'boolean' ? state.validationAComplete : (() => { throw new TypeError(`Objective ${objectiveId} has invalid validationAComplete`); })(),
+        validationBComplete: typeof state.validationBComplete === 'boolean' ? state.validationBComplete : (() => { throw new TypeError(`Objective ${objectiveId} has invalid validationBComplete`); })(),
+        masteryEvidenceComplete: typeof state.masteryEvidenceComplete === 'boolean' ? state.masteryEvidenceComplete : (() => { throw new TypeError(`Objective ${objectiveId} has invalid masteryEvidenceComplete`); })(),
+      } : {}),
     };
     projectedById.set(objectiveId, normalized);
   }
@@ -194,7 +208,7 @@ function normalizeObjectiveProjection(courseInstallId, course, projected, existi
     const previous = existingById.get(objectiveId);
     const unchanged = previous && OBJECTIVE_FIELDS.every(field => previous[field] === normalized[field]);
     return {
-      schemaVersion: 1,
+      schemaVersion: Object.hasOwn(normalized, 'masteryEvidenceComplete') ? 2 : 1,
       courseInstallId,
       ...normalized,
       updatedAt: unchanged && typeof previous.updatedAt === 'string' ? previous.updatedAt : now.toISOString(),

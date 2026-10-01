@@ -1,8 +1,8 @@
-import { normalizeConstructedText, V4_ACTIVITY_TYPES } from './activity_semantics.js';
+import { normalizeConstructedText, V4_ACTIVITY_TYPES, V6_ACTIVITY_TYPES } from './activity_semantics.js';
 
 export const CONTRACT_VERSION = 'learnit.kit.v2';
 export const SUPPORTED_CONTRACT_VERSIONS = Object.freeze([
-  'learnit.kit.v2', 'learnit.kit.v3', 'learnit.kit.v4', 'learnit.kit.v5',
+  'learnit.kit.v2', 'learnit.kit.v3', 'learnit.kit.v4', 'learnit.kit.v5', 'learnit.kit.v6',
 ]);
 
 const CONTRACTS = new Set(SUPPORTED_CONTRACT_VERSIONS);
@@ -22,11 +22,15 @@ const V2_TYPES = new Set(['qcm', 'fill']);
 const V3_TYPES = new Set(['qcm', 'fill', 'constructed']);
 const V4_TYPES = new Set(V4_ACTIVITY_TYPES);
 const V5_TYPES = new Set(V4_ACTIVITY_TYPES);
+const V6_TYPES = new Set(V6_ACTIVITY_TYPES);
+const VALIDATION_SLOT = new Set(['A', 'B']);
+const PRODUCTIVE_RESPONSE_KIND = new Set(['number', 'expression', 'text']);
+const PRODUCTIVE_EVALUATOR_KIND = new Set(['numeric-tolerance', 'canonical-expression-set', 'required-concepts']);
 const NON_WHITESPACE = /\S/;
 const CONTROL_OR_SPACE = /[\x00-\x20\x7f]/;
 const BACKSLASH = /\\/;
 const HTTPS_AUTHORITY = /^https:\/\/([^/?#]+)(?:[/?#]|$)/i;
-const EVALUATED_TYPES = new Set(['qcm', 'fill', 'constructed', 'matching', 'order', 'classify']);
+const EVALUATED_TYPES = new Set(['qcm', 'fill', 'constructed', 'matching', 'order', 'classify', 'productive']);
 
 export class ContractValidationError extends Error {
   constructor(errors) {
@@ -129,6 +133,7 @@ function typeSet(contract) {
   if (contract === 'learnit.kit.v3') return V3_TYPES;
   if (contract === 'learnit.kit.v4') return V4_TYPES;
   if (contract === 'learnit.kit.v5') return V5_TYPES;
+  if (contract === 'learnit.kit.v6') return V6_TYPES;
   return new Set();
 }
 
@@ -285,6 +290,64 @@ function validateItems(values, path, errors, idKey, labelMax, maxItems) {
   uniqueStrings(values.map(value => value?.[idKey]), path, errors);
 }
 
+
+function validateV6ValidationSlot(activity, path, errors) {
+  if (activity.assessmentRole === 'validation') {
+    if (!Array.isArray(activity.objectiveIds) || activity.objectiveIds.length !== 1) {
+      issue(errors, 'v6_validation_objective_cardinality', `${path}.objectiveIds`, 'V6 validation must target exactly one objective');
+    }
+    if (!Object.hasOwn(activity, 'validationSlot')) {
+      issue(errors, 'required', `${path}.validationSlot`, 'V6 validation requires validationSlot A or B');
+    } else {
+      enumValue(activity.validationSlot, VALIDATION_SLOT, `${path}.validationSlot`, errors);
+    }
+  } else if (Object.hasOwn(activity, 'validationSlot')) {
+    issue(errors, 'v6_validation_slot_scope', `${path}.validationSlot`, 'validationSlot is allowed only on V6 validation activities');
+  }
+}
+function validateRational(value, path, errors, { nonNegative = false } = {}) {
+  if (!object(value, path, errors)) return;
+  exactKeys(value, new Set(['numerator','denominator']), new Set(['numerator','denominator']), path, errors);
+  integer(value.numerator, `${path}.numerator`, errors);
+  integer(value.denominator, `${path}.denominator`, errors, 1);
+  if (Number.isInteger(value.numerator) && !Number.isSafeInteger(value.numerator)) issue(errors, 'safe_integer', `${path}.numerator`, 'Rational numerator must be a safe integer');
+  if (Number.isInteger(value.denominator) && !Number.isSafeInteger(value.denominator)) issue(errors, 'safe_integer', `${path}.denominator`, 'Rational denominator must be a safe integer');
+  if (nonNegative && Number.isInteger(value.numerator) && value.numerator < 0) issue(errors, 'minimum', `${path}.numerator`, 'Expected a non-negative numerator');
+}
+function validateProductive(activity, path, errors) {
+  if (array(activity.parts, `${path}.parts`, errors, 1, 12)) {
+    activity.parts.forEach((part,index)=>{
+      const p=`${path}.parts[${index}]`; if(!object(part,p,errors)) return;
+      const allowed=new Set(['partId','label','responseKind','unitPrompt']);
+      exactKeys(part,allowed,new Set(['partId','label','responseKind']),p,errors);
+      uuid(part.partId,`${p}.partId`,errors); string(part.label,`${p}.label`,errors,{min:1,max:500});
+      enumValue(part.responseKind,PRODUCTIVE_RESPONSE_KIND,`${p}.responseKind`,errors);
+      if(Object.hasOwn(part,'unitPrompt')) string(part.unitPrompt,`${p}.unitPrompt`,errors,{min:1,max:120});
+    });
+    uniqueStrings(activity.parts.map(part=>part?.partId),`${path}.parts`,errors);
+  }
+  if (!object(activity.scoring, `${path}.scoring`, errors)) return;
+  exactKeys(activity.scoring,new Set(['aggregation','evaluators']),new Set(['aggregation','evaluators']),`${path}.scoring`,errors);
+  string(activity.scoring.aggregation,`${path}.scoring.aggregation`,errors,{constant:'all'});
+  if(array(activity.scoring.evaluators,`${path}.scoring.evaluators`,errors,1,12)){
+    activity.scoring.evaluators.forEach((e,index)=>{
+      const p=`${path}.scoring.evaluators[${index}]`; if(!object(e,p,errors))return;
+      enumValue(e.kind,PRODUCTIVE_EVALUATOR_KIND,`${p}.kind`,errors);
+      if(e.kind==='numeric-tolerance'){
+        exactKeys(e,new Set(['partId','kind','expected','absoluteTolerance','acceptedUnits']),new Set(['partId','kind','expected','absoluteTolerance']),p,errors);
+        uuid(e.partId,`${p}.partId`,errors); validateRational(e.expected,`${p}.expected`,errors); validateRational(e.absoluteTolerance,`${p}.absoluteTolerance`,errors,{nonNegative:true});
+        if(Object.hasOwn(e,'acceptedUnits')&&array(e.acceptedUnits,`${p}.acceptedUnits`,errors,0,12)){e.acceptedUnits.forEach((v,i)=>string(v,`${p}.acceptedUnits[${i}]`,errors,{min:1,max:40}));uniqueStrings(e.acceptedUnits,`${p}.acceptedUnits`,errors);}
+      } else if(e.kind==='canonical-expression-set'){
+        exactKeys(e,new Set(['partId','kind','acceptedExpressions']),new Set(['partId','kind','acceptedExpressions']),p,errors); uuid(e.partId,`${p}.partId`,errors);
+        if(array(e.acceptedExpressions,`${p}.acceptedExpressions`,errors,1,20)){e.acceptedExpressions.forEach((v,i)=>string(v,`${p}.acceptedExpressions[${i}]`,errors,{min:1,max:1000}));uniqueStrings(e.acceptedExpressions,`${p}.acceptedExpressions`,errors);}
+      } else if(e.kind==='required-concepts'){
+        exactKeys(e,new Set(['partId','kind','requiredConceptGroups']),new Set(['partId','kind','requiredConceptGroups']),p,errors); uuid(e.partId,`${p}.partId`,errors);
+        if(array(e.requiredConceptGroups,`${p}.requiredConceptGroups`,errors,1,12))e.requiredConceptGroups.forEach((group,gi)=>{if(array(group,`${p}.requiredConceptGroups[${gi}]`,errors,1,12)){group.forEach((v,vi)=>string(v,`${p}.requiredConceptGroups[${gi}][${vi}]`,errors,{min:1,max:160}));uniqueStrings(group,`${p}.requiredConceptGroups[${gi}]`,errors);}});
+      }
+    });
+  }
+}
+
 function validateActivity(activity, path, errors, contract) {
   if (!object(activity, path, errors)) return;
   const supported = typeSet(contract);
@@ -294,14 +357,17 @@ function validateActivity(activity, path, errors, contract) {
   }
   const v4 = contract === 'learnit.kit.v4';
   const v5 = contract === 'learnit.kit.v5';
-  const mediaEnabled = v4 || v5;
-  const mediaKey = v5 ? ['media', 'hints', 'references'] : (v4 ? ['media'] : []);
+  const v6 = contract === 'learnit.kit.v6';
+  const mediaEnabled = v4 || v5 || v6;
+  const mediaKey = (v5 || v6) ? ['media', 'hints', 'references'] : (v4 ? ['media'] : []);
+  const validationKey = v6 && EVALUATED_TYPES.has(activity.type) ? ['validationSlot'] : [];
   if (EVALUATED_TYPES.has(activity.type)) validateCommon(activity, path, errors, mediaEnabled, true);
   else validateCommon(activity, path, errors, mediaEnabled, false);
-  if (v5) validateV5Extensions(activity, path, errors);
+  if (v5 || v6) validateV5Extensions(activity, path, errors);
+  if (v6 && EVALUATED_TYPES.has(activity.type)) validateV6ValidationSlot(activity, path, errors);
 
   if (activity.type === 'qcm') {
-    const allowed = new Set([...EVAL_COMMON, ...mediaKey, 'choices', 'correctChoiceId']);
+    const allowed = new Set([...EVAL_COMMON, ...mediaKey, ...validationKey, 'choices', 'correctChoiceId']);
     exactKeys(activity, allowed, new Set([...EVAL_COMMON.filter(k => k !== 'estimatedMinutes'), 'choices', 'correctChoiceId']), path, errors);
     if (array(activity.choices, `${path}.choices`, errors, 2, 12)) {
       activity.choices.forEach((choice, index) => {
@@ -317,7 +383,7 @@ function validateActivity(activity, path, errors, contract) {
     return;
   }
   if (activity.type === 'fill') {
-    const allowed = new Set([...EVAL_COMMON, ...mediaKey, 'segments', 'tokens', 'answers']);
+    const allowed = new Set([...EVAL_COMMON, ...mediaKey, ...validationKey, 'segments', 'tokens', 'answers']);
     exactKeys(activity, allowed, new Set([...EVAL_COMMON.filter(k => k !== 'estimatedMinutes'), 'segments', 'tokens', 'answers']), path, errors);
     if (array(activity.segments, `${path}.segments`, errors, 2, 60)) activity.segments.forEach((segment, index) => {
       const p = `${path}.segments[${index}]`;
@@ -341,9 +407,15 @@ function validateActivity(activity, path, errors, contract) {
     return;
   }
   if (activity.type === 'constructed') {
-    const allowed = new Set([...EVAL_COMMON, ...mediaKey, 'acceptedResponses']);
+    const allowed = new Set([...EVAL_COMMON, ...mediaKey, ...validationKey, 'acceptedResponses']);
     exactKeys(activity, allowed, new Set([...EVAL_COMMON.filter(k => k !== 'estimatedMinutes'), 'acceptedResponses']), path, errors);
     if (array(activity.acceptedResponses, `${path}.acceptedResponses`, errors, 1, 20)) activity.acceptedResponses.forEach((value, index) => string(value, `${path}.acceptedResponses[${index}]`, errors, { min: 1, max: 4000 }));
+    return;
+  }
+  if (activity.type === 'productive') {
+    const allowed = new Set([...EVAL_COMMON, ...mediaKey, ...validationKey, 'parts', 'scoring']);
+    exactKeys(activity, allowed, new Set([...EVAL_COMMON.filter(k => k !== 'estimatedMinutes'), 'parts', 'scoring']), path, errors);
+    validateProductive(activity, path, errors);
     return;
   }
   if (activity.type === 'lesson') {
@@ -366,7 +438,7 @@ function validateActivity(activity, path, errors, contract) {
     return;
   }
   if (activity.type === 'matching') {
-    const allowed = new Set([...EVAL_COMMON, ...mediaKey, 'leftItems', 'rightItems', 'matches']);
+    const allowed = new Set([...EVAL_COMMON, ...mediaKey, ...validationKey, 'leftItems', 'rightItems', 'matches']);
     exactKeys(activity, allowed, new Set([...EVAL_COMMON.filter(k => k !== 'estimatedMinutes'), 'leftItems', 'rightItems', 'matches']), path, errors);
     validateItems(activity.leftItems, `${path}.leftItems`, errors, 'itemId', 600, 12);
     validateItems(activity.rightItems, `${path}.rightItems`, errors, 'itemId', 600, 12);
@@ -378,14 +450,14 @@ function validateActivity(activity, path, errors, contract) {
     return;
   }
   if (activity.type === 'order') {
-    const allowed = new Set([...EVAL_COMMON, ...mediaKey, 'items', 'correctOrder']);
+    const allowed = new Set([...EVAL_COMMON, ...mediaKey, ...validationKey, 'items', 'correctOrder']);
     exactKeys(activity, allowed, new Set([...EVAL_COMMON.filter(k => k !== 'estimatedMinutes'), 'items', 'correctOrder']), path, errors);
     validateItems(activity.items, `${path}.items`, errors, 'itemId', 800, 15);
     if (array(activity.correctOrder, `${path}.correctOrder`, errors, 2, 15)) { activity.correctOrder.forEach((id, index) => uuid(id, `${path}.correctOrder[${index}]`, errors)); uniqueStrings(activity.correctOrder, `${path}.correctOrder`, errors); }
     return;
   }
   if (activity.type === 'classify') {
-    const allowed = new Set([...EVAL_COMMON, ...mediaKey, 'buckets', 'items', 'assignments']);
+    const allowed = new Set([...EVAL_COMMON, ...mediaKey, ...validationKey, 'buckets', 'items', 'assignments']);
     exactKeys(activity, allowed, new Set([...EVAL_COMMON.filter(k => k !== 'estimatedMinutes'), 'buckets', 'items', 'assignments']), path, errors);
     validateItems(activity.buckets, `${path}.buckets`, errors, 'bucketId', 300, 8);
     validateItems(activity.items, `${path}.items`, errors, 'itemId', 600, 30);
@@ -425,7 +497,7 @@ function validateShape(payload, errors) {
     issue(errors, 'unsupported_contract', '$.contract', `Unsupported contract ${String(contract)}`);
     return;
   }
-  const mediaContract = contract === 'learnit.kit.v4' || contract === 'learnit.kit.v5';
+  const mediaContract = contract === 'learnit.kit.v4' || contract === 'learnit.kit.v5' || contract === 'learnit.kit.v6';
   const allowed = new Set([...PACKAGE_BASE, ...(mediaContract ? ['assets'] : [])]);
   const required = new Set(PACKAGE_BASE.filter(k => k !== 'description'));
   exactKeys(payload, allowed, required, '$', errors);
@@ -467,7 +539,7 @@ function semanticValidation(payload, errors) {
       const ap = `${cp}.activities[${ai}]`;
       registerId('activityLineageId', activity.activityLineageId, `${ap}.activityLineageId`); registerRevision(activity.activityRevisionId, activity.activityRevisionDigest, `${ap}.activityRevisionId`); activityByLineage.set(activity.activityLineageId, activity);
       activity.objectiveIds.forEach(id => { if (!objectiveIds.has(id)) issue(errors, 'missing_objective_reference', `${ap}.objectiveIds`, `Unknown objectiveId ${id}`); });
-      if (payload.contract === 'learnit.kit.v4' || payload.contract === 'learnit.kit.v5') (activity.media ?? []).forEach((ref, mi) => { if (!assetById.has(ref.assetId)) issue(errors, 'missing_asset_reference', `${ap}.media[${mi}].assetId`, `Unknown assetId ${ref.assetId}`); });
+      if (payload.contract === 'learnit.kit.v4' || payload.contract === 'learnit.kit.v5' || payload.contract === 'learnit.kit.v6') (activity.media ?? []).forEach((ref, mi) => { if (!assetById.has(ref.assetId)) issue(errors, 'missing_asset_reference', `${ap}.media[${mi}].assetId`, `Unknown assetId ${ref.assetId}`); });
       if (activity.type === 'qcm') {
         activity.choices.forEach((choice, index) => registerId('choiceId', choice.choiceId, `${ap}.choices[${index}].choiceId`)); const ids = new Set(activity.choices.map(choice => choice.choiceId)); if (!ids.has(activity.correctChoiceId)) issue(errors, 'missing_choice_reference', `${ap}.correctChoiceId`, 'correctChoiceId is not declared in choices');
       } else if (activity.type === 'fill') {
@@ -480,6 +552,19 @@ function semanticValidation(payload, errors) {
         const normalized = activity.acceptedResponses.map(value => normalizeConstructedText(value));
         normalized.forEach((value, index) => { if (!value) issue(errors, 'blank_accepted_response', `${ap}.acceptedResponses[${index}]`, 'Accepted response is blank after normalization'); });
         if (new Set(normalized).size !== normalized.length) issue(errors, 'ambiguous_accepted_responses', `${ap}.acceptedResponses`, 'Accepted responses collapse to duplicates after canonical text normalization');
+      } else if (activity.type === 'productive') {
+        const partById = new Map(activity.parts.map(part => [part.partId, part]));
+        const evaluatorIds = new Set();
+        activity.scoring.evaluators.forEach((evaluator, index) => {
+          const p = `${ap}.scoring.evaluators[${index}]`;
+          const part = partById.get(evaluator.partId);
+          if (!part) issue(errors, 'missing_productive_part_reference', `${p}.partId`, 'Unknown productive partId');
+          if (evaluatorIds.has(evaluator.partId)) issue(errors, 'duplicate_productive_evaluator', `${p}.partId`, 'Each productive part must have one evaluator');
+          evaluatorIds.add(evaluator.partId);
+          const expectedKind = evaluator.kind === 'numeric-tolerance' ? 'number' : evaluator.kind === 'canonical-expression-set' ? 'expression' : evaluator.kind === 'required-concepts' ? 'text' : null;
+          if (part && expectedKind !== part.responseKind) issue(errors, 'productive_kind_mismatch', p, `Evaluator ${evaluator.kind} does not match responseKind ${part.responseKind}`);
+        });
+        if (evaluatorIds.size !== partById.size || [...partById.keys()].some(id => !evaluatorIds.has(id))) issue(errors, 'incomplete_productive_evaluators', `${ap}.scoring.evaluators`, 'Every productive part must have exactly one evaluator');
       } else if (activity.type === 'matching') {
         activity.leftItems.forEach((item, index) => registerId('matchingLeftItemId', item.itemId, `${ap}.leftItems[${index}].itemId`)); activity.rightItems.forEach((item, index) => registerId('matchingRightItemId', item.itemId, `${ap}.rightItems[${index}].itemId`)); const left = activity.leftItems.map(item => item.itemId); const right = activity.rightItems.map(item => item.itemId); const leftSet = new Set(left); const rightSet = new Set(right);
         if (leftSet.size !== left.length || rightSet.size !== right.length) issue(errors, 'unique_items', ap, 'Matching item IDs must be unique');

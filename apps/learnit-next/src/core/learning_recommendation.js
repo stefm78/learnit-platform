@@ -17,10 +17,20 @@ const RECOMMENDATION_BY_STATUS = Object.freeze({
   'ready-for-validation': Object.freeze({ priority: 1, action: 'validate', reason: 'ready-for-validation' }),
   training: Object.freeze({ priority: 2, action: 'continue-training', reason: 'training-in-progress' }),
   'not-started': Object.freeze({ priority: 3, action: 'start-training', reason: 'not-started' }),
+  'validation-a-complete': Object.freeze({
+    priority: 1,
+    action: 'validate',
+    reason: 'validation-b-required',
+  }),
   'validated-recently': Object.freeze({
     priority: 4,
     action: 'revisit-later',
     reason: 'validated-recently-not-durable',
+  }),
+  'mastery-evidence-complete': Object.freeze({
+    priority: 5,
+    action: 'revisit-later',
+    reason: 'mastery-evidence-complete',
   }),
 });
 

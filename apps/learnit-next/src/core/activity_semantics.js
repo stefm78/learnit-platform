@@ -14,8 +14,12 @@ export const V4_ACTIVITY_TYPES = Object.freeze([
   ...SCORED_ACTIVITY_TYPES,
   ...NON_SCORED_ACTIVITY_TYPES,
 ]);
+export const V6_ACTIVITY_TYPES = Object.freeze([
+  ...V4_ACTIVITY_TYPES,
+  'productive',
+]);
 
-const SCORED = new Set(SCORED_ACTIVITY_TYPES);
+const SCORED = new Set([...SCORED_ACTIVITY_TYPES, 'productive']);
 const NON_SCORED = new Set(NON_SCORED_ACTIVITY_TYPES);
 
 export function isScoredActivity(activityOrType) {
@@ -212,6 +216,64 @@ function normalizeFlashcard(response) {
   return Object.freeze({ revealed: true });
 }
 
+
+function normalizeProductive(activity, response) {
+  if (!Array.isArray(response?.parts)) throw new ActivityResponseValidationError('Productive response requires parts[]', 'invalid_productive_response');
+  const authored = activity.parts ?? [];
+  if (response.parts.length !== authored.length) throw new ActivityResponseValidationError('Productive response must contain every authored part exactly once', 'incomplete_productive_response');
+  const authoredIds = new Set(authored.map(part => part.partId)), seen = new Set(), byId = new Map();
+  for (const raw of response.parts) {
+    const partId = raw?.partId;
+    if (typeof partId !== 'string' || !authoredIds.has(partId) || seen.has(partId)) throw new ActivityResponseValidationError('Productive response contains an unknown or duplicate partId', 'invalid_productive_part');
+    if (typeof raw.value !== 'string' || !raw.value.trim()) throw new ActivityResponseValidationError('Each productive response part requires non-blank string value', 'blank_productive_part');
+    if (Object.hasOwn(raw, 'unit') && (typeof raw.unit !== 'string' || !raw.unit.trim())) throw new ActivityResponseValidationError('Productive response unit must be non-blank when supplied', 'invalid_productive_unit');
+    seen.add(partId); byId.set(partId, Object.freeze({ partId, value: raw.value.normalize('NFC').trim(), ...(Object.hasOwn(raw,'unit') ? {unit:raw.unit.normalize('NFC').trim()} : {}) }));
+  }
+  return Object.freeze({parts:Object.freeze(authored.map(part=>byId.get(part.partId)))});
+}
+function expressionKey(value){return String(value??'').normalize('NFC').replace(/[−–—]/gu,'-').replace(/\s+/gu,'');}
+function conceptKey(value){return String(value??'').normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim().replace(/\s+/gu,' ');}
+function decimalRational(value){
+  const raw=String(value??'').trim().replace(',','.'),m=/^([+-]?)(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(raw);
+  if(!m)throw new ActivityResponseValidationError('Numeric productive part must be a finite decimal number','invalid_productive_number');
+  const sign=m[1]==='-'?-1n:1n,f=m[3]??'',exp=Number.parseInt(m[4]??'0',10);
+  if(!Number.isInteger(exp)||Math.abs(exp)>18)throw new ActivityResponseValidationError('Numeric exponent is outside the bounded deterministic range','invalid_productive_number');
+  let numerator=BigInt(m[2]+f)*sign,denominator=10n**BigInt(f.length);
+  if(exp>=0)numerator*=10n**BigInt(exp);else denominator*=10n**BigInt(-exp);
+  return {numerator,denominator};
+}
+function authoredRational(value,label){
+  if(!value||!Number.isSafeInteger(value.numerator)||!Number.isSafeInteger(value.denominator)||value.denominator<=0)throw new ActivityResponseValidationError(`${label} must use safe integer rational components with positive denominator`,'invalid_productive_evaluator');
+  return {numerator:BigInt(value.numerator),denominator:BigInt(value.denominator)};
+}
+function withinAbsoluteTolerance(actual,expected,tolerance){
+  const diff=actual.numerator*expected.denominator-expected.numerator*actual.denominator,absDiff=diff<0n?-diff:diff;
+  return absDiff*tolerance.denominator<=tolerance.numerator*actual.denominator*expected.denominator;
+}
+function evaluateProductivePart(part,evaluator){
+  if(evaluator.kind==='numeric-tolerance'){
+    const actual=decimalRational(part.value),expected=authoredRational(evaluator.expected,'expected'),tolerance=authoredRational(evaluator.absoluteTolerance,'absoluteTolerance');
+    if(tolerance.numerator<0n)throw new ActivityResponseValidationError('absoluteTolerance cannot be negative','invalid_productive_evaluator');
+    const unit=String(part.unit??'').normalize('NFC').trim().toLowerCase(),accepted=(evaluator.acceptedUnits??[]).map(v=>String(v).normalize('NFC').trim().toLowerCase());
+    return (accepted.length===0?unit==='':accepted.includes(unit))&&withinAbsoluteTolerance(actual,expected,tolerance);
+  }
+  if(evaluator.kind==='canonical-expression-set'){const actual=expressionKey(part.value);return actual.length>0&&(evaluator.acceptedExpressions??[]).map(expressionKey).includes(actual);}
+  if(evaluator.kind==='required-concepts'){
+    const actual=` ${conceptKey(part.value)} `; if(!actual.trim())return false;
+    return (evaluator.requiredConceptGroups??[]).every(group=>Array.isArray(group)&&group.some(alias=>{const key=conceptKey(alias);return key.length>0&&actual.includes(` ${key} `);}));
+  }
+  throw new ActivityResponseValidationError(`Unsupported productive evaluator ${String(evaluator.kind)}`,'unsupported_productive_evaluator');
+}
+function evaluateProductive(activity,response){
+  const normalized=normalizeProductive(activity,response);
+  if(activity.scoring?.aggregation!=='all'||!Array.isArray(activity.scoring?.evaluators))throw new ActivityResponseValidationError('Productive scoring requires bounded all-parts aggregation','invalid_productive_evaluator');
+  const evaluators=new Map();
+  for(const evaluator of activity.scoring.evaluators){if(!evaluator||typeof evaluator.partId!=='string'||evaluators.has(evaluator.partId))throw new ActivityResponseValidationError('Productive evaluator partId is invalid or duplicated','invalid_productive_evaluator');evaluators.set(evaluator.partId,evaluator);}
+  const partResults=normalized.parts.map(part=>{const evaluator=evaluators.get(part.partId);if(!evaluator)throw new ActivityResponseValidationError('Productive part has no evaluator','invalid_productive_evaluator');return Object.freeze({partId:part.partId,correct:evaluateProductivePart(part,evaluator)});});
+  if(partResults.length!==evaluators.size)throw new ActivityResponseValidationError('Productive evaluator set contains orphan entries','invalid_productive_evaluator');
+  return Object.freeze({scored:true,normalized,partResults:Object.freeze(partResults),correct:partResults.every(result=>result.correct)});
+}
+
 function orderedPairsEqual(left, right, leftKey, rightKey) {
   if (left.length !== right.length) return false;
   const expected = new Map(right.map(item => [item[leftKey], item[rightKey]]));
@@ -235,6 +297,8 @@ export function evaluateActivityResponse(activity, response) {
       const accepted = (activity.acceptedResponses ?? []).map(normalizeConstructedText);
       return Object.freeze({ scored: true, normalized, correct: accepted.includes(normalized.text) });
     }
+    case 'productive':
+      return evaluateProductive(activity, response);
     case 'matching': {
       const normalized = normalizeMatching(activity, response);
       return Object.freeze({
