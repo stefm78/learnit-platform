@@ -310,6 +310,8 @@ function validateRational(value, path, errors, { nonNegative = false } = {}) {
   exactKeys(value, new Set(['numerator','denominator']), new Set(['numerator','denominator']), path, errors);
   integer(value.numerator, `${path}.numerator`, errors);
   integer(value.denominator, `${path}.denominator`, errors, 1);
+  if (Number.isInteger(value.numerator) && !Number.isSafeInteger(value.numerator)) issue(errors, 'safe_integer', `${path}.numerator`, 'Rational numerator must be a safe integer');
+  if (Number.isInteger(value.denominator) && !Number.isSafeInteger(value.denominator)) issue(errors, 'safe_integer', `${path}.denominator`, 'Rational denominator must be a safe integer');
   if (nonNegative && Number.isInteger(value.numerator) && value.numerator < 0) issue(errors, 'minimum', `${path}.numerator`, 'Expected a non-negative numerator');
 }
 function validateProductive(activity, path, errors) {
