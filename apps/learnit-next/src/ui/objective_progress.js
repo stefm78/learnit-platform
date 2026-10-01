@@ -21,8 +21,18 @@ const STATUS_PRESENTATION = Object.freeze({
   }),
   'validated-recently': Object.freeze({
     label: 'Acquis récemment',
-    description: 'Une activité de validation a été réussie récemment.',
+    description: 'Une activité de validation a été réussie récemment ; ce statut historique ne constitue pas une preuve A+B complète.',
     className: 'objective-progress__item--validated-recently',
+  }),
+  'validation-a-complete': Object.freeze({
+    label: 'Validation A réussie',
+    description: 'Une première preuve indépendante est acquise ; une seconde validation B reste nécessaire pour compléter la preuve de maîtrise.',
+    className: 'objective-progress__item--validation-a-complete',
+  }),
+  'mastery-evidence-complete': Object.freeze({
+    label: 'Maîtrise A+B établie',
+    description: 'Deux validations indépendantes A et B ont été réussies pour cet objectif.',
+    className: 'objective-progress__item--mastery-evidence-complete',
   }),
 });
 
@@ -133,6 +143,11 @@ function normalizeObjective(objective) {
     validationAttempts,
     latestValidationCorrect,
     status: objective.status,
+    ...(Object.hasOwn(objective, 'validationAComplete') ? {
+      validationAComplete: typeof objective.validationAComplete === 'boolean' ? objective.validationAComplete : (()=>{throw new TypeError('validationAComplete doit être un booléen.');})(),
+      validationBComplete: typeof objective.validationBComplete === 'boolean' ? objective.validationBComplete : (()=>{throw new TypeError('validationBComplete doit être un booléen.');})(),
+      masteryEvidenceComplete: typeof objective.masteryEvidenceComplete === 'boolean' ? objective.masteryEvidenceComplete : (()=>{throw new TypeError('masteryEvidenceComplete doit être un booléen.');})(),
+    } : {}),
   };
 }
 
@@ -186,6 +201,11 @@ export function renderObjectiveProgressItem(objective, options = {}) {
       'Dernière validation',
       resultLabel(data.validationAttempts, data.latestValidationCorrect, 'Réussie'),
     ),
+    ...(Object.hasOwn(data, 'validationAComplete') ? [
+      ...definitionPair(documentRef, 'Validation A', data.validationAComplete ? 'Réussie' : 'À obtenir'),
+      ...definitionPair(documentRef, 'Validation B', data.validationBComplete ? 'Réussie' : 'À obtenir'),
+      ...definitionPair(documentRef, 'Preuve de maîtrise', data.masteryEvidenceComplete ? 'Complète' : 'Incomplète'),
+    ] : []),
   ]);
   return element(documentRef, 'article', {
     id: itemId,
@@ -329,6 +349,8 @@ const R15_VISUAL_LEVEL = Object.freeze({
   'review-needed': '46%',
   'ready-for-validation': '82%',
   'validated-recently': '100%',
+  'validation-a-complete': '90%',
+  'mastery-evidence-complete': '100%',
 });
 const R15_STATE_MARK = Object.freeze({
   'not-started': null,
@@ -336,6 +358,8 @@ const R15_STATE_MARK = Object.freeze({
   'review-needed': '↺',
   'ready-for-validation': '◇',
   'validated-recently': '✓',
+  'validation-a-complete': 'A',
+  'mastery-evidence-complete': '✓',
 });
 
 function renderR15ObjectiveProgress(data, options) {
@@ -367,7 +391,8 @@ function renderR15ObjectiveProgress(data, options) {
     ? optionalText(data.recommendation?.objectiveId, 'recommendation.objectiveId') : null;
   const priority = requestedPriority && objectives.some(item => item.objectiveId === requestedPriority)
     ? requestedPriority : null;
-  const allAcquired = objectives.length > 0 && objectives.every(item => item.status === 'validated-recently');
+  const allAcquired = objectives.length > 0 && objectives.every(item =>
+    item.status === 'validated-recently' || item.status === 'mastery-evidence-complete');
 
   const detailId = `${idPrefix}-r15-selected-objective-detail`;
   const detailState = element(documentRef, 'strong', {className: 'objective-progress-r15__detail-state'});
