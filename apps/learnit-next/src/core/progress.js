@@ -106,6 +106,9 @@ function requireAuthoredCourse(course) {
     if (!isNonScoredActivity(activity) && (typeof activity.assessmentRole !== 'string' || activity.assessmentRole.trim() === '')) {
       throw new TypeError(`Learning Loop V2 activity ${activityRevisionId} requires assessmentRole`);
     }
+    if (activity.assessmentRole === 'validation' && (activity.validationSlot === 'A' || activity.validationSlot === 'B') && activity.objectiveIds.length !== 1) {
+      throw new TypeError(`V6 validation activity ${activityRevisionId} must target exactly one objective`);
+    }
     const normalized = { activity, activityRevisionId, authorIndex };
     activityByRevisionId.set(activityRevisionId, normalized); activities.push(normalized);
   });
