@@ -1,1 +1,309 @@
-{"schemaVersion":1,"repository":"stefm78/learnit-platform","stateId":"GOV-STATE-2026-10-06-PASSAGE-CLOSED-USABLE-BASELINE","effectiveFromCommit":"987efea9119bf078a162c64c840668c58f124006","reviewedBaselineCommit":"987efea9119bf078a162c64c840668c58f124006","accountableOwner":"stefm78","operatingModel":"human-accountable-ai-operational","currentPhase":{"id":"passage-closed-usable-baseline","status":"closed-pass","description":"PASSAGE is closed PASS for the real source-to-learner vertical slice. The exact JOB29 learner result and exact DDHC_1789 Factory-qualified kit passed import, library, session start, all 45 activities, interruption/resume, stable completion and the offline critical path. This PASSAGE usable baseline is distinct from the historical promotedBaseline and does not imply merge or promotion of the JOB29 product branch."},"currentMain":{"commit":"987efea9119bf078a162c64c840668c58f124006","sourcePullRequest":482,"description":"Reviewed main baseline immediately before the bounded PASSAGE usable-baseline rebind and closeout. Product/runtime/Factory source remains unchanged by the closeout; the closeout mutates only this governance state and GOV-WP-041."},"developmentBaseline":{"status":"closed-pass","workPackage":"GOV-WP-041","candidate":"PASSAGE usable baseline","sourceCommit":"987efea9119bf078a162c64c840668c58f124006","note":"PASSAGE closure is based on exact owner-selected JOB29 result e04cf62963faae83e073cde9cffd9d33ae42dc9c plus exact DDHC_1789 R4 end-to-end evidence. No product branch is merged or promoted by this binding-only closeout."},"promotedBaseline":{"status":"promoted","workPackage":"ATLAS-WP-007","candidate":"Project Atlas M2.2 transfer + learner-facing clarity","sourceCommit":"4eebdef9fb0014c2e4a965e0c1e78d127dd712f4","acceptedProductHead":"abaa0af0dcbd5338be2221587c1e871c4f939c52","acceptedQaHead":"0e529f8b4f684a7c9aa900742efe94b2a012abc0","artifactBytes":366412,"artifactSha256":"4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7","promotedAt":"2026-08-29","humanValidation":"PASS M2.2 — GO PROMOTION","promotionAuthorityIssue":208,"pagesDeploymentRun":33269665324,"pagesUrl":"https://stefm78.github.io/learnit-platform/","note":"Learner runtime baseline remains M2.2 unchanged by M3 authoring. M3.0/M3.1 authoring promotion is recorded separately under acceptedControls."},"passageBaseline":{"status":"accepted-usable-baseline","workPackage":"GOV-WP-041","productResultSha":"e04cf62963faae83e073cde9cffd9d33ae42dc9c","artifactBytes":583764,"artifactSha256":"7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553","qualificationRun":36565886994,"qualificationArtifactId":11031633741,"fixture":{"courseKey":"DDHC_1789","kitSha256":"bfc0114bf8892dd2bbb92493fffd7d782f68deb153b9500b64154a1f33c44574","activities":45,"qcm":27,"fill":18},"closureEvidence":{"learnitJob":"PASSAGE_BASELINE_REBIND_CLOSEOUT_R1","localE2EResultSha256":"6c5eb44623568b57ec381f18a034abafb4b49b0435be668fe0b43f0c744366d4","networkEventsSha256":"3b1db3093990c38780eb08a74d3436d35d89f159350e88c32b37ca37cc9f5293","completionScreenshotSha256":"cda609120700f09c6746f5fc2c58e86c71c368f4aa78605b26ed66d16bb75d4b","allBoundariesPass":true,"offlineCriticalPathPass":true},"semantics":{"historicalPromotedBaselineUnchanged":true,"job29MergeOrPromotionImplied":false,"globalFactoryProgramReopened":false},"next":"STOP_AND_USE_FACTORY_WITH_REAL_KITS"},"acceptedControls":{"stageDOperatingModel":{"workPackage":"ARC-WP-019","status":"accepted-with-conditions","policy":"disjoint development, independent QA, non-repairing integration and Governor decisions at contract, candidate and promotion boundaries"},"learningLoopV2":{"workPackage":"PROG-WP-001","status":"promoted","mergeCommit":"06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35","artifactSha256":"9780bf3763864fbd42804a7dee129ae16e999e7971c4fce9a0a6a240d52b20df","desktopHumanGate":"PASS","androidHumanGate":"PASS"},"projectAtlasM1Bootstrap":{"workPackage":"ATLAS-WP-001","status":"accepted","mergeCommit":"58e39e8917006058fdf177a5daa37535f5e2c78d","sourcePullRequest":131},"projectAtlasM2":{"workPackage":"ATLAS-WP-003","status":"promoted","mergeCommit":"dd0c191179f968d35742cb58f7d6bb9ccb53a852","acceptedProductHead":"ce7cf459902281c44557ae017f92c7667e0393df","acceptedQaHead":"4b0d80dd3b576a2300a4d1516481769b198d9637","artifactBytes":352237,"artifactSha256":"7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091","humanGate":"PASS M2 — GO PROMOTION"},"projectAtlasM2Pages":{"workPackage":"ATLAS-WP-004","status":"accepted","mergeCommit":"a76dfa860c8c042a3ec290e21a989b9b83d8175f","deploymentRun":33090509949,"deploymentUrl":"https://stefm78.github.io/learnit-platform/","artifactSha256":"7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091"},"projectAtlasM2_2Transfer":{"workPackage":"ATLAS-WP-005","status":"accepted","acceptedInitialProductHead":"8e152ed2d3980b78ea1612cb9068c24e6828d15b","acceptedInitialQaHead":"4b3a5960f54c1f2855cebe417f989ba4abfaa5f7","finalPromotedProductHead":"abaa0af0dcbd5338be2221587c1e871c4f939c52"},"projectAtlasM2_2Clarity":{"workPackage":"ATLAS-WP-006","status":"accepted","finalProductHead":"abaa0af0dcbd5338be2221587c1e871c4f939c52","finalQaHead":"0e529f8b4f684a7c9aa900742efe94b2a012abc0","artifactBytes":366412,"artifactSha256":"4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7","humanGate":"PASS M2.2 — GO PROMOTION"},"projectAtlasM2_2Pages":{"workPackage":"ATLAS-WP-007","status":"accepted","mergeCommit":"790af51f251292a7600f2b95a0e7f8e7ad486350","deploymentRun":33269665324,"deploymentJob":99145768574,"deploymentUrl":"https://stefm78.github.io/learnit-platform/","artifactSha256":"4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"},"projectAtlasM3_0Design":{"workPackage":"ATLAS-WP-008","status":"accepted","authorityIssue":223,"designHead":"f75bbebe580aba56df389a9851b4c55016d0b231","designMerge":"eb38312bb22ac854b5d57ddab98e2eb9c85a3ae5","closeoutMerge":"12ed301344806d21f61972d69a9b12abcedbc0b7","verdict":"PASS_M3_0_AUTHORING_FOUNDATION_DESIGN_TO_IMPLEMENTATION_GATE"},"projectAtlasM3_0AuthoringFoundation":{"workPackage":"ATLAS-WP-009","status":"promoted","authorityIssue":232,"frozenProductHead":"a1b9259955ce748cd7e47531a470cd12b7dc0436","acceptedQaHead":"c6e53437600c76fe58890d8658f5827ad03a3484","promotionMerge":"cdd232f163f5c6ae86e54fbe145b3cda1d6b4803","humanGate":"PASS"},"projectAtlasM3_0Pages":{"workPackage":"ATLAS-WP-010","status":"promoted","authorityIssue":242,"frozenProductHead":"e3db34b2da3fc270451a6f63b6229c16e8e5113e","acceptedQaHead":"9694757789b9f9b17894b2f657c62ccc38796208","promotionMerge":"936e574c7e6306d645c6b7eba12881556eaa0e90","deploymentUrl":"https://stefm78.github.io/learnit-platform/authoring/"},"projectAtlasM3_1PedagogicalQuality":{"workPackage":"ATLAS-WP-012","status":"promoted","authorityIssue":261,"frozenProductHead":"6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2","productRun":33327797651,"acceptedQaHead":"6ff592af68e6cc95bd479911a09388293c5528f5","qaRun":33332143078,"promotionHead":"cad5cc98d50cfe937629a1cc120a64c032b474a4","promotionRun":33333721017,"promotionMerge":"be3d5b2635836e8ce0d9a6ecf42d573efc9ef749","humanGate":"PASS_M3_1_AI_AUTHORING_WITH_NON_BLOCKING_HUMAN_UX_DEBT","humanUxDebtIssue":272},"projectAtlasM3_1StablePages":{"workPackage":"OPS-WP-016","status":"promoted","authorityIssue":278,"mergeCommit":"601cade1376e6f87e71351fe3f201833a9356697","deploymentRun":33334141865,"deploymentUrl":"https://stefm78.github.io/learnit-platform/authoring/","learnerArtifactBytes":366412,"learnerArtifactSha256":"4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"},"projectAtlasM3_2Design":{"workPackage":"ATLAS-WP-013","status":"accepted","authorityIssue":282,"designHead":"39cdc783f1f679fee1882b34d2e087d40835e8d8","designMerge":"0ea71eece35d7f631982c2042fcffba008f05284","verdict":"PASS_M3_2_AI_KIT_FACTORY_DESIGN_TO_IMPLEMENTATION_GATE","sourceToDraftDecision":"rejected-for-m3.2","implementationGate":"ATLAS-WP-014"},"projectAtlasM3_2Factory":{"workPackage":"ATLAS-WP-014","status":"promoted","authorityIssue":286,"promotionMerge":"39775e83d029f780bf0fa21783ea597ab1abc6b5","independentQaWorkPackage":"QA-WP-022","sourceToDraftDecision":"rejected-for-m3.2","finalFactoryVerdict":"PASS_AI_KIT_FACTORY_V1"},"projectAtlasM3_2_5FactoryReliability":{"workPackage":"ATLAS-WP-015","status":"promoted-and-qualified","authorityIssue":297,"reliabilityPromotionMerge":"524cfc8b35654d7d54d3222a462fe582f4706a89","sourceAdmissionMerge":"657a9840eb9499047a48dc97d7cfc1001acad309","sourceSnapshotMerge":"ae415c8547002c9ca335eff6b79368c70ad3b031","sourceIntegrityMerge":"c8d196b4ba4fcd161e2fb5a99f66268390253e69","finalSourceFreezeMerge":"4cd6834e23a4bb93453d3597f80d088a3f2e54c0","benchmarkHead":"d30a0dfbf1fa5900af51ca5e628c32ed5587c4fe","benchmarkRun":33602339398,"benchmarkArtifact":9835659825,"benchmarkVerdict":"PASS_FACTORY_BENCHMARK_V1","metrics":{"runs":8,"pass":6,"hold":2,"humanEscalations":0,"humanEscalationRate":0,"domainsCovered":8},"benchmarkCorpusPolicy":"evidence-not-repository-corpus"},"projectAtlasM3_3PortableReviewHandoff":{"workPackage":"ATLAS-WP-019","status":"promoted","authorityIssue":310,"designIssue":308,"designMerge":"e00c25cbf63e0188c53f417ca4091033afcff2a5","frozenProductHead":"d4fe01f94ce38b2cd4d884930555f2bce971f561","productRun":33612392221,"independentQaWorkPackage":"QA-WP-023","acceptedQaHead":"f0be01c859f62d82104fd34744e09ef8d2458792","qaRun":33614481867,"qaVerdict":"PASS_QA_WP_023_EXACT_HEAD_CONTRADICTORY_QA","freshQualificationRun":33617237648,"freshQualificationArtifact":9841432010,"freshPassFactoryRun":"sha256:348a48f520ac148e497667c512fd31637aff11fb72bef616d73e25d15ebbfcb9","freshHoldFactoryRun":"sha256:2136d4db43678a6e39f47b193bf93a6f405fff6f9fc42bff2ede6053ea3ea2f3","promotionMerge":"c102ca81f3b144bea1140860ef633a0d01987d59","providerIntegration":"none","learnerRuntimeChange":"none"},"projectAtlasM3_4QualifiedReleaseSet":{"workPackage":"ATLAS-WP-021","status":"promoted","authorityIssue":322,"designIssue":320,"designMerge":"baa9eea87d58a960f834e1712b4bf64d65b2ab3d","frozenProductHead":"870d69800dcb07fcfff9f1d232dd143c8eaa6486","independentQaWorkPackage":"QA-WP-024","acceptedQaHead":"9c0e20ef176ee03532543d009f22979c95d0d748","qaRun":33668446539,"qaVerdict":"PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA","promotionMerge":"b8337c785cbec995de5891080776c4c44dd99179","postMergeCiWorkPackage":"CI-WP-013","postMergeCiMerge":"f4bbc91c5d480e2996faa8a592c3c18fd83d8906","publishing":"deferred","assetContract":"none","learnerRuntimeChange":"none"}},"authorizedWork":["Use the Factory with real qualified kits against the exact PASSAGE usable baseline; create new bounded work only for material findings demonstrated by real use.","Existing unmerged governed pilot/V5/V6 work remains governed solely by its own exact lane authorities; PASSAGE closeout does not merge, promote, reinterpret or supersede those candidates.","Repository maintenance and regression fixes may proceed only under new bounded authority that preserves promoted learner runtime, Factory contracts, qualified release-set integrity and reviewer independence."],"heldWork":["Remote publishing, signing/authentication, registry/catalog, asset/media contracts and provider/model orchestration remain HOLD without separate evidence-backed authority.","Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current promoted evidence and require a new evidence-backed decision if proposed.","Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.","Gate 3 repository-write capability remains HOLD unless separately authorized.","Gate 4 parallel runtime remains HOLD unless separately authorized.","M4 Learn-it Everywhere, backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace remain HOLD.","Teacher, cohort and institutional features remain HOLD before explicit later-milestone authority."],"prohibitedWork":["runtime LLM, remote AI API, embedded secret or network-required learning behavior without explicit future authority","direct write to main outside the repository's enforced governed pull-request process","silent product repair by an integration or QA lane in a product-owner file","destructive migration or reuse of protected RC718 storage","claiming certification, durable mastery or retention beyond observed evidence","publishing an artifact different from the exact artifact tested and promoted","embedding M3 authoring or LLM assistance code into the learner runtime artifact"],"activeRisks":[{"id":"ATLAS-RISK-M3-1-HUMAN-CONTEXT-001","severity":"moderate","statement":"Human review of AI-authored kits lacks a sequence-level graphical/contextual overview; tracked as non-blocking debt #272.","closureGate":"Close or supersede issue #272 only after a separately authorized human-review workflow provides sequence-level context and passes its own evidence gate."}],"activeExceptions":[],"nextMandatoryGate":{"id":"NONE_PASSAGE_CLOSED","condition":"PASSAGE is CLOSED_PASS. STOP/USE the Factory with real kits. Reopen only on a material finding or new separately authorized objective."},"review":{"lastReviewedAt":"2026-10-06","lastReviewedBy":"Accountable owner via PASSAGE_BASELINE_REBIND_CLOSEOUT_R1","decision":"PASS_PASSAGE_USABLE_BASELINE_CLOSED","nextReviewTrigger":"material finding from real-kit use; regression; or a separately authorized objective that materially changes the current frame"}}
+{
+  "schemaVersion": 1,
+  "repository": "stefm78/learnit-platform",
+  "stateId": "GOV-STATE-2026-10-06-PASSAGE-CLOSED-USABLE-BASELINE",
+  "effectiveFromCommit": "987efea9119bf078a162c64c840668c58f124006",
+  "reviewedBaselineCommit": "987efea9119bf078a162c64c840668c58f124006",
+  "accountableOwner": "stefm78",
+  "operatingModel": "human-accountable-ai-operational",
+  "currentPhase": {
+    "id": "passage-closed-usable-baseline",
+    "status": "closed-pass",
+    "description": "PASSAGE is closed PASS for the real source-to-learner vertical slice. The exact JOB29 learner result and exact DDHC_1789 Factory-qualified kit passed import, library, session start, all 45 activities, interruption/resume, stable completion and the offline critical path. This PASSAGE usable baseline is distinct from the historical promotedBaseline and does not imply merge or promotion of the JOB29 product branch."
+  },
+  "currentMain": {
+    "commit": "987efea9119bf078a162c64c840668c58f124006",
+    "sourcePullRequest": 482,
+    "description": "Reviewed main baseline immediately before the bounded PASSAGE usable-baseline rebind and closeout. Product/runtime/Factory source remains unchanged by the closeout; the closeout mutates only this governance state and GOV-WP-041."
+  },
+  "developmentBaseline": {
+    "status": "closed-pass",
+    "workPackage": "GOV-WP-041",
+    "candidate": "PASSAGE usable baseline",
+    "sourceCommit": "987efea9119bf078a162c64c840668c58f124006",
+    "note": "PASSAGE closure is based on exact owner-selected JOB29 result e04cf62963faae83e073cde9cffd9d33ae42dc9c plus exact DDHC_1789 R4 end-to-end evidence. No product branch is merged or promoted by this binding-only closeout."
+  },
+  "promotedBaseline": {
+    "status": "promoted",
+    "workPackage": "ATLAS-WP-007",
+    "candidate": "Project Atlas M2.2 transfer + learner-facing clarity",
+    "sourceCommit": "4eebdef9fb0014c2e4a965e0c1e78d127dd712f4",
+    "acceptedProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+    "acceptedQaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+    "artifactBytes": 366412,
+    "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+    "promotedAt": "2026-08-29",
+    "humanValidation": "PASS M2.2 — GO PROMOTION",
+    "promotionAuthorityIssue": 208,
+    "pagesDeploymentRun": 33269665324,
+    "pagesUrl": "https://stefm78.github.io/learnit-platform/",
+    "note": "Learner runtime baseline remains M2.2 unchanged by M3 authoring. M3.0/M3.1 authoring promotion is recorded separately under acceptedControls."
+  },
+  "passageBaseline": {
+    "status": "accepted-usable-baseline",
+    "workPackage": "GOV-WP-041",
+    "productResultSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+    "artifactBytes": 583764,
+    "artifactSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553",
+    "qualificationRun": 36565886994,
+    "qualificationArtifactId": 11031633741,
+    "fixture": {
+      "courseKey": "DDHC_1789",
+      "kitSha256": "bfc0114bf8892dd2bbb92493fffd7d782f68deb153b9500b64154a1f33c44574",
+      "activities": 45,
+      "qcm": 27,
+      "fill": 18
+    },
+    "closureEvidence": {
+      "learnitJob": "PASSAGE_BASELINE_REBIND_CLOSEOUT_R1",
+      "localE2EResultSha256": "6c5eb44623568b57ec381f18a034abafb4b49b0435be668fe0b43f0c744366d4",
+      "networkEventsSha256": "3b1db3093990c38780eb08a74d3436d35d89f159350e88c32b37ca37cc9f5293",
+      "completionScreenshotSha256": "cda609120700f09c6746f5fc2c58e86c71c368f4aa78605b26ed66d16bb75d4b",
+      "allBoundariesPass": true,
+      "offlineCriticalPathPass": true
+    },
+    "semantics": {
+      "historicalPromotedBaselineUnchanged": true,
+      "job29MergeOrPromotionImplied": false,
+      "globalFactoryProgramReopened": false
+    },
+    "next": "STOP_AND_USE_FACTORY_WITH_REAL_KITS"
+  },
+  "acceptedControls": {
+    "stageDOperatingModel": {
+      "workPackage": "ARC-WP-019",
+      "status": "accepted-with-conditions",
+      "policy": "disjoint development, independent QA, non-repairing integration and Governor decisions at contract, candidate and promotion boundaries"
+    },
+    "learningLoopV2": {
+      "workPackage": "PROG-WP-001",
+      "status": "promoted",
+      "mergeCommit": "06c06d5ea0cadcb3cb2084769ff5ada4d0fe0a35",
+      "artifactSha256": "9780bf3763864fbd42804a7dee129ae16e999e7971c4fce9a0a6a240d52b20df",
+      "desktopHumanGate": "PASS",
+      "androidHumanGate": "PASS"
+    },
+    "projectAtlasM1Bootstrap": {
+      "workPackage": "ATLAS-WP-001",
+      "status": "accepted",
+      "mergeCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
+      "sourcePullRequest": 131
+    },
+    "projectAtlasM2": {
+      "workPackage": "ATLAS-WP-003",
+      "status": "promoted",
+      "mergeCommit": "dd0c191179f968d35742cb58f7d6bb9ccb53a852",
+      "acceptedProductHead": "ce7cf459902281c44557ae017f92c7667e0393df",
+      "acceptedQaHead": "4b0d80dd3b576a2300a4d1516481769b198d9637",
+      "artifactBytes": 352237,
+      "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091",
+      "humanGate": "PASS M2 — GO PROMOTION"
+    },
+    "projectAtlasM2Pages": {
+      "workPackage": "ATLAS-WP-004",
+      "status": "accepted",
+      "mergeCommit": "a76dfa860c8c042a3ec290e21a989b9b83d8175f",
+      "deploymentRun": 33090509949,
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/",
+      "artifactSha256": "7c242614c394ca1a0eb739c0f02c672c6afe280a128056a8f75b96266727a091"
+    },
+    "projectAtlasM2_2Transfer": {
+      "workPackage": "ATLAS-WP-005",
+      "status": "accepted",
+      "acceptedInitialProductHead": "8e152ed2d3980b78ea1612cb9068c24e6828d15b",
+      "acceptedInitialQaHead": "4b3a5960f54c1f2855cebe417f989ba4abfaa5f7",
+      "finalPromotedProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52"
+    },
+    "projectAtlasM2_2Clarity": {
+      "workPackage": "ATLAS-WP-006",
+      "status": "accepted",
+      "finalProductHead": "abaa0af0dcbd5338be2221587c1e871c4f939c52",
+      "finalQaHead": "0e529f8b4f684a7c9aa900742efe94b2a012abc0",
+      "artifactBytes": 366412,
+      "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7",
+      "humanGate": "PASS M2.2 — GO PROMOTION"
+    },
+    "projectAtlasM2_2Pages": {
+      "workPackage": "ATLAS-WP-007",
+      "status": "accepted",
+      "mergeCommit": "790af51f251292a7600f2b95a0e7f8e7ad486350",
+      "deploymentRun": 33269665324,
+      "deploymentJob": 99145768574,
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/",
+      "artifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+    },
+    "projectAtlasM3_0Design": {
+      "workPackage": "ATLAS-WP-008",
+      "status": "accepted",
+      "authorityIssue": 223,
+      "designHead": "f75bbebe580aba56df389a9851b4c55016d0b231",
+      "designMerge": "eb38312bb22ac854b5d57ddab98e2eb9c85a3ae5",
+      "closeoutMerge": "12ed301344806d21f61972d69a9b12abcedbc0b7",
+      "verdict": "PASS_M3_0_AUTHORING_FOUNDATION_DESIGN_TO_IMPLEMENTATION_GATE"
+    },
+    "projectAtlasM3_0AuthoringFoundation": {
+      "workPackage": "ATLAS-WP-009",
+      "status": "promoted",
+      "authorityIssue": 232,
+      "frozenProductHead": "a1b9259955ce748cd7e47531a470cd12b7dc0436",
+      "acceptedQaHead": "c6e53437600c76fe58890d8658f5827ad03a3484",
+      "promotionMerge": "cdd232f163f5c6ae86e54fbe145b3cda1d6b4803",
+      "humanGate": "PASS"
+    },
+    "projectAtlasM3_0Pages": {
+      "workPackage": "ATLAS-WP-010",
+      "status": "promoted",
+      "authorityIssue": 242,
+      "frozenProductHead": "e3db34b2da3fc270451a6f63b6229c16e8e5113e",
+      "acceptedQaHead": "9694757789b9f9b17894b2f657c62ccc38796208",
+      "promotionMerge": "936e574c7e6306d645c6b7eba12881556eaa0e90",
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/authoring/"
+    },
+    "projectAtlasM3_1PedagogicalQuality": {
+      "workPackage": "ATLAS-WP-012",
+      "status": "promoted",
+      "authorityIssue": 261,
+      "frozenProductHead": "6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2",
+      "productRun": 33327797651,
+      "acceptedQaHead": "6ff592af68e6cc95bd479911a09388293c5528f5",
+      "qaRun": 33332143078,
+      "promotionHead": "cad5cc98d50cfe937629a1cc120a64c032b474a4",
+      "promotionRun": 33333721017,
+      "promotionMerge": "be3d5b2635836e8ce0d9a6ecf42d573efc9ef749",
+      "humanGate": "PASS_M3_1_AI_AUTHORING_WITH_NON_BLOCKING_HUMAN_UX_DEBT",
+      "humanUxDebtIssue": 272
+    },
+    "projectAtlasM3_1StablePages": {
+      "workPackage": "OPS-WP-016",
+      "status": "promoted",
+      "authorityIssue": 278,
+      "mergeCommit": "601cade1376e6f87e71351fe3f201833a9356697",
+      "deploymentRun": 33334141865,
+      "deploymentUrl": "https://stefm78.github.io/learnit-platform/authoring/",
+      "learnerArtifactBytes": 366412,
+      "learnerArtifactSha256": "4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7"
+    },
+    "projectAtlasM3_2Design": {
+      "workPackage": "ATLAS-WP-013",
+      "status": "accepted",
+      "authorityIssue": 282,
+      "designHead": "39cdc783f1f679fee1882b34d2e087d40835e8d8",
+      "designMerge": "0ea71eece35d7f631982c2042fcffba008f05284",
+      "verdict": "PASS_M3_2_AI_KIT_FACTORY_DESIGN_TO_IMPLEMENTATION_GATE",
+      "sourceToDraftDecision": "rejected-for-m3.2",
+      "implementationGate": "ATLAS-WP-014"
+    },
+    "projectAtlasM3_2Factory": {
+      "workPackage": "ATLAS-WP-014",
+      "status": "promoted",
+      "authorityIssue": 286,
+      "promotionMerge": "39775e83d029f780bf0fa21783ea597ab1abc6b5",
+      "independentQaWorkPackage": "QA-WP-022",
+      "sourceToDraftDecision": "rejected-for-m3.2",
+      "finalFactoryVerdict": "PASS_AI_KIT_FACTORY_V1"
+    },
+    "projectAtlasM3_2_5FactoryReliability": {
+      "workPackage": "ATLAS-WP-015",
+      "status": "promoted-and-qualified",
+      "authorityIssue": 297,
+      "reliabilityPromotionMerge": "524cfc8b35654d7d54d3222a462fe582f4706a89",
+      "sourceAdmissionMerge": "657a9840eb9499047a48dc97d7cfc1001acad309",
+      "sourceSnapshotMerge": "ae415c8547002c9ca335eff6b79368c70ad3b031",
+      "sourceIntegrityMerge": "c8d196b4ba4fcd161e2fb5a99f66268390253e69",
+      "finalSourceFreezeMerge": "4cd6834e23a4bb93453d3597f80d088a3f2e54c0",
+      "benchmarkHead": "d30a0dfbf1fa5900af51ca5e628c32ed5587c4fe",
+      "benchmarkRun": 33602339398,
+      "benchmarkArtifact": 9835659825,
+      "benchmarkVerdict": "PASS_FACTORY_BENCHMARK_V1",
+      "metrics": {
+        "runs": 8,
+        "pass": 6,
+        "hold": 2,
+        "humanEscalations": 0,
+        "humanEscalationRate": 0,
+        "domainsCovered": 8
+      },
+      "benchmarkCorpusPolicy": "evidence-not-repository-corpus"
+    },
+    "projectAtlasM3_3PortableReviewHandoff": {
+      "workPackage": "ATLAS-WP-019",
+      "status": "promoted",
+      "authorityIssue": 310,
+      "designIssue": 308,
+      "designMerge": "e00c25cbf63e0188c53f417ca4091033afcff2a5",
+      "frozenProductHead": "d4fe01f94ce38b2cd4d884930555f2bce971f561",
+      "productRun": 33612392221,
+      "independentQaWorkPackage": "QA-WP-023",
+      "acceptedQaHead": "f0be01c859f62d82104fd34744e09ef8d2458792",
+      "qaRun": 33614481867,
+      "qaVerdict": "PASS_QA_WP_023_EXACT_HEAD_CONTRADICTORY_QA",
+      "freshQualificationRun": 33617237648,
+      "freshQualificationArtifact": 9841432010,
+      "freshPassFactoryRun": "sha256:348a48f520ac148e497667c512fd31637aff11fb72bef616d73e25d15ebbfcb9",
+      "freshHoldFactoryRun": "sha256:2136d4db43678a6e39f47b193bf93a6f405fff6f9fc42bff2ede6053ea3ea2f3",
+      "promotionMerge": "c102ca81f3b144bea1140860ef633a0d01987d59",
+      "providerIntegration": "none",
+      "learnerRuntimeChange": "none"
+    },
+    "projectAtlasM3_4QualifiedReleaseSet": {
+      "workPackage": "ATLAS-WP-021",
+      "status": "promoted",
+      "authorityIssue": 322,
+      "designIssue": 320,
+      "designMerge": "baa9eea87d58a960f834e1712b4bf64d65b2ab3d",
+      "frozenProductHead": "870d69800dcb07fcfff9f1d232dd143c8eaa6486",
+      "independentQaWorkPackage": "QA-WP-024",
+      "acceptedQaHead": "9c0e20ef176ee03532543d009f22979c95d0d748",
+      "qaRun": 33668446539,
+      "qaVerdict": "PASS_QA_WP_024_R2_EXACT_HEAD_CONTRADICTORY_QA",
+      "promotionMerge": "b8337c785cbec995de5891080776c4c44dd99179",
+      "postMergeCiWorkPackage": "CI-WP-013",
+      "postMergeCiMerge": "f4bbc91c5d480e2996faa8a592c3c18fd83d8906",
+      "publishing": "deferred",
+      "assetContract": "none",
+      "learnerRuntimeChange": "none"
+    }
+  },
+  "authorizedWork": [
+    "Use the Factory with real qualified kits against the exact PASSAGE usable baseline; create new bounded work only for material findings demonstrated by real use.",
+    "Existing unmerged governed pilot/V5/V6 work remains governed solely by its own exact lane authorities; PASSAGE closeout does not merge, promote, reinterpret or supersede those candidates.",
+    "Repository maintenance and regression fixes may proceed only under new bounded authority that preserves promoted learner runtime, Factory contracts, qualified release-set integrity and reviewer independence."
+  ],
+  "heldWork": [
+    "Remote publishing, signing/authentication, registry/catalog, asset/media contracts and provider/model orchestration remain HOLD without separate evidence-backed authority.",
+    "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current promoted evidence and require a new evidence-backed decision if proposed.",
+    "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
+    "Gate 3 repository-write capability remains HOLD unless separately authorized.",
+    "Gate 4 parallel runtime remains HOLD unless separately authorized.",
+    "M4 Learn-it Everywhere, backend, accounts, cloud synchronization, remote catalog, commerce, tenancy and marketplace remain HOLD.",
+    "Teacher, cohort and institutional features remain HOLD before explicit later-milestone authority."
+  ],
+  "prohibitedWork": [
+    "runtime LLM, remote AI API, embedded secret or network-required learning behavior without explicit future authority",
+    "direct write to main outside the repository's enforced governed pull-request process",
+    "silent product repair by an integration or QA lane in a product-owner file",
+    "destructive migration or reuse of protected RC718 storage",
+    "claiming certification, durable mastery or retention beyond observed evidence",
+    "publishing an artifact different from the exact artifact tested and promoted",
+    "embedding M3 authoring or LLM assistance code into the learner runtime artifact"
+  ],
+  "activeRisks": [
+    {
+      "id": "ATLAS-RISK-M3-1-HUMAN-CONTEXT-001",
+      "severity": "moderate",
+      "statement": "Human review of AI-authored kits lacks a sequence-level graphical/contextual overview; tracked as non-blocking debt #272.",
+      "closureGate": "Close or supersede issue #272 only after a separately authorized human-review workflow provides sequence-level context and passes its own evidence gate."
+    }
+  ],
+  "activeExceptions": [],
+  "nextMandatoryGate": {
+    "id": "NONE_PASSAGE_CLOSED",
+    "condition": "PASSAGE is CLOSED_PASS. STOP/USE the Factory with real kits. Reopen only on a material finding or new separately authorized objective."
+  },
+  "review": {
+    "lastReviewedAt": "2026-10-06",
+    "lastReviewedBy": "Accountable owner via PASSAGE_BASELINE_REBIND_CLOSEOUT_R1",
+    "decision": "PASS_PASSAGE_USABLE_BASELINE_CLOSED",
+    "nextReviewTrigger": "material finding from real-kit use; regression; or a separately authorized objective that materially changes the current frame"
+  }
+}
