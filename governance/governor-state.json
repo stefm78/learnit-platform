@@ -1,28 +1,27 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-10-06-PASSAGE-RECONCILED-PRE-START",
-  "effectiveFromCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
-  "reviewedBaselineCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
+  "stateId": "GOV-STATE-2026-10-06-PASSAGE-CLOSED-USABLE-BASELINE",
+  "effectiveFromCommit": "987efea9119bf078a162c64c840668c58f124006",
+  "reviewedBaselineCommit": "987efea9119bf078a162c64c840668c58f124006",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "passage-pre-start-reconciled",
-    "status": "active",
-    "description": "PASSAGE is the owner-selected next major evolution for the real source-to-learner vertical slice. This state records the GitHub/OneDrive authority boundary and the pre-start frame only: PASSAGE product implementation has not started, promoted baselines remain unchanged, and governed draft branches remain unpromoted under their own exact authorities."
+    "id": "passage-closed-usable-baseline",
+    "status": "complete",
+    "description": "PASSAGE is closed PASS for the real source-to-learner vertical slice. The exact JOB29 learner result and exact DDHC_1789 Factory-qualified kit passed import, library, session start, all 45 activities, interruption/resume, stable completion and the offline critical path. This PASSAGE usable baseline is distinct from the historical promotedBaseline and does not imply merge or promotion of the JOB29 product branch."
   },
   "currentMain": {
-    "commit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
-    "sourcePullRequest": 392,
-    "description": "Reviewed main baseline before PASSAGE reconciliation. Main contains the promoted historical Atlas controls plus the Student V0.1 FAN-IN A launch package merged by PR #392. More recent governed work exists on unmerged branches/PRs and is not promoted or merged by this state."
+    "commit": "987efea9119bf078a162c64c840668c58f124006",
+    "sourcePullRequest": 482,
+    "description": "Reviewed main baseline immediately before the bounded PASSAGE usable-baseline rebind and closeout. Product/runtime/Factory source remains unchanged by the closeout; the closeout mutates only this governance state and GOV-WP-041."
   },
   "developmentBaseline": {
-    "status": "ready-for-next-gate",
-    "workPackage": "GOV-WP-040",
-    "candidate": "PASSAGE pre-start reconciled frame",
-    "sourceCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
-    "authorityIssue": 480,
-    "note": "The reconciliation records PASSAGE and the durable authority boundary only under constituted LearnIT job PASSAGE_RECONCILIATION_R1. The next permitted step is a separately governed PASSAGE closure probe; this state does not authorize product implementation, migration, merge or promotion of existing draft work."
+    "status": "closed-pass",
+    "workPackage": "GOV-WP-041",
+    "candidate": "PASSAGE usable baseline",
+    "sourceCommit": "987efea9119bf078a162c64c840668c58f124006",
+    "note": "PASSAGE closure is based on exact owner-selected JOB29 result e04cf62963faae83e073cde9cffd9d33ae42dc9c plus exact DDHC_1789 R4 end-to-end evidence. No product branch is merged or promoted by this binding-only closeout."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -39,6 +38,36 @@
     "pagesDeploymentRun": 33269665324,
     "pagesUrl": "https://stefm78.github.io/learnit-platform/",
     "note": "Learner runtime baseline remains M2.2 unchanged by M3 authoring. M3.0/M3.1 authoring promotion is recorded separately under acceptedControls."
+  },
+  "passageBaseline": {
+    "status": "accepted-usable-baseline",
+    "workPackage": "GOV-WP-041",
+    "productResultSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+    "artifactBytes": 583764,
+    "artifactSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553",
+    "qualificationRun": 36565886994,
+    "qualificationArtifactId": 11031633741,
+    "fixture": {
+      "courseKey": "DDHC_1789",
+      "kitSha256": "bfc0114bf8892dd2bbb92493fffd7d782f68deb153b9500b64154a1f33c44574",
+      "activities": 45,
+      "qcm": 27,
+      "fill": 18
+    },
+    "closureEvidence": {
+      "learnitJob": "PASSAGE_BASELINE_REBIND_CLOSEOUT_R1",
+      "localE2EResultSha256": "6c5eb44623568b57ec381f18a034abafb4b49b0435be668fe0b43f0c744366d4",
+      "networkEventsSha256": "3b1db3093990c38780eb08a74d3436d35d89f159350e88c32b37ca37cc9f5293",
+      "completionScreenshotSha256": "cda609120700f09c6746f5fc2c58e86c71c368f4aa78605b26ed66d16bb75d4b",
+      "allBoundariesPass": true,
+      "offlineCriticalPathPass": true
+    },
+    "semantics": {
+      "historicalPromotedBaselineUnchanged": true,
+      "job29MergeOrPromotionImplied": false,
+      "globalFactoryProgramReopened": false
+    },
+    "next": "STOP_AND_USE_FACTORY_WITH_REAL_KITS"
   },
   "acceptedControls": {
     "stageDOperatingModel": {
@@ -236,12 +265,11 @@
     }
   },
   "authorizedWork": [
-    "Start only a separately governed PASSAGE closure probe that follows source → Factory → exact kit → qualification → import → runtime → learner and identifies the first material blocker before any implementation change.",
-    "Existing unmerged governed pilot/V5/V6 work remains governed solely by its own exact lane authorities; this state does not merge, promote, reinterpret or supersede those candidates.",
-    "Repository maintenance and regression fixes may proceed only under new bounded authority that preserves promoted learner runtime, factory contracts, qualified release-set integrity and reviewer independence."
+    "Use the Factory with real qualified kits against the exact PASSAGE usable baseline; create new bounded work only for material findings demonstrated by real use.",
+    "Existing unmerged governed pilot/V5/V6 work remains governed solely by its own exact lane authorities; PASSAGE closeout does not merge, promote, reinterpret or supersede those candidates.",
+    "Repository maintenance and regression fixes may proceed only under new bounded authority that preserves promoted learner runtime, Factory contracts, qualified release-set integrity and reviewer independence."
   ],
   "heldWork": [
-    "PASSAGE product implementation remains HOLD until a separately governed closure probe identifies a material blocker and a subsequent exact authority permits the smallest correct change.",
     "Remote publishing, signing/authentication, registry/catalog, asset/media contracts and provider/model orchestration remain HOLD without separate evidence-backed authority.",
     "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current promoted evidence and require a new evidence-backed decision if proposed.",
     "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
@@ -270,13 +298,12 @@
   "activeExceptions": [],
   "nextMandatoryGate": {
     "id": "GOV-WP-041",
-    "condition": "Constitute and execute a bounded real source-to-learner PASSAGE closure probe. Identify the first material blocker and prove it before authorizing any PASSAGE product implementation; if no material blocker appears, STOP/USE rather than inventing work."
+    "condition": "GOV-WP-041 is the terminal PASSAGE closeout gate. After its merge, no further PASSAGE gate is required; STOP/USE the Factory with real kits and create new governed work only for a material finding or separately authorized objective."
   },
   "review": {
     "lastReviewedAt": "2026-10-06",
-    "lastReviewedBy": "Accountable owner via PASSAGE_RECONCILIATION_R1 / issue #480",
-    "decision": "GO_WITH_CONDITIONS",
-    "authorityIssue": 480,
-    "nextReviewTrigger": "PASSAGE closure-probe evidence identifying a material blocker; regression; or a separately authorized gate that materially changes the current frame"
+    "lastReviewedBy": "Accountable owner via PASSAGE_BASELINE_REBIND_CLOSEOUT_R1",
+    "decision": "GO",
+    "nextReviewTrigger": "material finding from real-kit use; regression; or a separately authorized objective that materially changes the current frame"
   }
 }

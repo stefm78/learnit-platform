@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-041",
+  "title": "PASSAGE usable-baseline rebind and closeout",
+  "status": "accepted",
+  "changeClass": "governance-state-binding-closeout",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "learnitJob": "PASSAGE_BASELINE_REBIND_CLOSEOUT_R1",
+    "learnitJobRevision": 1,
+    "baseCommit": "987efea9119bf078a162c64c840668c58f124006",
+    "authorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_CREATE_JOB_THEN_EXECUTE_CHAT_2026-10-06"
+  },
+  "baseline": {
+    "baseCommit": "987efea9119bf078a162c64c840668c58f124006"
+  },
+  "purpose": "Bind the exact successful PASSAGE source-to-learner proof to GitHub's current machine-readable repository frame and close PASSAGE without product/runtime/Factory mutation, without merging or promoting the JOB29 product branch, and without reopening the closed Factory program.",
+  "decision": {
+    "codename": "PASSAGE",
+    "verdict": "PASS_PASSAGE_USABLE_BASELINE_CLOSED",
+    "productResultSha": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+    "artifactBytes": 583764,
+    "artifactSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553",
+    "kitCourseKey": "DDHC_1789",
+    "kitSha256": "bfc0114bf8892dd2bbb92493fffd7d782f68deb153b9500b64154a1f33c44574",
+    "localE2EResultSha256": "6c5eb44623568b57ec381f18a034abafb4b49b0435be668fe0b43f0c744366d4",
+    "networkEventsSha256": "3b1db3093990c38780eb08a74d3436d35d89f159350e88c32b37ca37cc9f5293",
+    "completionScreenshotSha256": "cda609120700f09c6746f5fc2c58e86c71c368f4aa78605b26ed66d16bb75d4b",
+    "historicalPromotedBaselineUnchanged": true,
+    "job29MergeOrPromotionAuthorized": false,
+    "globalFactoryProgramReopened": false,
+    "next": "STOP_AND_USE_FACTORY_WITH_REAL_KITS"
+  },
+  "scope": {
+    "allowedPaths": [
+      "governance/governor-state.json",
+      "work-packages/GOV-WP-041.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "tools/**",
+      "tests/**",
+      ".github/**",
+      "product/runtime/Factory implementation",
+      "global PROGRAM_STATELOG",
+      "pilot state"
+    ]
+  },
+  "invariants": [
+    "GitHub remains the authority for executable platform and product identities; OneDrive remains execution/evidence authority.",
+    "Historical promotedBaseline remains byte-semantically unchanged.",
+    "PASSAGE usable baseline is recorded separately and does not imply merge or promotion of JOB29.",
+    "No product/runtime/Factory/contract/schema/validator/test mutation.",
+    "Factory PROGRAM revision 42 remains CLOSED_PASS and is not reopened.",
+    "R4 exact proof passed all 45 activities, resume, stable completion and offline critical path."
+  ],
+  "requiredEvidence": [
+    "Exact main base 987efea9119bf078a162c64c840668c58f124006.",
+    "Exact changed-path inventory equals the two allowed paths.",
+    "Exact R4 evidence hashes bound by PASSAGE_BASELINE_REBIND_CLOSEOUT_R1.",
+    "governor-state passageBaseline binds JOB29 result e04cf62963faae83e073cde9cffd9d33ae42dc9c and DDHC_1789 kit bfc0114bf8892dd2bbb92493fffd7d782f68deb153b9500b64154a1f33c44574.",
+    "promotedBaseline remains unchanged.",
+    "Post-merge readback proves CLOSED_PASS and STOP_AND_USE_FACTORY_WITH_REAL_KITS."
+  ],
+  "adversarialTests": [
+    "Fail if any path outside the exact two-path scope changes.",
+    "Fail if promotedBaseline is rewritten to JOB29.",
+    "Fail if JOB29 branch merge/promotion is implied or performed.",
+    "Fail if product/runtime/Factory code changes.",
+    "Fail if global Factory PROGRAM is reopened or revision 43 is created."
+  ],
+  "nonGoals": [
+    "product implementation or correction",
+    "JOB29 product promotion",
+    "pilot mutation",
+    "R35 implementation",
+    "roadmap expansion",
+    "new registry/state machine"
+  ],
+  "independentReview": [
+    "Verify the PR changes exactly governance/governor-state.json and work-packages/GOV-WP-041.json.",
+    "Verify the historical promotedBaseline remains unchanged and JOB29 is recorded only as the distinct PASSAGE usable baseline.",
+    "Verify the exact R4 result, network evidence and DDHC_1789 kit identities match the durable job evidence.",
+    "Verify no product/runtime/Factory path changes and the global Factory PROGRAM remains revision 42 CLOSED_PASS."
+  ],
+  "execution": {
+    "branch": "governance/passage-baseline-rebind-closeout-r1",
+    "humanGateRequired": false,
+    "finalVerdict": "PASS_PASSAGE_USABLE_BASELINE_CLOSED"
+  },
+  "rollback": "Revert only governance/governor-state.json and work-packages/GOV-WP-041.json. Product/runtime/Factory and historical promoted baseline remain unchanged."
+}
