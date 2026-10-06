@@ -8,7 +8,7 @@
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
     "id": "passage-closed-usable-baseline",
-    "status": "closed-pass",
+    "status": "complete",
     "description": "PASSAGE is closed PASS for the real source-to-learner vertical slice. The exact JOB29 learner result and exact DDHC_1789 Factory-qualified kit passed import, library, session start, all 45 activities, interruption/resume, stable completion and the offline critical path. This PASSAGE usable baseline is distinct from the historical promotedBaseline and does not imply merge or promotion of the JOB29 product branch."
   },
   "currentMain": {
@@ -297,13 +297,13 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "NONE_PASSAGE_CLOSED",
-    "condition": "PASSAGE is CLOSED_PASS. STOP/USE the Factory with real kits. Reopen only on a material finding or new separately authorized objective."
+    "id": "GOV-WP-041",
+    "condition": "GOV-WP-041 is the terminal PASSAGE closeout gate. After its merge, no further PASSAGE gate is required; STOP/USE the Factory with real kits and create new governed work only for a material finding or separately authorized objective."
   },
   "review": {
     "lastReviewedAt": "2026-10-06",
     "lastReviewedBy": "Accountable owner via PASSAGE_BASELINE_REBIND_CLOSEOUT_R1",
-    "decision": "PASS_PASSAGE_USABLE_BASELINE_CLOSED",
+    "decision": "GO",
     "nextReviewTrigger": "material finding from real-kit use; regression; or a separately authorized objective that materially changes the current frame"
   }
 }
