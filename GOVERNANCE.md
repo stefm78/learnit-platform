@@ -155,20 +155,10 @@ Decision: GO / GO WITH CONDITIONS / HOLD / NO GO
 Next gate
 ```
 
-## Current rule
+## Dynamic frame rule
 
-RC718 is the frozen promoted legacy standalone generation. It remains available for historical access and bounded maintenance, but it is not an in-place migration base for the successor.
+The current frame, authorized work, HOLDs and next mandatory gate are read from `governance/governor-state.json`.
 
-`ARC-WP-021` selected trajectory **C — clean break**. The governor must therefore keep the following on hold unless a new accountable-owner decision explicitly reopens them:
-
-- RC718 compatibility resolver or identity overlay;
-- dual read or dual write between legacy and successor keys;
-- automatic migration of RC718 libraries, custom labels or learner state;
-- automatic interpretation of RC718 packages by the successor;
-- new-generation Player implementation before `ARC-WP-022` is accepted;
-- backend, accounts, cloud synchronization and remote catalog;
-- commerce, institutions, tenancy and marketplace.
-
-The next mandatory gate is `ARC-WP-022`: design and authorization of the minimum viable clean-generation foundation, including a new major contract, native canonical identity, isolated browser storage, regenerated golden kits, exact file ownership, contradictory QA and release provenance.
+Accepted ADRs and exact repository evidence complement that machine-readable state. `GOVERNANCE.md` defines standing rules only; it does not duplicate a phase-specific current state.
 
 Repository state, accepted ADRs and exact work-package evidence override historical roadmaps or handovers when they conflict.
