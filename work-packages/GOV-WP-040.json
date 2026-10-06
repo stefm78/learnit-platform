@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-040",
+  "title": "PASSAGE pre-start GitHub/OneDrive reconciliation",
+  "status": "under-qa",
+  "changeClass": "governance-state-alignment",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "issue": 480,
+    "predecessor": "GOV-WP-039",
+    "baselineCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
+    "learnitJob": "PASSAGE_RECONCILIATION_R1",
+    "learnitJobRevision": 1,
+    "learnitJobSha256": "b29a2c56fdc90a293aa08609311653b4f37d91a4c398993787e81d0679855f25"
+  },
+  "baseline": {
+    "baseCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b"
+  },
+  "purpose": "Reconcile the durable GitHub platform authority and OneDrive execution/evidence authority before PASSAGE, record PASSAGE through the existing ADR mechanism, remove stale duplicate current-state text, preserve promoted baselines, and stop without product mutation or PASSAGE implementation.",
+  "decision": {
+    "codename": "PASSAGE",
+    "verticalSlice": "source → Factory → exact kit → qualification → import → runtime → learner",
+    "operatingPrinciple": "need/blocker → smallest correct change → smallest sufficient proof → PASS / STOP / USE",
+    "productImplementationAuthorized": false,
+    "existingDraftPromotionAuthorized": false
+  },
+  "scope": {
+    "allowedPaths": [
+      "docs/architecture/decisions/ADR-0004-PASSAGE-PRODUCT-REPOSITORY-EXECUTION-LEDGER.md",
+      "docs/architecture/README.md",
+      "GOVERNANCE.md",
+      "governance/governor-state.json",
+      "work-packages/GOV-WP-040.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "tools/**",
+      "tests/**",
+      "docs/roadmap/**"
+    ]
+  },
+  "invariants": [
+    "GitHub remains the authority for executable platform code, contracts, validators, runtime, Factory implementation, durable architecture, tests and product identities.",
+    "OneDrive remains the execution/evidence authority for course sources, orchestration, jobs, state logs, reviews, results and attestations.",
+    "OneDrive product evidence binds exact Git identities and does not redefine product semantics.",
+    "Promoted learner and M3.x baselines remain unchanged.",
+    "Existing pilot/V5/V6 branches and pull requests remain unmerged and unpromoted by this work package.",
+    "PASSAGE implementation is not started by this work package.",
+    "governance/governor-state.json remains the single machine-readable dynamic Git frame.",
+    "GOVERNANCE.md remains standing authority and does not duplicate phase-specific current state."
+  ],
+  "requiredEvidence": [
+    "Exact baseline main@21d25c36aec6c04fdfe8126c95e71cbf80771a1b.",
+    "Exact changed-path inventory contains only the five allowed paths.",
+    "ADR-0004 records PASSAGE and the GitHub/OneDrive authority boundary without creating another registry or state machine.",
+    "Repository governance PASS on the exact PR head.",
+    "PR scope / gate PASS on the exact PR head.",
+    "governor-state preserves promoted baselines and distinguishes active governed draft work from promotion.",
+    "No product/runtime/Factory/contract/test path changes."
+  ],
+  "adversarialTests": [
+    "Any product/runtime/Factory/contract/test mutation must fail review.",
+    "Any merge or promotion of an existing pilot/V5/V6 candidate must fail review.",
+    "Any PASSAGE implementation change must fail review.",
+    "Any new dynamic registry, roadmap or state machine must fail review.",
+    "Any changed path outside the exact five-path scope must fail review."
+  ],
+  "nonGoals": [
+    "PASSAGE product implementation",
+    "R35 gap assessment",
+    "V5/V6 migration",
+    "kit contract changes",
+    "runtime, scoring, evidence, planner or Factory logic changes",
+    "existing pilot PR merge or promotion",
+    "roadmap expansion",
+    "bidirectional Git/OneDrive synchronization"
+  ],
+  "independentReview": [
+    "Repository governance independently validates the durable work-package and governor-state structure.",
+    "PR scope / gate independently binds the complete base...head diff to the exact five-path allowed scope.",
+    "The constituted LearnIT job requires a bounded PROVE_OR_REFUTE pass before terminal PASS."
+  ],
+  "execution": {
+    "branch": "governance/passage-reconciliation-r1",
+    "pullRequest": 482,
+    "maximumChangedFiles": 5,
+    "humanGateRequired": false,
+    "finalVerdict": "PASS_PASSAGE_RECONCILIATION_READY_TO_START_PASSAGE"
+  },
+  "rollback": "Revert the five governance/documentation paths. Product/runtime/Factory/contracts/tests and all promoted artifact identities remain unchanged."
+}

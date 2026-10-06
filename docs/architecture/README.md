@@ -7,7 +7,7 @@ Architecture authority is distributed deliberately:
 1. active authority issues and accepted work packages define the currently authorized product scope;
 2. accepted ADRs define cross-cutting decisions;
 3. source, tests, build evidence and promoted artifact hashes describe implemented reality;
-4. `governance/governor-state.json` remains the machine-readable governance record, but historical phase text is not rewritten by repository-hygiene work.
+4. `governance/governor-state.json` remains the machine-readable governance record; README files explain and point to authorities rather than duplicating dynamic state.
 
 No historical roadmap or handover overrides later accepted and promoted repository facts.
 
@@ -54,6 +54,7 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 - [`ADR-0001 — Stable identity taxonomy and migration design`](decisions/ADR-0001-STABLE-IDENTITY-MIGRATION.md)
 - [`ADR-0002 — Clean-break generation`](decisions/ADR-0002-CLEAN-BREAK-GENERATION.md)
 - [`ADR-0003 — Atlas local adaptive runtime`](decisions/ADR-0003-ATLAS-LOCAL-ADAPTIVE-RUNTIME.md)
+- [`ADR-0004 — PASSAGE product repository / execution ledger boundary`](decisions/ADR-0004-PASSAGE-PRODUCT-REPOSITORY-EXECUTION-LEDGER.md)
 
 ## Atlas reading order
 
@@ -72,7 +73,7 @@ No historical roadmap or handover overrides later accepted and promoted reposito
 
 Historical `reference-v1/` material remains non-canonical.
 
-## Active Atlas gate
+## Current architecture frame
 
 Atlas M1, M2 and M2.2 learner milestones are promoted historical steps. The exact learner artifact remains unchanged at 366412 bytes / SHA-256 `4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7`.
 
@@ -84,4 +85,4 @@ M3.4 binds exact canonical kit bytes to self-verifying PASS FactoryRuns, recheck
 
 Human graphical/context review debt remains open as issue `#272`. No remote distribution backend, publisher authentication/signature, asset/media contract or learner-runtime capability is implied by M3.4.
 
-The post-M3.4 arbitration is resolved as **STOP_AND_OBSERVE**. This is an architectural decision to preserve the current local, content-addressed, offline-verifiable, provider-neutral and reviewer-independent shape until real use produces a demonstrated bottleneck. Reopen only the smallest gate supported by observed distribution friction, human-review/context friction, operator toil/errors, or a different learner problem. Gate3, Gate4 and M4+ platform evolution remain separately held.
+**PASSAGE** is the selected next major evolution and is defined by [ADR-0004](decisions/ADR-0004-PASSAGE-PRODUCT-REPOSITORY-EXECUTION-LEDGER.md) as the effort to close the real `source → Factory → exact kit → qualification → import → runtime → learner` slice. This reconciliation records the boundary and codename only; PASSAGE product implementation has not started. The exact current authorized work, HOLDs and next gate are read from [`governance/governor-state.json`](../../governance/governor-state.json), not duplicated here.

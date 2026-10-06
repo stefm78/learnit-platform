@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "repository": "stefm78/learnit-platform",
-  "stateId": "GOV-STATE-2026-09-03-POST-M3-4-STOP-OBSERVE",
-  "effectiveFromCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
-  "reviewedBaselineCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
+  "stateId": "GOV-STATE-2026-10-06-PASSAGE-RECONCILED-PRE-START",
+  "effectiveFromCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
+  "reviewedBaselineCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
   "accountableOwner": "stefm78",
   "operatingModel": "human-accountable-ai-operational",
   "currentPhase": {
-    "id": "project-atlas-post-m3-4-stop-and-observe",
+    "id": "passage-pre-start-reconciled",
     "status": "active",
-    "description": "M3.4 Qualified Release Set is promoted and no next product implementation is selected. Independent Linus architecture and Steve product/learning reviews converged on STOP_AND_OBSERVE: use the promoted local/static stack on real end-to-end cases, measure operator/distribution/learner friction, and reopen only the smallest gate justified by observed bottlenecks."
+    "description": "PASSAGE is the owner-selected next major evolution for the real source-to-learner vertical slice. This state records the GitHub/OneDrive authority boundary and the pre-start frame only: PASSAGE product implementation has not started, promoted baselines remain unchanged, and governed draft branches remain unpromoted under their own exact authorities."
   },
   "currentMain": {
-    "commit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
-    "sourcePullRequest": 336,
-    "description": "Current main includes promoted M3.4 Qualified Release Set, CI-WP-013 post-merge routing closeout and GOV-WP-035 canonical-state alignment. M3.4 evidence remains bound to frozen product HEAD 870d69800dcb07fcfff9f1d232dd143c8eaa6486 and independent QA R2 HEAD 9c0e20ef176ee03532543d009f22979c95d0d748."
+    "commit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
+    "sourcePullRequest": 392,
+    "description": "Reviewed main baseline before PASSAGE reconciliation. Main contains the promoted historical Atlas controls plus the Student V0.1 FAN-IN A launch package merged by PR #392. More recent governed work exists on unmerged branches/PRs and is not promoted or merged by this state."
   },
   "developmentBaseline": {
-    "status": "observe",
-    "workPackage": "GOV-WP-036",
-    "candidate": "Post-M3.4 real-use observation",
-    "sourceCommit": "3d3ff980605a4f7cf7808b9f6260a141bc5d3b7d",
-    "authorityIssue": 337,
-    "note": "No new product implementation is authorized. Run real end-to-end cases with the promoted stack and collect minimal evidence on operator toil/errors, distribution friction, learner friction and human pedagogical-overview effort. Reopen only the smallest gate supported by observed evidence."
+    "status": "ready-for-next-gate",
+    "workPackage": "GOV-WP-040",
+    "candidate": "PASSAGE pre-start reconciled frame",
+    "sourceCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
+    "authorityIssue": 480,
+    "note": "The reconciliation records PASSAGE and the durable authority boundary only under constituted LearnIT job PASSAGE_RECONCILIATION_R1. The next permitted step is a separately governed PASSAGE closure probe; this state does not authorize product implementation, migration, merge or promotion of existing draft work."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -236,15 +236,14 @@
     }
   },
   "authorizedWork": [
-    "Use the existing promoted M3.0-M3.4 capabilities on real source/brief cases without changing product code.",
-    "Collect minimal observation evidence: operator active minutes/manual transfers/errors/recovery effort; release-to-learner steps/time; learner start/completion/transfer/reconfirmation friction; human sequence-overview effort.",
-    "Repository maintenance and regression fixes may proceed only under a new bounded authority that preserves promoted learner runtime, factory contracts, qualified release-set integrity and reviewer independence."
+    "Start only a separately governed PASSAGE closure probe that follows source → Factory → exact kit → qualification → import → runtime → learner and identifies the first material blocker before any implementation change.",
+    "Existing unmerged governed pilot/V5/V6 work remains governed solely by its own exact lane authorities; this state does not merge, promote, reinterpret or supersede those candidates.",
+    "Repository maintenance and regression fixes may proceed only under new bounded authority that preserves promoted learner runtime, factory contracts, qualified release-set integrity and reviewer independence."
   ],
   "heldWork": [
-    "All post-M3.4 product implementation remains HOLD until real-use observation identifies a dominant bottleneck. Distribution, human overview #272 and factory/operator automation are trigger-based candidates, not selected work.",
+    "PASSAGE product implementation remains HOLD until a separately governed closure probe identifies a material blocker and a subsequent exact authority permits the smallest correct change.",
     "Remote publishing, signing/authentication, registry/catalog, asset/media contracts and provider/model orchestration remain HOLD without separate evidence-backed authority.",
-    "Remote publishing, signing/authentication and any asset/media contract remain HOLD and require separate bounded design/authority.",
-    "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current evidence and require a new evidence-backed decision if proposed.",
+    "Generic Source-to-Draft, PDF/OCR/document normalization and intermediate draft schemas remain unneeded by current promoted evidence and require a new evidence-backed decision if proposed.",
     "Human graphical/contextual author-review debt #272 remains deferred and non-blocking until human review becomes a first-class workflow.",
     "Gate 3 repository-write capability remains HOLD unless separately authorized.",
     "Gate 4 parallel runtime remains HOLD unless separately authorized.",
@@ -270,14 +269,14 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "GOV-WP-036",
-    "condition": "Keep this governance observation gate active while real end-to-end cases are run. Re-review when observed evidence shows a dominant distribution, human-review/context, operator-orchestration or learner bottleneck; otherwise continue STOP_AND_OBSERVE without opening product implementation."
+    "id": "GOV-WP-041",
+    "condition": "Constitute and execute a bounded real source-to-learner PASSAGE closure probe. Identify the first material blocker and prove it before authorizing any PASSAGE product implementation; if no material blocker appears, STOP/USE rather than inventing work."
   },
   "review": {
-    "lastReviewedAt": "2026-09-03",
-    "lastReviewedBy": "Project driver after independent Linus architecture and Steve product/learning reviews",
+    "lastReviewedAt": "2026-10-06",
+    "lastReviewedBy": "Accountable owner via PASSAGE_RECONCILIATION_R1 / issue #480",
     "decision": "GO_WITH_CONDITIONS",
-    "authorityIssue": 337,
-    "nextReviewTrigger": "real-use evidence showing dominant distribution, human-review, operator-orchestration or learner friction; regression; or a separately proposed Gate3/Gate4/M4+ capability"
+    "authorityIssue": 480,
+    "nextReviewTrigger": "PASSAGE closure-probe evidence identifying a material blocker; regression; or a separately authorized gate that materially changes the current frame"
   }
 }
