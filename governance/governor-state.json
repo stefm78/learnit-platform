@@ -18,11 +18,11 @@
   },
   "developmentBaseline": {
     "status": "ready-for-next-gate",
-    "workPackage": "PASSAGE_RECONCILIATION_R1",
+    "workPackage": "GOV-WP-040",
     "candidate": "PASSAGE pre-start reconciled frame",
     "sourceCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b",
     "authorityIssue": 480,
-    "note": "The reconciliation records PASSAGE and the durable authority boundary only. The next permitted step is a separately governed PASSAGE closure probe; this state does not authorize product implementation, migration, merge or promotion of existing draft work."
+    "note": "The reconciliation records PASSAGE and the durable authority boundary only under constituted LearnIT job PASSAGE_RECONCILIATION_R1. The next permitted step is a separately governed PASSAGE closure probe; this state does not authorize product implementation, migration, merge or promotion of existing draft work."
   },
   "promotedBaseline": {
     "status": "promoted",
@@ -269,8 +269,8 @@
   ],
   "activeExceptions": [],
   "nextMandatoryGate": {
-    "id": "PASSAGE_CLOSURE_PROBE",
-    "condition": "Constitute and execute a bounded real source-to-learner closure probe. Identify the first material blocker and prove it before authorizing any PASSAGE product implementation; if no material blocker appears, STOP/USE rather than inventing work."
+    "id": "GOV-WP-041",
+    "condition": "Constitute and execute a bounded real source-to-learner PASSAGE closure probe. Identify the first material blocker and prove it before authorizing any PASSAGE product implementation; if no material blocker appears, STOP/USE rather than inventing work."
   },
   "review": {
     "lastReviewedAt": "2026-10-06",
