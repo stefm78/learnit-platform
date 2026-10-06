@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-041",
   "title": "PASSAGE usable-baseline rebind and closeout",
-  "status": "ready-for-merge",
+  "status": "accepted",
   "changeClass": "governance-state-binding-closeout",
   "riskClass": "low",
   "authority": {
@@ -11,6 +11,9 @@
     "learnitJobRevision": 1,
     "baseCommit": "987efea9119bf078a162c64c840668c58f124006",
     "authorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_CREATE_JOB_THEN_EXECUTE_CHAT_2026-10-06"
+  },
+  "baseline": {
+    "baseCommit": "987efea9119bf078a162c64c840668c58f124006"
   },
   "purpose": "Bind the exact successful PASSAGE source-to-learner proof to GitHub's current machine-readable repository frame and close PASSAGE without product/runtime/Factory mutation, without merging or promoting the JOB29 product branch, and without reopening the closed Factory program.",
   "decision": {
@@ -76,6 +79,12 @@
     "R35 implementation",
     "roadmap expansion",
     "new registry/state machine"
+  ],
+  "independentReview": [
+    "Verify the PR changes exactly governance/governor-state.json and work-packages/GOV-WP-041.json.",
+    "Verify the historical promotedBaseline remains unchanged and JOB29 is recorded only as the distinct PASSAGE usable baseline.",
+    "Verify the exact R4 result, network evidence and DDHC_1789 kit identities match the durable job evidence.",
+    "Verify no product/runtime/Factory path changes and the global Factory PROGRAM remains revision 42 CLOSED_PASS."
   ],
   "execution": {
     "branch": "governance/passage-baseline-rebind-closeout-r1",
