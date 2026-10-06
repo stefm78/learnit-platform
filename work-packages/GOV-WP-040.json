@@ -14,6 +14,9 @@
     "learnitJobRevision": 1,
     "learnitJobSha256": "b29a2c56fdc90a293aa08609311653b4f37d91a4c398993787e81d0679855f25"
   },
+  "baseline": {
+    "baseCommit": "21d25c36aec6c04fdfe8126c95e71cbf80771a1b"
+  },
   "purpose": "Reconcile the durable GitHub platform authority and OneDrive execution/evidence authority before PASSAGE, record PASSAGE through the existing ADR mechanism, remove stale duplicate current-state text, preserve promoted baselines, and stop without product mutation or PASSAGE implementation.",
   "decision": {
     "codename": "PASSAGE",
@@ -75,6 +78,11 @@
     "existing pilot PR merge or promotion",
     "roadmap expansion",
     "bidirectional Git/OneDrive synchronization"
+  ],
+  "independentReview": [
+    "Repository governance independently validates the durable work-package and governor-state structure.",
+    "PR scope / gate independently binds the complete base...head diff to the exact five-path allowed scope.",
+    "The constituted LearnIT job requires a bounded PROVE_OR_REFUTE pass before terminal PASS."
   ],
   "execution": {
     "branch": "governance/passage-reconciliation-r1",
