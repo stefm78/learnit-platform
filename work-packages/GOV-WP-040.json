@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "GOV-WP-040",
   "title": "PASSAGE pre-start GitHub/OneDrive reconciliation",
-  "status": "in-progress",
+  "status": "under-qa",
   "changeClass": "governance-state-alignment",
   "riskClass": "low",
   "authority": {
