@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-064",
+  "title": "Harden the PASSAGE V6 authoring-to-release path without activation",
+  "status": "approved",
+  "changeClass": "passage-v6-release-hardening-candidate",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "job": "PASSAGE_V6_RELEASE_HARDENING_R1",
+    "candidateOnly": true
+  },
+  "purpose": "Create and qualify a single bounded Git candidate that makes the exact historical learnit.kit.v6 schema and validator reachable through a fail-closed V6 FactoryRun and qualified-release path, while preserving V1 bytes internally, excluding constructed from new V6 production, enforcing independent V6 semantic/source/visual review, and binding release evidence to the exact qualified pull-request head.",
+  "baseline": {
+    "baseCommit": "4d3fb54456bb6a832adecf08938eb2d942b3f4fb",
+    "branch": "passage/v6-release-hardening-r1"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/passage-v6-release-hardening-ci.yml",
+      "contracts/learnit-kit-v6.schema.json",
+      "authoring/v6/validate_kit.py",
+      "authoring/v6/validator_runtime.py",
+      "authoring/v6/_compat/v4_validate_kit.py",
+      "authoring/v6/_compat/v5_validate_kit.py",
+      "authoring/factory/_reliability_v1.py",
+      "authoring/factory/_release_set_v1.py",
+      "authoring/factory/reliability.py",
+      "authoring/factory/reliability_v6.py",
+      "authoring/factory/release_set.py",
+      "authoring/factory/release_set_v6.py",
+      "authoring/factory/v6_gate.py",
+      "authoring/factory/tests/test_v6_release_hardening.py",
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V6.md",
+      "authoring/skills/SKILL_ATLAS_INDEPENDENT_KIT_REVIEW_V6.md",
+      "work-packages/ATLAS-WP-064.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "governance/**",
+      "docs/**",
+      "contracts/learnit-kit-v2.schema.json",
+      "contracts/learnit-kit-v3.schema.json",
+      "contracts/learnit-kit-v4.schema.json",
+      "authoring/v2/**",
+      "authoring/studio/**",
+      "authoring/factory/source_admission.py",
+      "authoring/factory/source_snapshot.py"
+    ]
+  },
+  "invariants": [
+    "The exact historical learnit.kit.v6 schema Git blob remains 0b61612ce711a5a6bd0e278385204188f130818b.",
+    "The exact historical V6 validator Git blob remains 1650d550810c50b5fdf64d14cbff42c9c94c4202.",
+    "The historical V1 reliability and release-set implementations are preserved byte-identically as internal modules with blobs 285c037b5e430ca2f75d61583d9d22c23073f7f7 and 10be3727243e8dc66d10c1a11731c7f61ed2c8e8.",
+    "V1 and V6 dispatch is explicit and closed; no implicit upgrade, downgrade, or fallback is admitted.",
+    "New V6 production excludes constructed with exact reason ACTIVITY_TYPE_DISABLED:constructed while retaining schema readability for historical V6 bytes.",
+    "Productive activities are admitted only through the exact V6 validator and an explicit productiveCorrectness semantic-review check.",
+    "Role B is exact-byte authorized source truth; Role A is supplemental and cannot be hidden source truth.",
+    "A declared material visual requirement cannot pass with a text-only kit and must receive visualAdequacy=pass against embedded media.",
+    "Every V6 FactoryRun and qualified release embeds the exact implementation commit and immutable schema/validator identities.",
+    "This work package does not merge, activate PASSAGE, edit OneDrive selectors, publish a durable activation pointer, or mutate learner runtime."
+  ],
+  "requiredEvidence": [
+    "Exact base 4d3fb54456bb6a832adecf08938eb2d942b3f4fb and exact allowed-path diff only.",
+    "Repository governance PASS on the exact pull-request head.",
+    "PR scope / gate PASS for ATLAS-WP-064.",
+    "PASSAGE V6 / exact-head gate PASS on the exact pull-request head.",
+    "Exact Git blob checks for historical V6 schema/validator, V4/V5 compatibility sources, and wrapped V1 implementations.",
+    "Positive end-to-end proof from V6 kit through FactoryRun to verified qualified release bound to pull_request.head.sha.",
+    "Negative/adversarial proof for constructed, V6 validation constraints, semantic/source separation, visual rule, and cross-version release rejection."
+  ],
+  "adversarialTests": [
+    "Reject constructed in the first course and in a later course with ACTIVITY_TYPE_DISABLED:constructed.",
+    "Reject V6 validation activities that target more than one objective.",
+    "Reject productive evaluator kinds that do not match the productive part responseKind.",
+    "Reject validationSlot on a non-validation activity.",
+    "Reject productive activities without deterministic scoring.",
+    "Hold when the independent review flags hint answer leakage.",
+    "Hold when Role A is used as hidden source truth and fail closed on invalid Role B claim mapping.",
+    "Hold a text-only kit when visualRequirement.required is true and pass the corresponding embedded-media case only with visualAdequacy=pass.",
+    "Reject V1 evidence in the V6 release path and V6 evidence in the V1 release path."
+  ],
+  "nonGoals": [
+    "Merging the candidate to main.",
+    "Activating PASSAGE or changing durable release selectors.",
+    "Changing learner runtime or application behavior.",
+    "Changing the meaning or bytes of historical V1, V2, V3, V4, or V6 contract authorities.",
+    "Adding web fetch, OCR, image generation, renderer services, or decorative-media requirements to the Factory gate."
+  ],
+  "independentReview": [
+    "The repository PR scope gate independently proves that the candidate remains inside the exact work-package paths.",
+    "The dedicated exact-head workflow independently verifies immutable blob identities and the final pull-request head binding.",
+    "The semantic-review contract requires an independent context and explicit target digests before Factory PASS.",
+    "Qualified-release verification rebuilds the manifest from embedded exact bytes and rejects mixed implementation authorities.",
+    "Human promotion remains a later explicit decision after CI qualification; this candidate does not self-activate."
+  ],
+  "execution": {
+    "humanGateRequired": true,
+    "maximumChangedFiles": 17,
+    "productPromotionAuthorized": false,
+    "passageActivationAuthorized": false,
+    "nextGate": "INDEPENDENT_REVIEW_OF_EXACT_CI_QUALIFIED_PR_HEAD"
+  },
+  "rollback": "Delete or revert the candidate branch/PR. Main, OneDrive PASSAGE state, selectors, learner runtime, and previously published contract bytes remain unchanged."
+}

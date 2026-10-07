@@ -1,0 +1,67 @@
+name: PASSAGE V6 release hardening
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/passage-v6-release-hardening-ci.yml'
+      - 'contracts/learnit-kit-v6.schema.json'
+      - 'authoring/v6/**'
+      - 'authoring/factory/_reliability_v1.py'
+      - 'authoring/factory/_release_set_v1.py'
+      - 'authoring/factory/reliability.py'
+      - 'authoring/factory/reliability_v6.py'
+      - 'authoring/factory/release_set.py'
+      - 'authoring/factory/release_set_v6.py'
+      - 'authoring/factory/v6_gate.py'
+      - 'authoring/factory/tests/test_v6_release_hardening.py'
+      - 'authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V6.md'
+      - 'authoring/skills/SKILL_ATLAS_INDEPENDENT_KIT_REVIEW_V6.md'
+      - 'work-packages/ATLAS-WP-064.json'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-v6:
+    name: PASSAGE V6 / exact-head gate
+    runs-on: ubuntu-latest
+    env:
+      IMPLEMENTATION_COMMIT: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bind exact pull-request head
+        run: test "$IMPLEMENTATION_COMMIT" = "$(git rev-parse HEAD)"
+      - name: Verify immutable V6 and wrapped V1 identities
+        run: |
+          test "$(git hash-object contracts/learnit-kit-v6.schema.json)" = 0b61612ce711a5a6bd0e278385204188f130818b
+          test "$(git hash-object authoring/v6/validate_kit.py)" = 1650d550810c50b5fdf64d14cbff42c9c94c4202
+          test "$(git hash-object authoring/v6/_compat/v4_validate_kit.py)" = 4ef561dfc1137aa436b4d8c8820db421ab6e1861
+          test "$(git hash-object authoring/v6/_compat/v5_validate_kit.py)" = 0b93925eb22058878f13bc86554126846d2923d1
+          test "$(git hash-object authoring/factory/_reliability_v1.py)" = 285c037b5e430ca2f75d61583d9d22c23073f7f7
+          test "$(git hash-object authoring/factory/_release_set_v1.py)" = 10be3727243e8dc66d10c1a11731c7f61ed2c8e8
+      - name: Install validator dependency
+        run: python -m pip install --disable-pip-version-check jsonschema
+      - name: Compile bounded V6 path
+        run: |
+          python -m py_compile \
+            authoring/v6/validator_runtime.py \
+            authoring/v6/validate_kit.py \
+            authoring/v6/_compat/v4_validate_kit.py \
+            authoring/v6/_compat/v5_validate_kit.py \
+            authoring/factory/reliability.py \
+            authoring/factory/reliability_v6.py \
+            authoring/factory/release_set.py \
+            authoring/factory/release_set_v6.py \
+            authoring/factory/v6_gate.py \
+            authoring/factory/tests/test_v6_release_hardening.py
+      - name: Run V6 adversarial matrix and end-to-end release proof
+        run: python -m unittest authoring.factory.tests.test_v6_release_hardening -v
+      - name: Validate repository governance
+        run: python tools/validate_repository.py
