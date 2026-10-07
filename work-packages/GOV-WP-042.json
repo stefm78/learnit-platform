@@ -7,8 +7,11 @@
   "riskClass": "low",
   "authority": {
     "repository": "stefm78/learnit-platform",
-    "baseCommit": "9c7af9bc58347fc96ceff0c13acf59168cda0a63",
     "authorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_EXECUTE_CHAT_2026-10-07"
+  },
+  "baseline": {
+    "baseCommit": "9c7af9bc58347fc96ceff0c13acf59168cda0a63",
+    "artifactSha256": null
   },
   "purpose": "Provide one deterministic non-authoritative refresher for the existing OneDrive human course catalogue and a usable-kit catalogue, with signed-in OneDrive item links that never use /shared?.",
   "scope": {
@@ -36,12 +39,24 @@
     "DDHC_1789 exact kit SHA-256 remains bfc0114bf8892dd2bbb92493fffd7d782f68deb153b9500b64154a1f33c44574.",
     "Generated views contain no /shared? URL."
   ],
+  "adversarialTests": [
+    "Fail if any repository path outside the two allowed paths changes.",
+    "Fail if a generated human link contains /shared?.",
+    "Fail if a kit without exact matching PASS_AI_KIT_FACTORY_V1 evidence is presented as usable.",
+    "Fail if any product/runtime/Factory or authoritative OneDrive state is mutated."
+  ],
   "nonGoals": [
     "new kit registry authority",
     "PASSAGE reopening",
     "Factory program reopening",
     "product promotion",
     "runtime modification"
+  ],
+  "independentReview": [
+    "Verify the PR changes exactly tools/refresh_onedrive_catalogue.py and work-packages/GOV-WP-042.json.",
+    "Verify the refresher emits only derived views and does not write authoritative course or Factory state.",
+    "Verify OneDrive item links use /?id=<guid>&cid=<cid> and never /shared?.",
+    "Verify DDHC_1789 is included only when its exact kit hash and Factory PASS evidence match."
   ],
   "execution": {
     "branch": "ops/refresh-onedrive-catalogue",
