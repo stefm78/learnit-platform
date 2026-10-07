@@ -63,6 +63,85 @@ jobs:
             authoring/factory/tests/test_v6_release_hardening.py
       - name: Run V6 adversarial matrix and end-to-end release proof
         run: python -m unittest authoring.factory.tests.test_v6_release_hardening -v
+      - name: Run mandatory T2 adversarial closure
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import tempfile
+          from pathlib import Path
+          from authoring.factory import release_set_v6, reliability_v6, v6_gate
+          from authoring.factory.tests.test_v6_release_hardening import Fixture, make_kit
+
+          commit = os.environ["IMPLEMENTATION_COMMIT"]
+          old_v1_authority = "c102ca81f3b144bea1140860ef633a0d01987d59"
+
+          # Structurally valid but semantically wrong material answer: HOLD and non-releasable.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(), review_kwargs={"answer_hold": True})
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert "DIMENSION_HOLD:answerCorrectness" in gate["reasons"]
+              run = f.run_value(commit)
+              assert reliability_v6.decision_class(reliability_v6.verify_run(run)) == "HOLD"
+              try:
+                  release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
+              except release_set_v6.V6ReleaseSetInputError:
+                  pass
+              else:
+                  raise AssertionError("semantic HOLD became releasable")
+
+          # Stale independent review after learner-brief mutation must be detected exactly.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit())
+              brief = json.loads(f.brief.read_text(encoding="utf-8"))
+              brief["goal"] += " — mutation post-review"
+              f.brief.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert "REVIEW_TARGET_MISMATCH:briefSha256" in gate["reasons"]
+
+          # Productive can remain schema-valid while its semantic scoring is held.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(), review_kwargs={"productive_check": "hold"})
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert "V6_CHECK_HOLD:productiveCorrectness" in gate["reasons"]
+              assert "PRODUCTIVE_CORRECTNESS_REQUIRED" in gate["reasons"]
+
+          # Constructed HOLD cannot be converted into a FactoryRun/release PASS.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(constructed_first=True))
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert v6_gate.CONSTRUCTED_REASON in gate["reasons"]
+              run = f.run_value(commit)
+              assert reliability_v6.decision_class(reliability_v6.verify_run(run)) == "HOLD"
+              try:
+                  release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
+              except release_set_v6.V6ReleaseSetInputError:
+                  pass
+              else:
+                  raise AssertionError("constructed HOLD became releasable")
+
+          # Non-visual no-media is explicitly not_applicable and remains releasable.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit())
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_PASS
+              assert gate["semanticReview"]["v6Checks"]["visualAdequacy"] == "not_applicable"
+
+          # Adequate embedded visual reaches the real release path and binds exact current authority.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(media=True), visual_required=True, review_kwargs={"visual_check": "pass"})
+              assert f.gate(commit)["verdict"] == v6_gate.FACTORY_PASS
+              f.run_value(commit)
+              built = release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
+              verified = release_set_v6.verify_release_archive(f.release)
+              assert built["factoryAuthority"] == commit
+              assert verified["manifest"]["factoryAuthority"] == commit
+              assert built["factoryAuthority"] != old_v1_authority
+          PY
       - name: Run current-main Factory/reliability/release regressions
         run: |
           python -m unittest \
