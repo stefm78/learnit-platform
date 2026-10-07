@@ -183,7 +183,7 @@ class V6ReleaseHardeningTests(unittest.TestCase):
         identities = validator_runtime.assert_exact_identities()
         self.assertEqual("0b61612ce711a5a6bd0e278385204188f130818b", identities["schemaBlob"])
         self.assertEqual("1650d550810c50b5fdf64d14cbff42c9c94c4202", identities["validatorBlob"])
-        root = Path(__file__).resolve().parents[2]
+        root = Path(__file__).resolve().parents[3]
         self.assertEqual("285c037b5e430ca2f75d61583d9d22c23073f7f7", validator_runtime.git_blob_sha((root / "authoring/factory/_reliability_v1.py").read_bytes()))
         self.assertEqual("10be3727243e8dc66d10c1a11731c7f61ed2c8e8", validator_runtime.git_blob_sha((root / "authoring/factory/_release_set_v1.py").read_bytes()))
 
