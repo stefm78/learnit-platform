@@ -63,5 +63,11 @@ jobs:
             authoring/factory/tests/test_v6_release_hardening.py
       - name: Run V6 adversarial matrix and end-to-end release proof
         run: python -m unittest authoring.factory.tests.test_v6_release_hardening -v
+      - name: Run current-main Factory/reliability/release regressions
+        run: |
+          python -m unittest \
+            authoring.factory.tests.test_ai_kit_factory \
+            authoring.factory.tests.test_factory_reliability \
+            authoring.factory.tests.test_release_set -v
       - name: Validate repository governance
         run: python tools/validate_repository.py
