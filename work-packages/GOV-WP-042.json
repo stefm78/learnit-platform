@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-042",
+  "title": "Derived OneDrive human visibility refresh",
+  "status": "accepted",
+  "changeClass": "human-navigation-visibility",
+  "riskClass": "low",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "baseCommit": "9c7af9bc58347fc96ceff0c13acf59168cda0a63",
+    "authorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_EXECUTE_CHAT_2026-10-07"
+  },
+  "purpose": "Provide one deterministic non-authoritative refresher for the existing OneDrive human course catalogue and a usable-kit catalogue, with signed-in OneDrive item links that never use /shared?.",
+  "scope": {
+    "allowedPaths": [
+      "tools/refresh_onedrive_catalogue.py",
+      "work-packages/GOV-WP-042.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "platform/**",
+      "governance/**",
+      ".github/**"
+    ]
+  },
+  "invariants": [
+    "GitHub remains authority for executable logic; OneDrive catalogue files remain derived non-authoritative views.",
+    "No product/runtime/Factory implementation or state is mutated.",
+    "A kit is shown usable only when exact kit bytes, HANDOFF_LOCATOR hash and PASS_AI_KIT_FACTORY_V1 evidence agree.",
+    "Generated human OneDrive links use /?id=<guid>&cid=<cid> and never /shared?."
+  ],
+  "requiredEvidence": [
+    "Local fixture reconstructs two current courses and exactly one Factory-PASS kit DDHC_1789.",
+    "DDHC_1789 exact kit SHA-256 remains bfc0114bf8892dd2bbb92493fffd7d782f68deb153b9500b64154a1f33c44574.",
+    "Generated views contain no /shared? URL."
+  ],
+  "nonGoals": [
+    "new kit registry authority",
+    "PASSAGE reopening",
+    "Factory program reopening",
+    "product promotion",
+    "runtime modification"
+  ],
+  "execution": {
+    "branch": "ops/refresh-onedrive-catalogue",
+    "humanGateRequired": false
+  },
+  "rollback": "Revert tools/refresh_onedrive_catalogue.py and work-packages/GOV-WP-042.json. OneDrive derived views can be regenerated from prior logic or restored independently."
+}
