@@ -1,0 +1,152 @@
+name: PASSAGE V6 release hardening
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/passage-v6-release-hardening-ci.yml'
+      - 'contracts/learnit-kit-v6.schema.json'
+      - 'authoring/v6/**'
+      - 'authoring/factory/_reliability_v1.py'
+      - 'authoring/factory/_release_set_v1.py'
+      - 'authoring/factory/reliability.py'
+      - 'authoring/factory/reliability_v6.py'
+      - 'authoring/factory/release_set.py'
+      - 'authoring/factory/release_set_v6.py'
+      - 'authoring/factory/v6_gate.py'
+      - 'authoring/factory/tests/test_v6_release_hardening.py'
+      - 'authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V6.md'
+      - 'authoring/skills/SKILL_ATLAS_INDEPENDENT_KIT_REVIEW_V6.md'
+      - 'work-packages/ATLAS-WP-064.json'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-v6:
+    name: PASSAGE V6 / exact-head gate
+    runs-on: ubuntu-latest
+    env:
+      IMPLEMENTATION_COMMIT: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bind exact pull-request head
+        run: test "$IMPLEMENTATION_COMMIT" = "$(git rev-parse HEAD)"
+      - name: Verify immutable V6 and wrapped V1 identities
+        run: |
+          test "$(git hash-object contracts/learnit-kit-v6.schema.json)" = 0b61612ce711a5a6bd0e278385204188f130818b
+          test "$(git hash-object authoring/v6/validate_kit.py)" = 1650d550810c50b5fdf64d14cbff42c9c94c4202
+          test "$(git hash-object authoring/v6/_compat/v4_validate_kit.py)" = 4ef561dfc1137aa436b4d8c8820db421ab6e1861
+          test "$(git hash-object authoring/v6/_compat/v5_validate_kit.py)" = 0b93925eb22058878f13bc86554126846d2923d1
+          test "$(git hash-object authoring/factory/_reliability_v1.py)" = 285c037b5e430ca2f75d61583d9d22c23073f7f7
+          test "$(git hash-object authoring/factory/_release_set_v1.py)" = 10be3727243e8dc66d10c1a11731c7f61ed2c8e8
+      - name: Install validator dependency
+        run: python -m pip install --disable-pip-version-check jsonschema
+      - name: Compile bounded V6 path
+        run: |
+          python -m py_compile \
+            authoring/v6/validator_runtime.py \
+            authoring/v6/validate_kit.py \
+            authoring/v6/_compat/v4_validate_kit.py \
+            authoring/v6/_compat/v5_validate_kit.py \
+            authoring/factory/reliability.py \
+            authoring/factory/reliability_v6.py \
+            authoring/factory/release_set.py \
+            authoring/factory/release_set_v6.py \
+            authoring/factory/v6_gate.py \
+            authoring/factory/tests/test_v6_release_hardening.py
+      - name: Run V6 adversarial matrix and end-to-end release proof
+        run: python -m unittest authoring.factory.tests.test_v6_release_hardening -v
+      - name: Run mandatory T2 adversarial closure
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import tempfile
+          from pathlib import Path
+          from authoring.factory import release_set_v6, reliability_v6, v6_gate
+          from authoring.factory.tests.test_v6_release_hardening import Fixture, make_kit
+
+          commit = os.environ["IMPLEMENTATION_COMMIT"]
+          old_v1_authority = "c102ca81f3b144bea1140860ef633a0d01987d59"
+
+          # Structurally valid but semantically wrong material answer: HOLD and non-releasable.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(), review_kwargs={"answer_hold": True})
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert "DIMENSION_HOLD:answerCorrectness" in gate["reasons"]
+              run = f.run_value(commit)
+              assert reliability_v6.decision_class(reliability_v6.verify_run(run)) == "HOLD"
+              try:
+                  release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
+              except release_set_v6.V6ReleaseSetInputError:
+                  pass
+              else:
+                  raise AssertionError("semantic HOLD became releasable")
+
+          # Stale independent review after learner-brief mutation must be detected exactly.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit())
+              brief = json.loads(f.brief.read_text(encoding="utf-8"))
+              brief["goal"] += " — mutation post-review"
+              f.brief.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert "REVIEW_TARGET_MISMATCH:briefSha256" in gate["reasons"]
+
+          # Productive can remain schema-valid while its semantic scoring is held.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(), review_kwargs={"productive_check": "hold"})
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert "V6_CHECK_HOLD:productiveCorrectness" in gate["reasons"]
+              assert "PRODUCTIVE_CORRECTNESS_REQUIRED" in gate["reasons"]
+
+          # Constructed HOLD cannot be converted into a FactoryRun/release PASS.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(constructed_first=True))
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_HOLD
+              assert v6_gate.CONSTRUCTED_REASON in gate["reasons"]
+              run = f.run_value(commit)
+              assert reliability_v6.decision_class(reliability_v6.verify_run(run)) == "HOLD"
+              try:
+                  release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
+              except release_set_v6.V6ReleaseSetInputError:
+                  pass
+              else:
+                  raise AssertionError("constructed HOLD became releasable")
+
+          # Non-visual no-media is explicitly not_applicable and remains releasable.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit())
+              gate = f.gate(commit)
+              assert gate["verdict"] == v6_gate.FACTORY_PASS
+              assert gate["semanticReview"]["v6Checks"]["visualAdequacy"] == "not_applicable"
+
+          # Adequate embedded visual reaches the real release path and binds exact current authority.
+          with tempfile.TemporaryDirectory() as td:
+              f = Fixture(Path(td), make_kit(media=True), visual_required=True, review_kwargs={"visual_check": "pass"})
+              assert f.gate(commit)["verdict"] == v6_gate.FACTORY_PASS
+              f.run_value(commit)
+              built = release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
+              verified = release_set_v6.verify_release_archive(f.release)
+              assert built["factoryAuthority"] == commit
+              assert verified["manifest"]["factoryAuthority"] == commit
+              assert built["factoryAuthority"] != old_v1_authority
+          PY
+      - name: Run current-main Factory/reliability/release regressions
+        run: |
+          python -m unittest \
+            authoring.factory.tests.test_ai_kit_factory \
+            authoring.factory.tests.test_factory_reliability \
+            authoring.factory.tests.test_release_set -v
+      - name: Validate repository governance
+        run: python tools/validate_repository.py
