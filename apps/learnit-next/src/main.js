@@ -4,11 +4,17 @@ import { attachAtlasPreviewSurface } from './integration/atlas/surface.js';
 import { createAtlasCompatibleImportService } from './integration/atlas/import_adapter.js';
 import { createImportService } from './core/import.js';
 import { createLibraryService } from './core/library.js';
+import { createLearningLoopProjectionAdapter } from './integration/learning_projection.js';
 import {
   createLearningLoopV2DomainAdapters,
   createProgressService,
 } from './core/progress.js';
 import { createSessionService } from './core/session.js';
+import {
+  projectActivityPresentation,
+  projectFeedbackMedia,
+  projectPostAnswerFeedback,
+} from './integration/atlas/activity_projection.js';
 import * as objectiveProgressDomain from './core/objective_progress.js';
 import * as learningRecommendationDomain from './core/learning_recommendation.js';
 import { createIndexedDbStorage } from './adapters/indexeddb.js';
@@ -84,8 +90,10 @@ function createObjectiveUiAdapter(moduleValue) {
       );
       return moduleValue.renderObjectiveProgressPanel(
         {
+          context: input.context ?? 'library',
           objectives: input.objectiveProgress ?? [],
           recommendation: presentRecommendation(input.recommendation ?? null),
+          sessionDelta: input.sessionDelta ?? null,
         },
         {
           documentRef: input.document ?? globalThis.document,
@@ -127,12 +135,99 @@ export function createLearnitRuntime(
   const storage = assertStoragePort(storageAdapter);
   const resolvedIntegrations = resolveIntegrations(integrations);
   const progress = createProgressService(storage, resolvedIntegrations);
-  const library = createLibraryService(storage, progress);
+  const library = createLibraryService(storage);
+  const learningProjection = createLearningLoopProjectionAdapter(storage, progress);
   const imports = createAtlasCompatibleImportService(
     storage,
     createImportService(storage),
   );
   const sessions = createSessionService(storage, progress);
+
+  async function projectLearnerActivity(activity, courseInstallId) {
+    if (activity == null) return null;
+    const courseRecord = await library.getCourse(courseInstallId);
+    if (!courseRecord) throw new Error(`Unknown courseInstallId ${courseInstallId}`);
+    return Object.freeze({
+      activityRevisionId: activity.activityRevisionId,
+      presentation: projectActivityPresentation(activity, {
+        assets: courseRecord.packageAssets ?? [],
+        contract: courseRecord.contract ?? null,
+      }),
+    });
+  }
+
+  async function projectLearnerSession(value) {
+    if (value == null) return null;
+    return Object.freeze({
+      ...value,
+      currentActivity: await projectLearnerActivity(
+        value.currentActivity,
+        value.courseInstallId,
+      ),
+    });
+  }
+
+  async function projectLearnerAnswer(
+    value,
+    answeredActivityRevisionId,
+  ) {
+    const courseRecord =
+      await library.getCourse(value.courseInstallId);
+
+    if (!courseRecord) {
+      throw new Error(
+        'Unknown courseInstallId ' + value.courseInstallId,
+      );
+    }
+
+    const answeredActivity =
+      courseRecord.course.activities.find(
+        activity =>
+          activity.activityRevisionId
+          === answeredActivityRevisionId,
+      );
+
+    const feedbackMedia =
+      answeredActivity
+      && courseRecord.contract === 'learnit.kit.v5'
+        ? projectFeedbackMedia(
+          answeredActivity,
+          {
+            assets: courseRecord.packageAssets ?? [],
+            contract: courseRecord.contract,
+            transitionAuthorized: true,
+          },
+        )
+        : Object.freeze([]);
+
+    const postAnswerFeedback =
+      answeredActivity
+      && value.scored === true
+      && courseRecord.contract === 'learnit.kit.v5'
+        ? projectPostAnswerFeedback(
+          answeredActivity,
+          value.answer,
+          {
+            contract: courseRecord.contract,
+            transitionAuthorized: true,
+          },
+        )
+        : null;
+
+    return Object.freeze({
+      ...value,
+      ...(feedbackMedia.length
+        ? { feedbackMedia }
+        : {}),
+      ...(postAnswerFeedback
+        ? { postAnswerFeedback }
+        : {}),
+      nextActivity: await projectLearnerActivity(
+        value.nextActivity,
+        value.courseInstallId,
+      ),
+    });
+  }
 
   const runtime = {
     contractVersion: CONTRACT_VERSION,
@@ -141,32 +236,50 @@ export function createLearnitRuntime(
     importPackage: (payload) => imports.importPackage(payload),
     async listCourses() {
       const courses = await library.listCourses();
-      if (!progress.learningLoopV2Enabled) return courses;
-      const enriched = [];
+      const projected = [];
       for (const course of courses) {
-        const courseRecord = await library.getCourse(course.courseInstallId);
-        if (!courseRecord) continue;
-        const courseProgress = await progress.getCourseProgress(
-          course.courseInstallId,
-          courseRecord.course,
-        );
-        enriched.push({
-          ...course,
-          objectives: structuredClone(courseRecord.course.objectives ?? []),
-          progress: {
-            ...course.progress,
-            needsReview: courseProgress.needsReview,
-            objectives: courseProgress.objectives ?? [],
-            recommendation: courseProgress.recommendation ?? null,
-          },
-        });
+        try {
+          const learning = await learningProjection.projectCourse(course.courseInstallId);
+          projected.push({
+            ...course,
+            ...learning,
+            learningProjectionAvailable: true,
+          });
+        } catch {
+          projected.push({
+            ...course,
+            objectives: [],
+            progress: null,
+            learningProjectionAvailable: false,
+          });
+        }
       }
-      return enriched;
+      return projected;
+    },
+    async searchCourses(query) {
+      const courses = await library.searchCourses(query);
+      const projected = [];
+      for (const course of courses) {
+        try {
+          const learning = await learningProjection.projectCourse(course.courseInstallId);
+          projected.push({...course, ...learning, learningProjectionAvailable: true});
+        } catch {
+          projected.push({...course, objectives: [], progress: null, learningProjectionAvailable: false});
+        }
+      }
+      return projected;
     },
     setCourseDisplayLabel: (courseInstallId, label) => library.setDisplayLabel(courseInstallId, label),
-    startCourse: (courseInstallId) => sessions.startCourse(courseInstallId),
-    startReviewQueue: (courseInstallId) => sessions.startReviewQueue(courseInstallId),
-    answer: (activityRevisionId, answer) => sessions.answer(activityRevisionId, answer),
+    startCourse: async (courseInstallId) => projectLearnerSession(await sessions.startCourse(courseInstallId)),
+    startReviewQueue: async (courseInstallId) => projectLearnerSession(await sessions.startReviewQueue(courseInstallId)),
+    answer: async (activityRevisionId, answer) =>
+      projectLearnerAnswer(
+        await sessions.answer(
+          activityRevisionId,
+          answer,
+        ),
+        activityRevisionId,
+      ),
     async getProgress(courseInstallId) {
       const courseRecord = await library.getCourse(courseInstallId);
       if (!courseRecord) throw new Error(`Unknown courseInstallId ${courseInstallId}`);
@@ -221,6 +334,13 @@ export function createLearnitRuntime(
         packageLineageId: courseRecord.packageLineageId,
         packageRevisionId: courseRecord.packageRevisionId,
         packageDigest,
+        ...(courseRecord.contract === 'learnit.kit.v5'
+          ? {
+            contract: courseRecord.contract,
+            packageAssets:
+              structuredClone(courseRecord.packageAssets ?? []),
+          }
+          : {}),
         course: structuredClone(courseRecord.course),
       });
     },
@@ -231,8 +351,8 @@ export function createLearnitRuntime(
       atlasM1: atlasRuntime.status(),
     }),
 
-    resumeActiveCourse: () => sessions.resumeActiveCourse(),
-    getSession: () => sessions.getSession(),
+    resumeActiveCourse: async () => projectLearnerSession(await sessions.resumeActiveCourse()),
+    getSession: async () => projectLearnerSession(await sessions.getSession()),
   };
 
   return Object.freeze(runtime);
@@ -492,7 +612,7 @@ function renderAtlasR13Progress(progress, objectiveStates, target, sessionProjec
 async function enhanceAtlasR13VisualProgress(root, runtime) {
   const cards = [
     ...root.querySelectorAll(
-      '[data-atlas-course-install-id], .course-card[data-course-install-id]',
+      '[data-atlas-course-install-id].atlas-course-card',
     ),
   ];
 
@@ -674,6 +794,35 @@ function renderAtlasR13Fixture(container, states, priorityIndex = 0) {
   return container;
 }
 
+function renderObjectiveR15Fixture(container) {
+  const states = ['not-started', 'training', 'review-needed', 'ready-for-validation', 'validated-recently'];
+  const objectives = states.map((status, index) => ({
+    objectiveId: `qualification-objective-${index + 1}`,
+    trainingAttempts: status === 'not-started' ? 0 : 1,
+    latestTrainingCorrect: status === 'not-started' ? null : true,
+    needsReview: status === 'review-needed',
+    validationAttempts: status === 'validated-recently' ? 1 : 0,
+    latestValidationCorrect: status === 'validated-recently' ? true : null,
+    status,
+  }));
+  const labelsById = Object.fromEntries(objectives.map((item, index) => [
+    item.objectiveId,
+    `Objectif qualification ${index + 1}`,
+  ]));
+  const rendered = objectiveUiModule.renderObjectiveProgressPanel({
+    context: 'library',
+    objectives,
+    recommendation: { objectiveId: 'qualification-objective-3' },
+  }, {
+    documentRef: document,
+    labelsById,
+    idPrefix: 'qualification-five-states',
+  });
+  container.replaceChildren(rendered);
+  container.setAttribute('data-r15-five-state-fixture', 'true');
+  return container;
+}
+
 async function boot() {
   const root = document.getElementById('app');
   if (!root) throw new Error('Missing #app mount point');
@@ -713,6 +862,7 @@ async function boot() {
     resumeActiveCourse: runtime.resumeActiveCourse,
     getSession: runtime.getSession,
     renderAtlasR13Fixture,
+    renderObjectiveR15Fixture,
   });
 }
 

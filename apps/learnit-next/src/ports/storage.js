@@ -1,11 +1,13 @@
 export const NEXT_LOCAL_STORAGE_PREFIX = 'learnit.next.v1.';
 export const NEXT_UI_STORAGE_KEY = `${NEXT_LOCAL_STORAGE_PREFIX}ui`;
 export const NEXT_INDEXED_DB_NAME = 'learnit_next_v1';
-export const NEXT_INDEXED_DB_VERSION = 2;
+export const NEXT_INDEXED_DB_VERSION = 3;
+export const NEXT_LIBRARY_METADATA_STORE = 'libraryMetadata';
 export const NEXT_OBJECTIVE_PROGRESS_STORE = 'objectiveProgress';
 export const NEXT_STORES = Object.freeze([
   'packages',
   'courses',
+  NEXT_LIBRARY_METADATA_STORE,
   'progress',
   'meta',
   NEXT_OBJECTIVE_PROGRESS_STORE,
