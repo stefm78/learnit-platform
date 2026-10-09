@@ -6,51 +6,49 @@
     "sourceManifestBlobSha1": "e865e79b43bd4dee52ada5f79b598b3880d522e3"
   },
   "adversarialTests": [
-    "Reject any mutation of the 25 accepted e04 learner blobs.",
-    "Reject any frozen platform/UI failure or error beyond the exact two classified historical mismatches and one historical strict-lane skip.",
-    "Reject any R15 replacement proof that does not execute exact objective_progress.js bytes.",
-    "Reject any candidate artifact differing from 583764 bytes or the frozen SHA-256.",
-    "Reject any required repository check failure, main/control-plane drift, synthetic/post-merge proof failure, or V6/factory contamination."
+    "Reject any learner blob change.",
+    "Reject token-only repair that does not honor LEARNIT_REPO_ROOT for RUNNER_TEMP execution.",
+    "Reject direct-wrapper-only synthetic proof that bypasses central materialization/preflight.",
+    "Reject central workflow mutation instead of wrapper compatibility repair.",
+    "Reject any candidate artifact mismatch or current-main/control-plane drift.",
+    "Reject merge if any required check or dedicated proof is not PASS."
   ],
   "authority": {
-    "authorizationSource": "USER_EXPLICIT_RESEARCH_AUDIT_SOLVE_BUILD_CREATE_CHALLENGE_TWICE_THEN_EXECUTE_CHAT_2026-10-09",
-    "learnitJob": "PASSAGE_LEARNER_DELTA_INTEGRATION_R6",
-    "learnitJobRevision": 6,
+    "authorizationSource": "USER_EXPLICIT_REPEAT_RESEARCH_AUDIT_SOLVE_BUILD_CHALLENGE_AND_EXECUTE_2026-10-09",
+    "learnitJob": "PASSAGE_LEARNER_DELTA_INTEGRATION_R7",
+    "learnitJobRevision": 7,
     "repository": "stefm78/learnit-platform"
   },
   "baseline": {
-    "baseCommit": "5e4065dd46618f9b2a1010b9789b1833de39a9e3",
-    "baseTree": "519ad3171ea8dceddba19720c0fa1f425c7f8804"
+    "baseCommit": "26cbb8c98b3576a5e02a18f5d019beee4c054483",
+    "baseTree": "8fb6327fe288b1029bd3811f231cbffad101c24b"
   },
-  "changeClass": "bounded-learner-integration-recovery",
+  "changeClass": "bounded-post-merge-compatibility-recovery",
   "compatibility": {
-    "centralLearnitNextWorkflowBlobSha1AtBase": "e0d6140eaaa998416c41b4a7b56c377148fb130d",
-    "centralLearnitNextWorkflowChanged": false,
-    "currentRunnerBlobSha1AtBase": "b45b9d8726fe2c78880327ecdd54c8695ad315cb",
-    "historicalWaveGateCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
-    "historicalWaveGateSemanticAuthority": "PROG-WP-001",
-    "legacyRunnerCopyPath": "apps/learnit-next/dev/run_checks_legacy.py",
-    "priorR5Candidate": "37031023f2e830a83d8881230fc980adcf9c118c",
-    "priorR5WorkflowBlobSha1": "396adf69a98ea9adfe21e235f41c6858fbb25f5b",
-    "priorR5WrapperBlobSha1": "198fe71ee3e7075dc341ab46898046231847add7",
-    "reason": "R6 preserves the exact accepted learner and R5 integration architecture. Its sole causal repair is the R15 proof harness: copy exact objective_progress.js bytes into a temporary .mjs sandbox before executing the current-priority proof, eliminating the R5 /tmp relative-module-resolution defect."
+    "centralLearnitNextWorkflowBlobSha1": "e0d6140eaaa998416c41b4a7b56c377148fb130d",
+    "contractEvidenceBase": "58e39e8917006058fdf177a5daa37535f5e2c78d",
+    "correctiveCommonBaseline": "6dae2f4f754431ed97c535a3a78fa71067bcd1de",
+    "legacyRunnerBlobSha1": "b45b9d8726fe2c78880327ecdd54c8695ad315cb",
+    "r6Failure": "Central workflow copied run_checks.py to RUNNER_TEMP, then rejected missing CONTRACT_BASE/CORRECTIVE_BASE before execution; R6 wrapper also did not honor LEARNIT_REPO_ROOT, which would have been the next incompatibility after marker repair.",
+    "r6RunnerBlobSha1AtBase": "979c0fb20d253d73f6dbb32cf36be452472bd27d",
+    "requiredRootBinding": "LEARNIT_REPO_ROOT",
+    "requiredRunnerMarkers": [
+      "CONTRACT_BASE",
+      "CORRECTIVE_BASE",
+      "branch_current_head_equals_requested_target"
+    ],
+    "waveABase": "8ebafee48cc5277b92776982639a0146ae7e76d0"
   },
   "id": "PASSAGE-WP-001",
-  "independentReview": [
-    "Repository governance validates the work-package schema.",
-    "PR scope validates exactly the 29 authorized PASSAGE-WP-001 paths.",
-    "Bounded PROVE_OR_REFUTE requires full frozen-suite reconciliation, exact-source R15 replacement proof, accepted artifact identity, synthetic merge proof, artifact readback, fresh pre-merge CAS, and real post-merge closure."
-  ],
   "invariants": [
-    "All 25 learner paths retain exact accepted e04 Git blob identities.",
-    "The accepted artifact remains exactly 583764 bytes with the frozen SHA-256.",
-    "The central Learn-it Next workflow remains byte-identical to base M.",
-    "run_checks_legacy.py remains byte-identical to the base-M runner and all non-PASSAGE behavior delegates to it.",
-    "The R6 wrapper recognizes only exact PASSAGE post-merge shape and exact R6 work-package authority.",
-    "Frozen platform and UI files execute whole; only the exact classified historical mismatches may remain.",
-    "R15 current-priority replacement proof executes a byte-identical temporary .mjs copy of exact objective_progress.js.",
-    "No V6/factory authority, contract, governor state, release, deployment or PROGRAM_STATELOG path changes.",
-    "GitHub main remains the sole executable product authority."
+    "All 25 accepted learner paths remain exact e04 Git blob identities on HEAD.",
+    "Accepted learner artifact remains exactly 583764 bytes with the frozen SHA-256.",
+    "Central .github/workflows/learnit-next-ci.yml remains byte-identical to R6 main.",
+    "run_checks_legacy.py remains byte-identical to the R6-main/base-M legacy runner.",
+    "R7 changes exactly three support/control paths and no learner path.",
+    "R7 runner exposes the three exact central compatibility markers and honors LEARNIT_REPO_ROOT when materialized outside the repository.",
+    "Synthetic proof reproduces central runner materialization/preflight and exact wave-a-ci post-merge invocation before merge.",
+    "No V6/factory authority, contract, release/tag, deployment/runtime, PROGRAM_STATELOG or governor mutation."
   ],
   "learnerBlobMap": {
     "apps/learnit-next/source_manifest.json": "e865e79b43bd4dee52ada5f79b598b3880d522e3",
@@ -80,102 +78,43 @@
     "apps/learnit-next/tests/dev_learning_loop_v2_ui.py": "2bca9c8774b98ebeb397f33df7c4a9ebaf5d499d"
   },
   "nonGoals": [
-    "Changing .github/workflows/learnit-next-ci.yml.",
-    "Editing either frozen learner regression file.",
-    "Changing V6 contract/factory/pointers/validators.",
+    "Changing learner semantics or bytes.",
+    "Changing the central Learn-it Next workflow.",
+    "Changing V6/factory/contracts.",
     "Publishing v2.0.0-passage.1.",
-    "Reopening accepted learner semantics.",
     "Changing PROGRAM_STATELOG or PASSAGE governor closeout."
   ],
-  "oracleReconciliation": {
-    "platform": {
-      "execution": "FULL_FROZEN_FILE_WITH_STRICT_UNSET",
-      "expectedFailure": "PlatformWaveATests.test_additive_storage_contract",
-      "expectedFailureCause": "historical NEXT_INDEXED_DB_VERSION = 2 assertion versus accepted v3 storage",
-      "expectedSkip": "PlatformWaveATests.test_exact_platform_branch_delta",
-      "replacementProof": [
-        "NEXT_INDEXED_DB_VERSION = 3",
-        "libraryMetadata store",
-        "objectiveProgress store",
-        "non-destructive IndexedDB migration",
-        "objectiveProgress compound key"
-      ]
-    },
-    "ui": {
-      "execution": "FULL_FROZEN_FILE",
-      "expectedFailure": "06 canonical R15 panel uses authored reservoir and current priority only / legacy label-order assertion",
-      "expectedFailureCause": "historical literal/order expectation for Priorité Learn-it not present in accepted R15 contract",
-      "expectedNestedPasses": 6,
-      "expectedNestedTests": 7,
-      "replacementProof": [
-        "exact objective_progress.js copied byte-for-byte to objective_progress.mjs",
-        "data-objective-progress-r15=true",
-        "recommended objective marked priority",
-        "priority context present",
-        "current status and objective label exposed",
-        "legacy Priorité Learn-it literal absent"
-      ]
-    }
-  },
-  "purpose": "Close the R5 HOLD by repairing only the proof-harness module resolution, then replay the complete R5 qualification closure before any merge.",
+  "purpose": "Close the R6 HOLD by repairing only the central Learn-it Next runner compatibility surface on top of the already-merged accepted learner.",
   "recovery": {
-    "materialFailures": [
-      "R5 dedicated proof failed at the R15 replacement harness because a temporary r15.mjs resolved ./apps/learnit-next/src/ui/objective_progress.js under /tmp."
-    ],
-    "priorAttestationSha256": "a2158d08e0a1c14b0dd6d915a308de6511c32304181cf56cd05977ec099bb429",
-    "priorCandidate": "37031023f2e830a83d8881230fc980adcf9c118c",
-    "priorResultSha256": "54d67278086313ef8c3ec45e23ea484100893621fc7297b1f749cf48bb5b885c",
-    "priorTerminal": "HOLD_PASSAGE_LEARNER_DELTA_INTEGRATION_R5"
+    "materialFailure": "MATERIAL_POST_MERGE_LEARNIT_NEXT_COMPATIBILITY_PREFLIGHT_FAILURE",
+    "priorAttestationSha256": "6183a8df33063876391376c5ac8750bc8a5c12a92273f3c9248c076174566ade",
+    "priorMain": "26cbb8c98b3576a5e02a18f5d019beee4c054483",
+    "priorResultSha256": "3069a7c931509756fafd367cc342ec11db34eeffd2ec9cfc09e98e2b030ec345",
+    "priorTerminal": "HOLD_PASSAGE_LEARNER_DELTA_INTEGRATION_R6"
   },
   "requiredEvidence": [
-    "Fresh main equals exact M before candidate creation and immediately before merge.",
-    "Candidate has sole parent exact M and exactly the 29 allowed paths.",
-    "Every learner path blob equals the frozen e04 blob identity.",
-    "run_checks_legacy.py equals base-M run_checks.py and central workflow remains exact base-M identity.",
-    "Repository governance, validate-repository, PR scope and gate pass on the exact candidate.",
-    "Dedicated PASSAGE CI executes both frozen regression files whole and admits no unknown failure/error.",
-    "Dedicated PASSAGE CI directly proves accepted v3 storage/migration and R15 current-priority semantics using exact copied source bytes.",
-    "Dedicated PASSAGE CI proves two deterministic builds equal the accepted artifact and synthetic post-merge replay returns PASS_PASSAGE_POST_MERGE.",
-    "Workflow artifact proof JSON and HTML are independently read back and verified.",
-    "Actual merge uses expected-head CAS; post-merge dedicated PASSAGE CI and Learn-it Next CI both pass.",
-    "Post-merge main keeps all learner blobs exact and V6/factory authority unchanged."
+    "Fresh main equals exact R6 merge before candidate creation and immediately before merge.",
+    "Candidate sole parent is exact R6 main and diff is exactly the three allowed paths.",
+    "All 25 learner blobs remain exact accepted e04 identities; accepted artifact double-build remains exact.",
+    "Central workflow and legacy runner are byte-identical to R6 main.",
+    "R7 wrapper contains semantic compatibility constants matching central workflow and resolves ROOT from LEARNIT_REPO_ROOT.",
+    "Dedicated PASSAGE R7 CI synthetic merge reproduces central preflight, external runner materialization and exact central post-merge invocation, returning PASS_PASSAGE_POST_MERGE.",
+    "Repository governance, validate-repository, PR scope and gate pass on exact candidate.",
+    "Actual post-merge PASSAGE CI and actual central Learn-it Next CI both pass on the real merge SHA."
   ],
   "riskClass": "moderate",
-  "rollback": "Revert the single R6 merge. V6/factory authority remains otherwise unchanged.",
+  "rollback": "Revert the single R7 merge; accepted learner bytes are otherwise untouched.",
   "schemaVersion": 1,
   "scope": {
     "allowedPaths": [
       ".github/workflows/passage-learner-integration-ci.yml",
       "apps/learnit-next/dev/run_checks.py",
-      "apps/learnit-next/dev/run_checks_legacy.py",
-      "apps/learnit-next/source_manifest.json",
-      "apps/learnit-next/src/adapters/indexeddb.js",
-      "apps/learnit-next/src/atlas.css",
-      "apps/learnit-next/src/core/activity_semantics.js",
-      "apps/learnit-next/src/core/contract.js",
-      "apps/learnit-next/src/core/import.js",
-      "apps/learnit-next/src/core/library.js",
-      "apps/learnit-next/src/core/progress.js",
-      "apps/learnit-next/src/core/session.js",
-      "apps/learnit-next/src/integration/atlas/activity_projection.js",
-      "apps/learnit-next/src/integration/atlas/import_adapter.js",
-      "apps/learnit-next/src/integration/atlas/session.js",
-      "apps/learnit-next/src/integration/atlas/surface.js",
-      "apps/learnit-next/src/integration/learning_projection.js",
-      "apps/learnit-next/src/main.js",
-      "apps/learnit-next/src/ports/learning_projection.js",
-      "apps/learnit-next/src/ports/storage.js",
-      "apps/learnit-next/src/styles.css",
-      "apps/learnit-next/src/ui/activity_presenters.js",
-      "apps/learnit-next/src/ui/media.js",
-      "apps/learnit-next/src/ui/navigation.js",
-      "apps/learnit-next/src/ui/objective_progress.js",
-      "apps/learnit-next/src/ui/render.js",
-      "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
-      "apps/learnit-next/tests/dev_learning_loop_v2_ui.py",
       "work-packages/PASSAGE-WP-001.json"
     ],
     "forbiddenPaths": [
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/**",
+      "apps/learnit-next/tests/**",
       "authoring/v6/**",
       "authoring/factory/**",
       "contracts/**",
@@ -186,5 +125,5 @@
     ]
   },
   "status": "approved",
-  "title": "PASSAGE accepted learner closure integration recovery R6"
+  "title": "PASSAGE central Learn-it Next compatibility recovery R7"
 }
