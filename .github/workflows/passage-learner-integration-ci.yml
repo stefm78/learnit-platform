@@ -1,0 +1,279 @@
+name: PASSAGE Learner Integration CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/passage-learner-integration-ci.yml'
+      - 'apps/learnit-next/**'
+      - 'work-packages/PASSAGE-WP-001.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/passage-learner-integration-ci.yml'
+      - 'apps/learnit-next/**'
+      - 'work-packages/PASSAGE-WP-001.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: passage-learner-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  exact-passage:
+    name: Exact PASSAGE learner proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Resolve exact target
+        id: target
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT}" == pull_request ]]; then target="${PR_HEAD}"; mode=pr
+          elif [[ "${EVENT}" == push ]]; then target="${PUSH_HEAD}"; mode=push
+          else echo "Unsupported event: ${EVENT}" >&2; exit 2; fi
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]]
+          printf 'target=%s\nmode=%s\n' "${target}" "${mode}" >> "${GITHUB_OUTPUT}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target.outputs.target }}
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Exact source, full oracle reconciliation and artifact proof
+        shell: bash
+        env:
+          MODE: ${{ steps.target.outputs.mode }}
+          TARGET: ${{ steps.target.outputs.target }}
+        run: |
+          set -euo pipefail
+          export PYTHONDONTWRITEBYTECODE=1
+          python - <<'PY'
+          import hashlib, json, os, pathlib, shutil, subprocess, sys, tempfile
+          ROOT=pathlib.Path.cwd(); target=os.environ['TARGET']; mode=os.environ['MODE']
+          wp=json.loads((ROOT/'work-packages/PASSAGE-WP-001.json').read_text(encoding='utf-8'))
+
+          def run(args,cwd=ROOT,check=True,env=None):
+              done=subprocess.run(
+                  args,cwd=cwd,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+                  env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1',**(env or {})},timeout=1800
+              )
+              if check and done.returncode:
+                  raise SystemExit(f"{' '.join(args)} failed:\n{done.stdout}")
+              return done
+          def call(args,cwd=ROOT): return run(args,cwd=cwd,check=True).stdout.strip()
+          def git(*args,cwd=ROOT): return call(['git',*args],cwd=cwd)
+          def require(condition,message):
+              if not condition: raise SystemExit(message)
+
+          require(git('rev-parse','HEAD')==target,'checked-out target differs')
+          authority=wp.get('authority',{})
+          require(
+              wp.get('id')=='PASSAGE-WP-001'
+              and authority.get('learnitJob')=='PASSAGE_LEARNER_DELTA_INTEGRATION_R6'
+              and authority.get('learnitJobRevision')==6,
+              'work-package R6 authority differs'
+          )
+          base=wp['baseline']['baseCommit']; accepted=wp['acceptedLearner']['gitCommit']
+          git('fetch','--force','--no-tags','origin',base); git('fetch','--force','--no-tags','origin',accepted)
+          allowed=set(wp['scope']['allowedPaths']); learner=wp['learnerBlobMap']
+          require(len(learner)==25 and len(allowed)==29,'frozen scope cardinality differs')
+          parents=git('show','-s','--format=%P','HEAD').split()
+          if mode=='pr':
+              require(parents==[base],'candidate parent differs')
+              changed=set(filter(None,git('diff','--name-only',base,target).splitlines()))
+          else:
+              require(len(parents)==2 and parents[0]==base,'post-merge topology differs')
+              changed=set(filter(None,git('diff','--name-only',parents[0],'HEAD').splitlines()))
+          require(changed==allowed,'candidate/post-merge path set differs')
+
+          for path,expected in sorted(learner.items()):
+              require(git('rev-parse',f'HEAD:{path}')==expected,f'learner head blob differs: {path}')
+              require(git('rev-parse',f'{accepted}:{path}')==expected,f'accepted source blob differs: {path}')
+
+          legacy='apps/learnit-next/dev/run_checks_legacy.py'
+          expected_legacy=wp['compatibility']['currentRunnerBlobSha1AtBase']
+          require(git('rev-parse',f'HEAD:{legacy}')==expected_legacy,'legacy runner copy differs')
+          require(git('rev-parse',f'{base}:apps/learnit-next/dev/run_checks.py')==expected_legacy,'base runner identity differs')
+          central=wp['compatibility']['centralLearnitNextWorkflowBlobSha1AtBase']
+          require(
+              git('rev-parse','HEAD:.github/workflows/learnit-next-ci.yml')==central
+              and git('rev-parse',f'{base}:.github/workflows/learnit-next-ci.yml')==central,
+              'central Learn-it Next workflow changed'
+          )
+          for path in sorted(p for p in learner if p.endswith('.js')):
+              call(['node','--check',path])
+
+          platform=ROOT/'apps/learnit-next/tests/dev_learning_loop_v2_platform.py'
+          ui=ROOT/'apps/learnit-next/tests/dev_learning_loop_v2_ui.py'
+          platform_text=platform.read_text(encoding='utf-8'); ui_text=ui.read_text(encoding='utf-8')
+          require("NEXT_INDEXED_DB_VERSION = 2" in platform_text,'platform stale-v2 signature moved')
+          ui_stale="assert.ok(html.indexOf('Objectifs du cours') < html.indexOf('Priorité Learn-it'));"
+          require(ui_stale in ui_text,'UI stale priority-order signature moved')
+
+          p=run([sys.executable,'-B',str(platform)],check=False,env={'DEV_PLATFORM_STRICT':''})
+          po=p.stdout
+          require(p.returncode!=0,'frozen platform suite unexpectedly has no historical mismatch')
+          require(po.count('FAIL:')==1 and 'ERROR:' not in po,'platform suite has unexpected failure/error cardinality')
+          require('FAIL: test_additive_storage_contract' in po,'platform failure is not exact stale storage oracle')
+          require(
+              'test_exact_frozen_learning_api_and_platform_adapter' in po
+              and 'test_explicit_parallel_lane_composition_uses_actual_exports' in po,
+              'platform current tests missing'
+          )
+          require('test_exact_platform_branch_delta' in po and 'skipped' in po,'historical strict lane-topology classification missing')
+          require('NEXT_INDEXED_DB_VERSION = 2' in po,'platform failure no longer proves exact stale v2 expectation')
+
+          u=run([sys.executable,'-B',str(ui)],check=False)
+          uo=u.stdout
+          require(u.returncode!=0,'frozen UI suite unexpectedly has no historical mismatch')
+          require(uo.count('FAIL:')==1 and 'ERROR:' not in uo,'UI suite has unexpected failure/error cardinality')
+          require('FAIL: test_dom_helpers' in uo,'UI failure is not exact DOM helper historical oracle')
+          require(
+              'test_css_accessibility_and_mobile_contract' in uo
+              and 'test_visible_copy_stays_within_product_state_boundary' in uo,
+              'UI current top-level tests missing'
+          )
+          require('"tests": 7' in uo and '"passed": 6' in uo,'UI nested suite cardinality differs')
+          require(
+              '06 canonical R15 panel uses authored reservoir and current priority only' in uo
+              and "assert.ok(html.indexOf('Objectifs du cours') < html.indexOf('Priorité Learn-it'))" in uo,
+              'UI failure no longer matches exact stale order oracle'
+          )
+
+          storage=(ROOT/'apps/learnit-next/src/ports/storage.js').read_text(encoding='utf-8')
+          indexed=(ROOT/'apps/learnit-next/src/adapters/indexeddb.js').read_text(encoding='utf-8')
+          require("NEXT_INDEXED_DB_VERSION = 3" in storage,'accepted IndexedDB v3 contract missing')
+          for token in (
+              "NEXT_LIBRARY_METADATA_STORE = 'libraryMetadata'",
+              "NEXT_OBJECTIVE_PROGRESS_STORE = 'objectiveProgress'",
+          ):
+              require(token in storage,f'accepted storage token missing: {token}')
+          for token in (
+              "database.createObjectStore(NEXT_LIBRARY_METADATA_STORE",
+              "keyPath: ['courseInstallId', 'objectiveId']",
+              'openCursor()',
+          ):
+              require(token in indexed,f'accepted migration token missing: {token}')
+          require('deleteObjectStore' not in indexed,'destructive IndexedDB migration detected')
+
+          # R6 causal fix: use the already-proven frozen-UI test strategy.
+          # Copy the exact accepted module bytes into the temp ESM sandbox, then import locally.
+          objective=ROOT/'apps/learnit-next/src/ui/objective_progress.js'
+          r15=r"""import assert from 'node:assert/strict';
+          import {renderObjectiveProgressPanel} from './objective_progress.mjs';
+          class N { constructor(tag){this.tagName=tag;this.attributes=new Map();this.childNodes=[];this._text='';this.listeners=new Map();}
+            set className(v){this.setAttribute('class',v)} get className(){return this.attributes.get('class')||''}
+            set textContent(v){this._text=String(v);this.childNodes=[]} get textContent(){return this._text+this.childNodes.map(c=>c.textContent).join('')}
+            setAttribute(n,v){this.attributes.set(String(n),String(v))} getAttribute(n){return this.attributes.get(String(n))??null}
+            appendChild(c){this.childNodes.push(c);return c} addEventListener(n,f){this.listeners.set(n,f)}
+            get outerHTML(){const a=[...this.attributes.entries()].map(([n,v])=>` ${n}="${String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}"`).join('');return `<${this.tagName}${a}>${this._text}${this.childNodes.map(c=>c.outerHTML).join('')}</${this.tagName}>`;}}
+          class D {createElement(tag){return new N(tag)}} const documentRef=new D();
+          const obj={objectiveId:'obj-1',trainingAttempts:1,latestTrainingCorrect:true,needsReview:false,validationAttempts:0,latestValidationCorrect:null,status:'training'};
+          const panel=renderObjectiveProgressPanel({context:'library',objectives:[obj],recommendation:{objectiveId:'obj-1',status:'training'}},{documentRef,labelsById:{'obj-1':'Objectif un'}});
+          const html=panel.outerHTML;
+          assert.match(html,/data-objective-progress-r15="true"/); assert.match(html,/Objectifs du cours/);
+          assert.match(html,/data-objective-progress-r15-priority="true"/); assert.match(html,/data-objective-progress-r15-priority-context="true"/);
+          assert.match(html,/En apprentissage/); assert.match(html,/Objectif un/); assert.doesNotMatch(html,/Priorité Learn-it/);
+          console.log(JSON.stringify({result:'PASS',contract:'R15_CURRENT_PRIORITY'}));"""
+          with tempfile.TemporaryDirectory(prefix='passage-r6-r15-') as raw:
+              temp=pathlib.Path(raw)
+              probe_module=temp/'objective_progress.mjs'
+              shutil.copyfile(objective,probe_module)
+              require(probe_module.read_bytes()==objective.read_bytes(),'R15 probe module copy differs from accepted source bytes')
+              script=temp/'r15.mjs'; script.write_text(r15,encoding='utf-8')
+              probe=call(['node','r15.mjs'],cwd=temp)
+              require('"result":"PASS"' in probe and '"contract":"R15_CURRENT_PRIORITY"' in probe,'R15 current-priority probe did not PASS')
+
+          build=ROOT/'apps/learnit-next/build.py'
+          with tempfile.TemporaryDirectory(prefix='passage-r6-build-') as raw:
+              one=pathlib.Path(raw)/'one.html'; two=pathlib.Path(raw)/'two.html'
+              call([sys.executable,'-B',str(build),'--output',str(one)])
+              call([sys.executable,'-B',str(build),'--output',str(two)])
+              a=one.read_bytes(); b=two.read_bytes()
+          require(a==b,'deterministic builds differ')
+          artifact_sha=hashlib.sha256(a).hexdigest(); artifact_bytes=len(a)
+          require(
+              artifact_bytes==int(wp['acceptedLearner']['artifactBytes'])
+              and artifact_sha==wp['acceptedLearner']['artifactSha256'],
+              'accepted artifact identity differs'
+          )
+
+          synthetic=None
+          if mode=='pr':
+              with tempfile.TemporaryDirectory(prefix='passage-r6-merge-') as raw:
+                  tree=pathlib.Path(raw)/'repo'; git('worktree','add','--detach',str(tree),base)
+                  try:
+                      git('config','user.name','PASSAGE CI',cwd=tree)
+                      git('config','user.email','passage-ci@example.invalid',cwd=tree)
+                      git('merge','--no-ff','--no-commit',target,cwd=tree)
+                      git('commit','-m','synthetic PASSAGE R6 merge',cwd=tree)
+                      call(
+                          [sys.executable,'-B','apps/learnit-next/dev/run_checks.py','--strict','--profile','wave-a-ci','--mode','post-merge','--base-ref','8ebafee48cc5277b92776982639a0146ae7e76d0'],
+                          cwd=tree
+                      )
+                      report=json.loads((tree/'apps/learnit-next/.agent-result/run_checks.json').read_text(encoding='utf-8'))
+                      require(
+                          report.get('result')=='PASS' and report.get('verdict')=='PASS_PASSAGE_POST_MERGE',
+                          'synthetic post-merge PASSAGE replay failed'
+                      )
+                      require(
+                          report.get('artifactBytes')==artifact_bytes
+                          and report.get('artifactSha256')==artifact_sha,
+                          'synthetic post-merge artifact differs'
+                      )
+                      synthetic=report
+                  finally:
+                      git('worktree','remove','--force',str(tree))
+
+          result_dir=ROOT/'apps/learnit-next/.agent-result'; result_dir.mkdir(parents=True,exist_ok=True)
+          artifact=result_dir/'passage-r6.html'; artifact.write_bytes(a)
+          proof={
+              'schema':'learnit.passage-learner-integration-proof.v4',
+              'mode':mode,'target':target,'base':base,
+              'changedPathCount':len(changed),'learnerBlobCount':len(learner),
+              'sourceManifestExactAccepted':'PASS','legacyRunnerExactCopy':'PASS',
+              'centralLearnitNextWorkflowUnchanged':'PASS','nodeSyntax':'PASS',
+              'oracleReconciliation':{
+                  'platformFrozenSuite':'EXPECTED_SINGLE_STALE_V2_FAILURE_ONLY',
+                  'platformHistoricalStrictLaneTopology':'EXPECTED_SKIP_NON_APPLICABLE',
+                  'uiFrozenSuite':'EXPECTED_SINGLE_STALE_R15_ORDER_FAILURE_ONLY',
+                  'indexedDbV3Replacement':'PASS',
+                  'r15CurrentPriorityReplacement':'PASS',
+                  'r15ProbeExactSourceCopy':'PASS'
+              },
+              'deterministicBuild':True,'artifactBytes':artifact_bytes,'artifactSha256':artifact_sha,
+              'syntheticPostMerge':synthetic,'verdict':'PASS'
+          }
+          (result_dir/'passage-r6-proof.json').write_text(
+              json.dumps(proof,indent=2,sort_keys=True,ensure_ascii=False)+'\n',encoding='utf-8'
+          )
+          print(json.dumps(proof,sort_keys=True))
+          PY
+
+      - name: Upload PASSAGE proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: passage-learner-r6-${{ steps.target.outputs.target }}
+          path: |
+            apps/learnit-next/.agent-result/passage-r6-proof.json
+            apps/learnit-next/.agent-result/passage-r6.html
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30

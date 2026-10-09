@@ -1,0 +1,190 @@
+{
+  "acceptedLearner": {
+    "artifactBytes": 583764,
+    "artifactSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553",
+    "gitCommit": "e04cf62963faae83e073cde9cffd9d33ae42dc9c",
+    "sourceManifestBlobSha1": "e865e79b43bd4dee52ada5f79b598b3880d522e3"
+  },
+  "adversarialTests": [
+    "Reject any mutation of the 25 accepted e04 learner blobs.",
+    "Reject any frozen platform/UI failure or error beyond the exact two classified historical mismatches and one historical strict-lane skip.",
+    "Reject any R15 replacement proof that does not execute exact objective_progress.js bytes.",
+    "Reject any candidate artifact differing from 583764 bytes or the frozen SHA-256.",
+    "Reject any required repository check failure, main/control-plane drift, synthetic/post-merge proof failure, or V6/factory contamination."
+  ],
+  "authority": {
+    "authorizationSource": "USER_EXPLICIT_RESEARCH_AUDIT_SOLVE_BUILD_CREATE_CHALLENGE_TWICE_THEN_EXECUTE_CHAT_2026-10-09",
+    "learnitJob": "PASSAGE_LEARNER_DELTA_INTEGRATION_R6",
+    "learnitJobRevision": 6,
+    "repository": "stefm78/learnit-platform"
+  },
+  "baseline": {
+    "baseCommit": "5e4065dd46618f9b2a1010b9789b1833de39a9e3",
+    "baseTree": "519ad3171ea8dceddba19720c0fa1f425c7f8804"
+  },
+  "changeClass": "bounded-learner-integration-recovery",
+  "compatibility": {
+    "centralLearnitNextWorkflowBlobSha1AtBase": "e0d6140eaaa998416c41b4a7b56c377148fb130d",
+    "centralLearnitNextWorkflowChanged": false,
+    "currentRunnerBlobSha1AtBase": "b45b9d8726fe2c78880327ecdd54c8695ad315cb",
+    "historicalWaveGateCommit": "58e39e8917006058fdf177a5daa37535f5e2c78d",
+    "historicalWaveGateSemanticAuthority": "PROG-WP-001",
+    "legacyRunnerCopyPath": "apps/learnit-next/dev/run_checks_legacy.py",
+    "priorR5Candidate": "37031023f2e830a83d8881230fc980adcf9c118c",
+    "priorR5WorkflowBlobSha1": "396adf69a98ea9adfe21e235f41c6858fbb25f5b",
+    "priorR5WrapperBlobSha1": "198fe71ee3e7075dc341ab46898046231847add7",
+    "reason": "R6 preserves the exact accepted learner and R5 integration architecture. Its sole causal repair is the R15 proof harness: copy exact objective_progress.js bytes into a temporary .mjs sandbox before executing the current-priority proof, eliminating the R5 /tmp relative-module-resolution defect."
+  },
+  "id": "PASSAGE-WP-001",
+  "independentReview": [
+    "Repository governance validates the work-package schema.",
+    "PR scope validates exactly the 29 authorized PASSAGE-WP-001 paths.",
+    "Bounded PROVE_OR_REFUTE requires full frozen-suite reconciliation, exact-source R15 replacement proof, accepted artifact identity, synthetic merge proof, artifact readback, fresh pre-merge CAS, and real post-merge closure."
+  ],
+  "invariants": [
+    "All 25 learner paths retain exact accepted e04 Git blob identities.",
+    "The accepted artifact remains exactly 583764 bytes with the frozen SHA-256.",
+    "The central Learn-it Next workflow remains byte-identical to base M.",
+    "run_checks_legacy.py remains byte-identical to the base-M runner and all non-PASSAGE behavior delegates to it.",
+    "The R6 wrapper recognizes only exact PASSAGE post-merge shape and exact R6 work-package authority.",
+    "Frozen platform and UI files execute whole; only the exact classified historical mismatches may remain.",
+    "R15 current-priority replacement proof executes a byte-identical temporary .mjs copy of exact objective_progress.js.",
+    "No V6/factory authority, contract, governor state, release, deployment or PROGRAM_STATELOG path changes.",
+    "GitHub main remains the sole executable product authority."
+  ],
+  "learnerBlobMap": {
+    "apps/learnit-next/source_manifest.json": "e865e79b43bd4dee52ada5f79b598b3880d522e3",
+    "apps/learnit-next/src/adapters/indexeddb.js": "8866cc6586a02fd8d75077aa24cf1a92e290e7a1",
+    "apps/learnit-next/src/atlas.css": "336342ba7e33005229f8c6ff121c7093a99a728c",
+    "apps/learnit-next/src/core/activity_semantics.js": "07c4595332419da1da0473a9715f09894620f6bd",
+    "apps/learnit-next/src/core/contract.js": "176a523e81006e9dcb574b2154f564403f64cd3f",
+    "apps/learnit-next/src/core/import.js": "3891c7d464003200d4cee6ce350b400359a1a20b",
+    "apps/learnit-next/src/core/library.js": "495d9897cd8a09113c45c199ac6bd98a28553663",
+    "apps/learnit-next/src/core/progress.js": "257720824ce9d2689ff2f48266592f9fc13750ec",
+    "apps/learnit-next/src/core/session.js": "9909f0712de59211d14211ef1afc27bda87fcbf5",
+    "apps/learnit-next/src/integration/atlas/activity_projection.js": "ee636a5d8f51046bffbc5be3b28b9b4022ced77e",
+    "apps/learnit-next/src/integration/atlas/import_adapter.js": "3d2e0cb6b41e15af29d7224bf13a8596aa19632a",
+    "apps/learnit-next/src/integration/atlas/session.js": "98d8348e98c2068c0cb29f0e4f0a0e0493b00b5d",
+    "apps/learnit-next/src/integration/atlas/surface.js": "de13e588080e83e2ad33261cb4f4a9583fc0ebde",
+    "apps/learnit-next/src/integration/learning_projection.js": "68491a98ee41c2785fd1a4d13f1780b9a85b7956",
+    "apps/learnit-next/src/main.js": "fd8661af470b4e26a4410f70cd621ef54133e7d4",
+    "apps/learnit-next/src/ports/learning_projection.js": "c1387b12bcb89c5796fb9c5dfc62903ebca229bc",
+    "apps/learnit-next/src/ports/storage.js": "aa7cf8a426af0a7167b03d7262e8d850ca432976",
+    "apps/learnit-next/src/styles.css": "b0ef2269a78ebe541000d3cc7a0a1236e7a8473f",
+    "apps/learnit-next/src/ui/activity_presenters.js": "091495c2bae569ec0f995d458ed32ad088a8489e",
+    "apps/learnit-next/src/ui/media.js": "1c84d5da04025cf372e3496fb7d25c088d1a0650",
+    "apps/learnit-next/src/ui/navigation.js": "d78b5ee3324da06a029fe7afa55b46a40c562216",
+    "apps/learnit-next/src/ui/objective_progress.js": "65aaa74130cd81f2d24c88a40713613ab5f9d9ad",
+    "apps/learnit-next/src/ui/render.js": "250c5be2cc25c2d22fd74e0a2996166d2009228f",
+    "apps/learnit-next/tests/dev_learning_loop_v2_platform.py": "b4d84da9a7aba98c205953138895c554e9884a9e",
+    "apps/learnit-next/tests/dev_learning_loop_v2_ui.py": "2bca9c8774b98ebeb397f33df7c4a9ebaf5d499d"
+  },
+  "nonGoals": [
+    "Changing .github/workflows/learnit-next-ci.yml.",
+    "Editing either frozen learner regression file.",
+    "Changing V6 contract/factory/pointers/validators.",
+    "Publishing v2.0.0-passage.1.",
+    "Reopening accepted learner semantics.",
+    "Changing PROGRAM_STATELOG or PASSAGE governor closeout."
+  ],
+  "oracleReconciliation": {
+    "platform": {
+      "execution": "FULL_FROZEN_FILE_WITH_STRICT_UNSET",
+      "expectedFailure": "PlatformWaveATests.test_additive_storage_contract",
+      "expectedFailureCause": "historical NEXT_INDEXED_DB_VERSION = 2 assertion versus accepted v3 storage",
+      "expectedSkip": "PlatformWaveATests.test_exact_platform_branch_delta",
+      "replacementProof": [
+        "NEXT_INDEXED_DB_VERSION = 3",
+        "libraryMetadata store",
+        "objectiveProgress store",
+        "non-destructive IndexedDB migration",
+        "objectiveProgress compound key"
+      ]
+    },
+    "ui": {
+      "execution": "FULL_FROZEN_FILE",
+      "expectedFailure": "06 canonical R15 panel uses authored reservoir and current priority only / legacy label-order assertion",
+      "expectedFailureCause": "historical literal/order expectation for Priorité Learn-it not present in accepted R15 contract",
+      "expectedNestedPasses": 6,
+      "expectedNestedTests": 7,
+      "replacementProof": [
+        "exact objective_progress.js copied byte-for-byte to objective_progress.mjs",
+        "data-objective-progress-r15=true",
+        "recommended objective marked priority",
+        "priority context present",
+        "current status and objective label exposed",
+        "legacy Priorité Learn-it literal absent"
+      ]
+    }
+  },
+  "purpose": "Close the R5 HOLD by repairing only the proof-harness module resolution, then replay the complete R5 qualification closure before any merge.",
+  "recovery": {
+    "materialFailures": [
+      "R5 dedicated proof failed at the R15 replacement harness because a temporary r15.mjs resolved ./apps/learnit-next/src/ui/objective_progress.js under /tmp."
+    ],
+    "priorAttestationSha256": "a2158d08e0a1c14b0dd6d915a308de6511c32304181cf56cd05977ec099bb429",
+    "priorCandidate": "37031023f2e830a83d8881230fc980adcf9c118c",
+    "priorResultSha256": "54d67278086313ef8c3ec45e23ea484100893621fc7297b1f749cf48bb5b885c",
+    "priorTerminal": "HOLD_PASSAGE_LEARNER_DELTA_INTEGRATION_R5"
+  },
+  "requiredEvidence": [
+    "Fresh main equals exact M before candidate creation and immediately before merge.",
+    "Candidate has sole parent exact M and exactly the 29 allowed paths.",
+    "Every learner path blob equals the frozen e04 blob identity.",
+    "run_checks_legacy.py equals base-M run_checks.py and central workflow remains exact base-M identity.",
+    "Repository governance, validate-repository, PR scope and gate pass on the exact candidate.",
+    "Dedicated PASSAGE CI executes both frozen regression files whole and admits no unknown failure/error.",
+    "Dedicated PASSAGE CI directly proves accepted v3 storage/migration and R15 current-priority semantics using exact copied source bytes.",
+    "Dedicated PASSAGE CI proves two deterministic builds equal the accepted artifact and synthetic post-merge replay returns PASS_PASSAGE_POST_MERGE.",
+    "Workflow artifact proof JSON and HTML are independently read back and verified.",
+    "Actual merge uses expected-head CAS; post-merge dedicated PASSAGE CI and Learn-it Next CI both pass.",
+    "Post-merge main keeps all learner blobs exact and V6/factory authority unchanged."
+  ],
+  "riskClass": "moderate",
+  "rollback": "Revert the single R6 merge. V6/factory authority remains otherwise unchanged.",
+  "schemaVersion": 1,
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/passage-learner-integration-ci.yml",
+      "apps/learnit-next/dev/run_checks.py",
+      "apps/learnit-next/dev/run_checks_legacy.py",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/core/library.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/integration/atlas/import_adapter.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/integration/learning_projection.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ports/learning_projection.js",
+      "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/src/ui/navigation.js",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_ui.py",
+      "work-packages/PASSAGE-WP-001.json"
+    ],
+    "forbiddenPaths": [
+      "authoring/v6/**",
+      "authoring/factory/**",
+      "contracts/**",
+      "governance/**",
+      "apps/player/**",
+      "backend/**",
+      ".github/workflows/learnit-next-ci.yml"
+    ]
+  },
+  "status": "approved",
+  "title": "PASSAGE accepted learner closure integration recovery R6"
+}
