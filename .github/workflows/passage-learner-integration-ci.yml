@@ -1,0 +1,191 @@
+name: PASSAGE Learner Integration CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/passage-learner-integration-ci.yml'
+      - 'apps/learnit-next/**'
+      - 'work-packages/PASSAGE-WP-001.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/passage-learner-integration-ci.yml'
+      - 'apps/learnit-next/**'
+      - 'work-packages/PASSAGE-WP-001.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: passage-learner-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  exact-passage:
+    name: Exact PASSAGE learner proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Resolve exact target
+        id: target
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT}" == pull_request ]]; then
+            target="${PR_HEAD}"
+            mode=pr
+          elif [[ "${EVENT}" == push ]]; then
+            target="${PUSH_HEAD}"
+            mode=push
+          else
+            echo "Unsupported event: ${EVENT}" >&2
+            exit 2
+          fi
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]]
+          printf 'target=%s\nmode=%s\n' "${target}" "${mode}" >> "${GITHUB_OUTPUT}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target.outputs.target }}
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Exact source, corrected oracle and artifact proof
+        shell: bash
+        env:
+          MODE: ${{ steps.target.outputs.mode }}
+          TARGET: ${{ steps.target.outputs.target }}
+        run: |
+          set -euo pipefail
+          export PYTHONDONTWRITEBYTECODE=1
+          python - <<'PY'
+          import hashlib, json, os, pathlib, subprocess, sys, tempfile
+
+          ROOT=pathlib.Path.cwd()
+          wp=json.loads((ROOT/'work-packages/PASSAGE-WP-001.json').read_text(encoding='utf-8'))
+          target=os.environ['TARGET']; mode=os.environ['MODE']
+
+          def call(args,cwd=ROOT):
+              done=subprocess.run(args,cwd=cwd,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+                                  env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1'},timeout=1800)
+              if done.returncode:
+                  raise SystemExit(f"{' '.join(args)} failed:\n{done.stdout}")
+              return done.stdout.strip()
+          def git(*args,cwd=ROOT): return call(['git',*args],cwd=cwd)
+
+          if git('rev-parse','HEAD') != target: raise SystemExit('checked-out target differs')
+          authority=wp.get('authority',{})
+          if wp.get('id') != 'PASSAGE-WP-001' or authority.get('learnitJob') != 'PASSAGE_LEARNER_DELTA_INTEGRATION_R4' or authority.get('learnitJobRevision') != 4:
+              raise SystemExit('work-package R4 authority differs')
+
+          base=wp['baseline']['baseCommit']; accepted=wp['acceptedLearner']['gitCommit']
+          git('fetch','--force','--no-tags','origin',base); git('fetch','--force','--no-tags','origin',accepted)
+          git('cat-file','-e',f'{base}^{{commit}}'); git('cat-file','-e',f'{accepted}^{{commit}}')
+          allowed=set(wp['scope']['allowedPaths']); learner=wp['learnerBlobMap']
+          if len(learner) != 25 or len(allowed) != 29: raise SystemExit('frozen scope cardinality differs')
+
+          if mode == 'pr':
+              parents=git('show','-s','--format=%P','HEAD').split()
+              if parents != [base]: raise SystemExit('candidate parent differs')
+              changed={p for p in git('diff','--name-only',base,target).splitlines() if p}
+          else:
+              parents=git('show','-s','--format=%P','HEAD').split()
+              if len(parents) != 2 or parents[0] != base: raise SystemExit('post-merge topology differs')
+              changed={p for p in git('diff','--name-only',parents[0],'HEAD').splitlines() if p}
+          if changed != allowed: raise SystemExit('candidate/post-merge path set differs')
+
+          for path,expected in sorted(learner.items()):
+              if git('rev-parse',f'HEAD:{path}') != expected: raise SystemExit(f'learner head blob differs: {path}')
+              if git('rev-parse',f'{accepted}:{path}') != expected: raise SystemExit(f'accepted source blob differs: {path}')
+
+          legacy='apps/learnit-next/dev/run_checks_legacy.py'; expected_legacy=wp['compatibility']['currentRunnerBlobSha1AtBase']
+          if git('rev-parse',f'HEAD:{legacy}') != expected_legacy: raise SystemExit('legacy runner copy differs')
+          if git('rev-parse',f'{base}:apps/learnit-next/dev/run_checks.py') != expected_legacy: raise SystemExit('base runner identity differs')
+          central=wp['compatibility']['centralLearnitNextWorkflowBlobSha1AtBase']
+          if git('rev-parse','HEAD:.github/workflows/learnit-next-ci.yml') != central or git('rev-parse',f'{base}:.github/workflows/learnit-next-ci.yml') != central:
+              raise SystemExit('central Learn-it Next workflow changed')
+
+          for path in sorted(p for p in learner if p.endswith('.js')): call(['node','--check',path])
+
+          platform=ROOT/'apps/learnit-next/tests/dev_learning_loop_v2_platform.py'
+          ui=ROOT/'apps/learnit-next/tests/dev_learning_loop_v2_ui.py'
+          storage=(ROOT/'apps/learnit-next/src/ports/storage.js').read_text(encoding='utf-8')
+          indexed=(ROOT/'apps/learnit-next/src/adapters/indexeddb.js').read_text(encoding='utf-8')
+          platform_text=platform.read_text(encoding='utf-8')
+          if "NEXT_INDEXED_DB_VERSION = 2" not in platform_text:
+              raise SystemExit('frozen stale oracle signature moved; recovery assumption invalidated')
+          if "NEXT_INDEXED_DB_VERSION = 3" not in storage:
+              raise SystemExit('accepted IndexedDB v3 contract missing')
+          for token in ("NEXT_LIBRARY_METADATA_STORE = 'libraryMetadata'","NEXT_OBJECTIVE_PROGRESS_STORE = 'objectiveProgress'"):
+              if token not in storage: raise SystemExit(f'accepted storage token missing: {token}')
+          for token in ("database.createObjectStore(NEXT_LIBRARY_METADATA_STORE", "keyPath: ['courseInstallId', 'objectiveId']", 'openCursor()'):
+              if token not in indexed: raise SystemExit(f'accepted IndexedDB migration token missing: {token}')
+          if 'deleteObjectStore' in indexed: raise SystemExit('destructive IndexedDB migration detected')
+
+          call([sys.executable,'-B',str(platform),
+                'PlatformWaveATests.test_exact_frozen_learning_api_and_platform_adapter',
+                'PlatformWaveATests.test_explicit_parallel_lane_composition_uses_actual_exports'])
+          call([sys.executable,'-B',str(ui)])
+
+          build=ROOT/'apps/learnit-next/build.py'
+          with tempfile.TemporaryDirectory(prefix='passage-r4-') as raw:
+              one=pathlib.Path(raw)/'one.html'; two=pathlib.Path(raw)/'two.html'
+              call([sys.executable,'-B',str(build),'--output',str(one)])
+              call([sys.executable,'-B',str(build),'--output',str(two)])
+              a=one.read_bytes(); b=two.read_bytes()
+          if a != b: raise SystemExit('deterministic builds differ')
+          artifact_sha=hashlib.sha256(a).hexdigest(); artifact_bytes=len(a)
+          if artifact_bytes != int(wp['acceptedLearner']['artifactBytes']) or artifact_sha != wp['acceptedLearner']['artifactSha256']:
+              raise SystemExit('accepted artifact identity differs')
+
+          synthetic=None
+          if mode == 'pr':
+              with tempfile.TemporaryDirectory(prefix='passage-r4-merge-') as raw:
+                  tree=pathlib.Path(raw)/'repo'; git('worktree','add','--detach',str(tree),base)
+                  try:
+                      git('config','user.name','PASSAGE CI',cwd=tree); git('config','user.email','passage-ci@example.invalid',cwd=tree)
+                      git('merge','--no-ff','--no-commit',target,cwd=tree); git('commit','-m','synthetic PASSAGE R4 merge',cwd=tree)
+                      call([sys.executable,'-B','apps/learnit-next/dev/run_checks.py','--strict','--profile','wave-a-ci','--mode','post-merge','--base-ref','8ebafee48cc5277b92776982639a0146ae7e76d0'],cwd=tree)
+                      report=json.loads((tree/'apps/learnit-next/.agent-result/run_checks.json').read_text(encoding='utf-8'))
+                      if report.get('result') != 'PASS' or report.get('verdict') != 'PASS_PASSAGE_POST_MERGE': raise SystemExit('synthetic post-merge PASSAGE replay failed')
+                      if report.get('artifactBytes') != artifact_bytes or report.get('artifactSha256') != artifact_sha: raise SystemExit('synthetic post-merge artifact differs')
+                      synthetic=report
+                  finally:
+                      git('worktree','remove','--force',str(tree))
+
+          result_dir=ROOT/'apps/learnit-next/.agent-result'; result_dir.mkdir(parents=True,exist_ok=True)
+          artifact=result_dir/'passage-r4.html'; artifact.write_bytes(a)
+          proof={
+              'schema':'learnit.passage-learner-integration-proof.v2','mode':mode,'target':target,'base':base,
+              'changedPathCount':len(changed),'learnerBlobCount':len(learner),'sourceManifestExactAccepted':'PASS',
+              'legacyRunnerExactCopy':'PASS','centralLearnitNextWorkflowUnchanged':'PASS','nodeSyntax':'PASS',
+              'frozenStaleOracleSignaturePreserved':'PASS','platformApplicableRegressionTests':'PASS','uiRegressionTests':'PASS',
+              'correctedIndexedDbV3Oracle':'PASS','deterministicBuild':True,'artifactBytes':artifact_bytes,'artifactSha256':artifact_sha,
+              'syntheticPostMerge':synthetic,'verdict':'PASS'}
+          (result_dir/'passage-r4-proof.json').write_text(json.dumps(proof,indent=2,sort_keys=True,ensure_ascii=False)+'\n',encoding='utf-8')
+          print(json.dumps(proof,sort_keys=True))
+          PY
+
+      - name: Upload PASSAGE proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: passage-learner-r4-${{ steps.target.outputs.target }}
+          path: |
+            apps/learnit-next/.agent-result/passage-r4-proof.json
+            apps/learnit-next/.agent-result/passage-r4.html
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
