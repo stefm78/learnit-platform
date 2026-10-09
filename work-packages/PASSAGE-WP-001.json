@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "PASSAGE-WP-001",
+  "title": "PASSAGE accepted learner closure integration",
+  "status": "approved",
+  "changeClass": "bounded-learner-integration",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "learnitJob": "PASSAGE_LEARNER_DELTA_INTEGRATION_R2",
+    "learnitJobRevision": 2,
+    "authorizationSource": "USER_EXPLICIT_AUDIT_SOLVE_BUILD_CREATE_JOB_THEN_EXECUTE_CHAT_2026-10-09"
+  },
+  "purpose": "Integrate the already accepted PASSAGE learner closure onto the current V6 product authority while leaving V6/factory authority unchanged. The recognized wave-a integration branch name is used only as CI transport routing; this work package is the semantic scope authority.",
+  "baseline": {
+    "baseCommit": "5e4065dd46618f9b2a1010b9789b1833de39a9e3",
+    "artifactSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553"
+  },
+  "scope": {
+    "allowedPaths": [
+      "work-packages/PASSAGE-WP-001.json",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/src/atlas.css",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "apps/learnit-next/src/core/library.js",
+      "apps/learnit-next/src/core/progress.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/integration/atlas/import_adapter.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "apps/learnit-next/src/integration/atlas/surface.js",
+      "apps/learnit-next/src/integration/learning_projection.js",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ports/learning_projection.js",
+      "apps/learnit-next/src/ports/storage.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/src/ui/navigation.js",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/tests/dev_learning_loop_v2_platform.py",
+      "apps/learnit-next/tests/dev_learning_loop_v2_ui.py"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "authoring/v6/**",
+      "authoring/factory/**",
+      "contracts/**",
+      "governance/**",
+      "apps/player/**",
+      "backend/**"
+    ]
+  },
+  "invariants": [
+    "The 25 learner paths select the exact accepted e04 blob identities.",
+    "The work-package file is non-product scope metadata and is not part of learner closure equivalence.",
+    "No V6/factory authority path, workflow, contract, governor state, release or deployment path changes.",
+    "The branch label is transport routing only and does not confer PROG-WP-001 semantic authority.",
+    "GitHub main remains the sole executable product authority."
+  ],
+  "requiredEvidence": [
+    "Fresh main equals exact base M before candidate creation and immediately before merge.",
+    "Candidate parent equals exact M.",
+    "Candidate diff contains exactly 26 paths: the frozen 25 learner paths plus work-packages/PASSAGE-WP-001.json.",
+    "Every learner path blob equals the frozen accepted e04 blob identity.",
+    "PR scope resolves exactly PASSAGE-WP-001 and passes.",
+    "Repository governance passes.",
+    "Learn-it Next CI reaches the recognized wave-a route and passes on the exact candidate head.",
+    "Any unrelated branch-gated workflow failure is classified non-material only when its sole failure is branch mismatch before product qualification.",
+    "Post-merge main readback equals the merge result and V6/factory authority files remain unchanged."
+  ],
+  "adversarialTests": [
+    "Reject any learner blob not equal to the frozen e04 identity.",
+    "Reject any changed repository path outside the exact 26-path scope.",
+    "Reject any PR body naming zero or more than one work package.",
+    "Reject any material product or governnance CI failure.",
+    "Reject any main drift from exact M before merge.",
+    "Reject any change to V6/factory authority or release/deployment state."
+  ],
+  "nonGoals": [
+    "Changing central CI routing.",
+    "Changing the V6 contract, factory, pointers or validators.",
+    "Publishing v2.0.0-passage.1.",
+    "Reopening learner semantics already accepted at e04.",
+    "Changing PROGRAM_STATELOG or PASSAGE governor closeout."
+  ],
+  "independentReview": [
+    "Verify exact 26-path diff and exact 25 learner blob map.",
+    "Verify PASSAGE-WP-001 is the only PR work-package token.",
+    "Verify the recognized wave-a route is used only as transport and no PROG-WP-001 authority is claimed.",
+    "Verify all material CI on the exact candidate head passes before merge.",
+    "Verify post-merge main and V6 non-mutation."
+  ],
+  "rollback": "Revert the single PASSAGE integration merge. V6/factory authority and release/deployment state remain otherwise unchanged."
+}

@@ -2,6 +2,7 @@ import {
   NEXT_INDEXED_DB_NAME,
   NEXT_INDEXED_DB_VERSION,
   NEXT_LOCAL_STORAGE_PREFIX,
+  NEXT_LIBRARY_METADATA_STORE,
   NEXT_OBJECTIVE_PROGRESS_STORE,
   NEXT_STORES,
 } from '../ports/storage.js';
@@ -41,6 +42,26 @@ function openDatabase(indexedDbApi) {
       if (!database.objectStoreNames.contains('courses')) {
         const courses = database.createObjectStore('courses', { keyPath: 'courseInstallId' });
         courses.createIndex('packageInstallId', 'packageInstallId', { unique: false });
+      }
+      let libraryMetadata = null;
+      if (!database.objectStoreNames.contains(NEXT_LIBRARY_METADATA_STORE)) {
+        libraryMetadata = database.createObjectStore(NEXT_LIBRARY_METADATA_STORE, { keyPath: 'courseInstallId' });
+      }
+      if (libraryMetadata && database.objectStoreNames.contains('courses')) {
+        const cursorRequest = request.transaction.objectStore('courses').openCursor();
+        cursorRequest.addEventListener('success', () => {
+          const cursor = cursorRequest.result;
+          if (!cursor) return;
+          const record = cursor.value;
+          const displayLabel = String(record.displayLabel ?? record.title ?? '').trim();
+          if (displayLabel) {
+            libraryMetadata.put({
+              courseInstallId: record.courseInstallId,
+              displayLabel,
+            });
+          }
+          cursor.continue();
+        });
       }
       if (!database.objectStoreNames.contains('progress')) {
         const progress = database.createObjectStore('progress', {
@@ -122,7 +143,7 @@ export function createIndexedDbStorage({
   return {
     async commitImport(plan) {
       const db = await database();
-      const transaction = db.transaction(['packages', 'courses', 'meta'], 'readwrite');
+      const transaction = db.transaction(['packages', 'courses', NEXT_LIBRARY_METADATA_STORE, 'meta'], 'readwrite');
       const completion = transactionDone(transaction);
       const packageStore = transaction.objectStore('packages');
 
@@ -133,6 +154,10 @@ export function createIndexedDbStorage({
         const requests = [requestResult(packageStore.add(plan.package))];
         for (const course of plan.courses) {
           requests.push(requestResult(transaction.objectStore('courses').add(course)));
+          requests.push(requestResult(transaction.objectStore(NEXT_LIBRARY_METADATA_STORE).put({
+            courseInstallId: course.courseInstallId,
+            displayLabel: String(course.displayLabel ?? course.title ?? '').trim(),
+          })));
         }
         for (const meta of plan.meta) {
           requests.push(requestResult(transaction.objectStore('meta').put(meta)));
@@ -164,31 +189,51 @@ export function createIndexedDbStorage({
 
     async listCourses() {
       const db = await database();
-      const transaction = db.transaction('courses', 'readonly');
-      const records = await requestResult(transaction.objectStore('courses').getAll());
+      const transaction = db.transaction(['courses', NEXT_LIBRARY_METADATA_STORE], 'readonly');
+      const [records, metadata] = await Promise.all([
+        requestResult(transaction.objectStore('courses').getAll()),
+        requestResult(transaction.objectStore(NEXT_LIBRARY_METADATA_STORE).getAll()),
+      ]);
       await transactionDone(transaction);
-      return records.sort((left, right) => left.installedAt.localeCompare(right.installedAt) || left.courseInstallId.localeCompare(right.courseInstallId));
+      const labels = new Map(metadata.map(record => [record.courseInstallId, record.displayLabel]));
+      return records
+        .map(record => ({
+          ...record,
+          displayLabel: labels.get(record.courseInstallId) ?? record.displayLabel ?? record.title,
+        }))
+        .sort((left, right) => left.installedAt.localeCompare(right.installedAt) || left.courseInstallId.localeCompare(right.courseInstallId));
     },
 
     async getCourse(courseInstallId) {
       const db = await database();
-      const transaction = db.transaction('courses', 'readonly');
-      const record = await requestResult(transaction.objectStore('courses').get(courseInstallId));
+      const transaction = db.transaction(['courses', NEXT_LIBRARY_METADATA_STORE], 'readonly');
+      const [record, metadata] = await Promise.all([
+        requestResult(transaction.objectStore('courses').get(courseInstallId)),
+        requestResult(transaction.objectStore(NEXT_LIBRARY_METADATA_STORE).get(courseInstallId)),
+      ]);
       await transactionDone(transaction);
-      return record ?? null;
+      if (!record) return null;
+      return {
+        ...record,
+        displayLabel: metadata?.displayLabel ?? record.displayLabel ?? record.title,
+      };
     },
 
     async setCourseDisplayLabel(courseInstallId, displayLabel) {
       const db = await database();
-      const transaction = db.transaction('courses', 'readwrite');
-      const store = transaction.objectStore('courses');
-      const record = await requestResult(store.get(courseInstallId));
-      if (!record) {
+      const transaction = db.transaction(['courses', NEXT_LIBRARY_METADATA_STORE], 'readwrite');
+      const course = await requestResult(transaction.objectStore('courses').get(courseInstallId));
+      if (!course) {
         transaction.abort();
         throw new Error(`Unknown courseInstallId ${courseInstallId}`);
       }
-      record.displayLabel = displayLabel;
-      await Promise.all([requestResult(store.put(record)), transactionDone(transaction)]);
+      await Promise.all([
+        requestResult(transaction.objectStore(NEXT_LIBRARY_METADATA_STORE).put({
+          courseInstallId,
+          displayLabel,
+        })),
+        transactionDone(transaction),
+      ]);
     },
 
     async listProgress(courseInstallId) {
@@ -268,12 +313,26 @@ export function createIndexedDbStorage({
     },
 
     async resetNextData() {
-      if (databasePromise) {
-        const db = await databasePromise;
-        db.close();
-        databasePromise = null;
+      const db = await database();
+      const transaction = db.transaction(NEXT_STORES, 'readwrite');
+      const completion = transactionDone(transaction);
+      try {
+        await Promise.all(NEXT_STORES.map(storeName =>
+          requestResult(transaction.objectStore(storeName).clear())));
+        await completion;
+      } catch (error) {
+        try {
+          transaction.abort();
+        } catch {
+          // A failed clear may already have aborted the transaction.
+        }
+        try {
+          await completion;
+        } catch {
+          // Preserve the request error that caused the abort.
+        }
+        throw error;
       }
-      await deleteDatabase(indexedDbApi, NEXT_INDEXED_DB_NAME);
       if (localStorageApi) {
         const keys = [];
         for (let index = 0; index < localStorageApi.length; index += 1) {

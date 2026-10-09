@@ -1,3 +1,8 @@
+import { renderActivityPresentation, readActivityResponse } from './activity_presenters.js';
+import { renderEmbeddedMediaSet } from './media.js';
+import { createNavigationDrawer } from './navigation.js';
+import { matchesLibrarySearch } from '../core/library.js';
+
 function node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
   for (const [name, value] of Object.entries(attributes)) {
@@ -64,6 +69,7 @@ function renderObjectiveSurface(objectiveUi, model) {
     objectiveProgress: structuredClone(model.progress.objectives),
     recommendation: structuredClone(model.progress.recommendation ?? null),
     activity: model.activity ? structuredClone(model.activity) : null,
+    sessionDelta: model.sessionDelta ? structuredClone(model.sessionDelta) : null,
   });
   if (rendered == null) return null;
   if (rendered instanceof Node) return rendered;
@@ -71,17 +77,6 @@ function renderObjectiveSurface(objectiveUi, model) {
     return node('div', { 'data-learning-loop-v2-ui': model.context }, rendered);
   }
   throw new TypeError('renderObjectiveProgress() must return a Node, an array of Nodes, or null');
-}
-
-function renderLibraryObjectiveDetails(objectiveSurface) {
-  if (!objectiveSurface) return null;
-  return node('details', {
-    className: 'course-progress-details',
-    'data-library-objective-details': 'true',
-  }, [
-    node('summary', { text: 'Voir la progression détaillée' }),
-    objectiveSurface,
-  ]);
 }
 
 function renderQcmForm(activity, submit) {
@@ -159,6 +154,58 @@ function renderFillForm(activity, submit) {
     event.preventDefault();
     const answer = Object.fromEntries(selects.map((select) => [select.dataset.slotId, select.value]));
     submit(answer);
+  });
+  return form;
+}
+
+function activityPresentationHeading(presentation) {
+  return presentation.prompt
+    ?? presentation.title
+    ?? presentation.front
+    ?? 'Activité';
+}
+
+function renderServedActivityForm(activity, submit) {
+  const presentation = activity?.presentation;
+  if (!presentation || typeof presentation !== 'object') {
+    throw new TypeError('Learner-safe ActivityPresentation is required');
+  }
+  const responseStatus = node('p', {
+    className: 'help',
+    role: 'status',
+    'aria-live': 'polite',
+    'data-served-activity-response-status': 'true',
+  });
+  const submitLabel = ['lesson', 'flashcard'].includes(presentation.type)
+    ? 'Continuer'
+    : 'Valider';
+  const submitButton = node('button', {
+    type: 'submit',
+    className: 'primary',
+    text: submitLabel,
+    'data-served-activity-submit': 'true',
+    disabled: presentation.type === 'flashcard',
+  });
+  const form = node('form', {
+    className: 'activity-form served-activity-form',
+    'data-served-activity-type': presentation.type,
+  }, [
+    renderActivityPresentation(presentation),
+    responseStatus,
+    submitButton,
+  ]);
+  form.addEventListener('learnit:activity-ready', () => {
+    submitButton.disabled = false;
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    responseStatus.textContent = '';
+    try {
+      submit(readActivityResponse(form, presentation));
+    } catch (error) {
+      if (error?.code !== 'ACTIVITY_RESPONSE_REQUIRED') throw error;
+      responseStatus.textContent = error.message;
+    }
   });
   return form;
 }
@@ -277,11 +324,13 @@ export function readAtlasActivityResponse(container, activity) {
 export function renderApp(root, runtime, objectiveUiIntegration = null) {
   let notice = null;
   let busy = false;
+  let currentView = 'library';
+  let todayAvailable = false;
+  let libraryImportActive = false;
+  let libraryRenderEpoch = 0;
+  const atlasLearningProjections = new Map();
   const objectiveUi = assertObjectiveUi(objectiveUiIntegration);
 
-  const header = node('header', { className: 'app-header' }, [
-    node('h1', { text: 'Learn-it' }),
-  ]);
   const main = node('main', { className: 'app-main' });
   const liveRegion = node('div', {
     className: 'sr-only',
@@ -289,14 +338,87 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     'aria-live': 'polite',
     'aria-atomic': 'true',
   });
-  root.replaceChildren(header, main, liveRegion);
+
+  let navigation = null;
+  const headerTitle = node('h1', { text: 'Learn-it' });
+  const header = node('header', { className: 'app-header app-shell-header' });
+  navigation = createNavigationDrawer(root, (view) => {
+    void navigate(view);
+  });
+  header.append(navigation.trigger, headerTitle);
+  root.replaceChildren(header, navigation.backdrop, navigation.drawer, main, liveRegion);
+  navigation.setActiveView('library');
+
+  function setViewElementVisible(element, visible) {
+    if (!element) return;
+    element.hidden = !visible;
+    if (visible) element.removeAttribute('inert');
+    else element.setAttribute('inert', '');
+  }
+
+  async function navigate(view) {
+    const requested = view === 'import' ? 'library' : view;
+    const todaySurface = root.querySelector('[data-atlas-int-surface]');
+    if (requested === 'today') {
+      if (!todayAvailable || !todaySurface) {
+        await navigate('library');
+        return;
+      }
+      currentView = 'today';
+      setViewElementVisible(main, false);
+      setViewElementVisible(todaySurface, true);
+      navigation.setActiveView('today');
+      const title = todaySurface.querySelector('h2');
+      focusAfterRender(title);
+      return;
+    }
+
+    currentView = 'library';
+    setViewElementVisible(todaySurface, false);
+    setViewElementVisible(main, true);
+    navigation.setActiveView('library');
+    await renderLibrary({ focus: view !== 'import' });
+    if (view === 'import') {
+      const management = main.querySelector('.library-management');
+      if (management) {
+        management.open = true;
+        focusAfterRender(management.querySelector('summary'));
+      } else {
+        focusAfterRender(main.querySelector('.library-file-picker'));
+      }
+    }
+  }
 
   root.addEventListener('learnit:show-library', () => {
-    main.replaceChildren(node('p', {
-      role: 'status',
-      text: 'Ouverture de la bibliothèque…',
-    }));
-    void renderLibrary();
+    void navigate('library');
+  });
+  root.addEventListener('learnit:navigate', event => {
+    const view = event.detail?.view;
+    if (['today', 'library', 'import'].includes(view)) void navigate(view);
+  });
+  root.addEventListener('learnit:view-availability', event => {
+    if (event.detail?.view !== 'today') return;
+    todayAvailable = Boolean(event.detail.available);
+    navigation.setTodayAvailable(todayAvailable);
+    if (!todayAvailable && currentView === 'today') void navigate('library');
+  });
+  root.addEventListener('learnit:learning-projection', event => {
+    if (event.detail?.source !== 'atlas') return;
+    const incoming = (event.detail.courses ?? [])
+      .filter(projection => projection?.courseInstallId);
+    const changed = incoming.length !== atlasLearningProjections.size
+      || incoming.some(projection => (
+        JSON.stringify(atlasLearningProjections.get(projection.courseInstallId) ?? null)
+        !== JSON.stringify(projection)
+      ));
+    if (!changed) return;
+    atlasLearningProjections.clear();
+    for (const projection of incoming) {
+      atlasLearningProjections.set(projection.courseInstallId, projection);
+    }
+    if (currentView === 'library' && !libraryImportActive) {
+      void renderLibrary({ focus: false });
+    }
   });
 
   function setBusy(value) {
@@ -347,41 +469,66 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     }
   }
 
-  function renderCourseLabelForm(course) {
-    const inputId = `course-display-label-${course.courseInstallId}`;
-    const helpId = `${inputId}-help`;
-    const input = node('input', {
-      id: inputId,
-      name: 'display-label',
-      type: 'text',
-      value: course.title,
-      required: 'required',
-      autocomplete: 'off',
-      'aria-describedby': helpId,
+  function dispatchCourseLearningAction(courseInstallId, durationMinutes, fallback) {
+    const event = new CustomEvent('learnit:course-learning-action', {
+      cancelable: true,
+      detail: {
+        courseInstallId,
+        durationMinutes: Number.isInteger(durationMinutes) ? durationMinutes : null,
+      },
     });
-    const form = node('form', { className: 'course-label-form' }, [
-      node('label', { className: 'field-label', for: inputId, text: 'Nom local du cours' }),
-      node('div', { className: 'course-label-controls' }, [
-        input,
-        node('button', { type: 'submit', className: 'secondary', text: 'Enregistrer' }),
+    const unhandled = root.dispatchEvent(event);
+    if (unhandled && typeof fallback === 'function') fallback();
+  }
+
+  function renderExternalLearningProjection(projection) {
+    if (!projection) return null;
+    const states = Array.isArray(projection.objectiveStates) ? projection.objectiveStates : [];
+    return node('div', {
+      className: 'course-progress-compact library-learning-projection',
+      'data-library-learning-projection': projection.source ?? 'learning',
+    }, [
+      node('div', { className: 'course-progress-at-glance' }, [
+        node('span', { className: 'course-progress-caption', text: 'Progression' }),
+        node('div', {
+          className: 'course-objective-track',
+          role: 'img',
+          'aria-label': projection.overviewText ?? 'Progression du cours',
+        }, states.map(item => node('span', {
+          className: `course-objective-segment course-objective-segment--${item.state}`,
+          title: `${item.label} — ${item.stateLabel}`,
+          'aria-hidden': 'true',
+        }))),
+        node('span', { className: 'course-progress-text', text: projection.overviewText ?? '' }),
       ]),
-      node('p', {
-        id: helpId,
-        className: 'help',
-        text: 'Ce nom est utilisé uniquement sur cet appareil.',
+      node('strong', {
+        className: 'course-next-step',
+        text: projection.sessionAvailableNow
+          ? `À faire maintenant : ${projection.nextStep}`
+          : projection.nextStep,
       }),
     ]);
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const requestedLabel = input.value;
-      run(() => runtime.setCourseDisplayLabel(course.courseInstallId, requestedLabel), async () => {
-        const normalizedLabel = requestedLabel.trim();
-        const message = `Nom local enregistré : « ${normalizedLabel} ».`;
-        notice = renderNotice([message], 'success');
-        await renderLibrary({ announcement: message });
-      });
-    });
-    return form;
+  }
+
+  function renderExternalObjectiveDetails(projection) {
+    const states = Array.isArray(projection?.objectiveStates) ? projection.objectiveStates : [];
+    if (!states.length) return null;
+    return node('details', {
+      className: 'course-objectives-details',
+      'data-library-objective-details': 'true',
+    }, [
+      node('summary', { text: 'Voir les objectifs' }),
+      node('ul', {
+        className: 'course-objective-status-list',
+        'aria-label': 'État des objectifs',
+      }, states.map(item => node('li', {
+        className: `course-objective-status-item course-objective-status-item--${item.state}`,
+      }, [
+        node('span', { className: 'course-objective-state-marker', 'aria-hidden': 'true' }),
+        node('span', { text: item.label }),
+        node('strong', { text: item.stateLabel }),
+      ]))),
+    ]);
   }
 
   function renderResetAction() {
@@ -396,10 +543,16 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
             type: 'button',
             className: 'danger-quiet',
             text: 'Confirmer la réinitialisation',
-            onclick: () => run(() => runtime.resetNextData(), () => {
+            onclick: () => run(() => runtime.resetNextData(), async (report) => {
+              const remaining = Object.values(report?.counts ?? {}).reduce(
+                (total, value) => total + (Number.isInteger(value) ? value : 0),
+                0,
+              );
+              if (remaining !== 0) throw new Error('La réinitialisation n’a pas vidé toutes les données locales.');
               const message = 'Les données locales ont été supprimées.';
               notice = renderNotice([message], 'success');
-              return renderLibrary({ announcement: message });
+              root.dispatchEvent(new CustomEvent('learnit:library-changed', { detail: { reason: 'reset' } }));
+              await renderLibrary({ announcement: message });
             }),
           });
           const cancelButton = node('button', {
@@ -424,24 +577,66 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     return container;
   }
 
-  async function renderLibrary({ focus = true, announcement = null } = {}) {
+  function objectiveStatusLabel(status) {
+    return ({
+      'not-started': 'À découvrir',
+      training: 'En apprentissage',
+      'review-needed': 'À renforcer',
+      'ready-for-validation': 'À confirmer',
+      'validated-recently': 'Acquis récemment',
+    })[status] ?? 'Objectifs';
+  }
+
+  function courseObjectiveSummary(course) {
+    const recommendation = course.progress?.recommendation ?? null;
+    if (!recommendation?.objectiveId) return 'Voir les objectifs';
+    const objective = (course.objectives ?? []).find(item => item.objectiveId === recommendation.objectiveId);
+    if (!objective) return 'Voir les objectifs';
+    return `${objectiveStatusLabel(recommendation.status)} — ${objective.label}`;
+  }
+
+  function renderCourseCompletionGuidance(course, reviewQueue) {
+    if (!course.progress?.isComplete) return null;
+    const recommendation = course.progress.recommendation ?? null;
+    let detail = 'Toutes les activités prévues ont été réalisées.';
+    if (recommendation?.action === 'correct' && reviewQueue.total > 0) {
+      detail = 'Un objectif reste à renforcer. Reprenez une activité incorrecte pour continuer.';
+    } else if (recommendation?.action === 'validate') {
+      detail = 'Un objectif reste à confirmer. Rien à faire pour le moment.';
+    } else if (recommendation?.action === 'revisit-later') {
+      detail = 'Les acquis sont récents. Learn-it n’indique actuellement ni action supplémentaire ni date précise de consolidation.';
+    } else if (recommendation?.action === 'continue-training' || recommendation?.action === 'start-training') {
+      detail = 'Un objectif reste en apprentissage. Toutes les activités disponibles ont été réalisées ; aucune activité supplémentaire n’est proposée actuellement.';
+    }
+    return node('div', {
+      className: 'course-path-status',
+      'data-course-path-status': recommendation?.action ?? 'none',
+    }, [
+      node('strong', { text: 'Parcours d’activités terminé' }),
+      node('span', { text: detail }),
+    ]);
+  }
+
+  async function renderLibrary({ focus = true, announcement = null, focusCourseInstallId = null, focusCourseRenameInstallId = null } = {}) {
+    const renderEpoch = ++libraryRenderEpoch;
     const courses = await runtime.listCourses();
+    if (renderEpoch !== libraryRenderEpoch) return;
     const libraryTitle = node('h2', { id: 'library-title', tabindex: '-1', text: 'Vos cours' });
     const section = node('section', { 'aria-labelledby': 'library-title' });
-    section.append(node('div', { className: 'section-heading' }, [
-      node('div', {}, [node('p', { className: 'eyebrow', text: 'Bibliothèque' }), libraryTitle]),
-      renderResetAction(),
+    let requestedCourseFocusTarget = null;
+    section.append(node('div', { className: 'section-heading library-heading' }, [
+      libraryTitle,
     ]));
 
     const importForm = node('form', { className: 'import-panel' });
-    const fileInput = node('input', { id: 'kit-file', type: 'file', accept: '.json,application/json', required: 'required' });
-    const importButton = node('button', { type: 'submit', className: 'primary', text: 'Importer', disabled: true });
+    const fileInput = node('input', { id: 'kit-file', className: 'sr-only library-file-input', type: 'file', accept: '.json,application/json', required: 'required' });
+    const importButton = node('button', { type: 'submit', className: 'primary', text: 'Ajouter à la bibliothèque', disabled: true });
     const fileStatus = node('p', {
       className: 'help',
       role: 'status',
       'aria-live': 'polite',
       'aria-atomic': 'true',
-      text: 'Choisissez un fichier de cours à importer.',
+      text: '',
     });
     let selectionVersion = 0;
     let selectedFileText = null;
@@ -453,19 +648,23 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       importButton.disabled = true;
       const file = fileInput.files?.[0];
       if (!file) {
-        fileStatus.textContent = 'Choisissez un fichier de cours à importer.';
+        libraryImportActive = false;
+        fileStatus.textContent = '';
         return;
       }
 
-      fileStatus.textContent = `Lecture de « ${file.name} »…`;
+      libraryImportActive = true;
+      libraryRenderEpoch += 1;
       try {
         const text = await file.text();
+        const preview = await runtime.previewImport(text);
         if (version !== selectionVersion) return;
         selectedFileText = text;
         importButton.disabled = false;
-        fileStatus.textContent = `« ${file.name} » est prêt à être importé.`;
+        fileStatus.textContent = preview.title;
       } catch (error) {
         if (version !== selectionVersion) return;
+        libraryImportActive = false;
         const message = `Lecture du fichier impossible : ${error?.message ?? String(error)}`;
         fileStatus.textContent = message;
         announce(message);
@@ -473,12 +672,11 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
     });
 
     importForm.append(
-      node('div', {}, [
-        node('label', { for: 'kit-file', className: 'field-label', text: 'Importer un cours' }),
-        node('p', { className: 'help', text: 'Le fichier est vérifié avant l’import.' }),
+      node('div', { className: 'library-import-controls' }, [
+        node('label', { for: 'kit-file', className: 'secondary library-file-picker', text: 'Choisir un cours' }),
+        fileInput,
         fileStatus,
       ]),
-      fileInput,
       importButton,
     );
     importForm.addEventListener('submit', (event) => {
@@ -486,170 +684,509 @@ export function renderApp(root, runtime, objectiveUiIntegration = null) {
       if (selectedFileText === null) return;
       const payload = selectedFileText;
       run(() => runtime.importPackage(payload), async (result) => {
-        const message = `${result.courseCount} cours importé(s) depuis « ${result.title} ».`;
-        notice = renderNotice([message], 'success');
-        await renderLibrary({ announcement: message });
+        libraryImportActive = false;
+        root.dispatchEvent(new CustomEvent('learnit:library-changed', { detail: { reason: 'import' } }));
+        await renderLibrary({ announcement: `${result.title} ajouté à la bibliothèque.` });
       });
     });
-    section.append(importForm);
-
     if (courses.length === 0) {
-      section.append(node('div', { className: 'empty-state' }, [
-        node('h3', { text: 'Bibliothèque vide' }),
-        node('p', { text: 'Importez un cours pour commencer.' }),
+      section.append(node('div', { className: 'empty-state empty-library-import' }, [
+        node('h3', { text: 'Importer votre premier cours' }),
+        importForm,
       ]));
     } else {
-      const list = node('div', { className: 'course-grid' });
+      const list = node('div', { className: 'course-grid', 'data-library-course-list': 'true' });
+      const courseEntries = [];
+      const searchStatus = node('p', {
+        className: 'sr-only',
+        role: 'status',
+        'aria-live': 'polite',
+        text: '',
+      });
+      const searchInput = node('input', {
+        type: 'search',
+        className: 'library-search-input',
+        placeholder: 'Rechercher un cours',
+        'aria-label': 'Rechercher dans vos cours',
+      });
+      const filterCourses = () => {
+        const query = searchInput.value;
+        const hasQuery = query.trim().length > 0;
+        let visible = 0;
+        for (const entry of courseEntries) {
+          const match = matchesLibrarySearch(query, entry.searchable);
+          entry.article.hidden = !match;
+          if (match) visible += 1;
+        }
+        searchStatus.textContent = hasQuery
+          ? `${visible} cours trouvé${visible > 1 ? 's' : ''} sur ${courses.length}.`
+          : '';
+      };
+      searchInput.addEventListener('input', filterCourses);
+      if (courses.length >= 3) {
+        section.append(node('div', { className: 'library-search' }, [searchInput, searchStatus]));
+      }
       for (const course of courses) {
-        const reviewQueue = await runtime.getReviewQueue(course.courseInstallId);
-        const courseAction = course.progress.isComplete
-          ? node('p', { className: 'course-complete', text: 'Cours terminé' })
-          : node('button', {
+        const learningAvailable = Boolean(course.progress);
+        const externalProjection = atlasLearningProjections.get(course.courseInstallId) ?? null;
+        const reviewQueue = learningAvailable
+          ? await runtime.getReviewQueue(course.courseInstallId)
+          : { total: 0 };
+        const correctivePriority =
+          !externalProjection
+          && course.progress?.recommendation?.action === 'correct'
+          && reviewQueue.total > 0;
+
+        let durationSelect = null;
+        if (externalProjection?.sessionAvailableNow) {
+          durationSelect = node('select', {
+            className: 'library-duration-select',
+            'aria-label': `Durée de la séance pour ${course.title}`,
+          }, (externalProjection.durations ?? [5, 15, 30]).map(minutes => node('option', {
+            value: String(minutes),
+            text: `${minutes} min`,
+          })));
+          durationSelect.value = String((externalProjection.durations ?? [5, 15, 30]).includes(15) ? 15 : (externalProjection.durations ?? [5])[0]);
+        }
+
+        const courseAction = externalProjection
+          ? externalProjection.sessionAvailableNow
+            ? node('button', {
+              type: 'button',
+              className: 'primary',
+              text: externalProjection.actionLabel ?? 'Continuer',
+              'data-course-learning-action': 'learn',
+              'data-course-install-id': course.courseInstallId,
+              onclick: () => dispatchCourseLearningAction(
+                course.courseInstallId,
+                durationSelect ? Number(durationSelect.value) : null,
+                () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
+              ),
+            })
+            : null
+          : learningAvailable && !course.progress.isComplete
+            ? node('button', {
+              type: 'button',
+              className: correctivePriority ? 'secondary' : 'primary',
+              text: course.progress.completed === 0 ? 'Commencer' : 'Reprendre',
+              'data-course-learning-action': 'learn',
+              'data-course-install-id': course.courseInstallId,
+              onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
+            })
+            : null;
+
+        const completionGuidance = renderCourseCompletionGuidance(course, reviewQueue);
+        const reviewAction = correctivePriority
+          ? node('button', {
             type: 'button',
             className: 'primary',
-            text: course.progress.completed === 0 ? 'Commencer' : 'Reprendre',
-            'data-course-learning-action': 'learn',
+            text: 'Renforcer maintenant',
+            'data-course-learning-action': 'review',
             'data-course-install-id': course.courseInstallId,
-            onclick: () => run(() => runtime.startCourse(course.courseInstallId), renderSessionSnapshot),
+            onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
+          })
+          : null;
+
+        const objectiveSurface = externalProjection
+          ? null
+          : renderObjectiveSurface(objectiveUi, {
+            context: 'library',
+            courseObjectives: course.objectives,
+            progress: course.progress,
           });
-        const reviewAction = reviewQueue.total === 0
-          ? node('p', { className: 'help', text: 'À revoir : aucune activité.' })
-          : node('div', {}, [
-            node('p', { text: `À revoir : ${reviewQueue.total} activité${reviewQueue.total > 1 ? 's' : ''}.` }),
-            node('button', {
-              type: 'button',
-              className: 'secondary',
-              text: 'Ouvrir À revoir',
-              'data-course-learning-action': 'review',
-              'data-course-install-id': course.courseInstallId,
-              onclick: () => run(() => runtime.startReviewQueue(course.courseInstallId), renderSessionSnapshot),
-            }),
-          ]);
-        const objectiveSurface = renderObjectiveSurface(objectiveUi, {
-          context: 'library',
-          courseObjectives: course.objectives,
-          progress: course.progress,
+        const objectiveDetails = externalProjection
+          ? renderExternalObjectiveDetails(externalProjection)
+          : objectiveSurface
+            ? node('details', { className: 'course-objectives-details' }, [
+              node('summary', { text: courseObjectiveSummary(course) }),
+              objectiveSurface,
+            ])
+            : null;
+
+        const titleHeading = node('h3', {
+          className: 'course-title-heading',
+          text: course.title,
         });
-        const objectiveDetails = renderLibraryObjectiveDetails(objectiveSurface);
-        const settingsDetails = node('details', { className: 'course-settings-details' }, [
-          node('summary', { text: 'Options du cours' }),
-          renderCourseLabelForm(course),
+        const titleSlot = node('div', { className: 'course-title-slot' }, [titleHeading]);
+        let renameOverlay = null;
+        let renameButton = null;
+
+        function closeRename({ restoreFocus = true } = {}) {
+          if (!renameOverlay) return;
+          const overlay = renameOverlay;
+          renameOverlay = null;
+          overlay.remove();
+          if (restoreFocus) queueMicrotask(() => renameButton?.focus());
+        }
+
+        function beginRename() {
+          if (renameOverlay) {
+            const existingInput = renameOverlay.querySelector('input');
+            queueMicrotask(() => {
+              existingInput?.focus();
+              existingInput?.select();
+            });
+            return;
+          }
+          const inputId = `course-display-label-${course.courseInstallId}`;
+          const input = node('input', {
+            id: inputId,
+            name: 'display-label',
+            type: 'text',
+            value: course.title,
+            required: 'required',
+            maxlength: '180',
+            autocomplete: 'off',
+            'aria-label': `Nouveau nom local pour ${course.title}`,
+          });
+          const form = node('form', {
+            className: 'course-rename-overlay',
+            'data-course-rename-overlay': 'true',
+            role: 'dialog',
+            'aria-label': `Renommer le cours ${course.title}`,
+          }, [
+            node('label', { className: 'course-rename-label', for: inputId }, [
+              node('span', { text: 'Nom du cours' }),
+              input,
+            ]),
+            node('div', { className: 'course-rename-overlay-actions' }, [
+              node('button', { type: 'submit', className: 'secondary', text: 'Enregistrer' }),
+              node('button', {
+                type: 'button',
+                className: 'quiet',
+                text: 'Annuler',
+                onclick: () => {
+                  closeRename();
+                  announce('Renommage annulé.');
+                },
+              }),
+            ]),
+          ]);
+          form.addEventListener('submit', event => {
+            event.preventDefault();
+            const requestedLabel = input.value;
+            void run(
+              () => runtime.setCourseDisplayLabel(course.courseInstallId, requestedLabel),
+              async (normalizedResult) => {
+                const normalizedLabel = typeof normalizedResult === 'string'
+                  ? normalizedResult
+                  : requestedLabel.trim();
+                const message = `Nom local enregistré : « ${normalizedLabel} ».`;
+                notice = renderNotice([message], 'success');
+                root.dispatchEvent(new CustomEvent('learnit:library-changed', { detail: { reason: 'rename' } }));
+                await renderLibrary({
+                  focus: false,
+                  announcement: message,
+                  focusCourseRenameInstallId: course.courseInstallId,
+                });
+              },
+            );
+          });
+          input.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            closeRename();
+            announce('Renommage annulé.');
+          });
+          renameOverlay = form;
+          titleSlot.append(form);
+          queueMicrotask(() => {
+            input.focus();
+            input.select();
+          });
+        }
+
+        renameButton = node('button', {
+          type: 'button',
+          className: 'quiet course-rename-button',
+          'aria-label': `Renommer le cours ${course.title}`,
+          title: 'Renommer',
+          onclick: beginRename,
+        }, [
+          node('span', { className: 'course-rename-icon', 'aria-hidden': 'true', text: '✎' }),
         ]);
-        list.append(node('article', {
-          className: 'course-card course-list-row',
+        const renameControl = node('span', { className: 'course-rename-control' }, [renameButton]);
+        titleSlot.append(renameControl);
+
+        const externalSummary = renderExternalLearningProjection(externalProjection);
+        const learningUnavailable = !learningAvailable
+          ? node('p', {
+            className: 'course-learning-unavailable',
+            role: 'status',
+            text: 'Progression temporairement indisponible. La bibliothèque reste accessible.',
+          })
+          : null;
+        const restStatus = externalProjection && !externalProjection.sessionAvailableNow
+          ? node('p', {
+            className: 'atlas-rest-status',
+            role: 'status',
+            'data-atlas-rest-status': 'true',
+            text: 'À jour pour aujourd’hui',
+          })
+          : null;
+        const durationControl = durationSelect
+          ? node('label', { className: 'library-duration-control' }, [
+            node('span', { className: 'sr-only', text: `Durée pour ${course.title}` }),
+            durationSelect,
+          ])
+          : null;
+
+        const article = node('article', {
+          className: 'course-card course-list-row learner-course-card',
           'data-course-install-id': course.courseInstallId,
         }, [
           node('div', { className: 'course-row-main' }, [
-            node('h3', { text: course.title }),
-            course.subtitle ? node('p', { text: course.subtitle }) : null,
-            node('p', { className: 'course-meta', text: `${course.estimatedMinutes} min · ${course.activityCount} activités` }),
-            renderProgress(course.progress),
+            titleSlot,
+            node('p', { className: 'course-meta', text: `${course.activityCount} activités · ${course.estimatedMinutes} min estimées au total` }),
+            externalSummary,
+            learningUnavailable,
           ]),
-          node('div', { className: 'course-row-actions' }, [
-            courseAction,
-            reviewAction,
-          ]),
-          settingsDetails,
           objectiveDetails,
-        ]));
+          completionGuidance,
+          node('div', { className: 'course-row-actions learner-course-actions' }, [
+            restStatus,
+            reviewAction,
+            durationControl,
+            courseAction,
+          ]),
+        ]);
+        if (focusCourseRenameInstallId === course.courseInstallId) requestedCourseFocusTarget = renameButton;
+        else if (focusCourseInstallId === course.courseInstallId) requestedCourseFocusTarget = titleHeading;
+        courseEntries.push({
+          article,
+          searchable: [
+            course.title,
+            course.canonicalTitle ?? '',
+            course.subtitle ?? '',
+            ...(externalProjection?.objectiveStates ?? course.objectives ?? []).map(item => item.label ?? ''),
+          ],
+        });
+        list.append(article);
       }
       section.append(list);
+      section.append(node('details', { className: 'library-management' }, [
+        node('summary', { text: 'Gérer la bibliothèque' }),
+        node('div', { className: 'library-management-body' }, [
+          node('h3', { text: 'Ajouter un cours' }),
+          importForm,
+          node('div', { className: 'library-reset-zone' }, [
+            node('h3', { text: 'Données locales' }),
+            renderResetAction(),
+          ]),
+        ]),
+      ]));
     }
-    shell(section, { focusTarget: focus ? libraryTitle : null, announcement });
+    if (renderEpoch !== libraryRenderEpoch) return;
+    shell(section, { focusTarget: requestedCourseFocusTarget ?? (focus ? libraryTitle : null), announcement });
   }
   async function submitAnswer(activityRevisionId, answer) {
-    await run(() => runtime.answer(activityRevisionId, answer), renderFeedback);
+    await run(() => runtime.answer(activityRevisionId, answer), async (result) => {
+      if (result.scored !== true) {
+        if (result.nextActivity) {
+          const nextSession = await runtime.getSession();
+          renderSessionSnapshot(nextSession, { focus: false });
+          announce('Activité suivante.');
+        } else {
+          await renderLibrary({ focus: false, announcement: 'Parcours d’activités terminé. Consultez vos objectifs dans la bibliothèque.' });
+        }
+        return;
+      }
+      renderFeedback(result);
+    });
   }
 
   function renderSessionSnapshot(session, { focus = true } = {}) {
+    currentView = 'session';
+    navigation.setActiveView('session');
+    setViewElementVisible(root.querySelector('[data-atlas-int-surface]'), false);
+    setViewElementVisible(main, true);
     if (!session || !session.currentActivity) {
       const message = session?.mode === 'review'
-        ? 'La file À revoir est vide. Vous pouvez reprendre le parcours normal.'
-        : 'Cours terminé. La progression a été enregistrée.';
+        ? 'La file À revoir est vide. Consultez vos objectifs dans la bibliothèque.'
+        : 'Parcours d’activités terminé. Consultez vos objectifs dans la bibliothèque.';
       notice = renderNotice([message], 'success');
       return renderLibrary({ announcement: message });
     }
     const activity = session.currentActivity;
     const reviewMode = session.mode === 'review';
-    const activityTitle = node('h2', { id: 'activity-title', tabindex: '-1', text: activity.prompt });
-    const objectiveSurface = renderObjectiveSurface(objectiveUi, {
-      context: reviewMode ? 'review' : 'session',
-      courseObjectives: session.courseObjectives,
-      progress: session.progress,
-      activity,
+    const total = Number(session.progress?.total ?? 0);
+    const completed = Number(session.progress?.completed ?? 0);
+    const currentPosition = total > 0 ? Math.min(completed + 1, total) : 1;
+    const activityTitle = node('h2', {
+      id: 'activity-title',
+      className: 'sr-only',
+      text: reviewMode ? 'Activité à renforcer' : 'Activité en cours',
     });
-    const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel' }, [
+    const section = node('section', { 'aria-labelledby': 'activity-title', className: 'session-panel learner-session-panel' }, [
       node('button', { type: 'button', className: 'back-link', text: '← Bibliothèque', onclick: () => renderLibrary() }),
-      node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
+      node('div', { className: 'activity-context-row' }, [
+        node('p', { className: 'eyebrow', text: reviewMode ? `${session.title} · À revoir` : session.title }),
+        node('p', { className: 'activity-position', text: `${currentPosition}/${total || 1} activités` }),
+      ]),
       activityTitle,
-      renderProgress(session.progress),
-      objectiveSurface,
-      reviewMode ? node('p', { text: `${session.review.remaining} activité${session.review.remaining > 1 ? 's' : ''} dans la file À revoir.` }) : null,
-      activity.type === 'qcm'
-        ? renderQcmForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer))
-        : renderFillForm(activity, (answer) => submitAnswer(activity.activityRevisionId, answer)),
-      reviewMode ? node('button', {
-        type: 'button',
-        className: 'secondary',
-        text: 'Revenir au parcours',
-        onclick: () => run(() => runtime.startCourse(session.courseInstallId), renderSessionSnapshot),
-      }) : null,
+      renderServedActivityForm(
+        activity,
+        (answer) => submitAnswer(activity.activityRevisionId, answer),
+      ),
     ]);
-    shell(section, { focusTarget: focus ? activityTitle : null });
+    shell(section);
+  }
+
+  function renderFeedbackLines(title, lines, className) {
+    if (!Array.isArray(lines) || lines.length === 0) return null;
+    return node('section', { className }, [
+      node('h3', { text: title }),
+      node('div', { className: 'feedback-lines' },
+        lines.map(line => node('p', { className: 'feedback-line', text: line }))),
+    ]);
+  }
+
+  function renderFeedbackComparison(rows, includeExpected) {
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const headers = [
+      node('th', { scope: 'col', text: 'Élément' }),
+      node('th', { scope: 'col', text: 'Votre réponse' }),
+      includeExpected ? node('th', { scope: 'col', text: 'Attendu' }) : null,
+    ];
+    const bodyRows = rows.map(row => node('tr', {}, [
+      node('th', { scope: 'row', text: row.item }),
+      node('td', { text: row.learner }),
+      includeExpected ? node('td', { text: row.expected }) : null,
+    ]));
+    return node('section', { className: 'feedback-comparison' }, [
+      node('h3', { text: 'Correspondances' }),
+      node('div', { className: 'feedback-comparison-scroll' }, [
+        node('table', {}, [
+          node('thead', {}, [node('tr', {}, headers)]),
+          node('tbody', {}, bodyRows),
+        ]),
+      ]),
+    ]);
+  }
+
+  function renderSessionSummary(result) {
+    const title = node('h2', {
+      id: 'session-summary-title',
+      tabindex: '-1',
+      text: 'Bilan de la séance',
+    });
+    const objectiveSurface = result.sessionDelta?.available === true
+      ? renderObjectiveSurface(objectiveUi, {
+        context: 'terminal-summary',
+        courseObjectives: result.courseObjectives,
+        progress: result.progress,
+        sessionDelta: result.sessionDelta,
+      })
+      : null;
+    const worked = result.sessionDelta?.available === true
+      ? result.sessionDelta.workedObjectiveIds.length
+      : 0;
+    const changed = result.sessionDelta?.available === true
+      ? result.sessionDelta.changedObjectiveIds.length
+      : 0;
+    const summary = result.sessionDelta?.available === true
+      ? node('p', {
+        className: 'session-summary-intro',
+        text: `Cette séance a travaillé ${worked} objectif${worked > 1 ? 's' : ''} ; ${changed} changement${changed > 1 ? 's' : ''} d’état ${changed > 1 ? 'sont' : 'est'} enregistré${changed > 1 ? 's' : ''}.`,
+      })
+      : node('p', {
+        className: 'session-summary-intro',
+        text: 'Le détail avant/après de cette séance n’est pas disponible.',
+      });
+    const section = node('section', {
+      'aria-labelledby': 'session-summary-title',
+      className: 'session-summary-panel',
+      'data-session-summary': 'true',
+    }, [
+      title,
+      summary,
+      objectiveSurface,
+      node('button', {
+        type: 'button',
+        className: 'primary',
+        text: 'Retour à la bibliothèque',
+        onclick: () => renderLibrary(),
+      }),
+    ]);
+    shell(section, { focusTarget: title, announcement: 'Bilan de la séance' });
   }
 
   function renderFeedback(result) {
     const reviewMode = result.mode === 'review';
     const reviewRemaining = result.review?.remaining ?? 0;
     const complete = result.progress.isComplete;
-    const outcomeText = result.correct ? 'Réponse correcte' : 'Pas tout à fait';
-    const outcome = node('p', {
+    const terminal = reviewMode ? reviewRemaining === 0 : complete === true;
+    const outcomeText = result.correct ? 'Bonne réponse' : 'À corriger';
+    const feedbackProjection = result.postAnswerFeedback ?? null;
+    const feedbackTitle = node('h2', {
+      id: 'feedback-title',
       className: result.correct ? 'feedback-correct' : 'feedback-incorrect',
-      role: 'status',
-      'aria-live': 'polite',
-      'aria-atomic': 'true',
-      tabindex: '-1',
       text: outcomeText,
     });
-    const primaryAction = reviewMode
+    const comparison = feedbackProjection?.comparisonRows
+      ? renderFeedbackComparison(feedbackProjection.comparisonRows, !result.correct)
+      : null;
+    const learnerAnswer = feedbackProjection && !comparison
+      ? renderFeedbackLines('Votre réponse', feedbackProjection.learnerAnswer, 'feedback-answer feedback-learner-answer')
+      : null;
+    const expectedAnswer = feedbackProjection && !comparison && !result.correct
+      ? renderFeedbackLines('Réponse attendue', feedbackProjection.expectedAnswer, 'feedback-answer feedback-expected-answer')
+      : null;
+    const explanation = result.explanation
+      ? node('section', { className: 'feedback-explanation' }, [
+        node('h3', { text: 'Explication' }),
+        node('p', { text: result.explanation }),
+      ])
+      : null;
+    const feedbackMedia =
+      Array.isArray(result.feedbackMedia)
+      && result.feedbackMedia.length
+        ? node(
+          'div',
+          {
+            className: 'activity-feedback-media',
+            'data-activity-feedback-media': 'post-transition',
+          },
+          [renderEmbeddedMediaSet(result.feedbackMedia)],
+        )
+        : null;
+    const primaryAction = terminal
       ? node('button', {
         type: 'button',
         className: 'primary',
-        text: reviewRemaining === 0 ? 'Retour à la bibliothèque' : 'Activité suivante à revoir',
-        onclick: reviewRemaining === 0 ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
+        'data-served-next-action': 'true',
+        text: 'Voir le bilan de la séance',
+        onclick: () => renderSessionSummary(result),
       })
-      : node('button', {
-        type: 'button',
-        className: 'primary',
-        text: complete ? 'Retour à la bibliothèque' : 'Activité suivante',
-        onclick: complete ? () => renderLibrary() : () => run(() => runtime.getSession(), renderSessionSnapshot),
-      });
-    const objectiveSurface = renderObjectiveSurface(objectiveUi, {
-      context: 'feedback',
-      courseObjectives: result.courseObjectives,
-      progress: result.progress,
-      activity: result.nextActivity,
-    });
-    const section = node('section', { 'aria-labelledby': 'feedback-title', className: 'feedback-panel' }, [
-      outcome,
-      node('h2', { id: 'feedback-title', text: 'Explication' }),
-      node('p', { text: result.explanation }),
-      renderProgress(result.progress),
-      objectiveSurface,
-      reviewMode ? node('p', {
-        text: reviewRemaining === 0
-          ? 'File À revoir vide. Cette réussite retire l’activité de la file.'
-          : `${reviewRemaining} activité${reviewRemaining > 1 ? 's' : ''} reste${reviewRemaining > 1 ? 'nt' : ''} à revoir.`,
-      }) : null,
+      : reviewMode
+        ? node('button', {
+          type: 'button',
+          className: 'primary',
+          'data-served-next-action': 'true',
+          text: 'Activité suivante à revoir',
+          onclick: () => run(() => runtime.getSession(), renderSessionSnapshot),
+        })
+        : node('button', {
+          type: 'button',
+          className: 'primary',
+          'data-served-next-action': 'true',
+          text: 'Activité suivante',
+          onclick: () => run(() => runtime.getSession(), renderSessionSnapshot),
+        });
+    const section = node('section', {
+      'aria-labelledby': 'feedback-title',
+      className: 'feedback-panel learner-feedback-panel',
+      'data-served-feedback': 'scored',
+    }, [
+      feedbackTitle,
+      comparison,
+      learnerAnswer,
+      expectedAnswer,
+      explanation,
+      ...(feedbackMedia ? [feedbackMedia] : []),
       primaryAction,
-      reviewMode ? node('button', {
-        type: 'button',
-        className: 'secondary',
-        text: 'Revenir au parcours',
-        onclick: () => run(() => runtime.startCourse(result.courseInstallId), renderSessionSnapshot),
-      }) : null,
     ]);
-    shell(section, { focusTarget: outcome, announcement: outcomeText });
+    shell(section, { focusTarget: feedbackTitle, announcement: outcomeText });
   }
 
   async function initialize() {
