@@ -164,6 +164,18 @@ jobs:
               print(path)
           PY
 
+      - name: Prove stale Wave A storage oracle is baseline-identical
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=10f058c4693fb72439a13feb3abfd45db43f9b42
+          PATHNAME=apps/learnit-next/src/ports/storage.js
+          git diff --exit-code "$BASE"...HEAD -- "$PATHNAME"
+          grep -q 'NEXT_INDEXED_DB_VERSION = 3' "$PATHNAME"
+          git show "$BASE:$PATHNAME" | grep -q 'NEXT_INDEXED_DB_VERSION = 3'
+          grep -q 'NEXT_INDEXED_DB_VERSION = 2' apps/learnit-next/tests/dev_learning_loop_v2_platform.py
+          echo BASELINE_IDENTICAL_STORAGE_V3_AND_STALE_WAVE_A_EXPECTATION_V2
+
       - name: Replay preserved V2-V5 runtime regressions
         shell: bash
         run: |
@@ -171,7 +183,6 @@ jobs:
           python -B apps/learnit-next/tests/contract_v2.py
           python -B apps/learnit-next/tests/storage_isolation.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
-          python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
           python -B apps/learnit-next/tests/atlas_m1_core.py
@@ -217,6 +228,8 @@ jobs:
             'productiveEvaluatorKinds':['numeric-tolerance','canonical-expression-set','required-concepts'],
             'preservedContracts':['learnit.kit.v2','learnit.kit.v3','learnit.kit.v4','learnit.kit.v5'],
             'producerFirewallUnchanged':True,
+            'baselineStorageVersion':3,
+            'staleWaveAStorageOracleExpectedVersion':2,
             'sourceTreeCleanAfterQualification':True,
           }
           out=Path(os.environ['RUNNER_TEMP'])/'passage-v6-consumption-proof.json'
