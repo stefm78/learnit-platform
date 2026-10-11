@@ -1,0 +1,31 @@
+{
+  "schema": "learnit.passage.work-package.v1",
+  "workPackageId": "PASSAGE-WP-002",
+  "job": "PASSAGE_V6_CONSUMPTION_CLOSURE_R2",
+  "executionBase": "10f058c4693fb72439a13feb3abfd45db43f9b42",
+  "producerAuthority": "5e4065dd46618f9b2a1010b9789b1833de39a9e3",
+  "selectedContract": "learnit.kit.v6",
+  "exactR3Sha256": "0ad6e8b1c8dbd5a6d4743a67daa9ad6dd6a3824086dda839746fb5e8a36ee4b2",
+  "factoryGateResultSha256": "9ee9343312780e757f7c3ab7e483ff5970ae6f50c1e24a0bfc88be10f153999e",
+  "recovery": {
+    "upstreamTerminal": "HOLD_PASSAGE_V6_CONSUMPTION_CLOSURE_R1",
+    "residualItemId": "B9B0D852F6CCE2CD!s8b8291fe27234f1fbc42f9c754996e68",
+    "normalized": true
+  },
+  "responsibility": "Minimum generic Learn-it V6 consumer bridge plus exact-head qualification, CAS merge, exact-R3 post-merge proof and derived catalogue exposure.",
+  "producerFirewall": [
+    "contracts/learnit-kit-v6.schema.json",
+    "authoring/v6/**",
+    "authoring/factory/**",
+    "R3/source/review bytes",
+    "OneDrive V6 routing/binding"
+  ],
+  "acceptance": [
+    "V2-V5 behavior preserved",
+    "V6 fail-closed import with constructed disabled and productive admitted",
+    "All admitted V6 activity families execute",
+    "All productive evaluator kinds execute deterministically",
+    "Rejected V6 input is atomic",
+    "Exact R3 post-merge product proof passes"
+  ]
+}
