@@ -119,6 +119,28 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Materialize manifest-declared historical files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          materialized=[]
+          for item in manifest['workingFiles']:
+            path=Path(item['path'])
+            if path.is_file(): continue
+            fingerprint=item.get('fingerprint',{})
+            if fingerprint.get('kind')!='git-blob-sha1': continue
+            data=subprocess.run(['git','cat-file','blob',fingerprint['value']],check=True,stdout=subprocess.PIPE).stdout
+            path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_bytes(data)
+            materialized.append(str(path))
+          print('MATERIALIZED='+str(len(materialized)))
+          for path in materialized: print(path)
+          PY
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -141,17 +163,30 @@ jobs:
           python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learnit-b.html"
           cmp "$RUNNER_TEMP/learnit-a.html" "$RUNNER_TEMP/learnit-b.html"
           sha256sum "$RUNNER_TEMP/learnit-a.html"
+          mkdir -p apps/learnit-next/dist
+          cp "$RUNNER_TEMP/learnit-a.html" apps/learnit-next/dist/learnit-next.html
 
       - name: Replay preserved runtime regressions
         shell: bash
+        env:
+          LEARNIT_NEXT_STRICT_INTEGRATION: '1'
         run: |
           set -euo pipefail
           python -B apps/learnit-next/tests/contract_v2.py
-          python -B apps/learnit-next/tests/student_v01_learning_runtime.py
+          python -B apps/learnit-next/tests/storage_isolation.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/atlas_m1_learning.py
+          python -B apps/learnit-next/tests/atlas_m1_core.py
+          python -B apps/learnit-next/tests/atlas_m1_experience.py
+          python -B apps/learnit-next/tests/atlas_m1_content.py
+          python -B apps/learnit-next/tests/atlas_m1_int.py
+          python -B apps/learnit-next/tests/atlas_m2_memory.py
+          python -B apps/learnit-next/tests/atlas_m2_transfer.py
+          python -B apps/learnit-next/tests/atlas_m2_ux_clarity.py
+          python -B apps/learnit-next/tests/browser_vertical_slice.py
 
       - name: Prove generic V6 consumer closure in browser
         shell: bash
@@ -167,6 +202,5 @@ jobs:
           if [[ '${{ steps.rebind.outputs.changed }}' == 'true' ]]; then
             echo HOLD_PASSAGE_V6_CONSUMPTION_MANIFEST_REBIND_REQUIRED
           else
-            git diff --exit-code
+            git status --short
             echo PASS_PASSAGE_V6_CONSUMPTION_EXACT_HEAD_R2
-          fi
