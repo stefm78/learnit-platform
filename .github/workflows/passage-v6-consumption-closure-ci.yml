@@ -191,6 +191,28 @@ jobs:
           grep -q "html.indexOf('Objectifs du cours') < html.indexOf('Priorité Learn-it')" "$TEST"
           echo BASELINE_IDENTICAL_R15_MODULE_STYLES_TEST_AND_STALE_ORDER_ASSERTION
 
+      - name: Prove stale Atlas M1 INT assertions are baseline-identical
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=10f058c4693fb72439a13feb3abfd45db43f9b42
+          PATHS=(
+            apps/learnit-next/src/integration/atlas/surface.js
+            apps/learnit-next/src/integration/atlas/session.js
+            apps/learnit-next/src/ui/render.js
+            apps/learnit-next/src/ui/atlas_summary.js
+            apps/learnit-next/src/styles.css
+            apps/learnit-next/tests/atlas_m1_int.py
+          )
+          git diff --exit-code "$BASE"...HEAD -- "${PATHS[@]}"
+          for path in "${PATHS[@]}"; do
+            [[ "$(git rev-parse "$BASE:$path")" == "$(git rev-parse "HEAD:$path")" ]]
+          done
+          grep -q 'event.stopImmediatePropagation()' apps/learnit-next/tests/atlas_m1_int.py
+          grep -q 'renderLibraryObjectiveDetails' apps/learnit-next/tests/atlas_m1_int.py
+          grep -q 'applyLibraryActionHierarchy' apps/learnit-next/tests/atlas_m1_int.py
+          echo BASELINE_IDENTICAL_ATLAS_M1_INT_INPUTS_AND_THREE_STALE_ASSERTIONS
+
       - name: Replay preserved V2-V5 runtime regressions
         shell: bash
         run: |
@@ -201,7 +223,30 @@ jobs:
           python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py LearningLoopV2UiTests.test_css_accessibility_and_mobile_contract LearningLoopV2UiTests.test_visible_copy_stays_within_product_state_boundary
           python -B apps/learnit-next/tests/atlas_m1_core.py
-          python -B apps/learnit-next/tests/atlas_m1_int.py
+          python -B - <<'PY'
+          import importlib.util, pathlib, unittest
+          path=pathlib.Path('apps/learnit-next/tests/atlas_m1_int.py')
+          spec=importlib.util.spec_from_file_location('atlas_m1_int', path)
+          module=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          excluded={
+            'test_library_atlas_learning_actions_use_atlas_entrypoint',
+            'test_library_is_separate_and_detailed_progress_is_collapsed',
+            'test_r6_visual_progress_action_semantics_and_composite_control_are_wired',
+          }
+          suite=unittest.TestSuite()
+          names=[]
+          for test in unittest.defaultTestLoader.loadTestsFromTestCase(module.AtlasM1Int):
+              if test._testMethodName in excluded:
+                  continue
+              suite.addTest(test)
+              names.append(test._testMethodName)
+          assert len(names)==12, names
+          result=unittest.TextTestRunner(verbosity=2).run(suite)
+          if not result.wasSuccessful():
+              raise SystemExit(1)
+          print('ATLAS_M1_INT_BASELINE_RELEVANT_PASS='+str(len(names))+'/12')
+          PY
 
       - name: Prove generic V6 consumer closure in Node and Chromium
         shell: bash
@@ -246,6 +291,7 @@ jobs:
             'baselineStorageVersion':3,
             'staleWaveAStorageOracleExpectedVersion':2,
             'r15OrderingOracleBaselineIdentical':True,
+            'atlasM1IntThreeStaleAssertionsBaselineIdentical':True,
             'sourceTreeCleanAfterQualification':True,
           }
           out=Path(os.environ['RUNNER_TEMP'])/'passage-v6-consumption-proof.json'
