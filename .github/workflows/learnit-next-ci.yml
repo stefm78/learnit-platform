@@ -304,7 +304,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           PROFILE: ${{ steps.profile.outputs.name }}
           BRANCH: ${{ steps.profile.outputs.branch }}
-          BASE: ${{ steps.profile.outputs.base }}
+          BASE: ${{ steps.target.outputs.base }}
           TARGET: ${{ steps.target.outputs.target }}
           PR_NUMBER: ${{ steps.target.outputs.pr }}
           POST_MERGE: ${{ steps.profile.outputs.post_merge }}
@@ -956,11 +956,11 @@ jobs:
             compare_base="$(git merge-base "${PR_BASE_SHA}" "${TARGET}")"
             changed="$(git diff --name-only "${compare_base}" "${TARGET}")"
             grep -Fxq '.github/workflows/atlas-m3-1-pedagogical-quality-ci.yml' <<< "${changed}" || {
-              echo "M3.1 dedicated exact-head workflow is missing from the product pull request." >&2
+              echo "M3.1 dedicated exact-head workflow is missing from the product PR." >&2
               exit 2
             }
             grep -Fxq 'work-packages/ATLAS-WP-012.json' <<< "${changed}" || {
-              echo "M3.1 canonical work package is missing from the product pull request." >&2
+              echo "M3.1 canonical work package is missing from the product PR." >&2
               exit 2
             }
             grep -Eq '^authoring/v2/' <<< "${changed}" || {
@@ -1198,7 +1198,7 @@ jobs:
                 atlasIntPostMerge:{
                   schema:"learnit.next.ci.atlas-int-post-merge.v1",
                   postMergeHead:$postMergeHead,
-                  acceptedIntegrationHead:$accepted,
+                  acceptedIntegrationHead:$acceptedIntegrationHead,
                   artifactSha256:$artifactSha256,
                   artifactBytes:$artifactBytes,
                   candidateArtifactByteIdentity:"PASS",
