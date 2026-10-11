@@ -1,4 +1,5 @@
 const V5_CONTRACT = 'learnit.kit.v5';
+const V6_CONTRACT = 'learnit.kit.v6';
 
 function freezeList(values) {
   return Object.freeze(values.map(value => Object.freeze(value)));
@@ -164,6 +165,10 @@ export function projectActivityPresentation(activity, { assets = [], contract = 
     throw new TypeError('Activity source must be an object');
   }
   const v5 = contract === V5_CONTRACT;
+  const v6 = contract === V6_CONTRACT;
+  if (activity.type === 'productive' && !v6) {
+    throw new Error(`ACTIVITY_TYPE_UNSUPPORTED:${String(activity.type)}`);
+  }
   const media = resolveMedia(
     activity,
     assets,
@@ -238,10 +243,23 @@ export function projectActivityPresentation(activity, { assets = [], contract = 
         media,
       };
       break;
+    case 'productive':
+      presentation = {
+        type: 'productive',
+        prompt: activity.prompt,
+        parts: freezeList((activity.parts ?? []).map(part => ({
+          partId: part.partId,
+          label: part.label,
+          responseKind: part.responseKind,
+          ...(Object.hasOwn(part, 'unitPrompt') ? { unitPrompt: part.unitPrompt } : {}),
+        }))),
+        media,
+      };
+      break;
     default:
       throw new Error(`ACTIVITY_TYPE_UNSUPPORTED:${String(activity.type)}`);
   }
-  if (v5 && Array.isArray(activity.references) && activity.references.length) {
+  if ((v5 || v6) && Array.isArray(activity.references) && activity.references.length) {
     presentation = {
       ...presentation,
       references: projectReferences(activity.references),

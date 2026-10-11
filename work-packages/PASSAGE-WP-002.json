@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "PASSAGE-WP-002",
+  "title": "PASSAGE native V6 learner consumption closure R2",
+  "status": "in-progress",
+  "purpose": "Close the minimum generic Learn-it consumer bridge for factory-qualified learnit.kit.v6 packages while preserving the V2-V5 runtime firewall and all producer/factory authorities. The generic bridge is qualified on exact Git head; the exact frozen thermodynamics R3 kit remains reserved for the post-merge runtime-admission proof.",
+  "baseline": {
+    "baseCommit": "10f058c4693fb72439a13feb3abfd45db43f9b42",
+    "artifactSha256": "7ee493b8855e4cda7703deccbf5c813391afaa5a9674d6760b75a277e0267553"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/passage-v6-consumption-closure-ci.yml",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/core/activity_semantics.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/integration/atlas/import_adapter.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/tests/passage_v6_consumption.py",
+      "work-packages/PASSAGE-WP-002.json"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "authoring/v6/**",
+      "authoring/factory/**",
+      "apps/learnit-next/src/core/contract.js",
+      "apps/learnit-next/src/core/import.js",
+      "governance/**",
+      "docs/governance/**",
+      "apps/player/**",
+      "backend/**"
+    ]
+  },
+  "invariants": [
+    "V2-V5 core contract and import behavior remain byte-identical to the exact baseline.",
+    "The selected producer contract remains learnit.kit.v6 and producer/factory authorities are not mutated.",
+    "V6 packages are stored natively with exact package, course and activity revision identities and digests; no V5 conversion is introduced.",
+    "Constructed response remains disabled for the V6 consumer closure while productive is admitted.",
+    "Productive evaluation is deterministic for numeric-tolerance, canonical-expression-set and required-concepts evaluators.",
+    "Rejected V6 input is atomic and does not partially install package, course, revision or progress state.",
+    "The deterministic single-file learner build is derived from the governed source manifest and exact candidate head.",
+    "The frozen thermodynamics R3 kit is not re-authored, re-reviewed or mutated by this work package."
+  ],
+  "requiredEvidence": [
+    "Diff from exact baseline contains exactly the eight allowed paths and no forbidden path.",
+    "Repository governance and canonical PR scope validations PASS.",
+    "Producer/factory paths plus apps/learnit-next/src/core/contract.js and core/import.js remain unchanged.",
+    "Source manifest fingerprints and canonical self digest bind the four changed runtime blobs exactly.",
+    "V2-V5 relevant regressions remain green or a historically stale assertion is proved byte-identical baseline-to-candidate before exclusion.",
+    "Generic V6 import, native storage, activity projection/presentation and productive evaluation pass in Node and Chromium on the exact candidate head.",
+    "Two deterministic builds are byte-identical and an exact-head qualification artifact binds candidate SHA, learner bytes and learner SHA-256.",
+    "Independent readback verifies the published exact-head proof and single-file learner artifact.",
+    "Immediately before merge, main still equals the exact baseline and the PR head still equals the qualified candidate.",
+    "After merge, main tree equals the qualified candidate tree before the exact frozen thermodynamics R3 browser/runtime-admission replay begins."
+  ],
+  "adversarialTests": [
+    "Reject a V6 package containing constructed activity.",
+    "Reject a V6 package with a tampered declared revision digest.",
+    "Reject a productive evaluator whose kind is incompatible with the referenced responseKind.",
+    "Reject incomplete or malformed productive responses without partial progress mutation.",
+    "Reject any candidate that mutates the V6 producer contract, authoring/factory authority or V2-V5 core import firewall.",
+    "Reject a candidate whose source manifest fingerprint or self digest does not match exact runtime bytes.",
+    "Reject merge if exact-head qualification, repository governance, canonical PR scope or applicable required checks are not PASS."
+  ],
+  "nonGoals": [
+    "Changing the learnit.kit.v6 producer schema or authoring/factory semantics.",
+    "Re-authoring or semantically re-reviewing the frozen thermodynamics R3 kit.",
+    "Admitting V6 constructed response.",
+    "Changing V2-V5 core contract/import semantics.",
+    "Changing the historical Learn-it Next central CI router solely to recognize this PASSAGE branch.",
+    "Changing unrelated Atlas, player, backend, governance or release-publication surfaces.",
+    "Republishing or mutating the existing v2.0.0-passage.1 prerelease during this work package."
+  ],
+  "independentReview": [
+    "Review the exact eight-path candidate diff against baseline 10f058c4693fb72439a13feb3abfd45db43f9b42.",
+    "Treat dedicated workflows that explicitly reject unrelated branch names before testing product behavior as non-applicable legacy routers, not as product qualification evidence.",
+    "Require exact-head artifact readback and fresh CAS of main/head before any merge.",
+    "Reserve exact frozen thermodynamics R3 runtime admission for the post-merge product artifact; do not use the generic synthetic V6 fixture as a substitute."
+  ],
+  "rollback": "Revert the single PASSAGE-WP-002 merge. The V6 producer/factory authorities, the frozen thermodynamics R3 kit, the prior v2.0.0-passage.1 prerelease and V2-V5 core import/contract paths remain untouched by this work package.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "job": "PASSAGE_V6_CONSUMPTION_CLOSURE_R2",
+    "producerAuthorityCommit": "5e4065dd46618f9b2a1010b9789b1833de39a9e3",
+    "selectedContract": "learnit.kit.v6"
+  },
+  "bindings": {
+    "exactThermodynamicsR3Sha256": "0ad6e8b1c8dbd5a6d4743a67daa9ad6dd6a3824086dda839746fb5e8a36ee4b2",
+    "factoryGateResultSha256": "9ee9343312780e757f7c3ab7e483ff5970ae6f50c1e24a0bfc88be10f153999e"
+  },
+  "recovery": {
+    "upstreamTerminal": "HOLD_PASSAGE_V6_CONSUMPTION_CLOSURE_R1",
+    "residualItemId": "B9B0D852F6CCE2CD!s8b8291fe27234f1fbc42f9c754996e68",
+    "normalized": true
+  }
+}

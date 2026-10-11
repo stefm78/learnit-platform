@@ -240,6 +240,19 @@ function constructed(p) {
   const id=uid('activity-constructed');
   return shell(p,[prompt(p.prompt),el('div',{className:'activity-constructed'},[el('label',{for:id,text:'Votre réponse'}),el('textarea',{id,rows:'6',maxlength:'4000','data-constructed-response':'true'}),el('p',{className:'help',text:'Réponse attendue : un texte non vide.'})])]);
 }
+function productive(p) {
+  const group=el('div',{className:'activity-productive-parts'});
+  p.parts.forEach((part,index)=>{
+    const id=uid('activity-productive-'+index);
+    const input=part.responseKind==='text'
+      ? el('textarea',{id,rows:'4',maxlength:'4000','data-productive-part':part.partId,'data-response-kind':part.responseKind})
+      : el('input',{id,type:part.responseKind==='number'?'number':'text',inputmode:part.responseKind==='number'?'decimal':'text','data-productive-part':part.partId,'data-response-kind':part.responseKind});
+    const children=[el('label',{for:id,text:part.label}),input];
+    if(part.unitPrompt)children.push(el('input',{type:'text',maxlength:'120','aria-label':part.unitPrompt,'placeholder':part.unitPrompt,'data-productive-unit':part.partId}));
+    group.append(el('section',{className:'activity-productive-part'},children));
+  });
+  return shell(p,[prompt(p.prompt),group]);
+}
 
 export function renderActivityPresentation(presentation) {
   if (!presentation || typeof presentation !== 'object') throw new TypeError('ActivityPresentation object is required');
@@ -252,6 +265,7 @@ export function renderActivityPresentation(presentation) {
     case 'order': return order(presentation);
     case 'classify': return classify(presentation);
     case 'constructed': return constructed(presentation);
+    case 'productive': return productive(presentation);
     default: throw new Error('ACTIVITY_PRESENTATION_TYPE_UNSUPPORTED: ' + presentation.type);
   }
 }
@@ -278,5 +292,19 @@ export function readActivityResponse(container, presentation) {
   if(presentation.type==='order'){const orderedItemIds=[...root.querySelectorAll('[data-order-item]')].map(item=>item.dataset.orderItem);if(orderedItemIds.length!==presentation.items.length)throw required('Ordre incomplet.');return {orderedItemIds};}
   if(presentation.type==='classify'){const assignments=[...root.querySelectorAll('[data-classify-item]')].map(card=>({itemId:card.dataset.classifyItem,bucketId:card.dataset.classifyBucket})).filter(item=>item.bucketId);if(assignments.length!==presentation.items.length)throw required('Classez chaque élément avant de continuer.');return {assignments:presentation.items.map(item=>assignments.find(candidate=>candidate.itemId===item.itemId))};}
   if(presentation.type==='constructed'){const text=root.querySelector('[data-constructed-response]')?.value?.trim()||'';if(!text)throw required('Saisissez une réponse avant de continuer.');return {text};}
+  if(presentation.type==='productive'){
+    const parts={};
+    for(const part of presentation.parts){
+      const input=root?.querySelector('[data-productive-part="'+part.partId+'"]');
+      const raw=input?.value?.trim()??'';
+      if(!raw)throw required('Complétez chaque partie avant de continuer.');
+      if(part.responseKind==='number'){
+        const value=Number(raw);if(!Number.isFinite(value))throw required('Saisissez un nombre valide.');
+        const unit=root?.querySelector('[data-productive-unit="'+part.partId+'"]')?.value?.trim()||null;
+        parts[part.partId]={value,...(unit?{unit}:{})};
+      }else parts[part.partId]={value:raw};
+    }
+    return {parts};
+  }
   throw new Error('ACTIVITY_PRESENTATION_TYPE_UNSUPPORTED: '+presentation.type);
 }

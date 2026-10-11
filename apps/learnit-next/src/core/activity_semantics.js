@@ -7,11 +7,11 @@ export class ActivityResponseValidationError extends Error {
 }
 
 export const SCORED_ACTIVITY_TYPES = Object.freeze([
-  'qcm', 'fill', 'constructed', 'matching', 'order', 'classify',
+  'qcm', 'fill', 'constructed', 'matching', 'order', 'classify', 'productive',
 ]);
 export const NON_SCORED_ACTIVITY_TYPES = Object.freeze(['lesson', 'flashcard']);
 export const V4_ACTIVITY_TYPES = Object.freeze([
-  ...SCORED_ACTIVITY_TYPES,
+  ...SCORED_ACTIVITY_TYPES.filter(type => type !== 'productive'),
   ...NON_SCORED_ACTIVITY_TYPES,
 ]);
 
@@ -212,6 +212,143 @@ function normalizeFlashcard(response) {
   return Object.freeze({ revealed: true });
 }
 
+function normalizeProductiveText(value) {
+  if (typeof value !== 'string') {
+    throw new ActivityResponseValidationError('Productive text responses must be strings', 'invalid_productive_value');
+  }
+  return value.normalize('NFC').trim().replace(/\s+/gu, ' ');
+}
+
+function normalizeExpression(value) {
+  return normalizeProductiveText(value).replace(/\s+/gu, '').toLowerCase();
+}
+
+function normalizeUnit(value) {
+  if (value == null || value === '') return null;
+  if (typeof value !== 'string') {
+    throw new ActivityResponseValidationError('Productive units must be strings', 'invalid_productive_unit');
+  }
+  return value.normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase();
+}
+
+function rationalNumber(value, label) {
+  const numerator = value?.numerator;
+  const denominator = value?.denominator;
+  if (!Number.isInteger(numerator) || !Number.isInteger(denominator) || denominator <= 0) {
+    throw new ActivityResponseValidationError(`Invalid ${label} rational evaluator`, 'invalid_productive_evaluator');
+  }
+  return numerator / denominator;
+}
+
+function normalizeProductive(activity, response) {
+  const parts = activity.parts ?? [];
+  const incoming = response?.parts;
+  if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) {
+    throw new ActivityResponseValidationError('Productive response requires parts keyed by partId', 'invalid_productive_response');
+  }
+  const partIds = parts.map(part => part.partId);
+  const supplied = Object.keys(incoming);
+  if (supplied.length !== partIds.length || supplied.some(id => !partIds.includes(id))) {
+    throw new ActivityResponseValidationError('Productive response must cover every authored part exactly once', 'incomplete_productive_response');
+  }
+  const normalized = {};
+  for (const part of parts) {
+    const raw = incoming[part.partId];
+    if (part.responseKind === 'number') {
+      const value = typeof raw === 'number' ? raw : raw?.value;
+      const unit = typeof raw === 'number' ? null : normalizeUnit(raw?.unit);
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        throw new ActivityResponseValidationError(`Productive number part ${part.partId} requires a finite number`, 'invalid_productive_number');
+      }
+      normalized[part.partId] = Object.freeze({ value, unit });
+    } else if (part.responseKind === 'expression') {
+      const value = typeof raw === 'string' ? raw : raw?.value;
+      const normalizedValue = normalizeExpression(value);
+      if (!normalizedValue) throw new ActivityResponseValidationError(`Productive expression part ${part.partId} is blank`, 'blank_productive_expression');
+      normalized[part.partId] = Object.freeze({ value: normalizedValue });
+    } else if (part.responseKind === 'text') {
+      const value = typeof raw === 'string' ? raw : raw?.value;
+      const normalizedValue = normalizeProductiveText(value);
+      if (!normalizedValue) throw new ActivityResponseValidationError(`Productive text part ${part.partId} is blank`, 'blank_productive_text');
+      normalized[part.partId] = Object.freeze({ value: normalizedValue });
+    } else {
+      throw new ActivityResponseValidationError(`Unsupported productive responseKind ${String(part.responseKind)}`, 'invalid_productive_evaluator');
+    }
+  }
+  return Object.freeze({ parts: Object.freeze(normalized) });
+}
+
+function evaluateProductive(activity, response) {
+  if (activity?.scoring?.aggregation !== 'all' || !Array.isArray(activity.scoring?.evaluators)) {
+    throw new ActivityResponseValidationError('Productive scoring must use aggregation=all and evaluators[]', 'invalid_productive_evaluator');
+  }
+  const parts = activity.parts ?? [];
+  const partById = new Map(parts.map(part => [part.partId, part]));
+  const evaluators = activity.scoring.evaluators;
+  if (partById.size !== parts.length || evaluators.length !== parts.length) {
+    throw new ActivityResponseValidationError('Every productive part requires exactly one evaluator', 'invalid_productive_evaluator');
+  }
+  const evaluatorById = new Map();
+  for (const evaluator of evaluators) {
+    if (!evaluator || typeof evaluator !== 'object' || evaluatorById.has(evaluator.partId) || !partById.has(evaluator.partId)) {
+      throw new ActivityResponseValidationError('Productive evaluator part bindings are invalid', 'invalid_productive_evaluator');
+    }
+    const part = partById.get(evaluator.partId);
+    const expectedKind = {
+      number: 'numeric-tolerance',
+      expression: 'canonical-expression-set',
+      text: 'required-concepts',
+    }[part.responseKind];
+    if (evaluator.kind !== expectedKind) {
+      throw new ActivityResponseValidationError(`Productive evaluator kind does not match ${part.responseKind}`, 'invalid_productive_evaluator');
+    }
+    evaluatorById.set(evaluator.partId, evaluator);
+  }
+  const normalized = normalizeProductive(activity, response);
+  const partResults = {};
+  let correct = true;
+  for (const part of parts) {
+    const answer = normalized.parts[part.partId];
+    const evaluator = evaluatorById.get(part.partId);
+    let partCorrect = false;
+    if (evaluator.kind === 'numeric-tolerance') {
+      const expected = rationalNumber(evaluator.expected, 'expected');
+      const tolerance = rationalNumber(evaluator.absoluteTolerance, 'absoluteTolerance');
+      if (tolerance < 0) throw new ActivityResponseValidationError('Numeric tolerance must be non-negative', 'invalid_productive_evaluator');
+      const acceptedUnits = evaluator.acceptedUnits ?? [];
+      if (!Array.isArray(acceptedUnits)) throw new ActivityResponseValidationError('acceptedUnits must be an array', 'invalid_productive_evaluator');
+      const units = new Set(acceptedUnits.map(unit => normalizeUnit(unit)));
+      const unitOk = acceptedUnits.length === 0 ? answer.unit == null : answer.unit != null && units.has(answer.unit);
+      partCorrect = unitOk && Math.abs(answer.value - expected) <= tolerance;
+    } else if (evaluator.kind === 'canonical-expression-set') {
+      if (!Array.isArray(evaluator.acceptedExpressions) || evaluator.acceptedExpressions.length === 0) {
+        throw new ActivityResponseValidationError('canonical-expression-set requires acceptedExpressions', 'invalid_productive_evaluator');
+      }
+      const accepted = new Set(evaluator.acceptedExpressions.map(normalizeExpression));
+      partCorrect = accepted.has(answer.value);
+    } else if (evaluator.kind === 'required-concepts') {
+      if (!Array.isArray(evaluator.requiredConceptGroups) || evaluator.requiredConceptGroups.length === 0) {
+        throw new ActivityResponseValidationError('required-concepts requires concept groups', 'invalid_productive_evaluator');
+      }
+      const haystack = answer.value.toLocaleLowerCase();
+      partCorrect = evaluator.requiredConceptGroups.every(group => (
+        Array.isArray(group) && group.length > 0 && group.some(concept => {
+          const needle = normalizeProductiveText(concept).toLocaleLowerCase();
+          return needle.length > 0 && haystack.includes(needle);
+        })
+      ));
+    }
+    partResults[part.partId] = partCorrect;
+    if (!partCorrect) correct = false;
+  }
+  return Object.freeze({
+    scored: true,
+    normalized,
+    correct,
+    partResults: Object.freeze(partResults),
+  });
+}
+
 function orderedPairsEqual(left, right, leftKey, rightKey) {
   if (left.length !== right.length) return false;
   const expected = new Map(right.map(item => [item[leftKey], item[rightKey]]));
@@ -261,6 +398,8 @@ export function evaluateActivityResponse(activity, response) {
         correct: orderedPairsEqual(normalized.assignments, activity.assignments ?? [], 'itemId', 'bucketId'),
       });
     }
+    case 'productive':
+      return evaluateProductive(activity, response);
     case 'lesson':
       return Object.freeze({ scored: false, normalized: normalizeLesson(response), completed: true });
     case 'flashcard':
