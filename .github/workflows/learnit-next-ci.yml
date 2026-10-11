@@ -304,7 +304,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           PROFILE: ${{ steps.profile.outputs.name }}
           BRANCH: ${{ steps.profile.outputs.branch }}
-          BASE: ${{ steps.target.outputs.base }}
+          BASE: ${{ steps.profile.outputs.base }}
           TARGET: ${{ steps.target.outputs.target }}
           PR_NUMBER: ${{ steps.target.outputs.pr }}
           POST_MERGE: ${{ steps.profile.outputs.post_merge }}
