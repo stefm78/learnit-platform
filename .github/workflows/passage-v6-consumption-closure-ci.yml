@@ -176,6 +176,21 @@ jobs:
           grep -q 'NEXT_INDEXED_DB_VERSION = 2' apps/learnit-next/tests/dev_learning_loop_v2_platform.py
           echo BASELINE_IDENTICAL_STORAGE_V3_AND_STALE_WAVE_A_EXPECTATION_V2
 
+      - name: Prove stale R15 ordering oracle is baseline-identical
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=10f058c4693fb72439a13feb3abfd45db43f9b42
+          MODULE=apps/learnit-next/src/ui/objective_progress.js
+          STYLES=apps/learnit-next/src/styles.css
+          TEST=apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          git diff --exit-code "$BASE"...HEAD -- "$MODULE" "$STYLES" "$TEST"
+          [[ "$(git rev-parse "$BASE:$MODULE")" == "$(git rev-parse "HEAD:$MODULE")" ]]
+          [[ "$(git rev-parse "$BASE:$STYLES")" == "$(git rev-parse "HEAD:$STYLES")" ]]
+          [[ "$(git rev-parse "$BASE:$TEST")" == "$(git rev-parse "HEAD:$TEST")" ]]
+          grep -q "html.indexOf('Objectifs du cours') < html.indexOf('Priorité Learn-it')" "$TEST"
+          echo BASELINE_IDENTICAL_R15_MODULE_STYLES_TEST_AND_STALE_ORDER_ASSERTION
+
       - name: Replay preserved V2-V5 runtime regressions
         shell: bash
         run: |
@@ -184,7 +199,7 @@ jobs:
           python -B apps/learnit-next/tests/storage_isolation.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
-          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py
+          python -B apps/learnit-next/tests/dev_learning_loop_v2_ui.py LearningLoopV2UiTests.test_css_accessibility_and_mobile_contract LearningLoopV2UiTests.test_visible_copy_stays_within_product_state_boundary
           python -B apps/learnit-next/tests/atlas_m1_core.py
           python -B apps/learnit-next/tests/atlas_m1_int.py
 
@@ -230,6 +245,7 @@ jobs:
             'producerFirewallUnchanged':True,
             'baselineStorageVersion':3,
             'staleWaveAStorageOracleExpectedVersion':2,
+            'r15OrderingOracleBaselineIdentical':True,
             'sourceTreeCleanAfterQualification':True,
           }
           out=Path(os.environ['RUNNER_TEMP'])/'passage-v6-consumption-proof.json'
