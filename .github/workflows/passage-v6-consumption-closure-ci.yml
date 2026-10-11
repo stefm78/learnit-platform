@@ -73,7 +73,6 @@ jobs:
           python - <<'PY'
           import hashlib, json
           from pathlib import Path
-
           manifest_path=Path('apps/learnit-next/source_manifest.json')
           manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
           expected={
@@ -135,12 +134,47 @@ jobs:
           echo "LEARNER_BYTES=$bytes"
           echo "LEARNER_SHA256=$sha"
 
+      - name: Materialize manifest-declared historical regression oracles
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
+          wanted={
+            'apps/learnit-next/tests/contract_v2.py',
+            'apps/learnit-next/tests/storage_isolation.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_learning.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_authoring.py',
+            'apps/learnit-next/tests/dev_learning_loop_v2_ui.py',
+            'apps/learnit-next/tests/atlas_m1_core.py',
+            'apps/learnit-next/tests/atlas_m1_int.py',
+          }
+          items={item['path']:item for item in manifest['workingFiles']}
+          missing=wanted-set(items)
+          assert not missing, f'REGRESSION_ORACLE_NOT_DECLARED:{sorted(missing)}'
+          materialized=[]
+          for path_text in sorted(wanted):
+              path=Path(path_text)
+              if path.is_file():
+                  continue
+              fingerprint=items[path_text].get('fingerprint',{})
+              assert fingerprint.get('kind')=='git-blob-sha1', path_text
+              data=subprocess.run(['git','cat-file','blob',fingerprint['value']],check=True,stdout=subprocess.PIPE).stdout
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(data)
+              materialized.append(path_text)
+          print('MATERIALIZED_REGRESSION_ORACLES='+str(len(materialized)))
+          PY
+
       - name: Replay preserved V2-V5 runtime regressions
         shell: bash
         run: |
           set -euo pipefail
           python -B apps/learnit-next/tests/contract_v2.py
-          python -B apps/learnit-next/tests/student_v01_learning_runtime.py
+          python -B apps/learnit-next/tests/storage_isolation.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_learning.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_platform.py
           python -B apps/learnit-next/tests/dev_learning_loop_v2_authoring.py
