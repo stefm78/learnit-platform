@@ -133,8 +133,11 @@ jobs:
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
           echo "LEARNER_BYTES=$bytes"
           echo "LEARNER_SHA256=$sha"
+          mkdir -p apps/learnit-next/dist
+          cp "$RUNNER_TEMP/learnit-a.html" apps/learnit-next/dist/learnit-next.html
+          cmp "$RUNNER_TEMP/learnit-a.html" apps/learnit-next/dist/learnit-next.html
 
-      - name: Materialize manifest-declared historical regression oracles
+      - name: Materialize all manifest-declared regression support
         shell: bash
         run: |
           set -euo pipefail
@@ -142,28 +145,23 @@ jobs:
           import json, subprocess
           from pathlib import Path
           manifest=json.loads(Path('apps/learnit-next/source_manifest.json').read_text(encoding='utf-8'))
-          wanted={
-            'apps/learnit-next/tests/contract_v2.py',
-            'apps/learnit-next/tests/storage_isolation.py',
-            'apps/learnit-next/tests/dev_learning_loop_v2_learning.py',
-            'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
-            'apps/learnit-next/tests/dev_learning_loop_v2_authoring.py',
-            'apps/learnit-next/tests/dev_learning_loop_v2_ui.py',
-          }
-          items={item['path']:item for item in manifest['workingFiles']}
           materialized=[]
-          for path_text in sorted(wanted):
+          for item in manifest['workingFiles']:
+              path_text=item['path']
+              if path_text=='apps/learnit-next/source_manifest.json':
+                  continue
               path=Path(path_text)
               if path.is_file():
                   continue
-              assert path_text in items, f'REGRESSION_ORACLE_NOT_DECLARED:{path_text}'
-              fingerprint=items[path_text].get('fingerprint',{})
+              fingerprint=item.get('fingerprint',{})
               assert fingerprint.get('kind')=='git-blob-sha1', path_text
               data=subprocess.run(['git','cat-file','blob',fingerprint['value']],check=True,stdout=subprocess.PIPE).stdout
               path.parent.mkdir(parents=True,exist_ok=True)
               path.write_bytes(data)
               materialized.append(path_text)
-          print('MATERIALIZED_REGRESSION_ORACLES='+str(len(materialized)))
+          print('MATERIALIZED_DECLARED_SUPPORT='+str(len(materialized)))
+          for path in materialized:
+              print(path)
           PY
 
       - name: Replay preserved V2-V5 runtime regressions
