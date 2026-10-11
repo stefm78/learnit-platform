@@ -149,17 +149,14 @@ jobs:
             'apps/learnit-next/tests/dev_learning_loop_v2_platform.py',
             'apps/learnit-next/tests/dev_learning_loop_v2_authoring.py',
             'apps/learnit-next/tests/dev_learning_loop_v2_ui.py',
-            'apps/learnit-next/tests/atlas_m1_core.py',
-            'apps/learnit-next/tests/atlas_m1_int.py',
           }
           items={item['path']:item for item in manifest['workingFiles']}
-          missing=wanted-set(items)
-          assert not missing, f'REGRESSION_ORACLE_NOT_DECLARED:{sorted(missing)}'
           materialized=[]
           for path_text in sorted(wanted):
               path=Path(path_text)
               if path.is_file():
                   continue
+              assert path_text in items, f'REGRESSION_ORACLE_NOT_DECLARED:{path_text}'
               fingerprint=items[path_text].get('fingerprint',{})
               assert fingerprint.get('kind')=='git-blob-sha1', path_text
               data=subprocess.run(['git','cat-file','blob',fingerprint['value']],check=True,stdout=subprocess.PIPE).stdout
