@@ -147,8 +147,17 @@ def make_kit(*, productive_only: bool = False, productive_later: bool = False, p
     return kit
 
 
-def brief() -> dict:
-    return {"schema": "learnit.atlas.learner_brief.v1", "audience": "élève", "goal": "Maîtriser la relation de la source", "language": "fr-FR", "timeBudgetMinutes": 30}
+def brief(*, mode: str = "DISCOVERY", prior: str = "NOVICE", scope: list[str] | None = None, confirmed: bool = True, basis: str = "USER_CONFIRMED_PROPOSAL") -> dict:
+    return {
+        "schema": "learnit.atlas.learner_brief.v1", "audience": "élève", "goal": "Maîtriser la relation de la source", "language": "fr-FR", "timeBudgetMinutes": 30,
+        "learningIntent": {
+            "mode": mode,
+            "priorKnowledge": prior,
+            "objectiveScope": scope or ["Résoudre une situation conforme à la source."],
+            "objectiveScopeConfirmed": confirmed,
+            "confirmationBasis": basis,
+        },
+    }
 
 
 def manifest(source_raw: bytes, *, visual_required: bool = False, hidden_role_a: bool = False) -> dict:
@@ -164,17 +173,18 @@ def manifest(source_raw: bytes, *, visual_required: bool = False, hidden_role_a:
     }
 
 
-def review(context: dict, *, answer_hold: bool = False, hint_hold: bool = False, productive_check: str = "not_applicable", visual_check: str = "not_applicable", role_b_check: str = "pass", bad_claim: bool = False) -> dict:
+def review(context: dict, *, answer_hold: bool = False, learner_fit_hold: bool = False, hint_hold: bool = False, productive_check: str = "not_applicable", visual_check: str = "not_applicable", role_b_check: str = "pass", bad_claim: bool = False) -> dict:
     evidence = [{"sourceId": "course-source", "claimId": "claim.missing" if bad_claim else "claim.answer", "locator": "fixture:1"}]
     dims = {}
     for name in v6_gate.CORE_DIMENSIONS:
-        dims[name] = {"status": "hold" if answer_hold and name == "answerCorrectness" else "pass", "summary": f"{name} vérifié sur la source autorisée.", "evidence": copy.deepcopy(evidence)}
+        hold = (answer_hold and name == "answerCorrectness") or (learner_fit_hold and name == "learnerFit")
+        dims[name] = {"status": "hold" if hold else "pass", "summary": f"{name} vérifié sur la source autorisée.", "evidence": copy.deepcopy(evidence)}
     checks = {
         "reviewerSkill": "pass", "hintProgression": "pass", "hintAnswerLeak": "hold" if hint_hold else "pass",
         "roleAReferenceUsefulness": "pass", "roleBClaimMapping": role_b_check,
         "productiveCorrectness": productive_check, "visualAdequacy": visual_check,
     }
-    semantic_hold = answer_hold or hint_hold or role_b_check == "hold" or productive_check == "hold" or visual_check == "hold"
+    semantic_hold = answer_hold or learner_fit_hold or hint_hold or role_b_check == "hold" or productive_check == "hold" or visual_check == "hold"
     return {
         "schema": v6_gate.SEMANTIC_REVIEW_SCHEMA, "profile": v6_gate.SEMANTIC_REVIEW_PROFILE,
         "target": {key: context[key] for key in ("contextDigest", "kitSha256", "sourceSetDigest", "briefSha256")},
@@ -215,6 +225,44 @@ class V6ReleaseHardeningTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[3]
         self.assertEqual("285c037b5e430ca2f75d61583d9d22c23073f7f7", validator_runtime.git_blob_sha((root / "authoring/factory/_reliability_v1.py").read_bytes()))
         self.assertEqual("10be3727243e8dc66d10c1a11731c7f61ed2c8e8", validator_runtime.git_blob_sha((root / "authoring/factory/_release_set_v1.py").read_bytes()))
+
+    def test_learning_intent_contract_accepts_all_modes_and_prior_knowledge(self):
+        for mode in v6_gate.LEARNING_MODES:
+            for prior in v6_gate.PRIOR_KNOWLEDGE:
+                self.assertEqual(mode, v6_gate.validate_brief(brief(mode=mode, prior=prior))["learningIntent"]["mode"])
+
+    def test_learning_intent_contract_fails_closed(self):
+        missing = brief(); del missing["learningIntent"]
+        with self.assertRaises(v6_gate.V6FactoryInputError): v6_gate.validate_brief(missing)
+        bad = brief(); bad["learningIntent"]["extra"] = True
+        with self.assertRaises(v6_gate.V6FactoryInputError): v6_gate.validate_brief(bad)
+        for value in ([], [""], ["A", "A"]):
+            with self.subTest(scope=value):
+                with self.assertRaises(v6_gate.V6FactoryInputError): v6_gate.validate_brief(brief(scope=value))
+        with self.assertRaises(v6_gate.V6FactoryInputError): v6_gate.validate_brief(brief(confirmed=False))
+        with self.assertRaises(v6_gate.V6FactoryInputError): v6_gate.validate_brief(brief(mode="OTHER"))
+        with self.assertRaises(v6_gate.V6FactoryInputError): v6_gate.validate_brief(brief(prior="OTHER"))
+        with self.assertRaises(v6_gate.V6FactoryInputError): v6_gate.validate_brief(brief(basis="OTHER"))
+
+    def test_intent_mutation_stales_review_binding(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit())
+            original = f.gate()["context"]
+            changed = json.loads(f.brief.read_text(encoding="utf-8")); changed["learningIntent"]["mode"] = "REVISION"
+            f.brief.write_text(json.dumps(changed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            gate = f.gate()
+            self.assertNotEqual(original["briefSha256"], gate["context"]["briefSha256"])
+            self.assertIn("REVIEW_TARGET_MISMATCH:briefSha256", gate["reasons"])
+
+    def test_old_review_profile_is_rejected_and_learner_fit_hold_blocks(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit())
+            old = json.loads(f.review.read_text(encoding="utf-8")); old["profile"] = "atlas.semantic-review.v6-r1"; old["verdict"] = "PASS_SEMANTIC_REVIEW_V6_R1"
+            f.review.write_text(json.dumps(old, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            with self.assertRaises(v6_gate.V6FactoryInputError): f.gate()
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit(), review_kwargs={"learner_fit_hold": True})
+            self.assertIn("DIMENSION_HOLD:learnerFit", f.gate()["reasons"])
 
     def test_productive_remains_schema_valid_but_factory_holds_exact_reason(self):
         with tempfile.TemporaryDirectory() as td:
