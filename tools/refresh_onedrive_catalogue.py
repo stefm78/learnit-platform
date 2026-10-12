@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Refresh LearnIT's derived OneDrive course/kit catalogues. Non-authoritative."""
 from __future__ import annotations
-import argparse,csv,hashlib,html,json
+import argparse,csv,hashlib,html,json,zipfile
 from collections import Counter
 from datetime import datetime,timezone
 from pathlib import Path
 from urllib.parse import quote
 
 PASS="PASS_AI_KIT_FACTORY_V1"
+PASS_V6="PASS_AI_KIT_FACTORY_V6_R2"
+V6_STATUS="USABLE_FACTORY_PASS_V6"
 SOURCE="https://github.com/stefm78/learnit-platform/blob/main/tools/refresh_onedrive_catalogue.py"
 
 def J(p): return json.loads(p.read_text(encoding="utf-8"))
@@ -46,7 +48,7 @@ def courses(root):
         out.append(dict(course_key=m.get("course_key",folder.name),title=m.get("title") or m.get("course_key") or folder.name,academic_year=m.get("academic_year"),relative_path=folder.relative_to(root).as_posix(),stage=s.get("stage") if not err else "RECONSTRUCTION_HOLD",status=s.get("status") if not err else "HOLD",revision=e.get("revision") if e and not err else None,limitations=(e or {}).get("limitations") or [],error=err))
     return out
 
-def kits(root,by):
+def legacy_kits(root,by):
     out=[]; diag=[]; base=root/"80_CONTROL/REVIEW_HANDOFFS"
     if not base.exists():return out,["REVIEW_HANDOFFS_ABSENT"]
     for lp in sorted(base.glob("*/HANDOFF_LOCATOR.json")):
@@ -61,6 +63,72 @@ def kits(root,by):
         k=J(kp); acts=[a for c in k.get("courses",[]) for a in c.get("activities",[])]; types=Counter(a.get("type","unknown") for a in acts); c=by.get(key,{})
         out.append(dict(course_key=key,course_title=c.get("title") or key,kit_title=k.get("title") or c.get("title") or key,sha256=expected,bytes=a.get("size_bytes") or kp.stat().st_size,activities=len(acts),types=dict(sorted(types.items())),factory_verdict=verdict,item_id=a.get("item_id"),web_url=web(a.get("item_id")),evidence=lp.relative_to(root).as_posix()))
     return out,diag
+
+def _unique_by_hash(root, filename, expected):
+    if not filename or not expected:return None,"MISSING_IDENTITY"
+    hits=[]
+    for p in root.rglob(filename):
+        if p.is_file() and H(p)==expected:hits.append(p)
+    if len(hits)!=1:return None,f"IDENTITY_MATCH_COUNT:{len(hits)}"
+    return hits[0],None
+
+def v6_kits(root,by):
+    out=[]; diag=[]; base=root/"80_CONTROL/PROGRAM/JOBS"
+    if not base.exists():return out,diag
+    for lp in sorted(base.rglob("USABLE_KIT_LOCATOR.json")):
+        tag=lp.parent.name
+        try:l=J(lp)
+        except Exception:diag.append(f"V6_UNREADABLE_LOCATOR:{tag}");continue
+        if l.get("status")!=V6_STATUS:
+            diag.append(f"V6_LOCATOR_NOT_USABLE:{tag}:{l.get('status') or 'NO_STATUS'}");continue
+        try:
+            key=l["course_key"]; kit=l["kit"]; rel=l["release"]; fac=l["factory"]
+            kit_sha=B(kit["sha256"]); kit_bytes=int(kit["bytes"]); kit_name=kit["filename"]
+            rel_sha=B(rel["sha256"]); rel_bytes=int(rel["bytes"]); rel_name=rel["filename"]
+            verdict=fac["verdict"]
+            result=fac["result"]; evidence=fac["evidence"]; attestation=fac["attestation"]
+        except Exception:
+            diag.append(f"V6_LOCATOR_INCOMPLETE:{tag}");continue
+        if verdict!=PASS_V6 or not kit_sha or not rel_sha:
+            diag.append(f"V6_LOCATOR_BINDING_INVALID:{tag}");continue
+        kp,kerr=_unique_by_hash(root,kit_name,kit_sha)
+        if kerr or not kp or kp.stat().st_size!=kit_bytes:
+            diag.append(f"V6_KIT_IDENTITY_INVALID:{tag}:{kerr or 'BYTE_COUNT'}");continue
+        rp=lp.parent/rel_name
+        if not rp.is_file() or H(rp)!=rel_sha or rp.stat().st_size!=rel_bytes:
+            diag.append(f"V6_RELEASE_IDENTITY_INVALID:{tag}");continue
+        bound=[]; invalid=False
+        for label,node in (("RESULT",result),("EVIDENCE",evidence),("ATTESTATION",attestation)):
+            p,err=_unique_by_hash(root,node.get("filename"),B(node.get("sha256")))
+            if err or not p:
+                diag.append(f"V6_FACTORY_{label}_IDENTITY_INVALID:{tag}:{err or 'NOT_FOUND'}"); invalid=True; break
+            bound.append((label,p))
+        if invalid:continue
+        try:rj=J(bound[0][1])
+        except Exception:diag.append(f"V6_FACTORY_RESULT_UNREADABLE:{tag}");continue
+        rverdict=rj.get("factory_gate",{}).get("verdict") or rj.get("factoryGate",{}).get("verdict") or rj.get("verdict")
+        if rverdict!=PASS_V6:
+            diag.append(f"V6_FACTORY_VERDICT_INVALID:{tag}:{rverdict or 'NO_VERDICT'}");continue
+        try:
+            with zipfile.ZipFile(rp,"r") as z:
+                matches=[]
+                for n in z.namelist():
+                    if n.endswith("/"):continue
+                    data=z.read(n)
+                    if hashlib.sha256(data).hexdigest()==kit_sha:matches.append(n)
+                if len(matches)!=1:
+                    diag.append(f"V6_RELEASE_KIT_MATCH_COUNT:{tag}:{len(matches)}");continue
+        except Exception:
+            diag.append(f"V6_RELEASE_UNREADABLE:{tag}");continue
+        try:k=J(kp)
+        except Exception:diag.append(f"V6_KIT_UNREADABLE:{tag}");continue
+        acts=[a for c in k.get("courses",[]) for a in c.get("activities",[])]; types=Counter(a.get("type","unknown") for a in acts); c=by.get(key,{})
+        out.append(dict(course_key=key,course_title=c.get("title") or key,kit_title=k.get("title") or c.get("title") or key,sha256=kit_sha,bytes=kit_bytes,activities=len(acts),types=dict(sorted(types.items())),factory_verdict=PASS_V6,item_id=kit.get("item_id"),web_url=web(kit.get("item_id")),evidence=lp.relative_to(root).as_posix()))
+    return out,diag
+
+def kits(root,by):
+    legacy,diag=legacy_kits(root,by); v6,v6diag=v6_kits(root,by)
+    return legacy+v6,diag+v6diag
 
 CSS="body{font-family:system-ui,sans-serif;max-width:1150px;margin:0 auto;padding:24px;line-height:1.45}code{overflow-wrap:anywhere}.note,.card{border:1px solid #9997;border-radius:10px;padding:14px;margin:14px 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}.button{display:inline-block;border:1px solid currentColor;border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:700}.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:850px}th,td{border-bottom:1px solid #9997;padding:9px;text-align:left;vertical-align:top}.muted{opacity:.7}"
 def shell(title,body,stamp):return f'''<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><style>{CSS}</style></head><body><h1>{html.escape(title)}</h1><p class="muted">Vue humaine dérivée — non autoritaire.</p><div class="note">Les manifests, STATELOG et preuves exactes restent les autorités. Cette vue est régénérable et ne modifie aucun état.</div>{body}<p class="muted"><small>Rafraîchi : {html.escape(stamp)} · <a href="{SOURCE}">générateur canonique</a></small></p></body></html>\n'''
@@ -77,7 +145,7 @@ def emit(root,cs,ks,diag,stamp,commit):
     for k in ks:
         typ=", ".join(f"{v} {t}" for t,v in k["types"].items()) or "—"; link=f'<a class="button" href="{html.escape(k["web_url"])}">Ouvrir le JSON importable</a>' if k["web_url"] else "Lien OneDrive absent"
         cards.append(f'''<article class="card"><h2>{html.escape(k['kit_title'])}</h2><p><strong>✓ Factory PASS</strong></p><p><strong>Cours :</strong> {html.escape(k['course_title'])}<br><strong>Course key :</strong> <code>{html.escape(k['course_key'])}</code><br><strong>Activités :</strong> {k['activities']} ({html.escape(typ)})<br><strong>Taille :</strong> {k['bytes']} octets</p><p><strong>SHA-256 exact :</strong><br><code>{k['sha256']}</code></p>{link}</article>''')
-    intro=f"<p><strong>{len(ks)}</strong> kit(s) dont les bytes exacts sont reliés à une preuve <code>{PASS}</code>.</p>" if ks else "<p><strong>Aucun kit Factory PASS détecté par cette reconstruction.</strong></p>"
+    intro=f"<p><strong>{len(ks)}</strong> kit(s) dont les bytes exacts sont reliés à une preuve Factory PASS.</p>" if ks else "<p><strong>Aucun kit Factory PASS détecté par cette reconstruction.</strong></p>"
     detail="<details><summary>Diagnostics</summary><ul>"+"".join(f"<li><code>{html.escape(x)}</code></li>" for x in diag)+"</ul></details>" if diag else ""
     kh=out/"CATALOGUE_KITS.html"; kh.write_text(shell("Kits LearnIT disponibles",intro+'<p><a class="button" href="CATALOGUE_COURS.html">Voir tous les cours</a></p><section class="cards">'+"".join(cards)+"</section>"+detail,stamp),encoding="utf-8")
     cp=out/"CATALOGUE_COURS.csv"

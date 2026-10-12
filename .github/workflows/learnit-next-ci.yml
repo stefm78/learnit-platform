@@ -27,7 +27,7 @@ on:
         description: Exact verification topology
         required: true
         type: choice
-        options: [integration-head, post-merge, atlas-contracts, atlas-learning, atlas-core, atlas-experience, atlas-content, atlas-int, atlas-qa]
+        options: [integration-head, post-merge, atlas-contracts, atlas-learning, atlas-core, atlas-experience, atlas-content, atlas-int, atlas-qa, passage-v6-consumer-replay]
       verification_ref:
         description: Exact 40-character commit SHA
         required: true
@@ -82,6 +82,7 @@ concurrency:
 
 jobs:
   exact-head-matrix:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') }}
     name: Exact-head routed matrix
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -1271,3 +1272,289 @@ jobs:
           path: |
             apps/learnit-next/.agent-result/run_checks.json
             apps/learnit-next/dist/learnit-next.html
+
+  passage-v6-recovery:
+    name: PASSAGE V6 R3 bounded recovery
+    if: ${{ (github.event_name == 'pull_request' && github.head_ref == 'passage/v6-consumption-closure-r3') || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Merge PASSAGE WP-003 recovery')) || (github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PASSAGE_BASE: c0e06ac2db90b9ebedfc0d44236212d455b334f2
+      PASSAGE_R2_PARENT1: 10f058c4693fb72439a13feb3abfd45db43f9b42
+      PASSAGE_R2_HEAD: b1bae0b796e5d684842be49a8f579ad8fae896d4
+      PASSAGE_R2_TREE: b663b16f466ed92a7458d6ded20949cbc11314b8
+      PASSAGE_R2_WORKFLOW_BLOB: 61777d24513d1183bfb05307e6c86aa649125e53
+      PASSAGE_PRODUCER: 5e4065dd46618f9b2a1010b9789b1833de39a9e3
+      PASSAGE_ARTIFACT_BYTES: '627042'
+      PASSAGE_ARTIFACT_SHA256: 92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b
+    steps:
+      - name: Resolve bounded PASSAGE target
+        id: passage
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_BRANCH: ${{ github.head_ref }}
+          PUSH_HEAD: ${{ github.sha }}
+          DISPATCH_MODE: ${{ inputs.verification_mode }}
+          DISPATCH_HEAD: ${{ inputs.verification_ref }}
+          ACCEPTED: ${{ inputs.accepted_integration_head }}
+        run: |
+          set -euo pipefail
+          case "${EVENT}" in
+            pull_request)
+              [[ "${PR_BRANCH}" == passage/v6-consumption-closure-r3 ]]
+              [[ "${PR_BASE}" == "${PASSAGE_BASE}" ]]
+              profile=passage-v6-r3-pr
+              target="${PR_HEAD}"
+              accepted=''
+              ;;
+            push)
+              profile=passage-v6-r3-post-merge
+              target="${PUSH_HEAD}"
+              accepted=''
+              ;;
+            workflow_dispatch)
+              [[ "${DISPATCH_MODE}" == passage-v6-consumer-replay ]]
+              profile=passage-v6-consumer-replay
+              target="${DISPATCH_HEAD}"
+              accepted="${ACCEPTED}"
+              ;;
+            *) exit 2 ;;
+          esac
+          [[ "${target}" =~ ^[0-9a-f]{40}$ ]]
+          printf 'profile=%s\ntarget=%s\naccepted=%s\n' "${profile}" "${target}" "${accepted}" >> "${GITHUB_OUTPUT}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.passage.outputs.target }}
+          fetch-depth: 0
+          clean: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Bind exact topology, scope and producer firewall
+        id: topology
+        shell: bash
+        env:
+          PROFILE: ${{ steps.passage.outputs.profile }}
+          TARGET: ${{ steps.passage.outputs.target }}
+          ACCEPTED: ${{ steps.passage.outputs.accepted }}
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "${TARGET}" ]]
+          git cat-file -e "${PASSAGE_PRODUCER}^{commit}"
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          parent1=''
+          parent2=''
+          expected="$(printf '%s\n' \
+            '.github/workflows/learnit-next-ci.yml' \
+            '.github/workflows/passage-v6-consumption-closure-ci.yml' \
+            'tools/refresh_onedrive_catalogue.py' \
+            'work-packages/PASSAGE-WP-003.json' | sort)"
+          case "${PROFILE}" in
+            passage-v6-r3-pr)
+              actual="$(git diff --name-only "${PASSAGE_BASE}" "${TARGET}" | sed '/^$/d' | sort)"
+              [[ "${actual}" == "${expected}" ]]
+              parent1="${PASSAGE_BASE}"
+              ;;
+            passage-v6-r3-post-merge)
+              [[ "$(git log -1 --pretty=%s)" == 'Merge PASSAGE WP-003 recovery' ]]
+              parents=( $(git show -s --format=%P HEAD) )
+              [[ ${#parents[@]} -eq 2 ]]
+              [[ "${parents[0]}" == "${PASSAGE_BASE}" ]]
+              parent1="${parents[0]}"
+              parent2="${parents[1]}"
+              actual="$(git diff --name-only "${parent1}" HEAD | sed '/^$/d' | sort)"
+              [[ "${actual}" == "${expected}" ]]
+              ;;
+            passage-v6-consumer-replay)
+              [[ "${TARGET}" == "${PASSAGE_BASE}" ]]
+              [[ "${ACCEPTED}" == "${PASSAGE_R2_HEAD}" ]]
+              parents=( $(git show -s --format=%P HEAD) )
+              [[ ${#parents[@]} -eq 2 ]]
+              [[ "${parents[0]}" == "${PASSAGE_R2_PARENT1}" ]]
+              [[ "${parents[1]}" == "${PASSAGE_R2_HEAD}" ]]
+              [[ "${tree}" == "${PASSAGE_R2_TREE}" ]]
+              parent1="${parents[0]}"
+              parent2="${parents[1]}"
+              ;;
+            *) exit 2 ;;
+          esac
+          git diff --exit-code "${PASSAGE_PRODUCER}" "${TARGET}" -- \
+            contracts/learnit-kit-v6.schema.json \
+            authoring/v6 \
+            authoring/factory
+          if [[ "${PROFILE}" != passage-v6-consumer-replay ]]; then
+            [[ "$(git rev-parse 'HEAD:.github/workflows/passage-v6-consumption-closure-ci.yml')" == "${PASSAGE_R2_WORKFLOW_BLOB}" ]]
+            python -m py_compile tools/refresh_onedrive_catalogue.py
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('work-packages/PASSAGE-WP-003.json').read_text(encoding='utf-8'))
+          assert p['id']=='PASSAGE-WP-003'
+          assert p['baseline']['baseCommit']=='c0e06ac2db90b9ebedfc0d44236212d455b334f2'
+          assert p['scope']['allowedPaths']==['.github/workflows/learnit-next-ci.yml','.github/workflows/passage-v6-consumption-closure-ci.yml','tools/refresh_onedrive_catalogue.py','work-packages/PASSAGE-WP-003.json']
+          assert p['authority']['producerAuthorityCommit']=='5e4065dd46618f9b2a1010b9789b1833de39a9e3'
+          PY
+            grep -Fq 'passage-v6-consumer-replay' .github/workflows/learnit-next-ci.yml
+            grep -Fq 'PASSAGE V6 R3 bounded recovery' .github/workflows/learnit-next-ci.yml
+          fi
+          printf 'tree=%s\nparent1=%s\nparent2=%s\n' "${tree}" "${parent1}" "${parent2}" >> "${GITHUB_OUTPUT}"
+
+      - name: Exercise deterministic V1 and V6 catalogue fixtures
+        id: catalogue
+        if: steps.passage.outputs.profile != 'passage-v6-consumer-replay'
+        shell: bash
+        env:
+          TARGET: ${{ steps.passage.outputs.target }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,shutil,subprocess,sys,zipfile
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'passage-v6-catalogue-fixture'
+          shutil.rmtree(root,ignore_errors=True)
+          (root/'10_COURSES').mkdir(parents=True)
+          hand=root/'80_CONTROL/REVIEW_HANDOFFS/LEGACY'
+          out=root/'80_CONTROL/REVIEW_HANDOFFS/LEGACY_OUTPUTS'
+          hand.mkdir(parents=True); out.mkdir(parents=True)
+          legacy={'title':'Legacy fixture','courses':[{'activities':[{'type':'quiz'}]}]}
+          lb=(json.dumps(legacy,sort_keys=True)+'\n').encode(); lsha=hashlib.sha256(lb).hexdigest()
+          (hand/'generated-kit.json').write_bytes(lb)
+          (hand/'HANDOFF_LOCATOR.json').write_text(json.dumps({'course_key':'legacy-course','artifacts':[{'name':'generated-kit.json','sha256':'sha256:'+lsha,'size_bytes':len(lb),'item_id':'B9B0D852F6CCE2CD!s11111111111111111111111111111111'}]})+'\n')
+          (out/'factory-run.json').write_text(json.dumps({'finalDecision':{'verdict':'PASS_AI_KIT_FACTORY_V1'},'evidenceBundle':{'artifacts':{'generatedKit':{'sha256':'sha256:'+lsha}}}})+'\n')
+          jobs=root/'80_CONTROL/PROGRAM/JOBS'; good=jobs/'GOOD'; bad=jobs/'BAD'; evidence=jobs/'EVIDENCE'
+          good.mkdir(parents=True); bad.mkdir(parents=True); evidence.mkdir(parents=True)
+          v6={'title':'V6 fixture','item_id':'B9B0D852F6CCE2CD!s22222222222222222222222222222222','courses':[{'activities':[{'type':'productive'}]}]}
+          vb=(json.dumps(v6,sort_keys=True)+'\n').encode(); vsha=hashlib.sha256(vb).hexdigest()
+          kit=evidence/'fixture-v6-kit.json'; kit.write_bytes(vb)
+          result=evidence/'factory-result.json'; result.write_text(json.dumps({'factory_gate':{'verdict':'PASS_AI_KIT_FACTORY_V6_R2'}})+'\n')
+          ev=evidence/'factory-evidence.json'; ev.write_text('{"evidence":"fixture"}\n')
+          att=evidence/'factory-attestation.json'; att.write_text('{"attestation":"fixture"}\n')
+          def h(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+          release=good/'fixture-release.zip'
+          with zipfile.ZipFile(release,'w',compression=zipfile.ZIP_DEFLATED) as z:
+              info=zipfile.ZipInfo('fixture-v6-kit.json',(2020,1,1,0,0,0)); info.compress_type=zipfile.ZIP_DEFLATED; z.writestr(info,vb)
+          locator={
+            'status':'USABLE_FACTORY_PASS_V6','course_key':'v6-course',
+            'kit':{'filename':kit.name,'bytes':len(vb),'sha256':'sha256:'+vsha},
+            'release':{'filename':release.name,'bytes':release.stat().st_size,'sha256':'sha256:'+h(release)},
+            'factory':{'verdict':'PASS_AI_KIT_FACTORY_V6_R2',
+              'result':{'filename':result.name,'sha256':'sha256:'+h(result)},
+              'evidence':{'filename':ev.name,'sha256':'sha256:'+h(ev)},
+              'attestation':{'filename':att.name,'sha256':'sha256:'+h(att)}}}
+          (good/'USABLE_KIT_LOCATOR.json').write_text(json.dumps(locator,indent=2)+'\n')
+          bad_release=bad/'fixture-release-bad.zip'; shutil.copy2(release,bad_release)
+          bad_locator=json.loads(json.dumps(locator)); bad_locator['release']['filename']=bad_release.name; bad_locator['release']['sha256']='sha256:'+'0'*64
+          (bad/'USABLE_KIT_LOCATOR.json').write_text(json.dumps(bad_locator,indent=2)+'\n')
+          cmd=[sys.executable,'tools/refresh_onedrive_catalogue.py',str(root),'--generated-at','2026-10-11T20:00:00+00:00','--generator-commit',os.environ['TARGET']]
+          subprocess.run(cmd,check=True)
+          files=['CATALOGUE_MANIFEST.json','CATALOGUE_COURS.html','CATALOGUE_COURS.csv','CATALOGUE_KITS.html']
+          first={n:(root/'05_CATALOGUE'/n).read_bytes() for n in files}
+          subprocess.run(cmd,check=True)
+          second={n:(root/'05_CATALOGUE'/n).read_bytes() for n in files}
+          assert first==second
+          m=json.loads(first['CATALOGUE_MANIFEST.json'])
+          assert m['usable_factory_pass_kit_count']==2,m
+          by={k['course_key']:k for k in m['usable_kits']}
+          assert by['legacy-course']['factory_verdict']=='PASS_AI_KIT_FACTORY_V1'
+          assert by['v6-course']['factory_verdict']=='PASS_AI_KIT_FACTORY_V6_R2'
+          assert by['v6-course']['sha256']=='sha256:'+vsha
+          assert any(x.startswith('V6_RELEASE_IDENTITY_INVALID:BAD') for x in m['diagnostics']),m['diagnostics']
+          print('PASSAGE_CATALOGUE_FIXTURES=PASS')
+          PY
+          echo 'result=PASS' >> "${GITHUB_OUTPUT}"
+
+      - name: Install browser dependency for exact V6 replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir -r apps/player/requirements-test.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Build exact learner twice and replay generic native V6 regression
+        id: learner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/learnit-a.html"
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/learnit-b.html"
+          cmp "${RUNNER_TEMP}/learnit-a.html" "${RUNNER_TEMP}/learnit-b.html"
+          bytes="$(wc -c < "${RUNNER_TEMP}/learnit-a.html" | tr -d ' ')"
+          sha="$(sha256sum "${RUNNER_TEMP}/learnit-a.html" | awk '{print $1}')"
+          [[ "${bytes}" == "${PASSAGE_ARTIFACT_BYTES}" ]]
+          [[ "${sha}" == "${PASSAGE_ARTIFACT_SHA256}" ]]
+          LEARNIT_V6_ARTIFACT="${RUNNER_TEMP}/learnit-a.html" python -B apps/learnit-next/tests/passage_v6_consumption.py
+          printf 'bytes=%s\nsha256=%s\nresult=PASS\n' "${bytes}" "${sha}" >> "${GITHUB_OUTPUT}"
+
+      - name: Prove source worktree clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          [[ -z "$(git status --porcelain=v1 --untracked-files=all)" ]]
+
+      - name: Write exact PASSAGE R3 machine proof
+        shell: bash
+        env:
+          PROFILE: ${{ steps.passage.outputs.profile }}
+          TARGET: ${{ steps.passage.outputs.target }}
+          ACCEPTED: ${{ steps.passage.outputs.accepted }}
+          TREE: ${{ steps.topology.outputs.tree }}
+          PARENT1: ${{ steps.topology.outputs.parent1 }}
+          PARENT2: ${{ steps.topology.outputs.parent2 }}
+          BUILD_BYTES: ${{ steps.learner.outputs.bytes }}
+          BUILD_SHA: ${{ steps.learner.outputs.sha256 }}
+          CATALOGUE_FIXTURE: ${{ steps.catalogue.outputs.result }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          profile=os.environ['PROFILE']
+          proof={
+            'schema':'learnit.passage.v6-consumption-recovery-proof.v1',
+            'result':'PASS',
+            'verdict':'PASS_PASSAGE_V6_CONSUMPTION_RECOVERY_R3',
+            'profile':profile,
+            'target':os.environ['TARGET'],
+            'parents':[x for x in (os.environ.get('PARENT1'),os.environ.get('PARENT2')) if x],
+            'tree':os.environ['TREE'],
+            'acceptedIntegrationHead':os.environ.get('ACCEPTED') or None,
+            'producerAuthorityCommit':'5e4065dd46618f9b2a1010b9789b1833de39a9e3',
+            'producerAuthorityDrift':False,
+            'learnerArtifactBytes':int(os.environ['BUILD_BYTES']),
+            'learnerArtifactSha256':os.environ['BUILD_SHA'],
+            'deterministicDoubleBuild':True,
+            'genericNativeV6ConsumptionRegression':'PASS',
+            'catalogueFixture':os.environ.get('CATALOGUE_FIXTURE') or 'NOT_RUN_FOR_HISTORICAL_REPLAY',
+            'historicalReplayFailClosed':True,
+          }
+          if profile=='passage-v6-consumer-replay':
+              assert proof['target']=='c0e06ac2db90b9ebedfc0d44236212d455b334f2'
+              assert proof['parents']==['10f058c4693fb72439a13feb3abfd45db43f9b42','b1bae0b796e5d684842be49a8f579ad8fae896d4']
+              assert proof['tree']=='b663b16f466ed92a7458d6ded20949cbc11314b8'
+              assert proof['acceptedIntegrationHead']=='b1bae0b796e5d684842be49a8f579ad8fae896d4'
+          out=Path(os.environ['RUNNER_TEMP'])/'passage-v6-r3-proof.json'
+          out.write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(out.read_text(encoding='utf-8'))
+          PY
+          echo PASS_PASSAGE_V6_CONSUMPTION_RECOVERY_R3
+
+      - name: Upload exact PASSAGE R3 proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: passage-v6-r3-${{ steps.passage.outputs.profile }}-${{ steps.passage.outputs.target }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            ${{ runner.temp }}/passage-v6-r3-proof.json
+            ${{ runner.temp }}/learnit-a.html
