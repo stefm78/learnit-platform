@@ -48,7 +48,7 @@ jobs:
           test "$(git hash-object authoring/factory/_release_set_v1.py)" = 10be3727243e8dc66d10c1a11731c7f61ed2c8e8
           test "$(git hash-object authoring/factory/release_set_v6.py)" = c65576449c3c7d8f04ddb74a5cb62346daab7e9c
           test "$(git hash-object authoring/v6/validator_runtime.py)" = 03b977b831f7aeaa8c2a56e14da4b747569e7c7b
-          test "$(git hash-object authoring/skills/SKILL_ATLAS_INDEPENDENT_KIT_REVIEW_V6.md)" = 90fd3e954a15157161679e599cf41a8fb33b028c
+          test "$(git hash-object authoring/skills/SKILL_ATLAS_INDEPENDENT_KIT_REVIEW_V6.md)" = 811d0fd68dc47cb49cf70494d5662c9ae82553d2
       - name: Install validator dependency
         run: python -m pip install --disable-pip-version-check jsonschema
       - name: Compile bounded V6 path
@@ -99,7 +99,7 @@ jobs:
           with tempfile.TemporaryDirectory() as td:
               f = Fixture(Path(td), make_kit())
               brief = json.loads(f.brief.read_text(encoding="utf-8"))
-              brief["goal"] += " — mutation post-review"
+              brief["learningIntent"]["mode"] = "REVISION"
               f.brief.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
               gate = f.gate(commit)
               assert gate["verdict"] == v6_gate.FACTORY_HOLD
