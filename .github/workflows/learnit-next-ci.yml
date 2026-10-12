@@ -1436,7 +1436,7 @@ jobs:
           v6={'title':'V6 fixture','item_id':'B9B0D852F6CCE2CD!s22222222222222222222222222222222','courses':[{'activities':[{'type':'productive'}]}]}
           vb=(json.dumps(v6,sort_keys=True)+'\n').encode(); vsha=hashlib.sha256(vb).hexdigest()
           kit=evidence/'fixture-v6-kit.json'; kit.write_bytes(vb)
-          result=evidence/'factory-result.json'; result.write_text(json.dumps({'factory_gate':{'verdict':'PASS_AI_KIT_FACTORY_V6_R2'}})+'\n')
+          result=evidence/'factory-result.json'; result.write_text(json.dumps({'factory_gate':{'verdict':'PASS_AI_KIT_FACTORY_V6_R3'}})+'\n')
           ev=evidence/'factory-evidence.json'; ev.write_text('{"evidence":"fixture"}\n')
           att=evidence/'factory-attestation.json'; att.write_text('{"attestation":"fixture"}\n')
           def h(p): return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -1447,7 +1447,7 @@ jobs:
             'status':'USABLE_FACTORY_PASS_V6','course_key':'v6-course',
             'kit':{'filename':kit.name,'bytes':len(vb),'sha256':'sha256:'+vsha},
             'release':{'filename':release.name,'bytes':release.stat().st_size,'sha256':'sha256:'+h(release)},
-            'factory':{'verdict':'PASS_AI_KIT_FACTORY_V6_R2',
+            'factory':{'verdict':'PASS_AI_KIT_FACTORY_V6_R3',
               'result':{'filename':result.name,'sha256':'sha256:'+h(result)},
               'evidence':{'filename':ev.name,'sha256':'sha256:'+h(ev)},
               'attestation':{'filename':att.name,'sha256':'sha256:'+h(att)}}}
@@ -1466,7 +1466,7 @@ jobs:
           assert m['usable_factory_pass_kit_count']==2,m
           by={k['course_key']:k for k in m['usable_kits']}
           assert by['legacy-course']['factory_verdict']=='PASS_AI_KIT_FACTORY_V1'
-          assert by['v6-course']['factory_verdict']=='PASS_AI_KIT_FACTORY_V6_R2'
+          assert by['v6-course']['factory_verdict']=='PASS_AI_KIT_FACTORY_V6_R3'
           assert by['v6-course']['sha256']=='sha256:'+vsha
           assert any(x.startswith('V6_RELEASE_IDENTITY_INVALID:BAD') for x in m['diagnostics']),m['diagnostics']
           print('PASSAGE_CATALOGUE_FIXTURES=PASS')
