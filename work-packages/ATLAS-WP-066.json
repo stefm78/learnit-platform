@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-066",
+  "title": "Bind human learning intent before V6 authoring",
+  "status": "approved",
+  "changeClass": "factory-v6-learning-intent-r1",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "job": "FACTORY_V6_LEARNING_INTENT_WORK_PACKAGE_RECOVERY_R1",
+    "candidateOnly": false
+  },
+  "purpose": "Authorize the already-built eight-path Factory V6 learning-intent candidate plus this canonical work-package file, without reopening implementation, so repository PR-scope governance can independently qualify the exact successor head before merge and R4 routing activation.",
+  "baseline": {
+    "baseCommit": "1cfebb7457ff8fdd91eb0cac74f957074d63ea38",
+    "branch": "factory/v6-learning-intent-r1"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/passage-v6-release-hardening-ci.yml",
+      "authoring/factory/README.md",
+      "authoring/factory/tests/test_v6_release_hardening.py",
+      "authoring/factory/v6_gate.py",
+      "authoring/skills/SKILL_ATLAS_INDEPENDENT_KIT_REVIEW_V6.md",
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V6.md",
+      "tools/refresh_onedrive_catalogue.py",
+      "work-packages/ATLAS-WP-066.json"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "authoring/v6/**",
+      "authoring/factory/release_set_v6.py",
+      "apps/**",
+      "governance/**",
+      "docs/**"
+    ]
+  },
+  "invariants": [
+    "The eight pre-existing candidate paths remain byte-identical to commit c37795d4d2e5b5887ccb1e2e80f1aa594f65eb29; this recovery adds only work-packages/ATLAS-WP-066.json.",
+    "The canonical learnit.kit.v6 schema, validator, validator runtime and release_set_v6.py remain byte-identical to frozen main.",
+    "New V6 production requires the confirmed learningIntent block in the existing learnit.atlas.learner_brief.v1 and uses Factory profile atlas.ai-kit-factory.v6-r3 plus semantic-review profile atlas.semantic-review.v6-r2.",
+    "The active activity policy remains v6-no-constructed-no-productive-r1 with constructed and productive disabled.",
+    "Historical R2 catalogue evidence remains usable while new R3 Factory PASS becomes discoverable; locator/result verdict mismatch remains fail-closed.",
+    "No learner runtime, existing kit, historical release, K1, contract, validator or release implementation behavior is mutated by this recovery.",
+    "Merge is allowed only if main remains the exact frozen baseline and every required check plus role-separated PROVE_OR_REFUTE passes on the exact successor head."
+  ],
+  "requiredEvidence": [
+    "Exact frozen base commit 1cfebb7457ff8fdd91eb0cac74f957074d63ea38 and nine-path allowed-only PR diff.",
+    "Successor candidate sole delta from c37795d4d2e5b5887ccb1e2e80f1aa594f65eb29 is work-packages/ATLAS-WP-066.json and all eight pre-existing path blobs are unchanged.",
+    "PR scope PASS for ATLAS-WP-066 on the exact successor head.",
+    "PASSAGE V6 release hardening PASS, Learn-it Next CI PASS and Repository governance PASS on the exact successor head.",
+    "Role-separated PROVE_OR_REFUTE PASS with no unresolved material finding.",
+    "Merge commit tree equals the exact successor candidate tree and all nine changed path blobs equal the qualified successor head.",
+    "Only after merge/tree proof, R4 KIT_EXECUTION_BINDING and CURRENT_KIT_CONTRACT cutover are exact-byte verified."
+  ],
+  "adversarialTests": [
+    "Reject any drift in the eight pre-existing candidate path blobs during work-package recovery.",
+    "Reject any changed path outside the eight original R1 paths plus work-packages/ATLAS-WP-066.json.",
+    "Reject missing or extra learningIntent fields, invalid modes/priorKnowledge, unconfirmed or drifting objective scope, and stale semantic-review reuse.",
+    "Reject redundant questioning when the original directive already provides an unambiguous explicit basis.",
+    "Reject COMPLETE implausible compression, EXPLORATION mastery/exam-readiness overclaim, EXAM pre-answer hint leakage, and learnerFit mismatch.",
+    "Reject any weakening or bypass of v6-no-constructed-no-productive-r1.",
+    "Reject catalogue loss of currently usable R2 evidence or mismatch between locator and Factory-result verdict.",
+    "Reject central-CI behavior changes beyond the exact R3 fixture identity compatibility update already present in the frozen candidate."
+  ],
+  "nonGoals": [
+    "Changing any of the eight pre-existing candidate files during this recovery.",
+    "Changing learnit.kit.v6 schema, canonical V6 validator, validator runtime or release_set_v6.py.",
+    "Changing learner runtime, UI, progress, session behavior or application code.",
+    "Regenerating or migrating K1 or historical kits/releases.",
+    "Publishing a release or deployment.",
+    "Adding any second work package or broad governance redesign."
+  ],
+  "independentReview": [
+    "Repository PR scope must prove that the final pull request changes only the nine paths authorized here.",
+    "The dedicated PASSAGE V6 exact-head workflow independently verifies the unchanged product candidate semantics and immutable identities on the successor head.",
+    "Repository governance validates this canonical work-package structure and the central Learn-it Next workflow validates bounded compatibility.",
+    "A final UAA role-separated audit challenges false PASS, scope drift, profile/mode mismatch, stale review, policy weakening and R2 catalogue regression before merge.",
+    "Post-merge verification proves the merge tree equals the exact qualified successor candidate tree before any OneDrive R4/CURRENT activation."
+  ],
+  "execution": {
+    "maximumChangedFiles": 9,
+    "mergeAuthorizedByJob": true,
+    "oneDriveActivationAfterMergeOnly": true,
+    "nextGate": "EXACT_SUCCESSOR_HEAD_T2_AND_UAA_THEN_FROZEN_BASE_MERGE_AND_R4_CUTOVER"
+  },
+  "rollback": "Before merge, close PR #497 or remove only the ATLAS-WP-066 recovery commit while preserving the prior candidate. After merge but before any later product change, revert the single merge and do not advance CURRENT_KIT_CONTRACT; R3 and all historical evidence remain authoritative."
+}
