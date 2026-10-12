@@ -13,8 +13,10 @@ SEMANTIC_REVIEW_SCHEMA="learnit.atlas.semantic_review.v3"; SEMANTIC_REVIEW_PROFI
 SEMANTIC_PASS="PASS_SEMANTIC_REVIEW_V6_R1"; SEMANTIC_HOLD="HOLD_SEMANTIC_REVIEW_V6_R1"
 SOURCE_MANIFEST_SCHEMA="learnit.atlas.v6_source_manifest.v1"
 SOURCE_GOVERNANCE_PASS="PASS_V6_SOURCE_GOVERNANCE_R1"; SOURCE_GOVERNANCE_HOLD="HOLD_V6_SOURCE_GOVERNANCE_R1"
-POLICY_ID="v6-no-constructed-r1"; CONSTRUCTED_REASON="ACTIVITY_TYPE_DISABLED:constructed"
-ADMITTED_FAMILIES=("lesson","flashcard","qcm","fill","matching","order","classify","productive")
+POLICY_ID="v6-no-constructed-no-productive-r1"
+CONSTRUCTED_REASON="ACTIVITY_TYPE_DISABLED:constructed"; PRODUCTIVE_REASON="ACTIVITY_TYPE_DISABLED:productive"
+ADMITTED_FAMILIES=("lesson","flashcard","qcm","fill","matching","order","classify")
+EXCLUDED_FAMILIES=("constructed","productive")
 CORE_DIMENSIONS=("sourceFidelity","answerCorrectness","ambiguity","objectiveCoverage","validationTransfer","learnerFit")
 V6_CHECKS=("reviewerSkill","hintProgression","hintAnswerLeak","roleAReferenceUsefulness","roleBClaimMapping","productiveCorrectness","visualAdequacy")
 FINDING_SEVERITIES=("blocking","major","minor","advice")
@@ -83,15 +85,18 @@ def build_context(kit_raw:bytes,brief_raw:bytes,source:dict)->dict:
     return {"profile":FACTORY_PROFILE,**{k:core[k] for k in ("kitSha256","briefSha256","sourceSetDigest")},"sourceInventory":inv,"contextDigest":digest(core)}
 
 def production_policy(kit:dict)->dict:
-    counts={x:0 for x in (*ADMITTED_FAMILIES,"constructed")};paths=[];unknown=[]
+    counts={x:0 for x in (*ADMITTED_FAMILIES,*EXCLUDED_FAMILIES)};constructed_paths=[];unknown=[]
     for ci,c in enumerate(kit.get("courses",[])):
         for ai,a in enumerate(c.get("activities",[]) if isinstance(c,dict) else []):
             t=a.get("type") if isinstance(a,dict) else None
             if t in counts:counts[t]+=1
             else:unknown.append(str(t))
-            if t=="constructed":paths.append(f"$.courses[{ci}].activities[{ai}]")
-    reasons=([CONSTRUCTED_REASON] if paths else [])+["ACTIVITY_TYPE_UNKNOWN:"+x for x in sorted(set(unknown))]
-    return {"policyId":POLICY_ID,"admittedFamilies":list(ADMITTED_FAMILIES),"excludedFamilies":["constructed"],"counts":counts,"constructedPaths":paths,"verdict":"PASS_V6_PRODUCTION_POLICY_R1" if not reasons else "HOLD_V6_PRODUCTION_POLICY_R1","reasons":reasons}
+            if t=="constructed":constructed_paths.append(f"$.courses[{ci}].activities[{ai}]")
+    reasons=[]
+    if counts["constructed"]:reasons.append(CONSTRUCTED_REASON)
+    if counts["productive"]:reasons.append(PRODUCTIVE_REASON)
+    reasons += ["ACTIVITY_TYPE_UNKNOWN:"+x for x in sorted(set(unknown))]
+    return {"policyId":POLICY_ID,"admittedFamilies":list(ADMITTED_FAMILIES),"excludedFamilies":list(EXCLUDED_FAMILIES),"counts":counts,"constructedPaths":constructed_paths,"verdict":"PASS_V6_PRODUCTION_POLICY_R1" if not reasons else "HOLD_V6_PRODUCTION_POLICY_R1","reasons":reasons}
 
 def source_reasons(source:dict)->list[str]:
     return sorted({"ROLE_A_HIDDEN_SOURCE_TRUTH:"+x["url"] for x in source["roleA"] if x["usedAsSourceTruth"]})
@@ -166,7 +171,7 @@ def verify_evidence(e:Any)->dict:
     sg=e["sourceGovernance"]
     if sg["roleB"]!=c["sourceInventory"]["roleB"] or sg["roleA"]!=c["sourceInventory"]["roleA"] or sg["visualRequirement"]!=c["sourceInventory"]["visualRequirement"] or (sg["verdict"]==SOURCE_GOVERNANCE_PASS)!=(not sg["reasons"]):raise V6FactoryInputError("source binding mismatch")
     p=e["productionPolicy"]; sem=e["semanticReview"]
-    if p["policyId"]!=POLICY_ID or p["admittedFamilies"]!=list(ADMITTED_FAMILIES) or p["excludedFamilies"]!=["constructed"]:raise V6FactoryInputError("policy identity mismatch")
+    if p["policyId"]!=POLICY_ID or p["admittedFamilies"]!=list(ADMITTED_FAMILIES) or p["excludedFamilies"]!=list(EXCLUDED_FAMILIES):raise V6FactoryInputError("policy identity mismatch")
     if sem["schema"]!=SEMANTIC_REVIEW_SCHEMA or sem["profile"]!=SEMANTIC_REVIEW_PROFILE or sem["target"]!={k:c[k] for k in ("contextDigest","kitSha256","sourceSetDigest","briefSha256")}:raise V6FactoryInputError("review binding mismatch")
     if set(sem["v6Checks"])!=set(V6_CHECKS):raise V6FactoryInputError("review checks mismatch")
     expected=(e["canonicalValid"] is True and p["verdict"]=="PASS_V6_PRODUCTION_POLICY_R1" and e["pedagogicalQuality"]["qualityBand"]=="STRONG" and sg["verdict"]==SOURCE_GOVERNANCE_PASS and sem["verdict"]==SEMANTIC_PASS and not e["reasons"])
