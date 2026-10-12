@@ -153,7 +153,7 @@ def brief(*, mode: str = "DISCOVERY", prior: str = "NOVICE", scope: list[str] | 
         "learningIntent": {
             "mode": mode,
             "priorKnowledge": prior,
-            "objectiveScope": scope or ["Résoudre une situation conforme à la source."],
+            "objectiveScope": ["Résoudre une situation conforme à la source."] if scope is None else scope,
             "objectiveScopeConfirmed": confirmed,
             "confirmationBasis": basis,
         },
