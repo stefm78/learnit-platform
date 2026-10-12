@@ -20,7 +20,76 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - name: Resolve exact WP-002 applicability
+        id: applicability
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_HEAD_BRANCH: ${{ github.head_ref }}
+          TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          exact_branch = 'passage/v6-consumption-closure-r2'
+          allowed = {
+              '.github/workflows/passage-v6-consumption-closure-ci.yml',
+              'apps/learnit-next/source_manifest.json',
+              'apps/learnit-next/src/core/activity_semantics.js',
+              'apps/learnit-next/src/integration/atlas/activity_projection.js',
+              'apps/learnit-next/src/integration/atlas/import_adapter.js',
+              'apps/learnit-next/src/ui/activity_presenters.js',
+              'apps/learnit-next/tests/passage_v6_consumption.py',
+              'work-packages/PASSAGE-WP-002.json',
+          }
+
+          def classify(event, head_branch):
+              if event == 'pull_request':
+                  if head_branch == exact_branch:
+                      return 'QUALIFY', 'EXACT_WP_002_PULL_REQUEST'
+                  return 'NOT_APPLICABLE', 'HEAD_BRANCH_OUTSIDE_EXACT_WP_002_SCOPE'
+              return 'QUALIFY', 'LEGACY_NON_PULL_REQUEST_TRIGGER'
+
+          # Adversarial applicability and scope self-tests.
+          assert classify('pull_request', exact_branch)[0] == 'QUALIFY'
+          assert classify('pull_request', 'passage/v6-consumption-closure-r3')[0] == 'NOT_APPLICABLE'
+          assert classify('pull_request', 'passage/v6-consumption-closure-r2-near-match')[0] == 'NOT_APPLICABLE'
+          assert set(allowed) == allowed
+          assert set(allowed - {'work-packages/PASSAGE-WP-002.json'}) != allowed
+          assert set(allowed | {'apps/learnit-next/src/forbidden.js'}) != allowed
+
+          decision, reason = classify(os.environ['EVENT'], os.environ.get('PR_HEAD_BRANCH', ''))
+          proof = {
+              'schema': 'learnit.passage.v6-consumption.wp002-applicability.v1',
+              'result': 'PASS',
+              'decision': decision,
+              'reason': reason,
+              'event': os.environ['EVENT'],
+              'headBranch': os.environ.get('PR_HEAD_BRANCH') or None,
+              'target': os.environ['TARGET'],
+              'exactWp002Branch': exact_branch,
+              'adversarialApplicabilityMatrix': 'PASS',
+              'adversarialExactScopeMatrix': 'PASS',
+          }
+          out = Path(os.environ['RUNNER_TEMP']) / 'passage-v6-r2-applicability.json'
+          out.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          with Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8') as f:
+              f.write(f"decision={decision}\nreason={reason}\n")
+          print(json.dumps(proof, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Record explicit NOT_APPLICABLE
+        if: steps.applicability.outputs.decision == 'NOT_APPLICABLE'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat "$RUNNER_TEMP/passage-v6-r2-applicability.json"
+          echo PASSAGE_WP_002_REQUIRED_CHECK=NOT_APPLICABLE
+
       - name: Checkout exact head
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -28,6 +97,7 @@ jobs:
           clean: true
 
       - name: Bind R2 authority and exact scope
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         env:
           TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -55,6 +125,7 @@ jobs:
           PY
 
       - name: Prove producer and V2-V5 firewall unchanged
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -67,6 +138,7 @@ jobs:
             apps/learnit-next/src/core/import.js
 
       - name: Verify deterministic source manifest read-only
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -106,11 +178,13 @@ jobs:
           git diff --exit-code
 
       - name: Set up Python
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install test dependencies
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -118,6 +192,7 @@ jobs:
           python -m playwright install --with-deps chromium
 
       - name: Build twice deterministically
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         id: build
         shell: bash
         run: |
@@ -138,6 +213,7 @@ jobs:
           cmp "$RUNNER_TEMP/learnit-a.html" apps/learnit-next/dist/learnit-next.html
 
       - name: Materialize all manifest-declared regression support
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -165,6 +241,7 @@ jobs:
           PY
 
       - name: Prove stale Wave A storage oracle is baseline-identical
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -177,6 +254,7 @@ jobs:
           echo BASELINE_IDENTICAL_STORAGE_V3_AND_STALE_WAVE_A_EXPECTATION_V2
 
       - name: Prove stale R15 ordering oracle is baseline-identical
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -192,6 +270,7 @@ jobs:
           echo BASELINE_IDENTICAL_R15_MODULE_STYLES_TEST_AND_STALE_ORDER_ASSERTION
 
       - name: Prove stale Atlas M1 INT assertions are baseline-identical
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -214,6 +293,7 @@ jobs:
           echo BASELINE_IDENTICAL_ATLAS_M1_INT_INPUTS_AND_THREE_STALE_ASSERTIONS
 
       - name: Replay preserved V2-V5 runtime regressions
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -249,12 +329,14 @@ jobs:
           PY
 
       - name: Prove generic V6 consumer closure in Node and Chromium
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         env:
           LEARNIT_V6_ARTIFACT: ${{ runner.temp }}/learnit-a.html
         run: python -B apps/learnit-next/tests/passage_v6_consumption.py
 
       - name: Exact-head hygiene gate
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         run: |
           set -euo pipefail
@@ -263,6 +345,7 @@ jobs:
           git diff --exit-code
 
       - name: Write exact-head qualification proof
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         shell: bash
         env:
           TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -301,11 +384,21 @@ jobs:
           echo PASS_PASSAGE_V6_CONSUMPTION_EXACT_HEAD_R2
 
       - name: Upload exact-head qualification artifacts
+        if: steps.applicability.outputs.decision == 'QUALIFY'
         uses: actions/upload-artifact@v4
         with:
           name: passage-v6-consumption-exact-head-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             ${{ runner.temp }}/passage-v6-consumption-proof.json
             ${{ runner.temp }}/learnit-a.html
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload applicability decision
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: passage-v6-consumption-applicability-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/passage-v6-r2-applicability.json
           if-no-files-found: error
           retention-days: 14

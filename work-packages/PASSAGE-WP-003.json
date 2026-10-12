@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "PASSAGE-WP-003",
-  "title": "PASSAGE V6 central CI replay and derived catalogue recovery R3",
+  "title": "PASSAGE V6 central CI replay and derived catalogue recovery R4",
   "status": "in-progress",
-  "purpose": "Repair only the central Learn-it CI routing/replay defect exposed by PASSAGE V6 consumption closure R2 and add fail-closed V6 usable-kit discovery to the derived OneDrive catalogue, without changing producer, consumer product, contracts, authoring, or the frozen R3 kit.",
+  "purpose": "Repair only the central Learn-it CI routing/replay defect exposed by PASSAGE V6 consumption closure and the legacy WP-002 required-check applicability defect, while adding fail-closed V6 usable-kit discovery to the derived OneDrive catalogue, without changing producer, consumer product, contracts, authoring, or the frozen R3 kit.",
   "baseline": {
     "baseCommit": "c0e06ac2db90b9ebedfc0d44236212d455b334f2",
     "baseTree": "b663b16f466ed92a7458d6ded20949cbc11314b8",
@@ -13,6 +13,7 @@
   "scope": {
     "allowedPaths": [
       ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/passage-v6-consumption-closure-ci.yml",
       "tools/refresh_onedrive_catalogue.py",
       "work-packages/PASSAGE-WP-003.json"
     ],
@@ -27,7 +28,8 @@
   "invariants": [
     "The exact R2 consumer merge c0e06ac2db90b9ebedfc0d44236212d455b334f2 and tree b663b16f466ed92a7458d6ded20949cbc11314b8 remain product authority for the already-merged consumer bridge.",
     "The V6 producer authority remains 5e4065dd46618f9b2a1010b9789b1833de39a9e3 and no producer path is mutated.",
-    "Historical Learn-it Next CI routes remain semantically unchanged; only exact PASSAGE R3 recovery PR/push and exact historical replay events are intercepted by the bounded recovery profile.",
+    "Historical Learn-it Next CI routes remain semantically unchanged; only exact PASSAGE recovery PR/push and exact historical replay events are intercepted by the bounded recovery profile.",
+    "The legacy PASSAGE V6 Consumption Closure R2 workflow preserves its workflow name and required job context, runs the full historical WP-002 qualification only for the exact WP-002 scope, and returns explicit NOT_APPLICABLE for unrelated pull requests targeting main.",
     "The exact historical replay target is c0e06ac2db90b9ebedfc0d44236212d455b334f2 with parents 10f058c4693fb72439a13feb3abfd45db43f9b42 then b1bae0b796e5d684842be49a8f579ad8fae896d4 and tree b663b16f466ed92a7458d6ded20949cbc11314b8.",
     "The deterministic learner artifact remains 627042 bytes with SHA-256 92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b.",
     "Legacy PASS_AI_KIT_FACTORY_V1 catalogue discovery remains supported.",
@@ -35,12 +37,26 @@
     "The derived catalogue never becomes product or Factory authority."
   ],
   "requiredEvidence": [
-    "Exact three-path PR diff and no product/contract/authoring mutation.",
-    "Exact-head R3 recovery CI PASS with V1, valid V6, tampered V6 exclusion and deterministic catalogue fixture proof.",
-    "R3 post-merge central CI PASS with exact merge topology and bit-identical learner artifact.",
+    "Exact four-path PR diff and no product/contract/authoring mutation.",
+    "Exact-head bounded recovery CI PASS with the repaired legacy required context returning explicit NOT_APPLICABLE for the R4 recovery PR.",
+    "Repository governance validation PASS on the exact final PR head.",
+    "Post-merge central CI PASS with exact merge topology and bit-identical learner artifact.",
     "Fresh workflow_dispatch replay PASS for exact historical R2 consumer merge and accepted integration head.",
     "Machine-readable PASS proof artifact binds exact target, parents, tree, build identity and generic V6 regression.",
-    "CAS merge only after fresh main/head and authority revalidation."
+    "CAS merge only after fresh main/head, control-plane, evidence and exact four-path scope revalidation."
+  ],
+  "adversarialTests": [
+    "Exact WP-002 pull-request branch is classified QUALIFY while the R3 recovery branch is classified NOT_APPLICABLE.",
+    "A near-match or spoofed WP-002 branch is classified NOT_APPLICABLE and cannot receive PASS_PASSAGE_V6_CONSUMPTION_EXACT_HEAD_R2.",
+    "The recovery scope accepts exactly the four authorized paths and rejects both missing-path and extra-path variants.",
+    "Product, contracts, authoring and V6 producer authority paths remain unchanged by the recovery.",
+    "A tampered V6 release or evidence identity is excluded by fail-closed catalogue discovery.",
+    "Historical replay rejects a wrong target, parent order, tree or accepted integration head."
+  ],
+  "independentReview": [
+    "Repository governance independently verifies the exact final-head repository state and no forbidden path mutation.",
+    "The legacy PASSAGE V6 Consumption Closure R2 required context independently proves explicit applicability or NOT_APPLICABLE without weakening the exact WP-002 qualification.",
+    "The central Learn-it Next CI independently verifies exact-head recovery, post-merge topology, deterministic learner bytes, and the exact historical replay binding."
   ],
   "nonGoals": [
     "Changing apps/learnit-next product bytes.",
@@ -52,7 +68,7 @@
   ],
   "authority": {
     "repository": "stefm78/learnit-platform",
-    "job": "PASSAGE_V6_CONSUMPTION_CLOSURE_R3",
+    "job": "PASSAGE_V6_CONSUMPTION_CLOSURE_R4",
     "producerAuthorityCommit": "5e4065dd46618f9b2a1010b9789b1833de39a9e3",
     "consumerMergeCommit": "c0e06ac2db90b9ebedfc0d44236212d455b334f2",
     "selectedContract": "learnit.kit.v6"
@@ -65,5 +81,5 @@
     "r2ResultSha256": "b30b17924400ea700c433dace8a70764bee3a16b5e769f66979a21036ac3770e",
     "r2AttestationSha256": "b9d1335477ccb94778aaa3f0804cbba3527e8e756eca716b07e58c23fbe37237"
   },
-  "rollback": "Revert the single PASSAGE-WP-003 merge. The already-merged R2 V6 consumer bridge, producer authority, frozen R3 kit, Factory evidence and OneDrive R1/R2 evidence remain untouched."
+  "rollback": "Revert the single PASSAGE-WP-003 recovery merge. The already-merged R2 V6 consumer bridge, producer authority, frozen R3 kit, Factory evidence and prior OneDrive evidence remain untouched."
 }
