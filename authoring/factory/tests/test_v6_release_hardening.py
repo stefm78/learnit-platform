@@ -20,16 +20,24 @@ def uid(n: int) -> str:
     return str(uuid.UUID(int=n, version=4))
 
 
-def productive(seed: int = 100, media: bool = False) -> dict:
-    value = {
+def evaluated_common(kind: str, seed: int) -> dict:
+    return {
         "activityLineageId": uid(seed),
         "activityRevisionId": uid(seed + 1),
         "activityRevisionDigest": ZERO,
         "objectiveIds": [uid(10)],
-        "type": "productive",
-        "prompt": "Calculez la valeur numérique demandée et indiquez votre résultat.",
-        "explanation": "Le calcul attendu applique directement la relation explicitée par la source autorisée.",
+        "type": kind,
+        "prompt": f"Consigne {kind} conforme à la source autorisée.",
+        "explanation": "La correction applique directement la relation explicitée par la source autorisée.",
         "difficulty": "medium",
+        "learningPhase": "application",
+        "assessmentRole": "practice",
+    }
+
+
+def productive(seed: int = 100, media: bool = False) -> dict:
+    value = evaluated_common("productive", seed)
+    value.update({
         "learningPhase": "validation",
         "assessmentRole": "validation",
         "validationSlot": "A",
@@ -43,56 +51,79 @@ def productive(seed: int = 100, media: bool = False) -> dict:
                 "absoluteTolerance": {"numerator": 0, "denominator": 1},
             }],
         },
-    }
+    })
     if media:
         value["media"] = [{"assetId": uid(900), "placement": "prompt", "display": "contained", "zoomable": True}]
     return value
 
 
 def constructed(seed: int = 200, objective: int = 10) -> dict:
-    return {
-        "activityLineageId": uid(seed),
-        "activityRevisionId": uid(seed + 1),
-        "activityRevisionDigest": ZERO,
-        "objectiveIds": [uid(objective)],
-        "type": "constructed",
-        "prompt": "Donnez la réponse attendue.",
-        "explanation": "La réponse est explicitement justifiée par la source de cours.",
-        "difficulty": "medium",
-        "learningPhase": "validation",
-        "assessmentRole": "validation",
-        "validationSlot": "A",
-        "acceptedResponses": ["4"],
+    value = evaluated_common("constructed", seed)
+    value["objectiveIds"] = [uid(objective)]
+    value["acceptedResponses"] = ["4"]
+    return value
+
+
+def admitted_activities(*, media: bool = False) -> list[dict]:
+    lesson = {
+        "activityLineageId": uid(300), "activityRevisionId": uid(301), "activityRevisionDigest": ZERO,
+        "objectiveIds": [uid(10)], "type": "lesson", "learningPhase": "comprehension",
+        "title": "Comprendre la relation", "body": "Cette leçon explique la relation de la source autorisée avec assez de détail pour guider correctement l'élève.",
+        "keyPoints": ["Identifier les données utiles", "Appliquer la relation dans le bon ordre"],
     }
+    if media:
+        lesson["media"] = [{"assetId": uid(900), "placement": "content", "display": "contained", "zoomable": True}]
+    flashcard = {
+        "activityLineageId": uid(310), "activityRevisionId": uid(311), "activityRevisionDigest": ZERO,
+        "objectiveIds": [uid(10)], "type": "flashcard", "learningPhase": "consolidation",
+        "front": "Quelle valeur établit la source ?", "back": "La valeur attendue est 4.",
+        "explanation": "La source autorisée établit explicitement cette valeur.",
+    }
+    qcm = evaluated_common("qcm", 320)
+    qcm.update({"choices": [{"choiceId": uid(322), "label": "4"}, {"choiceId": uid(323), "label": "5"}], "correctChoiceId": uid(322)})
+    fill = evaluated_common("fill", 330); slot, token = uid(332), uid(333)
+    fill.update({"segments": [{"text": "La valeur attendue est "}, {"slotId": slot}], "tokens": [{"tokenId": token, "label": "4", "maxUses": 1}], "answers": [{"slotId": slot, "tokenId": token}]})
+    matching = evaluated_common("matching", 340)
+    matching.update({
+        "leftItems": [{"itemId": uid(342), "label": "Relation"}, {"itemId": uid(343), "label": "Valeur"}],
+        "rightItems": [{"itemId": uid(344), "label": "Source"}, {"itemId": uid(345), "label": "4"}],
+        "matches": [{"leftItemId": uid(342), "rightItemId": uid(344)}, {"leftItemId": uid(343), "rightItemId": uid(345)}],
+    })
+    order = evaluated_common("order", 350)
+    order.update({"items": [{"itemId": uid(352), "label": "Calculer"}, {"itemId": uid(353), "label": "Identifier les données"}], "correctOrder": [uid(353), uid(352)]})
+    classify = evaluated_common("classify", 360)
+    classify.update({
+        "buckets": [{"bucketId": uid(362), "label": "Donnée"}, {"bucketId": uid(363), "label": "Résultat"}],
+        "items": [{"itemId": uid(364), "label": "Valeur fournie"}, {"itemId": uid(365), "label": "4"}],
+        "assignments": [{"itemId": uid(364), "bucketId": uid(362)}, {"itemId": uid(365), "bucketId": uid(363)}],
+    })
+    return [lesson, flashcard, qcm, fill, matching, order, classify]
 
 
-def base_course(activities: list[dict]) -> dict:
+def base_course(activities: list[dict], *, objective: int = 10, seed: int = 20) -> dict:
     return {
-        "courseLineageId": uid(20),
-        "courseRevisionId": uid(21),
+        "courseLineageId": uid(seed),
+        "courseRevisionId": uid(seed + 1),
         "courseRevisionDigest": ZERO,
-        "title": "Cours principal",
-        "estimatedMinutes": 20,
-        "objectives": [{"objectiveId": uid(10), "label": "Résoudre une situation conforme à la source."}],
+        "title": "Cours principal" if objective == 10 else "Cours secondaire",
+        "estimatedMinutes": 30,
+        "objectives": [{"objectiveId": uid(objective), "label": "Résoudre une situation conforme à la source."}],
         "activities": activities,
     }
 
 
-def make_kit(*, constructed_first: bool = False, constructed_later: bool = False, media: bool = False) -> dict:
-    activities = [productive(media=media)]
+def make_kit(*, productive_only: bool = False, productive_later: bool = False, productive_mixed: bool = False, constructed_first: bool = False, constructed_later: bool = False, media: bool = False) -> dict:
+    activities = [productive(media=media)] if productive_only else admitted_activities(media=media)
+    if productive_mixed:
+        activities.append(productive(400))
     if constructed_first:
         activities.insert(0, constructed())
     courses = [base_course(activities)]
+    if productive_later:
+        p = productive(500); p["objectiveIds"] = [uid(11)]
+        courses.append(base_course([p], objective=11, seed=30))
     if constructed_later:
-        courses.append({
-            "courseLineageId": uid(30),
-            "courseRevisionId": uid(31),
-            "courseRevisionDigest": ZERO,
-            "title": "Cours secondaire",
-            "estimatedMinutes": 10,
-            "objectives": [{"objectiveId": uid(11), "label": "Vérifier une deuxième situation."}],
-            "activities": [constructed(300, 11)],
-        })
+        courses.append(base_course([constructed(600, 11)], objective=11, seed=40))
     kit = {
         "contract": "learnit.kit.v6",
         "packageLineageId": uid(1),
@@ -105,9 +136,7 @@ def make_kit(*, constructed_first: bool = False, constructed_later: bool = False
     }
     if media:
         kit["assets"] = [{
-            "assetId": uid(900),
-            "type": "image",
-            "format": "svg",
+            "assetId": uid(900), "type": "image", "format": "svg",
             "alt": "Schéma diagonal à interpréter pour résoudre l'activité.",
             "pedagogicalRole": "diagram_to_interpret",
             "data": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0 L10 10"/></svg>',
@@ -135,7 +164,7 @@ def manifest(source_raw: bytes, *, visual_required: bool = False, hidden_role_a:
     }
 
 
-def review(context: dict, *, answer_hold: bool = False, hint_hold: bool = False, productive_check: str = "pass", visual_check: str = "not_applicable", role_b_check: str = "pass", bad_claim: bool = False) -> dict:
+def review(context: dict, *, answer_hold: bool = False, hint_hold: bool = False, productive_check: str = "not_applicable", visual_check: str = "not_applicable", role_b_check: str = "pass", bad_claim: bool = False) -> dict:
     evidence = [{"sourceId": "course-source", "claimId": "claim.missing" if bad_claim else "claim.answer", "locator": "fixture:1"}]
     dims = {}
     for name in v6_gate.CORE_DIMENSIONS:
@@ -187,15 +216,46 @@ class V6ReleaseHardeningTests(unittest.TestCase):
         self.assertEqual("285c037b5e430ca2f75d61583d9d22c23073f7f7", validator_runtime.git_blob_sha((root / "authoring/factory/_reliability_v1.py").read_bytes()))
         self.assertEqual("10be3727243e8dc66d10c1a11731c7f61ed2c8e8", validator_runtime.git_blob_sha((root / "authoring/factory/_release_set_v1.py").read_bytes()))
 
-    def test_positive_productive_chain_binds_exact_pr_head(self):
+    def test_productive_remains_schema_valid_but_factory_holds_exact_reason(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit(productive_only=True), review_kwargs={"productive_check": "pass"})
+            self.assertTrue(validator_runtime.validate_document(json.loads(f.kit.read_text(encoding="utf-8")), str(f.kit)).ok)
+            gate = f.gate()
+            self.assertEqual(v6_gate.FACTORY_HOLD, gate["verdict"])
+            self.assertEqual(v6_gate.POLICY_ID, gate["productionPolicy"]["policyId"])
+            self.assertEqual(list(v6_gate.EXCLUDED_FAMILIES), gate["productionPolicy"]["excludedFamilies"])
+            self.assertIn(v6_gate.PRODUCTIVE_REASON, gate["reasons"])
+
+    def test_productive_later_course_cannot_escape_scan(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit(productive_later=True), review_kwargs={"productive_check": "pass"}); gate = f.gate()
+            self.assertEqual(1, gate["productionPolicy"]["counts"]["productive"])
+            self.assertIn(v6_gate.PRODUCTIVE_REASON, gate["reasons"])
+
+    def test_productive_mixed_with_admitted_families_holds(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit(productive_mixed=True), review_kwargs={"productive_check": "pass"}); gate = f.gate()
+            self.assertEqual(v6_gate.FACTORY_HOLD, gate["verdict"])
+            self.assertIn(v6_gate.PRODUCTIVE_REASON, gate["reasons"])
+
+    def test_productive_factory_hold_cannot_become_run_or_release_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit(productive_only=True), review_kwargs={"productive_check": "pass"})
+            run = f.run_value(); self.assertEqual("HOLD", reliability_v6.decision_class(reliability_v6.verify_run(run)))
+            with self.assertRaises(release_set_v6.V6ReleaseSetInputError):
+                release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
+
+    def test_admitted_family_set_reaches_factory_run_and_release_pass(self):
         commit = os.environ.get("IMPLEMENTATION_COMMIT", DEFAULT_COMMIT)
         with tempfile.TemporaryDirectory() as td:
             f = Fixture(Path(td), make_kit())
-            self.assertEqual(v6_gate.FACTORY_PASS, f.gate(commit)["verdict"])
+            gate = f.gate(commit)
+            self.assertEqual(v6_gate.FACTORY_PASS, gate["verdict"])
+            self.assertEqual(set(v6_gate.ADMITTED_FAMILIES), {k for k,v in gate["productionPolicy"]["counts"].items() if v and k in v6_gate.ADMITTED_FAMILIES})
             run = f.run_value(commit); self.assertEqual("PASS", reliability_v6.decision_class(reliability_v6.verify_run(run)))
             built = release_set_v6.build_release_archive([f"{f.run}={f.kit}"], f.release)
-            self.assertEqual(commit, built["factoryAuthority"])
             verified = release_set_v6.verify_release_archive(f.release)
+            self.assertEqual(commit, built["factoryAuthority"])
             self.assertEqual(commit, verified["manifest"]["factoryAuthority"])
 
     def test_constructed_first_course_holds_exact_reason(self):
@@ -209,26 +269,28 @@ class V6ReleaseHardeningTests(unittest.TestCase):
             self.assertEqual(1, gate["productionPolicy"]["counts"]["constructed"]); self.assertIn(v6_gate.CONSTRUCTED_REASON, gate["reasons"])
 
     def test_validation_must_target_exactly_one_objective(self):
-        kit = make_kit(); kit["courses"][0]["objectives"].append({"objectiveId": uid(12), "label": "Deuxième objectif"})
+        kit = make_kit(productive_only=True); kit["courses"][0]["objectives"].append({"objectiveId": uid(12), "label": "Deuxième objectif"})
         a = kit["courses"][0]["activities"][0]; a["objectiveIds"] = [uid(10), uid(12)]
         a["activityRevisionDigest"] = ZERO; kit["courses"][0]["courseRevisionDigest"] = ZERO; kit["packageRevisionDigest"] = ZERO
         self.assertFalse(validator_runtime.validate_document(kit).ok)
 
     def test_wrong_productive_evaluator_family_is_rejected(self):
-        kit = make_kit(); a = kit["courses"][0]["activities"][0]
+        kit = make_kit(productive_only=True); a = kit["courses"][0]["activities"][0]
         a["scoring"]["evaluators"][0] = {"partId": a["parts"][0]["partId"], "kind": "required-concepts", "requiredConceptGroups": [["valeur"]]}
         a["activityRevisionDigest"] = ZERO; kit["courses"][0]["courseRevisionDigest"] = ZERO; kit["packageRevisionDigest"] = ZERO
         self.assertFalse(validator_runtime.validate_document(kit).ok)
 
-    def test_non_validation_slot_is_rejected(self):
-        kit = make_kit(); a = kit["courses"][0]["activities"][0]; a["assessmentRole"] = "practice"; a["learningPhase"] = "application"
-        a["activityRevisionDigest"] = ZERO; kit["courses"][0]["courseRevisionDigest"] = ZERO; kit["packageRevisionDigest"] = ZERO
-        self.assertFalse(validator_runtime.validate_document(kit).ok)
-
     def test_missing_productive_scoring_holds_canonical_gate(self):
-        kit = make_kit(); del kit["courses"][0]["activities"][0]["scoring"]
+        kit = make_kit(productive_only=True); del kit["courses"][0]["activities"][0]["scoring"]
         with tempfile.TemporaryDirectory() as td:
-            f = Fixture(Path(td), kit); self.assertIn("CANONICAL_V6_INVALID", f.gate()["reasons"])
+            f = Fixture(Path(td), kit, review_kwargs={"productive_check": "pass"}); self.assertIn("CANONICAL_V6_INVALID", f.gate()["reasons"])
+
+    def test_productive_correctness_check_is_retained_but_cannot_override_policy(self):
+        with tempfile.TemporaryDirectory() as td:
+            f = Fixture(Path(td), make_kit(productive_only=True), review_kwargs={"productive_check": "hold"}); gate = f.gate()
+            self.assertIn("V6_CHECK_HOLD:productiveCorrectness", gate["reasons"])
+            self.assertIn("PRODUCTIVE_CORRECTNESS_REQUIRED", gate["reasons"])
+            self.assertIn(v6_gate.PRODUCTIVE_REASON, gate["reasons"])
 
     def test_hint_answer_leak_review_holds(self):
         with tempfile.TemporaryDirectory() as td:
