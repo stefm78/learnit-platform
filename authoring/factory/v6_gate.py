@@ -7,10 +7,10 @@ from typing import Any
 from authoring.v6 import validator_runtime
 
 FACTORY_EVIDENCE_SCHEMA="learnit.atlas.ai_kit_factory_v6_evidence.r2"
-FACTORY_PROFILE="atlas.ai-kit-factory.v6-r2"
-FACTORY_PASS="PASS_AI_KIT_FACTORY_V6_R2"; FACTORY_HOLD="HOLD_AI_KIT_FACTORY_V6_R2"
-SEMANTIC_REVIEW_SCHEMA="learnit.atlas.semantic_review.v3"; SEMANTIC_REVIEW_PROFILE="atlas.semantic-review.v6-r1"
-SEMANTIC_PASS="PASS_SEMANTIC_REVIEW_V6_R1"; SEMANTIC_HOLD="HOLD_SEMANTIC_REVIEW_V6_R1"
+FACTORY_PROFILE="atlas.ai-kit-factory.v6-r3"
+FACTORY_PASS="PASS_AI_KIT_FACTORY_V6_R3"; FACTORY_HOLD="HOLD_AI_KIT_FACTORY_V6_R3"
+SEMANTIC_REVIEW_SCHEMA="learnit.atlas.semantic_review.v3"; SEMANTIC_REVIEW_PROFILE="atlas.semantic-review.v6-r2"
+SEMANTIC_PASS="PASS_SEMANTIC_REVIEW_V6_R2"; SEMANTIC_HOLD="HOLD_SEMANTIC_REVIEW_V6_R2"
 SOURCE_MANIFEST_SCHEMA="learnit.atlas.v6_source_manifest.v1"
 SOURCE_GOVERNANCE_PASS="PASS_V6_SOURCE_GOVERNANCE_R1"; SOURCE_GOVERNANCE_HOLD="HOLD_V6_SOURCE_GOVERNANCE_R1"
 POLICY_ID="v6-no-constructed-no-productive-r1"
@@ -19,6 +19,9 @@ ADMITTED_FAMILIES=("lesson","flashcard","qcm","fill","matching","order","classif
 EXCLUDED_FAMILIES=("constructed","productive")
 CORE_DIMENSIONS=("sourceFidelity","answerCorrectness","ambiguity","objectiveCoverage","validationTransfer","learnerFit")
 V6_CHECKS=("reviewerSkill","hintProgression","hintAnswerLeak","roleAReferenceUsefulness","roleBClaimMapping","productiveCorrectness","visualAdequacy")
+LEARNING_MODES=("DISCOVERY","REVISION","EXAM","EXPLORATION","COMPLETE")
+PRIOR_KNOWLEDGE=("NOVICE","PARTIAL","STUDIED","AUTO")
+CONFIRMATION_BASES=("EXPLICIT_USER_DIRECTIVE","USER_CONFIRMED_PROPOSAL")
 FINDING_SEVERITIES=("blocking","major","minor","advice")
 REPOSITORY="stefm78/learnit-platform"; SHA256=re.compile(r"^sha256:[0-9a-f]{64}$"); SHA40=re.compile(r"^[0-9a-f]{40}$")
 
@@ -44,6 +47,19 @@ def validate_brief(v:Any)->dict:
     if not isinstance(v,dict) or v.get("schema")!="learnit.atlas.learner_brief.v1": raise V6FactoryInputError("invalid learner brief")
     for k in ("audience","goal","language"):text(v.get(k),"brief."+k)
     if isinstance(v.get("timeBudgetMinutes"),bool) or not isinstance(v.get("timeBudgetMinutes"),int) or v["timeBudgetMinutes"]<=0: raise V6FactoryInputError("invalid timeBudgetMinutes")
+    intent=exact(v.get("learningIntent"),{"mode","priorKnowledge","objectiveScope","objectiveScopeConfirmed","confirmationBasis"},"brief.learningIntent")
+    if intent["mode"] not in LEARNING_MODES: raise V6FactoryInputError("invalid learningIntent.mode")
+    if intent["priorKnowledge"] not in PRIOR_KNOWLEDGE: raise V6FactoryInputError("invalid learningIntent.priorKnowledge")
+    scope=intent["objectiveScope"]
+    if not isinstance(scope,list) or not scope: raise V6FactoryInputError("invalid learningIntent.objectiveScope")
+    normalized=[]
+    for i,item in enumerate(scope):
+        value=text(item,f"brief.learningIntent.objectiveScope[{i}]")
+        if value!=value.strip() or any(ord(ch)<32 for ch in value): raise V6FactoryInputError("invalid learningIntent.objectiveScope")
+        normalized.append(value)
+    if len(set(normalized))!=len(normalized): raise V6FactoryInputError("duplicate learningIntent.objectiveScope")
+    if intent["objectiveScopeConfirmed"] is not True: raise V6FactoryInputError("learningIntent.objectiveScopeConfirmed must be true")
+    if intent["confirmationBasis"] not in CONFIRMATION_BASES: raise V6FactoryInputError("invalid learningIntent.confirmationBasis")
     return v
 
 def parse_source_paths(specs:list[str])->dict[str,bytes]:

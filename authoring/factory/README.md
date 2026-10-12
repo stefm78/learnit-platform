@@ -48,6 +48,24 @@ Required fields are `schema`, `audience`, `goal`, `language` and a positive inte
 
 This brief is authoring context only. It is not added to `learnit.kit.v2`.
 
+For **new `learnit.kit.v6` Factory production**, the same
+`learnit.atlas.learner_brief.v1` additionally requires one confirmed
+`learningIntent` block before activity authoring:
+
+```json
+"learningIntent": {
+  "mode": "DISCOVERY|REVISION|EXAM|EXPLORATION|COMPLETE",
+  "priorKnowledge": "NOVICE|PARTIAL|STUDIED|AUTO",
+  "objectiveScope": ["concise human-readable objective", "..."],
+  "objectiveScopeConfirmed": true,
+  "confirmationBasis": "EXPLICIT_USER_DIRECTIVE|USER_CONFIRMED_PROPOSAL"
+}
+```
+
+`objectiveScope` is the human-confirmed authoring scope. The complete learner
+brief remains bound by the existing `briefSha256`. `learningIntent` is
+authoring/review context and is not added to the learner runtime contract.
+
 ## Bind exact inputs
 
 The reviewer must review the **exact** source/brief/kit combination.
