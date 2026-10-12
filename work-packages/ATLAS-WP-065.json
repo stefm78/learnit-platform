@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "ATLAS-WP-065",
+  "title": "Disable productive in new PASSAGE V6 Factory output",
+  "status": "approved",
+  "changeClass": "factory-v6-no-productive-r1",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "job": "FACTORY_V6_NO_PRODUCTIVE_R1",
+    "candidateOnly": false
+  },
+  "purpose": "Make productive historically schema-readable but ineligible for every new learnit.kit.v6 Factory production and release admission, while preserving the existing constructed exclusion, historical contract and validator bytes, independent reviewer contract, learner runtime, and release implementation.",
+  "baseline": {
+    "baseCommit": "bbc8c2a7109f7e1368c54f35b7db3e6b2655cb40",
+    "branch": "factory/v6-no-productive-r1"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/passage-v6-release-hardening-ci.yml",
+      "authoring/factory/v6_gate.py",
+      "authoring/skills/SKILL_ATLAS_KIT_AUTHORING_V6.md",
+      "authoring/factory/tests/test_v6_release_hardening.py",
+      "work-packages/ATLAS-WP-065.json"
+    ],
+    "forbiddenPaths": [
+      "contracts/**",
+      "authoring/v6/**",
+      "authoring/factory/release_set_v6.py",
+      "authoring/skills/SKILL_ATLAS_INDEPENDENT_KIT_REVIEW_V6.md",
+      "apps/**",
+      "governance/**",
+      "docs/**"
+    ]
+  },
+  "invariants": [
+    "The historical learnit.kit.v6 schema and V6 validator remain byte-identical and continue to parse historically valid productive activities.",
+    "New V6 Factory production and release admission exclude constructed with exact reason ACTIVITY_TYPE_DISABLED:constructed and productive with exact reason ACTIVITY_TYPE_DISABLED:productive.",
+    "The Factory production policy identity is v6-no-constructed-no-productive-r1 and scans every activity in every course.",
+    "The admitted production families are lesson, flashcard, qcm, fill, matching, order, and classify only.",
+    "The historical productiveCorrectness semantic-review check remains readable but cannot override the Factory production-policy HOLD for productive.",
+    "No learner runtime, existing kit, release implementation, independent-review contract, schema, validator, or product deployment behavior is mutated by this work package.",
+    "The candidate is built from the exact frozen main commit without rebase; merge is allowed only if main remains that exact commit and the exact qualified PR head is unchanged."
+  ],
+  "requiredEvidence": [
+    "Exact frozen base commit bbc8c2a7109f7e1368c54f35b7db3e6b2655cb40 and allowed-path-only diff.",
+    "Exact immutable Git blob checks for V6 schema, validator, validator runtime, release_set_v6, and independent reviewer skill.",
+    "PASSAGE V6 exact-head workflow PASS on the final pull-request head.",
+    "Repository governance and PR scope PASS on the final pull-request head.",
+    "A schema-valid productive kit remains validator-valid but receives Factory HOLD with ACTIVITY_TYPE_DISABLED:productive and cannot become a releasable FactoryRun.",
+    "A representative productive-free kit covering all seven admitted families reaches FactoryRun PASS and qualified-release verification on the exact final head."
+  ],
+  "adversarialTests": [
+    "Reject productive in the first course, in a later course, and mixed with admitted families using ACTIVITY_TYPE_DISABLED:productive.",
+    "Preserve the independent ACTIVITY_TYPE_DISABLED:constructed reason for constructed.",
+    "Prove productiveCorrectness remains present for historical evidence but cannot bypass the production policy.",
+    "Prove a productive Factory HOLD cannot be converted into a release PASS.",
+    "Prove stale semantic-review targets, hidden Role A source truth, invalid Role B claim mappings, and missing required visual media still fail closed.",
+    "Prove V1/V6 cross-version release evidence remains rejected and current Factory/reliability/release regressions stay green."
+  ],
+  "nonGoals": [
+    "Changing the learnit.kit.v6 schema or V6 validator semantics.",
+    "Rewriting or migrating historical kits containing productive.",
+    "Changing learner runtime behavior or application code.",
+    "Changing release_set_v6, validator_runtime, or the independent reviewer skill.",
+    "Introducing remote, LLM, web, OCR, or nondeterministic scoring.",
+    "Starting any broader PASSAGE or product feature work beyond this Factory production-policy change."
+  ],
+  "independentReview": [
+    "PR scope must prove that the final pull request changes only the five paths authorized here.",
+    "The dedicated exact-head workflow independently checks immutable identities and adversarial production-policy behavior on the exact PR head.",
+    "Repository governance must validate this canonical work-package structure.",
+    "A final UAA audit must challenge false PASS, bypasses, exact-head binding, and forbidden-byte drift before merge.",
+    "Post-merge verification must prove that the merge tree equals the qualified candidate tree before OneDrive routing evidence is activated."
+  ],
+  "execution": {
+    "maximumChangedFiles": 5,
+    "mergeAuthorizedByJob": true,
+    "oneDriveActivationAfterMergeOnly": true,
+    "nextGate": "EXACT_HEAD_T2_AND_UAA_THEN_FROZEN_BASE_MERGE"
+  },
+  "rollback": "Before merge, close or delete the single candidate branch and PR. After merge but before any later product change, revert the merge and do not advance the OneDrive routing pointer; historical contract and validator bytes remain unchanged."
+}
