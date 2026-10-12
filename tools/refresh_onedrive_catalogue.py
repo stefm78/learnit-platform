@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 PASS="PASS_AI_KIT_FACTORY_V1"
-PASS_V6="PASS_AI_KIT_FACTORY_V6_R2"
+PASS_V6={"PASS_AI_KIT_FACTORY_V6_R2","PASS_AI_KIT_FACTORY_V6_R3"}
 V6_STATUS="USABLE_FACTORY_PASS_V6"
 SOURCE="https://github.com/stefm78/learnit-platform/blob/main/tools/refresh_onedrive_catalogue.py"
 
@@ -89,7 +89,7 @@ def v6_kits(root,by):
             result=fac["result"]; evidence=fac["evidence"]; attestation=fac["attestation"]
         except Exception:
             diag.append(f"V6_LOCATOR_INCOMPLETE:{tag}");continue
-        if verdict!=PASS_V6 or not kit_sha or not rel_sha:
+        if verdict not in PASS_V6 or not kit_sha or not rel_sha:
             diag.append(f"V6_LOCATOR_BINDING_INVALID:{tag}");continue
         kp,kerr=_unique_by_hash(root,kit_name,kit_sha)
         if kerr or not kp or kp.stat().st_size!=kit_bytes:
@@ -107,7 +107,7 @@ def v6_kits(root,by):
         try:rj=J(bound[0][1])
         except Exception:diag.append(f"V6_FACTORY_RESULT_UNREADABLE:{tag}");continue
         rverdict=rj.get("factory_gate",{}).get("verdict") or rj.get("factoryGate",{}).get("verdict") or rj.get("verdict")
-        if rverdict!=PASS_V6:
+        if rverdict!=verdict:
             diag.append(f"V6_FACTORY_VERDICT_INVALID:{tag}:{rverdict or 'NO_VERDICT'}");continue
         try:
             with zipfile.ZipFile(rp,"r") as z:
@@ -123,7 +123,7 @@ def v6_kits(root,by):
         try:k=J(kp)
         except Exception:diag.append(f"V6_KIT_UNREADABLE:{tag}");continue
         acts=[a for c in k.get("courses",[]) for a in c.get("activities",[])]; types=Counter(a.get("type","unknown") for a in acts); c=by.get(key,{})
-        out.append(dict(course_key=key,course_title=c.get("title") or key,kit_title=k.get("title") or c.get("title") or key,sha256=kit_sha,bytes=kit_bytes,activities=len(acts),types=dict(sorted(types.items())),factory_verdict=PASS_V6,item_id=kit.get("item_id"),web_url=web(kit.get("item_id")),evidence=lp.relative_to(root).as_posix()))
+        out.append(dict(course_key=key,course_title=c.get("title") or key,kit_title=k.get("title") or c.get("title") or key,sha256=kit_sha,bytes=kit_bytes,activities=len(acts),types=dict(sorted(types.items())),factory_verdict=verdict,item_id=kit.get("item_id"),web_url=web(kit.get("item_id")),evidence=lp.relative_to(root).as_posix()))
     return out,diag
 
 def kits(root,by):
