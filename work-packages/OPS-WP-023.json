@@ -1,0 +1,33 @@
+{
+  "id": "OPS-WP-023",
+  "title": "Physics EEC V6 immutable runtime admission Human Replay",
+  "status": "in-progress",
+  "branch": "ops/physics-eec-v6-runtime-admission-r2",
+  "productAuthority": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+  "purpose": "Support-only GitHub Pages publication and exact Physics EEC V6 kit runtime admission proof.",
+  "allowedPaths": [
+    "work-packages/OPS-WP-023.json",
+    ".github/workflows/physics-eec-v6-runtime-admission.yml"
+  ],
+  "forbiddenMutations": [
+    "product/runtime source",
+    "Factory",
+    "contract",
+    "authoring",
+    "CURRENT",
+    "R4",
+    "STATELOG",
+    "main",
+    "PR/merge/tag/GitHub Release",
+    "Physics kit copy/conversion/rewrite/requalification",
+    "student pilot authorization/execution"
+  ],
+  "invariants": {
+    "mainRemainsExact": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "priorStableRootAndR10R15ReplaysPreservedExactly": true,
+    "physicsKitRemainsOneDriveHosted": true,
+    "physicsKitCopiedToGitHub": false,
+    "promotion": false,
+    "studentPilotAuthorized": false
+  }
+}
