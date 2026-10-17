@@ -100,7 +100,9 @@ jobs:
             "$R10_HEAD" "$R11_HEAD" "$R12_HEAD" "$PREVIOUS_R13_HEAD" \
             "$FINAL_R13_HEAD" "$R14_HEAD" "$R15_HEAD"
           materialize() {
-            local name="$1" head="$2" path="$RUNNER_TEMP/$name"
+            local name="$1"
+            local head="$2"
+            local path="$RUNNER_TEMP/$name"
             git worktree add --detach "$path" "$head" >/dev/null
             [[ "$(git -C "$path" rev-parse HEAD)" == "$head" ]]
             printf '%s' "$path"
