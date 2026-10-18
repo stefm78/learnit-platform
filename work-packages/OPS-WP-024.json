@@ -1,0 +1,37 @@
+{
+  "id": "OPS-WP-024",
+  "title": "LearnIT V6 standalone runtime publication",
+  "status": "in-progress",
+  "branch": "ops/learnit-v6-standalone-runtime-r1",
+  "productAuthority": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+  "purpose": "Publish the exact current LearnIT V6-capable standalone runtime for manual local JSON kit testing, without bundling, mirroring, or publishing any kit.",
+  "allowedPaths": [
+    "work-packages/OPS-WP-024.json",
+    ".github/workflows/learnit-v6-standalone-runtime.yml"
+  ],
+  "forbiddenMutations": [
+    "product/runtime source",
+    "Factory",
+    "contract",
+    "authoring",
+    "CURRENT",
+    "R4",
+    "STATELOG",
+    "main",
+    "existing physics-eec runtime-admission branch",
+    "PR/merge/tag/GitHub Release",
+    "kit copy/mirror/rewrite/requalification",
+    "student pilot authorization/execution"
+  ],
+  "invariants": {
+    "mainRemainsExact": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "priorStableRootAndR10R15ReplaysPreservedExactly": true,
+    "publishedRuntimePath": "human-replay/c7f7587c9e5beb29a123e5139c17b6448229a0cc/",
+    "publishedRuntimeSha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b",
+    "publishedRuntimeBytes": 627042,
+    "selectedContract": "learnit.kit.v6",
+    "kitBundledOrPublished": false,
+    "promotion": false,
+    "studentPilotAuthorized": false
+  }
+}
