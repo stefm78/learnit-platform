@@ -1,0 +1,477 @@
+name: LearnIT V6 standalone runtime publication
+
+on:
+  push:
+    branches:
+      - ops/learnit-v6-standalone-runtime-r1
+    paths:
+      - 'work-packages/OPS-WP-024.json'
+      - '.github/workflows/learnit-v6-standalone-runtime.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: learnit-v6-standalone-runtime-r1
+  cancel-in-progress: false
+
+env:
+  PRODUCT_HEAD: c7f7587c9e5beb29a123e5139c17b6448229a0cc
+  PRODUCT_EXPECTED_SHA256: 92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b
+  PRODUCT_EXPECTED_BYTES: '627042'
+  OPS_BRANCH: ops/learnit-v6-standalone-runtime-r1
+  STABLE_M3_1_MAIN: be3d5b2635836e8ce0d9a6ecf42d573efc9ef749
+  STABLE_LEARNER_HEAD: 4eebdef9fb0014c2e4a965e0c1e78d127dd712f4
+  STABLE_LEARNER_SHA256: 4b50af3dfe8820d258eaa73999b8a7e52b4991584d27986dca7e647af608f6d7
+  STABLE_LEARNER_BYTES: '366412'
+  R10_HEAD: 10fbe658175f634648baf86f7bf10320b88a3127
+  R10_SHA256: c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89
+  R10_BYTES: '405648'
+  R11_HEAD: 934e1c7193fc6d20d408339f8a962bca6aea51a6
+  R11_SHA256: 4f620a570fabb669165791f36db1977b744ac82c9eb5c95654c6c402deb4b173
+  R11_BYTES: '407356'
+  R12_HEAD: 01a5ca9b3e8a3abd5fb9692a001bb8533065b45f
+  R12_SHA256: 6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956
+  R12_BYTES: '411551'
+  PREVIOUS_R13_HEAD: ca1f537ee435b31794282b3cf6b3c7589e736783
+  PREVIOUS_R13_SHA256: 6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18
+  PREVIOUS_R13_BYTES: '415361'
+  FINAL_R13_HEAD: 76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b
+  FINAL_R13_SHA256: 4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3
+  FINAL_R13_BYTES: '412825'
+  R14_HEAD: 8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9
+  R14_SHA256: 0e616367600141b34ddc7ca3248bdecea67744dcd32d6008d376853c101df68d
+  R14_BYTES: '421465'
+  R15_HEAD: 88cad160714830462234970276c808c42b4a2579
+  R15_SHA256: 0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd
+  R15_BYTES: '421487'
+  FROZEN_PRODUCT_HEAD: 6fa1acc23999b5a0b9a0b7f375a12f19ecc4e4e2
+  FROZEN_QA_HEAD: 6ff592af68e6cc95bd479911a09388293c5528f5
+  PAGES_BASE: https://stefm78.github.io/learnit-platform/
+
+jobs:
+  verify:
+    name: Verify exact V6 standalone runtime and immutable Pages history
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    outputs:
+      site_artifact: ${{ steps.names.outputs.site_artifact }}
+      learner_sha256: ${{ steps.current_identity.outputs.learner_sha256 }}
+      learner_bytes: ${{ steps.current_identity.outputs.learner_bytes }}
+    steps:
+      - name: Checkout dedicated OPS ref
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Prove exact branch scope and immutable main
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == "refs/heads/$OPS_BRANCH" ]]
+          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
+          git fetch --force --no-tags origin main "$PRODUCT_HEAD"
+          [[ "$(git rev-parse origin/main)" == "$PRODUCT_HEAD" ]]
+          [[ "$(git merge-base "$PRODUCT_HEAD" "$GITHUB_SHA")" == "$PRODUCT_HEAD" ]]
+          git diff --name-status "$PRODUCT_HEAD" "$GITHUB_SHA" > "$RUNNER_TEMP/delta.txt"
+          python - "$RUNNER_TEMP/delta.txt" <<'PY'
+          import sys
+          actual=sorted(line.rstrip('\n') for line in open(sys.argv[1],encoding='utf-8') if line.strip())
+          expected=sorted([
+            'A\t.github/workflows/learnit-v6-standalone-runtime.yml',
+            'A\twork-packages/OPS-WP-024.json',
+          ])
+          assert actual==expected,(actual,expected)
+          PY
+
+      - name: Materialize exact immutable sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --no-tags origin \
+            "$STABLE_M3_1_MAIN" "$STABLE_LEARNER_HEAD" "$PRODUCT_HEAD" \
+            "$R10_HEAD" "$R11_HEAD" "$R12_HEAD" "$PREVIOUS_R13_HEAD" \
+            "$FINAL_R13_HEAD" "$R14_HEAD" "$R15_HEAD"
+          materialize() {
+            local name="$1"
+            local head="$2"
+            local path="$RUNNER_TEMP/$name"
+            git worktree add --detach "$path" "$head" >/dev/null
+            [[ "$(git -C "$path" rev-parse HEAD)" == "$head" ]]
+            printf '%s' "$path"
+          }
+          echo "STABLE_SITE_TREE=$(materialize stable-site "$STABLE_M3_1_MAIN")" >> "$GITHUB_ENV"
+          echo "STABLE_TREE=$(materialize stable-learner "$STABLE_LEARNER_HEAD")" >> "$GITHUB_ENV"
+          echo "CURRENT_TREE=$(materialize current-product "$PRODUCT_HEAD")" >> "$GITHUB_ENV"
+          echo "R10_TREE=$(materialize r10 "$R10_HEAD")" >> "$GITHUB_ENV"
+          echo "R11_TREE=$(materialize r11 "$R11_HEAD")" >> "$GITHUB_ENV"
+          echo "R12_TREE=$(materialize r12 "$R12_HEAD")" >> "$GITHUB_ENV"
+          echo "PREVIOUS_R13_TREE=$(materialize r13-previous "$PREVIOUS_R13_HEAD")" >> "$GITHUB_ENV"
+          echo "FINAL_R13_TREE=$(materialize r13-final "$FINAL_R13_HEAD")" >> "$GITHUB_ENV"
+          echo "R14_TREE=$(materialize r14 "$R14_HEAD")" >> "$GITHUB_ENV"
+          echo "R15_TREE=$(materialize r15 "$R15_HEAD")" >> "$GITHUB_ENV"
+
+      - name: Assemble exact prior Pages site and standalone V6 runtime
+        id: current_identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          authoring_a="$RUNNER_TEMP/authoring-a"
+          authoring_b="$RUNNER_TEMP/authoring-b"
+          mkdir -p "$site"
+
+          (cd "$STABLE_SITE_TREE" && python -B authoring/studio/pages/build_pages.py --output "$authoring_a")
+          (cd "$STABLE_SITE_TREE" && python -B authoring/studio/pages/build_pages.py --output "$authoring_b")
+          diff -qr "$authoring_a" "$authoring_b"
+          cp -a "$authoring_a" "$site/authoring"
+
+          python -B "$STABLE_TREE/apps/learnit-next/build.py" --output "$site/index.html"
+          cp "$site/index.html" "$site/learnit-next.html"
+          [[ "$(sha256sum "$site/index.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]]
+          [[ "$(wc -c < "$site/index.html" | tr -d ' ')" == "$STABLE_LEARNER_BYTES" ]]
+
+          quality_sha="$(sha256sum "$STABLE_SITE_TREE/authoring/v2/atlas/pedagogical_quality.py" | awk '{print $1}')"
+          authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
+          cat > "$site/deployment-evidence.json" <<EOF
+          {"schema":"learnit.next.pages.deployment.v3","learnerPromotedHead":"$STABLE_LEARNER_HEAD","learnerArtifactBytes":$STABLE_LEARNER_BYTES,"learnerArtifactSha256":"$STABLE_LEARNER_SHA256","m3_1PromotedMain":"$STABLE_M3_1_MAIN","frozenProductHead":"$FROZEN_PRODUCT_HEAD","frozenQaHead":"$FROZEN_QA_HEAD","qualityEngineSha256":"$quality_sha","authoringIndexSha256":"$authoring_sha","authoringPath":"/authoring/","learnerIndexByteIdentity":"PASS","stableAuthoringPublication":true,"humanUxDebtIssue":272,"runtimeBackendDependencyAdded":false}
+          EOF
+
+          build_legacy_replay() {
+            local tree="$1" head="$2" expected_sha="$3" expected_bytes="$4"
+            local dir="$site/human-replay/$head" a="$RUNNER_TEMP/$head-a.html" b="$RUNNER_TEMP/$head-b.html"
+            mkdir -p "$dir/fixtures"
+            python -B "$tree/apps/learnit-next/build.py" --output "$a"
+            python -B "$tree/apps/learnit-next/build.py" --output "$b"
+            cmp "$a" "$b"
+            [[ "$(sha256sum "$a" | awk '{print $1}')" == "$expected_sha" ]]
+            [[ "$(wc -c < "$a" | tr -d ' ')" == "$expected_bytes" ]]
+            cp "$a" "$dir/index.html"; cp "$a" "$dir/learnit-next.html"
+            cp "$tree/authoring/v2/golden/signaux_electriques.json" "$dir/fixtures/signaux_electriques.json"
+            fixture_sha="$(sha256sum "$dir/fixtures/signaux_electriques.json" | awk '{print $1}')"
+            printf '%s\n' "{\"schema\":\"learnit.atlas.human-replay.v1\",\"issue\":352,\"pullRequest\":354,\"productHead\":\"$head\",\"learnerArtifactBytes\":$expected_bytes,\"learnerArtifactSha256\":\"$expected_sha\",\"fixture\":\"fixtures/signaux_electriques.json\",\"fixtureSha256\":\"$fixture_sha\",\"promotion\":false,\"humanGateRequired\":true,\"learnerUxPass\":false}" > "$dir/identity.json"
+          }
+
+          build_atlas_replay() {
+            local tree="$1" head="$2" expected_sha="$3" expected_bytes="$4" label="$5"
+            local dir="$site/human-replay/$head" a="$RUNNER_TEMP/$head-a.html" b="$RUNNER_TEMP/$head-b.html"
+            mkdir -p "$dir/fixtures"
+            python -B "$tree/apps/learnit-next/build.py" --output "$a"
+            python -B "$tree/apps/learnit-next/build.py" --output "$b"
+            cmp "$a" "$b"
+            [[ "$(sha256sum "$a" | awk '{print $1}')" == "$expected_sha" ]]
+            [[ "$(wc -c < "$a" | tr -d ' ')" == "$expected_bytes" ]]
+            cp "$a" "$dir/index.html"; cp "$a" "$dir/learnit-next.html"
+            cp "$tree/authoring/v2/atlas/nombres_complexes_atlas.json" "$dir/fixtures/nombres_complexes_atlas.json"
+            python - "$dir/fixtures/nombres_complexes_atlas.json" "$dir/fixtures/nombres_complexes_atlas-answer-guide.txt" "$label" <<'PY'
+          import json,sys
+          source,target,label=sys.argv[1:]
+          data=json.load(open(source,encoding='utf-8'))
+          lines=[f'Guide de réponses — Human Replay Atlas {label}','Utilisez ce guide uniquement pour tester le parcours et la progression.','Pour tester la correction, répondez volontairement faux à une activité practice, puis reprenez le parcours.','']
+          for course in data['courses']:
+              lines += [course['title'], '='*len(course['title'])]
+              for index,activity in enumerate(course['activities'],1):
+                  lines.append(f"{index}. {activity['prompt']}")
+                  if activity['type']=='qcm':
+                      by_id={choice['choiceId']:choice['label'] for choice in activity['choices']}
+                      answer=by_id[activity['correctChoiceId']]
+                  else:
+                      tokens={token['tokenId']:token['label'] for token in activity['tokens']}
+                      answers={answer['slotId']:tokens[answer['tokenId']] for answer in activity['answers']}
+                      answer=' / '.join(answers[segment['slotId']] for segment in activity['segments'] if 'slotId' in segment)
+                  lines += [f'   Réponse correcte : {answer}','']
+          open(target,'w',encoding='utf-8').write('\n'.join(lines)+'\n')
+          PY
+            fixture_sha="$(sha256sum "$dir/fixtures/nombres_complexes_atlas.json" | awk '{print $1}')"
+            guide_sha="$(sha256sum "$dir/fixtures/nombres_complexes_atlas-answer-guide.txt" | awk '{print $1}')"
+            printf '%s\n' "{\"schema\":\"learnit.atlas.human-replay.v1\",\"issue\":352,\"pullRequest\":354,\"productHead\":\"$head\",\"learnerArtifactBytes\":$expected_bytes,\"learnerArtifactSha256\":\"$expected_sha\",\"fixture\":\"fixtures/nombres_complexes_atlas.json\",\"fixtureSha256\":\"$fixture_sha\",\"answerGuide\":\"fixtures/nombres_complexes_atlas-answer-guide.txt\",\"answerGuideSha256\":\"$guide_sha\",\"promotion\":false,\"humanGateRequired\":true,\"learnerUxPass\":false}" > "$dir/identity.json"
+          }
+
+          build_legacy_replay "$R10_TREE" "$R10_HEAD" "$R10_SHA256" "$R10_BYTES"
+          build_legacy_replay "$R11_TREE" "$R11_HEAD" "$R11_SHA256" "$R11_BYTES"
+          build_atlas_replay "$R12_TREE" "$R12_HEAD" "$R12_SHA256" "$R12_BYTES" R12
+          build_atlas_replay "$PREVIOUS_R13_TREE" "$PREVIOUS_R13_HEAD" "$PREVIOUS_R13_SHA256" "$PREVIOUS_R13_BYTES" R13-PREVIOUS
+          build_atlas_replay "$FINAL_R13_TREE" "$FINAL_R13_HEAD" "$FINAL_R13_SHA256" "$FINAL_R13_BYTES" R13-FINAL
+          build_atlas_replay "$R14_TREE" "$R14_HEAD" "$R14_SHA256" "$R14_BYTES" R14
+          build_atlas_replay "$R15_TREE" "$R15_HEAD" "$R15_SHA256" "$R15_BYTES" R15
+
+          current_dir="$site/human-replay/$PRODUCT_HEAD"
+          current_a="$RUNNER_TEMP/current-a.html"
+          current_b="$RUNNER_TEMP/current-b.html"
+          mkdir -p "$current_dir"
+          python -B "$CURRENT_TREE/apps/learnit-next/build.py" --output "$current_a"
+          python -B "$CURRENT_TREE/apps/learnit-next/build.py" --output "$current_b"
+          cmp "$current_a" "$current_b"
+          current_sha="$(sha256sum "$current_a" | awk '{print $1}')"
+          current_bytes="$(wc -c < "$current_a" | tr -d ' ')"
+          [[ "$current_sha" == "$PRODUCT_EXPECTED_SHA256" ]]
+          [[ "$current_bytes" == "$PRODUCT_EXPECTED_BYTES" ]]
+          cp "$current_a" "$current_dir/index.html"
+          cp "$current_a" "$current_dir/learnit-next.html"
+          cat > "$current_dir/identity.json" <<EOF
+          {"schema":"learnit.v6.standalone-runtime.v1","productHead":"$PRODUCT_HEAD","learnerArtifactBytes":$current_bytes,"learnerArtifactSha256":"$current_sha","contract":"learnit.kit.v6","manualLocalJsonImport":true,"kitBundled":false,"promotion":false,"studentPilotAuthorized":false}
+          EOF
+          echo "SITE=$site" >> "$GITHUB_ENV"
+          echo "CURRENT_ARTIFACT=$current_a" >> "$GITHUB_ENV"
+          echo "learner_sha256=$current_sha" >> "$GITHUB_OUTPUT"
+          echo "learner_bytes=$current_bytes" >> "$GITHUB_OUTPUT"
+
+      - name: Prove existing public Pages identities before replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location "$PAGES_BASE" -o "$RUNNER_TEMP/live-root.html"
+          [[ "$(sha256sum "$RUNNER_TEMP/live-root.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]]
+          for row in \
+            "$R10_HEAD:$R10_SHA256" "$R11_HEAD:$R11_SHA256" "$R12_HEAD:$R12_SHA256" \
+            "$PREVIOUS_R13_HEAD:$PREVIOUS_R13_SHA256" "$FINAL_R13_HEAD:$FINAL_R13_SHA256" \
+            "$R14_HEAD:$R14_SHA256" "$R15_HEAD:$R15_SHA256"; do
+            IFS=: read -r head expected_sha <<< "$row"
+            curl --fail --silent --show-error --location "${PAGES_BASE}human-replay/${head}/" -o "$RUNNER_TEMP/live-history.html"
+            [[ "$(sha256sum "$RUNNER_TEMP/live-history.html" | awk '{print $1}')" == "$expected_sha" ]]
+          done
+          curl --fail --silent --show-error --location "${PAGES_BASE}authoring/" -o "$RUNNER_TEMP/live-authoring.html"
+          cmp "$RUNNER_TEMP/live-authoring.html" "$SITE/authoring/index.html"
+          curl --fail --silent --show-error --location "${PAGES_BASE}deployment-evidence.json" -o "$RUNNER_TEMP/live-deployment-evidence.json"
+          cmp "$RUNNER_TEMP/live-deployment-evidence.json" "$SITE/deployment-evidence.json"
+
+      - name: Install Chromium proof tooling
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run exact-current generic native V6 regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          LEARNIT_V6_ARTIFACT="$CURRENT_ARTIFACT" python "$CURRENT_TREE/apps/learnit-next/tests/passage_v6_consumption.py"
+
+      - name: Prove manual local V6 JSON file-picker import on assembled runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="$RUNNER_TEMP/manual-v6-fixture.json"
+          python - "$CURRENT_TREE/apps/learnit-next/tests/passage_v6_consumption.py" "$fixture" <<'PY'
+          import importlib.util,json,sys
+          source,target=sys.argv[1:]
+          spec=importlib.util.spec_from_file_location('passage_v6_fixture',source)
+          mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          with open(target,'w',encoding='utf-8') as f:
+              json.dump(mod.package(),f,ensure_ascii=False,separators=(',',':'))
+          PY
+          python -m http.server 8765 --directory "$SITE" > "$RUNNER_TEMP/runtime-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          LIVE_FIXTURE="$fixture" python - <<'PY'
+          import os
+          from playwright.sync_api import sync_playwright
+          def call(page,op,args=None):
+              return page.evaluate("async ({op,args})=>await window.__LEARNIT_NEXT_TEST__[op](...(args||[]))",{'op':op,'args':args or []})
+          with sync_playwright() as pw:
+              browser=pw.chromium.launch(headless=True)
+              context=browser.new_context(viewport={'width':390,'height':844})
+              page=context.new_page()
+              page.goto(f"http://127.0.0.1:8765/human-replay/{os.environ['PRODUCT_HEAD']}/",wait_until='load')
+              page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+              assert page.locator('#kit-file').count()==1
+              button=page.locator('.import-panel button[type="submit"]')
+              assert button.count()==1 and button.is_disabled()
+              call(page,'resetNextData')
+              page.locator('#kit-file').set_input_files(os.environ['LIVE_FIXTURE'])
+              for _ in range(100):
+                  if not button.is_disabled(): break
+                  page.wait_for_timeout(50)
+              assert not button.is_disabled()
+              button.click()
+              report=None
+              for _ in range(100):
+                  report=call(page,'storageReport')
+                  if report['counts']['packages']==1 and report['counts']['courses']==1: break
+                  page.wait_for_timeout(50)
+              assert report['counts']['packages']==1 and report['counts']['courses']==1,report
+              courses=call(page,'listCourses'); assert len(courses)==1,courses
+              overflow=page.evaluate('()=>({sw:document.documentElement.scrollWidth,iw:innerWidth,bw:document.body.scrollWidth})')
+              assert overflow['sw']<=overflow['iw']+4 and overflow['bw']<=overflow['iw']+4,overflow
+              context.close(); browser.close()
+          print('STANDALONE_V6_LOCAL_FILE_IMPORT=PASS')
+          PY
+
+      - name: Recheck assembled identities and absence of bundled kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(sha256sum "$SITE/index.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]]
+          current="$SITE/human-replay/$PRODUCT_HEAD/index.html"
+          [[ "$(sha256sum "$current" | awk '{print $1}')" == "$PRODUCT_EXPECTED_SHA256" ]]
+          [[ "$(wc -c < "$current" | tr -d ' ')" == "$PRODUCT_EXPECTED_BYTES" ]]
+          [[ ! -d "$SITE/human-replay/$PRODUCT_HEAD/fixtures" ]]
+          [[ ! -e "$SITE/human-replay/$PRODUCT_HEAD/kit.json" ]]
+          git fetch --force --no-tags origin main
+          [[ "$(git rev-parse origin/main)" == "$PRODUCT_HEAD" ]]
+
+      - name: Name immutable verification artifact
+        id: names
+        shell: bash
+        run: echo "site_artifact=learnit-v6-standalone-runtime-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified complete Pages site
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.site_artifact }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ env.SITE }}
+
+  deploy:
+    name: Deploy exact standalone V6 runtime and prove live local-file import
+    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/learnit-v6-standalone-runtime-r1'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}human-replay/${{ env.PRODUCT_HEAD }}/
+    steps:
+      - name: Revalidate main before Pages deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$(git ls-remote https://github.com/stefm78/learnit-platform.git refs/heads/main | awk '{print $1}')"
+          [[ "$remote" == "$PRODUCT_HEAD" ]]
+
+      - name: Checkout exact product only for live V6 fixture generation
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PRODUCT_HEAD }}
+          fetch-depth: 1
+          clean: true
+
+      - name: Download immutable verified site
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.site_artifact }}
+          path: ${{ runner.temp }}/site
+
+      - name: Recheck exact standalone runtime artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$RUNNER_TEMP/site/human-replay/$PRODUCT_HEAD/index.html"
+          [[ "$(sha256sum "$current" | awk '{print $1}')" == "$PRODUCT_EXPECTED_SHA256" ]]
+          [[ "$(wc -c < "$current" | tr -d ' ')" == "$PRODUCT_EXPECTED_BYTES" ]]
+          [[ ! -d "$RUNNER_TEMP/site/human-replay/$PRODUCT_HEAD/fixtures" ]]
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+
+      - name: Deploy verified complete site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Install Chromium for independent live proof
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Prove live identities and manual local V6 JSON import
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          base="$PAGE_URL"
+          current_url="${base}human-replay/${PRODUCT_HEAD}/"
+          ok=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --location "$base" -o "$RUNNER_TEMP/root.html" \
+              && curl --fail --silent --show-error --location "${base}authoring/" -o "$RUNNER_TEMP/authoring.html" \
+              && curl --fail --silent --show-error --location "${base}deployment-evidence.json" -o "$RUNNER_TEMP/deployment-evidence.json" \
+              && curl --fail --silent --show-error --location "$current_url" -o "$RUNNER_TEMP/current.html" \
+              && curl --fail --silent --show-error --location "${current_url}identity.json" -o "$RUNNER_TEMP/current-identity.json"; then
+              [[ "$(sha256sum "$RUNNER_TEMP/root.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]] || { sleep 3; continue; }
+              [[ "$(sha256sum "$RUNNER_TEMP/current.html" | awk '{print $1}')" == "$PRODUCT_EXPECTED_SHA256" ]] || { sleep 3; continue; }
+              history_ok=1
+              for row in \
+                "$R10_HEAD:$R10_SHA256" "$R11_HEAD:$R11_SHA256" "$R12_HEAD:$R12_SHA256" \
+                "$PREVIOUS_R13_HEAD:$PREVIOUS_R13_SHA256" "$FINAL_R13_HEAD:$FINAL_R13_SHA256" \
+                "$R14_HEAD:$R14_SHA256" "$R15_HEAD:$R15_SHA256"; do
+                IFS=: read -r head expected_sha <<< "$row"
+                if ! curl --fail --silent --show-error --location "${base}human-replay/${head}/" -o "$RUNNER_TEMP/history.html" \
+                  || [[ "$(sha256sum "$RUNNER_TEMP/history.html" | awk '{print $1}')" != "$expected_sha" ]]; then
+                  history_ok=0; break
+                fi
+              done
+              [[ "$history_ok" == 1 ]] || { sleep 3; continue; }
+              cmp "$RUNNER_TEMP/authoring.html" "$RUNNER_TEMP/site/authoring/index.html" || { sleep 3; continue; }
+              cmp "$RUNNER_TEMP/deployment-evidence.json" "$RUNNER_TEMP/site/deployment-evidence.json" || { sleep 3; continue; }
+              ok=1; break
+            fi
+            sleep 3
+          done
+          [[ "$ok" == 1 ]]
+          python - "$RUNNER_TEMP/current-identity.json" <<'PY'
+          import json,os,sys
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert d['schema']=='learnit.v6.standalone-runtime.v1'
+          assert d['productHead']==os.environ['PRODUCT_HEAD']
+          assert d['learnerArtifactSha256']==os.environ['PRODUCT_EXPECTED_SHA256']
+          assert str(d['learnerArtifactBytes'])==os.environ['PRODUCT_EXPECTED_BYTES']
+          assert d['contract']=='learnit.kit.v6' and d['manualLocalJsonImport'] is True
+          assert d['kitBundled'] is False and d['promotion'] is False and d['studentPilotAuthorized'] is False
+          PY
+
+          fixture="$RUNNER_TEMP/live-manual-v6-fixture.json"
+          python - "$GITHUB_WORKSPACE/apps/learnit-next/tests/passage_v6_consumption.py" "$fixture" <<'PY'
+          import importlib.util,json,sys
+          source,target=sys.argv[1:]
+          spec=importlib.util.spec_from_file_location('passage_v6_fixture',source)
+          mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          with open(target,'w',encoding='utf-8') as f:
+              json.dump(mod.package(),f,ensure_ascii=False,separators=(',',':'))
+          PY
+          LIVE_FIXTURE="$fixture" LIVE_URL="$current_url" python - <<'PY'
+          import os
+          from playwright.sync_api import sync_playwright
+          def call(page,op,args=None):
+              return page.evaluate("async ({op,args})=>await window.__LEARNIT_NEXT_TEST__[op](...(args||[]))",{'op':op,'args':args or []})
+          with sync_playwright() as pw:
+              browser=pw.chromium.launch(headless=True)
+              context=browser.new_context(viewport={'width':390,'height':844})
+              page=context.new_page(); page.goto(os.environ['LIVE_URL'],wait_until='load')
+              page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+              assert page.locator('#kit-file').count()==1
+              button=page.locator('.import-panel button[type="submit"]')
+              call(page,'resetNextData')
+              page.locator('#kit-file').set_input_files(os.environ['LIVE_FIXTURE'])
+              for _ in range(100):
+                  if not button.is_disabled(): break
+                  page.wait_for_timeout(50)
+              assert not button.is_disabled()
+              button.click()
+              report=None
+              for _ in range(100):
+                  report=call(page,'storageReport')
+                  if report['counts']['packages']==1 and report['counts']['courses']==1: break
+                  page.wait_for_timeout(50)
+              assert report['counts']['packages']==1 and report['counts']['courses']==1,report
+              context.close(); browser.close()
+          print('LIVE_STANDALONE_V6_LOCAL_FILE_IMPORT=PASS')
+          PY
+
+      - name: Upload live standalone-runtime proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnit-v6-standalone-runtime-live-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/current-identity.json
