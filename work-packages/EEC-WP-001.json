@@ -1,0 +1,78 @@
+{
+  "authority": {
+    "jobId": "PHYSICS_EEC_V6_FACTORY_RECOVERY_PREMERGE_QUALIFICATION_R2",
+    "kind": "user-explicit-go-for-immutable-onedrive-job",
+    "noCataloguePublication": true,
+    "noMerge": true,
+    "pinnedBaseSha": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "pinnedPriorHeadSha": "4708910962c8d08957e157f1aa5714f04dc5126f",
+    "prNumber": 498
+  },
+  "changeClass": "recovery",
+  "id": "EEC-WP-001",
+  "invariants": [
+    "Exactly one canonical existing/new work package EEC-WP-001 on PR body; source JSON is an honest contract, not a dummy bypass.",
+    "Preserve Git main, PR #498 OPEN/DRAFT, and initial diff; no new PR, force push, or detached shadow branch.",
+    "Workflow change only if needed: narrowly authorize existing factory-only branch through auditable routing without weakening default deny or allowing product paths.",
+    "The exact V6 schema, validators, compatibility sources, runtime/product/student files and historical EEC kits remain immutable.",
+    "No unqualified kit, forged Factory PASS, release, or premature OneDrive USABLE_KIT_LOCATOR.",
+    "Independent clean-context T2 is mandatory for any qualified successor; author self-review cannot substitute.",
+    "Git merge and OneDrive catalogue update require later, separate exact human GO decisions.",
+    "Superseded R1 job package cannot concurrently execute against PR #498; R2 alone on exact GO."
+  ],
+  "nonGoals": [
+    "Merge to main",
+    "Modify OneDrive published catalogue",
+    "Deploy Pages",
+    "Access student data",
+    "Repair R1/R2 history or fake historical generator provenance"
+  ],
+  "purpose": "Correct existing draft PR #498 on a pinned baseline, satisfy repository governance without bypass, assemble a new immutable Physics EEC V6 successor with real runtime, qualify exact SHA independently and prepare a non-published release. Neither main merge nor catalogue publication is authorized.",
+  "requiredEvidence": [
+    "scope gate PASS exact PR head",
+    "Learn-it Next CI PASS exact PR head",
+    "full related CI PASS",
+    "two independent full-workspace byte-identical successor builds",
+    "real pinned V6 schema+validator Python PASS",
+    "Node V6 consumer import and isolated actual Edge import with six openable courses",
+    "source exact byte authorization and claim mapping",
+    "independent clean-context T2 PASS for exact successor SHA",
+    "real FactoryRun PASS exact successor SHA",
+    "release ZIP deterministic and self-verified",
+    "catalogue generator rejects forged locator; signed-in kit link route regression tested using representative locator"
+  ],
+  "riskClass": "high",
+  "rollback": "Before any authorized merge, leave PR OPEN/DRAFT or close PR by a later explicit decision. Never restore preimages into protected branches or unrelated data.",
+  "schemaVersion": 1,
+  "scope": {
+    "allowedPaths": [
+      "work-packages/EEC-WP-001.json",
+      "authoring/factory/forward_v6.py",
+      "authoring/factory/tests/test_forward_v6.py",
+      "authoring/factory/v6_gate.py",
+      "authoring/factory/tests/test_v6_gate.py",
+      "authoring/v6/validator_runtime.py",
+      "tools/refresh_onedrive_catalogue.py",
+      "tools/test_refresh_onedrive_catalogue.py",
+      ".github/workflows/learnit-next-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "runtime/**",
+      "platform/**",
+      "contracts/**",
+      "governance/**",
+      "docs/governance/**",
+      "10_COURSES/**",
+      "authoring/v2/**",
+      "authoring/v6/validate_kit.py",
+      "authoring/v6/_compat/**",
+      ".github/workflows/pr-scope.yml",
+      "tools/validate_pr_scope.py",
+      "work-packages/OPS-WP-024.json",
+      "work-packages/CI-WP-002.json"
+    ]
+  },
+  "status": "candidate",
+  "title": "Physics EEC V6 factory recovery and premerge qualification"
+}

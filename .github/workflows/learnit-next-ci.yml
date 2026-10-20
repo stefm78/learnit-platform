@@ -491,6 +491,7 @@ jobs:
           ACCEPTED: ${{ steps.target.outputs.accepted }}
           POST_MERGE: ${{ steps.profile.outputs.post_merge }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           HTTP_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           HTTPS_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           ALL_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
@@ -1035,6 +1036,53 @@ jobs:
               echo "Unrecognized pull-request branch with product-relevant changes: ${BRANCH}" >&2
               exit 2
             }
+
+            # EEC-WP-001: reviewed, exact PR-only factory recovery route; retain default deny.
+            if [[ "${BRANCH}" == "ops/physics-eec-v6-factory-catalog-r1" ]]; then
+              [[ "${EVENT}" == pull_request && "${PR_NUMBER}" == 498 && "${PR_BASE_SHA}" == "c7f7587c9e5beb29a123e5139c17b6448229a0cc" ]] || {
+                echo "EEC factory route: wrong event, PR or base SHA." >&2
+                exit 2
+              }
+              [[ "${workflow_changed}" == true && "${product_relevant}" == false ]] || {
+                echo "EEC factory route: workflow audit required, product paths forbidden." >&2
+                exit 2
+              }
+              eec_factory_allowed_path() {
+                case "$1" in
+                  work-packages/EEC-WP-001.json|authoring/factory/forward_v6.py|authoring/factory/tests/test_forward_v6.py|authoring/factory/v6_gate.py|authoring/factory/tests/test_v6_gate.py|authoring/v6/validator_runtime.py|tools/refresh_onedrive_catalogue.py|tools/test_refresh_onedrive_catalogue.py|.github/workflows/learnit-next-ci.yml) return 0 ;;
+                  *) return 1 ;;
+                esac
+              }
+              for path in "${changed[@]}"; do
+                eec_factory_allowed_path "${path}" || {
+                  echo "EEC factory route: forbidden changed path ${path}" >&2
+                  exit 2
+                }
+              done
+              for required_path in \
+                work-packages/EEC-WP-001.json \
+                authoring/factory/forward_v6.py \
+                authoring/factory/tests/test_forward_v6.py \
+                .github/workflows/learnit-next-ci.yml; do
+                grep -Fxq "${required_path}" <<< "${changed_text}" || {
+                  echo "EEC factory route: missing required path ${required_path}" >&2
+                  exit 2
+                }
+              done
+              for sample in \
+                apps/learnit-next/src/main.js \
+                authoring/v2/validate_kit.py \
+                contracts/learnit-kit-v6.schema.json \
+                .github/workflows/pr-scope.yml \
+                tools/validate_pr_scope.py \
+                work-packages/OPS-WP-024.json; do
+                ! eec_factory_allowed_path "${sample}" || {
+                  echo "EEC factory route: negative authorization self-test failed ${sample}" >&2
+                  exit 2
+                }
+              done
+              echo "PHYSICS_EEC_FACTORY_CI_ROUTE_R2=PASS"
+            fi
 
             is_product_path() {
               case "$1" in
