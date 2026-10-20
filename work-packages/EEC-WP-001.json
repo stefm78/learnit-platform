@@ -73,6 +73,28 @@
       "work-packages/CI-WP-002.json"
     ]
   },
-  "status": "candidate",
-  "title": "Physics EEC V6 factory recovery and premerge qualification"
+  "status": "in-progress",
+  "title": "Physics EEC V6 factory recovery and premerge qualification",
+  "baseline": {
+    "sourceRepository": "stefm78/learnit-platform",
+    "baseCommit": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "initialCandidateHead": "4708910962c8d08957e157f1aa5714f04dc5126f",
+    "historicalKitSha256": "c785fe6de09db46a21755269fde0aaaf8092229ae7c2fecd4960706448ad2167",
+    "immutableJobSpecSha256": "750b09b523685febdccb9dee044148aeea2394d5f9c1b40e63d774af4f2d7802"
+  },
+  "adversarialTests": [
+    "PR body names exactly one real canonical work package and all changed files match its declared allowedPaths.",
+    "Unknown branch, product-relevant delta, wrong PR or base SHA, forbidden paths or missing workflow audit fail closed.",
+    "Wrong, duplicate or non-v4 UUIDs, predecessor/manifest/source drift and forged digest are rejected.",
+    "Exact real pinned V6 validation, two isolated full-workspace byte-equal replays and exhaustive 6/44/189/3/44 module preservation.",
+    "Unverified Role B raw bytes, claim mapping or rights prevent qualification.",
+    "Mock-only success, Node-only success, non-Edge browser checks or same-context self-review cannot satisfy independent T2.",
+    "Forged usable locator or wrong signed-in OneDrive item identity cannot appear in staged catalogue simulation.",
+    "PR remains DRAFT and main, four published catalogue files, Pages and students remain untouched."
+  ],
+  "independentReview": [
+    "Distinct clean T2 verifier must check the exact candidate SHA, true raw Role B sources, semantic mappings, V6 import, CI, Factory and release evidence.",
+    "DO's own audits never count as independent T2; without an independently attributable clean verdict this work package remains not accepted.",
+    "Any merge requires separate user GO naming the exact PR head; future catalogue mutation requires a different later authorization."
+  ]
 }
