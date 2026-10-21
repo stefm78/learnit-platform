@@ -1606,3 +1606,77 @@ jobs:
           path: |
             ${{ runner.temp }}/passage-v6-r3-proof.json
             ${{ runner.temp }}/learnit-a.html
+
+  eec_r4_source_bridge:
+    name: EEC R4 exact public source tree bridge
+    if: >-
+      ${{ github.event_name == 'pull_request' &&
+          github.event.pull_request.number == 498 &&
+          github.event.pull_request.head.ref == 'ops/physics-eec-v6-factory-catalog-r1' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.event.pull_request.base.sha == 'c7f7587c9e5beb29a123e5139c17b6448229a0cc' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact PR HEAD with no persisted credentials
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate ancestry and exact changed-path allowlist
+        shell: bash
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          START_HEAD: 8e995aceb020d9b4b615dbca27bee2fa28eadae1
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          git merge-base --is-ancestor "$START_HEAD" "$HEAD_SHA"
+          changed=$(git diff --name-only "$START_HEAD" "$HEAD_SHA")
+          test -n "$changed"
+          grep -Fxq '.github/workflows/learnit-next-ci.yml' <<< "$changed"
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/learnit-next-ci.yml|work-packages/EEC-WP-001.json|authoring/factory/forward_v6.py|authoring/factory/tests/test_forward_v6.py|authoring/factory/v6_gate.py|authoring/factory/tests/test_v6_gate.py|authoring/v6/validator_runtime.py|tools/refresh_onedrive_catalogue.py|tools/test_refresh_onedrive_catalogue.py) ;;
+              *) echo "Forbidden path: $path" >&2; exit 2 ;;
+            esac
+          done <<< "$changed"
+          test "$(git diff --name-only "$START_HEAD" "$HEAD_SHA" | grep -cE '^(apps/|runtime/|contracts/|authoring/v2/|authoring/v6/validate_kit.py)' || true)" = '0'
+          echo "EEC_R4_EXACT_BOUNDED_HEAD=PASS"
+      - name: Export exact tracked public source and attest it
+        shell: bash
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p eec-r4-bridge
+          git archive --format=tar --output=eec-r4-bridge/source-tree.tar HEAD
+          git ls-tree -r -z --full-tree HEAD > eec-r4-bridge/git-tree.z
+          python - <<'PYBRIDGE'
+          import hashlib, json, os, pathlib, subprocess
+          root=pathlib.Path('eec-r4-bridge')
+          tar=(root/'source-tree.tar').read_bytes()
+          tree=(root/'git-tree.z').read_bytes()
+          sha=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          tree_sha=subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip()
+          if sha != os.environ['HEAD_SHA']: raise SystemExit('incorrect checked-out head')
+          count=sum(bool(item) for item in tree.split(b'\0'))
+          if count < 500: raise SystemExit('incomplete Git tree')
+          result={'schema':'learnit.eec-r4.source-bridge.v1', 'qualification':'CODE_SNAPSHOT_ONLY_NOT_KIT_PASS', 'commit':sha, 'tree':tree_sha, 'tracked_files':count, 'tree_z_sha256':hashlib.sha256(tree).hexdigest(), 'tar_sha256':hashlib.sha256(tar).hexdigest(), 'tar_bytes':len(tar), 'no_onedrive_course_inputs':True, 'no_credentials':True}
+          (root/'manifest.json').write_text(json.dumps(result,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps({'status':'BRIDGE_CODE_ONLY', 'commit':sha, 'tracked_files':count, 'tar_sha256':result['tar_sha256']}))
+          PYBRIDGE
+      - name: Upload bounded public code snapshot (not a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: eec-r4-public-code-${{ github.event.pull_request.head.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          compression-level: 0
+          path: |
+            eec-r4-bridge/source-tree.tar
+            eec-r4-bridge/git-tree.z
+            eec-r4-bridge/manifest.json
