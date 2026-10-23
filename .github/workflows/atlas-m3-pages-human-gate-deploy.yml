@@ -10,8 +10,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: atlas-m3-pages-human-gate-deploy
@@ -25,11 +23,8 @@ env:
   LEARNER_EXPECTED_BYTES: '366412'
 
 jobs:
-  publish-human-gate:
+  verify-human-gate:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}authoring/
     steps:
       - name: Checkout exact frozen Pages candidate
         uses: actions/checkout@v4
@@ -95,28 +90,10 @@ jobs:
           }
           EOF
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload exact human-gate Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Archive exact verified candidate (no publication)
+        uses: actions/upload-artifact@v4
         with:
+          name: atlas-m3-human-gate-preflight-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 7
           path: ${{ runner.temp }}/pages-site
-
-      - name: Deploy exact frozen candidate
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Publish deployment evidence
-        shell: bash
-        run: |
-          {
-            echo "## Atlas M3 Pages human gate"
-            echo ""
-            echo "- candidate HEAD: `$CANDIDATE_HEAD`"
-            echo "- learner bytes: `$LEARNER_EXPECTED_BYTES`"
-            echo "- learner SHA-256: `$LEARNER_EXPECTED_SHA256`"
-            echo "- authoring URL: `${{ steps.deployment.outputs.page_url }}authoring/`"
-            echo "- product promotion: `false`"
-            echo "- human gate required: `true`"
-          } >> "$GITHUB_STEP_SUMMARY"
