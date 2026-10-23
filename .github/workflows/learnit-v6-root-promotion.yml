@@ -93,8 +93,8 @@ jobs:
               assert re.search(r"(?m)^permissions:\n  contents: read[ \t]*$", data)
               assert bad(data + "\n      - uses: " + DEPLOY_ACTION + "\n")
               assert bad(data + "\npermissions:\n  pages: write\n")
-    assert bad("git " + "push origin gh-" + "pages")
-    assert bad("curl " + "https://api.github.com/repos/owner/repo/" + "pages")
+          assert bad("git " + "push origin gh-" + "pages")
+          assert bad("curl " + "https://api.github.com/repos/owner/repo/" + "pages")
           for path in paths:
               if path.as_posix() != WORKFLOW:
                   assert not bad(path.read_text(encoding="utf-8")), ("OTHER_PUBLISHER", str(path))
