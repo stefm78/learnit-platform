@@ -34,6 +34,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: c7f7587c9e5beb29a123e5139c17b6448229a0cc
+          fetch-depth: 0
           persist-credentials: false
       - name: Build candidate twice and validate replay identity
         shell: bash
