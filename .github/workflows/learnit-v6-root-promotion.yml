@@ -1,0 +1,78 @@
+name: LearnIT v6 root promotion (HOLD - preflight only)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/learnit-v6-root-promotion.yml'
+      - 'work-packages/OPS-WP-025.json'
+  workflow_dispatch:
+    inputs:
+      tracking_reference:
+        description: 'For audit only; this input never authorizes publication'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: learnit-v6-root-promotion
+  cancel-in-progress: false
+
+env:
+  FROZEN_SOURCE_HEAD: c7f7587c9e5beb29a123e5139c17b6448229a0cc
+  LOCAL_V6_REPLAY_SHA256: 92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b
+
+jobs:
+  preflight:
+    name: Deterministic v6 root preflight without publication
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exactly the local-qualification source
+        uses: actions/checkout@v4
+        with:
+          ref: c7f7587c9e5beb29a123e5139c17b6448229a0cc
+          persist-credentials: false
+      - name: Build candidate twice and validate replay identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$FROZEN_SOURCE_HEAD"
+          mkdir -p "$RUNNER_TEMP/learnit-v6-root-preflight"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learnit-v6-root-preflight/index.html"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learnit-v6-root-preflight/rebuild.html"
+          cmp "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" "$RUNNER_TEMP/learnit-v6-root-preflight/rebuild.html"
+          actual="$(sha256sum "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" | cut -d' ' -f1)"
+          test "$actual" = "$LOCAL_V6_REPLAY_SHA256"
+          cp "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" "$RUNNER_TEMP/learnit-v6-root-preflight/learnit-next.html"
+          cmp "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" "$RUNNER_TEMP/learnit-v6-root-preflight/learnit-next.html"
+          rm "$RUNNER_TEMP/learnit-v6-root-preflight/rebuild.html"
+      - name: Retain preflight artifact only (not a deployable Pages site)
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnit-v6-root-preflight-${{ github.run_id }}
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/learnit-v6-root-preflight/
+
+  deploy:
+    name: Disabled until full site, recovery, T2 and human release gates
+    if: ${{ false }}
+    needs: preflight
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Unconditional fail-closed guard (no release authority in this PR)
+        shell: bash
+        run: |
+          echo 'HOLD: full-site manifest, same-origin recovery, independent T2 and a separate production GO are missing' >&2
+          exit 1
+      - name: Inaccessible single Pages deployment step
+        uses: actions/deploy-pages@v4
