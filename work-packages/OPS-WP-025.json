@@ -92,5 +92,48 @@
     "Inspect all eight historical YAML files for absence of deploy-pages, upload-pages-artifact and Pages write/token permissions while preserving their verification steps.",
     "Inspect the new workflow for job-level false guard, unconditional failing pre-deployment step, and deployment privileges scoped to only its disabled deploy job.",
     "Require a separate clean-context T2 review, full historical site and kit/accessibility qualification, and authorized production GO before release."
-  ]
+  ],
+  "correctiveR1": {
+    "authorization": "USER_EXPLICIT_GO_LEARNIT_V6_PR499_CORRECTIVE_R1",
+    "initialHead": "ad6abb6e53715d3141b8dc94674db5d54828a898",
+    "allowedCorrectionPaths": [
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "work-packages/OPS-WP-025.json"
+    ],
+    "qualificationState": "PENDING_NEW_CI",
+    "publisherSafetyGate": "publisher-safety",
+    "negativeTests": [
+      "injected-old-deploy",
+      "injected-old-write-token",
+      "removed-disabled-if",
+      "removed-hard-exit",
+      "weakened-privileges"
+    ],
+    "historicalCiFindings": [
+      {
+        "job": "atlas-m3-pages-candidate",
+        "finding": "HISTORICAL_SCOPE_REJECTION",
+        "treatment": "PRESERVE"
+      },
+      {
+        "job": "atlas-m3-1-human-gate",
+        "finding": "HISTORICAL_SCOPE_REJECTION",
+        "treatment": "PRESERVE"
+      },
+      {
+        "job": "atlas-r14-human-replay",
+        "finding": "PLAYWRIGHT_TIMEOUT",
+        "treatment": "BASE_COMPARISON_REQUIRED"
+      }
+    ],
+    "remainingReleaseGates": [
+      "LIVE_PAGES_ENVIRONMENT_AND_OLD_RETRIES",
+      "HISTORICAL_URL_MANIFEST",
+      "SAME_ORIGIN_V3_RECOVERY",
+      "V2_TO_V6_UI_AND_ACCESSIBILITY_MATRIX",
+      "INDEPENDENT_T2",
+      "HUMAN_MERGE_AND_RELEASE_GO"
+    ],
+    "verdict": "HOLD"
+  }
 }
