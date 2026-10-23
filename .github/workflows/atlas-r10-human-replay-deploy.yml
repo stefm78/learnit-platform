@@ -15,8 +15,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: atlas-human-replay
@@ -205,95 +203,3 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           path: ${{ env.SITE }}
-
-  deploy:
-    name: Deploy exact R13 human replay
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}human-replay/${{ env.PRODUCT_HEAD }}/
-    steps:
-      - name: Download immutable verified site
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.verify.outputs.site_artifact }}
-          path: ${{ runner.temp }}/site
-
-      - name: Recheck downloaded identities
-        shell: bash
-        run: |
-          set -euo pipefail
-          site="$RUNNER_TEMP/site"
-          [[ "$(sha256sum "$site/index.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" ]]
-          for row in "$R10_HEAD:$R10_SHA256:$R10_BYTES" "$R11_HEAD:$R11_SHA256:$R11_BYTES" "$R12_HEAD:$R12_SHA256:$R12_BYTES" "$PRODUCT_HEAD:$PRODUCT_EXPECTED_SHA256:$PRODUCT_EXPECTED_BYTES"; do
-            IFS=: read -r head expected_sha expected_bytes <<< "$row"
-            replay="$site/human-replay/$head/index.html"
-            [[ "$(sha256sum "$replay" | awk '{print $1}')" == "$expected_sha" ]]
-            [[ "$(wc -c < "$replay" | tr -d ' ')" == "$expected_bytes" ]]
-            grep -q "\"productHead\":\"$head\"" "$site/human-replay/$head/identity.json"
-          done
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ${{ runner.temp }}/site
-
-      - name: Deploy verified site
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Live post-deploy identity smoke
-        shell: bash
-        env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          set -euo pipefail
-          current_url="${PAGE_URL}human-replay/${PRODUCT_HEAD}/"
-          r12_url="${PAGE_URL}human-replay/${R12_HEAD}/"
-          r11_url="${PAGE_URL}human-replay/${R11_HEAD}/"
-          r10_url="${PAGE_URL}human-replay/${R10_HEAD}/"
-          ok=0
-          for attempt in $(seq 1 20); do
-            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/root.html" \
-              && curl --fail --silent --show-error "$current_url" -o "$RUNNER_TEMP/current.html" \
-              && curl --fail --silent --show-error "$r12_url" -o "$RUNNER_TEMP/r12.html" \
-              && curl --fail --silent --show-error "$r11_url" -o "$RUNNER_TEMP/r11.html" \
-              && curl --fail --silent --show-error "$r10_url" -o "$RUNNER_TEMP/r10.html" \
-              && curl --fail --silent --show-error "${current_url}identity.json" -o "$RUNNER_TEMP/identity.json" \
-              && curl --fail --silent --show-error "${current_url}fixtures/nombres_complexes_atlas.json" -o "$RUNNER_TEMP/fixture.json" \
-              && curl --fail --silent --show-error "${current_url}fixtures/nombres_complexes_atlas-answer-guide.txt" -o "$RUNNER_TEMP/guide.txt"; then
-              readarray -t expected < <(python - "$RUNNER_TEMP/identity.json" <<'PY'
-          import json,sys
-          data=json.load(open(sys.argv[1],encoding='utf-8'))
-          assert data['productHead']=='ca1f537ee435b31794282b3cf6b3c7589e736783'
-          assert data['learnerArtifactSha256']=='6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18'
-          assert data['promotion'] is False
-          assert data['humanGateRequired'] is True
-          assert data['learnerUxPass'] is False
-          print(data['fixtureSha256'])
-          print(data['answerGuideSha256'])
-          PY
-          )
-              if [[ "$(sha256sum "$RUNNER_TEMP/root.html" | awk '{print $1}')" == "$STABLE_LEARNER_SHA256" \
-                && "$(sha256sum "$RUNNER_TEMP/current.html" | awk '{print $1}')" == "$PRODUCT_EXPECTED_SHA256" \
-                && "$(sha256sum "$RUNNER_TEMP/r12.html" | awk '{print $1}')" == "$R12_SHA256" \
-                && "$(sha256sum "$RUNNER_TEMP/r11.html" | awk '{print $1}')" == "$R11_SHA256" \
-                && "$(sha256sum "$RUNNER_TEMP/r10.html" | awk '{print $1}')" == "$R10_SHA256" \
-                && "$(sha256sum "$RUNNER_TEMP/fixture.json" | awk '{print $1}')" == "${expected[0]}" \
-                && "$(sha256sum "$RUNNER_TEMP/guide.txt" | awk '{print $1}')" == "${expected[1]}" ]]; then
-                ok=1; break
-              fi
-            fi
-            sleep 3
-          done
-          [[ "$ok" == 1 ]]
-          echo "R13_REPLAY_URL=$current_url" >> "$GITHUB_STEP_SUMMARY"
-          echo "R13_IDENTITY_URL=${current_url}identity.json" >> "$GITHUB_STEP_SUMMARY"
-          echo "R13_FIXTURE_URL=${current_url}fixtures/nombres_complexes_atlas.json" >> "$GITHUB_STEP_SUMMARY"
-          echo "R13_ANSWER_GUIDE_URL=${current_url}fixtures/nombres_complexes_atlas-answer-guide.txt" >> "$GITHUB_STEP_SUMMARY"
