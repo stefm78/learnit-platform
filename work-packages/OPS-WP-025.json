@@ -18,7 +18,8 @@
     "historicalPublisherCount": 8,
     "workflowCount": 36,
     "localArchiveSha256": "e0e265d5c24fb76668e30905b458ee80c0497abb61245fae87d865379a0e1c0f",
-    "localAuditVerdict": "EVIDENCE_REVIEW_PASS_WITH_LIMITS"
+    "localAuditVerdict": "EVIDENCE_REVIEW_PASS_WITH_LIMITS",
+    "baseCommit": "c7f7587c9e5beb29a123e5139c17b6448229a0cc"
   },
   "scope": {
     "allowedPaths": [
@@ -72,5 +73,24 @@
     "merge": "FORBIDDEN",
     "releaseVerdict": "HOLD"
   },
-  "rollback": "Before merge, close the draft PR and delete the candidate branch only under a separate authorization; main and Pages are unchanged."
+  "rollback": "Before merge, close the draft PR and delete the candidate branch only under a separate authorization; main and Pages are unchanged.",
+  "adversarialTests": [
+    "An old workflow_dispatch, main push, or pull_request must not reach deploy-pages or receive pages:write/id-token:write on any of the eight retired workflows.",
+    "The proposed new deployment job must remain unreachable despite workflow_dispatch inputs; its first step must fail unconditionally even if the job-level guard is edited.",
+    "Reject any branch diff outside the ten exact allowed paths or any blob drift against the frozen base.",
+    "Reject v6 preflight if source Git blob inputs are unavailable or repeated builds differ from each other or the expected SHA-256.",
+    "Reject release if any historical URL or authoring asset is missing, any old IndexedDB v3 cannot be reopened, or the compatible same-origin recovery route is absent.",
+    "Reject main merge or Pages publication without separate explicit human authority and independent T2 acceptance."
+  ],
+  "nonGoals": [
+    "Publishing LearnIT v6, changing GitHub Pages settings, starting a workflow release, merging the PR, or releasing to end users.",
+    "Modifying learner/product/authoring/Factory code or existing immutable historical Pages and OneDrive evidence.",
+    "Suppressing the historical workflows' exact original work-package scope checks just to make this broad transition PR appear green."
+  ],
+  "independentReview": [
+    "Compare the final PR against exact c7f7587c9e5beb29a123e5139c17b6448229a0cc and independently confirm the ten changed paths.",
+    "Inspect all eight historical YAML files for absence of deploy-pages, upload-pages-artifact and Pages write/token permissions while preserving their verification steps.",
+    "Inspect the new workflow for job-level false guard, unconditional failing pre-deployment step, and deployment privileges scoped to only its disabled deploy job.",
+    "Require a separate clean-context T2 review, full historical site and kit/accessibility qualification, and authorized production GO before release."
+  ]
 }
