@@ -18,8 +18,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: atlas-m3-pages-candidate-${{ github.event_name }}
@@ -122,21 +120,3 @@ jobs:
             ${{ runner.temp }}/atlas-m3-pages-source.sha256
             ${{ runner.temp }}/pages-site/authoring/pages-evidence.json
             ${{ runner.temp }}/pages-site/atlas-m3-pages-candidate.json
-
-      - name: Upload Pages artifact
-        if: github.event_name == 'push'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ${{ runner.temp }}/pages-site
-
-  deploy-candidate:
-    if: github.event_name == 'push'
-    needs: verify-and-package
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}authoring/
-    steps:
-      - name: Deploy candidate Pages surface
-        id: deployment
-        uses: actions/deploy-pages@v4

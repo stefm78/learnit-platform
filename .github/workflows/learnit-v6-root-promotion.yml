@@ -1,0 +1,180 @@
+name: LearnIT v6 root promotion (HOLD - preflight only)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/learnit-v6-root-promotion.yml'
+      - 'work-packages/OPS-WP-025.json'
+  workflow_dispatch:
+    inputs:
+      tracking_reference:
+        description: 'For audit only; this input never authorizes publication'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: learnit-v6-root-promotion
+  cancel-in-progress: false
+
+env:
+  FROZEN_SOURCE_HEAD: c7f7587c9e5beb29a123e5139c17b6448229a0cc
+  LOCAL_V6_REPLAY_SHA256: 92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b
+
+jobs:
+  publisher-safety:
+    name: Exact-scope non-publication guard (draft only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact reviewed PR head without stored credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check all publishers, immutability and negative guard cases
+        shell: bash
+        env:
+          AUDIT_EVENT: ${{ github.event_name }}
+          AUDIT_BRANCH: ${{ github.head_ref || github.ref_name }}
+          AUDIT_BASE: ${{ github.event.pull_request.base.sha || '' }}
+          AUDIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, re, subprocess
+          from pathlib import Path
+          BASE = "c7f7587c9e5beb29a123e5139c17b6448229a0cc"
+          BRANCH = "ops/learnit-v6-single-publisher-prep-r1"
+          WORKFLOW = ".github/workflows/learnit-v6-root-promotion.yml"
+          WP = "work-packages/OPS-WP-025.json"
+          RETIRED = {"atlas-m3-1-human-gate-deploy.yml":"d915e5e608c62a3f411c5a1d83a0a7820784f60d","atlas-m3-pages-candidate.yml":"ee55a23fc9a0444f810500943fe25bcc8819f653","atlas-m3-pages-human-gate-deploy.yml":"19b9ce6bfc319ccc154fc1227e78106153b84936","atlas-r10-human-replay-deploy.yml":"15314d95f7f36599fc68124654d4ca0bd0dd2153","atlas-r13-final-human-replay-deploy.yml":"19dfe32729a1c55ba24a56c03666e7eed5e08e08","atlas-r14-human-replay-deploy.yml":"551a4f5875d23a362cb6ef6041530d977e1bcadb","atlas-r15-human-replay-deploy.yml":"585ea027e9827b4c58c602e4bb99c2672f79f033","learnit-next-pages.yml":"42c1b42310d6c0a728d91ca64a06039faef09328"}
+          EXPECTED = {".github/workflows/" + name for name in RETIRED} | {WORKFLOW, WP}
+          def git(*args):
+              return subprocess.check_output(["git", *args], text=True).strip()
+          assert os.environ["AUDIT_EVENT"] in ("pull_request", "workflow_dispatch")
+          assert os.environ["AUDIT_BRANCH"] == BRANCH
+          assert git("rev-parse", "HEAD") == os.environ["AUDIT_SHA"]
+          if os.environ["AUDIT_EVENT"] == "pull_request":
+              assert os.environ["AUDIT_BASE"] == BASE
+          subprocess.run(["git", "merge-base", "--is-ancestor", BASE, "HEAD"], check=True)
+          changed = set(filter(None, git("diff", "--name-only", BASE + "...HEAD").splitlines()))
+          assert changed == EXPECTED, ("SCOPE", sorted(changed ^ EXPECTED))
+          wp = json.loads(Path(WP).read_text(encoding="utf-8"))
+          assert wp["id"] == "OPS-WP-025"
+          assert wp["authority"]["baseCommit"] == BASE and wp["authority"]["branch"] == BRANCH
+          assert wp["authority"]["releaseAuthority"] == "NONE"
+          assert wp["execution"]["merge"] == "FORBIDDEN" and wp["execution"]["productionDeployment"] == "FORBIDDEN"
+          assert wp["execution"]["maximumChangedFiles"] == 10
+          assert set(wp["scope"]["allowedPaths"]) == EXPECTED
+          DEPLOY_ACTION = "actions/" + "deploy-pages@v4"
+          UPLOAD_ACTION = "actions/" + "upload-pages-artifact@"
+          ARTIFACT_ACTION = "actions/" + "upload-artifact@v4"
+          PATTERNS = (
+              r"actions/(?:deploy-pages|upload-pages-artifact|configure-pages)@",
+              r"peaceiris/" + "actions-gh-pages@",
+              r"(?m)^[ \t]*(?:pages|id-token):[ \t]*write(?:[ \t]*#.*)?$",
+              r"(?i)(?:gh[ \t]+api|curl[^\n]*|git[ \t]+push[^\n]*)[^\n]*(?:/" + "pages|gh-" + "pages)",
+          )
+          def bad(source):
+              return any(re.search(p, source) for p in PATTERNS)
+          paths = sorted([*Path(".github/workflows").glob("*.yml"), *Path(".github/workflows").glob("*.yaml")])
+          assert len(paths) == 37, ("WORKFLOW_COUNT", len(paths))
+          for name, blob in RETIRED.items():
+              path = ".github/workflows/" + name
+              assert git("rev-parse", "HEAD:" + path) == blob, ("IMMUTABLE_OLD_WORKFLOW", path)
+              data = Path(path).read_text(encoding="utf-8")
+              assert not bad(data), ("RETIRED_PUBLISHER", path)
+              assert ARTIFACT_ACTION in data
+              assert re.search(r"(?m)^permissions:\n  contents: read[ \t]*$", data)
+              assert bad(data + "\n      - uses: " + DEPLOY_ACTION + "\n")
+              assert bad(data + "\npermissions:\n  pages: write\n")
+          assert bad("git " + "push origin gh-" + "pages")
+          assert bad("curl " + "https://api.github.com/repos/owner/repo/" + "pages")
+          for path in paths:
+              if path.as_posix() != WORKFLOW:
+                  assert not bad(path.read_text(encoding="utf-8")), ("OTHER_PUBLISHER", str(path))
+          candidate = Path(WORKFLOW).read_text(encoding="utf-8")
+          assert candidate.count(DEPLOY_ACTION) == 1
+          assert UPLOAD_ACTION not in candidate
+          assert re.search(r"(?m)^permissions:\n  contents: read[ \t]*$", candidate)
+          assert "\n  preflight:\n    needs: publisher-safety\n" in candidate
+          body = candidate.split("\njobs:\n", 1)[1]
+          assert re.findall(r"(?m)^  ([a-z][\w-]*):[ \t]*$", body) == ["publisher-safety", "preflight", "deploy"]
+          deploy = body.split("\n  deploy:\n", 1)[1]
+          def locked(data):
+              before = data.split("\n      - name: Inaccessible single Pages deployment step", 1)[0]
+              return (bool(re.search(r"(?m)^    if: \x24\{\{ false \}\}[ \t]*$", data))
+                  and "    environment:\n      name: github-pages\n" in data
+                  and "    permissions:\n      contents: read\n      pages: write\n      id-token: write\n" in data
+                  and "      - name: Unconditional fail-closed guard" in before
+                  and bool(re.search(r"(?m)^          exit 1[ \t]*$", before))
+                  and data.count(DEPLOY_ACTION) == 1)
+          assert locked(deploy), "DEPLOY_GUARD"
+          assert not locked(deploy.replace("false", "true", 1))
+          assert not locked(deploy.replace("exit 1", "exit 0", 1))
+          assert not locked(deploy.replace("pages: write", "pages: read", 1))
+          assert not locked(deploy.replace("id-token: write", "id-token: read", 1))
+          assert candidate.count(ARTIFACT_ACTION) == 1
+          assert not bad(candidate.split("\n  deploy:\n", 1)[0])
+          print(json.dumps({"result":"PASS_DRAFT_ONLY","head":git("rev-parse", "HEAD"),
+            "files":len(changed),"retired":len(RETIRED),"workflows":len(paths),
+            "negativeTests":"PASS","deployment":"DISABLED","release":"HOLD"}, sort_keys=True))
+          PY
+  preflight:
+    needs: publisher-safety
+    name: Deterministic v6 root preflight without publication
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exactly the local-qualification source
+        uses: actions/checkout@v4
+        with:
+          ref: c7f7587c9e5beb29a123e5139c17b6448229a0cc
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build candidate twice and validate replay identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$FROZEN_SOURCE_HEAD"
+          mkdir -p "$RUNNER_TEMP/learnit-v6-root-preflight"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learnit-v6-root-preflight/index.html"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/learnit-v6-root-preflight/rebuild.html"
+          cmp "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" "$RUNNER_TEMP/learnit-v6-root-preflight/rebuild.html"
+          actual="$(sha256sum "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" | cut -d' ' -f1)"
+          test "$actual" = "$LOCAL_V6_REPLAY_SHA256"
+          cp "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" "$RUNNER_TEMP/learnit-v6-root-preflight/learnit-next.html"
+          cmp "$RUNNER_TEMP/learnit-v6-root-preflight/index.html" "$RUNNER_TEMP/learnit-v6-root-preflight/learnit-next.html"
+          rm "$RUNNER_TEMP/learnit-v6-root-preflight/rebuild.html"
+      - name: Retain preflight artifact only (not a deployable Pages site)
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnit-v6-root-preflight-${{ github.run_id }}
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/learnit-v6-root-preflight/
+
+  deploy:
+    name: Disabled until full site, recovery, T2 and human release gates
+    if: ${{ false }}
+    needs: preflight
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Unconditional fail-closed guard (no release authority in this PR)
+        shell: bash
+        run: |
+          echo 'HOLD: full-site manifest, same-origin recovery, independent T2 and a separate production GO are missing' >&2
+          exit 1
+      - name: Inaccessible single Pages deployment step
+        uses: actions/deploy-pages@v4

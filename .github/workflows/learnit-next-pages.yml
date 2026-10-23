@@ -15,8 +15,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: learnit-next-pages
@@ -162,89 +160,3 @@ jobs:
           retention-days: 7
           if-no-files-found: error
           path: ${{ env.STABLE_SITE }}
-
-  deploy:
-    name: Deploy stable learner plus M3.1 authoring
-    if: github.event_name != 'pull_request'
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Download immutable verified site
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.verify.outputs.site_artifact }}
-          path: ${{ runner.temp }}/stable-site
-
-      - name: Recheck stable site identity
-        shell: bash
-        run: |
-          set -euo pipefail
-          site="$RUNNER_TEMP/stable-site"
-          actual_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
-          actual_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
-          [[ "$actual_sha" == "$LEARNER_EXPECTED_SHA256" ]]
-          [[ "$actual_bytes" == "$LEARNER_EXPECTED_BYTES" ]]
-          cmp "$site/index.html" "$site/learnit-next.html"
-          grep -q '"m3_1PromotedMain": "'"$M3_1_PROMOTED_MAIN"'"' "$site/deployment-evidence.json"
-          grep -q '"stableAuthoringPublication": true' "$site/deployment-evidence.json"
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload stable Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ${{ runner.temp }}/stable-site
-
-      - name: Deploy stable learner plus M3.1 authoring
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Post-deploy live smoke
-        shell: bash
-        env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          set -euo pipefail
-          site="$RUNNER_TEMP/stable-site"
-          expected_authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
-          ok=0
-          for attempt in $(seq 1 20); do
-            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/live-index.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/" -o "$RUNNER_TEMP/live-authoring.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/pages-evidence.json" -o "$RUNNER_TEMP/live-pages-evidence.json"               && curl --fail --silent --show-error "${PAGE_URL}deployment-evidence.json" -o "$RUNNER_TEMP/live-deployment-evidence.json"; then
-              live_sha="$(sha256sum "$RUNNER_TEMP/live-index.html" | awk '{print $1}')"
-              live_bytes="$(wc -c < "$RUNNER_TEMP/live-index.html" | tr -d ' ')"
-              live_authoring_sha="$(sha256sum "$RUNNER_TEMP/live-authoring.html" | awk '{print $1}')"
-              if [[ "$live_sha" == "$LEARNER_EXPECTED_SHA256"                     && "$live_bytes" == "$LEARNER_EXPECTED_BYTES"                     && "$live_authoring_sha" == "$expected_authoring_sha" ]]                  && cmp "$RUNNER_TEMP/live-pages-evidence.json" "$site/authoring/pages-evidence.json"                  && cmp "$RUNNER_TEMP/live-deployment-evidence.json" "$site/deployment-evidence.json"; then
-                ok=1
-                break
-              fi
-            fi
-            sleep 3
-          done
-          [[ "$ok" == 1 ]]
-          cat > "$RUNNER_TEMP/stable-live-evidence.json" <<EOF
-          {
-            "schema": "learnit.next.pages.stable-live.v1",
-            "result": "PASS",
-            "m3_1PromotedMain": "$M3_1_PROMOTED_MAIN",
-            "frozenProductHead": "$FROZEN_PRODUCT_HEAD",
-            "frozenQaHead": "$FROZEN_QA_HEAD",
-            "learnerSha256": "$LEARNER_EXPECTED_SHA256",
-            "liveLearner": "PASS",
-            "liveAuthoring": "PASS",
-            "livePagesEvidenceIdentity": "PASS",
-            "stableAuthoringPublication": true
-          }
-          EOF
-
-      - name: Upload stable live evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: learnit-stable-pages-live-${{ github.sha }}
-          retention-days: 30
-          if-no-files-found: error
-          path: ${{ runner.temp }}/stable-live-evidence.json

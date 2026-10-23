@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-025",
+  "title": "LearnIT v6 single publisher decommission and promotion preflight (non-deployable draft)",
+  "status": "in-progress",
+  "changeClass": "operations-pages-publisher-hardening",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "baseCommit": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "branch": "ops/learnit-v6-single-publisher-prep-r1",
+    "humanGo": "USER_EXACT_DRAFT_PR_ONLY_2026-10-23",
+    "releaseAuthority": "NONE"
+  },
+  "purpose": "Disable eight historical GitHub Pages publication paths while retaining their non-publishing verifications; introduce one explicitly non-executable v6 root promotion skeleton for review only.",
+  "baseline": {
+    "head": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "historicalPublisherCount": 8,
+    "workflowCount": 36,
+    "localArchiveSha256": "e0e265d5c24fb76668e30905b458ee80c0497abb61245fae87d865379a0e1c0f",
+    "localAuditVerdict": "EVIDENCE_REVIEW_PASS_WITH_LIMITS",
+    "baseCommit": "c7f7587c9e5beb29a123e5139c17b6448229a0cc"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-m3-1-human-gate-deploy.yml",
+      ".github/workflows/atlas-m3-pages-candidate.yml",
+      ".github/workflows/atlas-m3-pages-human-gate-deploy.yml",
+      ".github/workflows/atlas-r10-human-replay-deploy.yml",
+      ".github/workflows/atlas-r13-final-human-replay-deploy.yml",
+      ".github/workflows/atlas-r14-human-replay-deploy.yml",
+      ".github/workflows/atlas-r15-human-replay-deploy.yml",
+      ".github/workflows/learnit-next-pages.yml",
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "work-packages/OPS-WP-025.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "docs/**",
+      "platform/**",
+      "tests/**",
+      "work-packages/OPS-WP-024.json"
+    ]
+  },
+  "invariants": [
+    "Eight historical workflows retain verification jobs where feasible; none can call actions/deploy-pages, actions/upload-pages-artifact or request pages:write/id-token:write.",
+    "The sole new deploy job is doubly blocked by a permanently false job-level guard and an unconditional failing step.",
+    "No current GitHub Pages artifact, root, authoring, historical replay, IndexedDB, fixture, product or Factory state is changed by this draft.",
+    "No merge, Pages deployment, Pages/environment settings change or publication authorization is implied by this candidate."
+  ],
+  "requiredEvidence": [
+    "Exact ten-path diff and pinned baseline/old Git blob identities.",
+    "New single deploy-pages action only in the disabled candidate workflow.",
+    "Static YAML/scope checks, PR CI review, independent T2.",
+    "Before future release: full-site URL manifest, exact v6 root identity, compatible same-origin /recovery/v3, v2-v6 kit and accessibility matrix, live Pages protections, explicit new human GO."
+  ],
+  "unresolvedReleaseGates": [
+    "G1 live Pages/environment visibility",
+    "G2 historical and external consumer inventory",
+    "G3 independent publisher exclusivity after merge",
+    "G4 full kit/UI/accessibility matrix",
+    "G5 deployed same-origin recovery/v3 and restart",
+    "G6 independent T2 and new release GO"
+  ],
+  "execution": {
+    "branch": "ops/learnit-v6-single-publisher-prep-r1",
+    "maximumChangedFiles": 10,
+    "phase": "DRAFT_PR_ONLY",
+    "productionDeployment": "FORBIDDEN",
+    "merge": "FORBIDDEN",
+    "releaseVerdict": "HOLD"
+  },
+  "rollback": "Before merge, close the draft PR and delete the candidate branch only under a separate authorization; main and Pages are unchanged.",
+  "adversarialTests": [
+    "An old workflow_dispatch, main push, or pull_request must not reach deploy-pages or receive pages:write/id-token:write on any of the eight retired workflows.",
+    "The proposed new deployment job must remain unreachable despite workflow_dispatch inputs; its first step must fail unconditionally even if the job-level guard is edited.",
+    "Reject any branch diff outside the ten exact allowed paths or any blob drift against the frozen base.",
+    "Reject v6 preflight if source Git blob inputs are unavailable or repeated builds differ from each other or the expected SHA-256.",
+    "Reject release if any historical URL or authoring asset is missing, any old IndexedDB v3 cannot be reopened, or the compatible same-origin recovery route is absent.",
+    "Reject main merge or Pages publication without separate explicit human authority and independent T2 acceptance."
+  ],
+  "nonGoals": [
+    "Publishing LearnIT v6, changing GitHub Pages settings, starting a workflow release, merging the PR, or releasing to end users.",
+    "Modifying learner/product/authoring/Factory code or existing immutable historical Pages and OneDrive evidence.",
+    "Suppressing the historical workflows' exact original work-package scope checks just to make this broad transition PR appear green."
+  ],
+  "independentReview": [
+    "Compare the final PR against exact c7f7587c9e5beb29a123e5139c17b6448229a0cc and independently confirm the ten changed paths.",
+    "Inspect all eight historical YAML files for absence of deploy-pages, upload-pages-artifact and Pages write/token permissions while preserving their verification steps.",
+    "Inspect the new workflow for job-level false guard, unconditional failing pre-deployment step, and deployment privileges scoped to only its disabled deploy job.",
+    "Require a separate clean-context T2 review, full historical site and kit/accessibility qualification, and authorized production GO before release."
+  ],
+  "correctiveR1": {
+    "authorization": "USER_EXPLICIT_GO_LEARNIT_V6_PR499_CORRECTIVE_R1",
+    "initialHead": "ad6abb6e53715d3141b8dc94674db5d54828a898",
+    "allowedCorrectionPaths": [
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "work-packages/OPS-WP-025.json"
+    ],
+    "qualificationState": "PENDING_NEW_CI",
+    "publisherSafetyGate": "publisher-safety",
+    "negativeTests": [
+      "injected-old-deploy",
+      "injected-old-write-token",
+      "removed-disabled-if",
+      "removed-hard-exit",
+      "weakened-privileges"
+    ],
+    "historicalCiFindings": [
+      {
+        "job": "atlas-m3-pages-candidate",
+        "finding": "HISTORICAL_SCOPE_REJECTION",
+        "treatment": "PRESERVE"
+      },
+      {
+        "job": "atlas-m3-1-human-gate",
+        "finding": "HISTORICAL_SCOPE_REJECTION",
+        "treatment": "PRESERVE"
+      },
+      {
+        "job": "atlas-r14-human-replay",
+        "finding": "PLAYWRIGHT_TIMEOUT",
+        "treatment": "BASE_COMPARISON_REQUIRED"
+      }
+    ],
+    "remainingReleaseGates": [
+      "LIVE_PAGES_ENVIRONMENT_AND_OLD_RETRIES",
+      "HISTORICAL_URL_MANIFEST",
+      "SAME_ORIGIN_V3_RECOVERY",
+      "V2_TO_V6_UI_AND_ACCESSIBILITY_MATRIX",
+      "INDEPENDENT_T2",
+      "HUMAN_MERGE_AND_RELEASE_GO"
+    ],
+    "verdict": "HOLD"
+  }
+}
