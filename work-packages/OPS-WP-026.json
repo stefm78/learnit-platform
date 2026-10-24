@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-026",
+  "title": "LearnIT V6 integrated site candidate and same-origin v3 recovery (NO DEPLOY)",
+  "status": "in-progress",
+  "changeClass": "operations-candidate-static-qualification",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "jobId": "LEARNIT_V6_INTEGRATED_SITE_RECOVERY_CANDIDATE_R1",
+    "executionDocumentSha256": "b071febdd2299a23eab9d99ee388bb73b96b99dc6a67cfe88b543f15a127fd4f"
+  },
+  "purpose": "Deterministic 52-known-file integrated V6 site, historic links and byte-preserved replay, isolated same-origin recovery v3, bounded CI; stop at draft PR after independent review, never deploy.",
+  "baseline": {
+    "baseCommit": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "v6ArtifactBytes": 627042,
+    "v6ArtifactSha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b",
+    "publisherSafetyDraftPR": 499,
+    "publisherSafetyHead": "20b075e8776d5bd805a39274e20f1f267a40754f"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-v6-site-qualification.yml",
+      "tools/learnit_v6_site/assemble.py",
+      "tools/learnit_v6_site/expected_files.json",
+      "tools/learnit_v6_site/historical.py",
+      "tools/learnit_v6_site/test_site.py",
+      "tools/learnit_v6_site/test_browser_integration.py",
+      "tools/learnit_v6_site/v6_identity_frozen.json",
+      "work-packages/OPS-WP-026.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      ".github/workflows/atlas-*-deploy.yml",
+      ".github/workflows/learnit-next-pages.yml",
+      "work-packages/OPS-WP-025.json",
+      "governance/**",
+      "platform/**",
+      "contracts/**",
+      "authoring/v2/**",
+      "work-packages/ATLAS-WP-*/**",
+      ".github/workflows/pr-scope.yml",
+      ".github/workflows/governance-validation.yml"
+    ]
+  },
+  "invariants": [
+    "No modifications to main, PR #499, Pages, Factory or real learner data",
+    "Root and alias use exact V6 artifact; immutable historical R10-R15 URL bytes preserved",
+    "Recovery/v3 is same-origin and must never downgrade IndexedDB v3 to v2",
+    "No Pages publication capability in new CI workflow",
+    "Archive exhaustiveness and external URL consumers remain UNKNOWN, not PASS",
+    "deployment-evidence.json is a byte-preserved historical R15 v2 identity only; never treat its stable learner digest as attesting to V6 root. Release requires an explicit current deployment-identity resolution."
+  ],
+  "requiredEvidence": [
+    "Deterministic integrated site assembler runs twice and yields byte-identical 52-file manifest",
+    "Eight native V6 activity types with negative tests and v2-to-v3 synthetic storage continuity",
+    "Original 51-known-file identity continuity, no assets missing",
+    "Independent pull request governance and scope checks",
+    "Reproducible CI Chromium synthetic v2-to-v3 continuity, blocked upgrade and retry, simulated root HTTP 503 recovery, same-origin IndexedDB preservation, basic keyboard accessibility in two viewports"
+  ],
+  "adversarialTests": [
+    "No path outside declared 24-file limit and allowlist",
+    "No root downgrade or historical replay byte drift",
+    "No destructive IndexedDB reset and no unsafe Pages deployment permissions",
+    "Reject unsupported v3-v5 canonical fixture claims unless proven"
+  ],
+  "nonGoals": [
+    "Page deployment",
+    "Main merge",
+    "Modify PR 499",
+    "Release and promotion",
+    "Reset learner data",
+    "Claiming deployment-evidence.json attests to new V6 root"
+  ],
+  "execution": {
+    "branch": "ops/learnit-v6-integrated-site-recovery-r1",
+    "maximumChangedFiles": 24,
+    "phase": "LOCAL_INDEPENDENT_REVIEW_CORRECTED_PREQUALIFICATION_ONLY",
+    "humanGateRequired": true,
+    "mergeStatus": "not-merged",
+    "finalVerdict": null
+  },
+  "rollback": "Close or abandon this draft candidate PR without merging; no published site, learner data or main branch has been modified by this work package.",
+  "independentReview": [
+    "Exact eight-file scope and SHA-256 verified independently against R7 source evidence before GitHub push.",
+    "Local Repository governance and PR scope checks must succeed for the committed candidate before remote write.",
+    "52 known site files and bounded browser checks passed locally; unsupported kit fixtures and full WCAG remain explicitly HOLD.",
+    "Draft PR and CI results are not a release approval; PR #499, main and Pages remain protected."
+  ]
+}
