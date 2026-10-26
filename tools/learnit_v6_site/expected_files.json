@@ -1,0 +1,266 @@
+{
+  "base": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+  "files": [
+    {
+      "bytes": 37156,
+      "path": "authoring/_authority/authoring/studio/core.py",
+      "sha256": "862f7784a241b54500f2d83f042824982da027d3cfca5fbed77ed75d1cdd71e5"
+    },
+    {
+      "bytes": 21309,
+      "path": "authoring/_authority/authoring/v2/atlas/pedagogical_quality.py",
+      "sha256": "5cf65b1474c5b5db5db120d700b7415920a1921f48cd9205f4c97530e9c8d2df"
+    },
+    {
+      "bytes": 11215,
+      "path": "authoring/_authority/authoring/v2/atlas/validate_atlas_content.py",
+      "sha256": "ad8a0f8990915c26af1bbc97c5813c7326a3be4d5356ab721aadb2296f15d435"
+    },
+    {
+      "bytes": 25573,
+      "path": "authoring/_authority/authoring/v2/validate_kit.py",
+      "sha256": "c7f27ddda61048b57585be380b0b1b9bb3eb52d7925a55603e43cce3fbb8eac4"
+    },
+    {
+      "bytes": 9879,
+      "path": "authoring/_authority/contracts/learnit-kit-v2.schema.json",
+      "sha256": "4a2db1e1d61f932cf6032ba1766ee37c5f0adeaf29e2ad235bb25096ba9a74bb"
+    },
+    {
+      "bytes": 5091,
+      "path": "authoring/index.html",
+      "sha256": "fd18614c303a5233b6ca40069b548c219a65ad769442fc70886203244ce1345d"
+    },
+    {
+      "bytes": 11235,
+      "path": "authoring/pages-bootstrap.js",
+      "sha256": "802f6040229835af7f28fa28d6db0cdc5dac6c676351571834d0668396f44aec"
+    },
+    {
+      "bytes": 1570,
+      "path": "authoring/pages-evidence.json",
+      "sha256": "1fb3cd469e60b2c8732650da361e9d694e6e3ec0ee7987a74d0250c7677f3c43"
+    },
+    {
+      "bytes": 12384,
+      "path": "authoring/samples/nombres_complexes_atlas.json",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    },
+    {
+      "bytes": 12976,
+      "path": "authoring/samples/signaux_electriques_atlas.json",
+      "sha256": "bc5822a62cae77841c7ab770c7f1769af93b085fda77c736a27e81f69cc31402"
+    },
+    {
+      "bytes": 5604,
+      "path": "authoring/studio.css",
+      "sha256": "96dca7450664efd43c4f764fcd43b206d3589fbba0fa7846215840cd62e82549"
+    },
+    {
+      "bytes": 17589,
+      "path": "authoring/studio.js",
+      "sha256": "9c1ed961f7cf341390a473eeffc68fed16117a7d84921db0cdf779ce1a04ef01"
+    },
+    {
+      "bytes": 753,
+      "path": "deployment-evidence.json",
+      "sha256": "400a1b42c61afdefbc5eb3c08a4d7ecbe4de321fd612e1b069c63403740f1e09"
+    },
+    {
+      "bytes": 1308,
+      "path": "human-replay/01a5ca9b3e8a3abd5fb9692a001bb8533065b45f/fixtures/nombres_complexes_atlas-answer-guide.txt",
+      "sha256": "35d9d251f633d3b582bd2dac614d5a0a88bfeb90c3e64bdee03fa4ac4b148271"
+    },
+    {
+      "bytes": 12384,
+      "path": "human-replay/01a5ca9b3e8a3abd5fb9692a001bb8533065b45f/fixtures/nombres_complexes_atlas.json",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    },
+    {
+      "bytes": 602,
+      "path": "human-replay/01a5ca9b3e8a3abd5fb9692a001bb8533065b45f/identity.json",
+      "sha256": "0795a4b0a65d3861c95672c0ca72cea9471b7d23cfee52fd318b33dfc15a5994"
+    },
+    {
+      "bytes": 411551,
+      "path": "human-replay/01a5ca9b3e8a3abd5fb9692a001bb8533065b45f/index.html",
+      "sha256": "6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956"
+    },
+    {
+      "bytes": 411551,
+      "path": "human-replay/01a5ca9b3e8a3abd5fb9692a001bb8533065b45f/learnit-next.html",
+      "sha256": "6d7d80e577b5eeb8df0a6c560078577abcce7549fa6f70c40dc73457dc215956"
+    },
+    {
+      "bytes": 8683,
+      "path": "human-replay/10fbe658175f634648baf86f7bf10320b88a3127/fixtures/signaux_electriques.json",
+      "sha256": "1344b4bcf47dbfdd42c76d8f5f6b2df433ab043c9ae43b032f83c047f500931e"
+    },
+    {
+      "bytes": 445,
+      "path": "human-replay/10fbe658175f634648baf86f7bf10320b88a3127/identity.json",
+      "sha256": "f955bf426b1e1332b797e9e5c2a83caf640cdf4b9982e5bdf22eb8ac8f4f810c"
+    },
+    {
+      "bytes": 405648,
+      "path": "human-replay/10fbe658175f634648baf86f7bf10320b88a3127/index.html",
+      "sha256": "c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89"
+    },
+    {
+      "bytes": 405648,
+      "path": "human-replay/10fbe658175f634648baf86f7bf10320b88a3127/learnit-next.html",
+      "sha256": "c4abc922e1d80793263557f12a3f4c2f9a7203e19a26240c914c2ab39ba97e89"
+    },
+    {
+      "bytes": 1314,
+      "path": "human-replay/76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b/fixtures/nombres_complexes_atlas-answer-guide.txt",
+      "sha256": "7e5230ea1f50ecf919ea2dc9e07c153bb766ae92f583b2201ed314c1c55983c1"
+    },
+    {
+      "bytes": 12384,
+      "path": "human-replay/76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b/fixtures/nombres_complexes_atlas.json",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    },
+    {
+      "bytes": 602,
+      "path": "human-replay/76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b/identity.json",
+      "sha256": "9f4f976fdbb6856a680b20dd8533ed0a88d89141da0c76276bcabc8c0827ca7a"
+    },
+    {
+      "bytes": 412825,
+      "path": "human-replay/76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b/index.html",
+      "sha256": "4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3"
+    },
+    {
+      "bytes": 412825,
+      "path": "human-replay/76fb8b6724d2fbcb7998b8eab92b8f2448ea8a6b/learnit-next.html",
+      "sha256": "4d95a9d1dbbdac3f8231fe6f4f27b47b62794fd33915c32f83b5792e2fb3bfe3"
+    },
+    {
+      "bytes": 1308,
+      "path": "human-replay/88cad160714830462234970276c808c42b4a2579/fixtures/nombres_complexes_atlas-answer-guide.txt",
+      "sha256": "128e50140113696edb0a8241979378b97fa1671bf6018e33379d5f215e0d373b"
+    },
+    {
+      "bytes": 12384,
+      "path": "human-replay/88cad160714830462234970276c808c42b4a2579/fixtures/nombres_complexes_atlas.json",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    },
+    {
+      "bytes": 602,
+      "path": "human-replay/88cad160714830462234970276c808c42b4a2579/identity.json",
+      "sha256": "1239468d43e90ffde30306bddaf8806c7ce76f90051f5538c6c95d3babb36dbf"
+    },
+    {
+      "bytes": 421487,
+      "path": "human-replay/88cad160714830462234970276c808c42b4a2579/index.html",
+      "sha256": "0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd"
+    },
+    {
+      "bytes": 421487,
+      "path": "human-replay/88cad160714830462234970276c808c42b4a2579/learnit-next.html",
+      "sha256": "0b268c9af10677617815e821389944bf9158d1fa10a7049ebc7b0082cceec2dd"
+    },
+    {
+      "bytes": 1308,
+      "path": "human-replay/8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9/fixtures/nombres_complexes_atlas-answer-guide.txt",
+      "sha256": "bbf9c23a6231f3fdd1863deb1bcdae4b933113fb188103f52fec56da27e7a410"
+    },
+    {
+      "bytes": 12384,
+      "path": "human-replay/8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9/fixtures/nombres_complexes_atlas.json",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    },
+    {
+      "bytes": 602,
+      "path": "human-replay/8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9/identity.json",
+      "sha256": "4162e0aed4f9ecbc248f3fb0b610c6f978926c5a535daf9e8305ab4049b09e48"
+    },
+    {
+      "bytes": 421465,
+      "path": "human-replay/8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9/index.html",
+      "sha256": "0e616367600141b34ddc7ca3248bdecea67744dcd32d6008d376853c101df68d"
+    },
+    {
+      "bytes": 421465,
+      "path": "human-replay/8cd2c27edf68bae1bb1a1a634a431a2ecbfce4e9/learnit-next.html",
+      "sha256": "0e616367600141b34ddc7ca3248bdecea67744dcd32d6008d376853c101df68d"
+    },
+    {
+      "bytes": 8683,
+      "path": "human-replay/934e1c7193fc6d20d408339f8a962bca6aea51a6/fixtures/signaux_electriques.json",
+      "sha256": "1344b4bcf47dbfdd42c76d8f5f6b2df433ab043c9ae43b032f83c047f500931e"
+    },
+    {
+      "bytes": 445,
+      "path": "human-replay/934e1c7193fc6d20d408339f8a962bca6aea51a6/identity.json",
+      "sha256": "9934eb2cc8bf0dff25957e3986273422f6dc702ebd8e2839246380fcc1ad9faa"
+    },
+    {
+      "bytes": 407356,
+      "path": "human-replay/934e1c7193fc6d20d408339f8a962bca6aea51a6/index.html",
+      "sha256": "4f620a570fabb669165791f36db1977b744ac82c9eb5c95654c6c402deb4b173"
+    },
+    {
+      "bytes": 407356,
+      "path": "human-replay/934e1c7193fc6d20d408339f8a962bca6aea51a6/learnit-next.html",
+      "sha256": "4f620a570fabb669165791f36db1977b744ac82c9eb5c95654c6c402deb4b173"
+    },
+    {
+      "bytes": 349,
+      "path": "human-replay/c7f7587c9e5beb29a123e5139c17b6448229a0cc/identity.json",
+      "sha256": "be26dee5ce130478dd0c022679db2bb6c4d49408d910d199083b61f13a661003"
+    },
+    {
+      "bytes": 627042,
+      "path": "human-replay/c7f7587c9e5beb29a123e5139c17b6448229a0cc/index.html",
+      "sha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b"
+    },
+    {
+      "bytes": 627042,
+      "path": "human-replay/c7f7587c9e5beb29a123e5139c17b6448229a0cc/learnit-next.html",
+      "sha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b"
+    },
+    {
+      "bytes": 1317,
+      "path": "human-replay/ca1f537ee435b31794282b3cf6b3c7589e736783/fixtures/nombres_complexes_atlas-answer-guide.txt",
+      "sha256": "31f1652416fffe59dc931cc20d094badc7261ae9436c08c692698f76dbedd8b7"
+    },
+    {
+      "bytes": 12384,
+      "path": "human-replay/ca1f537ee435b31794282b3cf6b3c7589e736783/fixtures/nombres_complexes_atlas.json",
+      "sha256": "3f5d465d22a0e197f0d9fd6a7f219931d3533138dc6fe5cba7838a5a9d05034d"
+    },
+    {
+      "bytes": 602,
+      "path": "human-replay/ca1f537ee435b31794282b3cf6b3c7589e736783/identity.json",
+      "sha256": "ae854d41f24f2f8fd569cc70d2d52df972decdf955ca78d7a874187378eff26a"
+    },
+    {
+      "bytes": 415361,
+      "path": "human-replay/ca1f537ee435b31794282b3cf6b3c7589e736783/index.html",
+      "sha256": "6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18"
+    },
+    {
+      "bytes": 415361,
+      "path": "human-replay/ca1f537ee435b31794282b3cf6b3c7589e736783/learnit-next.html",
+      "sha256": "6f82e74755d53bbbbbb9ef0536bd3ce4258c148a1f7f191e6ba31cb38f8faa18"
+    },
+    {
+      "bytes": 627042,
+      "path": "index.html",
+      "sha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b"
+    },
+    {
+      "bytes": 627042,
+      "path": "learnit-next.html",
+      "sha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b"
+    },
+    {
+      "bytes": 627042,
+      "path": "recovery/v3/index.html",
+      "sha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b"
+    }
+  ],
+  "schema": "learnit.v6.site.expected-files.r1"
+}
