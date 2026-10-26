@@ -4,19 +4,15 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - '.github/workflows/atlas-m3-1-human-gate-deploy.yml'
       - 'work-packages/OPS-WP-014.json'
   push:
     branches: [main]
     paths:
-      - '.github/workflows/atlas-m3-1-human-gate-deploy.yml'
       - 'work-packages/OPS-WP-014.json'
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: atlas-m3-1-human-gate
@@ -256,106 +252,3 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           path: ${{ runner.temp }}/ops-wp-014-evidence.json
-
-  deploy:
-    name: Deploy verified M3.1 author gate
-    if: github.event_name != 'pull_request'
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}authoring/
-    steps:
-      - name: Download immutable verified site
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.verify.outputs.site_artifact }}
-          path: ${{ runner.temp }}/verified-site
-
-      - name: Recheck downloaded candidate identity
-        shell: bash
-        run: |
-          set -euo pipefail
-          site="$RUNNER_TEMP/verified-site"
-          learner_sha="$(sha256sum "$site/index.html" | awk '{print $1}')"
-          learner_bytes="$(wc -c < "$site/index.html" | tr -d ' ')"
-          [[ "$learner_sha" == "$LEARNER_SHA256" ]]
-          [[ "$learner_bytes" == "$LEARNER_BYTES" ]]
-          cmp "$site/index.html" "$site/learnit-next.html"
-          grep -q '"productHead": "'"$PRODUCT_HEAD"'"' "$site/atlas-m3-1-human-gate.json"
-          grep -q '"qaHead": "'"$QA_HEAD"'"' "$site/atlas-m3-1-human-gate.json"
-          grep -q '"promotion": false' "$site/atlas-m3-1-human-gate.json"
-          grep -q '"humanGateRequired": true' "$site/atlas-m3-1-human-gate.json"
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload verified Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ${{ runner.temp }}/verified-site
-
-      - name: Deploy exact frozen M3.1 candidate
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Live post-deploy smoke
-        shell: bash
-        env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          set -euo pipefail
-          site="$RUNNER_TEMP/verified-site"
-          expected_authoring_sha="$(sha256sum "$site/authoring/index.html" | awk '{print $1}')"
-          ok=0
-          for attempt in $(seq 1 20); do
-            rm -f "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/live-authoring.html"               "$RUNNER_TEMP/live-pages-evidence.json" "$RUNNER_TEMP/live-human-gate.json"
-            if curl --fail --silent --show-error "$PAGE_URL" -o "$RUNNER_TEMP/live-index.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/" -o "$RUNNER_TEMP/live-authoring.html"               && curl --fail --silent --show-error "${PAGE_URL}authoring/pages-evidence.json" -o "$RUNNER_TEMP/live-pages-evidence.json"               && curl --fail --silent --show-error "${PAGE_URL}atlas-m3-1-human-gate.json" -o "$RUNNER_TEMP/live-human-gate.json"; then
-              live_sha="$(sha256sum "$RUNNER_TEMP/live-index.html" | awk '{print $1}')"
-              live_bytes="$(wc -c < "$RUNNER_TEMP/live-index.html" | tr -d ' ')"
-              live_authoring_sha="$(sha256sum "$RUNNER_TEMP/live-authoring.html" | awk '{print $1}')"
-              if [[ "$live_sha" == "$LEARNER_SHA256"                     && "$live_bytes" == "$LEARNER_BYTES"                     && "$live_authoring_sha" == "$expected_authoring_sha" ]]                  && cmp "$RUNNER_TEMP/live-pages-evidence.json" "$site/authoring/pages-evidence.json"                  && cmp "$RUNNER_TEMP/live-human-gate.json" "$site/atlas-m3-1-human-gate.json"; then
-                ok=1
-                break
-              fi
-            fi
-            sleep 3
-          done
-          [[ "$ok" == 1 ]]
-
-          cat > "$RUNNER_TEMP/ops-wp-014-live.json" <<EOF
-          {
-            "schema": "learnit.atlas.ops_wp_014.live.v1",
-            "result": "PASS",
-            "productHead": "$PRODUCT_HEAD",
-            "qaHead": "$QA_HEAD",
-            "learnerSha256": "$LEARNER_SHA256",
-            "authoringUrl": "${PAGE_URL}authoring/",
-            "liveLearner": "PASS",
-            "liveAuthoring": "PASS",
-            "livePagesEvidenceIdentity": "PASS",
-            "promotion": false,
-            "humanGateRequired": true
-          }
-          EOF
-
-          {
-            echo "## Atlas M3.1 author human gate"
-            echo ""
-            echo "- product HEAD: `$PRODUCT_HEAD`"
-            echo "- QA HEAD: `$QA_HEAD`"
-            echo "- learner SHA-256: `$LEARNER_SHA256`"
-            echo "- authoring URL: `${PAGE_URL}authoring/`"
-            echo "- live smoke: `PASS`"
-            echo "- promotion: `false`"
-            echo "- human gate required: `true`"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload live deployment evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: ops-wp-014-live-${{ github.sha }}
-          retention-days: 30
-          if-no-files-found: error
-          path: ${{ runner.temp }}/ops-wp-014-live.json
