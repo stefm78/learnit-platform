@@ -60,5 +60,34 @@
     "ChatGPT cannot directly fetch production URL; postdeploy Actions job must validate it.",
     "Original OneDrive candidate S3 job remains HOLD; its attestation is not rewritten."
   ],
-  "rollback": "No automatic v2 downgrade over IndexedDB v3; any repair or rollback requires separate v3-safe human approval."
+  "rollback": "No automatic v2 downgrade over IndexedDB v3; any repair or rollback requires separate v3-safe human approval.",
+  "purpose": "One controlled Pages publication of the exact 52-file LearnIT V6 site at the unchanged URL, retaining known historical files and student browser storage.",
+  "baseline": {
+    "baseCommit": "3c22da0642d42919d99a4c45c451744737ec7d81",
+    "v6SourceCommit": "c7f7587c9e5beb29a123e5139c17b6448229a0cc",
+    "siteFiles": 52,
+    "rootSha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b"
+  },
+  "adversarialTests": [
+    "PR cannot invoke deploy-pages",
+    "Other main push or differing merge title cannot publish",
+    "A second attempt cannot publish",
+    "A ninth or modified old publisher cannot pass safety",
+    "Any SHA256 drift of the 52 site files blocks release",
+    "Postrelease Pages byte mismatch is FAIL not PASS"
+  ],
+  "nonGoals": [
+    "No new repo or Pages configuration change",
+    "No student IndexedDB/localStorage writes or reset",
+    "No historical proof rewriting",
+    "No additional old kit or accessibility campaign by human decision",
+    "No future unattended publication or cleanup"
+  ],
+  "independentReview": [
+    "Revalidate UCP HEAD CAS",
+    "Review two paths only and all four ruleset checks",
+    "Review sole active Pages publisher and 8 byte-identical old workflows",
+    "Confirm double build of 52 exact files with frozen V6 hash",
+    "Verify actual deployment and live 52 URL bytes"
+  ]
 }
