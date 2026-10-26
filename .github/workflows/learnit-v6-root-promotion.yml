@@ -91,7 +91,8 @@ jobs:
   deploy:
     name: One-shot Pages release from exact human-authorized merge commit
     needs: qualify
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'release(learnit-v6): single Pages 2026-10-26' && github.run_attempt == 1 }}
+    if: >-
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'release(learnit-v6): single Pages 2026-10-26' && github.run_attempt == 1 }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
