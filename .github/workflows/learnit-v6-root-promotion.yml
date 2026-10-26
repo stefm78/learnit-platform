@@ -52,7 +52,7 @@ jobs:
           BRANCH = "ops/learnit-v6-single-publisher-prep-r1"
           WORKFLOW = ".github/workflows/learnit-v6-root-promotion.yml"
           WP = "work-packages/OPS-WP-025.json"
-          RETIRED = {"atlas-m3-1-human-gate-deploy.yml":"d915e5e608c62a3f411c5a1d83a0a7820784f60d","atlas-m3-pages-candidate.yml":"ee55a23fc9a0444f810500943fe25bcc8819f653","atlas-m3-pages-human-gate-deploy.yml":"19b9ce6bfc319ccc154fc1227e78106153b84936","atlas-r10-human-replay-deploy.yml":"15314d95f7f36599fc68124654d4ca0bd0dd2153","atlas-r13-final-human-replay-deploy.yml":"19dfe32729a1c55ba24a56c03666e7eed5e08e08","atlas-r14-human-replay-deploy.yml":"551a4f5875d23a362cb6ef6041530d977e1bcadb","atlas-r15-human-replay-deploy.yml":"585ea027e9827b4c58c602e4bb99c2672f79f033","learnit-next-pages.yml":"42c1b42310d6c0a728d91ca64a06039faef09328"}
+          RETIRED = {"atlas-m3-1-human-gate-deploy.yml":"5a546ffbc226e84cdea6247292c2195b7ba29550","atlas-m3-pages-candidate.yml":"af7f5051ed9c5b3247ff7f86bd96dd86282e3f4b","atlas-m3-pages-human-gate-deploy.yml":"19b9ce6bfc319ccc154fc1227e78106153b84936","atlas-r10-human-replay-deploy.yml":"15314d95f7f36599fc68124654d4ca0bd0dd2153","atlas-r13-final-human-replay-deploy.yml":"19dfe32729a1c55ba24a56c03666e7eed5e08e08","atlas-r14-human-replay-deploy.yml":"551a4f5875d23a362cb6ef6041530d977e1bcadb","atlas-r15-human-replay-deploy.yml":"585ea027e9827b4c58c602e4bb99c2672f79f033","learnit-next-pages.yml":"42c1b42310d6c0a728d91ca64a06039faef09328"}
           EXPECTED = {".github/workflows/" + name for name in RETIRED} | {WORKFLOW, WP}
           def git(*args):
               return subprocess.check_output(["git", *args], text=True).strip()
