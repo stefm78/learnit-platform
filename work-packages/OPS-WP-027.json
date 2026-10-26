@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-027",
+  "title": "Single authorized publication of LearnIT V6 to existing GitHub Pages URL",
+  "status": "in-progress",
+  "changeClass": "one-shot-pages-release",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "baseCommit": "3c22da0642d42919d99a4c45c451744737ec7d81",
+    "humanGo": "USER_GO_PUBLICATION_UNIQUE_2026-10-26",
+    "existingSite": "https://stefm78.github.io/learnit-platform/",
+    "source": "GitHub Actions per user screenshot",
+    "exactMergeTitle": "release(learnit-v6): single Pages 2026-10-26"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "work-packages/OPS-WP-027.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      "tools/**",
+      ".github/workflows/atlas-*",
+      ".github/workflows/learnit-next-pages.yml"
+    ]
+  },
+  "invariants": [
+    "Exactly one Pages deploy-pages action in the repository, with no publication on PR.",
+    "Deployment only on the exact unique merge-title main push and run attempt 1.",
+    "Eight retired publisher workflows remain byte-identical and unable to publish.",
+    "Deterministic 52-file site assembled from pinned commit; no historic file deletion.",
+    "No learner data writes, IndexedDB delete or schema downgrade; preserve root origin.",
+    "No GitHub Pages configuration changes, new repository or Netlify.",
+    "Preserve historical deployment-evidence.json unchanged, not new V6 deployment proof.",
+    "Historical kit compatibility and additional WCAG tests excluded by human decision."
+  ],
+  "requiredEvidence": [
+    "Exact two-file release PR and all four mandatory green CI checks",
+    "Single-publisher and eight-retired-blobs qualification",
+    "Twin 52-file builds and exact V6 root SHA256",
+    "Single GitHub Pages deployment on accepted main merge commit",
+    "Postdeployment 52/52 live byte identity check"
+  ],
+  "execution": {
+    "deploymentWorkflow": ".github/workflows/learnit-v6-root-promotion.yml",
+    "releaseCommitTitle": "release(learnit-v6): single Pages 2026-10-26",
+    "pushOnMainOnly": true,
+    "firstAttemptOnly": true,
+    "manualDispatch": false,
+    "studentDataChanges": false
+  },
+  "limitations": [
+    "Historic 52-file list cannot certify unknown external consumers.",
+    "Recovery/v3 is identical binary to V6 root, not independent of application errors nor Pages outage.",
+    "ChatGPT cannot directly fetch production URL; postdeploy Actions job must validate it.",
+    "Original OneDrive candidate S3 job remains HOLD; its attestation is not rewritten."
+  ],
+  "rollback": "No automatic v2 downgrade over IndexedDB v3; any repair or rollback requires separate v3-safe human approval."
+}
