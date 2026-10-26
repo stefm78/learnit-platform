@@ -62,7 +62,7 @@ jobs:
           assert len(re.findall(r'(?m)^\s*uses:\s*actions/deploy-pages@v4\s*$',content))==1
           assert len(re.findall(r'(?m)^\s*uses:\s*actions/upload-pages-artifact@v3\s*$',content))==1
           assert "github.run_attempt == 1" in content
-          assert "github.event.head_commit.message == 'release(learnit-v6): single Pages 2026-10-26'" in content
+          assert "startsWith(github.event.head_commit.message, 'release(learnit-v6): single Pages 2026-10-26')" in content
           assert not re.search(r'(?m)^  workflow_dispatch:[ \t]*$', content)
           print('PASS_SINGLE_PUBLISHER=1')
           print('PASS_LEGACY_PUBLISHERS_RETIRED=8/8')
@@ -92,7 +92,7 @@ jobs:
     name: One-shot Pages release from exact human-authorized merge commit
     needs: qualify
     if: >-
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'release(learnit-v6): single Pages 2026-10-26' && github.run_attempt == 1 }}
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'release(learnit-v6): single Pages 2026-10-26') && github.run_attempt == 1 }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
@@ -103,6 +103,18 @@ jobs:
       pages: write
       id-token: write
     steps:
+      - name: Check out exact release merge commit for one-shot CAS verification
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify authorized exact merge subject and first-parent SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^1)" = "3c22da0642d42919d99a4c45c451744737ec7d81"
+          test "$(git log -1 --format=%s)" = "release(learnit-v6): single Pages 2026-10-26"
       - name: Publish exact prepared Pages artifact
         uses: actions/deploy-pages@v4
         id: deployment
