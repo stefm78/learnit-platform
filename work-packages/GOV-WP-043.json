@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "GOV-WP-043",
+  "title": "Canonical STATELOG reader repair for derived OneDrive catalogue (PR #503)",
+  "status": "approved",
+  "changeClass": "derived-catalogue-statelog-reconstruction-only",
+  "riskClass": "moderate",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "approval": "USER_EXPLICIT_GO_2026-10-29_APPROVED_FOR_PR503_DRAFT_REVIEW_ONLY_NO_MERGE",
+    "priorBoundedGo": "2026-10-29: one code file, one draft PR only; no merge or deployment",
+    "historicalJob": "PHYSICS_EEC_STATELOG_CLEANUP_R1_NOT_EXECUTED_NOT_REUSED_AS_AUTHORITY",
+    "freshHumanScope": "Create-only GOV-WP-043.json on existing PR503 branch; update PR body only; no merge or deployment"
+  },
+  "baseline": {
+    "baseCommit": "79e3b900ae92fbd4034b7b246421966ad8af5149",
+    "artifactSha256": null,
+    "branch": "fix/statelog-canonical-reader-20261029",
+    "qualifiedCodeBlob": "c519ff8d75b169d9491663e6e9c0fadff391df46",
+    "qualifiedCodeSha256": "c91e8a43c5a33502feddb2d38dab8335fba9de1bc3e65bd2a58e89df22a986eb"
+  },
+  "purpose": "Review only the already-created draft PR #503 repairing canonical course STATELOG reconstruction. Preserve wrong-locator revision-6 evidence, fail closed on contradictory or incomplete chains, and preserve the existing kit selection logic. This package is NOT authorization to merge, publish, refresh derived catalogue, or change OneDrive permissions.",
+  "scope": {
+    "allowedPaths": [
+      "tools/refresh_onedrive_catalogue.py",
+      "work-packages/GOV-WP-043.json"
+    ],
+    "forbiddenPaths": [
+      ".github/**",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "platform/**",
+      "governance/**",
+      "docs/**",
+      "tests/**",
+      "20_KITS/**"
+    ]
+  },
+  "invariants": [
+    "The exact code blob c519ff8d75b169d9491663e6e9c0fadff391df46 remains unchanged from the locally qualified PR #503 head.",
+    "Exactly two files may differ from the bound main baseline: the existing generator and this canonical work-package JSON.",
+    "Course STATELOG revision-6 root orphan is retained byte-identically and never promoted over its canonical bucket event.",
+    "Canonical Physics event revision 7 remains READY/PASS; DDHC event revision 12 remains READY/PASS; no evidence is fabricated.",
+    "Legacy V1 and V6 Factory kit selection, permissions, product/runtime, programme and learner data are not modified.",
+    "Repository PR-scope and governance checks must pass on the exact final head; SKIP does not count as PASS.",
+    "The PR remains a draft. Neither a merge nor a GitHub Pages/OneDrive deployment or publication is authorized."
+  ],
+  "requiredEvidence": [
+    "Fresh UCP 1.1-R4, control-plane HEAD, main commit and exact diff after creating the work-package file.",
+    "Local 43/43 qualifying tests PASS on complete generator as previously qualified; unchanged exact code blob required. No claim of full OneDrive cryptographic qualification.",
+    "Comparison of PR #503 base...head shows exactly the two allowed paths and the generator blob remains the prequalified identity.",
+    "PR body names exactly GOV-WP-043 and no other canonical work-package ID.",
+    "Repository governance and PR scope checks PASS on the exact final head; no conflicting mandatory checks.",
+    "Independent human review and a separate GO are required before any merge, deployment or catalogue refresh."
+  ],
+  "adversarialTests": [
+    "Reject any changed file outside the two exact paths, any binary/archive/symlink/submodule or any forbidden domain.",
+    "Reject drift of the existing generator blob, baseline/main ancestry or the UCP/HEAD authority chain.",
+    "Reject false authority for the preserved noncanonical rev6 or differing duplicates.",
+    "Reject missing canonical revision, noncontiguous chain, wrong previous_event_id, wrong course_key, malformed JSON and oversized sparse revision.",
+    "Reject any PR-scope result that names no WP, multiple WPs or a different WP.",
+    "Reject any claim that this approved review-only WP authorizes merge, catalogue refresh, Factory or ACL mutation."
+  ],
+  "nonGoals": [
+    "Execute, relaunch or claim authority from historical PHYSICS_EEC_STATELOG_CLEANUP_R1 or the terminal R4 Operations job.",
+    "Create any new branch, PR, workflow, release or tag.",
+    "Change the kit publication trust model or register/curate any kit in 20_KITS.",
+    "Change OneDrive STATELOG, catalogue views, permissions, source kits, Factory or learner state.",
+    "Merge this PR or deploy Pages."
+  ],
+  "independentReview": [
+    "Review exact PR #503 one-path code patch and require the already-qualified generator bytes.",
+    "Review this one canonical work-package file against repository governance schemas and current baseline.",
+    "Independently confirm the canonical/legacy rev0 exception and fail-closed behavior across the two existing courses.",
+    "Confirm expected PR-scope gate is green on the exact two-file head and R4 still HOLD.",
+    "Confirm merge and all product publication actions remain disallowed."
+  ],
+  "execution": {
+    "branch": "fix/statelog-canonical-reader-20261029",
+    "pullRequest": 503,
+    "draftOnly": true,
+    "existingCodeMustRemainUnchanged": true,
+    "onlyNewContentPath": "work-packages/GOV-WP-043.json",
+    "allowedPrMetadataChange": "body reference to GOV-WP-043 only",
+    "mergeAuthorized": false,
+    "output": "PR scope + repository governance checks only"
+  },
+  "rollback": "While unmerged, revert the proposed work-package commit and PR metadata only under separate authorization. Keep the previously qualified code commit intact; no OneDrive state was changed."
+}
