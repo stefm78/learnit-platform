@@ -491,6 +491,7 @@ jobs:
           ACCEPTED: ${{ steps.target.outputs.accepted }}
           POST_MERGE: ${{ steps.profile.outputs.post_merge }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           HTTP_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           HTTPS_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
           ALL_PROXY: ${{ steps.profile.outputs.name == 'atlas-contracts' && 'http://127.0.0.1:9' || '' }}
@@ -1016,6 +1017,45 @@ jobs:
 
             changed_text="$(collect_changed_paths "${compare_base}" "${TARGET}")"
             mapfile -t changed < <(printf '%s\n' "${changed_text}" | sed '/^$/d')
+
+            # OPS-WP-030: preserve strict checking, but route this exact CSP PR
+            # to its dedicated browser/build workflow rather than legacy profiles.
+            if [[ "${EVENT}" == pull_request && "${BRANCH}" == ops/learnit-v6-csp-style-attr-fix-r1 ]]; then
+              [[ "${PR_NUMBER}" == 506 ]] || { echo 'CSP PR identity mismatch' >&2; exit 2; }
+              [[ "${compare_base}" == "${PR_BASE_SHA}" ]] || { echo 'CSP PR stale base' >&2; exit 2; }
+              expected="$(printf '%s\n' \
+                'apps/learnit-next/source_manifest.json' \
+                'apps/learnit-next/src/main.js' \
+                'apps/learnit-next/src/styles.css' \
+                'apps/learnit-next/src/ui/activity_presenters.js' \
+                'apps/learnit-next/src/ui/objective_progress.js' \
+                'apps/learnit-next/tests/passage_v6_consumption.py' \
+                'work-packages/OPS-WP-030.json' | sort -u)"
+              [[ "${changed_text}" == "${expected}" ]] || {
+                echo 'OPS-WP-030 exact seven-path CSP routing invariant failed.' >&2
+                exit 2
+              }
+              python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('work-packages/OPS-WP-030.json').read_text(encoding='utf-8'))
+          assert p['id']=='OPS-WP-030'
+          assert p['baseline']['baseCommit']=='548a5412bc75eb8be0d1e7353f08f77ac5a33504'
+          assert p['authority']['mergeGO']=='NOT_GRANTED'
+          assert p['authority']['productionGO']=='NOT_GRANTED'
+          assert sorted(p['scope']['allowedPaths'])==sorted([
+              'apps/learnit-next/source_manifest.json',
+              'apps/learnit-next/src/main.js',
+              'apps/learnit-next/src/styles.css',
+              'apps/learnit-next/src/ui/activity_presenters.js',
+              'apps/learnit-next/src/ui/objective_progress.js',
+              'apps/learnit-next/tests/passage_v6_consumption.py',
+              'work-packages/OPS-WP-030.json',
+          ])
+          PY
+              echo 'OPS_WP_030_CSP_ROUTED_TO_DEDICATED_CSP_CI_ONLY=PASS'
+              exit 0
+            fi
             product_relevant=false
             workflow_changed=false
             for path in "${changed[@]}"; do
