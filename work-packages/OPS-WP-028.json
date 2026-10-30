@@ -62,5 +62,26 @@
     "No historical rewind or IndexedDB reset",
     "No rewrite of old G3/G4 evidence"
   ],
-  "rollback": "PR can be closed or branch deleted before merge; no public effect. Any future release rollback needs separate authorization and assessment of IndexedDB compatibility."
+  "rollback": "PR can be closed or branch deleted before merge; no public effect. Any future release rollback needs separate authorization and assessment of IndexedDB compatibility.",
+  "purpose": "Qualify LearnIT V6's modular static CSP build in an isolated PR without modifying the historical Pages publisher, changing learner data, or authorizing production.",
+  "adversarialTests": [
+    "Reject any CSP hash in the wrong script-src/style-src directive, unsafe-eval, unsafe-inline or unexpected external origin.",
+    "Reject changed, deleted or new historical routes among the 50 protected paths.",
+    "Reject mismatched source commit, dirty checkout or non-deterministic double build.",
+    "Reject unsupported or ambiguous SVG attributes while allowing validated aria-labelledby.",
+    "Reject conflicting, non-atomic or unexpected staging output.",
+    "Reject any workflow deploy-pages or Pages write authority in this PR."
+  ],
+  "independentReview": [
+    "Validate the six-file PR exact scope against main 79e3b900ae92fbd4034b7b246421966ad8af5149.",
+    "Independently review canonical build output, CSP directive placement and 64-source fingerprints.",
+    "Check full 52-file inventory with 50 historical paths byte-identical.",
+    "Review CI browser test of the new integrated candidate and preserve screen-reader qualification as NOT_RUN_USER_DECLINED.",
+    "Require separate human decision for merge and publication."
+  ],
+  "baseline": {
+    "baseCommit": "79e3b900ae92fbd4034b7b246421966ad8af5149",
+    "publishedV6RootSha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b",
+    "publishedSiteFiles": 52
+  }
 }
