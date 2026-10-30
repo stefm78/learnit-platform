@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-031",
+  "title": "LearnIT V6 CSP non-applicable CI routing correction (NO DEPLOY)",
+  "status": "proposed",
+  "purpose": "Prevent two unrelated historical CI routes from falsely failing scoped OPS-WP-030 while preserving strict fail-closed checks on any unknown or altered product path.",
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-wp026-constructed-ci.yml",
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/OPS-WP-031.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-next-pages.yml",
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      ".github/workflows/learnit-v6-csp-qualification.yml",
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "tools/**"
+    ]
+  },
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_CI_ROUTING_ONLY_2026-10-30",
+    "mergeGO": "NOT_GRANTED",
+    "productionGO": "NOT_GRANTED"
+  },
+  "baseline": {
+    "baseCommit": "548a5412bc75eb8be0d1e7353f08f77ac5a33504",
+    "sourcePr": 506,
+    "sourceBranch": "ops/learnit-v6-csp-style-attr-fix-r1"
+  },
+  "invariants": [
+    "No production source or Pages publication changes",
+    "Legacy ATLAS-WP-026 verification retains exact branch and work-package checks",
+    "OPS-WP-030 exception requires exact source branch and exact seven-file diff",
+    "Any other unrecognized product branch continues to fail closed",
+    "Dedicated V6 CSP workflow remains required and unchanged",
+    "No merge, no deployment, no learner-data mutations"
+  ],
+  "evidence": [
+    "Two exact workflow text changes with one bounded work package",
+    "CI on independent draft PR; PR scope and repository governance PASS",
+    "Verify unknown arbitrary branch remains rejected",
+    "Verify OPS-WP-030 only when exact seven path set matches",
+    "Recheck PR #506 independently after later authorized workflow merge"
+  ],
+  "rollback": "Close PR and delete isolated branch. No modifications to main or deployment."
+}
