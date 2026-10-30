@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-028",
+  "title": "LearnIT V6 CSP modular qualification candidate, no deploy",
+  "status": "in-progress",
+  "changeClass": "product-hardening-no-publish",
+  "riskClass": "medium-high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "baseCommit": "79e3b900ae92fbd4034b7b246421966ad8af5149",
+    "githubWriteGO": "USER_EXPLICIT_GO_GITHUB_2026-10-30_EXACT_SIX_PATHS_DRAFT_PR",
+    "productionGO": "ABSENT_SEPARATE",
+    "noAutomaticMerge": true
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/source_manifest.json",
+      "tools/learnit_v6_site/stage_verified_v6.py",
+      ".github/workflows/learnit-v6-csp-qualification.yml",
+      "work-packages/OPS-WP-028.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      ".github/workflows/learnit-next-pages.yml",
+      ".github/workflows/atlas-*",
+      "apps/player/**",
+      "platform/**",
+      "governance/**",
+      "contracts/**",
+      "authoring/**",
+      "tools/learnit_v6_site/expected_files.json",
+      "tools/learnit_v6_site/v6_identity_frozen.json"
+    ]
+  },
+  "invariants": [
+    "No deploy-pages, no Pages write or workflow_dispatch in this candidate CI",
+    "Production Pages publisher and 8 retired publishers remain byte-identical",
+    "CSP meta script/style hashes from final HTML, no unsafe-eval/unsafe-inline",
+    "Modular CommonJS preassembled, ES module URL blob allowed only to preserve current architecture",
+    "Manifest 64 entries re-fingerprinted, base commit exact",
+    "Stage only two public root alias paths; 50 historical routes byte-identical",
+    "Eight-activity browser checks required on integrated candidate",
+    "No learner data operations or legacy import activation",
+    "No screen-reader certification claim; reserve NOT_RUN_USER_DECLINED"
+  ],
+  "requiredEvidence": [
+    "Exact six-file PR scope",
+    "GitHub CI builds exact patched 64-file source twice, reproducibly",
+    "CSP-directive validation on actual produced HTML",
+    "Frozen 52-route baseline independently rebuilt and validated",
+    "50 historical routes preserved, 2 root aliases candidate-only",
+    "Actual integrated browser passage_v6_consumption tests PASS",
+    "Independent a11y evidence or explicit separately justified human acceptance, never silently waived",
+    "Separate human GO before publication"
+  ],
+  "nonGoals": [
+    "No website publication",
+    "No Factory/OneDrive job mutation",
+    "No active catalog/kit mutation",
+    "No historical rewind or IndexedDB reset",
+    "No rewrite of old G3/G4 evidence"
+  ],
+  "rollback": "PR can be closed or branch deleted before merge; no public effect. Any future release rollback needs separate authorization and assessment of IndexedDB compatibility.",
+  "purpose": "Qualify LearnIT V6's modular static CSP build in an isolated PR without modifying the historical Pages publisher, changing learner data, or authorizing production.",
+  "adversarialTests": [
+    "Reject any CSP hash in the wrong script-src/style-src directive, unsafe-eval, unsafe-inline or unexpected external origin.",
+    "Reject changed, deleted or new historical routes among the 50 protected paths.",
+    "Reject mismatched source commit, dirty checkout or non-deterministic double build.",
+    "Reject unsupported or ambiguous SVG attributes while allowing validated aria-labelledby.",
+    "Reject conflicting, non-atomic or unexpected staging output.",
+    "Reject any workflow deploy-pages or Pages write authority in this PR."
+  ],
+  "independentReview": [
+    "Validate the six-file PR exact scope against main 79e3b900ae92fbd4034b7b246421966ad8af5149.",
+    "Independently review canonical build output, CSP directive placement and 64-source fingerprints.",
+    "Check full 52-file inventory with 50 historical paths byte-identical.",
+    "Review CI browser test of the new integrated candidate and preserve screen-reader qualification as NOT_RUN_USER_DECLINED.",
+    "Require separate human decision for merge and publication."
+  ],
+  "baseline": {
+    "baseCommit": "79e3b900ae92fbd4034b7b246421966ad8af5149",
+    "publishedV6RootSha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b",
+    "publishedSiteFiles": 52
+  }
+}

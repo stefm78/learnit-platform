@@ -13,7 +13,7 @@ const SVG_ATTRS = new Set([
   'stroke-opacity', 'transform', 'font-size', 'font-family', 'font-weight',
   'text-anchor', 'dominant-baseline', 'offset', 'stop-color', 'stop-opacity',
   'clip-path', 'mask', 'gradientunits', 'gradienttransform', 'id', 'role',
-  'focusable', 'aria-label',
+  'focusable', 'aria-label', 'aria-labelledby',
 ]);
 
 const SVG_FRAGMENT_ATTRS = new Set(['fill', 'stroke', 'clip-path', 'mask']);
