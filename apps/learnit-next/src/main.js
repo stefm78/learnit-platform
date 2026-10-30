@@ -413,17 +413,6 @@ function atlasR13StateLabel(state) {
   }
 }
 
-function atlasR13VisualLevel(state) {
-  switch (state) {
-    case 'not-started': return '0%';
-    case 'training': return '48%';
-    case 'review-needed': return '46%';
-    case 'ready-for-validation': return '82%';
-    case 'validated-recently': return '100%';
-    default: return '48%';
-  }
-}
-
 function atlasR13Node(tag, attributes = {}, children = []) {
   const element = document.createElement(tag);
   for (const [name, value] of Object.entries(attributes)) {
@@ -540,7 +529,6 @@ function renderAtlasR13Progress(progress, objectiveStates, target, sessionProjec
       atlasR13Node('span', {
         className: 'atlas-r13-fill',
         'aria-hidden': 'true',
-        style: `--atlas-r13-level:${atlasR13VisualLevel(item.state)}`,
       }),
       item.state === 'review-needed'
         ? atlasR13Node('span', {className: 'atlas-r13-state-mark', 'aria-hidden': 'true', text: '↺'})
@@ -730,7 +718,11 @@ function installAtlasR13Styles(documentRef = globalThis.document) {
     button.atlas-r13-reservoir:focus-visible{outline:3px solid #233f64;outline-offset:3px}
     .atlas-r13-reservoir[data-atlas-r13-priority="true"]{outline:2px solid #233f64;outline-offset:2px}
     button.atlas-r13-reservoir--not-started{border-color:#52647c;background:#fff}
-    .atlas-r13-fill{position:absolute;left:0;right:0;bottom:0;height:var(--atlas-r13-level);background:#738bac}
+    .atlas-r13-fill{position:absolute;left:0;right:0;bottom:0;height:0%;background:#738bac}
+    .atlas-r13-reservoir--training .atlas-r13-fill{height:48%}
+    .atlas-r13-reservoir--review-needed .atlas-r13-fill{height:46%}
+    .atlas-r13-reservoir--ready-for-validation .atlas-r13-fill{height:82%}
+    .atlas-r13-reservoir--validated-recently .atlas-r13-fill{height:100%}
     .atlas-r13-reservoir--not-started .atlas-r13-fill{background:#dfe3e8}
     .atlas-r13-reservoir--ready-for-validation .atlas-r13-fill{background:#7775a2}
     .atlas-r13-reservoir--review-needed .atlas-r13-fill{background:repeating-linear-gradient(135deg,#b48a46 0 5px,#ead8b8 5px 10px)}

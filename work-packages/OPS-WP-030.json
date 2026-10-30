@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-030",
+  "title": "LearnIT V6 CSP runtime style-attribute regression repair (NO DEPLOY)",
+  "status": "proposed",
+  "purpose": "Remove CSP-invalid inline style attribute writes from Atlas R13/R15 progress and activity drag interactions, with browser regression and unchanged restrictive CSP.",
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/ui/objective_progress.js",
+      "apps/learnit-next/tests/passage_v6_consumption.py",
+      "work-packages/OPS-WP-030.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/**",
+      "tools/learnit_v6_site/**",
+      "apps/learnit-next/build.py",
+      "apps/learnit-next/src/ui/media.js",
+      "apps/player/**",
+      "governance/**",
+      "contracts/**",
+      "authoring/**",
+      "platform/**",
+      "work-packages/OPS-WP-029.json"
+    ]
+  },
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_AUTHORIZED_PREPARE_AND_QUALIFY_2026-10-30",
+    "mergeGO": "NOT_GRANTED",
+    "productionGO": "NOT_GRANTED"
+  },
+  "baseline": {
+    "baseCommit": "548a5412bc75eb8be0d1e7353f08f77ac5a33504",
+    "artifactSha256": "3bc457a56f7d547c5c7f29adb2e76c4da3d2ab00d6fbc20d088e533ecd609a37"
+  },
+  "invariants": [
+    "Strict style-src-attr none and no unsafe-inline or unsafe-eval retained",
+    "Source manifest exactly 64 entries and canonical self fingerprint valid",
+    "Only CSP blocked inline-style assignment patterns removed; drag interactions preserved",
+    "No merge, no Pages deployment, no other workflow or publisher mutation",
+    "No real learner data or Factory/kit changes"
+  ],
+  "requiredEvidence": [
+    "Exact seven-file GitHub PR scope against immutable BASE",
+    "Deterministic official build twice",
+    "Browser Atlas R13 and R15 five-state fixtures and final 10-activity second-reload test",
+    "Independent CSSOM drag audit; manual drag still to qualify",
+    "All required GitHub PR checks and CSP qualification workflow PASS"
+  ],
+  "adversarialTests": [
+    "Reject stale source Git blobs or modified main",
+    "Reject any unsupported style attribute writes and cssText resets",
+    "Reject altered manifest self digest or source fingerprint",
+    "Reject CSP weakening",
+    "Reject non-deterministic builds, browser CSP violations or broken persistence",
+    "Reject unapproved merge or publication"
+  ],
+  "independentReview": [
+    "Verify exact patched 64-file source and seven changed PR paths",
+    "Verify generated CSP directives retain original strictness",
+    "Verify browser progress visualization and actual kit import/reload",
+    "Review gesture interactions separately before release"
+  ],
+  "nonGoals": [
+    "No deployment",
+    "No Pages configuration change",
+    "No work on learner accounts",
+    "No new OneDrive job",
+    "No WCAG certification"
+  ],
+  "rollback": "Close the draft PR or delete its isolated branch; main and published Pages remain unchanged. No automatic learner-data migration or rollback."
+}

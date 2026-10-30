@@ -67,25 +67,105 @@ def snapshot(page):
 def course_records(s):
     return [row for db in s.values() for row in db.get('courses',[])]
 
+def drag_between(page, source, destination):
+    # A native pointer stream, not synthetic DOM events or API answer injection.
+    source.scroll_into_view_if_needed()
+    destination.scroll_into_view_if_needed()
+    a, b = source.bounding_box(), destination.bounding_box()
+    assert a and b and a['width'] > 0 and b['width'] > 0, (a, b)
+    x1, y1 = a['x'] + a['width']/2, a['y'] + a['height']/2
+    x2, y2 = b['x'] + b['width']/2, b['y'] + b['height']*0.75
+    page.mouse.move(x1, y1)
+    page.mouse.down()
+    page.mouse.move(x2, y2, steps=12)
+    page.mouse.up()
+
+def exercise_real_drag(page, kind):
+    root = page.locator(f'[data-served-activity-type="{kind}"]')
+    root.wait_for()
+    if kind == 'matching':
+        card=root.locator('.activity-match-source .activity-match-card').first
+        destination=root.locator('.activity-pair-row').first
+        card_id=card.get_attribute('data-card-id')
+        target_id=destination.get_attribute('data-target-id')
+        drag_between(page,card,destination)
+        actual=root.locator(f'.activity-match-card[data-card-id="{card_id}"]')
+        assert actual.get_attribute('data-matching-association')=='true'
+        assert actual.get_attribute('data-right-item-id')==target_id
+    elif kind == 'order':
+        nodes=root.locator('[data-order-list] > .activity-order-b-card')
+        before=nodes.evaluate_all('(els)=>els.map(e=>e.dataset.orderItem)')
+        assert len(before)>=2, before
+        drag_between(page,nodes.first,nodes.last)
+        after=nodes.evaluate_all('(els)=>els.map(e=>e.dataset.orderItem)')
+        assert after!=before and after[-1]==before[0], (before,after)
+        assert root.locator('.activity-order-ghost,.activity-order-placeholder,.drag-source').count()==0
+    elif kind == 'classify':
+        card=root.locator('.activity-classify-source .activity-classify-card').first
+        bucket=root.locator('.activity-bucket').first
+        card_id=card.get_attribute('data-classify-item')
+        bucket_id=bucket.get_attribute('data-drop-zone')
+        drag_between(page,card,bucket)
+        assert root.locator(f'.activity-classify-card[data-classify-item="{card_id}"]').get_attribute('data-classify-bucket')==bucket_id
+    elif kind == 'fill':
+        token=root.locator('.activity-token-bank .activity-token-chip').first
+        slot=root.locator('.activity-fill-b-slot').first
+        token_id=token.get_attribute('data-token-id')
+        drag_between(page,token,slot)
+        assert slot.get_attribute('data-token-id')==token_id
+    else:
+        raise AssertionError('Unsupported drag exercise: '+kind)
+    assert not page.evaluate('window.__cspTestViolations'), (kind,page.evaluate('window.__cspTestViolations'))
+    assert not root.locator('.dragging,.active-destination').count(), kind
+
 def main():
     assert ARTIFACT.is_file(), ARTIFACT
+    # Only the byte-exact, frozen pre-CSP historical V6 receives legacy semantics.
+    # Unknown or current candidates must satisfy the restrictive CSP regression checks.
+    source_bytes=ARTIFACT.read_bytes()
+    frozen_legacy=hashlib.sha256(source_bytes).hexdigest()=='92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b'
+    if not frozen_legacy:
+        assert b"style-src-attr 'none'" in source_bytes, 'Strict CSP absent in current candidate'
     pkg=package(); expected_types={'lesson','flashcard','qcm','fill','matching','order','classify','productive'}
     assert expected_types=={a['type'] for a in pkg['courses'][0]['activities']}
     with serve(ARTIFACT) as url, sync_playwright() as pw:
-        browser=pw.chromium.launch(headless=True); page=browser.new_page(viewport={'width':390,'height':844}); page.goto(url); page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+        browser=pw.chromium.launch(headless=True); page=browser.new_page(viewport={'width':390,'height':844})
+        page.add_init_script("window.__cspTestViolations=[];document.addEventListener('securitypolicyviolation',e=>window.__cspTestViolations.push({directive:e.effectiveDirective,uri:e.blockedURI}));")
+        page.goto(url); page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+        if not frozen_legacy:
+            states=page.evaluate("""()=>{const container=document.createElement('div');document.body.append(container);window.__LEARNIT_NEXT_TEST__.renderAtlasR13Fixture(container,['not-started','training','review-needed','ready-for-validation','validated-recently']);const fills=[...container.querySelectorAll('.atlas-r13-fill')];const out=fills.map(n=>getComputedStyle(n).height);container.remove();return out;}""")
+            assert len(states)==5 and float(states[0].replace('px',''))==0 and float(states[-1].replace('px',''))>0,states
+            r15=page.evaluate("""()=>{const box=document.createElement('div');document.body.append(box);window.__LEARNIT_NEXT_TEST__.renderObjectiveR15Fixture(box);const fills=[...box.querySelectorAll('.objective-progress-r15__fill')];const heights=fills.map(n=>parseFloat(getComputedStyle(n).height));const anyInline=[...box.querySelectorAll('[style]')].length;box.remove();return {heights,anyInline};}""")
+            assert len(r15['heights'])==5 and r15['heights'][0]==0 and r15['heights'][-1]>r15['heights'][1]>0 and not r15['anyInline'],r15
+            assert not page.evaluate('window.__cspTestViolations'),page.evaluate('window.__cspTestViolations')
         call(page,'resetNextData'); v=call(page,'validatePackage',[pkg]); assert v['ok'],v; assert call(page,'previewImport',[pkg])['contract']=='learnit.kit.v6'; imp=call(page,'importPackage',[pkg]); assert imp['contract']=='learnit.kit.v6'
         cid=imp['courses'][0]['courseInstallId']; s=call(page,'startCourse',[cid])
         for a in pkg['courses'][0]['activities']:
-            assert s['currentActivity']['activityRevisionId']==a['activityRevisionId']; assert s['currentActivity']['presentation']['type']==a['type']; r=call(page,'answer',[a['activityRevisionId'],answer(a)])
+            assert s['currentActivity']['activityRevisionId']==a['activityRevisionId']; assert s['currentActivity']['presentation']['type']==a['type']
+            if not frozen_legacy and a['type'] in ('matching','order','classify','fill'):
+                page.set_viewport_size({'width':1280,'height':900})
+                page.reload()
+                page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+                exercise_real_drag(page,a['type'])
+                print('PASS_NATIVE_POINTER_DRAG_'+a['type'].upper(),flush=True)
+            r=call(page,'answer',[a['activityRevisionId'],answer(a)])
             if a['type'] not in ('lesson','flashcard'): assert r['scored'] is True and r['correct'] is True,(a['type'],r)
             s=call(page,'getSession')
         assert call(page,'getProgress',[cid])['completed']==len(pkg['courses'][0]['activities'])
+        page.reload(); page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+        assert call(page,'getProgress',[cid])['completed']==len(pkg['courses'][0]['activities'])
+        if not frozen_legacy:
+            assert not page.evaluate('window.__cspTestViolations'),page.evaluate('window.__cspTestViolations')
         rec=next(x for x in course_records(snapshot(page)) if x.get('courseInstallId')==cid); assert rec['contract']=='learnit.kit.v6'; assert rec['courseRevisionId']==pkg['courses'][0]['courseRevisionId']
         for got,exp in zip(rec['course']['activities'],pkg['courses'][0]['activities']): assert (got['activityRevisionId'],got['activityRevisionDigest'])==(exp['activityRevisionId'],exp['activityRevisionDigest'])
         before=snapshot(page)
         bad=copy.deepcopy(pkg); a=bad['courses'][0]['activities'][0]; a.clear(); a.update({'activityLineageId':uid(0x990001),'activityRevisionId':uid(0x990002),'activityRevisionDigest':'sha256:'+'0'*64,'objectiveIds':[bad['courses'][0]['objectives'][0]['objectiveId']],'type':'constructed','learningPhase':'application','estimatedMinutes':1,'prompt':'x','explanation':'x','difficulty':'easy','assessmentRole':'practice','acceptedResponses':['x']}); redigest(bad); v=call(page,'validatePackage',[bad]); assert not v['ok'] and any(e['code']=='activity_type_disabled' for e in v['errors'])
-        try: call(page,'importPackage',[bad]); raise AssertionError('constructed unexpectedly imported')
-        except Exception: pass
+        try:
+            call(page,'importPackage',[bad])
+        except Exception:
+            pass
+        else:
+            raise AssertionError('constructed unexpectedly imported')
         assert snapshot(page)==before
         bad=copy.deepcopy(pkg); bad['title']+=' tampered'; v=call(page,'validatePackage',[bad]); assert not v['ok'] and any(e['code']=='digest_mismatch' for e in v['errors'])
         bad=copy.deepcopy(pkg); prod=next(a for a in bad['courses'][0]['activities'] if a['type']=='productive' and a['parts'][0]['responseKind']=='number'); prod['scoring']['evaluators'][0]={'partId':prod['parts'][0]['partId'],'kind':'required-concepts','requiredConceptGroups':[['x']]}; redigest(bad); v=call(page,'validatePackage',[bad]); assert not v['ok'] and any(e['code']=='productive_evaluator_mismatch' for e in v['errors'])
