@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import posixpath
@@ -279,10 +280,21 @@ def render_commonjs_runtime(
         except UnicodeDecodeError as exc:
             raise BuildError(f"CommonJS source is not UTF-8: {path}") from exc
 
+    factories = []
+    for path, source in sources.items():
+        # Raw HTML script blocks end at </script even inside JS strings/comments.
+        # Reject these lexemes rather than encoding the CJS source at runtime.
+        if re.search(r"</script|<!--|-->", source, flags=re.IGNORECASE):
+            raise BuildError(f"CommonJS source unsafe for inline static factory: {path}")
+        factories.append(
+            f"{safe_json(path)}:function(require,module,exports,Buffer){{\n"
+            + source + f"\n//# sourceURL={path}\n}}"
+        )
+
     return (
-        "const __atlasCjsSources=Object.freeze("
-        + safe_json(sources)
-        + ");\n"
+        "const __atlasCjsFactories=Object.freeze({\n"
+        + ",\n".join(factories)
+        + "\n});\n"
         + r"""
 const __atlasCjsCache=Object.create(null);
 const __atlasShaK=new Uint32Array([
@@ -467,7 +479,7 @@ function __atlasResolve(from,specifier){
     `${directory}/${specifier}`.split('/')
   );
   if(!resolved.endsWith('.js'))resolved+='.js';
-  if(!Object.prototype.hasOwnProperty.call(__atlasCjsSources,resolved)){
+  if(!Object.prototype.hasOwnProperty.call(__atlasCjsFactories,resolved)){
     throw new Error(`ATLAS_MODULE_NOT_DECLARED: ${from} -> ${specifier}`);
   }
   return resolved;
@@ -477,7 +489,7 @@ function __atlasRequire(specifier,from=null){
   const resolved=from?__atlasResolve(from,specifier):specifier;
   if(resolved==='crypto')return __atlasCrypto;
 
-  if(!Object.prototype.hasOwnProperty.call(__atlasCjsSources,resolved)){
+  if(!Object.prototype.hasOwnProperty.call(__atlasCjsFactories,resolved)){
     throw new Error(`ATLAS_MODULE_NOT_DECLARED: ${resolved}`);
   }
 
@@ -487,14 +499,7 @@ function __atlasRequire(specifier,from=null){
   __atlasCjsCache[resolved]=module;
 
   try{
-    const source=__atlasCjsSources[resolved];
-    const factory=new Function(
-      'require',
-      'module',
-      'exports',
-      'Buffer',
-      `${source}\n//# sourceURL=${resolved}`
-    );
+    const factory=__atlasCjsFactories[resolved];
     factory(
       requested=>__atlasRequire(requested,resolved),
       module,
@@ -516,7 +521,7 @@ Object.defineProperty(globalThis,'__LEARNIT_ATLAS_CJS__',{
     require(modulePath){
       return __atlasRequire(modulePath,null);
     },
-    modulePaths:Object.freeze(Object.keys(__atlasCjsSources).sort())
+    modulePaths:Object.freeze(Object.keys(__atlasCjsFactories).sort())
   })
 });
 """
@@ -581,8 +586,53 @@ def render_artifact(
     module = '<script type="module" src="./src/main.js"></script>'
     if template.count(link) != 1 or template.count(module) != 1:
         raise BuildError("template entry points are not the frozen expected form")
-    artifact = template.replace(link, f"<style>\n{css}\n</style>").replace(
-        module, f'<script type="module">\n{bootstrap}</script>'
+    # Hash the exact inline DOM text; browsers include the leading newline.
+    inline_css = "\n" + css + "\n"
+    inline_script = "\n" + bootstrap
+    def inline_hash(value: str) -> str:
+        return "'sha256-" + base64.b64encode(
+            hashlib.sha256(value.encode("utf-8")).digest()
+        ).decode("ascii") + "'"
+    # CSP-R1: authorize ONLY the SHA256 of the immutable, audited Atlas R13 stylesheet.
+    # The application injects it as a <style> at boot, so the static head hash alone
+    # is insufficient. Never use unsafe-inline, or weaken style-src-attr.
+    r13_source = data_by_path[main_path].decode("utf-8")
+    r13_matches = re.findall(r"style\.textContent\s*=\s*`([^`]*)`;", r13_source, flags=re.S)
+    if len(r13_matches) != 1:
+        raise BuildError("Atlas R13 stylesheet expression is not unique")
+    r13_style = r13_matches[0]
+    if "${" in r13_style or "\\" in r13_style or "<" in r13_style:
+        raise BuildError("Atlas R13 stylesheet must be an immutable safe literal")
+    r13_digest = inline_hash(r13_style)
+    # Source is already verified against its frozen Git blob manifest fingerprint.
+    # Hash the current audited CSS; do not hard-code a historical Atlas style digest.
+    if not r13_digest.startswith("'sha256-"):
+        raise BuildError("Invalid SHA-256 style hash")
+    policy = "; ".join([
+        "default-src 'none'",
+        "script-src " + inline_hash(inline_script) + " blob:",
+        "script-src-attr 'none'",
+        "style-src " + inline_hash(inline_css) + " " + r13_digest,
+        "style-src-attr 'none'",
+        "img-src 'self' data: blob:",
+        "font-src 'self' data:",
+        "connect-src 'none'",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'none'",
+        "frame-src 'none'",
+        "worker-src 'none'",
+    ])
+    if "unsafe-eval" in policy or "unsafe-inline" in policy:
+        raise BuildError("unsafe CSP exemption")
+    if template.count("<head>") != 1:
+        raise BuildError("template must have a single exact <head> anchor")
+    if re.search(r'<meta\s+[^>]*http-equiv=["\']Content-Security-Policy', template, flags=re.IGNORECASE):
+        raise BuildError("template already declares CSP; avoid duplicate meta policies")
+    meta = '<meta http-equiv="Content-Security-Policy" content="' + policy + '">'
+    artifact = template.replace("<head>", "<head>\n" + meta, 1)
+    artifact = artifact.replace(link, "<style>" + inline_css + "</style>").replace(
+        module, '<script type="module">' + inline_script + '</script>'
     )
     return (artifact.rstrip() + "\n").encode("utf-8")
 

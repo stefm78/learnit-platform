@@ -1,0 +1,92 @@
+name: LearnIT V6 CSP modular candidate qualification (NO DEPLOY)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/learnit-next/build.py'
+      - 'apps/learnit-next/src/ui/media.js'
+      - 'apps/learnit-next/source_manifest.json'
+      - 'tools/learnit_v6_site/stage_verified_v6.py'
+      - '.github/workflows/learnit-v6-csp-qualification.yml'
+      - 'work-packages/OPS-WP-028.json'
+permissions:
+  contents: read
+concurrency:
+  group: learnit-v6-csp-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  csp-qualified-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Checkout exact PR head with historical Git objects
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Confirm clean exact PR source
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test -z "$(git status --porcelain)"
+          test -f work-packages/OPS-WP-028.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install disposable browser test dependency
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+      - name: Rebuild patched modular CSP candidate twice from exact PR HEAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/candidate-a.html"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/candidate-b.html"
+          cmp "$RUNNER_TEMP/candidate-a.html" "$RUNNER_TEMP/candidate-b.html"
+          sha256sum "$RUNNER_TEMP/candidate-a.html"
+      - name: Recreate historical 52 public routes at frozen baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B tools/learnit_v6_site/assemble.py --repo . \
+            --output "$RUNNER_TEMP/baseline" --manifest "$RUNNER_TEMP/baseline.json"
+          python -B tools/learnit_v6_site/test_site.py \
+            --site "$RUNNER_TEMP/baseline" --manifest "$RUNNER_TEMP/baseline.json"
+      - name: Stage candidate without altering 50 historical routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          digest="$(sha256sum "$RUNNER_TEMP/candidate-a.html" | cut -d' ' -f1)"
+          python -B tools/learnit_v6_site/stage_verified_v6.py \
+            --baseline-site "$RUNNER_TEMP/baseline" \
+            --frozen-manifest tools/learnit_v6_site/expected_files.json \
+            --candidate-html "$RUNNER_TEMP/candidate-a.html" \
+            --candidate-sha256 "$digest" \
+            --source-checkout . \
+            --source-commit "$(git rev-parse HEAD)" \
+            --output "$RUNNER_TEMP/staged-v6"
+          test "$(find "$RUNNER_TEMP/staged-v6/site" -type f | wc -l)" -eq 52
+          test "$(sha256sum "$RUNNER_TEMP/staged-v6/site/index.html" | cut -d' ' -f1)" = "$digest"
+          cmp "$RUNNER_TEMP/staged-v6/site/index.html" "$RUNNER_TEMP/staged-v6/site/learnit-next.html"
+      - name: Browser qualification on integrated candidate, not archived V4
+        shell: bash
+        env:
+          LEARNIT_V6_ARTIFACT: ${{ runner.temp }}/staged-v6/site/index.html
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/tests/passage_v6_consumption.py
+      - name: Preserve candidate evidence without publication
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v6-csp-pr-qualification-${{ github.event.pull_request.head.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/staged-v6/release-evidence.json
+            ${{ runner.temp }}/baseline.json
