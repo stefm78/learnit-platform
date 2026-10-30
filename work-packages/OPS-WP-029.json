@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-029",
+  "title": "One exact authorized GitHub Pages release of LearnIT V6 modular CSP",
+  "status": "proposed",
+  "changeClass": "single-pages-release-rebind",
+  "riskClass": "high",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "baseCommit": "a7ed157e8ed79149e02a74be3a076ee21f0c7368",
+    "githubWriteGO": "PENDING_EXACT",
+    "releaseMergeGO": "PENDING_DISTINCT_EXACT_HUMAN_GO",
+    "oneShotMergeTitle": "release(learnit-v6-csp): single Pages 2026-10-30",
+    "noUnapprovedRelease": true
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "work-packages/OPS-WP-029.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      "tools/**",
+      ".github/workflows/atlas-*",
+      ".github/workflows/learnit-next-pages.yml",
+      "tools/learnit_v6_site/expected_files.json",
+      "tools/learnit_v6_site/v6_identity_frozen.json"
+    ]
+  },
+  "baseline": {
+    "previousMainCommit": "a7ed157e8ed79149e02a74be3a076ee21f0c7368",
+    "previousPublishedRootSha256": "92115133901b50509880c2e7ad9d76816f74e30443b5f52d1cf35d935dac953b",
+    "qualifiedNewRootSha256": "3bc457a56f7d547c5c7f29adb2e76c4da3d2ab00d6fbc20d088e533ecd609a37",
+    "qualifiedNewRootBytes": 626288,
+    "knownRoutes": 52,
+    "immutableHistoricalRoutes": 50,
+    "baseCommit": "a7ed157e8ed79149e02a74be3a076ee21f0c7368",
+    "artifactSha256": "3bc457a56f7d547c5c7f29adb2e76c4da3d2ab00d6fbc20d088e533ecd609a37"
+  },
+  "invariants": [
+    "Exactly one deploy-pages publisher and 8 retired publisher blobs unchanged",
+    "No publish on PR or ordinary main push; exact one-shot authorized main merge title and first-parent plus pinned HTML SHA256 required",
+    "Prohibit unknown changes since a7ed157e8ed79149e02a74be3a076ee21f0c7368; allow only exact two-path one-commit diff",
+    "Build twice and match qualified candidate hash and bytes",
+    "Stage only index.html and learnit-next.html while keeping other 50 paths byte-identical",
+    "No IndexedDB writes, no student data manipulation, no Factory or kit changes",
+    "52 public URL byte identities verified after deployment; failure cannot be claimed PASS",
+    "Accessibility remains NOT_RUN_USER_DECLINED; no claim of WCAG qualification"
+  ],
+  "requiredEvidence": [
+    "Exact two-path PR scope and required four checks PASS",
+    "Single-publisher audit and unchanged 8 retired publishers",
+    "Two official builds with matching exact CSP artifact SHA256",
+    "One-commit first-parent, exact title, content CAS and run attempt 1 before publication",
+    "50 historical routes byte-identical and two exact new roots in built site",
+    "Post-release GET and SHA256 verification of all 52 known URLs"
+  ],
+  "rollback": "No automatic downgrade of browser application, persistent data or IndexedDB. Any rollback needs a separate exact decision after checking data compatibility.",
+  "nonGoals": [
+    "No additional publisher",
+    "No auto-deploy on push",
+    "No Pages configuration mutation",
+    "No independent WCAG attestation",
+    "No new OneDrive job"
+  ],
+  "adversarialTests": [
+    "PR and ordinary main push must not invoke deploy-pages.",
+    "Exact one-shot main merge title and frozen root SHA must be mandatory; reject mismatches.",
+    "Reject a second run attempt, a non-main branch, wrong merge title or unexpected source changes.",
+    "Reject any modified or missing historic path among the 50 frozen routes.",
+    "Reject unknown extra Pages publisher or drift in the eight retired publisher blobs.",
+    "Reject non-deterministic build, unapproved CSP policy or failing eight-activity browser passage.",
+    "After publish fail if any of 52 public URLs differs from the expected SHA256 and length."
+  ],
+  "independentReview": [
+    "Verify the one-commit, two-path diff against exact base main.",
+    "Verify original single-publisher and retired publisher controls independently.",
+    "Inspect actual generated CSP HTML provenance and repeatability in GitHub CI.",
+    "Validate 50 immutable routes and two newly bound root aliases.",
+    "Require a fresh exact human decision authorizing the one-shot merge and publication.",
+    "Maintain explicit accessibility reservation and no WCAG certification."
+  ],
+  "purpose": "Prepare one qualified human-dispatched publication of the already merged modular CSP V6 app with an exact historical route preservation proof; does not itself authorize publication."
+}
