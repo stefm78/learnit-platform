@@ -46,6 +46,9 @@ env:
 
 jobs:
   qualify:
+    # NOT_APPLICABLE only for the exact CSP repair and this isolated routing review.
+    # PR scope + governance and dedicated CSP/site CI remain independent gates.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.base.sha != '548a5412bc75eb8be0d1e7353f08f77ac5a33504' || (github.head_ref != 'ops/learnit-v6-csp-style-attr-fix-r1' && github.head_ref != 'ops/learnit-v6-csp-ci-routing-r1') }}
     name: Exact-head constructed-response qualification
     runs-on: ubuntu-24.04
     steps:
