@@ -7,13 +7,11 @@ on:
       - '.github/workflows/atlas-wp026-constructed-ci.yml'
       - 'work-packages/CI-WP-018.json'
       - 'work-packages/ATLAS-WP-026.json'
-      - 'apps/learnit-next/source_manifest.json'
       - 'apps/learnit-next/src/core/contract.js'
       - 'apps/learnit-next/src/core/session.js'
       - 'apps/learnit-next/src/integration/atlas/import_adapter.js'
       - 'apps/learnit-next/src/integration/atlas/session.js'
       - 'apps/learnit-next/src/ui/render.js'
-      - 'apps/learnit-next/src/styles.css'
       - 'apps/learnit-next/tests/atlas_v3_constructed.py'
       - 'apps/learnit-next/tests/fixtures/atlas_v3_constructed.json'
   push:
@@ -22,13 +20,11 @@ on:
       - '.github/workflows/atlas-wp026-constructed-ci.yml'
       - 'work-packages/CI-WP-018.json'
       - 'work-packages/ATLAS-WP-026.json'
-      - 'apps/learnit-next/source_manifest.json'
       - 'apps/learnit-next/src/core/contract.js'
       - 'apps/learnit-next/src/core/session.js'
       - 'apps/learnit-next/src/integration/atlas/import_adapter.js'
       - 'apps/learnit-next/src/integration/atlas/session.js'
       - 'apps/learnit-next/src/ui/render.js'
-      - 'apps/learnit-next/src/styles.css'
       - 'apps/learnit-next/tests/atlas_v3_constructed.py'
       - 'apps/learnit-next/tests/fixtures/atlas_v3_constructed.json'
 
@@ -86,6 +82,7 @@ jobs:
             case "${HEAD_REF}" in
               "${CI_BRANCH}") mode=ci-pr ;;
               "${PRODUCT_BRANCH}") mode=product-pr ;;
+              ops/learnit-v6-ci-routing-r1) mode=routing-repair-pr ;;
               *) echo "Unexpected branch for dedicated verifier: ${HEAD_REF}" >&2; exit 2 ;;
             esac
           elif [[ "${EVENT}" == push ]]; then
@@ -98,6 +95,8 @@ jobs:
               mode=ci-post
             elif grep -Fxq 'work-packages/ATLAS-WP-026.json' <<< "${changed}"; then
               mode=product-post
+            elif grep -Fxq 'work-packages/OPS-WP-031.json' <<< "${changed}"; then
+              mode=routing-repair-post
             else
               echo 'Dedicated workflow triggered without its governed path set.' >&2
               exit 2
@@ -113,6 +112,30 @@ jobs:
             exit 2
           }
           changed="$(git diff --name-only "${base}" "${target}" | sed '/^$/d' | sort -u)"
+          if [[ "${mode}" == routing-repair-pr || "${mode}" == routing-repair-post ]]; then
+            expected="$(printf '%s\n' \
+              '.github/workflows/atlas-wp026-constructed-ci.yml' \
+              '.github/workflows/learnit-next-ci.yml' \
+              'work-packages/OPS-WP-031.json' | sort)"
+            [[ "${changed}" == "${expected}" ]] || {
+              echo 'OPS-WP-031 three-file routing-only scope mismatch.' >&2
+              exit 2
+            }
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('work-packages/OPS-WP-031.json').read_text(encoding='utf-8'))
+          assert p['id']=='OPS-WP-031'
+          assert p['authority']['mergeGO']=='NOT_GRANTED'
+          assert p['authority']['productionGO']=='NOT_GRANTED'
+          assert sorted(p['scope']['allowedPaths'])==sorted([
+              '.github/workflows/atlas-wp026-constructed-ci.yml',
+              '.github/workflows/learnit-next-ci.yml',
+              'work-packages/OPS-WP-031.json',
+          ])
+          PY
+            echo 'OPS_WP_031_ROUTING_SCOPE=PASS'
+          fi
           printf 'mode=%s\nbase=%s\ntarget=%s\n' "${mode}" "${base}" "${target}" >> "${GITHUB_OUTPUT}"
           printf '%s\n' "${changed}" > "${RUNNER_TEMP}/changed-paths.txt"
           cat "${RUNNER_TEMP}/changed-paths.txt"
