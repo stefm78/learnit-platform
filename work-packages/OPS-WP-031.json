@@ -47,5 +47,31 @@
     "Verify OPS-WP-030 only when exact seven path set matches",
     "Recheck PR #506 independently after later authorized workflow merge"
   ],
-  "rollback": "Close PR and delete isolated branch. No modifications to main or deployment."
+  "rollback": "Close PR and delete isolated branch. No modifications to main or deployment.",
+  "requiredEvidence": [
+    "Exact three-file PR scope and Git base ancestry",
+    "Dedicated constructed-response routing self-qualification PASS",
+    "Learn-it Next ci-router self-qualification PASS",
+    "PR scope and repository-governance checks PASS",
+    "Negative cases: arbitrary branch, extra source paths and wrong PR identity are rejected"
+  ],
+  "adversarialTests": [
+    "An unknown source-modifying branch must retain FAIL_CLOSED routing",
+    "The dedicated ATLAS-WP-026 CI/product branch modes must remain unchanged",
+    "Any extra or missing file in the routing-repair PR must be rejected",
+    "A mismatched CSP PR number, base or seven-file path set must be rejected",
+    "Any Pages publisher change must remain outside scope"
+  ],
+  "nonGoals": [
+    "No merge or Pages deployment",
+    "No changes to LearnIT application source or student data",
+    "No relaxation of the CSP policy",
+    "No generalized approval of unknown branches"
+  ],
+  "independentReview": [
+    "Inspect both workflows against main for minimal causality",
+    "Verify branch/path/PR/work-package guards do not widen authority",
+    "Check all CI results and investigate any failures",
+    "Require distinct human GO before any merge and subsequent PR requalification"
+  ]
 }
