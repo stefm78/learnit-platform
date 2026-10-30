@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-031",
+  "title": "LearnIT V6 CSP: scoped CI applicability for PR #506 (NO MERGE / NO DEPLOY)",
+  "status": "proposed",
+  "purpose": "Separate narrowly bounded routing qualification from the functional CSP repair. Preserve protected CI qualification and do not claim a skipped dedicated verifier as a functional PASS.",
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/atlas-wp026-constructed-ci.yml",
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/OPS-WP-031.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "tools/**",
+      "governance/**",
+      ".github/workflows/learnit-v6-csp-qualification.yml",
+      ".github/workflows/pr-scope.yml",
+      ".github/workflows/governance-validation.yml",
+      "work-packages/OPS-WP-030.json"
+    ]
+  },
+  "authority": {
+    "humanGO": "USER_GO_CSP_ROUTING_AND_REAL_POINTER_2026_10_30",
+    "baseCommit": "548a5412bc75eb8be0d1e7353f08f77ac5a33504",
+    "mergeAuthorized": false,
+    "deployAuthorized": false
+  },
+  "principle": "Only mark the two historical dedicated verifiers NOT_APPLICABLE for the exact CSP repair PR and this isolated CI-routing proposal at the exact frozen base; their existing logic must continue unchanged for all other branches. Existing PR scope, repository governance, dedicated CSP and independent site checks remain mandatory.",
+  "acceptance": {
+    "exactFiles": 3,
+    "expectedHistoricalFailures": [
+      "Exact-head constructed-response qualification",
+      "Exact-head routed matrix"
+    ],
+    "independentCoverage": [
+      "PR scope",
+      "Repository governance",
+      "LearnIT V6 CSP modular candidate qualification",
+      "LearnIT V6 integrated site qualification"
+    ],
+    "forbidden": [
+      "Disable or weaken CSP policy",
+      "Change product source",
+      "Modify main, workflows on main, or Pages",
+      "Hide non-applicable as PASS",
+      "Weaken historically authorized routes",
+      "Alter learner data"
+    ]
+  },
+  "rollback": "Close draft PR/delete isolated branch. No main or Pages changes."
+}
