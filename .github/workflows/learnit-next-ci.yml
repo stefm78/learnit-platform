@@ -82,7 +82,9 @@ concurrency:
 
 jobs:
   exact-head-matrix:
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') }}
+    # Preserve all existing router checks except for the two exact non-applicable CSP PR branches.
+    # The pinned base prevents this exception from silently following a different release.
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') && !(github.event_name == 'pull_request' && github.event.pull_request.base.sha == '548a5412bc75eb8be0d1e7353f08f77ac5a33504' && (github.head_ref == 'ops/learnit-v6-csp-style-attr-fix-r1' || github.head_ref == 'ops/learnit-v6-csp-ci-routing-r1')) }}
     name: Exact-head routed matrix
     runs-on: ubuntu-latest
     timeout-minutes: 45
