@@ -32,7 +32,7 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Enforce exact one-commit release ancestry and no source drift
+      - name: Enforce exact two-file qualified release ancestry and no source drift
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -41,24 +41,41 @@ jobs:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          base=a7ed157e8ed79149e02a74be3a076ee21f0c7368
-          pinned_candidate=3bc457a56f7d547c5c7f29adb2e76c4da3d2ab00d6fbc20d088e533ecd609a37
+          base=1d0ebeb7ee590cd713c389a4690601fb07c2a9e8
           test -z "$(git status --porcelain)"
-          test "$(git rev-list --count "$base"..HEAD)" -eq 1
-          test "$(git rev-parse HEAD^1)" = "$base"
+          test "$(git merge-base "$base" HEAD)" = "$base"
           expected=$'.github/workflows/learnit-v6-root-promotion.yml\nwork-packages/OPS-WP-029.json'
           test "$(git diff --name-only "$base" HEAD | sort)" = "$expected"
           if [[ "$EVENT_NAME" == pull_request ]]; then
             test "$(git rev-parse HEAD)" = "$PR_HEAD"
             test "$PR_BASE" = "$base"
+            test "$(git rev-list --count "$base"..HEAD)" -eq 2
+            test "$(git rev-parse HEAD~2)" = "$base"
           else
             test "$EVENT_NAME" = push
             test "$GITHUB_REF" = refs/heads/main
             test "$GITHUB_RUN_ATTEMPT" = 1
             test "$(git rev-parse HEAD)" = "$EVENT_SHA"
-            test "$(git log -1 --format=%s)" = "release(learnit-v6-csp): single Pages 2026-10-30"
+            test "$(git show -s --format=%P HEAD | wc -w | tr -d ' ')" = 2
+            test "$(git rev-parse HEAD^1)" = "$base"
+            test "$(git rev-parse HEAD^2~2)" = "$base"
+            test "$(git rev-list --count "$base".."HEAD^2")" -eq 2
+            test "$(git log -1 --format=%s)" = "release(learnit-v6-csp): single Pages 2026-10-31"
           fi
-          echo 'PASS exact one-commit change scope and guarded event'
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('work-packages/OPS-WP-029.json').read_text(encoding='utf-8'))
+          assert p['id']=='OPS-WP-029' and p['status']=='proposed'
+          assert sorted(p['scope']['allowedPaths'])==sorted(['.github/workflows/learnit-v6-root-promotion.yml','work-packages/OPS-WP-029.json'])
+          assert p['authority']['baseCommit']=='1d0ebeb7ee590cd713c389a4690601fb07c2a9e8'
+          assert p['authority']['githubWriteGO']=='USER_EXPLICIT_RELEASE_SCOPE_2026-10-31'
+          assert p['authority']['releaseMergeGO']=='USER_CONDITIONAL_MERGE_AND_PAGES_GO_2026-10-31'
+          assert p['authority']['oneShotMergeTitle']=='release(learnit-v6-csp): single Pages 2026-10-31'
+          assert p['baseline']['qualifiedNewRootSha256']=='4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
+          assert p['baseline']['qualifiedNewRootBytes']==626416
+          PY
+          echo 'PASS_EXACT_HUMAN_GO_TWO_PATH_RELEASE_LINEAGE'
       - name: Verify single Pages publisher and retired workflows
         shell: bash
         run: |
@@ -113,8 +130,8 @@ jobs:
           cmp "$RUNNER_TEMP/candidate-a.html" "$RUNNER_TEMP/candidate-b.html"
           candidate_sha="$(sha256sum "$RUNNER_TEMP/candidate-a.html" | cut -d' ' -f1)"
           candidate_bytes="$(wc -c < "$RUNNER_TEMP/candidate-a.html" | tr -d ' ')"
-          test "$candidate_sha" = '3bc457a56f7d547c5c7f29adb2e76c4da3d2ab00d6fbc20d088e533ecd609a37'
-          test "$candidate_bytes" -eq 626288
+          test "$candidate_sha" = '4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
+          test "$candidate_bytes" -eq 626416
           echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
           echo "candidate_bytes=$candidate_bytes" >> "$GITHUB_OUTPUT"
           echo "PASS_CANDIDATE_SHA256=$candidate_sha"
@@ -146,7 +163,7 @@ jobs:
         run: python -B apps/learnit-next/tests/passage_v6_consumption.py
       - name: Upload site artifact ONLY after exact authorized merge
         if: >-
-          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(learnit-v6-csp): single Pages 2026-10-30') }}
+          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(learnit-v6-csp): single Pages 2026-10-31') }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/staged-v6/site
@@ -164,7 +181,7 @@ jobs:
     name: Publish once from exact authorized main merge commit
     needs: qualify
     if: >-
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(learnit-v6-csp): single Pages 2026-10-30') }}
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(learnit-v6-csp): single Pages 2026-10-31') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
@@ -207,8 +224,8 @@ jobs:
           files=json.loads(Path('tools/learnit_v6_site/expected_files.json').read_text(encoding='utf-8'))['files']
           assert len(files)==52
           expected_sha=os.environ['NEW_SHA']; expected_bytes=int(os.environ['NEW_BYTES'])
-          assert expected_sha=='3bc457a56f7d547c5c7f29adb2e76c4da3d2ab00d6fbc20d088e533ecd609a37'
-          assert expected_bytes==626288
+          assert expected_sha=='4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
+          assert expected_bytes==626416
           count=0
           for x in files:
             rel=x['path']; sha=expected_sha if rel in ('index.html','learnit-next.html') else x['sha256']
