@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Refresh LearnIT's derived OneDrive course/kit catalogues. Non-authoritative."""
 from __future__ import annotations
-import argparse,csv,hashlib,html,json,zipfile
+import argparse,csv,hashlib,html,json,zipfile,re
 from collections import Counter
 from datetime import datetime,timezone
 from pathlib import Path
@@ -23,23 +23,98 @@ def web(item):
         x=f"{c[:8]}-{c[8:12]}-{c[12:16]}-{c[16:20]}-{c[20:]}"
     return f"https://onedrive.live.com/?id={quote(x,safe='-')}&cid={quote(cid,safe='')}"
 
-def latest(mp,m):
-    root=mp.parent.parent/(m.get("state_log",{}).get("relative_path") or "20_MANIFEST/STATELOG")
-    ev={}; dup=set()
-    for p in root.rglob("*.json") if root.exists() else []:
-        try:e=J(p); r=e.get("revision")
-        except Exception:continue
-        if not isinstance(r,int):continue
-        if r in ev:dup.add(r)
-        ev[r]=e
-    if not ev:return None,"STATELOG_ABSENT"
-    if dup:return None,"STATELOG_DUPLICATE_REVISION:"+",".join(map(str,sorted(dup)))
-    a=m.get("state_log",{}).get("initial_revision",min(ev)); z=max(ev)
-    miss=sorted(set(range(a,z+1))-set(ev))
-    if miss:return None,"STATELOG_GAP:"+",".join(map(str,miss))
-    for r in range(a+1,z+1):
-        if ev[r].get("previous_revision") not in (None,r-1):return None,f"STATELOG_BAD_PREVIOUS_REVISION:{r}"
-    return ev[z],None
+def latest(mp, m):
+    """Return the latest canonical event, or fail closed on an ambiguity."""
+    _LEGACY_ZERO = re.compile(r"000000__BASELINE_CAPTURED__(evt_[0-9a-f]{32})\.json\Z")
+    cfg = m.get("state_log", {})
+    if not isinstance(cfg, dict) or cfg.get("relative_path", "20_MANIFEST/STATELOG") != "20_MANIFEST/STATELOG":
+        return None, "STATELOG_UNEXPECTED_LOCATION"
+    course_key = m.get("course_key")
+    if not isinstance(course_key, str) or not course_key:
+        return None, "STATELOG_COURSE_IDENTITY_MISSING"
+    initial = cfg.get("initial_revision", 0)
+    if type(initial) is not int or initial < 0:
+        return None, "STATELOG_BAD_INITIAL_REVISION"
+    root = mp.parent.parent / "20_MANIFEST" / "STATELOG"
+    if root.is_symlink():
+        return None, "STATELOG_SYMLINK_ROOT"
+    if not root.is_dir():
+        return None, "STATELOG_ABSENT"
+    ev, payloads, noncanonical = {}, {}, {}
+    for p in sorted(root.rglob("*.json")):
+        relative = p.relative_to(root).as_posix()
+        if p.is_symlink() or not p.is_file():
+            return None, "STATELOG_SYMLINK_OR_NONFILE:" + relative
+        try:
+            raw = p.read_bytes()
+            e = json.loads(raw)
+        except (OSError, UnicodeError, ValueError):
+            return None, "STATELOG_UNREADABLE_EVENT:" + relative
+        if not isinstance(e, dict):
+            return None, "STATELOG_NONOBJECT_EVENT:" + relative
+        r = e.get("revision")
+        if type(r) is not int or r < 0:
+            return None, "STATELOG_INVALID_REVISION:" + relative
+        if e.get("course_key") != course_key:
+            return None, "STATELOG_WRONG_COURSE:" + relative
+        eid = e.get("event_id")
+        if not isinstance(eid, str) or not eid:
+            return None, "STATELOG_MISSING_EVENT_ID:" + relative
+        start = r // 100 * 100
+        bucket = f"{start:04d}-{start+99:04d}"
+        parts = p.relative_to(root).parts
+        canonical_name = f"{r:06d}.json"
+        if r == 0 and len(parts) == 2:
+            legacy = _LEGACY_ZERO.fullmatch(parts[-1])
+            if legacy and legacy.group(1) == eid:
+                canonical_name = parts[-1]
+        canonical = len(parts) == 2 and parts[0] == bucket and parts[1] == canonical_name
+        if canonical:
+            if r in ev:
+                return None, f"STATELOG_DUPLICATE_CANONICAL_REVISION:{r}"
+            ev[r] = e
+            payloads[r] = raw
+        else:
+            noncanonical.setdefault(r, []).append(raw)
+    for r, variants in sorted(noncanonical.items()):
+        if r not in ev:
+            return None, f"STATELOG_NONCANONICAL_ONLY_REVISION:{r}"
+        if any(raw != payloads[r] for raw in variants):
+            return None, f"STATELOG_CONFLICTING_NONCANONICAL_REVISION:{r}"
+    if not ev:
+        return None, "STATELOG_ABSENT"
+    # Avoid constructing set(range(initial, max_revision)): a forged very high
+    # revision otherwise exhausts memory before fail-closed diagnosis.
+    ordered = sorted(ev)
+    missing = []
+    previous = initial - 1
+    for current in ordered:
+        for r in range(previous + 1, min(current, previous + 17)):
+            missing.append(str(r))
+        if current > previous + 17:
+            missing.append("...")
+        previous = current
+        if missing:
+            break
+    if ordered[0] < initial:
+        return None, "STATELOG_OUT_OF_RANGE_REVISION"
+    if missing:
+        return None, "STATELOG_GAP:" + ",".join(missing)
+    seen_ids = set()
+    for r in ordered:
+        e = ev[r]
+        if e["event_id"] in seen_ids:
+            return None, f"STATELOG_DUPLICATE_EVENT_ID:{r}"
+        seen_ids.add(e["event_id"])
+        if r == initial:
+            if initial == 0 and (e.get("previous_revision") is not None or e.get("previous_event_id") is not None):
+                return None, "STATELOG_BAD_INITIAL_LINK:0"
+            continue
+        if e.get("previous_revision") != r - 1:
+            return None, f"STATELOG_BAD_PREVIOUS_REVISION:{r}"
+        if e.get("previous_event_id") != ev[r - 1]["event_id"]:
+            return None, f"STATELOG_BAD_PREVIOUS_EVENT_ID:{r}"
+    return ev[ordered[-1]], None
 
 def courses(root):
     out=[]
