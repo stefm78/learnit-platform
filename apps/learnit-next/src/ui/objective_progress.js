@@ -323,13 +323,6 @@ export function renderRecommendedAction(recommendation, options = {}) {
   return section;
 }
 
-const R15_VISUAL_LEVEL = Object.freeze({
-  'not-started': '0%',
-  training: '48%',
-  'review-needed': '46%',
-  'ready-for-validation': '82%',
-  'validated-recently': '100%',
-});
 const R15_STATE_MARK = Object.freeze({
   'not-started': null,
   training: null,
@@ -449,7 +442,6 @@ function renderR15ObjectiveProgress(data, options) {
       element(documentRef, 'span', {
         className: 'objective-progress-r15__fill',
         'aria-hidden': 'true',
-        style: `--objective-progress-r15-level:${R15_VISUAL_LEVEL[item.status]}`,
       }),
       R15_STATE_MARK[item.status] ? element(documentRef, 'span', {
         className: 'objective-progress-r15__state-mark',

@@ -613,7 +613,11 @@ button.objective-progress-r15__reservoir{position:relative;flex:0 0 1.35rem;widt
 button.objective-progress-r15__reservoir:focus-visible{outline:3px solid #233f64;outline-offset:3px}
 .objective-progress-r15__reservoir[data-objective-progress-r15-priority="true"]{outline:2px solid #233f64;outline-offset:2px}
 button.objective-progress-r15__reservoir--not-started{border-color:#52647c;background:#fff}
-.objective-progress-r15__fill{position:absolute;left:0;right:0;bottom:0;height:var(--objective-progress-r15-level);background:#738bac}
+.objective-progress-r15__fill{position:absolute;left:0;right:0;bottom:0;height:0%;background:#738bac}
+.objective-progress-r15__reservoir--training .objective-progress-r15__fill{height:48%}
+.objective-progress-r15__reservoir--review-needed .objective-progress-r15__fill{height:46%}
+.objective-progress-r15__reservoir--ready-for-validation .objective-progress-r15__fill{height:82%}
+.objective-progress-r15__reservoir--validated-recently .objective-progress-r15__fill{height:100%}
 .objective-progress-r15__reservoir--not-started .objective-progress-r15__fill{background:#dfe3e8}
 .objective-progress-r15__reservoir--review-needed .objective-progress-r15__fill{background:repeating-linear-gradient(135deg,#b48a46 0 5px,#ead8b8 5px 10px)}
 .objective-progress-r15__reservoir--ready-for-validation .objective-progress-r15__fill{background:#7775a2}
