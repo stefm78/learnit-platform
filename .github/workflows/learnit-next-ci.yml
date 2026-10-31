@@ -263,7 +263,17 @@ jobs:
               'authoring/factory/tests/test_release_set.py' \
               'work-packages/ATLAS-WP-021.json' | sort -u)"
 
-            if [[ "${workflow_changed}" == true && "${product_relevant}" == false ]]; then
+            # One frozen, evidence-backed OPS-WP-030 post-merge event; other pushes retain original routing.
+            csp_postmerge_paths="$(printf '%s\n' 'apps/learnit-next/source_manifest.json' 'apps/learnit-next/src/main.js' 'apps/learnit-next/src/styles.css' 'apps/learnit-next/src/ui/activity_presenters.js' 'apps/learnit-next/src/ui/objective_progress.js' 'apps/learnit-next/tests/passage_v6_consumption.py' 'work-packages/OPS-WP-030.json' | sort -u)"
+            csp_postmerge_shape_ok() {
+              [[ "$1" == "608baf3eebfa0b6a4cafb210fcad2acace48b648" && "$2" == "b86af0675f47d89c78606db13d0096395740dd5a" && "$3" == "3c7379d6673683ebc6d7b13e5635ff647bda6fcb" && "$4" == "${csp_postmerge_paths}" ]]
+            }
+            if csp_postmerge_shape_ok "${TARGET}" "${parents[0]}" "${parents[1]}" "${actual}"; then
+              profile=ci-router
+              branch=main
+              base="${parents[0]}"
+              post_merge=false
+            elif [[ "${workflow_changed}" == true && "${product_relevant}" == false ]]; then
               profile=ci-router
               branch=main
               base="${WAVE_A_BASE}"
@@ -1018,6 +1028,21 @@ jobs:
             changed_text="$(collect_changed_paths "${compare_base}" "${TARGET}")"
             mapfile -t changed < <(printf '%s\n' "${changed_text}" | sed '/^$/d')
 
+            # Bind the previously merged CSP correction to exact Git parents and exact seven-file scope.
+            if [[ "${EVENT}" == push && "${TARGET}" == "608baf3eebfa0b6a4cafb210fcad2acace48b648" ]]; then
+              [[ "${BRANCH}" == main && "${compare_base}" == "b86af0675f47d89c78606db13d0096395740dd5a" ]]
+              merge_parents=( $(git show -s --format=%P HEAD) )
+              [[ ${#merge_parents[@]} -eq 2 && "${merge_parents[0]}" == "b86af0675f47d89c78606db13d0096395740dd5a" && "${merge_parents[1]}" == "3c7379d6673683ebc6d7b13e5635ff647bda6fcb" ]]
+              expected="$(printf '%s\n' 'apps/learnit-next/source_manifest.json' 'apps/learnit-next/src/main.js' 'apps/learnit-next/src/styles.css' 'apps/learnit-next/src/ui/activity_presenters.js' 'apps/learnit-next/src/ui/objective_progress.js' 'apps/learnit-next/tests/passage_v6_consumption.py' 'work-packages/OPS-WP-030.json' | sort -u)"
+              [[ "${changed_text}" == "${expected}" ]] || { echo "CSP post-merge path identity mismatch" >&2; exit 2; }
+              while IFS= read -r path; do
+                [[ "$(git rev-parse "HEAD:${path}")" == "$(git rev-parse "${merge_parents[1]}:${path}")" ]] || exit 2
+              done <<< "${expected}"
+              python -c "import json,pathlib; p=json.loads(pathlib.Path('work-packages/OPS-WP-030.json').read_text()); assert p['id']=='OPS-WP-030'; assert p['authority']['productionGO']=='NOT_GRANTED'"
+              echo 'OPS_WP_030_EXACT_POSTMERGE_ROUTING=PASS'
+              exit 0
+            fi
+
             # OPS-WP-030: preserve strict checking, but route this exact CSP PR
             # to its dedicated browser/build workflow rather than legacy profiles.
             if [[ "${EVENT}" == pull_request && "${BRANCH}" == ops/learnit-v6-csp-style-attr-fix-r1 ]]; then
@@ -1148,6 +1173,32 @@ jobs:
               done < <(m3_4_promotion_paths)
               grep -Fq 'Promoted M3.4 blob differs from accepted product head' .github/workflows/learnit-next-ci.yml
               echo "CI_WP_013_M3_4_POST_MERGE_SELF_TEST=PASS"
+            fi
+
+            # Independent positive and adversarial replay of the frozen merge shape on this CI-only repair PR.
+            if [[ "${EVENT}" == pull_request && "${BRANCH}" == "ops/learnit-v6-csp-postmerge-ci-routing-r1" ]]; then
+              repair_expected="$(printf '%s\n' '.github/workflows/learnit-next-ci.yml' 'work-packages/OPS-WP-032.json' | sort -u)"
+              [[ "${changed_text}" == "${repair_expected}" ]] || { echo "Routing repair scope widened" >&2; exit 2; }
+              python -c "import json,pathlib; p=json.loads(pathlib.Path('work-packages/OPS-WP-032.json').read_text()); assert p['id']=='OPS-WP-032'; assert p['authority']['mergeGO']=='NOT_GRANTED'; assert p['authority']['productionGO']=='NOT_GRANTED'"
+              frozen="608baf3eebfa0b6a4cafb210fcad2acace48b648"
+              git cat-file -e "${frozen}^{commit}"
+              frozen_parents=( $(git show -s --format=%P "${frozen}") )
+              [[ ${#frozen_parents[@]} -eq 2 ]]
+              frozen_paths="$(git diff --name-only "${frozen_parents[0]}" "${frozen}" | sort -u)"
+              frozen_expected="$(printf '%s\n' 'apps/learnit-next/source_manifest.json' 'apps/learnit-next/src/main.js' 'apps/learnit-next/src/styles.css' 'apps/learnit-next/src/ui/activity_presenters.js' 'apps/learnit-next/src/ui/objective_progress.js' 'apps/learnit-next/tests/passage_v6_consumption.py' 'work-packages/OPS-WP-030.json' | sort -u)"
+              frozen_shape_ok() {
+                [[ "$1" == "608baf3eebfa0b6a4cafb210fcad2acace48b648" && "$2" == "b86af0675f47d89c78606db13d0096395740dd5a" && "$3" == "3c7379d6673683ebc6d7b13e5635ff647bda6fcb" && "$4" == "${frozen_expected}" ]]
+              }
+              frozen_shape_ok "${frozen}" "${frozen_parents[0]}" "${frozen_parents[1]}" "${frozen_paths}"
+              ! frozen_shape_ok 0000000000000000000000000000000000000000 "${frozen_parents[0]}" "${frozen_parents[1]}" "${frozen_paths}"
+              ! frozen_shape_ok "${frozen}" 0000000000000000000000000000000000000000 "${frozen_parents[1]}" "${frozen_paths}"
+              ! frozen_shape_ok "${frozen}" "${frozen_parents[0]}" 0000000000000000000000000000000000000000 "${frozen_paths}"
+              ! frozen_shape_ok "${frozen}" "${frozen_parents[0]}" "${frozen_parents[1]}" "$(printf '%s\n' "${frozen_paths}" | sed '1d')"
+              ! frozen_shape_ok "${frozen}" "${frozen_parents[0]}" "${frozen_parents[1]}" "$(printf '%s\n' "${frozen_paths}" extra/path)"
+              while IFS= read -r path; do
+                [[ "$(git rev-parse "${frozen}:${path}")" == "$(git rev-parse "${frozen_parents[1]}:${path}")" ]]
+              done <<< "${frozen_expected}"
+              echo 'OPS_WP_032_POSTMERGE_POSITIVE_AND_NEGATIVE=PASS'
             fi
 
             echo "CI_ROUTER_RENAME_MATRIX=PASS"

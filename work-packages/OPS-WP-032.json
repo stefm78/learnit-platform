@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-032",
+  "title": "LearnIT V6 CSP PR #506 exact post-merge CI route correction (NO DEPLOY)",
+  "status": "proposed",
+  "purpose": "Replace the legacy wave-a fallback for one byte-exact historical #506 CSP merge with its narrow evidence-only ci-router handling, retaining fail-closed routing for all other push and PR events.",
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      "work-packages/OPS-WP-032.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      ".github/workflows/learnit-next-pages.yml",
+      ".github/workflows/learnit-v6-csp-qualification.yml",
+      ".github/workflows/learnit-v6-site-qualification.yml",
+      "apps/**",
+      "authoring/**",
+      "tools/**",
+      "governance/**",
+      "contracts/**"
+    ]
+  },
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_PREPARE_QUALIFY_POSTMERGE_ROUTING_2026-10-31",
+    "mergeGO": "NOT_GRANTED",
+    "productionGO": "NOT_GRANTED"
+  },
+  "baseline": {
+    "baseCommit": "608baf3eebfa0b6a4cafb210fcad2acace48b648",
+    "sourcePr": 506,
+    "sourceMergeCommit": "608baf3eebfa0b6a4cafb210fcad2acace48b648",
+    "sourceCandidateHead": "3c7379d6673683ebc6d7b13e5635ff647bda6fcb"
+  },
+  "invariants": [
+    "One frozen exact main merge identity and two parent identities; no wildcard authorization for generic CSP pushes",
+    "Exact seven-file product diff and corresponding immutable accepted blob identities required",
+    "No weakening of existing unknown-branch fail-closed or product path routing",
+    "Existing routed legacy profiles preserved",
+    "Zero production source, publication workflow, student data or Factory mutation"
+  ],
+  "requiredEvidence": [
+    "Exactly two changed files and exact main base",
+    "Learn-it Next CI self-test PASS on dedicated draft PR",
+    "Repository governance and PR scope PASS",
+    "Exact frozen-merge positive replay and wrong SHA, wrong parent, missing and extra path negative tests",
+    "Unchanged CSP, Pages and other workflows"
+  ],
+  "adversarialTests": [
+    "Wrong head or either Git parent never matches exception",
+    "Missing or additional changed file never matches exception",
+    "Unexpected product-relevant merge retains fail-closed legacy policy",
+    "PR modification outside exact two-file perimeter rejected",
+    "No Pages publication on CI-only route"
+  ],
+  "nonGoals": [
+    "No merge or deploy",
+    "No rewrite of historical already-failed GitHub Actions run",
+    "No runtime or application source changes",
+    "No relaxation of CSP or accessibility qualification",
+    "No mutation of human, Factory, kits or learner data"
+  ],
+  "independentReview": [
+    "Challenge special route binding to exact SHA, both parents and seven file paths",
+    "Read logs from exact PR CI run and post-repair scope/governance checks",
+    "Ensure unrecognized product changes remain rejected",
+    "Confirm current main and HEAD/CAS before any write"
+  ],
+  "evidence": [
+    "Historical PR #506 merged to 608baf3eebfa0b6a4cafb210fcad2acace48b648",
+    "Previous push incorrectly selected wave-a and failed an unrelated exact-profile assertion",
+    "New exception routes only the immutable identified push into the routing evidence check"
+  ],
+  "rollback": "Close the separate unmerged PR; main and deployed Pages remain unchanged."
+}
