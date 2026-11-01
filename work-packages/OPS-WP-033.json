@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-033",
+  "title": "V6 Activity Explorer canonical renderer read-only GitHub source integration (NO DEPLOY)",
+  "status": "proposed",
+  "purpose": "Add standalone read-only V6 activity navigation that imports the existing canonical learner projection, presentation, media, response and evaluation modules unchanged; validate with real browser. Prepare but do not publish the separate Pages route.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_INTEGRATE_EXPLORER_REUSE_RENDERER_2026-11-01",
+    "mergeGO": "NOT_GRANTED",
+    "productionGO": "NOT_GRANTED"
+  },
+  "baseline": {
+    "baseCommit": "8354e775db99f9bd239787c7b0c7b4e630e1f067",
+    "prNumber": 510
+  },
+  "scope": {
+    "allowedPaths": [
+      "tools/activity-explorer/**",
+      ".github/workflows/activity-explorer-qualification.yml",
+      "work-packages/OPS-WP-033.json"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "platform/**",
+      "governance/**",
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      ".github/workflows/learnit-next-pages.yml",
+      "work-packages/OPS-WP-029.json"
+    ]
+  },
+  "invariants": [
+    "No changes whatsoever to existing app renderer, media, projection, response/score source, its manifest or learner application",
+    "The Explorer imports those modules from their original repository source paths without forks or copied logic",
+    "No private kit is distributed; no Factory API, learner progress or storage is modified",
+    "No change to current 52 deployed Pages paths or unique Pages publisher",
+    "Only PR CI and local-only staging; no merge and no publication until separate authorization"
+  ],
+  "requiredEvidence": [
+    "Independent changed-path audit: only tool source and PR-only CI/work-package files",
+    "PR scope and repository governance PASS",
+    "Native browser smoke using official existing modules: media SVG and zoom, categories and navigation",
+    "No second Pages publisher and no automatic deployment"
+  ],
+  "nonGoals": [
+    "No renderer fixes including maxUses",
+    "No authoring/privileged editing",
+    "No new OneDrive operations job",
+    "No publication of a GitHub Pages route",
+    "No student data/Factory changes"
+  ],
+  "rollback": "Close unmerged draft PR #510 or delete isolated branch; existing main and deployed Pages remain unchanged."
+}
