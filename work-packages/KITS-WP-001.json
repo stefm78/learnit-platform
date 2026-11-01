@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "KITS-WP-001",
+  "title": "Factory V6 PASS to private 20_KITS: fail-closed verification bridge",
+  "status": "candidate_draft_not_approved",
+  "changeClass": "private-kit-intake-governed-preparation",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "authorizationSource": "USER_EXPLICIT_GO_FACTORY_PRIVATE_KITS_AUTOMATION_2026-11-01",
+    "operationalScope": "GIT_DRAFT_PR_AND_LOCAL_VERIFICATION_ONLY",
+    "mergeOrActivationAuthorized": false
+  },
+  "baseline": {
+    "baseCommit": "91945c7a7cb4417671653693ab0cb00457ba3438"
+  },
+  "purpose": "Stage a reusable V6-qualified-release-only private admission planner for later qualified OneDrive registration, reusing canonical Factory evidence verification, with no implicit distribution or product mutation.",
+  "scope": {
+    "allowedPaths": [
+      "tools/private_kit_intake_bridge.py",
+      "tools/tests/test_private_kit_intake_bridge.py",
+      "tools/PRIVATE_KIT_INTAKE_README.md",
+      "work-packages/KITS-WP-001.json"
+    ],
+    "forbiddenPaths": [
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      ".github/**",
+      "tools/refresh_onedrive_catalogue.py",
+      "work-packages/GOV-WP-043.json"
+    ]
+  },
+  "requiredEvidence": [
+    "23/23 portable tests PASS, no network or remote writes",
+    "Source code and test syntax checked, no /mnt/data runtime dependency",
+    "Canonical release verification called only from clean exact approved checkout at runtime",
+    "Known kit identities are verify-only, never overwrite",
+    "No new public catalogue, distribution approval or student data modification",
+    "PR scope equals exactly the four allowed paths; compare exact base commit"
+  ],
+  "invariants": [
+    "Original nine kits and their remote OneDrive copies remain unchanged",
+    "Factory V6 gate, release_set_v6 verifier, contracts and release pipeline remain unchanged",
+    "Historical verification snapshots are never current remote proof",
+    "Version/revision/path conflicts always HOLD",
+    "Do not merge or activate before independent PR-head review and end-to-end provider proof",
+    "No new LearnIT Operations job or state log"
+  ],
+  "adversarialTests": [
+    "False PASS, stale release, spoofed identity, duplicate index entry, unsafe ZIP, traversal and dirty Git checkout rejected",
+    "Outdated OneDrive index is a read-only planning input; remote recheck required",
+    "No auto-activation or public distribution if a human or provider gate is missing"
+  ],
+  "integrationGates": {
+    "realCanonicalReleaseVerifier": "PENDING_CLEAN_EXACT_REPO_ENVIRONMENT",
+    "graphCreateOnlyAndRawReadback": "PENDING_ADAPTER_AND_INDEPENDENT_TEST",
+    "indexAndHTMLConcurrencyControl": "PENDING_ATOMICITY_PROOF_OR_EXPLICIT_RISK_GATE",
+    "ciFactoryPostPassHook": "PENDING_SCOPED_WORK_PACKAGE_AND_QUALIFICATION",
+    "prIndependentReview": "PENDING",
+    "mergeAuthorization": "PENDING_GOVERNED_EXACT_HEAD",
+    "studentDistribution": "FORBIDDEN"
+  },
+  "rollback": "Close the draft PR or delete only the candidate branch; no production writes to revert."
+}
