@@ -3,185 +3,157 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'tools/activity-explorer/**'
+      - '.github/workflows/activity-explorer-qualification.yml'
       - '.github/workflows/learnit-v6-root-promotion.yml'
-      - 'work-packages/OPS-WP-029.json'
+      - 'work-packages/OPS-WP-033.json'
   push:
     branches: [main]
     paths:
+      - 'tools/activity-explorer/**'
+      - '.github/workflows/activity-explorer-qualification.yml'
       - '.github/workflows/learnit-v6-root-promotion.yml'
-      - 'work-packages/OPS-WP-029.json'
+      - 'work-packages/OPS-WP-033.json'
 permissions:
   contents: read
 concurrency:
   group: learnit-v6-unique-pages-publisher
   cancel-in-progress: false
+env:
+  FROZEN_BASE: '8354e775db99f9bd239787c7b0c7b4e630e1f067'
+  RELEASE_TITLE: 'release(activity-explorer): single Pages 2026-11-01'
+  ROOT_SHA: '4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
+  ROOT_BYTES: '626416'
 jobs:
   qualify:
-    name: Qualified CSP candidate, 52 static paths and single publisher
+    name: Qualify exact 60-route Explorer candidate without modifying renderer
+    if: >-
+      ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01') }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 50
+    timeout-minutes: 55
     permissions:
       contents: read
-    outputs:
-      candidate_sha: ${{ steps.pin.outputs.candidate_sha }}
-      candidate_bytes: ${{ steps.pin.outputs.candidate_bytes }}
     steps:
-      - name: Checkout exact PR source or main dispatch source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Enforce exact two-file qualified release ancestry and no source drift
+      - name: Check PR510 exact source scope, one-shot merge, only one Pages publisher
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          EVENT_SHA: ${{ github.sha }}
-          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_NO: ${{ github.event.pull_request.number }}
           PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          MERGE_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           set -euo pipefail
-          base=1d0ebeb7ee590cd713c389a4690601fb07c2a9e8
           test -z "$(git status --porcelain)"
-          test "$(git merge-base "$base" HEAD)" = "$base"
-          expected=$'.github/workflows/learnit-v6-root-promotion.yml\nwork-packages/OPS-WP-029.json'
-          test "$(git diff --name-only "$base" HEAD | sort)" = "$expected"
-          if [[ "$EVENT_NAME" == pull_request ]]; then
-            test "$(git rev-parse HEAD)" = "$PR_HEAD"
-            test "$PR_BASE" = "$base"
-            test "$(git rev-list --count "$base"..HEAD)" -eq 2
-            test "$(git rev-parse HEAD~2)" = "$base"
-          else
-            test "$EVENT_NAME" = push
-            test "$GITHUB_REF" = refs/heads/main
-            test "$GITHUB_RUN_ATTEMPT" = 1
-            test "$(git rev-parse HEAD)" = "$EVENT_SHA"
-            test "$(git show -s --format=%P HEAD | wc -w | tr -d ' ')" = 2
-            test "$(git rev-parse HEAD^1)" = "$base"
-            test "$(git rev-parse HEAD^2~2)" = "$base"
-            test "$(git rev-list --count "$base".."HEAD^2")" -eq 2
-            test "$(git log -1 --format=%s)" = "release(learnit-v6-csp): single Pages 2026-10-31"
-          fi
+          git merge-base --is-ancestor "$FROZEN_BASE" HEAD
           python - <<'PY'
-          import json
+          import json,os,subprocess,re
           from pathlib import Path
-          p=json.loads(Path('work-packages/OPS-WP-029.json').read_text(encoding='utf-8'))
-          assert p['id']=='OPS-WP-029' and p['status']=='proposed'
-          assert sorted(p['scope']['allowedPaths'])==sorted(['.github/workflows/learnit-v6-root-promotion.yml','work-packages/OPS-WP-029.json'])
-          assert p['authority']['baseCommit']=='1d0ebeb7ee590cd713c389a4690601fb07c2a9e8'
-          assert p['authority']['githubWriteGO']=='USER_EXPLICIT_RELEASE_SCOPE_2026-10-31'
-          assert p['authority']['releaseMergeGO']=='USER_CONDITIONAL_MERGE_AND_PAGES_GO_2026-10-31'
-          assert p['authority']['oneShotMergeTitle']=='release(learnit-v6-csp): single Pages 2026-10-31'
-          assert p['baseline']['qualifiedNewRootSha256']=='4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
-          assert p['baseline']['qualifiedNewRootBytes']==626416
-          PY
-          echo 'PASS_EXACT_HUMAN_GO_TWO_PATH_RELEASE_LINEAGE'
-      - name: Verify single Pages publisher and retired workflows
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import pathlib,re,subprocess
-          root=pathlib.Path('.github/workflows/learnit-v6-root-promotion.yml')
-          workflows=sorted(pathlib.Path('.github/workflows').glob('*.yml'))
-          assert len(workflows)==39, len(workflows)
-          publishers=[]
-          retired={
-            'atlas-m3-1-human-gate-deploy.yml':'5a546ffbc226e84cdea6247292c2195b7ba29550',
-            'atlas-m3-pages-candidate.yml':'af7f5051ed9c5b3247ff7f86bd96dd86282e3f4b',
-            'atlas-m3-pages-human-gate-deploy.yml':'19b9ce6bfc319ccc154fc1227e78106153b84936',
-            'atlas-r10-human-replay-deploy.yml':'15314d95f7f36599fc68124654d4ca0bd0dd2153',
-            'atlas-r13-final-human-replay-deploy.yml':'19dfe32729a1c55ba24a56c03666e7eed5e08e08',
-            'atlas-r14-human-replay-deploy.yml':'551a4f5875d23a362cb6ef6041530d977e1bcadb',
-            'atlas-r15-human-replay-deploy.yml':'585ea027e9827b4c58c602e4bb99c2672f79f033',
-            'learnit-next-pages.yml':'42c1b42310d6c0a728d91ca64a06039faef09328'
-          }
-          for file in workflows:
-            content=file.read_text(encoding='utf-8')
-            if re.search(r'(?m)^\s*uses:\s*actions/deploy-pages@v4\s*$',content): publishers.append(file)
-            if file!=root:
-              assert not re.search(r'actions/(?:deploy-pages|upload-pages-artifact|configure-pages)@|peaceiris/actions-gh-pages@',content),file
-              assert not re.search(r'(?m)^[ \t]*(?:pages|id-token):[ \t]*write\b',content),file
-          assert publishers==[root],publishers
-          for name,blob in retired.items():
-            got=subprocess.check_output(['git','rev-parse','HEAD:.github/workflows/'+name],text=True).strip()
-            assert got==blob,(name,got)
-          own=root.read_text(encoding='utf-8')
-          assert len(re.findall(r'(?m)^\s*uses:\s*actions/deploy-pages@v4\s*$',own))==1
-          assert len(re.findall(r'(?m)^\s*uses:\s*actions/upload-pages-artifact@v3\s*$',own))==1
-          print('PASS_SINGLE_PUBLISHER=1; PASS_RETIRED=8/8')
+          def git(*args):return subprocess.check_output(['git',*args],text=True).strip()
+          base=os.environ['FROZEN_BASE']
+          allowed=sorted([
+            '.github/workflows/activity-explorer-qualification.yml',
+            '.github/workflows/learnit-v6-root-promotion.yml',
+            'tools/activity-explorer/README.md',
+            'tools/activity-explorer/explorer.css',
+            'tools/activity-explorer/explorer.js',
+            'tools/activity-explorer/index.html',
+            'tools/activity-explorer/stage_pages.py',
+            'tools/activity-explorer/tests/test_browser.py',
+            'tools/activity-explorer/tests/test_structure.py',
+            'work-packages/OPS-WP-033.json'
+          ])
+          assert sorted(git('diff','--name-only',base,'HEAD').splitlines())==allowed
+          wp=json.loads(Path('work-packages/OPS-WP-033.json').read_text())
+          assert wp['id']=='OPS-WP-033' and wp['status']=='proposed'
+          assert wp['baseline']['baseCommit']==base and wp['baseline']['prNumber']==510
+          assert wp['authority']['mergeGO']=='USER_EXPLICIT_MERGE_PR510_AFTER_REVALIDATION_2026-11-01'
+          assert wp['authority']['productionGO']=='USER_EXPLICIT_SINGLE_PUBLISHER_60_ROUTE_PAGES_RELEASE_2026-11-01'
+          assert wp['authority']['releaseMergeTitle']==os.environ['RELEASE_TITLE']
+          workflows=sorted(Path('.github/workflows').glob('*.yml'))
+          assert len(workflows)==39
+          publishers=[p for p in workflows if re.search(r'(?m)^\s*uses:\s*actions/deploy-pages@v4\s*$',p.read_text())]
+          assert publishers==[Path('.github/workflows/learnit-v6-root-promotion.yml')],publishers
+          if os.environ['GITHUB_EVENT_NAME']=='pull_request':
+            assert os.environ['PR_NO']=='510'
+            assert os.environ['PR_BASE']==base and os.environ['PR_HEAD']==git('rev-parse','HEAD')
+            assert os.environ['PR_BRANCH']=='feature/learnit-activity-explorer-canonical-r1-20261101'
+            assert os.environ['PR_REPO']=='stefm78/learnit-platform'
+          else:
+            assert os.environ['GITHUB_EVENT_NAME']=='push'
+            assert os.environ['GITHUB_REF']=='refs/heads/main'
+            assert os.environ['GITHUB_RUN_ATTEMPT']=='1'
+            assert os.environ['MERGE_MESSAGE'].splitlines()[0]==os.environ['RELEASE_TITLE']
+            assert git('rev-parse','HEAD^1')==base
+            assert len(git('show','-s','--format=%P','HEAD').split())==2
+            assert sorted(git('diff','--name-only',base,'HEAD^2').splitlines())==allowed
+          print('PASS_EXACT_HUMAN_GO_SOURCE_DIFF_10_AND_ONE_PUBLISHER')
           PY
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Chromium only for candidate qualification
+      - name: Install actual browser engine
         run: |
           python -m pip install --disable-pip-version-check playwright
           python -m playwright install --with-deps chromium
-      - name: Build immutable modular candidate twice and bind exact hash
-        id: pin
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
+      - name: Verify actual existing renderer, media and navigation
         run: |
-          set -euo pipefail
-          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/candidate-a.html"
-          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/candidate-b.html"
-          cmp "$RUNNER_TEMP/candidate-a.html" "$RUNNER_TEMP/candidate-b.html"
-          candidate_sha="$(sha256sum "$RUNNER_TEMP/candidate-a.html" | cut -d' ' -f1)"
-          candidate_bytes="$(wc -c < "$RUNNER_TEMP/candidate-a.html" | tr -d ' ')"
-          test "$candidate_sha" = '4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
-          test "$candidate_bytes" -eq 626416
-          echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
-          echo "candidate_bytes=$candidate_bytes" >> "$GITHUB_OUTPUT"
-          echo "PASS_CANDIDATE_SHA256=$candidate_sha"
-      - name: Rebuild exact 52-file published baseline and verify
+          python -m unittest discover -s tools/activity-explorer/tests -p test_structure.py -v
+          python tools/activity-explorer/tests/test_browser.py
+      - name: Reproduce currently deployed V6 root byte for byte
         shell: bash
         run: |
           set -euo pipefail
-          python -B tools/learnit_v6_site/assemble.py --repo . --output "$RUNNER_TEMP/baseline" --manifest "$RUNNER_TEMP/baseline.json"
-          python -B tools/learnit_v6_site/test_site.py --site "$RUNNER_TEMP/baseline" --manifest "$RUNNER_TEMP/baseline.json"
-          test "$(find "$RUNNER_TEMP/baseline" -type f | wc -l)" -eq 52
-      - name: Stage exact two root aliases and preserve the other 50 bytes
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/root-a.html"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/root-b.html"
+          cmp "$RUNNER_TEMP/root-a.html" "$RUNNER_TEMP/root-b.html"
+          test "$(sha256sum "$RUNNER_TEMP/root-a.html" | cut -d' ' -f1)" = "$ROOT_SHA"
+          test "$(wc -c < "$RUNNER_TEMP/root-a.html" | tr -d ' ')" = "$ROOT_BYTES"
+      - name: Rebuild 52 known historical paths and stage exactly eight extras
         shell: bash
         run: |
           set -euo pipefail
-          python -B tools/learnit_v6_site/stage_verified_v6.py \
-            --baseline-site "$RUNNER_TEMP/baseline" \
-            --frozen-manifest tools/learnit_v6_site/expected_files.json \
-            --candidate-html "$RUNNER_TEMP/candidate-a.html" \
-            --candidate-sha256 '${{ steps.pin.outputs.candidate_sha }}' \
-            --source-checkout . \
-            --source-commit "$(git rev-parse HEAD)" \
-            --output "$RUNNER_TEMP/staged-v6"
-          test "$(find "$RUNNER_TEMP/staged-v6/site" -type f | wc -l)" -eq 52
-          cmp "$RUNNER_TEMP/staged-v6/site/index.html" "$RUNNER_TEMP/staged-v6/site/learnit-next.html"
-      - name: Browser qualification on staged CSP site
-        shell: bash
-        env:
-          LEARNIT_V6_ARTIFACT: ${{ runner.temp }}/staged-v6/site/index.html
-        run: python -B apps/learnit-next/tests/passage_v6_consumption.py
-      - name: Upload site artifact ONLY after exact authorized merge
+          python -B tools/learnit_v6_site/assemble.py --repo . --output "$RUNNER_TEMP/old52" --manifest "$RUNNER_TEMP/old52.json"
+          python -B tools/learnit_v6_site/test_site.py --site "$RUNNER_TEMP/old52" --manifest "$RUNNER_TEMP/old52.json"
+          cp -a "$RUNNER_TEMP/old52" "$RUNNER_TEMP/published52"
+          cp "$RUNNER_TEMP/root-a.html" "$RUNNER_TEMP/published52/index.html"
+          cp "$RUNNER_TEMP/root-a.html" "$RUNNER_TEMP/published52/learnit-next.html"
+          python -B tools/activity-explorer/stage_pages.py --repo . --published-site "$RUNNER_TEMP/published52" --output "$RUNNER_TEMP/staged60"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          out=Path(os.environ['RUNNER_TEMP'])/'staged60'
+          v=json.loads((out/'manifest.json').read_text())
+          assert v['route_count']==60 and v['published_routes_preserved']==52
+          assert v['status']=='PASS_LOCAL_ONLY_NO_PUBLICATION' and len(v['new_routes'])==8
+          assert len([f for f in (out/'site').rglob('*') if f.is_file()])==60
+          print('PASS_60_STAGED_52_IDENTICAL_8_NEW')
+          PY
+      - name: Upload Pages site only on authorized main merge
         if: >-
-          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(learnit-v6-csp): single Pages 2026-10-31') }}
+          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01' }}
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ${{ runner.temp }}/staged-v6/site
-      - name: Preserve independent build evidence without production writes
+          path: ${{ runner.temp }}/staged60/site
+      - name: Preserve local stage manifest as audit evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: learnit-v6-csp-candidate-${{ github.run_id }}
+          name: learnit-activity-explorer-60-${{ github.run_id }}
           retention-days: 14
           if-no-files-found: warn
-          path: |
-            ${{ runner.temp }}/staged-v6/release-evidence.json
-            ${{ runner.temp }}/baseline.json
+          path: ${{ runner.temp }}/staged60/manifest.json
   deploy:
-    name: Publish once from exact authorized main merge commit
+    name: Deploy from exact one-shot approved merge
     needs: qualify
     if: >-
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(learnit-v6-csp): single Pages 2026-10-31') }}
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
@@ -192,15 +164,15 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - name: Publish guarded qualified site
+      - name: Publish exact verified 60-route site
         id: deployment
         uses: actions/deploy-pages@v4
   verify-live:
-    name: Verify all 52 public paths with new root and unchanged history
+    name: Verify HTTP SHA256 of 52 preserved and 8 new URLs
     needs: [qualify, deploy]
     if: ${{ github.event_name == 'push' && needs.deploy.result == 'success' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 22
+    timeout-minutes: 25
     permissions:
       contents: read
     steps:
@@ -208,12 +180,8 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Verify 50 frozen paths and two new root aliases
+      - name: GET and SHA-256 every one of the 60 published files
         shell: bash
-        env:
-          NEW_SHA: ${{ needs.qualify.outputs.candidate_sha }}
-          NEW_BYTES: ${{ needs.qualify.outputs.candidate_bytes }}
-          RELEASE_RUN: ${{ github.run_id }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -221,28 +189,38 @@ jobs:
           from pathlib import Path
           from urllib.parse import quote
           from urllib.request import Request,urlopen
-          files=json.loads(Path('tools/learnit_v6_site/expected_files.json').read_text(encoding='utf-8'))['files']
-          assert len(files)==52
-          expected_sha=os.environ['NEW_SHA']; expected_bytes=int(os.environ['NEW_BYTES'])
-          assert expected_sha=='4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
-          assert expected_bytes==626416
-          count=0
-          for x in files:
-            rel=x['path']; sha=expected_sha if rel in ('index.html','learnit-next.html') else x['sha256']
-            size=expected_bytes if rel in ('index.html','learnit-next.html') else x['bytes']
-            url='https://stefm78.github.io/learnit-platform/'+quote(rel,safe='/')+'?release='+os.environ['RELEASE_RUN']
-            error=None
-            for attempt in range(8):
+          old=json.loads(Path('tools/learnit_v6_site/expected_files.json').read_text())['files']
+          assert len(old)==52
+          canonical='4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb'
+          files={x['path']:(canonical,626416) if x['path'] in ('index.html','learnit-next.html') else (x['sha256'],x['bytes']) for x in old}
+          extra=[
+           'tools/activity-explorer/index.html','tools/activity-explorer/explorer.js','tools/activity-explorer/explorer.css',
+           'apps/learnit-next/src/integration/atlas/activity_projection.js',
+           'apps/learnit-next/src/ui/activity_presenters.js','apps/learnit-next/src/ui/media.js',
+           'apps/learnit-next/src/core/activity_semantics.js','apps/learnit-next/src/styles.css'
+          ]
+          assert len(files)==52 and len(set(extra))==8 and not (set(extra)&set(files))
+          for key in extra:
+            b=Path(key).read_bytes()
+            files[key]=(hashlib.sha256(b).hexdigest(),len(b))
+          assert len(files)==60
+          origin='https://stefm78.github.io/learnit-platform/'
+          for i,(key,(expected,size)) in enumerate(sorted(files.items()),1):
+            url=origin+quote(key,safe='/')+'?release='+os.environ['GITHUB_RUN_ID']
+            failure='unverified'
+            for attempt in range(7):
               try:
-                with urlopen(Request(url,headers={'Cache-Control':'no-cache'}),timeout=25) as response:
-                  data=response.read()
-                  if response.status==200 and len(data)==size and hashlib.sha256(data).hexdigest()==sha:
-                    error=None;break
-                  error=f'HTTP={response.status} bytes={len(data)} hash={hashlib.sha256(data).hexdigest()}'
-              except Exception as exc: error=str(exc)
-              if attempt<7: time.sleep(12)
-            if error: raise RuntimeError('LIVE_HOLD '+rel+': '+error)
-            count+=1
-          assert count==52
-          print('PASS_LIVE_FILES=52/52; NEW_ROOT_SHA256='+expected_sha+'; PRESERVED_HISTORY=50/50')
+                with urlopen(Request(url,headers={'Cache-Control':'no-cache'}),timeout=25) as r:
+                  data=r.read()
+                  if r.status==200 and len(data)==size and hashlib.sha256(data).hexdigest()==expected:
+                    failure=None;break
+                  failure=f'HTTP={r.status}, len={len(data)}, SHA={hashlib.sha256(data).hexdigest()}'
+              except Exception as exc: failure=str(exc)
+              if attempt<6: time.sleep(10)
+            if failure: raise RuntimeError('LIVE_HOLD '+key+': '+failure)
+            print('PASS_LIVE_SHA256',i,'/60',key,flush=True)
+          with urlopen(Request(origin+'tools/activity-explorer/?release='+os.environ['GITHUB_RUN_ID']),timeout=25) as r:
+            data=r.read()
+          assert hashlib.sha256(data).hexdigest()==files['tools/activity-explorer/index.html'][0]
+          print('PASS_LIVE_60_OF_60 AND DIRECTORY_INDEX')
           PY
