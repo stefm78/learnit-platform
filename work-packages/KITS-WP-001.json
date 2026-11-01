@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "KITS-WP-001",
   "title": "Factory V6 PASS to private 20_KITS: fail-closed verification bridge",
-  "status": "candidate_draft_not_approved",
+  "status": "proposed",
   "changeClass": "private-kit-intake-governed-preparation",
   "riskClass": "medium",
   "authority": {
@@ -62,5 +62,16 @@
     "mergeAuthorization": "PENDING_GOVERNED_EXACT_HEAD",
     "studentDistribution": "FORBIDDEN"
   },
-  "rollback": "Close the draft PR or delete only the candidate branch; no production writes to revert."
+  "rollback": "Close the draft PR or delete only the candidate branch; no production writes to revert.",
+  "nonGoals": [
+    "No automatic Factory/CI trigger in this PR",
+    "No OneDrive writes, new or modified student data, public distribution, existing job changes or catalogue mutation",
+    "No merge or production activation on creation of this PR"
+  ],
+  "independentReview": [
+    "Confirm four-file PR scope and exact base HEAD before qualification",
+    "Confirm canonical release verifier is invoked only from pinned clean repository checkout",
+    "Reject false PASS, duplicate identities, stale hashes, unsafe ZIP members and source/index confusion",
+    "Prove current OneDrive state, conflict-fail writes and safe index/nav concurrency in subsequent governed work before activation"
+  ]
 }
