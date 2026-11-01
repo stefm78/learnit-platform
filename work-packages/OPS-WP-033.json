@@ -51,5 +51,15 @@
     "No publication of a GitHub Pages route",
     "No student data/Factory changes"
   ],
-  "rollback": "Close unmerged draft PR #510 or delete isolated branch; existing main and deployed Pages remain unchanged."
+  "rollback": "Close unmerged draft PR #510 or delete isolated branch; existing main and deployed Pages remain unchanged.",
+  "adversarialTests": [
+    "Reject any modification to canonical apps/** renderer or evaluation modules",
+    "Reject private-kit inclusion, privileged editing, or hidden Pages publisher",
+    "Reject changed historical 52 routes or unapproved publication of 8 extra paths"
+  ],
+  "independentReview": [
+    "Verify exact PR diff and canonical module import paths",
+    "Run actual Chromium render and SVG zoom with real unchanged modules; distinguish mocked tests",
+    "Verify PR scope and repository validation, then require separate human merge/deployment decisions"
+  ]
 }
