@@ -77,7 +77,7 @@ jobs:
           assert wp['authority']['productionGO']=='USER_EXPLICIT_SINGLE_PUBLISHER_60_ROUTE_PAGES_RELEASE_2026-11-01'
           assert wp['authority']['releaseMergeTitle']==os.environ['RELEASE_TITLE']
           workflows=sorted(Path('.github/workflows').glob('*.yml'))
-          assert len(workflows)==39
+          assert len(workflows)==40
           publishers=[p for p in workflows if re.search(r'(?m)^\s*uses:\s*actions/deploy-pages@v4\s*$',p.read_text())]
           assert publishers==[Path('.github/workflows/learnit-v6-root-promotion.yml')],publishers
           if os.environ['GITHUB_EVENT_NAME']=='pull_request':
