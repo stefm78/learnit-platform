@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-033",
+  "title": "V6 Activity Explorer canonical renderer, 60-route single-publisher release",
+  "status": "proposed",
+  "purpose": "Merge PR #510 after CI, stage and publish the Explorer via existing unique GitHub Pages workflow; preserve all 52 published paths byte-for-byte, add exactly 8 routes, and verify 60 live paths. Canonical learner modules remain untouched.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_INTEGRATE_EXPLORER_REUSE_RENDERER_2026-11-01",
+    "mergeGO": "USER_EXPLICIT_MERGE_PR510_AFTER_REVALIDATION_2026-11-01",
+    "productionGO": "USER_EXPLICIT_SINGLE_PUBLISHER_60_ROUTE_PAGES_RELEASE_2026-11-01",
+    "releaseMergeTitle": "release(activity-explorer): single Pages 2026-11-01"
+  },
+  "baseline": {
+    "baseCommit": "8354e775db99f9bd239787c7b0c7b4e630e1f067",
+    "prNumber": 510
+  },
+  "scope": {
+    "allowedPaths": [
+      "tools/activity-explorer/**",
+      ".github/workflows/activity-explorer-qualification.yml",
+      "work-packages/OPS-WP-033.json",
+      ".github/workflows/learnit-v6-root-promotion.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/**",
+      "authoring/**",
+      "contracts/**",
+      "platform/**",
+      "governance/**",
+      ".github/workflows/learnit-next-pages.yml",
+      "work-packages/OPS-WP-029.json"
+    ]
+  },
+  "invariants": [
+    "No changes whatsoever to existing app renderer, media, projection, response/score source, its manifest or learner application",
+    "The Explorer imports those modules from their original repository source paths without forks or copied logic",
+    "All existing 52 GitHub Pages URLs keep identical bytes and exact SHA256; add exactly eight routes at tools/activity-explorer/ and canonical source dependencies",
+    "Exactly one deploy-pages publisher; require exact one-shot human-authorized two-parent PR510 merge title, PR scope and prior successful qualification",
+    "No private kit or answer key embedded; no changes to learner modules, Factory, student progress or private data"
+  ],
+  "requiredEvidence": [
+    "Independent changed-path audit: only tool source and PR-only CI/work-package files",
+    "PR scope and repository governance PASS",
+    "Native browser smoke using official existing modules: media SVG and zoom, categories and navigation",
+    "No second Pages publisher and no automatic deployment",
+    "Official V6 build duplicated with exact published SHA256/626416 bytes; old 52 frozen baseline rebuilt then two exact published roots installed",
+    "Qualified 60-route stage, no extra paths and all 52 old bytes identical",
+    "Only after authorized exact PR510 merge: one Pages deployment; live GET SHA256 and bytes for every 60 URLs"
+  ],
+  "nonGoals": [
+    "No renderer fixes including maxUses",
+    "No authoring/privileged editing",
+    "No new OneDrive operations job",
+    "No student data/Factory changes",
+    "No other publication mechanism, no changes to the old 50 historical routes or current root HTML, no later generic releases"
+  ],
+  "rollback": "Previous 52 routes remain independently pinned, recoverable by separately authorized Pages rebind; never silently re-deploy or alter student data.",
+  "adversarialTests": [
+    "Reject any modification to canonical apps/** renderer or evaluation modules",
+    "Reject private-kit inclusion, privileged editing, or hidden Pages publisher",
+    "Reject changed historical 52 routes or unapproved publication of 8 extra paths",
+    "Ordinary main push, unrelated PR, wrong merge title or first-parent, unexpected file additions and second run cannot deploy",
+    "Any byte drift in the 52 frozen paths, missing or extra new routes, failed live GET must fail release verification"
+  ],
+  "independentReview": [
+    "Verify exact PR diff and canonical module import paths",
+    "Run actual Chromium render and SVG zoom with real unchanged modules; distinguish mocked tests",
+    "Verify PR scope and repository validation, then require separate human merge/deployment decisions",
+    "Inspect single Pages publisher and exact GitHub Actions release logic; verify 60 HTTP URLs after upload"
+  ]
+}

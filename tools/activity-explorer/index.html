@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'">
+<title>LearnIT · Explorateur d'activités</title>
+<link rel="stylesheet" href="../../apps/learnit-next/src/styles.css">
+<link rel="stylesheet" href="./explorer.css">
+<script type="module" src="./explorer.js"></script>
+</head><body>
+<main class="explorer" id="activity-explorer">
+ <header class="top"><div class="brand"><span class="logo">L<span>.</span></span><div><div class="eyebrow">LEARNIT / OUTIL DE QUALIFICATION</div><h1>Explorateur d'activités</h1></div></div><div class="top-status">Moteur de rendu officiel V6 <span aria-hidden="true">●</span></div></header>
+ <section class="imports" aria-label="Choisir un kit"><label class="upload" for="kit-file"><span>Ouvrir un kit JSON local</span><input id="kit-file" type="file" accept=".json,application/json"></label><div class="import-note">Aucun fichier envoyé sur Internet. Aucun enregistrement de progression.</div></section>
+ <p id="explorer-status" role="status" aria-live="polite">Initialisation des modules LearnIT…</p>
+ <div class="workspace">
+  <aside class="sidebar" aria-label="Liste des activités">
+   <div class="side-title"><strong id="kit-title">Aucun kit ouvert</strong><small id="kit-count">—</small></div>
+   <label class="field-label" for="activity-search">Rechercher</label><input id="activity-search" type="search" placeholder="Titre, question, identifiant" autocomplete="off">
+   <div class="filters"><div><label class="field-label" for="course-filter">Cours</label><select id="course-filter"><option value="">Tous les cours</option></select></div><div><label class="field-label" for="activity-type">Type</label><select id="activity-type"><option value="">Tous les types</option></select></div></div>
+   <div class="filter-info" id="filter-count">Ouvrez un kit pour commencer</div><div id="activity-list" class="activity-list" role="list" aria-label="Activités"></div>
+  </aside>
+  <section class="stage" aria-label="Aperçu de l'activité">
+   <div class="stage-head"><div class="trail" id="activity-trail">Aucune activité sélectionnée</div><div class="nav-buttons"><button class="nav" type="button" id="prev-top" disabled aria-label="Activité précédente">← Précédent</button><button class="nav primary" type="button" id="next-top" disabled aria-label="Activité suivante">Suivant →</button></div></div>
+   <div class="activity-meta" id="activity-meta"></div><div id="activity-preview" class="activity-preview"></div>
+   <div class="actions"><button type="button" class="primary" id="try-answer" disabled>Vérifier la réponse</button><button type="button" id="reset-preview" disabled>Recommencer l’activité</button></div><p id="answer-status" role="status" aria-live="polite"></p>
+   <div class="stage-bottom"><button class="nav" type="button" id="prev-bottom" disabled>← Précédent</button><span id="activity-progress">—</span><button class="nav primary" type="button" id="next-bottom" disabled>Suivant →</button></div>
+   <details id="tools"><summary>Outils et informations techniques</summary><div id="technical-info"></div><button type="button" id="copy-reference">Copier la référence d'activité</button><p class="small">La modification et la publication appartiennent au Studio et à la Factory, pas à cet explorateur.</p></details>
+  </section>
+ </div>
+ <footer>Lecture seule · Rendu et évaluation issus des modules LearnIT · Application distincte de l'interface apprenant · Site statique : la page elle-même n'est pas privée.</footer>
+</main></body></html>
