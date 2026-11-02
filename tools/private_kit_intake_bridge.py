@@ -144,18 +144,27 @@ def prepare(archive: Path, verified: dict, existing_index: dict | None = None,
                 raise Hold('KIT_COURSE_INVALID')
             activities += len(course['activities'])
         if activities < 1: raise Hold('KIT_NO_ACTIVITIES')
-        name = filenames.get(lineage, f'{revision}.json')
-        if not canonical_name(name): raise Hold('DESTINATION_UNSAFE_FILENAME')
-        path = f'20_KITS/{lineage}/{revision}/{name}'
         already = existing.get((lineage,revision))
         if already:
+            # Never invent an alternate filename for an already stored revision.
+            # The private index is only a snapshot; the executor must still
+            # independently re-read the exact remote path, raw bytes and ACL.
+            rel = already.get('relative_path')
+            parts = rel.split('/') if isinstance(rel, str) else []
+            if (len(parts) != 3 or parts[:2] != [lineage, revision] or
+                not canonical_name(parts[2]) or '\\' in rel):
+                raise Hold('EXISTING_DESTINATION_UNSAFE_OR_UNKNOWN')
+            path = '20_KITS/' + rel
             if (already.get('kit_sha256') != kit['sha256'][7:] or
+                already.get('private_copy_sha256_verified') not in (None, kit['sha256'][7:]) or
                 already.get('private_storage_status') != 'STORED_PRIVATE_VERIFIED' or
                 already.get('private_copy_access') not in ('OWNER_ONLY_AT_VERIFICATION', None)):
                 raise Hold('EXISTING_IDENTITY_CONFLICT')
-            # Snapshot is historical; its existence is not a live idempotence proof.
             action = 'VERIFY_EXISTING_REMOTE_BYTES_AND_ACL_NO_WRITE'
         else:
+            name = filenames.get(lineage, f'{revision}.json')
+            if not canonical_name(name): raise Hold('DESTINATION_UNSAFE_FILENAME')
+            path = f'20_KITS/{lineage}/{revision}/{name}'
             action = 'PREFLIGHT_REMOTE_AND_CREATE_ONLY_IF_AUTHORIZED'
             files[path] = raw
         plan_entries.append({'lineage_id':lineage,'revision_id':revision,'title':obj.get('title'),'activities':activities,
