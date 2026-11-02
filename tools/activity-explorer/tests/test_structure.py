@@ -6,7 +6,7 @@ BASE=Path(__file__).resolve().parents[1]
 class Structure(unittest.TestCase):
  def test_reuse_canonical_sources(self):
   source=(BASE/'explorer.js').read_text()
-  for expected in ('projectActivityPresentation(active,{assets:kit.assets??[],contract:kit.contract})',
+  for expected in ('projectActivityPresentation(active,{assets:kit.assets??[],contract:kit.contract,readOnlyHintPreview:true})',
                    'renderActivityPresentation(presentation)',
                    'readActivityResponse(ui.preview,presentation)',
                    'evaluateActivityResponse(active,answer)'):

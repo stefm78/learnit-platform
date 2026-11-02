@@ -66,6 +66,53 @@ function mediaBlock(presentation, placement) {
     'data-activity-media-placement-group': placement,
   }, [renderEmbeddedMediaSet(items)]);
 }
+// A single canonical rendering component, exclusively for explicit read-only previews.
+// The actual learner assistance protocol must confirm persistence BEFORE ever passing
+// a revealed prefix to a presenter; this preview does not grant that authority.
+function renderReadOnlyHintPreview(presentation) {
+  if (!Object.hasOwn(presentation, 'hintPreview')) return null;
+  const hints = presentation.hintPreview;
+  if (!Array.isArray(hints) || hints.length > 3 || hints.some(h =>
+    typeof h !== 'string' || !h.trim() || h.length > 1200
+  )) throw new Error('HINT_PREVIEW_INVALID');
+  if (hints.length === 0) return null;
+  const region = el('div', {
+    className: 'activity-hints',
+    'data-activity-hint-preview': 'read-only',
+    'aria-live': 'polite',
+    'aria-relevant': 'additions',
+  });
+  let revealed = 0;
+  const button = el('button', {
+    type: 'button',
+    className: 'secondary',
+    'data-activity-hint-next': 'true',
+  });
+  const refreshLabel = () => {
+    const next = `Afficher un indice (${revealed + 1}/${hints.length})`;
+    button.textContent = next;
+    button.setAttribute('aria-label', next);
+  };
+  button.addEventListener('click', () => {
+    if (revealed >= hints.length || !button.isConnected) return;
+    const value = hints[revealed];
+    revealed += 1;
+    const hintNode = el('p', {
+      className: 'help activity-hint',
+      'data-activity-hint-rank': String(revealed),
+      text: value,
+    });
+    region.insertBefore(hintNode, button);
+    if (revealed === hints.length) {
+      button.remove();
+      hintNode.setAttribute('tabindex', '-1');
+      hintNode.focus();
+    } else refreshLabel();
+  });
+  refreshLabel();
+  region.append(button);
+  return region;
+}
 function shell(presentation, children) {
   const root = el('section', {
     className: 'activity-presentation activity-presentation-' + presentation.type,
@@ -80,6 +127,8 @@ function shell(presentation, children) {
   if (contentMedia) root.append(contentMedia);
   const references = referenceDisclosure(presentation.references ?? []);
   if (references) root.append(references);
+  const hintPreview = renderReadOnlyHintPreview(presentation);
+  if (hintPreview) root.append(hintPreview);
   return root;
 }
 function keyActivate(node, fn) {

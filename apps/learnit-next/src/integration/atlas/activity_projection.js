@@ -160,7 +160,18 @@ export function projectPostAnswerFeedback(
   });
 }
 
-export function projectActivityPresentation(activity, { assets = [], contract = null } = {}) {
+// READ_ONLY preview only: never pass uncommitted hints to the learner session.
+// The Atlas learner caller retains its original arguments (no preview authority).
+function projectReadOnlyHintPreview(activity, contract) {
+  if (contract !== V6_CONTRACT) throw new Error('HINT_PREVIEW_REQUIRES_V6');
+  const hints = activity.hints ?? [];
+  if (!Array.isArray(hints) || hints.length > 3 || hints.some(h =>
+    typeof h !== 'string' || !h.trim() || h.length > 1200
+  )) throw new Error('V6_HINT_PREVIEW_INVALID');
+  return Object.freeze([...hints]);
+}
+
+export function projectActivityPresentation(activity, { assets = [], contract = null, readOnlyHintPreview = false } = {}) {
   if (!activity || typeof activity !== 'object' || Array.isArray(activity)) {
     throw new TypeError('Activity source must be an object');
   }
@@ -263,6 +274,12 @@ export function projectActivityPresentation(activity, { assets = [], contract = 
     presentation = {
       ...presentation,
       references: projectReferences(activity.references),
+    };
+  }
+  if (readOnlyHintPreview === true) {
+    presentation = {
+      ...presentation,
+      hintPreview: projectReadOnlyHintPreview(activity, contract),
     };
   }
   return Object.freeze(presentation);
