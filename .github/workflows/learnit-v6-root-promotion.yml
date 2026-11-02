@@ -208,6 +208,22 @@ jobs:
           python -B "${BASE_REPO}/tools/activity-explorer/stage_pages.py" --repo "${BASE_REPO}" --published-site "${RUNNER_TEMP}/hints-published52" --output "${RUNNER_TEMP}/hints-baseline60"
           python -B tools/activity-explorer/stage_pages.py --repo . --published-site "${RUNNER_TEMP}/hints-published52" --output "${RUNNER_TEMP}/hints-candidate60" --compare-baseline-60 "${RUNNER_TEMP}/hints-baseline60/site"
           test "$(find "${RUNNER_TEMP}/hints-candidate60/site" -type f | wc -l | tr -d ' ')" = 60
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          manifest = json.loads((Path(os.environ['RUNNER_TEMP']) / 'hints-candidate60' / 'manifest.json').read_text(encoding='utf-8'))
+          delta = manifest['hints_preview_delta']
+          assert manifest['status'] == 'PASS_LOCAL_ONLY_NO_PUBLICATION'
+          assert manifest['published_routes_preserved'] == 52 and manifest['route_count'] == 60
+          assert delta['status'] == 'PASS_LOCAL_ONLY_NO_PUBLICATION'
+          assert delta['routes'] == 60 and delta['byte_identical'] == 57
+          assert delta['modified'] == [
+              'apps/learnit-next/src/integration/atlas/activity_projection.js',
+              'apps/learnit-next/src/ui/activity_presenters.js',
+              'tools/activity-explorer/explorer.js'
+          ]
+          print('PASS_DURABLE_STAGE_EVIDENCE_57_UNCHANGED_3_JS')
+          PY
           echo PASS_60_ROUTE_STAGING_57_BYTE_IDENTICAL_3_JS_CHANGED_NO_DEPLOY
       - name: Save nonpublishing staging evidence
         if: always()

@@ -138,6 +138,13 @@ def main():
         result = stage(opts.repo, opts.published_site, opts.output)
         if opts.compare_baseline_60 is not None:
             result['hints_preview_delta'] = verify_hints_60_delta(opts.compare_baseline_60, opts.output / 'site')
+            report = opts.output / 'manifest.json'
+            original = json.loads(report.read_text(encoding='utf-8'))
+            if original != {key: value for key, value in result.items() if key != 'hints_preview_delta'}:
+                raise RuntimeError('HOLD staged manifest disagrees with verified route inventory')
+            temporary = opts.output / '.manifest.hints.tmp'
+            temporary.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+            temporary.replace(report)
         print(json.dumps(result, sort_keys=True)); return 0
     except Exception as exc:
         print('HOLD: ' + str(exc), file=sys.stderr); return 2
