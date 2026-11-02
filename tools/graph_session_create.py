@@ -29,8 +29,17 @@ class QualifiedSessionTransport(Protocol):
 
         For a single chunk, send Content-Length and Content-Range 0-(N-1)/N.
         Verify upload URL against trusted tenant/provider rules; never log it.
-        Enforce no Authorization header on upload endpoint. On ambiguous
-        transport status do NOT auto-retry the create; reconcile exact remote path.
+        Enforce no Authorization header, forbid redirects to unapproved origins.
+        On ambiguous transport status do NOT auto-retry; reconcile exact path.
+        """
+        ...
+    def approve_upload_url(self, upload_url: str) -> bool:
+        """True ONLY for an externally configured, trusted Graph upload origin.
+
+        Require exact hostname/port allowlisting based on the qualified OneDrive
+        environment, not substring/suffix matches or any HTTPS hostname.
+        Must reject redirects outside approved origins and never log this URL.
+        This contract is NOT implemented by this module.
         """
         ...
 
@@ -61,12 +70,33 @@ class SessionCreateFile:
         if not isinstance(session,dict) or not isinstance(session.get('uploadUrl'),str):
             raise Hold('GRAPH_SESSION_URL_MISSING')
         # URL is a bearer-like capability and must never appear in a diagnostic.
-        parsed=urlsplit(session['uploadUrl'])
-        if (parsed.scheme!='https' or not parsed.netloc or parsed.username is not None or
-                parsed.password is not None or parsed.fragment or
-                parsed.hostname in ('localhost','127.0.0.1')):
+        upload_url = session['uploadUrl']
+        try:
+            parsed=urlsplit(upload_url)
+            basic_url_ok=(parsed.scheme=='https' and parsed.hostname is not None
+                          and parsed.username is None and parsed.password is None
+                          and not parsed.fragment and parsed.port in (None,443)
+                          and '\\' not in upload_url and not any(ord(c)<32 for c in upload_url))
+        except ValueError:
+            basic_url_ok=False
+        if not basic_url_ok:
             raise Hold('GRAPH_SESSION_URL_UNTRUSTED')
-        code, completed = self.transport.upload_without_bearer(session['uploadUrl'],raw)
+        approve=getattr(self.transport,'approve_upload_url',None)
+        if not callable(approve):
+            raise Hold('GRAPH_SESSION_URL_APPROVAL_UNAVAILABLE')
+        try:
+            approved=approve(upload_url)
+        except Exception:
+            # Do not include opaque signed upload URL even through an exception chain.
+            raise Hold('GRAPH_SESSION_URL_NOT_APPROVED') from None
+        if approved is not True:
+            raise Hold('GRAPH_SESSION_URL_NOT_APPROVED')
+        try:
+            code, completed = self.transport.upload_without_bearer(upload_url,raw)
+        except Exception:
+            # Transport errors sometimes embed full preauthenticated URLs.
+            # Ambiguous commit: HOLD, never automatic retry.
+            raise Hold('GRAPH_UPLOAD_OUTCOME_UNCERTAIN') from None
         if code!=201:
             # 200 could reflect an update, not a provably fresh creation.
             raise Hold('GRAPH_NEW_OBJECT_NOT_EXCLUSIVELY_CREATED_'+str(code))
