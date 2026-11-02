@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-034",
+  "title": "LearnIT V6 hints preview — PR512 exact CI and 60-route staging, NO DEPLOY",
+  "status": "proposed",
+  "purpose": "Qualify the seven byte-frozen R4 progressive-hints preview files on exact PR #512 and verify a candidate 60-route static site preserves 57 existing files while updating only 3 canonical JavaScript resources. No learner assistance activation or publication.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_2026-11-02_PR512_EXACT_WP_CI_STAGING_ONLY",
+    "mergeGO": "NOT_GRANTED",
+    "productionGO": "NOT_GRANTED"
+  },
+  "baseline": {
+    "baseCommit": "91945c7a7cb4417671653693ab0cb00457ba3438",
+    "prNumber": 512,
+    "frozenFunctionalHead": "29810299b7c4b791b191904bf015b48902788155",
+    "patchZipSha256": "d650666e7e813460b3edb2cc399d0cde8425bbb8c5535096b278be1759af4993"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "tools/activity-explorer/explorer.js",
+      "tools/activity-explorer/stage_pages.py",
+      "tools/activity-explorer/tests/test_hints_native_dom_browser.py",
+      "tools/activity-explorer/tests/test_hints_preview_browser.py",
+      "tools/activity-explorer/tests/test_structure.py",
+      "work-packages/OPS-WP-034.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      ".github/workflows/learnit-next-pages.yml",
+      "work-packages/OPS-WP-033.json",
+      "tools/activity-explorer/explorer.css",
+      "tools/activity-explorer/index.html",
+      "apps/learnit-next/src/integration/atlas/session.js"
+    ]
+  },
+  "release": {
+    "existingPublisherOnly": ".github/workflows/learnit-v6-root-promotion.yml",
+    "publishedRouteCount": 60,
+    "preservedByteIdenticalRoutes": 57,
+    "replacedRoutes": [
+      "tools/activity-explorer/explorer.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/activity_presenters.js"
+    ],
+    "stageOnly": true,
+    "deploymentGO": "NOT_GRANTED",
+    "liveSiteVerification": "NOT_RUN"
+  },
+  "validation": {
+    "strictFrozenSevenFiles": true,
+    "exactBranch": "feature/learnit-v6-hints-preview-r4-20261102",
+    "exactBase": "91945c7a7cb4417671653693ab0cb00457ba3438",
+    "prScope": true,
+    "qualifiedBrowserDom": true,
+    "qualifiedExplorerBrowser": true,
+    "baselineAndCandidateDeterministicBuild": true,
+    "stageAndCompare60": true,
+    "unchanged57Sha256": true,
+    "legacyBuildTestDrift": "REQUIRES_RECONCILIATION_BEFORE_RELEASE"
+  },
+  "invariants": [
+    "No merge or Pages deployment under this authorization",
+    "Keep the seven R4 files byte-for-byte identical to frozen PR #512 head",
+    "No second Pages publisher",
+    "Unknown other CI branches remain fail-closed",
+    "No Factory, catalog, kits, ACL, learner data, private sample exposure or V6 persisted-assistance activation"
+  ],
+  "rollback": "Close this draft PR or drop its unmerged branch; main and Pages remain unchanged."
+}

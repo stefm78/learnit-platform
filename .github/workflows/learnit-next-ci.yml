@@ -82,7 +82,7 @@ concurrency:
 
 jobs:
   exact-head-matrix:
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') }}
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') && !(github.event_name == 'pull_request' && github.head_ref == 'feature/learnit-v6-hints-preview-r4-20261102') }}
     name: Exact-head routed matrix
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -1363,6 +1363,86 @@ jobs:
           path: |
             apps/learnit-next/.agent-result/run_checks.json
             apps/learnit-next/dist/learnit-next.html
+
+  hints-preview-r4:
+    name: PR512 exact V6 hints + native browser CI (NO DEPLOY)
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'feature/learnit-v6-hints-preview-r4-20261102' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Exact PR512 work package and frozen R4 scope
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          base='91945c7a7cb4417671653693ab0cb00457ba3438'
+          frozen='29810299b7c4b791b191904bf015b48902788155'
+          wp=json.loads(Path('work-packages/OPS-WP-034.json').read_text(encoding='utf-8'))
+          assert wp['id']=='OPS-WP-034' and wp['status']=='proposed'
+          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='NOT_GRANTED'
+          assert wp['baseline']['baseCommit']==base and wp['baseline']['frozenFunctionalHead']==frozen
+          assert wp['baseline']['patchZipSha256']=='d650666e7e813460b3edb2cc399d0cde8425bbb8c5535096b278be1759af4993'
+          assert os.environ['PR_NUMBER']=='512' and os.environ['PR_BASE']==base
+          assert os.environ['PR_BRANCH']=='feature/learnit-v6-hints-preview-r4-20261102'
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          assert os.environ['PR_HEAD']==git('rev-parse','HEAD')
+          assert git('merge-base',base,'HEAD')==base
+          actual=sorted(git('diff','--name-only',base,'HEAD').splitlines())
+          assert actual==sorted(wp['scope']['allowedPaths']),(actual,wp['scope']['allowedPaths'])
+          frozen_paths=[
+            'apps/learnit-next/source_manifest.json',
+            'apps/learnit-next/src/integration/atlas/activity_projection.js',
+            'apps/learnit-next/src/ui/activity_presenters.js',
+            'tools/activity-explorer/explorer.js',
+            'tools/activity-explorer/tests/test_hints_native_dom_browser.py',
+            'tools/activity-explorer/tests/test_hints_preview_browser.py',
+            'tools/activity-explorer/tests/test_structure.py'
+          ]
+          assert subprocess.run(['git','diff','--quiet',frozen,'HEAD','--',*frozen_paths]).returncode==0
+          print('PASS_PR512_SCOPE_11_AND_R4_FROZEN_7')
+          PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install native Chromium for isolated browser qualification
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+      - name: Test canonical presenter, native DOM, Explorer and reproducible build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tools/activity-explorer/tests -p test_structure.py -v
+          python apps/learnit-next/tests/atlas_activity_ui_seam.py
+          python tools/activity-explorer/tests/test_hints_native_dom_browser.py
+          python tools/activity-explorer/tests/test_hints_preview_browser.py
+          node --check apps/learnit-next/src/integration/atlas/activity_projection.js
+          node --check apps/learnit-next/src/ui/activity_presenters.js
+          node --check tools/activity-explorer/explorer.js
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/hints-a.html"
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/hints-b.html"
+          cmp "${RUNNER_TEMP}/hints-a.html" "${RUNNER_TEMP}/hints-b.html"
+          test "$(wc -c < "${RUNNER_TEMP}/hints-a.html" | tr -d ' ')" = 629036
+          test "$(sha256sum "${RUNNER_TEMP}/hints-a.html" | cut -d' ' -f1)" = ba858cf01f6785bade8cfc5249419eb8ce6fa8c70b9a5ad783861806092c6712
+          echo PASS_PR512_NATIVE_QUALIFICATION_NO_DEPLOY
 
   passage-v6-recovery:
     name: PASSAGE V6 R3 bounded recovery

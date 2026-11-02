@@ -104,14 +104,40 @@ def stage(repo: Path, site: Path, output: Path) -> dict:
         if scratch.exists(): shutil.rmtree(scratch)
 
 
+def verify_hints_60_delta(baseline_site: Path, candidate_site: Path) -> dict:
+    """Fail closed unless exactly three intended JS resources differ in the 60-route stage."""
+    before = baseline_site.resolve(strict=True)
+    after = candidate_site.resolve(strict=True)
+    old = {p.relative_to(before).as_posix() for p in before.rglob('*') if p.is_file()}
+    new = {p.relative_to(after).as_posix() for p in after.rglob('*') if p.is_file()}
+    expected_changed = {
+        'tools/activity-explorer/explorer.js',
+        'apps/learnit-next/src/integration/atlas/activity_projection.js',
+        'apps/learnit-next/src/ui/activity_presenters.js'
+    }
+    if old != new or len(old) != 60:
+        raise RuntimeError('HOLD hints stage route inventory != identical 60')
+    changed = {name for name in old if check_file(before, name) != check_file(after, name)}
+    if changed != expected_changed:
+        raise RuntimeError('HOLD hints changed routes mismatch: ' + repr(sorted(changed)))
+    for name in old - expected_changed:
+        if sha(check_file(before, name)) != sha(check_file(after, name)):
+            raise RuntimeError('HOLD hints preserved-route SHA drift: ' + name)
+    return {'status': 'PASS_LOCAL_ONLY_NO_PUBLICATION', 'routes': 60,
+            'byte_identical': 57, 'modified': sorted(expected_changed)}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--repo', type=Path, required=True)
     ap.add_argument('--published-site', type=Path, required=True)
     ap.add_argument('--output', type=Path, required=True)
+    ap.add_argument('--compare-baseline-60', type=Path)
     opts = ap.parse_args()
     try:
         result = stage(opts.repo, opts.published_site, opts.output)
+        if opts.compare_baseline_60 is not None:
+            result['hints_preview_delta'] = verify_hints_60_delta(opts.compare_baseline_60, opts.output / 'site')
         print(json.dumps(result, sort_keys=True)); return 0
     except Exception as exc:
         print('HOLD: ' + str(exc), file=sys.stderr); return 2
