@@ -32,7 +32,7 @@ The index must have been just retrieved from OneDrive as **raw bytes**. Output u
 
 ## Status
 
-**DRAFT / NOT OPERATIONAL**. PR includes planner, portable transport-independent copy engine, tests, README and one work-package. The actual OneDrive provider adapter, proven conditional index write, HTML regeneration and credentialed post-Factory hook are **unfulfilled gates**. Provider-neutral tests are not a live provider contract. **No merge, activation or student publication is implied.**
+**DRAFT / NOT OPERATIONAL**. PR includes planner, portable transport-independent copy engine, a draft Graph upload-session contract, deterministic private index/navigation generation, a read-only post-Factory PASS binding, tests, README and one work-package. The actual qualified OneDrive provider, proven live conditional index/navigation update and credentialed automatic post-Factory hook are **unfulfilled gates**. Provider-neutral tests are not a live provider contract. **No merge, activation or student publication is implied.**
 
 ## R2 extension / provider adapter contract
 
@@ -48,3 +48,12 @@ Run all local checks (38 including executor simulations):
 python -m unittest discover -s tools/tests -p 'test_private_kit_intake*.py' -v
 python -m py_compile tools/private_kit_intake_bridge.py tools/private_kit_intake_executor.py
 ```
+
+## Inactive post-PASS integration candidate (PR #511)
+
+- `graph_session_create.py`: draft Microsoft Graph `createUploadSession` conflict-fail contract; requires externally qualified credentials and transport, with no production authorization or live provider claim.
+- `private_kit_views.py`: validates the existing private index schema, builds deterministic searchable/grouped HTML, and coordinates two distinct conditional view writes only through a provider that proves real concurrency safety. Partial failure is HOLD and can be reconciled on replay.
+- `post_pass_factory_step.py`: read-only event-to-canonical-release binding from a clean pinned Git checkout. It neither registers an unattended hook nor performs a remote write.
+- The three corresponding tests under `tools/tests/` are local simulations (47/47 PASS at candidate staging); they are not proof of actual Graph authentication, CAS, owner-only ACL or real event delivery.
+
+Until those live gates and separate human approvals pass, the existing Factory remains unchanged; never interpret a code commit, unit-test PASS or private navigator entry as release, publication or activation.
