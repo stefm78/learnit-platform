@@ -243,7 +243,8 @@ jobs:
           PY
           echo PASS_60_ROUTE_STAGING_57_BYTE_IDENTICAL_3_JS_CHANGED
       - name: Upload exact 60-route Pages artifact only on authorized one-shot merge
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(hints): single Pages 2026-11-02 PR512') }}
+        if: >-
+          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(hints): single Pages 2026-11-02 PR512') }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/hints-candidate60/site
