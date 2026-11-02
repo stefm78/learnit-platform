@@ -75,5 +75,33 @@
     "Unknown other CI branches remain fail-closed",
     "No Factory, catalog, kits, ACL, learner data, private sample exposure or V6 persisted-assistance activation"
   ],
-  "rollback": "Close this draft PR or drop its unmerged branch; main and Pages remain unchanged."
+  "rollback": "Close this draft PR or drop its unmerged branch; main and Pages remain unchanged.",
+  "requiredEvidence": [
+    "Exact PR512/base SHA and 11-path PR scope, no unrelated content",
+    "Proof that seven R4 file Git blobs match frozen initial head",
+    "Chromium real DOM and Explorer tests, Atlas seam, deterministic native V6 candidate build",
+    "Independent baseline/candidate Pages staging: 60 URLs, 57 exact byte-identical and three intended JavaScript changes",
+    "Required repository governance and PR scope CI success on exact PR head"
+  ],
+  "adversarialTests": [
+    "Reject changed path outside eleven authorized files",
+    "Reject drift in any of seven frozen R4 files",
+    "Reject route inventory other than 60 or modified route set other than three JS modules",
+    "Reject a second Pages publisher, old release replay, or any publish/merge without new exact GO",
+    "Reject missing V6 assistance-event domain authorization as learner release"
+  ],
+  "nonGoals": [
+    "No learner hint history or storage event integration",
+    "No published Pages deployment or merge",
+    "No Factory, kits, catalogue, permissions or learner-data changes",
+    "No broadening of CI routing for other unknown branches",
+    "No modification of historical evidence or old one-shot release"
+  ],
+  "independentReview": [
+    "Verify seven frozen Git blob IDs and four exact extra file scope",
+    "Review native browser/keyboard/security tests from exact PR head",
+    "Inspect nonpublishing staging manifest and all 60 resource byte comparisons",
+    "Check one existing Pages publisher and absence of Pages deployment",
+    "Require separate GO and full release qualification after green CI"
+  ]
 }
