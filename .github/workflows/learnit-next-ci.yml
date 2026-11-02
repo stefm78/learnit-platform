@@ -1394,7 +1394,9 @@ jobs:
           frozen='29810299b7c4b791b191904bf015b48902788155'
           wp=json.loads(Path('work-packages/OPS-WP-034.json').read_text(encoding='utf-8'))
           assert wp['id']=='OPS-WP-034' and wp['status']=='proposed'
-          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='NOT_GRANTED'
+          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED'
+          assert wp['release']['oneShotMergeTitle']=='release(hints): single Pages 2026-11-02 PR512' and wp['release']['expectedMergeMethod']=='merge'
+          assert wp['release']['preservedByteIdenticalRoutes']==57 and len(wp['release']['replacedRoutes'])==3
           assert wp['baseline']['baseCommit']==base and wp['baseline']['frozenFunctionalHead']==frozen
           assert wp['baseline']['patchZipSha256']=='d650666e7e813460b3edb2cc399d0cde8425bbb8c5535096b278be1759af4993'
           assert os.environ['PR_NUMBER']=='512' and os.environ['PR_BASE']==base

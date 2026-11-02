@@ -1,14 +1,17 @@
 {
   "schemaVersion": 1,
   "id": "OPS-WP-034",
-  "title": "LearnIT V6 hints preview — PR512 exact CI and 60-route staging, NO DEPLOY",
+  "title": "LearnIT V6 hints preview — PR512 qualified single Pages release",
   "status": "proposed",
-  "purpose": "Qualify the seven byte-frozen R4 progressive-hints preview files on exact PR #512 and verify a candidate 60-route static site preserves 57 existing files while updating only 3 canonical JavaScript resources. No learner assistance activation or publication.",
+  "purpose": "Deliver progressive hints in the public read-only Activity Explorer after user validation of the R4 standalone preview and passing exact-head independent CI. Preserve 57/60 published routes byte-for-byte; replace only three canonical JavaScript resources. No learner hint persistence.",
   "authority": {
     "repository": "stefm78/learnit-platform",
     "humanGO": "USER_EXPLICIT_2026-11-02_PR512_EXACT_WP_CI_STAGING_ONLY",
-    "mergeGO": "NOT_GRANTED",
-    "productionGO": "NOT_GRANTED"
+    "mergeGO": "USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED",
+    "productionGO": "USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED",
+    "reviewDecision": "USER_WAIVED_INDEPENDENT_HUMAN_PR_APPROVAL_2026_11_02; technical independent CI preserved",
+    "latestHumanInstruction": "on livre; oubli la revue; verified preview fonctionne; /research /audit /solve /build GO (2026-11-02)",
+    "releaseMergeTitle": "release(hints): single Pages 2026-11-02 PR512"
   },
   "baseline": {
     "baseCommit": "91945c7a7cb4417671653693ab0cb00457ba3438",
@@ -52,9 +55,13 @@
       "apps/learnit-next/src/integration/atlas/activity_projection.js",
       "apps/learnit-next/src/ui/activity_presenters.js"
     ],
-    "stageOnly": true,
-    "deploymentGO": "NOT_GRANTED",
-    "liveSiteVerification": "NOT_RUN"
+    "stageOnly": false,
+    "deploymentGO": "USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED",
+    "liveSiteVerification": "NOT_RUN",
+    "oneShotMergeTitle": "release(hints): single Pages 2026-11-02 PR512",
+    "expectedMergeMethod": "merge",
+    "exactPR": 512,
+    "deliveryScope": "PUBLIC_ACTIVITY_EXPLORER_ONLY"
   },
   "validation": {
     "strictFrozenSevenFiles": true,
@@ -66,10 +73,10 @@
     "baselineAndCandidateDeterministicBuild": true,
     "stageAndCompare60": true,
     "unchanged57Sha256": true,
-    "legacyBuildTestDrift": "REQUIRES_RECONCILIATION_BEFORE_RELEASE"
+    "legacyBuildTestDrift": "HISTORICAL_FIXTURE_DRIFT_NOT_WAIVED_FOR_LEARNER_RELEASE"
   },
   "invariants": [
-    "No merge or Pages deployment under this authorization",
+    "Merge only exact PR512 head after green checks and approved current user GO; deploy only once from exact governed merge title after successful 60-route staging",
     "Keep the seven R4 files byte-for-byte identical to frozen PR #512 head",
     "No second Pages publisher",
     "Unknown other CI branches remain fail-closed",
@@ -92,7 +99,7 @@
   ],
   "nonGoals": [
     "No learner hint history or storage event integration",
-    "No published Pages deployment or merge",
+    "No unrelated merge or publication, no replay of PR510 publisher; only exact PR512 public Explorer release",
     "No Factory, kits, catalogue, permissions or learner-data changes",
     "No broadening of CI routing for other unknown branches",
     "No modification of historical evidence or old one-shot release"
@@ -102,6 +109,6 @@
     "Review native browser/keyboard/security tests from exact PR head",
     "Inspect nonpublishing staging manifest and all 60 resource byte comparisons",
     "Check one existing Pages publisher and absence of Pages deployment",
-    "Require separate GO and full release qualification after green CI"
+    "Current explicit user delivery GO and validation accepted; preserve independent GitHub CI, staging and post-publication HTTP verification"
   ]
 }
