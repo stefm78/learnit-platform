@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-034",
+  "title": "LearnIT V6 hints preview — PR512 qualified single Pages release",
+  "status": "proposed",
+  "purpose": "Deliver progressive hints in the public read-only Activity Explorer after user validation of the R4 standalone preview and passing exact-head independent CI. Preserve 57/60 published routes byte-for-byte; replace only three canonical JavaScript resources. No learner hint persistence.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_2026-11-02_PR512_EXACT_WP_CI_STAGING_ONLY",
+    "mergeGO": "USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED",
+    "productionGO": "USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED",
+    "reviewDecision": "USER_WAIVED_INDEPENDENT_HUMAN_PR_APPROVAL_2026_11_02; technical independent CI preserved",
+    "latestHumanInstruction": "on livre; oubli la revue; verified preview fonctionne; /research /audit /solve /build GO (2026-11-02)",
+    "releaseMergeTitle": "release(hints): single Pages 2026-11-02 PR512"
+  },
+  "baseline": {
+    "baseCommit": "91945c7a7cb4417671653693ab0cb00457ba3438",
+    "prNumber": 512,
+    "frozenFunctionalHead": "29810299b7c4b791b191904bf015b48902788155",
+    "patchZipSha256": "d650666e7e813460b3edb2cc399d0cde8425bbb8c5535096b278be1759af4993"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "tools/activity-explorer/explorer.js",
+      "tools/activity-explorer/stage_pages.py",
+      "tools/activity-explorer/tests/test_hints_native_dom_browser.py",
+      "tools/activity-explorer/tests/test_hints_preview_browser.py",
+      "tools/activity-explorer/tests/test_structure.py",
+      "work-packages/OPS-WP-034.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      ".github/workflows/learnit-next-pages.yml",
+      "work-packages/OPS-WP-033.json",
+      "tools/activity-explorer/explorer.css",
+      "tools/activity-explorer/index.html",
+      "apps/learnit-next/src/integration/atlas/session.js"
+    ]
+  },
+  "release": {
+    "existingPublisherOnly": ".github/workflows/learnit-v6-root-promotion.yml",
+    "publishedRouteCount": 60,
+    "preservedByteIdenticalRoutes": 57,
+    "replacedRoutes": [
+      "tools/activity-explorer/explorer.js",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/activity_presenters.js"
+    ],
+    "stageOnly": false,
+    "deploymentGO": "USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED",
+    "liveSiteVerification": "NOT_RUN",
+    "oneShotMergeTitle": "release(hints): single Pages 2026-11-02 PR512",
+    "expectedMergeMethod": "merge",
+    "exactPR": 512,
+    "deliveryScope": "PUBLIC_ACTIVITY_EXPLORER_ONLY"
+  },
+  "validation": {
+    "strictFrozenSevenFiles": true,
+    "exactBranch": "feature/learnit-v6-hints-preview-r4-20261102",
+    "exactBase": "91945c7a7cb4417671653693ab0cb00457ba3438",
+    "prScope": true,
+    "qualifiedBrowserDom": true,
+    "qualifiedExplorerBrowser": true,
+    "baselineAndCandidateDeterministicBuild": true,
+    "stageAndCompare60": true,
+    "unchanged57Sha256": true,
+    "legacyBuildTestDrift": "HISTORICAL_FIXTURE_DRIFT_NOT_WAIVED_FOR_LEARNER_RELEASE"
+  },
+  "invariants": [
+    "Merge only exact PR512 head after green checks and approved current user GO; deploy only once from exact governed merge title after successful 60-route staging",
+    "Keep the seven R4 files byte-for-byte identical to frozen PR #512 head",
+    "No second Pages publisher",
+    "Unknown other CI branches remain fail-closed",
+    "No Factory, catalog, kits, ACL, learner data, private sample exposure or V6 persisted-assistance activation"
+  ],
+  "rollback": "Close this draft PR or drop its unmerged branch; main and Pages remain unchanged.",
+  "requiredEvidence": [
+    "Exact PR512/base SHA and 11-path PR scope, no unrelated content",
+    "Proof that seven R4 file Git blobs match frozen initial head",
+    "Chromium real DOM and Explorer tests, Atlas seam, deterministic native V6 candidate build",
+    "Independent baseline/candidate Pages staging: 60 URLs, 57 exact byte-identical and three intended JavaScript changes",
+    "Required repository governance and PR scope CI success on exact PR head"
+  ],
+  "adversarialTests": [
+    "Reject changed path outside eleven authorized files",
+    "Reject drift in any of seven frozen R4 files",
+    "Reject route inventory other than 60 or modified route set other than three JS modules",
+    "Reject a second Pages publisher, old release replay, or any publish/merge without new exact GO",
+    "Reject missing V6 assistance-event domain authorization as learner release"
+  ],
+  "nonGoals": [
+    "No learner hint history or storage event integration",
+    "No unrelated merge or publication, no replay of PR510 publisher; only exact PR512 public Explorer release",
+    "No Factory, kits, catalogue, permissions or learner-data changes",
+    "No broadening of CI routing for other unknown branches",
+    "No modification of historical evidence or old one-shot release"
+  ],
+  "independentReview": [
+    "Verify seven frozen Git blob IDs and four exact extra file scope",
+    "Review native browser/keyboard/security tests from exact PR head",
+    "Inspect nonpublishing staging manifest and all 60 resource byte comparisons",
+    "Check one existing Pages publisher and absence of Pages deployment",
+    "Current explicit user delivery GO and validation accepted; preserve independent GitHub CI, staging and post-publication HTTP verification"
+  ]
+}

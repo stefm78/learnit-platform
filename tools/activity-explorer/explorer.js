@@ -24,7 +24,7 @@ function setSelection(id){
  const row=visible.find(r=>r.id===id); if(!row){chosenId=null;active=null;presentation=null;disableActions();return;}
  chosenId=id;active=row.activity;ui.answer.textContent='';
  try{
-   presentation=projectActivityPresentation(active,{assets:kit.assets??[],contract:kit.contract});
+   presentation=projectActivityPresentation(active,{assets:kit.assets??[],contract:kit.contract,readOnlyHintPreview:true});
    const node=renderActivityPresentation(presentation);
    ui.preview.replaceChildren(node);
    // Do not infer media from activity fields: production projection resolves kit.assets references.

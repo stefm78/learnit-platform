@@ -28,7 +28,7 @@ jobs:
   qualify:
     name: Qualify exact 60-route Explorer candidate without modifying renderer
     if: >-
-      ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01') }}
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.number == 510) || (github.event_name == 'push' && github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     permissions:
@@ -149,11 +149,119 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: ${{ runner.temp }}/staged60/manifest.json
+  hints-preview-stage:
+    name: PR512 qualified 57/3 Pages candidate (nonpublishing PR / exact release push)
+    if: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.number == 512 && github.head_ref == 'feature/learnit-v6-hints-preview-r4-20261102') || (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(hints): single Pages 2026-11-02 PR512')) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate exact candidate and reconstruct deployed baseline in temporary worktree
+        shell: bash
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_NO: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PUSH_EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          BASE=91945c7a7cb4417671653693ab0cb00457ba3438
+          FROZEN=29810299b7c4b791b191904bf015b48902788155
+          if [[ "${PUSH_EVENT}" == "pull_request" ]]; then
+            [[ "${PR_NO}" == "512" && "${PR_BRANCH}" == "feature/learnit-v6-hints-preview-r4-20261102" ]]
+            [[ "${PR_BASE}" == "${BASE}" && "${PR_HEAD}" == "$(git rev-parse HEAD)" ]]
+          else
+            [[ "${PUSH_EVENT}" == "push" && "${GITHUB_REF}" == "refs/heads/main" && "${GITHUB_RUN_ATTEMPT}" == "1" ]]
+            [[ "$(git show -s --format=%s HEAD)" == "release(hints): single Pages 2026-11-02 PR512" ]]
+            read -r -a PARENTS <<< "$(git show -s --format=%P HEAD)"
+            [[ "${#PARENTS[@]}" == "2" && "${PARENTS[0]}" == "${BASE}" ]]
+            [[ "$(git merge-base "${PARENTS[1]}" HEAD)" == "${PARENTS[1]}" ]]
+          fi
+          git merge-base --is-ancestor "${BASE}" HEAD
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/OPS-WP-034.json').read_text(encoding='utf-8'))
+          assert wp['id']=='OPS-WP-034' and wp['status']=='proposed'
+          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED'
+          assert wp['authority']['releaseMergeTitle']=='release(hints): single Pages 2026-11-02 PR512'
+          assert wp['release']['deploymentGO']=='USER_EXPLICIT_2026_11_02_DELIVER_HINTS_PR512_USER_VALIDATED_REVIEW_WAIVED' and wp['release']['expectedMergeMethod']=='merge'
+          assert wp['release']['preservedByteIdenticalRoutes']==57 and len(wp['release']['replacedRoutes'])==3
+          def git(*a): return subprocess.check_output(['git',*a],text=True).strip()
+          assert sorted(git('diff','--name-only','91945c7a7cb4417671653693ab0cb00457ba3438','HEAD').splitlines())==sorted(wp['scope']['allowedPaths'])
+          files=['apps/learnit-next/source_manifest.json','apps/learnit-next/src/integration/atlas/activity_projection.js','apps/learnit-next/src/ui/activity_presenters.js','tools/activity-explorer/explorer.js','tools/activity-explorer/tests/test_hints_native_dom_browser.py','tools/activity-explorer/tests/test_hints_preview_browser.py','tools/activity-explorer/tests/test_structure.py']
+          assert subprocess.run(['git','diff','--quiet','29810299b7c4b791b191904bf015b48902788155','HEAD','--',*files]).returncode==0
+          PY
+          git worktree add --detach "${RUNNER_TEMP}/hints-reference" "${BASE}"
+          python -B "${RUNNER_TEMP}/hints-reference/apps/learnit-next/build.py" --output "${RUNNER_TEMP}/root-reference-a.html"
+          python -B "${RUNNER_TEMP}/hints-reference/apps/learnit-next/build.py" --output "${RUNNER_TEMP}/root-reference-b.html"
+          cmp "${RUNNER_TEMP}/root-reference-a.html" "${RUNNER_TEMP}/root-reference-b.html"
+          test "$(sha256sum "${RUNNER_TEMP}/root-reference-a.html" | cut -d' ' -f1)" = 4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/root-candidate-a.html"
+          python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/root-candidate-b.html"
+          cmp "${RUNNER_TEMP}/root-candidate-a.html" "${RUNNER_TEMP}/root-candidate-b.html"
+          test "$(sha256sum "${RUNNER_TEMP}/root-candidate-a.html" | cut -d' ' -f1)" = ba858cf01f6785bade8cfc5249419eb8ce6fa8c70b9a5ad783861806092c6712
+      - name: Reassemble historical 52 routes and independently stage baseline/candidate 60 routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_REPO="${RUNNER_TEMP}/hints-reference"
+          python -B "${BASE_REPO}/tools/learnit_v6_site/assemble.py" --repo "${BASE_REPO}" --output "${RUNNER_TEMP}/hints-old52" --manifest "${RUNNER_TEMP}/hints-old52.json"
+          python -B "${BASE_REPO}/tools/learnit_v6_site/test_site.py" --site "${RUNNER_TEMP}/hints-old52" --manifest "${RUNNER_TEMP}/hints-old52.json" --expected "${BASE_REPO}/tools/learnit_v6_site/expected_files.json"
+          cp -a "${RUNNER_TEMP}/hints-old52" "${RUNNER_TEMP}/hints-published52"
+          cp "${RUNNER_TEMP}/root-reference-a.html" "${RUNNER_TEMP}/hints-published52/index.html"
+          cp "${RUNNER_TEMP}/root-reference-a.html" "${RUNNER_TEMP}/hints-published52/learnit-next.html"
+          python -B "${BASE_REPO}/tools/activity-explorer/stage_pages.py" --repo "${BASE_REPO}" --published-site "${RUNNER_TEMP}/hints-published52" --output "${RUNNER_TEMP}/hints-baseline60"
+          python -B tools/activity-explorer/stage_pages.py --repo . --published-site "${RUNNER_TEMP}/hints-published52" --output "${RUNNER_TEMP}/hints-candidate60" --compare-baseline-60 "${RUNNER_TEMP}/hints-baseline60/site"
+          test "$(find "${RUNNER_TEMP}/hints-candidate60/site" -type f | wc -l | tr -d ' ')" = 60
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          manifest = json.loads((Path(os.environ['RUNNER_TEMP']) / 'hints-candidate60' / 'manifest.json').read_text(encoding='utf-8'))
+          delta = manifest['hints_preview_delta']
+          assert manifest['status'] == 'PASS_LOCAL_ONLY_NO_PUBLICATION'
+          assert manifest['published_routes_preserved'] == 52 and manifest['route_count'] == 60
+          assert delta['status'] == 'PASS_LOCAL_ONLY_NO_PUBLICATION'
+          assert delta['routes'] == 60 and delta['byte_identical'] == 57
+          assert delta['modified'] == [
+              'apps/learnit-next/src/integration/atlas/activity_projection.js',
+              'apps/learnit-next/src/ui/activity_presenters.js',
+              'tools/activity-explorer/explorer.js'
+          ]
+          print('PASS_DURABLE_STAGE_EVIDENCE_57_UNCHANGED_3_JS')
+          PY
+          echo PASS_60_ROUTE_STAGING_57_BYTE_IDENTICAL_3_JS_CHANGED
+      - name: Upload exact 60-route Pages artifact only on authorized one-shot merge
+        if: >-
+          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(hints): single Pages 2026-11-02 PR512') }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/hints-candidate60/site
+      - name: Save nonpublishing staging evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hints-preview-60-route-evidence-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/hints-candidate60/manifest.json
+
   deploy:
     name: Deploy from exact one-shot approved merge
-    needs: qualify
+    needs: [qualify, hints-preview-stage]
     if: >-
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01' }}
+      ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && ((github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01' && needs.qualify.result == 'success') || (startsWith(github.event.head_commit.message, 'release(hints): single Pages 2026-11-02 PR512') && needs.hints-preview-stage.result == 'success')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
@@ -169,8 +277,8 @@ jobs:
         uses: actions/deploy-pages@v4
   verify-live:
     name: Verify HTTP SHA256 of 52 preserved and 8 new URLs
-    needs: [qualify, deploy]
-    if: ${{ github.event_name == 'push' && needs.deploy.result == 'success' }}
+    needs: [qualify, hints-preview-stage, deploy]
+    if: ${{ always() && github.event_name == 'push' && needs.deploy.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
