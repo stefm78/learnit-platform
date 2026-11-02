@@ -43,7 +43,8 @@ def index_template(sha):
     return {'schema':'learnit.private-kit-index.verification-snapshot.v1',
             'authority':False,'distribution_authorized':False,'entries':[
             {'lineage_id':LINEAGE,'revision_id':REV,'kit_sha256':sha[7:],
-            'private_storage_status':'STORED_PRIVATE_VERIFIED'}]}
+            'private_storage_status':'STORED_PRIVATE_VERIFIED',
+            'relative_path':f'{LINEAGE}/{REV}/PHYSICS_EEC_COMPLETE_KIT_R1.json'}]}
 
 
 class TestPlanner(unittest.TestCase):
@@ -106,6 +107,28 @@ class TestPlanner(unittest.TestCase):
         p,files=self.plan(existing_index=idx)
         self.assertEqual(files,{})
         self.assertEqual(p['entries'][0]['action'],'VERIFY_EXISTING_REMOTE_BYTES_AND_ACL_NO_WRITE')
+
+    def test_existing_kit_keeps_actual_stored_filename(self):
+        idx=index_template(m.digest(self.raw))
+        plan, members=self.plan(existing_index=idx)
+        self.assertEqual(plan['entries'][0]['destination'],
+                         f'20_KITS/{LINEAGE}/{REV}/PHYSICS_EEC_COMPLETE_KIT_R1.json')
+        self.assertEqual(members,{})
+
+    def test_existing_kit_unknown_or_wrong_path_holds(self):
+        for rel in (None, f'{LINEAGE}/{REV}/../bad.json',
+                    f'{LINEAGE}/00000000-0000-0000-0000-000000000000/a.json',
+                    f'{LINEAGE}/{REV}/BAD.html'):
+            idx=index_template(m.digest(self.raw))
+            idx['entries'][0]['relative_path']=rel
+            with self.subTest(rel=rel),self.assertRaisesRegex(m.Hold,'EXISTING_DESTINATION'):
+                self.plan(existing_index=idx)
+
+    def test_existing_private_copy_digest_conflict_holds(self):
+        idx=index_template(m.digest(self.raw))
+        idx['entries'][0]['private_copy_sha256_verified']='0'*64
+        with self.assertRaisesRegex(m.Hold,'EXISTING_IDENTITY_CONFLICT'):
+            self.plan(existing_index=idx)
 
     def test_reject_existing_conflict(self):
         idx=index_template('sha256:'+'f'*64)
