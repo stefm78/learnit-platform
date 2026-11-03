@@ -71,14 +71,13 @@ jobs:
           assert os.environ['PR_BASE']==base and os.environ['PR_HEAD']==git('rev-parse','HEAD')
           assert git('merge-base',base,'HEAD')==base
           assert sorted(git('diff','--name-only',base,'HEAD').splitlines())==wp['scope']['allowedPaths']
-          for f in ('apps/learnit-next/source_manifest.json',
-                    'apps/learnit-next/src/ui/activity_presenters.js',
+          for f in ('apps/learnit-next/src/ui/activity_presenters.js',
                     'apps/learnit-next/src/integration/atlas/activity_projection.js',
                     'tools/activity-explorer/explorer.js',
                     'tools/activity-explorer/index.html',
                     '.github/workflows/learnit-v6-root-promotion.yml'):
               assert git('rev-parse','HEAD:'+f)==git('rev-parse',base+':'+f),f
-          print('PASS_ZOOM_SCOPE_7_AND_FROZEN_HISTORIC_RELEASE')
+          print('PASS_ZOOM_SCOPE_8_AND_FROZEN_HISTORIC_RELEASE')
           PY
       - name: Real native Chromium, accessibility, SVG and hint regression tests
         run: |

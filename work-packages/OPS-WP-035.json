@@ -20,6 +20,7 @@
     "allowedPaths": [
       ".github/workflows/activity-explorer-qualification.yml",
       ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/source_manifest.json",
       "apps/learnit-next/src/styles.css",
       "apps/learnit-next/src/ui/media.js",
       "tools/activity-explorer/tests/test_browser.py",
@@ -32,7 +33,6 @@
       "contracts/**",
       "governance/**",
       "platform/**",
-      "apps/learnit-next/source_manifest.json",
       "apps/learnit-next/src/integration/atlas/activity_projection.js",
       "apps/learnit-next/src/ui/activity_presenters.js",
       "apps/learnit-next/src/integration/atlas/session.js",
@@ -61,7 +61,7 @@
     "learnerHTML": "QUALIFY_LOCAL_ONLY_NO_PUBLISH"
   },
   "requiredEvidence": [
-    "Exact current main baseline, seven-file PR scope and independent GitHub CI checks",
+    "Exact current main baseline, eight-file PR scope and independent GitHub CI checks",
     "Real Chromium desktop and mobile/touch tests on unmodified canonical ES modules and CSS",
     "Existing hints/browser activity regression tests unchanged",
     "Deterministic standalone learner HTML candidate build twice, no root cutover",
@@ -85,7 +85,7 @@
     "Require fresh GO for release and actual HTTP verification"
   ],
   "invariants": [
-    "Strict seven-file allowlist",
+    "Strict eight-file allowlist",
     "Single existing Pages publisher untouched",
     "Current learner root unaffected until separately authorized cutover",
     "Fail closed on uncertain scope or build"
@@ -96,6 +96,19 @@
     "style": "single shared module and one stylesheet",
     "chrome": "required exact-head",
     "staging": "58 retained 2 modified",
-    "production": "NOT_AUTHORIZED"
-  }
+    "production": "NOT_AUTHORIZED",
+    "manifestReconciledExactBlobs": [
+      {
+        "path": "apps/learnit-next/src/styles.css",
+        "old": "65c59e258d97f802cacfbe21dc7753e81b6c85d5",
+        "new": "23cf37e7e14ecb95ee786ed50b3e8580742ebd56"
+      },
+      {
+        "path": "apps/learnit-next/src/ui/media.js",
+        "old": "6ec0b5dec6684cba63179519d8eaa71753cdd9ad",
+        "new": "630c97a3c2441c52c984ffaa9bc5ecee7d967039"
+      }
+    ]
+  },
+  "rollback": "Close unmerged draft PR #513 or revert only its governed merge in a separately authorized change; restore the exact d1c29f451c223964c7ba7e961c6a2bfe93a3713e baseline. No live site was changed by this candidate."
 }

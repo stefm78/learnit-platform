@@ -1400,7 +1400,7 @@ jobs:
           assert os.environ['PR_BASE']==base and os.environ['PR_HEAD']==git('rev-parse','HEAD')
           assert git('merge-base',base,'HEAD')==base
           assert sorted(git('diff','--name-only',base,'HEAD').splitlines())==wp['scope']['allowedPaths']
-          print('PASS_ZOOM_EXACT_SOURCE_7_NO_PUBLISH')
+          print('PASS_ZOOM_EXACT_SOURCE_8_NO_PUBLISH')
           PY
       - name: ES module syntax and reproducible candidate learner bundle
         run: |
