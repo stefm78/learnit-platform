@@ -105,11 +105,162 @@ def prepare_read_only(archive: pathlib.Path, checkout: pathlib.Path,
     try: result=json.loads(output.stdout)
     except (ValueError,UnicodeError) as e:raise Hold('VERIFIER_OUTPUT_NOT_JSON') from e
     run_ids=validate_event(event,archive_raw,commit,result['verified'])
-    return {'status':'LOCAL_PLAN_ONLY_NOT_ADMITTED','authority':False,
+    receipt = {'status':'LOCAL_PLAN_ONLY_NOT_ADMITTED','authority':False,
             'release_sha256':'sha256:'+hashlib.sha256(archive_raw).hexdigest(),
             'factory_run_ids':run_ids,'plan':result['plan'],
             'members_sha256':result['members_sha'],
             'remote_mutation':False,'automatic_hook_installed':False}
+    receipt['manual_handoff'] = build_command(receipt,archive)
+    return receipt
+
+
+# Human-reviewed, read-only handoff adapted from local manual-publication V1.
+HEX64 = re.compile(r"^[a-f0-9]{64}$")
+HASH = re.compile(r"^sha256:[a-f0-9]{64}$")
+UUID = re.compile(r"^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$")
+SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,139}\.json$")
+ACTIONS = {"PREFLIGHT_REMOTE_AND_CREATE_ONLY_IF_AUTHORIZED",
+           "VERIFY_EXISTING_REMOTE_BYTES_AND_ACL_NO_WRITE"}
+
+def must(ok: bool, why: str) -> None:
+    if not ok:
+        raise Hold(why)
+
+
+def digest_file(path: pathlib.Path) -> tuple[str, int]:
+    h=hashlib.sha256()
+    n=0
+    with path.open("rb") as f:
+        while True:
+            block=f.read(1024*1024)
+            if not block: break
+            n+=len(block)
+            must(n<=200_000_000,"RELEASE_TOO_LARGE")
+            h.update(block)
+    return h.hexdigest(),n
+
+
+def build_command(receipt: dict, release: pathlib.Path) -> str:
+    """Formatting only: no Graph calls, auth, token access, subprocess or mutation."""
+    must(isinstance(receipt,dict),"RECEIPT_INVALID")
+    must(receipt.get("status")=="LOCAL_PLAN_ONLY_NOT_ADMITTED" and
+         receipt.get("authority") is False and receipt.get("remote_mutation") is False and
+         receipt.get("automatic_hook_installed") is False,"NOT_A_READ_ONLY_POST_PASS_RECEIPT")
+    plan=receipt.get("plan")
+    must(isinstance(plan,dict) and plan.get("schema")=="learnit.private-kit-intake-plan.v1" and
+         plan.get("status")=="LOCAL_PREPARED_READ_ONLY_NOT_ADMITTED" and
+         plan.get("authority") is False and plan.get("write_permissions_conferred") is False,
+         "PLAN_NOT_READ_ONLY")
+    h=receipt.get("release_sha256")
+    must(isinstance(h,str) and HASH.fullmatch(h) is not None and
+         plan.get("release_sha256")==h[7:],"RELEASE_IDENTITY_MISMATCH")
+    real_hash,real_size=digest_file(release)
+    must(real_hash==h[7:] and real_size>0,"RELEASE_ARCHIVE_BYTES_CHANGED")
+    idx=plan.get("baseline_index_sha256")
+    must(isinstance(idx,str) and HEX64.fullmatch(idx) is not None,
+         "FRESH_RAW_PRIVATE_INDEX_NOT_BOUND")
+    release_id=plan.get("release_id")
+    must(isinstance(release_id,str) and HASH.fullmatch(release_id),
+         "CANONICAL_RELEASE_SET_ID_MISSING")
+    authority=plan.get("implementation_authority")
+    must(isinstance(authority,str) and re.fullmatch(r"[a-f0-9]{40}",authority),
+         "CANONICAL_FACTORY_IMPLEMENTATION_AUTHORITY_MISSING")
+    runs=receipt.get("factory_run_ids")
+    must(isinstance(runs,(list,tuple)) and len(runs)>0 and
+         all(isinstance(x,str) and HASH.fullmatch(x) for x in runs) and
+         len(set(runs))==len(runs),"FACTORY_RUN_IDENTITIES_INVALID")
+    es=plan.get("entries")
+    must(isinstance(es,list) and 0<len(es)<=1000,"PLAN_ENTRIES_INVALID")
+    members=receipt.get("members_sha256")
+    must(isinstance(members,dict),"MEMBER_DIGESTS_ABSENT")
+    pairs=set(); paths=set(); new_paths=set(); rows=[]
+    for e in es:
+        must(isinstance(e,dict),"PLAN_ENTRY_INVALID")
+        line,rev=e.get("lineage_id"),e.get("revision_id")
+        must(isinstance(line,str) and UUID.fullmatch(line) and
+             isinstance(rev,str) and UUID.fullmatch(rev),"BAD_KIT_IDENTITY")
+        must((line,rev) not in pairs,"DUPLICATE_KIT_IDENTITY")
+        pairs.add((line,rev))
+        path=e.get("destination")
+        parts=path.split("/") if isinstance(path,str) else []
+        must(len(parts)==4 and parts[:3]==["20_KITS",line,rev] and
+             SAFE_NAME.fullmatch(parts[3]) is not None and path not in paths,
+             "UNSAFE_OR_DUPLICATE_DESTINATION")
+        paths.add(path)
+        act=e.get("action")
+        must(act in ACTIONS,"UNKNOWN_ACTION")
+        run=e.get("factory_run_id")
+        must(isinstance(run,str) and run in runs,"UNBOUND_FACTORY_RUN")
+        content=e.get("content_sha256")
+        must(isinstance(content,str) and HASH.fullmatch(content),"KIT_HASH_INVALID")
+        must(type(e.get("content_bytes")) is int and e["content_bytes"]>0,
+             "KIT_BYTES_INVALID")
+        if act=="PREFLIGHT_REMOTE_AND_CREATE_ONLY_IF_AUTHORIZED":
+            must(members.get(path)==content[7:],"NEW_KIT_SOURCE_DIGEST_MISMATCH")
+            new_paths.add(path)
+        else:
+            must(path not in members,"EXISTING_KIT_MUST_BE_VERIFY_ONLY")
+        rows.append((line,rev,path,content,act))
+    must(set(members)==new_paths,"UNBOUND_OR_EXTRA_MEMBER")
+    must({e["factory_run_id"] for e in es}==set(runs),"FACTORY_RUN_SET_INCOMPLETE_OR_EXTRA")
+    count_new=sum(a=="PREFLIGHT_REMOTE_AND_CREATE_ONLY_IF_AUTHORIZED" for *_,a in rows)
+    count_old=len(rows)-count_new
+    if count_new == 0:
+        return ("# LearnIT — aucun nouveau kit à enregistrer\n\n"
+                "Release vérifiée : `sha256:"+real_hash+"` ; toutes les versions sont déjà référencées. "
+                "Un contrôle des copies et des permissions en lecture seule peut être proposé, "
+                "mais AUCUNE commande de modification OneDrive ne doit être émise.\n")
+    summary="\n".join(f"- `{path}` — `{action}` — `{kit_hash}`" for _,_,path,kit_hash,action in rows)
+    # The request is deliberately self-contained, and its exact-source identifier
+    # must be resolved from the real release archive by the operator/executor.
+    return f"""# LearnIT — demande d'action humaine de publication PRIVÉE
+
+**ETAT : À SOUMETTRE, NON EXÉCUTÉ.** Ce document n'est ni une attestation
+Factory, ni une délégation de droits, ni une autorisation de distribution.
+
+Vérification préalable externe obligatoire : exécuter les validateurs V6 canoniques,
+avec un checkout Git gouverné, puis `post_pass_factory_step.py` avec l'événement
+durable exact. Une copie de JSON fabriquée ne constitue jamais une preuve.
+
+## Identités figées pour l'opération proposée
+
+- Archive V6 : `sha256:{real_hash}` ({real_size} octets)
+- `releaseSetId` canonique : `{release_id}`
+- Autorité Git Factory déclarée : `{authority}` (à revalider)
+- Base de l'index privé à recontrôler : `sha256:{idx}`
+- FactoryRun(s) : {len(runs)} — {', '.join(f'`{r}`' for r in sorted(runs))}
+- Entrées : {len(rows)} ; nouveaux : {count_new} ; déjà référencés : {count_old}
+{summary}
+
+## Commande à envoyer explicitement dans ChatGPT
+
+> GO CONDITIONNEL — LearnIT, rangement privé MANUEL de la release V6
+> `sha256:{real_hash}` uniquement. Revalide UCP ancrée, HEAD,
+> autorisations Operations/Factory, provenance et octets ZIP exacts, puis
+> recalcule le plan depuis le `PRIVATE_INDEX.json` courant de OneDrive.
+> Les identités ci-dessus sont des contraintes de sélection, pas une preuve.
+> Si le ZIP ne peut pas être retrouvé par son identité exacte : HOLD.
+> Exécute seulement les créations de kits réellement nouveaux avec
+> `conflict=fail`, contrôle SHA-256 et permissions après copie ; les kits déjà
+> référencés sont VERIFICATION_ONLY sans écriture. Aucun renommage ni écrasement.
+> Ne mets à jour `PRIVATE_INDEX.json` puis `NAVIGUER_KITS.html` qu'après
+> vérification des copies ET preuve d'un mécanisme de concurrence sûr ; en cas
+> de remplacement non atomique, demande une acceptation humaine distincte
+> du risque résiduel avant écriture. En cas de désaccord/échec partiel : HOLD
+> et réconciliation, aucun retry aveugle.
+> Après enregistrement privé confirmé, reconstruis éventuellement les vues
+> du catalogue général avec le script CANONIQUE GitHub
+> `tools/refresh_onedrive_catalogue.py` (PAS la copie historique V1) ; contrôle
+> les quatre résultats et n'écris les pages de `05_CATALOGUE` que sous
+> autorisation exacte et vérification des conflits.
+> Aucune publication élèves, ACL, GitHub, Factory, Pages ni données élèves.
+> Rends les liens privés, le verdict et les empreintes réellement relues.
+
+**STOP si un prérequis n'est pas vérifié.** Un GO textuel ne supplante jamais
+les autorités actives, l'admission du nouveau kit ou les contrôles de concurrence.
+"""
+
+
 
 
 def main(argv=None):

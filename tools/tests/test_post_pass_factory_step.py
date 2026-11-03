@@ -40,4 +40,198 @@ class Tests(unittest.TestCase):
     def test_missing_commit_fails(self):
         with self.assertRaisesRegex(Hold,'COMMIT'):
             validate_event({**EVENT,'canonical_verifier_commit':None},A,GIT,VERIFIED)
-if __name__=='__main__':unittest.main()
+
+
+# Security and human-command tests (previous V1 manually reviewed)
+import copy, hashlib, pathlib, tempfile, unittest
+from post_pass_factory_step import Hold, build_command
+
+L='11111111-1111-1111-1111-111111111111'
+R='22222222-2222-2222-2222-222222222222'
+RAW=b'V6_RELEASE_FAKE_FOR_TEST_ONLY'
+D=hashlib.sha256(RAW).hexdigest()
+
+def fixture():
+    return {'status':'LOCAL_PLAN_ONLY_NOT_ADMITTED','authority':False,
+        'remote_mutation':False,'automatic_hook_installed':False,
+        'release_sha256':'sha256:'+D,'factory_run_ids':['sha256:'+'a'*64],
+        'members_sha256':{f'20_KITS/{L}/{R}/kit.json':'c'*64},
+        'plan':{'schema':'learnit.private-kit-intake-plan.v1',
+                'status':'LOCAL_PREPARED_READ_ONLY_NOT_ADMITTED',
+                'authority':False,'write_permissions_conferred':False,
+                'release_sha256':D,'release_id':'sha256:'+'e'*64,
+                'implementation_authority':'1'*40,'baseline_index_sha256':'b'*64,
+                'entries':[{'lineage_id':L,'revision_id':R,
+                'destination':f'20_KITS/{L}/{R}/kit.json',
+                'content_sha256':'sha256:'+'c'*64,'content_bytes':42,
+                'factory_run_id':'sha256:'+'a'*64,
+                'action':'PREFLIGHT_REMOTE_AND_CREATE_ONLY_IF_AUTHORIZED'}]}}
+
+class TestManual(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
+        self.arc=pathlib.Path(self.tmp.name)/'release.zip';self.arc.write_bytes(RAW)
+        self.valid=fixture()
+    def test_correct_receipt_proposes_no_automatic_publication(self):
+        s=build_command(self.valid,self.arc)
+        for term in ['GO CONDITIONNEL','sha256:'+D,'PRIVATE_INDEX.json','NAVIGUER_KITS.html',
+                     'refresh_onedrive_catalogue.py','HOLD','Aucune publication élèves',
+                     f'20_KITS/{L}/{R}/kit.json','sha256:'+'a'*64]:
+            self.assertIn(term,s)
+    def test_archive_mutation_blocks(self):
+        self.arc.write_bytes(RAW+b'changed')
+        with self.assertRaisesRegex(Hold,'RELEASE_ARCHIVE_BYTES_CHANGED'):build_command(self.valid,self.arc)
+    def test_no_fake_pass(self):
+        self.valid['status']='PASS_PRIVATELY_PUBLISHED'
+        with self.assertRaisesRegex(Hold,'NOT_A_READ_ONLY'):build_command(self.valid,self.arc)
+    def test_no_authority_granted(self):
+        self.valid['plan']['write_permissions_conferred']=True
+        with self.assertRaisesRegex(Hold,'PLAN_NOT_READ_ONLY'):build_command(self.valid,self.arc)
+    def test_no_stale_index_unbound(self):
+        self.valid['plan']['baseline_index_sha256']=None
+        with self.assertRaisesRegex(Hold,'FRESH_RAW_PRIVATE_INDEX'):build_command(self.valid,self.arc)
+    def test_release_identity_must_match(self):
+        self.valid['plan']['release_sha256']='d'*64
+        with self.assertRaisesRegex(Hold,'RELEASE_IDENTITY_MISMATCH'):build_command(self.valid,self.arc)
+    def test_no_bad_path(self):
+        self.valid['plan']['entries'][0]['destination']='20_KITS/../../evil.json'
+        with self.assertRaisesRegex(Hold,'UNSAFE_OR_DUPLICATE'):build_command(self.valid,self.arc)
+    def test_no_wrong_target_revision(self):
+        self.valid['plan']['entries'][0]['destination']=f'20_KITS/{L}/{L}/kit.json'
+        with self.assertRaisesRegex(Hold,'UNSAFE_OR_DUPLICATE'):build_command(self.valid,self.arc)
+    def test_no_unknown_action(self):
+        self.valid['plan']['entries'][0]['action']='REPLACE_AND_PUBLISH'
+        with self.assertRaisesRegex(Hold,'UNKNOWN_ACTION'):build_command(self.valid,self.arc)
+    def test_no_duplicate_entries(self):
+        self.valid['plan']['entries']*=2
+        with self.assertRaisesRegex(Hold,'DUPLICATE_KIT_IDENTITY'):build_command(self.valid,self.arc)
+    def test_name_is_not_interpolated_as_html_or_shell(self):
+        self.valid['plan']['entries'][0]['title']='<script>alert(1)</script>'
+        self.assertNotIn('<script>',build_command(self.valid,self.arc))
+    def test_reuse_existing_is_read_only(self):
+        self.valid['plan']['entries'][0]['action']='VERIFY_EXISTING_REMOTE_BYTES_AND_ACL_NO_WRITE'
+        self.valid['members_sha256']={}
+        s=build_command(self.valid,self.arc)
+        self.assertIn('aucun nouveau kit',s)
+    def test_factory_run_binding(self):
+        self.valid['plan']['entries'][0]['factory_run_id']='sha256:'+'b'*64
+        with self.assertRaisesRegex(Hold,'UNBOUND_FACTORY_RUN'):build_command(self.valid,self.arc)
+    def test_kit_bytes_binding(self):
+        path=f'20_KITS/{L}/{R}/kit.json'
+        self.valid['members_sha256'][path]='d'*64
+        with self.assertRaisesRegex(Hold,'NEW_KIT_SOURCE_DIGEST_MISMATCH'):build_command(self.valid,self.arc)
+    def test_no_release_set_identity(self):
+        self.valid['plan']['release_id']=None
+        with self.assertRaisesRegex(Hold,'CANONICAL_RELEASE_SET_ID_MISSING'):build_command(self.valid,self.arc)
+    def test_no_implementation_authority(self):
+        self.valid['plan']['implementation_authority']='not-a-commit'
+        with self.assertRaisesRegex(Hold,'IMPLEMENTATION_AUTHORITY_MISSING'):build_command(self.valid,self.arc)
+    def test_no_extra_run(self):
+        self.valid['factory_run_ids'].append('sha256:'+'d'*64)
+        with self.assertRaisesRegex(Hold,'FACTORY_RUN_SET_INCOMPLETE_OR_EXTRA'):build_command(self.valid,self.arc)
+    def test_extra_source_in_receipt(self):
+        self.valid['members_sha256']['20_KITS/surprise.json']='e'*64
+        with self.assertRaisesRegex(Hold,'UNBOUND_OR_EXTRA_MEMBER'):build_command(self.valid,self.arc)
+    def test_existing_with_new_bytes_is_hold(self):
+        self.valid['plan']['entries'][0]['action']='VERIFY_EXISTING_REMOTE_BYTES_AND_ACL_NO_WRITE'
+        with self.assertRaisesRegex(Hold,'EXISTING_KIT_MUST_BE_VERIFY_ONLY'):build_command(self.valid,self.arc)
+    def test_missing_member_map_is_hold(self):
+        del self.valid['members_sha256']
+        with self.assertRaisesRegex(Hold,'MEMBER_DIGESTS_ABSENT'):build_command(self.valid,self.arc)
+    def test_no_new_kits_proposes_no_go(self):
+        self.valid['plan']['entries'][0]['action']='VERIFY_EXISTING_REMOTE_BYTES_AND_ACL_NO_WRITE'
+        self.valid['members_sha256']={}
+        s=build_command(self.valid,self.arc)
+        self.assertIn('aucun nouveau kit',s)
+        self.assertNotIn('GO CONDITIONNEL',s)
+    def test_no_network_invocation_in_command_renderer(self):
+        import unittest.mock
+        with unittest.mock.patch('subprocess.run',side_effect=AssertionError('no process expected')):
+            s=build_command(self.valid,self.arc)
+            self.assertIn('GO CONDITIONNEL',s)
+
+    def test_wrong_hash_format(self):
+        self.valid['plan']['entries'][0]['content_sha256']='c'*64
+        with self.assertRaisesRegex(Hold,'KIT_HASH_INVALID'):build_command(self.valid,self.arc)
+
+
+
+class TestManualPostPassIntegration(unittest.TestCase):
+    def test_verified_receipt_generates_command_only_after_validation(self):
+        import json, pathlib, tempfile, types
+        from unittest.mock import patch
+        from post_pass_factory_step import prepare_read_only
+        # Controlled local simulator, never a claim of real Graph connectivity.
+        with tempfile.TemporaryDirectory() as work:
+            release=pathlib.Path(work)/'frozen-release.zip'
+            release.write_bytes(RAW)
+            index=b'{"entries":[],"schema":"learnit.private-kit-index.verification-snapshot.v1"}'
+            receipt=fixture()
+            evidence={'verified':{
+                'schema':'learnit.atlas.qualified_release_set_result.v2',
+                'verdict':'PASS_QUALIFIED_RELEASE_SET_V6_VERIFICATION_R1',
+                'releaseSha256':'sha256:'+D,'releaseBytes':len(RAW),
+                'manifest':{'entries':[{'factoryRun':{'runId':'sha256:'+'a'*64}}]}
+            },'plan':receipt['plan'],'members_sha':receipt['members_sha256']}
+            event={'type':'FACTORY_V6_QUALIFIED_RELEASE_DURABLE',
+                   'distribution_authorized':False,'release_sha256':'sha256:'+D,
+                   'canonical_verifier_commit':'1'*40,
+                   'factory_run_ids':['sha256:'+'a'*64]}
+            done=types.SimpleNamespace(stdout=json.dumps(evidence))
+            with patch('post_pass_factory_step.require_exact_checkout') as guard, \
+                 patch('post_pass_factory_step.subprocess.run',return_value=done) as call:
+                result=prepare_read_only(release,pathlib.Path(work),'1'*40,index,event)
+            self.assertIn('GO CONDITIONNEL',result['manual_handoff'])
+            self.assertFalse(result['remote_mutation'])
+            self.assertFalse(result['automatic_hook_installed'])
+            guard.assert_called_once()
+            call.assert_called_once()
+    def test_rendered_prompt_excludes_secrets_and_path_injection(self):
+        receipt=fixture()
+        receipt['plan']['entries'][0]['title']='<script>Bearer victim-token</script>'
+        with tempfile.TemporaryDirectory() as work:
+            import pathlib
+            release=pathlib.Path(work)/'frozen-release.zip';release.write_bytes(RAW)
+            rendered=build_command(receipt,release)
+        self.assertNotIn('victim-token',rendered)
+        self.assertNotIn('<script>',rendered)
+
+class TestThirdAdversarialReview(unittest.TestCase):
+    def test_false_factory_hold_cannot_produce_command(self):
+        import pathlib, tempfile, types, json
+        from unittest.mock import patch
+        from post_pass_factory_step import prepare_read_only
+        with tempfile.TemporaryDirectory() as work:
+            a=pathlib.Path(work)/'frozen-release.zip';a.write_bytes(RAW)
+            v=fixture(); rec={'verified':{
+                'schema':'learnit.atlas.qualified_release_set_result.v2',
+                'verdict':'HOLD_QUALIFIED_RELEASE_SET_V6_INPUT_R1',
+                'releaseSha256':'sha256:'+D,'releaseBytes':len(RAW),
+                'manifest':{'entries':[{'factoryRun':{'runId':'sha256:'+'a'*64}}]}},
+                'plan':v['plan'],'members_sha':v['members_sha256']}
+            event={'type':'FACTORY_V6_QUALIFIED_RELEASE_DURABLE',
+                'distribution_authorized':False,'release_sha256':'sha256:'+D,
+                'canonical_verifier_commit':'1'*40,
+                'factory_run_ids':['sha256:'+'a'*64]}
+            with patch('post_pass_factory_step.require_exact_checkout'), \
+                 patch('post_pass_factory_step.subprocess.run',return_value=types.SimpleNamespace(stdout=json.dumps(rec))):
+                with self.assertRaisesRegex(Hold,'CANONICAL_RELEASE_NOT_EXACT_PASS'):
+                    prepare_read_only(a,pathlib.Path(work),'1'*40,b'{}',event)
+    def test_malicious_pretend_index_or_publish_action_rejected(self):
+        import pathlib, tempfile
+        with tempfile.TemporaryDirectory() as wd:
+            arc=pathlib.Path(wd)/'release.zip';arc.write_bytes(RAW)
+            for bad in ('REPLACE_EXISTING','PUBLISH_PUBLIC','UPDATE_NAVIGATOR'):
+                v=fixture();v['plan']['entries'][0]['action']=bad
+                with self.subTest(action=bad), self.assertRaisesRegex(Hold,'UNKNOWN_ACTION'):
+                    build_command(v,arc)
+    def test_command_mentions_canonical_catalogue_only(self):
+        import pathlib,tempfile
+        with tempfile.TemporaryDirectory() as wd:
+            arc=pathlib.Path(wd)/'release.zip';arc.write_bytes(RAW)
+            s=build_command(fixture(),arc)
+            self.assertIn('tools/refresh_onedrive_catalogue.py',s)
+            self.assertIn('PAS la copie historique V1',s)
+            self.assertIn('Aucune publication élèves',s)
+            self.assertIn('le `PRIVATE_INDEX.json` courant',s)
+            self.assertNotIn('execute now without checks',s.lower())
