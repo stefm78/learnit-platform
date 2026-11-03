@@ -2,6 +2,7 @@
 """Real native renderer smoke. Requires playwright+chromium; never substitutes mocks."""
 from __future__ import annotations
 import json
+import os
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -32,7 +33,7 @@ KIT = {
 
 def main():
   with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True)
+    browser=p.chromium.launch(headless=True, executable_path=os.environ.get("CHROMIUM_EXECUTABLE") or None)
     page=browser.new_page(viewport={'width': 1440, 'height': 940})
     errors=[]
     page.on('pageerror', lambda e: errors.append(str(e)))
@@ -53,7 +54,14 @@ def main():
     assert page.locator('img[data-activity-media-image="svg"]').count()==1
     img=page.locator('img[data-activity-media-image="svg"]').first
     page.wait_for_function('(img) => img.complete && img.naturalWidth > 0',arg=img.element_handle())
-    assert page.locator('.activity-media-zoom summary').count()==1
+    assert page.locator('[data-activity-media-open]').count()==1
+    page.locator('[data-activity-media-open]').click()
+    assert page.locator('[data-activity-media-viewer]').count()==1
+    assert page.locator('[data-activity-media-zoom-percent]').inner_text()=='100 %'
+    page.locator('[data-activity-media-zoom-in]').click()
+    assert page.locator('[data-activity-media-zoom-percent]').inner_text()=='150 %'
+    page.keyboard.press('Escape')
+    assert page.locator('[data-activity-media-viewer]').count()==0
     assert page.locator('#activity-meta').inner_text().count('Validation') >= 1
     page.locator('#next-top').click()
     assert page.locator('[data-activity-presentation="classify"]').count()==1

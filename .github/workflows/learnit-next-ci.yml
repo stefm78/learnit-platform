@@ -82,7 +82,7 @@ concurrency:
 
 jobs:
   exact-head-matrix:
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') && !(github.event_name == 'pull_request' && github.head_ref == 'feature/learnit-v6-hints-preview-r4-20261102') }}
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.verification_mode == 'passage-v6-consumer-replay') && !(github.event_name == 'pull_request' && github.head_ref == 'feature/learnit-v6-hints-preview-r4-20261102') && !(github.event_name == 'pull_request' && github.head_ref == 'feature/learnit-v6-shared-media-zoom-r1-20261103') }}
     name: Exact-head routed matrix
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -1363,6 +1363,53 @@ jobs:
           path: |
             apps/learnit-next/.agent-result/run_checks.json
             apps/learnit-next/dist/learnit-next.html
+
+  zoom-shared-r1:
+    name: Exact V6 shared media zoom source and build qualification (NO DEPLOY)
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'feature/learnit-v6-shared-media-zoom-r1-20261103' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact PR source scope and no production authority
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          base='d1c29f451c223964c7ba7e961c6a2bfe93a3713e'
+          wp=json.loads(Path('work-packages/OPS-WP-035.json').read_text())
+          git=lambda *args:subprocess.check_output(['git',*args],text=True).strip()
+          assert wp['id']=='OPS-WP-035' and wp['baseline']['baseCommit']==base
+          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='NOT_GRANTED'
+          assert os.environ['PR_BASE']==base and os.environ['PR_HEAD']==git('rev-parse','HEAD')
+          assert git('merge-base',base,'HEAD')==base
+          assert sorted(git('diff','--name-only',base,'HEAD').splitlines())==wp['scope']['allowedPaths']
+          print('PASS_ZOOM_EXACT_SOURCE_7_NO_PUBLISH')
+          PY
+      - name: ES module syntax and reproducible candidate learner bundle
+        run: |
+          set -euo pipefail
+          node --check apps/learnit-next/src/ui/media.js
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/zoom-a.html"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/zoom-b.html"
+          cmp "$RUNNER_TEMP/zoom-a.html" "$RUNNER_TEMP/zoom-b.html"
+          echo PASS_SHARED_MEDIA_ZOOM_LOCAL_ONLY_NO_DEPLOY
 
   hints-preview-r4:
     name: PR512 exact V6 hints + native browser CI (NO DEPLOY)

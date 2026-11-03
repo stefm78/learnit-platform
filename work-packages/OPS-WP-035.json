@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-035",
+  "title": "LearnIT V6 shared media zoom R1",
+  "status": "proposed",
+  "purpose": "Implement one canonical full-screen 100–800% SVG/raster image viewer shared by the Activity Explorer and learner source, with fit, mouse wheel, drag, touch pinch, keyboard control, focus restore and bounded pan. Qualify only; do not publish.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_2026_11_03_SHARED_MEDIA_ZOOM_RESEARCH_AUDIT_SOLVE_BUILD",
+    "mergeGO": "NOT_GRANTED",
+    "productionGO": "NOT_GRANTED"
+  },
+  "baseline": {
+    "baseCommit": "d1c29f451c223964c7ba7e961c6a2bfe93a3713e",
+    "previousPublishedPR": 512,
+    "previousPublishedRoutes": 60,
+    "previousPublisher": ".github/workflows/learnit-v6-root-promotion.yml"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/activity-explorer-qualification.yml",
+      ".github/workflows/learnit-next-ci.yml",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/media.js",
+      "tools/activity-explorer/tests/test_browser.py",
+      "tools/activity-explorer/tests/test_media_zoom_browser.py",
+      "work-packages/OPS-WP-035.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "tools/activity-explorer/explorer.js",
+      "tools/activity-explorer/index.html",
+      ".github/workflows/learnit-v6-root-promotion.yml"
+    ]
+  },
+  "target": {
+    "sharedModule": "apps/learnit-next/src/ui/media.js",
+    "styles": "apps/learnit-next/src/styles.css",
+    "initialFit": 100,
+    "maxZoomPercent": 800,
+    "formats": [
+      "svg",
+      "png",
+      "jpeg",
+      "webp"
+    ],
+    "publishedRoutes": 60,
+    "preservedRoutes": 58,
+    "changedRoutes": [
+      "apps/learnit-next/src/ui/media.js",
+      "apps/learnit-next/src/styles.css"
+    ],
+    "learnerHTML": "QUALIFY_LOCAL_ONLY_NO_PUBLISH"
+  },
+  "requiredEvidence": [
+    "Exact current main baseline, seven-file PR scope and independent GitHub CI checks",
+    "Real Chromium desktop and mobile/touch tests on unmodified canonical ES modules and CSS",
+    "Existing hints/browser activity regression tests unchanged",
+    "Deterministic standalone learner HTML candidate build twice, no root cutover",
+    "60 candidate routes versus exact baseline; 58 byte-identical and exactly two shared resources updated, saved evidence"
+  ],
+  "adversarialTests": [
+    "Reject scope expansion, additional publisher, private kit or session changes",
+    "Reject unsafe SVG/raster, over-800% zoom, unbounded pan, missing focus return",
+    "Reject incorrect modal teardown, pinch gestures or keyboard affordances",
+    "Reject any claim of published success from staging"
+  ],
+  "nonGoals": [
+    "No GitHub merge or Pages deployment under this GO",
+    "No alteration of Factory, kits, catalogue, permissions, progress data or existing root HTML",
+    "No new duplicate renderer or Pages publisher",
+    "No changes to progressive-hints domain authority"
+  ],
+  "independentReview": [
+    "Review accessibility and security of original shared media module",
+    "Verify exact browser tests and byte identity of 58 preserved published resources",
+    "Require fresh GO for release and actual HTTP verification"
+  ],
+  "invariants": [
+    "Strict seven-file allowlist",
+    "Single existing Pages publisher untouched",
+    "Current learner root unaffected until separately authorized cutover",
+    "Fail closed on uncertain scope or build"
+  ],
+  "validation": {
+    "branch": "feature/learnit-v6-shared-media-zoom-r1-20261103",
+    "base": "d1c29f451c223964c7ba7e961c6a2bfe93a3713e",
+    "style": "single shared module and one stylesheet",
+    "chrome": "required exact-head",
+    "staging": "58 retained 2 modified",
+    "production": "NOT_AUTHORIZED"
+  }
+}
