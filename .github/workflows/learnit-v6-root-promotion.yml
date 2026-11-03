@@ -7,6 +7,7 @@ on:
       - '.github/workflows/activity-explorer-qualification.yml'
       - '.github/workflows/learnit-v6-root-promotion.yml'
       - 'work-packages/OPS-WP-033.json'
+      - 'work-packages/OPS-WP-035.json'
   push:
     branches: [main]
     paths:
@@ -14,6 +15,7 @@ on:
       - '.github/workflows/activity-explorer-qualification.yml'
       - '.github/workflows/learnit-v6-root-promotion.yml'
       - 'work-packages/OPS-WP-033.json'
+      - 'work-packages/OPS-WP-035.json'
 permissions:
   contents: read
 concurrency:
@@ -257,11 +259,138 @@ jobs:
           if-no-files-found: warn
           path: ${{ runner.temp }}/hints-candidate60/manifest.json
 
+  zoom-release-stage:
+    name: Exact PR513 zoom and learner HTML — staged 60-route release
+    if: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.number == 513 && github.head_ref == 'feature/learnit-v6-shared-media-zoom-r1-20261103') || (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(media): single Pages V6 zoom 2026-11-03 PR513')) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify exact PR, human GO, nine paths, immutable media blobs and only one publisher
+        env:
+          PR_NO: ${{ github.event.pull_request.number }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,re,subprocess
+          from pathlib import Path
+          git=lambda *a:subprocess.check_output(['git',*a],text=True).strip()
+          base='d1c29f451c223964c7ba7e961c6a2bfe93a3713e'
+          title='release(media): single Pages V6 zoom 2026-11-03 PR513'
+          go='USER_EXPLICIT_2026_11_03_DELIVER_SHARED_V6_ZOOM_PR513'
+          wp=json.loads(Path('work-packages/OPS-WP-035.json').read_text())
+          assert wp['id']=='OPS-WP-035' and wp['status']=='proposed'
+          assert wp['authority']['mergeGO']==wp['authority']['productionGO']==go
+          assert wp['release']['oneShotMergeTitle']==title and wp['release']['deployGO']==go
+          assert wp['release']['baseCommit']==base and wp['release']['prNumber']==513
+          assert wp['release']['unchangedRoutes']==56 and wp['release']['publishedRouteCount']==60
+          assert git('merge-base',base,'HEAD')==base and not git('status','--porcelain')
+          paths=sorted(git('diff','--name-only',base,'HEAD').splitlines())
+          assert paths==wp['scope']['allowedPaths'] and len(paths)==9,paths
+          assert git('rev-parse','HEAD:apps/learnit-next/src/ui/media.js')=='630c97a3c2441c52c984ffaa9bc5ecee7d967039'
+          assert git('rev-parse','HEAD:apps/learnit-next/src/styles.css')=='23cf37e7e14ecb95ee786ed50b3e8580742ebd56'
+          if os.environ['GITHUB_EVENT_NAME']=='pull_request':
+              assert os.environ['PR_NO']=='513' and os.environ['PR_BASE']==base
+              assert os.environ['PR_BRANCH']=='feature/learnit-v6-shared-media-zoom-r1-20261103'
+              assert os.environ['PR_HEAD']==git('rev-parse','HEAD')
+          else:
+              assert os.environ['GITHUB_REF']=='refs/heads/main' and os.environ['GITHUB_RUN_ATTEMPT']=='1'
+              assert git('show','-s','--format=%s','HEAD')==title
+              parents=git('show','-s','--format=%P','HEAD').split()
+              assert len(parents)==2 and parents[0]==base,parents
+              assert sorted(git('diff','--name-only',base,parents[1]).splitlines())==paths
+          workflow=Path('.github/workflows/learnit-v6-root-promotion.yml').read_text()
+          assert "github.event.pull_request.number == 510" in workflow
+          assert "github.event.pull_request.number == 512" in workflow
+          publishers=[p for p in Path('.github/workflows').glob('*.yml')
+              if re.search(r'(?m)^\s*uses:\s*actions/deploy-pages@v4\s*$',p.read_text())]
+          assert publishers==[Path('.github/workflows/learnit-v6-root-promotion.yml')],publishers
+          print('PASS_EXACT_PR513_GO_NINE_PATHS_TWO_BLOBS_ONE_PUBLISHER')
+          PY
+      - name: Rebuild original published 60 routes and exact new learner bundle
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/zoom-prior" d1c29f451c223964c7ba7e961c6a2bfe93a3713e
+          git worktree add --detach "$RUNNER_TEMP/zoom-root-old" 91945c7a7cb4417671653693ab0cb00457ba3438
+          B="$RUNNER_TEMP/zoom-prior"
+          F="$RUNNER_TEMP/zoom-root-old"
+          python -B "$B/tools/learnit_v6_site/assemble.py" --repo "$B" --output "$RUNNER_TEMP/zoom-52" --manifest "$RUNNER_TEMP/zoom-52.json"
+          python -B "$B/tools/learnit_v6_site/test_site.py" --site "$RUNNER_TEMP/zoom-52" --manifest "$RUNNER_TEMP/zoom-52.json" --expected "$B/tools/learnit_v6_site/expected_files.json"
+          python -B "$F/apps/learnit-next/build.py" --output "$RUNNER_TEMP/zoom-old-a.html"
+          python -B "$F/apps/learnit-next/build.py" --output "$RUNNER_TEMP/zoom-old-b.html"
+          cmp "$RUNNER_TEMP/zoom-old-a.html" "$RUNNER_TEMP/zoom-old-b.html"
+          test "$(sha256sum "$RUNNER_TEMP/zoom-old-a.html" | awk '{print $1}')" = 4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb
+          cp "$RUNNER_TEMP/zoom-old-a.html" "$RUNNER_TEMP/zoom-52/index.html"
+          cp "$RUNNER_TEMP/zoom-old-a.html" "$RUNNER_TEMP/zoom-52/learnit-next.html"
+          python -B "$B/tools/activity-explorer/stage_pages.py" --repo "$B" --published-site "$RUNNER_TEMP/zoom-52" --output "$RUNNER_TEMP/zoom-baseline60"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/zoom-new-a.html"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/zoom-new-b.html"
+          cmp "$RUNNER_TEMP/zoom-new-a.html" "$RUNNER_TEMP/zoom-new-b.html"
+          mkdir -p "$RUNNER_TEMP/zoom-candidate60"
+          cp -a "$RUNNER_TEMP/zoom-baseline60/site" "$RUNNER_TEMP/zoom-candidate60/site"
+          cp "$RUNNER_TEMP/zoom-new-a.html" "$RUNNER_TEMP/zoom-candidate60/site/index.html"
+          cp "$RUNNER_TEMP/zoom-new-a.html" "$RUNNER_TEMP/zoom-candidate60/site/learnit-next.html"
+          cp apps/learnit-next/src/ui/media.js "$RUNNER_TEMP/zoom-candidate60/site/apps/learnit-next/src/ui/media.js"
+          cp apps/learnit-next/src/styles.css "$RUNNER_TEMP/zoom-candidate60/site/apps/learnit-next/src/styles.css"
+          python - <<'PY'
+          import hashlib,json,os,runpy
+          from datetime import datetime,timezone
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          old=root/'zoom-baseline60/site';new=root/'zoom-candidate60/site'
+          listing=lambda p:{x.relative_to(p).as_posix() for x in p.rglob('*') if x.is_file()}
+          paths=listing(old)
+          assert paths==listing(new) and len(paths)==60
+          diff={p for p in paths if (old/p).read_bytes()!=(new/p).read_bytes()}
+          expected={'index.html','learnit-next.html','apps/learnit-next/src/ui/media.js','apps/learnit-next/src/styles.css'}
+          assert diff==expected,diff
+          data=(new/'index.html').read_bytes()
+          assert data==(new/'learnit-next.html').read_bytes()
+          csp=runpy.run_path('tools/learnit_v6_site/stage_verified_v6.py')['validate_csp_html'](data)
+          assert csp['module_sha256'] and csp['style_sha256']
+          sha=lambda b:hashlib.sha256(b).hexdigest()
+          files={p:{'sha256':sha((new/p).read_bytes()),'bytes':(new/p).stat().st_size} for p in sorted(paths)}
+          assert all(files[p]['sha256']==sha((old/p).read_bytes()) for p in paths-diff)
+          proof={'schema':'learnit.v6.zoom.pages.r1','status':'PASS_LOCAL_ONLY_NO_PUBLICATION',
+                 'timeUTC':datetime.now(timezone.utc).isoformat(),'sourceCommit':os.environ['GITHUB_SHA'],
+                 'routeCount':60,'byteIdentical':56,'modified':sorted(expected),'files':files,
+                 'rootSha256':sha(data),'csp':csp,'publisherCount':1}
+          (root/'zoom-candidate60/manifest.json').write_text(json.dumps(proof,sort_keys=True,indent=2)+'\n')
+          print('PASS_PR513_60_ROUTES_56_IDENTICAL_4_MODIFIED_TWO_ROOT_ALIASES_CSP')
+          PY
+      - name: Upload exact zoom site only on one-shot merge
+        if: >-
+          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && startsWith(github.event.head_commit.message, 'release(media): single Pages V6 zoom 2026-11-03 PR513') }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/zoom-candidate60/site
+      - name: Save qualified 60-route SHA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zoom-release-60-${{ github.run_id }}
+          path: ${{ runner.temp }}/zoom-candidate60/manifest.json
+          if-no-files-found: warn
+          retention-days: 30
+
   deploy:
     name: Deploy from exact one-shot approved merge
-    needs: [qualify, hints-preview-stage]
+    needs: [qualify, hints-preview-stage, zoom-release-stage]
     if: >-
-      ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && ((github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01' && needs.qualify.result == 'success') || (startsWith(github.event.head_commit.message, 'release(hints): single Pages 2026-11-02 PR512') && needs.hints-preview-stage.result == 'success')) }}
+      ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && ((github.event.head_commit.message == 'release(activity-explorer): single Pages 2026-11-01' && needs.qualify.result == 'success') || (startsWith(github.event.head_commit.message, 'release(hints): single Pages 2026-11-02 PR512') && needs.hints-preview-stage.result == 'success') || (startsWith(github.event.head_commit.message, 'release(media): single Pages V6 zoom 2026-11-03 PR513') && needs.zoom-release-stage.result == 'success')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
@@ -277,7 +406,7 @@ jobs:
         uses: actions/deploy-pages@v4
   verify-live:
     name: Verify HTTP SHA256 of 52 preserved and 8 new URLs
-    needs: [qualify, hints-preview-stage, deploy]
+    needs: [qualify, hints-preview-stage, zoom-release-stage, deploy]
     if: ${{ always() && github.event_name == 'push' && needs.deploy.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -288,8 +417,18 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Download candidate manifest for exact live HTTP verification
+        if: >-
+          ${{ startsWith(github.event.head_commit.message, 'release(media): single Pages V6 zoom 2026-11-03 PR513') }}
+        uses: actions/download-artifact@v4
+        with:
+          name: zoom-release-60-${{ github.run_id }}
+          path: ${{ runner.temp }}/zoom-proof
       - name: GET and SHA-256 every one of the 60 published files
         shell: bash
+        env:
+          IS_ZOOM_RELEASE: >-
+            ${{ startsWith(github.event.head_commit.message, 'release(media): single Pages V6 zoom 2026-11-03 PR513') }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -312,6 +451,18 @@ jobs:
             b=Path(key).read_bytes()
             files[key]=(hashlib.sha256(b).hexdigest(),len(b))
           assert len(files)==60
+          if os.environ['IS_ZOOM_RELEASE']=='true':
+            proof=json.loads((Path(os.environ['RUNNER_TEMP'])/'zoom-proof/manifest.json').read_text(encoding='utf-8'))
+            assert proof['schema']=='learnit.v6.zoom.pages.r1'
+            assert proof['status']=='PASS_LOCAL_ONLY_NO_PUBLICATION'
+            assert proof['sourceCommit']==os.environ['GITHUB_SHA']
+            assert proof['routeCount']==60 and proof['byteIdentical']==56
+            assert proof['publisherCount']==1
+            assert proof['modified']==['apps/learnit-next/src/styles.css','apps/learnit-next/src/ui/media.js','index.html','learnit-next.html']
+            assert proof['files']['index.html']==proof['files']['learnit-next.html']
+            assert proof['files']['index.html']['sha256']==proof['rootSha256']
+            files={key:(item['sha256'],item['bytes']) for key,item in proof['files'].items()}
+            assert len(files)==60
           origin='https://stefm78.github.io/learnit-platform/'
           for i,(key,(expected,size)) in enumerate(sorted(files.items()),1):
             url=origin+quote(key,safe='/')+'?release='+os.environ['GITHUB_RUN_ID']

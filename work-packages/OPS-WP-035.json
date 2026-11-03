@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "id": "OPS-WP-035",
+  "title": "LearnIT V6 shared zoom R1 — qualified PR513 single Pages release",
+  "status": "proposed",
+  "purpose": "Deliver the canonical full-screen image renderer shared by the Activity Explorer and the V6 learner standalone HTML, after exact CI and local user acceptance. Preserve all other 56/60 public routes byte-for-byte, with no kit, Factory or learner-state mutation.",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "humanGO": "USER_EXPLICIT_2026_11_03_SHARED_MEDIA_ZOOM_RESEARCH_AUDIT_SOLVE_BUILD",
+    "mergeGO": "USER_EXPLICIT_2026_11_03_DELIVER_SHARED_V6_ZOOM_PR513",
+    "productionGO": "USER_EXPLICIT_2026_11_03_DELIVER_SHARED_V6_ZOOM_PR513",
+    "latestHumanInstruction": "c'est bon; go; /research /audit /solve /build with three severe review cycles (2026-11-03)",
+    "releaseMergeTitle": "release(media): single Pages V6 zoom 2026-11-03 PR513",
+    "exactPR": 513
+  },
+  "baseline": {
+    "baseCommit": "d1c29f451c223964c7ba7e961c6a2bfe93a3713e",
+    "previousPublishedPR": 512,
+    "previousPublishedRoutes": 60,
+    "previousPublisher": ".github/workflows/learnit-v6-root-promotion.yml"
+  },
+  "scope": {
+    "allowedPaths": [
+      ".github/workflows/activity-explorer-qualification.yml",
+      ".github/workflows/learnit-next-ci.yml",
+      ".github/workflows/learnit-v6-root-promotion.yml",
+      "apps/learnit-next/source_manifest.json",
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/media.js",
+      "tools/activity-explorer/tests/test_browser.py",
+      "tools/activity-explorer/tests/test_media_zoom_browser.py",
+      "work-packages/OPS-WP-035.json"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      "apps/learnit-next/src/integration/atlas/activity_projection.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/integration/atlas/session.js",
+      "tools/activity-explorer/explorer.js",
+      "tools/activity-explorer/index.html"
+    ]
+  },
+  "target": {
+    "sharedModule": "apps/learnit-next/src/ui/media.js",
+    "styles": "apps/learnit-next/src/styles.css",
+    "initialFit": 100,
+    "maxZoomPercent": 800,
+    "formats": [
+      "svg",
+      "png",
+      "jpeg",
+      "webp"
+    ],
+    "publishedRoutes": 60,
+    "preservedRoutes": 56,
+    "changedRoutes": [
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/media.js",
+      "index.html",
+      "learnit-next.html"
+    ],
+    "learnerHTML": "BUILD_AND_PUBLISH_BOTH_ROOT_ALIASES_AFTER_AUTHORIZED_EXACT_MERGE",
+    "mediaOnlyStaging": {
+      "preservedRoutes": 58,
+      "changedRoutes": [
+        "apps/learnit-next/src/styles.css",
+        "apps/learnit-next/src/ui/media.js"
+      ],
+      "result": "QUALIFIED_WITHOUT_ROOT_CHANGE"
+    }
+  },
+  "requiredEvidence": [
+    "Exact current main baseline, nine-file PR scope and independent GitHub CI checks",
+    "Real Chromium desktop and mobile/touch tests on unmodified canonical ES modules and CSS",
+    "Existing hints/browser activity regression tests unchanged",
+    "Deterministic standalone learner HTML candidate build twice, no root cutover",
+    "60 candidate routes versus exact baseline; 58 byte-identical and exactly two shared resources updated, saved evidence",
+    "Release-stage exact 60 URL manifest: exactly 56 preserved and exactly four modified resources, including two root aliases and two canonical media sources",
+    "Single existing Pages publisher uploads verified 60-route artifact only on PR513 exact merge and HTTP SHA-256 verification confirms 60/60"
+  ],
+  "adversarialTests": [
+    "Reject scope expansion, additional publisher, private kit or session changes",
+    "Reject unsafe SVG/raster, over-800% zoom, unbounded pan, missing focus return",
+    "Reject incorrect modal teardown, pinch gestures or keyboard affordances",
+    "Reject any claim of published success from staging",
+    "Reject missing root HTML alias update, wrong CSP, non-exact PR513 merge parent or any replay of PR510/512 release"
+  ],
+  "nonGoals": [
+    "No unrelated merge or Pages deployment; only exact PR513 one-shot release after full qualification",
+    "No alteration of Factory, kits, catalogue, permissions or progress data; root HTML changed only as the authorized deterministic candidate",
+    "No new duplicate renderer or Pages publisher",
+    "No changes to progressive-hints domain authority"
+  ],
+  "independentReview": [
+    "Review accessibility and security of original shared media module",
+    "Verify exact browser tests and byte identity of 58 preserved published resources",
+    "Fresh user production GO granted, mandatory exact live HTTP verification after authorized one-shot publication"
+  ],
+  "invariants": [
+    "Strict nine-file allowlist; bounded root delivery only",
+    "Only the existing single Pages workflow may be amended, with exactly one deploy-pages action",
+    "Current learner root preserved until PR513 exact successful one-shot staged merge and Pages artifact upload",
+    "Fail closed on uncertain scope or build"
+  ],
+  "validation": {
+    "branch": "feature/learnit-v6-shared-media-zoom-r1-20261103",
+    "base": "d1c29f451c223964c7ba7e961c6a2bfe93a3713e",
+    "style": "single shared module and one stylesheet",
+    "chrome": "required exact-head",
+    "staging": "58 retained +2 shared modules, and 56 retained +4 public release including root aliases",
+    "production": "GO_CONDITIONAL_EXACT_9_PATH_AND_SINGLE_PUBLISHER",
+    "manifestReconciledExactBlobs": [
+      {
+        "path": "apps/learnit-next/src/styles.css",
+        "old": "65c59e258d97f802cacfbe21dc7753e81b6c85d5",
+        "new": "23cf37e7e14ecb95ee786ed50b3e8580742ebd56"
+      },
+      {
+        "path": "apps/learnit-next/src/ui/media.js",
+        "old": "6ec0b5dec6684cba63179519d8eaa71753cdd9ad",
+        "new": "630c97a3c2441c52c984ffaa9bc5ecee7d967039"
+      }
+    ]
+  },
+  "rollback": "If PR513 has not merged, close draft without deploying. After release, preserve exact 60-route manifest and use separately authorized governed rollback to prior proven d1c29f451c223964c7ba7e961c6a2bfe93a3713e state; never overwrite kits, state, catalogue or Factory.",
+  "release": {
+    "existingPublisherOnly": ".github/workflows/learnit-v6-root-promotion.yml",
+    "oneShotMergeTitle": "release(media): single Pages V6 zoom 2026-11-03 PR513",
+    "expectedMergeMethod": "merge",
+    "prNumber": 513,
+    "baseCommit": "d1c29f451c223964c7ba7e961c6a2bfe93a3713e",
+    "sourceBranch": "feature/learnit-v6-shared-media-zoom-r1-20261103",
+    "publishedRouteCount": 60,
+    "unchangedRoutes": 56,
+    "modifiedRoutes": [
+      "apps/learnit-next/src/styles.css",
+      "apps/learnit-next/src/ui/media.js",
+      "index.html",
+      "learnit-next.html"
+    ],
+    "deployGO": "USER_EXPLICIT_2026_11_03_DELIVER_SHARED_V6_ZOOM_PR513",
+    "approval": "USER_EXPLICIT_GO",
+    "browserQualification": "REQUIRED",
+    "liveHTTPVerification": "REQUIRED_AFTER_PUBLISH"
+  }
+}

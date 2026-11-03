@@ -9,6 +9,7 @@ permissions:
   contents: read
 jobs:
   qualify:
+    if: ${{ github.head_ref != 'feature/learnit-v6-shared-media-zoom-r1-20261103' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -32,3 +33,104 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Run exact application renderer in isolated browser
         run: python tools/activity-explorer/tests/test_browser.py
+
+  zoom-r1:
+    name: Shared V6 media zoom native 60-route qualification (NO DEPLOY)
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'feature/learnit-v6-shared-media-zoom-r1-20261103' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify strict seven-file scope and frozen V6 boundaries
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          base='d1c29f451c223964c7ba7e961c6a2bfe93a3713e'
+          wp=json.loads(Path('work-packages/OPS-WP-035.json').read_text())
+          git=lambda *args:subprocess.check_output(['git',*args],text=True).strip()
+          assert wp['id']=='OPS-WP-035' and wp['status']=='proposed'
+          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='USER_EXPLICIT_2026_11_03_DELIVER_SHARED_V6_ZOOM_PR513'
+          assert wp['baseline']['baseCommit']==base
+          assert os.environ['PR_BASE']==base and os.environ['PR_HEAD']==git('rev-parse','HEAD')
+          assert git('merge-base',base,'HEAD')==base
+          assert sorted(git('diff','--name-only',base,'HEAD').splitlines())==wp['scope']['allowedPaths']
+          for f in ('apps/learnit-next/src/ui/activity_presenters.js',
+                    'apps/learnit-next/src/integration/atlas/activity_projection.js',
+                    'tools/activity-explorer/explorer.js',
+                    'tools/activity-explorer/index.html'):
+              assert git('rev-parse','HEAD:'+f)==git('rev-parse',base+':'+f),f
+          print('PASS_ZOOM_SCOPE_9_AND_FROZEN_PRODUCT_BOUNDARIES')
+          PY
+      - name: Real native Chromium, accessibility, SVG and hint regression tests
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s tools/activity-explorer/tests -p test_structure.py -v
+          python tools/activity-explorer/tests/test_browser.py
+          python tools/activity-explorer/tests/test_media_zoom_browser.py
+          python tools/activity-explorer/tests/test_hints_native_dom_browser.py
+          python tools/activity-explorer/tests/test_hints_preview_browser.py
+          node --check apps/learnit-next/src/ui/media.js
+      - name: Deterministic learner bundle candidate (NO LIVE ROOT UPDATE)
+        run: |
+          set -euo pipefail
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/zoom-a.html"
+          python -B apps/learnit-next/build.py --output "$RUNNER_TEMP/zoom-b.html"
+          cmp "$RUNNER_TEMP/zoom-a.html" "$RUNNER_TEMP/zoom-b.html"
+          echo PASS_DETERMINISTIC_LEARNER_CANDIDATE_NO_DEPLOY
+      - name: Compare 60 prior routes to zoom candidate, preserve 58 byte exact
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/base-repo" d1c29f451c223964c7ba7e961c6a2bfe93a3713e
+          B="$RUNNER_TEMP/base-repo"
+          python -B "$B/tools/learnit_v6_site/assemble.py" --repo "$B" --output "$RUNNER_TEMP/old52" --manifest "$RUNNER_TEMP/old52.json"
+          python -B "$B/tools/learnit_v6_site/test_site.py" --site "$RUNNER_TEMP/old52" --manifest "$RUNNER_TEMP/old52.json" --expected "$B/tools/learnit_v6_site/expected_files.json"
+          git worktree add --detach "$RUNNER_TEMP/frozen-root-repo" 91945c7a7cb4417671653693ab0cb00457ba3438
+          python -B "$RUNNER_TEMP/frozen-root-repo/apps/learnit-next/build.py" --output "$RUNNER_TEMP/frozen-root.html"
+          test "$(sha256sum "$RUNNER_TEMP/frozen-root.html" | awk '{print $1}')" = 4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb
+          cp "$RUNNER_TEMP/frozen-root.html" "$RUNNER_TEMP/old52/index.html"
+          cp "$RUNNER_TEMP/frozen-root.html" "$RUNNER_TEMP/old52/learnit-next.html"
+          python -B "$B/tools/activity-explorer/stage_pages.py" --repo "$B" --published-site "$RUNNER_TEMP/old52" --output "$RUNNER_TEMP/old60"
+          python -B tools/activity-explorer/stage_pages.py --repo . --published-site "$RUNNER_TEMP/old52" --output "$RUNNER_TEMP/new60"
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          t=Path(os.environ['RUNNER_TEMP'])
+          a,b=t/'old60/site',t/'new60/site'
+          listing=lambda root:{p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}
+          before,after=listing(a),listing(b)
+          assert before==after and len(before)==60,(len(before),len(after))
+          digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          changed={p:{'old':digest(a/p),'new':digest(b/p)} for p in sorted(before) if (a/p).read_bytes()!=(b/p).read_bytes()}
+          assert set(changed)=={'apps/learnit-next/src/styles.css','apps/learnit-next/src/ui/media.js'},changed
+          result={'schema':'learnit.v6.zoom.local-stage.v1','status':'PASS_LOCAL_ONLY_NO_PUBLICATION',
+                  'routeCount':60,'unchanged':58,'changed':changed,'publisherModified':False,'learnerRootPublished':False}
+          (t/'zoom-evidence.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print('PASS_ZOOM_60_ROUTES_58_PRESERVED_2_CHANGED_NO_DEPLOY')
+          PY
+      - name: Upload nonpublishing evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zoom-r1-staging-${{ github.run_id }}
+          path: ${{ runner.temp }}/zoom-evidence.json
+          retention-days: 14
+          if-no-files-found: warn

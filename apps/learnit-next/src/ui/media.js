@@ -130,10 +130,18 @@ export function renderEmbeddedMedia(media) {
     'data-activity-media-placement': String(media.placement || 'content'),
   }, [image]);
   if (media.caption?.trim()) figure.append(el('figcaption', { text: media.caption.trim() }));
-  if (media.zoomable === true) figure.append(el('details', { className: 'activity-media-zoom' }, [
-    el('summary', { text: 'Agrandir l’image' }),
-    el('img', { src: image.src, alt: result.alt, 'data-activity-media-zoom-image': 'true' }),
-  ]));
+  if (media.zoomable === true) {
+    image.classList.add('activity-media-open');
+    image.setAttribute('role', 'button');
+    image.setAttribute('tabindex', '0');
+    image.setAttribute('aria-label', `Agrandir l’image : ${result.alt}`);
+    image.setAttribute('data-activity-media-open', 'true');
+    const open = () => openMediaViewer(image.src, result.alt, image);
+    image.addEventListener('click', open);
+    image.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+    });
+  }
   return figure;
 }
 
@@ -141,4 +149,179 @@ export function renderEmbeddedMediaSet(mediaItems = []) {
   const fragment = document.createDocumentFragment();
   if (Array.isArray(mediaItems)) mediaItems.forEach(media => fragment.append(renderEmbeddedMedia(media)));
   return fragment;
+}
+
+// Shared, local-only accessible image viewer; 100% means fitted to the viewport.
+const MEDIA_MAX_ZOOM = 8;
+let closeActiveMediaViewer = null;
+
+function openMediaViewer(src, alt, opener) {
+  closeActiveMediaViewer?.();
+  const previousOverflow = document.body.style.overflow;
+  const viewer = el('div', {
+    className: 'activity-media-viewer', role: 'dialog', 'aria-modal': 'true',
+    'aria-label': 'Image agrandie : ' + alt, 'data-activity-media-viewer': 'true',
+  });
+  const stage = el('div', { className: 'activity-media-viewer-stage', 'data-activity-media-stage': 'true' });
+  const image = el('img', {
+    className: 'activity-media-viewer-image', src, alt, draggable: 'false',
+    'data-activity-media-viewer-image': 'true',
+  });
+  const percent = el('output', {
+    className: 'activity-media-viewer-percent', 'aria-live': 'polite',
+    'data-activity-media-zoom-percent': 'true', text: '100 %',
+  });
+  const state = { zoom: 1, x: 0, y: 0, pointers: new Map(), gesture: null, closed: false };
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  function recenterBounds() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if (w <= 0 || h <= 0 || !image.naturalWidth || !image.naturalHeight) {
+      state.x = 0; state.y = 0; return;
+    }
+    const fit = Math.min(w / image.naturalWidth, h / image.naturalHeight);
+    const maxX = Math.max(0, (image.naturalWidth * fit * state.zoom - w) / 2);
+    const maxY = Math.max(0, (image.naturalHeight * fit * state.zoom - h) / 2);
+    state.x = clamp(state.x, -maxX, maxX);
+    state.y = clamp(state.y, -maxY, maxY);
+  }
+  function update() {
+    recenterBounds();
+    image.style.transform = 'translate3d(' + state.x + 'px, ' + state.y + 'px, 0) scale(' + state.zoom + ')';
+    percent.textContent = Math.round(state.zoom * 100) + ' %';
+    viewer.dataset.zoom = String(state.zoom);
+    viewer.dataset.panX = String(state.x);
+    viewer.dataset.panY = String(state.y);
+  }
+  function localPoint(clientX, clientY) {
+    const r = stage.getBoundingClientRect();
+    return { x: clientX - r.left - r.width / 2, y: clientY - r.top - r.height / 2 };
+  }
+  function zoomTo(target, anchor = { x: 0, y: 0 }) {
+    const next = clamp(target, 1, MEDIA_MAX_ZOOM);
+    const ratio = next / state.zoom;
+    state.x = anchor.x - (anchor.x - state.x) * ratio;
+    state.y = anchor.y - (anchor.y - state.y) * ratio;
+    state.zoom = next;
+    update();
+  }
+  function fit() { state.zoom = 1; state.x = 0; state.y = 0; update(); }
+  function action(label, attribute, fn) {
+    const button = el('button', { type: 'button', className: 'activity-media-viewer-control', [attribute]: 'true', text: label });
+    button.addEventListener('click', fn);
+    return button;
+  }
+  const controls = el('div', { className: 'activity-media-viewer-controls' });
+  controls.append(
+    action('−', 'data-activity-media-zoom-out', () => zoomTo(state.zoom / 1.5)),
+    percent,
+    action('+', 'data-activity-media-zoom-in', () => zoomTo(state.zoom * 1.5)),
+    action('Ajuster', 'data-activity-media-fit', fit),
+  );
+  const closeButton = action('Fermer', 'data-activity-media-close', close);
+  const toolbar = el('div', { className: 'activity-media-viewer-toolbar' }, [
+    el('span', { className: 'activity-media-viewer-label', text: alt }),
+    controls,
+    closeButton,
+  ]);
+  stage.append(image);
+  viewer.append(toolbar, stage);
+  function release(event) {
+    state.pointers.delete(event.pointerId);
+    state.gesture = null;
+    if (state.pointers.size === 1) {
+      const p = state.pointers.values().next().value;
+      state.gesture = { type: 'drag', x: p.x, y: p.y };
+    }
+    if (stage.hasPointerCapture?.(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+  }
+  function pointerDown(event) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    event.preventDefault();
+    stage.setPointerCapture?.(event.pointerId);
+    state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (state.pointers.size === 1) {
+      state.gesture = { type: 'drag', x: event.clientX, y: event.clientY };
+    } else if (state.pointers.size === 2) {
+      const [a, b] = [...state.pointers.values()];
+      state.gesture = { type: 'pinch', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2,
+        distance: Math.hypot(a.x - b.x, a.y - b.y) };
+    }
+  }
+  function pointerMove(event) {
+    if (!state.pointers.has(event.pointerId)) return;
+    event.preventDefault();
+    state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (state.pointers.size === 1 && state.gesture?.type === 'drag') {
+      state.x += event.clientX - state.gesture.x;
+      state.y += event.clientY - state.gesture.y;
+      state.gesture.x = event.clientX;
+      state.gesture.y = event.clientY;
+      update();
+    } else if (state.pointers.size === 2 && state.gesture?.type === 'pinch') {
+      const [a, b] = [...state.pointers.values()];
+      const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2;
+      const distance = Math.hypot(a.x - b.x, a.y - b.y);
+      state.x += x - state.gesture.x;
+      state.y += y - state.gesture.y;
+      if (state.gesture.distance > 0 && distance > 0) {
+        zoomTo(state.zoom * distance / state.gesture.distance, localPoint(x, y));
+      } else update();
+      state.gesture = { type: 'pinch', x, y, distance };
+    }
+  }
+  function onWheel(event) {
+    event.preventDefault();
+    zoomTo(state.zoom * (event.deltaY < 0 ? 1.25 : 0.8), localPoint(event.clientX, event.clientY));
+  }
+  function onKey(event) {
+    if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+    if (event.key === 'Tab') {
+      const focusables = [...viewer.querySelectorAll('button:not([disabled])')];
+      if (!focusables.length) return;
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.key === '+' || event.key === '=') { event.preventDefault(); zoomTo(state.zoom * 1.5); }
+    else if (event.key === '-') { event.preventDefault(); zoomTo(state.zoom / 1.5); }
+    else if (event.key === '0') { event.preventDefault(); fit(); }
+    else if (state.zoom > 1 && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventDefault();
+      state.x += event.key === 'ArrowLeft' ? -45 : event.key === 'ArrowRight' ? 45 : 0;
+      state.y += event.key === 'ArrowUp' ? -45 : event.key === 'ArrowDown' ? 45 : 0;
+      update();
+    }
+  }
+  function close() {
+    if (state.closed) return;
+    state.closed = true;
+    stage.removeEventListener('wheel', onWheel);
+    document.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('resize', update);
+    observer.disconnect();
+    state.pointers.clear();
+    viewer.remove();
+    document.body.style.overflow = previousOverflow;
+    if (closeActiveMediaViewer === close) closeActiveMediaViewer = null;
+    if (opener.isConnected) opener.focus();
+  }
+  const observer = new MutationObserver(() => { if (!opener.isConnected) close(); });
+  stage.addEventListener('pointerdown', pointerDown);
+  stage.addEventListener('pointermove', pointerMove);
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', release);
+  stage.addEventListener('lostpointercapture', release);
+  stage.addEventListener('wheel', onWheel, { passive: false });
+  image.addEventListener('load', fit);
+  image.addEventListener('dragstart', event => event.preventDefault());
+  document.addEventListener('keydown', onKey, true);
+  window.addEventListener('resize', update);
+  document.body.append(viewer);
+  document.body.style.overflow = 'hidden';
+  observer.observe(document.body, { childList: true, subtree: true });
+  closeActiveMediaViewer = close;
+  closeButton.focus();
+  fit();
 }
