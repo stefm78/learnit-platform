@@ -5,7 +5,7 @@ import argparse,csv,hashlib,html,json,zipfile
 from collections import Counter
 from datetime import datetime,timezone
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlsplit
 
 PASS="PASS_AI_KIT_FACTORY_V1"
 PASS_V6={"PASS_AI_KIT_FACTORY_V6_R2","PASS_AI_KIT_FACTORY_V6_R3"}
@@ -22,6 +22,29 @@ def web(item):
     if len(c)==32 and all(v in "0123456789abcdefABCDEF" for v in c):
         x=f"{c[:8]}-{c[8:12]}-{c[12:16]}-{c[16:20]}-{c[20:]}"
     return f"https://onedrive.live.com/?id={quote(x,safe='-')}&cid={quote(cid,safe='')}"
+
+def item_locator_matches(record):
+    """Bind displayed OneDrive item ID to the exact canonical Graph item URL."""
+    if not isinstance(record, dict):
+        return False
+    item_id = record.get("item_id")
+    graph = record.get("graph_locator") or record.get("graph_url")
+    if not isinstance(item_id, str) or not isinstance(graph, str) or web(item_id) is None:
+        return False
+    if "!" not in item_id:
+        return False
+    drive, item = item_id.split("!", 1)
+    if len(drive) != 16 or any(c not in "0123456789abcdefABCDEF" for c in drive):
+        return False
+    if len(item) != 33 or item[0] != "s" or any(c not in "0123456789abcdefABCDEF" for c in item[1:]):
+        return False
+    try:
+        parsed = urlsplit(graph)
+        return (parsed.scheme == "https" and parsed.hostname == "graph.microsoft.com"
+                and not parsed.username and not parsed.password and not parsed.query and not parsed.fragment
+                and unquote(parsed.path) == f"/v1.0/drives/{drive}/items/{item_id}")
+    except ValueError:
+        return False
 
 def latest(mp,m):
     root=mp.parent.parent/(m.get("state_log",{}).get("relative_path") or "20_MANIFEST/STATELOG")
@@ -56,6 +79,7 @@ def legacy_kits(root,by):
         except Exception:diag.append(f"UNREADABLE_LOCATOR:{lp.parent.name}");continue
         key=l.get("course_key"); a=next((x for x in l.get("artifacts",[]) if x.get("name")=="generated-kit.json"),None)
         if not key or not a:continue
+        if not item_locator_matches(a):diag.append(f"LEGACY_ITEM_BINDING_INVALID:{key}");continue
         kp=lp.parent/"generated-kit.json"; fp=lp.parent.parent/(lp.parent.name+"_OUTPUTS")/"factory-run.json"
         if not kp.exists() or not fp.exists():diag.append(f"INCOMPLETE_KIT_EVIDENCE:{key}");continue
         f=J(fp); expected=B(a.get("sha256")); fhash=B(f.get("evidenceBundle",{}).get("artifacts",{}).get("generatedKit",{}).get("sha256")); verdict=f.get("finalDecision",{}).get("verdict") or f.get("decision",{}).get("verdict") or f.get("evidenceBundle",{}).get("finalDecision",{}).get("verdict")
@@ -91,6 +115,8 @@ def v6_kits(root,by):
             diag.append(f"V6_LOCATOR_INCOMPLETE:{tag}");continue
         if verdict not in PASS_V6 or not kit_sha or not rel_sha:
             diag.append(f"V6_LOCATOR_BINDING_INVALID:{tag}");continue
+        if not item_locator_matches(kit) or not item_locator_matches(rel):
+            diag.append(f"V6_ITEM_BINDING_INVALID:{tag}");continue
         kp,kerr=_unique_by_hash(root,kit_name,kit_sha)
         if kerr or not kp or kp.stat().st_size!=kit_bytes:
             diag.append(f"V6_KIT_IDENTITY_INVALID:{tag}:{kerr or 'BYTE_COUNT'}");continue
