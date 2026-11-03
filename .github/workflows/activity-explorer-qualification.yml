@@ -66,7 +66,7 @@ jobs:
           wp=json.loads(Path('work-packages/OPS-WP-035.json').read_text())
           git=lambda *args:subprocess.check_output(['git',*args],text=True).strip()
           assert wp['id']=='OPS-WP-035' and wp['status']=='proposed'
-          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='NOT_GRANTED'
+          assert wp['authority']['mergeGO']==wp['authority']['productionGO']=='USER_EXPLICIT_2026_11_03_DELIVER_SHARED_V6_ZOOM_PR513'
           assert wp['baseline']['baseCommit']==base
           assert os.environ['PR_BASE']==base and os.environ['PR_HEAD']==git('rev-parse','HEAD')
           assert git('merge-base',base,'HEAD')==base
