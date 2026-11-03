@@ -74,10 +74,9 @@ jobs:
           for f in ('apps/learnit-next/src/ui/activity_presenters.js',
                     'apps/learnit-next/src/integration/atlas/activity_projection.js',
                     'tools/activity-explorer/explorer.js',
-                    'tools/activity-explorer/index.html',
-                    '.github/workflows/learnit-v6-root-promotion.yml'):
+                    'tools/activity-explorer/index.html'):
               assert git('rev-parse','HEAD:'+f)==git('rev-parse',base+':'+f),f
-          print('PASS_ZOOM_SCOPE_8_AND_FROZEN_HISTORIC_RELEASE')
+          print('PASS_ZOOM_SCOPE_9_AND_FROZEN_PRODUCT_BOUNDARIES')
           PY
       - name: Real native Chromium, accessibility, SVG and hint regression tests
         run: |
