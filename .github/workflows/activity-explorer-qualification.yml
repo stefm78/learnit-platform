@@ -104,6 +104,11 @@ jobs:
           B="$RUNNER_TEMP/base-repo"
           python -B "$B/tools/learnit_v6_site/assemble.py" --repo "$B" --output "$RUNNER_TEMP/old52" --manifest "$RUNNER_TEMP/old52.json"
           python -B "$B/tools/learnit_v6_site/test_site.py" --site "$RUNNER_TEMP/old52" --manifest "$RUNNER_TEMP/old52.json" --expected "$B/tools/learnit_v6_site/expected_files.json"
+          git worktree add --detach "$RUNNER_TEMP/frozen-root-repo" 91945c7a7cb4417671653693ab0cb00457ba3438
+          python -B "$RUNNER_TEMP/frozen-root-repo/apps/learnit-next/build.py" --output "$RUNNER_TEMP/frozen-root.html"
+          test "$(sha256sum "$RUNNER_TEMP/frozen-root.html" | awk '{print $1}')" = 4390d2f525ba1779e681a30f7c853f391094b9d1b85ce7b13f230efcf5be01eb
+          cp "$RUNNER_TEMP/frozen-root.html" "$RUNNER_TEMP/old52/index.html"
+          cp "$RUNNER_TEMP/frozen-root.html" "$RUNNER_TEMP/old52/learnit-next.html"
           python -B "$B/tools/activity-explorer/stage_pages.py" --repo "$B" --published-site "$RUNNER_TEMP/old52" --output "$RUNNER_TEMP/old60"
           python -B tools/activity-explorer/stage_pages.py --repo . --published-site "$RUNNER_TEMP/old52" --output "$RUNNER_TEMP/new60"
           python - <<'PY'
