@@ -15,6 +15,16 @@ import subprocess
 import sys
 
 class Hold(RuntimeError):pass
+
+
+def reject_duplicate_event_pairs(pairs):
+    """Reject ambiguous operator trigger JSON before canonical re-verification."""
+    obj={}
+    for key, value in pairs:
+        if key in obj:
+            raise Hold('DUPLICATE_EVENT_JSON_KEY')
+        obj[key]=value
+    return obj
 SHA40=re.compile(r'^[0-9a-f]{40}$')
 SHA256=re.compile(r'^sha256:[a-f0-9]{64}$')
 RUN_ID=re.compile(r'^sha256:[a-f0-9]{64}$')
@@ -270,11 +280,18 @@ def main(argv=None):
     p.add_argument('--commit',required=True)
     p.add_argument('--index-raw',required=True,type=pathlib.Path)
     p.add_argument('--event',required=True,type=pathlib.Path)
+    p.add_argument('--human-command',action='store_true',
+                   help='Print only the human-reviewed handoff; never execute it')
     a=p.parse_args(argv)
     try:
-        res=prepare_read_only(a.release,a.checkout,a.commit,a.index_raw.read_bytes(),
-                              json.loads(a.event.read_text('utf-8')))
-        print(json.dumps(res,indent=2,ensure_ascii=False))
+        event=json.loads(a.event.read_text('utf-8'),
+                         object_pairs_hook=reject_duplicate_event_pairs)
+        res=prepare_read_only(a.release,a.checkout,a.commit,a.index_raw.read_bytes(),event)
+        if a.human_command:
+            # Only the canonical V6 verification path can produce this field.
+            print(res['manual_handoff'])
+        else:
+            print(json.dumps(res,indent=2,ensure_ascii=False))
         return 0
     except (Hold,ValueError,OSError) as exc:
         print('HOLD: '+str(exc),file=sys.stderr)

@@ -235,3 +235,64 @@ class TestThirdAdversarialReview(unittest.TestCase):
             self.assertIn('Aucune publication élèves',s)
             self.assertIn('le `PRIVATE_INDEX.json` courant',s)
             self.assertNotIn('execute now without checks',s.lower())
+
+
+class TestScheduledChatGPTPostPassCLI(unittest.TestCase):
+    """CLI contract for a future scheduler; does not run scheduled tasks."""
+    def call(self, event_text, human=False, handoff='GO CONDITIONNEL — kit privé'):
+        import contextlib,io,pathlib,tempfile
+        from unittest.mock import patch
+        from post_pass_factory_step import main
+        with tempfile.TemporaryDirectory() as root:
+            p=pathlib.Path(root)
+            for name,data in [('archive.zip',RAW),('index.json',b'{}'),('event.json',event_text.encode())]:
+                (p/name).write_bytes(data)
+            args=['--release',str(p/'archive.zip'),'--checkout',str(p),
+                  '--commit','1'*40,'--index-raw',str(p/'index.json'),
+                  '--event',str(p/'event.json')]
+            if human: args.append('--human-command')
+            output,errors=io.StringIO(),io.StringIO()
+            with patch('post_pass_factory_step.prepare_read_only',return_value={
+                'manual_handoff':handoff,'remote_mutation':False,
+                'automatic_hook_installed':False}) as fn, \
+                 contextlib.redirect_stdout(output),contextlib.redirect_stderr(errors):
+                status=main(args)
+            return status,output.getvalue(),errors.getvalue(),fn.call_count
+
+    def test_text_mode_prints_human_command_not_json(self):
+        code,out,err,count=self.call('{"type":"example"}',human=True)
+        self.assertEqual((code,out.strip(),err,count),(0,'GO CONDITIONNEL — kit privé','',1))
+
+    def test_default_json_receipt_preserved(self):
+        import json
+        code,out,err,count=self.call('{"type":"example"}')
+        self.assertEqual((code,err,count),(0,'',1))
+        self.assertFalse(json.loads(out)['remote_mutation'])
+        self.assertFalse(json.loads(out)['automatic_hook_installed'])
+
+    def test_human_mode_existing_kit_no_write_command(self):
+        code,out,err,count=self.call('{"type":"example"}',human=True,
+                                    handoff='Aucun nouveau kit. AUCUNE commande de modification.')
+        self.assertEqual(code,0)
+        self.assertNotIn('GO CONDITIONNEL',out)
+        self.assertEqual(count,1)
+
+    def test_duplicate_event_json_key_holds_before_verification(self):
+        code,out,err,count=self.call('{"type":"EXACT","type":"FORGED"}',human=True)
+        self.assertEqual(code,8)
+        self.assertIn('DUPLICATE_EVENT_JSON_KEY',err)
+        self.assertEqual(count,0)
+        self.assertEqual(out,'')
+
+    def test_nested_duplicate_event_json_key_holds(self):
+        code,out,err,count=self.call('{"type":"x","factory_run_ids":[{"x":1,"x":2}]}')
+        self.assertEqual(code,8)
+        self.assertIn('DUPLICATE_EVENT_JSON_KEY',err)
+        self.assertEqual(count,0)
+
+    def test_malformed_event_holds_without_handoff(self):
+        code,out,err,count=self.call('{bad',human=True)
+        self.assertEqual(code,8)
+        self.assertEqual(out,'')
+        self.assertEqual(count,0)
+        self.assertIn('HOLD:',err)
