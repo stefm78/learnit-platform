@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "id": "KITS-WP-001",
+  "title": "Factory V6 PASS to private 20_KITS: governed post-PASS integration candidate",
+  "status": "proposed",
+  "changeClass": "private-kit-intake-governed-preparation-r2",
+  "riskClass": "medium",
+  "authority": {
+    "repository": "stefm78/learnit-platform",
+    "authorizationSource": "USER_EXPLICIT_GO_FINALIZE_FACTORY_TO_20_KITS_2026-11-02",
+    "operationalScope": "DRAFT_PR_LOCAL_QUALIFICATION_ONLY_NO_REMOTE_PRODUCT_WRITES",
+    "mergeOrActivationAuthorized": false
+  },
+  "baseline": {
+    "baseCommit": "91945c7a7cb4417671653693ab0cb00457ba3438"
+  },
+  "purpose": "Stage a canonical V6-verified private intake plan, transport-independent copy executor, draft Graph upload-session contract, deterministic private derived views, and read-only post-PASS binding. No live remote provider, runner, or trigger is activated.",
+  "scope": {
+    "allowedPaths": [
+      "tools/PRIVATE_KIT_INTAKE_README.md",
+      "tools/private_kit_intake_bridge.py",
+      "tools/private_kit_intake_executor.py",
+      "tools/tests/test_private_kit_intake_bridge.py",
+      "tools/tests/test_private_kit_intake_executor.py",
+      "work-packages/KITS-WP-001.json",
+      "tools/graph_session_create.py",
+      "tools/post_pass_factory_step.py",
+      "tools/private_kit_views.py",
+      "tools/tests/test_graph_session_create.py",
+      "tools/tests/test_post_pass_factory_step.py",
+      "tools/tests/test_private_kit_views.py"
+    ],
+    "forbiddenPaths": [
+      "authoring/**",
+      "apps/**",
+      "contracts/**",
+      "governance/**",
+      ".github/**",
+      "tools/refresh_onedrive_catalogue.py",
+      "work-packages/GOV-WP-043.json"
+    ]
+  },
+  "requiredEvidence": [
+    "47/47 new candidate isolated tests PASS locally; existing 28 planner/executor tests require fresh PR-head qualification; no live Graph mutation tested",
+    "Exact PR head diff is limited to 12 paths allowed by this work-package and the original 91945c7a... base",
+    "Canonical release verification must be called from clean exact checkout; testing fake PASS cannot confer trust",
+    "Known kits preserve their exact recorded destination filename; verify-only remotely",
+    "Graph upload-session conflict=fail is a draft transport contract, not a qualified production Microsoft Graph adapter",
+    "Derived index/navigation candidate and read-only post-Factory binding are staged, but live CAS, authentication and hook activation remain blocked"
+  ],
+  "invariants": [
+    "Original nine kits and their remote OneDrive copies remain unchanged",
+    "Factory V6 gate, release_set_v6 verifier, contracts and release pipeline remain unchanged",
+    "Historical verification snapshots are never current remote proof",
+    "Version/revision/path conflicts always HOLD",
+    "Do not merge or activate before independent PR-head review and end-to-end provider proof",
+    "No new LearnIT Operations job or state log"
+  ],
+  "adversarialTests": [
+    "Existing real filename vs guessed default filename",
+    "Unknown/traversal or mismatching historical path rejected",
+    "Duplicate destination plan rejected before writes",
+    "Provider returns corrupt bytes, unsafe inherited ACL, existing destination conflict, missing older kit",
+    "Provider lacks real atomic create-only: activation blocked"
+  ],
+  "integrationGates": {
+    "realCanonicalReleaseVerifier": "PENDING_CLEAN_EXACT_REPO_ENVIRONMENT",
+    "graphCreateOnlyAndRawReadback": "ENGINE_MOCK_TEST_PASS_PROVIDER_NOT_PROVEN",
+    "indexAndHTMLConcurrencyControl": "LOCAL_TESTS_PASS_LIVE_CAS_NOT_VERIFIED",
+    "ciFactoryPostPassHook": "READ_ONLY_BINDING_STAGED_NO_ACTIVATED_HOOK_OR_CREDENTIALLED_RUNNER",
+    "prIndependentReview": "PENDING_NEW_EXACT_HEAD_CI_AND_REVIEW",
+    "mergeAuthorization": "NOT_AUTHORIZED_REQUIRES_SEPARATE_HUMAN_GO",
+    "studentDistribution": "FORBIDDEN"
+  },
+  "rollback": "Close the draft PR or delete only the candidate branch; no production writes to revert.",
+  "nonGoals": [
+    "No remote mutation, no source of standing credentials, no student distribution or factory hook in this PR",
+    "No automatic merge or activation from test/mock success"
+  ],
+  "independentReview": [
+    "Confirm 12-path PR scope, exact source HEAD and original base HEAD before qualification",
+    "Confirm canonical release verifier is invoked only from pinned clean repository checkout",
+    "Reject false PASS, duplicate identities, stale hashes, unsafe ZIP members and source/index confusion",
+    "Prove current OneDrive state, conflict-fail writes and safe index/nav concurrency in subsequent governed work before activation",
+    "Confirm draft Graph session adapter and local views do not claim live Graph CAS or unattended credentials; require live provider qualification before deployment."
+  ]
+}
