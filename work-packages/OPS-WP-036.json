@@ -1,0 +1,59 @@
+{
+  "id": "OPS-WP-036",
+  "status": "in-progress",
+  "title": "LearnIT V6 three-module assistance bounded GitHub qualification R1",
+  "authority": {
+    "job": "LEARNIT_V6_THREE_MODULE_CONVERGENCE_AND_LEGACY_CLEANUP_R1",
+    "execute_me_sha256": "5e00c873010c245cf8ec5361692a314d252c464b2bb9c4f59b1fd38f9d0b1a37",
+    "human_go": "2026-11-04_GITHUB_ISOLATED_DRAFT_PR_QUALIFICATION_ONLY",
+    "source_commit": "ba97c68be0273437836230d66aed0e9d151f8a17",
+    "onedrive_charter_version": "15.0",
+    "release_merge_deploy": "NOT_AUTHORIZED"
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/src/core/v6_assistance.js",
+      "apps/learnit-next/src/adapters/v6_assistance_indexeddb.js",
+      "apps/learnit-next/src/core/V6_ASSISTANCE_PROTOCOL.md",
+      "apps/learnit-next/tests/v6_assistance.test.mjs",
+      "apps/learnit-next/tests/v6_assistance_chromium_smoke.py",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/source_manifest.json",
+      "work-packages/OPS-WP-036.json"
+    ],
+    "forbiddenPaths": [
+      ".github/workflows/**",
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      "docs/governance/**",
+      "tools/refresh_onedrive_catalogue.py",
+      "apps/learnit-next/dist/**",
+      "work-packages/OPS-WP-035.json"
+    ]
+  },
+  "qualification": {
+    "stage": "DOMAIN_PREPARATION_LOCAL_ONLY",
+    "local_unit_tests": "24 PASS/0 FAIL; synthetic CAS fixtures",
+    "browser_integration": "PENDING_CI",
+    "learner_wiring": "BLOCKED_UNTIL_TRUSTED_PARCOURS_DOMAIN_AUTHORITY_AND_E2E",
+    "source_manifest": "EXACT_GIT_BLOB_SHA1_REBIND_AND_CANONICAL_SELF_SHA256",
+    "legacy_deletions": 0
+  },
+  "non_authorities": [
+    "No learner hint side effects on real sessions",
+    "No V5 event reinterpretation",
+    "No real learner IndexedDB write",
+    "No merge, Pages, Factory, kit, catalogue or ACL changes"
+  ],
+  "independent_reviewer": {
+    "status": "REQUIRED_BEFORE_FINAL_QUALIFICATION"
+  },
+  "immutable_evidence": "OneDrive Operations job OUTPUTS/** not mutated; only QUALIFICATION_GITHUB_R1/ create-only"
+}
