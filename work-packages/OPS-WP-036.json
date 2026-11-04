@@ -55,5 +55,49 @@
   "independent_reviewer": {
     "status": "REQUIRED_BEFORE_FINAL_QUALIFICATION"
   },
-  "immutable_evidence": "OneDrive Operations job OUTPUTS/** not mutated; only QUALIFICATION_GITHUB_R1/ create-only"
+  "immutable_evidence": "OneDrive Operations job OUTPUTS/** not mutated; only QUALIFICATION_GITHUB_R1/ create-only",
+  "schemaVersion": 1,
+  "purpose": "Qualify an additive V6 Parcours assistance-journal service and durable IndexedDB CAS adapter, exclusively in an isolated draft PR, preserving existing V2–V5 and all current learner behavior until governed domain authorization and complete browser qualification.",
+  "rollback": "Abandon or close draft PR #514 without merging if any gate fails. Existing main, Pages, Factory, kits, catalogue, permissions, real learner state and immutable OneDrive OUTPUTS remain unchanged; preserve the exact original base commit for comparison.",
+  "baseline": {
+    "baseCommit": "ba97c68be0273437836230d66aed0e9d151f8a17",
+    "sourceManifestBlob": "e172562d4bea06dcc864f605535cb79102146b4a",
+    "existingOneDriveJobResult": "HOLD_UNPROVED_DELETION",
+    "priorUnitTests": "23 PASS synthetic only"
+  },
+  "invariants": [
+    "Only the exact six-file additive draft PR scope; no existing learner-session or Atlas V5 modification",
+    "No student V6 hint text is emitted before a validated Parcours authority and durable ACK",
+    "No implicit V5 inheritance and no deletion of legacy or unknown consumer",
+    "Source manifest self-SHA and all Git blob fingerprints exact; no new build artifact or execution workflow edits",
+    "No merge, Pages, Factory, learner-data, catalogue, kit or ACL mutation"
+  ],
+  "requiredEvidence": [
+    "24/24 synthetic Node tests on staged V6 journal code",
+    "GitHub exact-head source build twice with SHA256 and complete initial source worktree",
+    "Native Chromium real IndexedDB CAS retry/reload, XSS, keyboard/focus and 60-route baseline where applicable",
+    "Trusted production Parcours domain-event authority and real learner integration before semantic promotion",
+    "Independent code/security and legacy-consumer review; CI results tied to exact commit",
+    "Create-only durable qualification proof under existing Operations job without overwriting five OUTPUTS"
+  ],
+  "adversarialTests": [
+    "Duplicate UUID race, out-of-order ACK, pending recovery after crash and hint source binding drift",
+    "Reject unauthorized V6 requests, invalid V5 inheritance and any XSS injection before durable ACK",
+    "Detect orphan or competing legacy consumers; delete none until exhaustive static/dynamic mapping",
+    "Detect source-manifest drift, unknown branch hard-coded CI route, and baseline CI failure",
+    "Reject any attempt to merge, publish or re-activate Factory on local-only or synthetic test evidence"
+  ],
+  "nonGoals": [
+    "No real learner V6 side-effect until trusted authorizer and E2E",
+    "No update to main branch, Pages or build workflows",
+    "No deleting legacy adapters or resetting real IndexedDB",
+    "No new Operations job or parallel state log",
+    "No claim of production readiness or merged release"
+  ],
+  "independentReview": [
+    "Independent reviewer validates authority and V6 privacy boundaries",
+    "Separate reviewer inspects exact repo build logs and existing CI routing blockers",
+    "Independent confirmation of consumer graph and zero approved deletions",
+    "Readback and immutable-hash verification of any new Operations qualification evidence"
+  ]
 }
