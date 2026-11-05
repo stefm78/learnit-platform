@@ -49,7 +49,9 @@
     "learner_wiring": "BLOCKED_UNTIL_TRUSTED_PARCOURS_DOMAIN_AUTHORITY_AND_E2E",
     "source_manifest": "EXACT_GIT_BLOB_SHA1_REBIND_AND_CANONICAL_SELF_SHA256",
     "legacy_deletions": 0,
-    "exactPr514Router": "EXACT_IDENTITY_AND_TESTS_REQUIRED;NOT_RELEASE_GO"
+    "exactPr514Router": "EXACT_IDENTITY_AND_TESTS_REQUIRED;NOT_RELEASE_GO",
+    "domainContract": "PROPOSED_IN_OPS_WP_036_NOT_INDEPENDENTLY_ADMITTED",
+    "documentationRepair": "REMOVE_ONLY_NEW_UNBUILT_MD_AND_RESTORE_PRIOR_MANIFEST"
   },
   "non_authorities": [
     "No learner hint side effects on real sessions",
@@ -106,5 +108,69 @@
     "Separate reviewer inspects exact repo build logs and existing CI routing blockers",
     "Independent confirmation of consumer graph and zero approved deletions",
     "Readback and immutable-hash verification of any new Operations qualification evidence"
+  ],
+  "parcoursDomainContractCandidate": {
+    "status": "CANDIDATE_NOT_ADMITTED_INDEPENDENT_REVIEW_REQUIRED",
+    "humanDecision": "2026-11-05 user GO designates PARCOURS functional owner and approves explicit V6 hint semantics",
+    "sourceLock": "ba97c68be0273437836230d66aed0e9d151f8a17",
+    "owners": {
+      "BIBLIOTHEQUE": "Trusted imported kit V6, 0..3 authored hint strings, package/course/activity lineage and exact revision provenance",
+      "PARCOURS": "Sole domain authorization of active learner session and served activity; authorized events and durable CAS acknowledgement/replay",
+      "RENDERER": "Pure text-only presentation of authorized hint prefix, keyboard/focus/a11y, emits intent only; no journal or raw hints access",
+      "EXPLORER": "Read-only preview path; no learner permission"
+    },
+    "normativeRules": [
+      "V6-only: session must be active, UUID validated against persisted canonical activeCourse; no stale, out-of-queue, completed or cross-course request",
+      "Derive context internally from trusted courseInstallId, packageInstallId, packageRevisionDigest, activityRevisionDigest, active session UUID and authored hint-array digest; caller-supplied boolean, session or hint strings not proof",
+      "0..3 hints authored in order; fresh UUID per intent; retry reuses UUID; durable atomic AUTHORIZED(requestId,rank) CAS then durable ACKNOWLEDGED(requestId,rank) CAS precede display",
+      "Only acknowledged prefix returned to renderer; pending AUTHORIZE never reveals text; crash/reload preserves requestId without duplicate rank consumption",
+      "Journal isolated per session/kit/revision and source digest, no raw hint text in persisted journal, reject mismatched source/corrupt/missing-after-commit/out-of-order/concurrent state",
+      "IndexedDB transaction completion must establish durability; offline/quota, CAS races or unknown state fail closed, no blind reset, no real student data migration",
+      "No score, answer evaluation, progress or maxUses change; any Atlas assistance used/unknown learning-state semantics separately governed",
+      "Historical V2–V5 compatibility, V5 journals and Explorer preview never authorize V6; no deletion without direct/dynamic consumer graph",
+      "Renderer uses textContent, safe focus/announcement; no independent authorization, raw hint payload or direct IndexedDB write",
+      "No deployment, merge, Pages, Factory, kit/catalogue/permissions or real learner storage mutation"
+    ],
+    "trustBoundary": "The current test uses authorize(ctx) with ctx.parcoursAuthorized=true. This is synthetic and not a trusted Parcours authorization. Real activation must resolve canonical active session/kit inside Parcours with explicit independent QA.",
+    "independentReview": {
+      "policy": "docs/governance/DECISION_RIGHTS.md: shared contract requires Governor approval and consumers plus independent QA; author cannot be sole reviewer",
+      "needed": [
+        "Independent security/QA reviewer identity and exact SHA review record",
+        "Bibliothèque / Parcours / Renderer consumer acceptance",
+        "Real hint click/ack/reveal/reload with disposable V6 kit, two tabs, crash points, XSS, focus",
+        "V5 regression and maxUses/scoring noninterference",
+        "Two deterministic builds, exact source/hash and independently recorded PASS/HOLD/FAIL"
+      ],
+      "observed": "PR #514 has zero submitted independent GitHub reviews; not approved",
+      "gate": "HOLD"
+    },
+    "currentEvidence": "Node 25/25, Chromium synthetic journal 9/9 plus real V6 learner session UUID 3/3, two deterministic builds at previous PR head only; no actual learner hints UI",
+    "statusEffect": "DOCUMENT_CANDIDATE_ONLY_NO_REAL_LEARNER_HINT_ACTIVATION"
+  },
+  "threeCycleCandidateCritique": [
+    {
+      "cycle": 1,
+      "axis": "authority and privacy",
+      "attack": "Can a client forge ctx.parcoursAuthorized=true or V5 preview state?",
+      "result": "Yes if test callback wired; real Parcours verifier still missing",
+      "action": "Keep hint UI disconnected",
+      "verdict": "HOLD"
+    },
+    {
+      "cycle": 2,
+      "axis": "persistence and legacy",
+      "attack": "Crash, two tabs, stale revision, accidental scoring/maxUses or V5 inheritance?",
+      "result": "Synthetic CAS covered but real V6 hint UI and historical regression missing",
+      "action": "Independent E2E required, zero legacy removals",
+      "verdict": "HOLD"
+    },
+    {
+      "cycle": 3,
+      "axis": "build/review boundary",
+      "attack": "Does any source-area Markdown break strict ordered manifest, and may author self-approve?",
+      "result": "Yes to source-tree drift and no to self-approval",
+      "action": "Move proposal into work-package JSON; restore source manifest, delete only newly added doc",
+      "verdict": "HOLD"
+    }
   ]
 }
