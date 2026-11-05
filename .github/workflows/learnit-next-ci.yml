@@ -1106,6 +1106,7 @@ jobs:
               python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/pr514-learner-a.html"
               python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/pr514-learner-b.html"
               cmp "${RUNNER_TEMP}/pr514-learner-a.html" "${RUNNER_TEMP}/pr514-learner-b.html"
+              python -m pip install --upgrade 'playwright==1.64.1'
               python -m playwright install --with-deps chromium
               LEARNIT_V6_CHROMIUM_REPORT="${RUNNER_TEMP}/pr514-browser-smoke.json" python -B apps/learnit-next/tests/v6_assistance_chromium_smoke.py
               echo 'PASS_PR514_ISOLATED_V6_ROUTING_AND_SYNTHETIC_QUALIFICATION_NO_DEPLOY'
