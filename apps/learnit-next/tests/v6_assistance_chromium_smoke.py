@@ -77,6 +77,43 @@ def main():
             }""")
             browser.close()
         server.shutdown()
+    # Native candidate learner (real import/session APIs, disposable synthetic V6 kit).
+    import importlib.util, os, re
+    artifact_text=os.environ.get('LEARNIT_V6_ARTIFACT')
+    if artifact_text:
+        artifact=Path(artifact_text)
+        if not artifact.is_file():
+            raise AssertionError('LEARNIT_V6_ARTIFACT_NOT_FOUND')
+        spec=importlib.util.spec_from_file_location('pr514_v6_consumption_fixture', ROOT/'apps/learnit-next/tests/passage_v6_consumption.py')
+        if not spec or not spec.loader:
+            raise AssertionError('V6_CONSUMPTION_FIXTURE_LOADER_UNAVAILABLE')
+        mod=importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        fixture=mod.package()
+        with mod.serve(artifact) as url, sync_playwright() as pw:
+            browser=pw.chromium.launch(headless=True)
+            page=browser.new_page()
+            page.goto(url)
+            page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+            mod.call(page,'resetNextData')
+            result=mod.call(page,'importPackage',[fixture])
+            course_id=result['courses'][0]['courseInstallId']
+            first=mod.call(page,'startCourse',[course_id])
+            first_id=first.get('v6AssistanceSessionId')
+            assert isinstance(first_id,str) and re.fullmatch(r'[0-9a-f]{8}-[0-9a-f-]{27}',first_id,re.I),first
+            tests.append(dict(name='real_v6_learner_session_uuid_created',status='PASS'))
+            print('real_v6_learner_session_uuid_created PASS')
+            page.reload()
+            page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.resumeActiveCourse)')
+            resumed=mod.call(page,'resumeActiveCourse')
+            assert resumed.get('v6AssistanceSessionId')==first_id,(resumed,first_id)
+            tests.append(dict(name='real_v6_learner_uuid_persists_reload',status='PASS'))
+            print('real_v6_learner_uuid_persists_reload PASS')
+            fresh=mod.call(page,'startCourse',[course_id])
+            assert fresh.get('v6AssistanceSessionId')!=first_id,(fresh,first_id)
+            tests.append(dict(name='real_v6_new_course_session_uuid_rotates',status='PASS'))
+            print('real_v6_new_course_session_uuid_rotates PASS')
+            browser.close()
     print('CHROMIUM_SUMMARY',json.dumps({'passed':sum(x['status']=='PASS' for x in tests),'total':len(tests)}))
     import os
     report_path=Path(os.environ.get('LEARNIT_V6_CHROMIUM_REPORT', '/tmp/LEARNIT_V6_R1_CHROMIUM_SMOKE_RESULTS.json'))
