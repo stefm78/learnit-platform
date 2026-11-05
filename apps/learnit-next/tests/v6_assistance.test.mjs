@@ -50,3 +50,31 @@ test('crash after persisted AUTHORIZE exposes pending request ID only, never tex
   await recovered.acknowledge(ctx(),v.pendingRequestId);
   assert.deepEqual((await recovered.readAuthorizedView(ctx())).hints,['Un']);
 });
+
+import { createSessionService } from '../src/core/session.js';
+test('V6 Parcours session UUID survives reload, rotates on new start; V5 remains untouched', async () => {
+  const records = new Map();
+  const course = {courseInstallId:'course-v6-0001',contract:'learnit.kit.v6',displayLabel:'Fixture',
+    course:{activities:[{activityRevisionId:'activity-v6-0001',type:'lesson'}],objectives:[]}};
+  const storage={
+    getCourse: async id => id===course.courseInstallId ? course : null,
+    setMeta: async (key,value)=>{records.set(key,structuredClone(value))},
+    getMeta: async key=>records.get(key)??null,
+    deleteMeta: async key=>{records.delete(key)}
+  };
+  const progress={
+    learningLoopV2Enabled:false,
+    getProgress:async()=>[],
+    getCourseProgress:async()=>({total:1,completed:0,isComplete:false}),
+    reviewQueue:()=>course.course.activities
+  };
+  const a=createSessionService(storage,progress);
+  const started=await a.startCourse(course.courseInstallId);
+  assert.match(started.v6AssistanceSessionId,/^[0-9a-f]{8}-[0-9a-f-]{27}$/i);
+  assert.equal(records.get('activeCourse').v6AssistanceSessionId,started.v6AssistanceSessionId);
+  const b=createSessionService(storage,progress);
+  const resumed=await b.resumeActiveCourse();
+  assert.equal(resumed.v6AssistanceSessionId,started.v6AssistanceSessionId);
+  const again=await b.startCourse(course.courseInstallId);
+  assert.notEqual(again.v6AssistanceSessionId,started.v6AssistanceSessionId);
+});

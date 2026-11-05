@@ -207,6 +207,18 @@ function deriveSessionDelta(active, course, records, summary) {
 export function createSessionService(storage, progressService) {
   let active = null;
   const learningLoopV2Enabled = progressService.learningLoopV2Enabled === true;
+  const V6_ASSISTANCE_CONTRACT = 'learnit.kit.v6';
+  const V6_SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  function v6AssistanceSessionId(courseRecord, persistedId = null) {
+    if (courseRecord.contract !== V6_ASSISTANCE_CONTRACT) return null;
+    if (persistedId != null) {
+      if (typeof persistedId !== 'string' || !V6_SESSION_ID.test(persistedId))
+        throw new Error('V6_ASSISTANCE_SESSION_ID_CORRUPT');
+      return persistedId;
+    }
+    if (typeof globalThis.crypto?.randomUUID !== 'function') throw new Error('V6_SESSION_UUID_UNAVAILABLE');
+    return globalThis.crypto.randomUUID();
+  }
 
   async function loadCourse(courseInstallId) {
     const courseRecord = await storage.getCourse(courseInstallId);
@@ -219,6 +231,7 @@ export function createSessionService(storage, progressService) {
       courseInstallId: active.courseRecord.courseInstallId,
       mode: active.mode,
       ...(active.mode === 'review' ? { reviewIndex: active.reviewIndex } : {}),
+      ...(active.v6AssistanceSessionId ? { v6AssistanceSessionId: active.v6AssistanceSessionId } : {}),
     };
   }
 
@@ -285,7 +298,7 @@ export function createSessionService(storage, progressService) {
       courseInstallId: active.courseRecord.courseInstallId,
       title: active.courseRecord.displayLabel,
       canonicalTitle: active.courseRecord.title,
-      ...(learningLoopV2Enabled
+      ...(active.v6AssistanceSessionId ? { v6AssistanceSessionId: active.v6AssistanceSessionId } : {}),      ...(learningLoopV2Enabled
         ? {
           courseObjectives: structuredClone(active.courseRecord.course.objectives ?? []),
           sessionDelta,
@@ -339,6 +352,7 @@ export function createSessionService(storage, progressService) {
         sessionMetaSchemaVersion: 2,
         sessionProvenance: null,
         sessionProvenanceReason: null,
+        v6AssistanceSessionId: v6AssistanceSessionId(courseRecord),
       };
       if (!learningLoopV2Enabled) {
         await persistActive();
@@ -358,6 +372,7 @@ export function createSessionService(storage, progressService) {
         sessionMetaSchemaVersion: 2,
         sessionProvenance: null,
         sessionProvenanceReason: null,
+        v6AssistanceSessionId: v6AssistanceSessionId(courseRecord),
       };
       const current = await snapshot();
       if (current.review.remaining > 0) await persistActive(current); else await clearPersistedActive();
@@ -400,6 +415,7 @@ export function createSessionService(storage, progressService) {
           sessionProvenance: null,
           sessionProvenanceReason: SESSION_PROVENANCE_UNAVAILABLE,
         });
+      const resumedV6SessionId = v6AssistanceSessionId(courseRecord, meta.v6AssistanceSessionId ?? null);
       active = meta.mode === 'review'
         ? {
           courseRecord,
@@ -408,18 +424,20 @@ export function createSessionService(storage, progressService) {
             ? meta.reviewIndex
             : (Number.isInteger(waveMeta?.reviewIndex) && waveMeta.reviewIndex >= 0 ? waveMeta.reviewIndex : 0),
           ...provenanceState,
+          v6AssistanceSessionId: resumedV6SessionId,
         }
         : {
           courseRecord,
           mode: 'learn',
           currentIndex: Number.isInteger(waveMeta?.currentIndex) && waveMeta.currentIndex >= 0 ? waveMeta.currentIndex : 0,
           ...provenanceState,
+          v6AssistanceSessionId: resumedV6SessionId,
         };
       let current;
       try { current = await snapshot(); }
       catch { active = null; return null; }
       if (current?.mode === 'review' && current.review.remaining === 0) await clearPersistedActive();
-      else if (learningLoopV2Enabled) await persistActive(current);
+      else if (learningLoopV2Enabled || courseRecord.contract === V6_ASSISTANCE_CONTRACT) await persistActive(current);
       return current;
     },
 
