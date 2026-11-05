@@ -23,10 +23,10 @@
       "apps/learnit-next/src/core/session.js",
       "apps/learnit-next/src/adapters/indexeddb.js",
       "apps/learnit-next/source_manifest.json",
-      "work-packages/OPS-WP-036.json"
+      "work-packages/OPS-WP-036.json",
+      ".github/workflows/learnit-next-ci.yml"
     ],
     "forbiddenPaths": [
-      ".github/workflows/**",
       "apps/player/**",
       "authoring/**",
       "contracts/**",
@@ -35,7 +35,11 @@
       "docs/governance/**",
       "tools/refresh_onedrive_catalogue.py",
       "apps/learnit-next/dist/**",
-      "work-packages/OPS-WP-035.json"
+      "work-packages/OPS-WP-035.json",
+      ".github/workflows/*deploy*.yml",
+      ".github/workflows/*promotion*.yml",
+      ".github/workflows/pr-scope.yml",
+      ".github/workflows/governance-validation.yml"
     ]
   },
   "qualification": {
@@ -44,7 +48,8 @@
     "browser_integration": "PENDING_CI",
     "learner_wiring": "BLOCKED_UNTIL_TRUSTED_PARCOURS_DOMAIN_AUTHORITY_AND_E2E",
     "source_manifest": "EXACT_GIT_BLOB_SHA1_REBIND_AND_CANONICAL_SELF_SHA256",
-    "legacy_deletions": 0
+    "legacy_deletions": 0,
+    "exactPr514Router": "EXACT_IDENTITY_AND_TESTS_REQUIRED;NOT_RELEASE_GO"
   },
   "non_authorities": [
     "No learner hint side effects on real sessions",
@@ -78,14 +83,16 @@
     "Native Chromium real IndexedDB CAS retry/reload, XSS, keyboard/focus and 60-route baseline where applicable",
     "Trusted production Parcours domain-event authority and real learner integration before semantic promotion",
     "Independent code/security and legacy-consumer review; CI results tied to exact commit",
-    "Create-only durable qualification proof under existing Operations job without overwriting five OUTPUTS"
+    "Create-only durable qualification proof under existing Operations job without overwriting five OUTPUTS",
+    "Exact PR514 branch-only route runs Node tests, deterministic double-build and native synthetic Chromium/IndexedDB smoke on exact PR head."
   ],
   "adversarialTests": [
     "Duplicate UUID race, out-of-order ACK, pending recovery after crash and hint source binding drift",
     "Reject unauthorized V6 requests, invalid V5 inheritance and any XSS injection before durable ACK",
     "Detect orphan or competing legacy consumers; delete none until exhaustive static/dynamic mapping",
     "Detect source-manifest drift, unknown branch hard-coded CI route, and baseline CI failure",
-    "Reject any attempt to merge, publish or re-activate Factory on local-only or synthetic test evidence"
+    "Reject any attempt to merge, publish or re-activate Factory on local-only or synthetic test evidence",
+    "Reject branch route on wrong PR number, wrong base, unauthorized modified paths or any workflow permission change."
   ],
   "nonGoals": [
     "No real learner V6 side-effect until trusted authorizer and E2E",
