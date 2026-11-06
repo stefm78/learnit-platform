@@ -1081,6 +1081,38 @@ jobs:
               echo 'OPS_WP_030_CSP_ROUTED_TO_DEDICATED_CSP_CI_ONLY=PASS'
               exit 0
             fi
+            # OPS-WP-036: exact PR514 isolated V6 assistance qualification only.
+            # Never admit an unrelated branch, PR or merge into this route.
+            if [[ "${EVENT}" == pull_request && "${BRANCH}" == feature/learnit-v6-three-module-convergence-r1-20261104 ]]; then
+              [[ "${PR_NUMBER}" == 514 && "${PR_BASE_SHA}" == ba97c68be0273437836230d66aed0e9d151f8a17 ]] || { echo 'PR514 identity mismatch' >&2; exit 2; }
+              [[ "${compare_base}" == "${PR_BASE_SHA}" && "${TARGET}" == "$(git rev-parse HEAD)" ]] || { echo 'PR514 source base/head drift' >&2; exit 2; }
+              CHANGED_TEXT="${changed_text}" python - <<'PY'
+          import json,os
+          from pathlib import Path
+          wp=json.loads(Path('work-packages/OPS-WP-036.json').read_text(encoding='utf-8'))
+          changed=set(filter(None,os.environ['CHANGED_TEXT'].splitlines()))
+          allowed=set(wp['scope']['allowedPaths'])
+          assert wp['id']=='OPS-WP-036' and wp['status']=='in-progress'
+          assert wp['baseline']['baseCommit']=='ba97c68be0273437836230d66aed0e9d151f8a17'
+          assert '.github/workflows/learnit-next-ci.yml' in changed
+          assert {'apps/learnit-next/src/core/v6_assistance.js','apps/learnit-next/src/adapters/v6_assistance_indexeddb.js','apps/learnit-next/tests/v6_assistance.test.mjs','apps/learnit-next/tests/v6_assistance_chromium_smoke.py','apps/learnit-next/source_manifest.json','work-packages/OPS-WP-036.json'} <= changed
+          assert changed<=allowed,(sorted(changed-allowed))
+          assert all(not x.startswith(('governance/','authoring/','apps/player/','contracts/')) for x in changed)
+          print('PASS_PR514_EXACT_BOUNDARY_AND_SCOPE',len(changed))
+          PY
+              node --check apps/learnit-next/src/core/v6_assistance.js
+              node --check apps/learnit-next/src/adapters/v6_assistance_indexeddb.js
+              node --test apps/learnit-next/tests/v6_assistance.test.mjs
+              python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/pr514-learner-a.html"
+              python -B apps/learnit-next/build.py --output "${RUNNER_TEMP}/pr514-learner-b.html"
+              cmp "${RUNNER_TEMP}/pr514-learner-a.html" "${RUNNER_TEMP}/pr514-learner-b.html"
+              python -m pip install --upgrade 'playwright==1.64.1'
+              python -m playwright install --with-deps chromium
+              LEARNIT_V6_ARTIFACT="${RUNNER_TEMP}/pr514-learner-a.html" LEARNIT_V6_CHROMIUM_REPORT="${RUNNER_TEMP}/pr514-browser-smoke.json" python -B apps/learnit-next/tests/v6_assistance_chromium_smoke.py
+              echo 'PASS_PR514_ISOLATED_V6_ROUTING_AND_SYNTHETIC_QUALIFICATION_NO_DEPLOY'
+              exit 0
+            fi
+
             product_relevant=false
             workflow_changed=false
             for path in "${changed[@]}"; do

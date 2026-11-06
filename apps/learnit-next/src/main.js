@@ -21,6 +21,7 @@ import { createIndexedDbStorage } from './adapters/indexeddb.js';
 import { assertStoragePort } from './ports/storage.js';
 import * as objectiveUiModule from './ui/objective_progress.js';
 import { renderApp } from './ui/render.js';
+import { createV6AssistancePresenter, renderActivityPresentation } from './ui/activity_presenters.js';
 
 export const LEARNING_LOOP_V2_COMPOSITION = Object.freeze({
   registry: '__LEARNIT_NEXT_WAVE_A__',
@@ -855,6 +856,10 @@ async function boot() {
     getSession: runtime.getSession,
     renderAtlasR13Fixture,
     renderObjectiveR15Fixture,
+    // Candidate-only; not attached to native learner rendering.
+    createV6AssistancePresenter,
+    // Native QCM presentation for disposable browser fixture; not learner wiring.
+    renderActivityPresentation,
   });
 }
 

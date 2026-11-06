@@ -1,0 +1,269 @@
+{
+  "id": "OPS-WP-036",
+  "status": "in-progress",
+  "title": "LearnIT V6 three-module assistance bounded GitHub qualification R1",
+  "authority": {
+    "job": "LEARNIT_V6_THREE_MODULE_CONVERGENCE_AND_LEGACY_CLEANUP_R1",
+    "execute_me_sha256": "5e00c873010c245cf8ec5361692a314d252c464b2bb9c4f59b1fd38f9d0b1a37",
+    "human_go": "2026-11-04_GITHUB_ISOLATED_DRAFT_PR_QUALIFICATION_ONLY",
+    "source_commit": "ba97c68be0273437836230d66aed0e9d151f8a17",
+    "onedrive_charter_version": "15.0",
+    "release_merge_deploy": "NOT_AUTHORIZED"
+  },
+  "scope": {
+    "allowedPaths": [
+      "apps/learnit-next/src/core/v6_assistance.js",
+      "apps/learnit-next/src/adapters/v6_assistance_indexeddb.js",
+      "apps/learnit-next/src/core/V6_ASSISTANCE_PROTOCOL.md",
+      "apps/learnit-next/tests/v6_assistance.test.mjs",
+      "apps/learnit-next/tests/v6_assistance_chromium_smoke.py",
+      "apps/learnit-next/src/main.js",
+      "apps/learnit-next/src/ui/render.js",
+      "apps/learnit-next/src/ui/activity_presenters.js",
+      "apps/learnit-next/src/core/session.js",
+      "apps/learnit-next/src/adapters/indexeddb.js",
+      "apps/learnit-next/source_manifest.json",
+      "work-packages/OPS-WP-036.json",
+      ".github/workflows/learnit-next-ci.yml"
+    ],
+    "forbiddenPaths": [
+      "apps/player/**",
+      "authoring/**",
+      "contracts/**",
+      "governance/**",
+      "platform/**",
+      "docs/governance/**",
+      "tools/refresh_onedrive_catalogue.py",
+      "apps/learnit-next/dist/**",
+      "work-packages/OPS-WP-035.json",
+      ".github/workflows/*deploy*.yml",
+      ".github/workflows/*promotion*.yml",
+      ".github/workflows/pr-scope.yml",
+      ".github/workflows/governance-validation.yml"
+    ]
+  },
+  "qualification": {
+    "stage": "DOMAIN_PREPARATION_LOCAL_ONLY",
+    "local_unit_tests": "24 PASS/0 FAIL; synthetic CAS fixtures",
+    "browser_integration": "PENDING_CI",
+    "learner_wiring": "BLOCKED_UNTIL_TRUSTED_PARCOURS_DOMAIN_AUTHORITY_AND_E2E",
+    "source_manifest": "EXACT_GIT_BLOB_SHA1_REBIND_AND_CANONICAL_SELF_SHA256",
+    "legacy_deletions": 0,
+    "exactPr514Router": "EXACT_IDENTITY_AND_TESTS_REQUIRED;NOT_RELEASE_GO",
+    "domainContract": "PROPOSED_IN_OPS_WP_036_NOT_INDEPENDENTLY_ADMITTED",
+    "documentationRepair": "REMOVE_ONLY_NEW_UNBUILT_MD_AND_RESTORE_PRIOR_MANIFEST",
+    "parcoursHumanDecisions": "APPROVED_2026_11_06_THREE_RULES; CANDIDATE_AWAITING_INDEPENDENT_REVIEW",
+    "isolatedFunctionalExperiment": "EXCEPTION_APPROVED_EXPERIMENT_ONLY_EXPIRES_2026_11_20_REVIEW_HOLD",
+    "liveLearnerHintActivation": "FORBIDDEN_UNTIL_INDEPENDENT_DOMAIN_AND_SECURITY_REVIEW",
+    "freshLiveDataMutations": "NONE"
+  },
+  "non_authorities": [
+    "No learner hint side effects on real sessions",
+    "No V5 event reinterpretation",
+    "No real learner IndexedDB write",
+    "No merge, Pages, Factory, kit, catalogue or ACL changes"
+  ],
+  "independent_reviewer": {
+    "status": "REQUIRED_BEFORE_FINAL_QUALIFICATION"
+  },
+  "immutable_evidence": "OneDrive Operations job OUTPUTS/** not mutated; only QUALIFICATION_GITHUB_R1/ create-only",
+  "schemaVersion": 1,
+  "purpose": "Qualify an additive V6 Parcours assistance-journal service and durable IndexedDB CAS adapter, exclusively in an isolated draft PR, preserving existing V2–V5 and all current learner behavior until governed domain authorization and complete browser qualification.",
+  "rollback": "Abandon or close draft PR #514 without merging if any gate fails. Existing main, Pages, Factory, kits, catalogue, permissions, real learner state and immutable OneDrive OUTPUTS remain unchanged; preserve the exact original base commit for comparison.",
+  "baseline": {
+    "baseCommit": "ba97c68be0273437836230d66aed0e9d151f8a17",
+    "sourceManifestBlob": "e172562d4bea06dcc864f605535cb79102146b4a",
+    "existingOneDriveJobResult": "HOLD_UNPROVED_DELETION",
+    "priorUnitTests": "23 PASS synthetic only"
+  },
+  "invariants": [
+    "Only the exact six-file additive draft PR scope; no existing learner-session or Atlas V5 modification",
+    "No student V6 hint text is emitted before a validated Parcours authority and durable ACK",
+    "No implicit V5 inheritance and no deletion of legacy or unknown consumer",
+    "Source manifest self-SHA and all Git blob fingerprints exact; no new build artifact or execution workflow edits",
+    "No merge, Pages, Factory, learner-data, catalogue, kit or ACL mutation"
+  ],
+  "requiredEvidence": [
+    "24/24 synthetic Node tests on staged V6 journal code",
+    "GitHub exact-head source build twice with SHA256 and complete initial source worktree",
+    "Native Chromium real IndexedDB CAS retry/reload, XSS, keyboard/focus and 60-route baseline where applicable",
+    "Trusted production Parcours domain-event authority and real learner integration before semantic promotion",
+    "Independent code/security and legacy-consumer review; CI results tied to exact commit",
+    "Create-only durable qualification proof under existing Operations job without overwriting five OUTPUTS",
+    "Exact PR514 branch-only route runs Node tests, deterministic double-build and native synthetic Chromium/IndexedDB smoke on exact PR head."
+  ],
+  "adversarialTests": [
+    "Duplicate UUID race, out-of-order ACK, pending recovery after crash and hint source binding drift",
+    "Reject unauthorized V6 requests, invalid V5 inheritance and any XSS injection before durable ACK",
+    "Detect orphan or competing legacy consumers; delete none until exhaustive static/dynamic mapping",
+    "Detect source-manifest drift, unknown branch hard-coded CI route, and baseline CI failure",
+    "Reject any attempt to merge, publish or re-activate Factory on local-only or synthetic test evidence",
+    "Reject branch route on wrong PR number, wrong base, unauthorized modified paths or any workflow permission change."
+  ],
+  "nonGoals": [
+    "No real learner V6 side-effect until trusted authorizer and E2E",
+    "No update to main branch, Pages or build workflows",
+    "No deleting legacy adapters or resetting real IndexedDB",
+    "No new Operations job or parallel state log",
+    "No claim of production readiness or merged release"
+  ],
+  "independentReview": [
+    "Independent reviewer validates authority and V6 privacy boundaries",
+    "Separate reviewer inspects exact repo build logs and existing CI routing blockers",
+    "Independent confirmation of consumer graph and zero approved deletions",
+    "Readback and immutable-hash verification of any new Operations qualification evidence"
+  ],
+  "parcoursDomainContractCandidate": {
+    "status": "CANDIDATE_NOT_ADMITTED_INDEPENDENT_REVIEW_REQUIRED",
+    "humanDecision": "2026-11-05 user GO designates PARCOURS functional owner and approves explicit V6 hint semantics",
+    "sourceLock": "ba97c68be0273437836230d66aed0e9d151f8a17",
+    "owners": {
+      "BIBLIOTHEQUE": "Trusted imported kit V6, 0..3 authored hint strings, package/course/activity lineage and exact revision provenance",
+      "PARCOURS": "Sole domain authorization of active learner session and served activity; authorized events and durable CAS acknowledgement/replay",
+      "RENDERER": "Pure text-only presentation of authorized hint prefix, keyboard/focus/a11y, emits intent only; no journal or raw hints access",
+      "EXPLORER": "Read-only preview path; no learner permission"
+    },
+    "normativeRules": [
+      "V6-only: session must be active, UUID validated against persisted canonical activeCourse; no stale, out-of-queue, completed or cross-course request",
+      "Derive context internally from trusted courseInstallId, packageInstallId, packageRevisionDigest, activityRevisionDigest, active session UUID and authored hint-array digest; caller-supplied boolean, session or hint strings not proof",
+      "0..3 hints authored in order; fresh UUID per intent; retry reuses UUID; durable atomic AUTHORIZED(requestId,rank) CAS then durable ACKNOWLEDGED(requestId,rank) CAS precede display",
+      "Only acknowledged prefix returned to renderer; pending AUTHORIZE never reveals text; crash/reload preserves requestId without duplicate rank consumption",
+      "Journal isolated per session/kit/revision and source digest, no raw hint text in persisted journal, reject mismatched source/corrupt/missing-after-commit/out-of-order/concurrent state",
+      "IndexedDB transaction completion must establish durability; offline/quota, CAS races or unknown state fail closed, no blind reset, no real student data migration",
+      "No score, answer evaluation, progress or maxUses change; any Atlas assistance used/unknown learning-state semantics separately governed",
+      "Historical V2–V5 compatibility, V5 journals and Explorer preview never authorize V6; no deletion without direct/dynamic consumer graph",
+      "Renderer uses textContent, safe focus/announcement; no independent authorization, raw hint payload or direct IndexedDB write",
+      "No deployment, merge, Pages, Factory, kit/catalogue/permissions or real learner storage mutation"
+    ],
+    "trustBoundary": "The current test uses authorize(ctx) with ctx.parcoursAuthorized=true. This is synthetic and not a trusted Parcours authorization. Real activation must resolve canonical active session/kit inside Parcours with explicit independent QA.",
+    "independentReview": {
+      "policy": "docs/governance/DECISION_RIGHTS.md: shared contract requires Governor approval and consumers plus independent QA; author cannot be sole reviewer",
+      "needed": [
+        "Independent security/QA reviewer identity and exact SHA review record",
+        "Bibliothèque / Parcours / Renderer consumer acceptance",
+        "Real hint click/ack/reveal/reload with disposable V6 kit, two tabs, crash points, XSS, focus",
+        "V5 regression and maxUses/scoring noninterference",
+        "Two deterministic builds, exact source/hash and independently recorded PASS/HOLD/FAIL"
+      ],
+      "observed": "PR #514 has zero submitted independent GitHub reviews; not approved",
+      "gate": "HOLD"
+    },
+    "currentEvidence": "Node 25/25, Chromium synthetic journal 9/9 plus real V6 learner session UUID 3/3, two deterministic builds at previous PR head only; no actual learner hints UI",
+    "statusEffect": "DOCUMENT_CANDIDATE_ONLY_NO_REAL_LEARNER_HINT_ACTIVATION",
+    "humanDecisionAddendum20261106": {
+      "status": "HUMAN_BUSINESS_DECISION_APPROVED_CONTRACT_STILL_CANDIDATE",
+      "decisionDate": "2026-11-06",
+      "authority": "Explicit user decision in current conversation. Governs proposed V6 learner assistance semantics only, not independent engineering/security approval or promotion.",
+      "afterAnswer": {
+        "rule": "NO_NEW_HINT_REQUEST_AFTER_FIRST_ANSWER_SUBMISSION",
+        "scope": "Per activity within an active V6 learner session, as soon as first response is submitted; includes incorrect response and any later retry under maxUses.",
+        "alreadyRevealed": "Previously durably ACKNOWLEDGED hints remain read-only consultable as part of historical authorized view after the response, subject to session/revision isolation.",
+        "pending": "A pending AUTHORIZED but unacknowledged request is not an acquired hint; it must not newly reveal text after the first response. Require lifecycle-aware recovery/denial without silently discarding durable events. Exact pending-event transition design needs independent review.",
+        "prohibited": "No additional request IDs or authorization rank advances after response submission. Renderer must not present an active request control."
+      },
+      "newSession": {
+        "rule": "FRESH_HINT_STATE_PER_NEW_SESSION_RETAIN_PRIOR_HISTORY",
+        "newStart": "Each intentional fresh V6 course/activity session receives a different durable session UUID and a new empty per-session hint journal, even for the same installed kit and activity revision.",
+        "sameSessionResume": "Reload of the same still-active session retains its UUID and acknowledged hint prefix.",
+        "priorHistory": "Preserve existing historical journals unchanged and isolated by session, kit and revision. Do not carry prior-session hints into the new session, delete earlier journals, overwrite history or migrate V2–V5 data.",
+        "reviewRequired": "Define historical browsing/retention/privacy and course restart-vs-activity restart mapping before actual learner write."
+      },
+      "mastery": {
+        "rule": "ASSISTED_CORRECT_RESPONSE_IS_NOT_AUTONOMOUS_SUCCESS",
+        "grade": "Keep the established response grade/scoring outcome and answer maxUses unchanged.",
+        "independentEvidence": "Separate pedagogical autonomy classification from numeric grade. For a correct response, autonomy=false if a hint was durably acknowledged in that session/activity before submission; if no hint has been acknowledged and the full journal is proven intact, autonomy classification may be considered independently. Missing/corrupt/unverified assistance state must not be recorded as autonomous success.",
+        "semanticBoundary": "Do not silently change existing Atlas mastery/scoring event contracts or historical scores. Any new autonomy-event schema, derivation/counter update, and migration require independent domain acceptance before integration. No mastery metric increment as autonomous when evidence proves hint use.",
+        "tests": "After one or more acknowledged hints, correct answer retains the same grade and maxUses, but is classified non-autonomous in any proposed V6 autonomy measure. Cross-session history is preserved without contaminating a fresh-session hint state."
+      },
+      "qualification": {
+        "status": "CANDIDATE_REVIEW_REQUIRED",
+        "requiredBeforeWiring": [
+          "Independent reviewer validates post-submit lock and previously acknowledged read-only hints, including pending authorization race.",
+          "Independent reviewer validates new session journal reset with historical durable retention; restore same session without reset.",
+          "Independent reviewer accepts semantics of assisted vs autonomous success without unapproved Atlas/scoring changes.",
+          "Native Chromium scenario covers request/ACK/view, submit, denied further request, read-only acquired hints, fresh session, persisted history and grade/maxUses invariants."
+        ],
+        "release": "NO_MERGE_NO_DEPLOY_NO_NEW_JOB_NO_STUDENT_DATA_MUTATION"
+      }
+    }
+  },
+  "threeCycleCandidateCritique": [
+    {
+      "cycle": 1,
+      "axis": "authority and privacy",
+      "attack": "Can a client forge ctx.parcoursAuthorized=true or V5 preview state?",
+      "result": "Yes if test callback wired; real Parcours verifier still missing",
+      "action": "Keep hint UI disconnected",
+      "verdict": "HOLD"
+    },
+    {
+      "cycle": 2,
+      "axis": "persistence and legacy",
+      "attack": "Crash, two tabs, stale revision, accidental scoring/maxUses or V5 inheritance?",
+      "result": "Synthetic CAS covered but real V6 hint UI and historical regression missing",
+      "action": "Independent E2E required, zero legacy removals",
+      "verdict": "HOLD"
+    },
+    {
+      "cycle": 3,
+      "axis": "build/review boundary",
+      "attack": "Does any source-area Markdown break strict ordered manifest, and may author self-approve?",
+      "result": "Yes to source-tree drift and no to self-approval",
+      "action": "Move proposal into work-package JSON; restore source manifest, delete only newly added doc",
+      "verdict": "HOLD"
+    }
+  ],
+  "isolatedFunctionalException": {
+    "state": "OWNER_REQUEST_ADMITTED_ONLY_AS_REVERSIBLE_SYNTHETIC_EXPERIMENT",
+    "humanGO": "2026-11-06_EXPLICIT_CONDITIONAL_ISOLATED_PR514_NO_EXTERNAL_REVIEWER",
+    "repositoryOwner": "stefm78",
+    "reviewedRules": [
+      "verified UCP 1.1-R4 SHA256 anchor and active HEAD closure",
+      "docs/governance/DECISION_RIGHTS.md owner exceptional override with decision/risk/expiry/rollback and followup",
+      "EXECUTE_ME.md G2 HARD GATE prohibits actual V6 learner hint side effect absent independently validated domain/event authority"
+    ],
+    "decisionOverridden": "Operational governor HOLD as a barrier to preparing an isolated candidate experiment; NOT independent domain, security or release approval",
+    "reason": "Only available participants are repository owner and implementing assistant; need concrete product learning rather than paperwork without false independence",
+    "riskAccepted": "No independent QA; synthetic hint text not an admitted Bibliothèque V6 hint source; an isolated browser overlay can be mistaken for product behavior; malicious browser UI or local storage remains outside production trusted authorization",
+    "scope": "Only existing PR #514, allowed source/test/work-package/manifest files, disposable isolated Chromium fixture and test-only DOM overlay; no live learner UI wiring",
+    "expiry": "2026-11-20T23:59:59+01:00",
+    "rollback": "Revert the isolated candidate changes on PR #514 to prior exact commit 6450510908cef1977b154f0acf34dd8965fd50e2 by a separately audited non-force corrective commit; never force or touch main",
+    "followUpEvidence": [
+      "native actual built HTML + synthetic imported V6 QCM, separate isolated hint fixture; click→durable AUTH→ACK→reveal→reload→reveal",
+      "post-answer READ allowed, REQUEST/ACK denied and grade untouched; fresh session starts empty, previous IndexedDB retained",
+      "Node+Chromium tests and two deterministic builds on exact PR head; 3 adversarial critiques and independent review still HOLD"
+    ],
+    "limits": "EXPERIMENT_PASS_NOT_INTEGRATION_OR_PRODUCTION_PASS; no real student, kits/catalogue, external ACL, Factory, Pages, deploy, merge, new job, workflow edits or historical OUTPUT replacements",
+    "independentQA": "NOT_PERFORMED; remains HOLD for any real learner integration, shared contract activation or promotion",
+    "release": "BLOCKED_NO_MERGE_NO_DEPLOY"
+  },
+  "threeCycleIsolatedFunctionalCritique": [
+    {
+      "cycle": 1,
+      "risk": "Synthetic client-supplied parcoursAuthorized flag could authorize requests after answer",
+      "correction": "purpose-aware authorizer contract request/acknowledge/read; fixture obtains current activity from native learner API; no production wiring",
+      "status": "CANDIDATE_TEST_ONLY"
+    },
+    {
+      "cycle": 2,
+      "risk": "Reload/double-click/source drift and prior V5 or old session leakage",
+      "correction": "persisted CAS with exact test browser session and source digest; new session UUID, old history retained; no V5 reuse",
+      "status": "TEST_REQUIRED"
+    },
+    {
+      "cycle": 3,
+      "risk": "A passing fixture overlay could be misrepresented as imported V6 hints or independent QA",
+      "correction": "test-only overlay and synthetic hint source clearly labelled; actual V6 schema currently excludes hints; mandatory domain and QA gate unchanged",
+      "status": "HONEST_HOLD"
+    }
+  ],
+  "isolatedNativeRendererMilestone": {
+    "status": "CANDIDATE_RENDERER_PREPARED_BUT_NOT_ACTIVATED_FOR_REAL_LEARNERS",
+    "basis": "Owner 2026-11-06 conditional isolated experiment expires 2026-11-20",
+    "modification": "Reusable `createV6AssistancePresenter` in existing native Presenter; compiled build test API for isolated Chromium only; native QCM fixture injects element in Playwright only.",
+    "dataAuthority": "Only accepts Parcours acknowledged prefix in readView. No raw kit hint source, no self authorization/persistence, fail-closed on bad data, keeps notes on post-answer status.",
+    "testScope": "Native DOM / keyboard status, click, durable ACK then display, reload, XSS, post-answer locked, new session history, score untouched; isolated synthetic hints outside kit.",
+    "unapproved": "V6 kit schema extension and actual normal learner wiring NOT admitted; independent QA still HOLD; zero change to main/deploy.",
+    "rollback": "Revert isolated candidate to 6450510908cef1977b154f0acf34dd8965fd50e2 via nonforce corrective commit."
+  }
+}

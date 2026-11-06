@@ -308,6 +308,121 @@ function productive(p) {
   return shell(p,[prompt(p.prompt),group]);
 }
 
+
+/**
+ * V6 candidate presenter. Does NOT acquire, authorize or persist a hint.
+ * Only a trusted Parcours readView() may supply an acknowledged prefix.
+ * Kept unmounted in normal learner flow pending independent domain admission.
+ */
+export function createV6AssistancePresenter({ totalHints, readView, requestNext } = {}) {
+  if (!Number.isInteger(totalHints) || totalHints < 0 || totalHints > 3)
+    throw new TypeError('V6_ASSISTANCE_TOTAL_INVALID');
+  if (typeof readView !== 'function' || typeof requestNext !== 'function')
+    throw new TypeError('V6_ASSISTANCE_PARCOURS_PORT_REQUIRED');
+  const section = el('section', {
+    className:'activity-hints', 'data-v6-assistance-candidate':'true',
+    'aria-label':'Indices de l’activité',
+  });
+  const heading = el('h3', { text:'Indices de l’activité' });
+  const list = el('ol', { 'data-v6-assistance-list':'true', 'aria-live':'polite' });
+  const button = el('button', {
+    type:'button', className:'secondary', 'data-v6-assistance-next':'true',
+    disabled:true,
+  });
+  const status = el('p', {
+    className:'help', role:'status', 'aria-live':'polite',
+    'data-v6-assistance-status':'true', text:'Chargement des indices…',
+  });
+  section.append(heading, list, button, status);
+  let busy = false;
+  let disposed = false;
+  let generation = 0;
+  let lastView = null;
+  function render(view) {
+    if (disposed) return;
+    if (!view || !Array.isArray(view.hints) ||
+        !Number.isInteger(view.visibleCount) ||
+        view.visibleCount !== view.hints.length ||
+        view.visibleCount > totalHints ||
+        view.hints.some(x => typeof x !== 'string' || !x.trim() || x.length > 2000) ||
+        typeof view.hasPendingAuthorization !== 'boolean' ||
+        typeof view.canRequest !== 'boolean') {
+      button.disabled = true;
+      list.replaceChildren();
+      lastView = null;
+      status.textContent = 'État d’assistance indisponible.';
+      throw new TypeError('V6_AUTHORIZED_PREFIX_INVALID');
+    }
+    lastView = {
+      hints:[...view.hints],
+      visibleCount:view.visibleCount,
+      hasPendingAuthorization:view.hasPendingAuthorization,
+      canRequest:view.canRequest,
+    };
+    list.replaceChildren(...view.hints.map((value,index) => el('li', {
+      className:'help activity-hint', 'data-v6-assistance-hint':String(index + 1),
+      text:value,
+    })));
+    button.textContent = 'Afficher un indice (' + (view.visibleCount + 1) + '/' + totalHints + ')';
+    button.disabled = busy || !view.canRequest ||
+      view.hasPendingAuthorization || view.visibleCount >= totalHints;
+    button.hidden = totalHints === 0 || (!view.canRequest && view.visibleCount === 0);
+    status.textContent = view.hasPendingAuthorization
+      ? 'Un indice est en attente de confirmation.'
+      : !view.canRequest
+        ? 'Les indices déjà acquis restent consultables.'
+        : view.visibleCount >= totalHints
+          ? 'Tous les indices disponibles ont été consultés.'
+          : 'Demandez un indice si nécessaire.';
+  }
+  async function refresh() {
+    if (disposed) return null;
+    const ticket = ++generation;
+    try {
+      const view = await readView();
+      if (disposed || ticket !== generation) return null;
+      render(view);
+      return { visible:view.visibleCount, active:view.canRequest, pending:view.hasPendingAuthorization };
+    } catch (error) {
+      // An obsolete failed read must never erase a newer authorized view.
+      if (disposed || ticket !== generation) return null;
+      button.disabled = true;
+      lastView = null;
+      list.replaceChildren();
+      status.textContent = 'Impossible de confirmer les indices enregistrés.';
+      throw error;
+    }
+  }
+  button.addEventListener('click', async () => {
+    if (busy || disposed || !lastView?.canRequest || lastView.hasPendingAuthorization ||
+        lastView.visibleCount >= totalHints) return;
+    busy = true;
+    button.disabled = true;
+    try {
+      await requestNext();
+      await refresh();
+      const latest = list.lastElementChild;
+      if (latest) {
+        latest.setAttribute('tabindex','-1');
+        latest.focus();
+      }
+    } catch {
+      button.disabled = true;
+      status.textContent = 'Indice non confirmé. Reprenez la session pour vérifier.';
+    } finally {
+      busy = false;
+      // The source of truth remains Parcours; do not locally re-enable the button.
+      if (!disposed && button.isConnected) {
+        try { await refresh(); } catch { /* fail closed */ }
+      }
+    }
+  });
+  return Object.freeze({
+    element:section, refresh,
+    dispose:() => { disposed = true; generation += 1; button.disabled = true; section.remove(); },
+  });
+}
+
 export function renderActivityPresentation(presentation) {
   if (!presentation || typeof presentation !== 'object') throw new TypeError('ActivityPresentation object is required');
   switch (presentation.type) {
