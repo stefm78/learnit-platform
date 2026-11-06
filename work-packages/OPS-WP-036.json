@@ -256,5 +256,14 @@
       "correction": "test-only overlay and synthetic hint source clearly labelled; actual V6 schema currently excludes hints; mandatory domain and QA gate unchanged",
       "status": "HONEST_HOLD"
     }
-  ]
+  ],
+  "isolatedNativeRendererMilestone": {
+    "status": "CANDIDATE_RENDERER_PREPARED_BUT_NOT_ACTIVATED_FOR_REAL_LEARNERS",
+    "basis": "Owner 2026-11-06 conditional isolated experiment expires 2026-11-20",
+    "modification": "Reusable `createV6AssistancePresenter` in existing native Presenter; compiled build test API for isolated Chromium only; native QCM fixture injects element in Playwright only.",
+    "dataAuthority": "Only accepts Parcours acknowledged prefix in readView. No raw kit hint source, no self authorization/persistence, fail-closed on bad data, keeps notes on post-answer status.",
+    "testScope": "Native DOM / keyboard status, click, durable ACK then display, reload, XSS, post-answer locked, new session history, score untouched; isolated synthetic hints outside kit.",
+    "unapproved": "V6 kit schema extension and actual normal learner wiring NOT admitted; independent QA still HOLD; zero change to main/deploy.",
+    "rollback": "Revert isolated candidate to 6450510908cef1977b154f0acf34dd8965fd50e2 via nonforce corrective commit."
+  }
 }
