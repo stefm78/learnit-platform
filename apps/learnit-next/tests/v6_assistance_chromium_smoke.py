@@ -114,8 +114,118 @@ def main():
             tests.append(dict(name='real_v6_new_course_session_uuid_rotates',status='PASS'))
             print('real_v6_new_course_session_uuid_rotates PASS')
             browser.close()
+    if artifact_text:
+        run_isolated_functional_demo(tests, Path(artifact_text))
     print('CHROMIUM_SUMMARY',json.dumps({'passed':sum(x['status']=='PASS' for x in tests),'total':len(tests)}))
     import os
     report_path=Path(os.environ.get('LEARNIT_V6_CHROMIUM_REPORT', '/tmp/LEARNIT_V6_R1_CHROMIUM_SMOKE_RESULTS.json'))
     report_path.write_text(json.dumps({'tests':tests,'synthetic_only':True},indent=2)+'\n')
+DEMO_BOOTSTRAP = "async ({courseId, activityId, hints}) => {\n  const api=window.__LEARNIT_NEXT_TEST__;\n  const domain=await import('/apps/learnit-next/src/core/v6_assistance.js');\n  const persistence=await import('/apps/learnit-next/src/adapters/v6_assistance_indexeddb.js');\n  const session=await api.getSession();\n  const installed=await api.getAtlasCourseContext(courseId);\n  const activity=installed.course.activities.find(x=>x.activityRevisionId===activityId);\n  if (!session?.v6AssistanceSessionId||!activity||session.currentActivity?.activityRevisionId!==activityId)\n    throw Error('SYNTHETIC_DEMO_SESSION_OR_ACTIVITY_MISMATCH');\n  const ctx={contract:'learnit.kit.v6',sessionId:session.v6AssistanceSessionId,\n    activityId,packageRevisionDigest:installed.packageDigest,\n    activityRevisionDigest:activity.activityRevisionDigest,hints};\n  const port=persistence.createV6AssistanceIndexedDbCAS({\n    dbName:'learnit-v6-pr514-isolated-demo-only'});\n  const svc=domain.createV6AssistanceService(port,{\n    authorize:async (c,purpose)=>{\n      const live=await api.getSession();\n      const source=await api.getAtlasCourseContext(courseId);\n      const matched=source.course.activities.find(x=>x.activityRevisionId===c.activityId);\n      const same=live?.v6AssistanceSessionId===c.sessionId &&\n        source.packageDigest===c.packageRevisionDigest &&\n        matched?.activityRevisionDigest===c.activityRevisionDigest;\n      return Boolean(same&&(purpose==='read'||live.currentActivity?.activityRevisionId===c.activityId));\n    }\n  });\n  const panel=document.createElement('section');\n  panel.setAttribute('data-v6-synthetic-demo','true');\n  panel.setAttribute('aria-label','Prototype isolé assistance V6');\n  const heading=document.createElement('h2');heading.textContent='Prototype isolé — indices V6';\n  const marker=document.createElement('p');marker.textContent='Données synthétiques, non intégré au produit';\n  const list=document.createElement('ol');list.setAttribute('data-v6-synthetic-list','true');\n  const button=document.createElement('button');button.type='button';\n  button.setAttribute('data-v6-synthetic-next','true');\n  const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');\n  panel.append(heading,marker,list,button,status);\n  document.body.append(panel);\n  const render=async()=>{\n    const view=await svc.readAuthorizedView(ctx);\n    list.replaceChildren();\n    for(const value of view.hints){\n      const row=document.createElement('li');row.textContent=value;\n      row.setAttribute('data-v6-synthetic-hint','true');list.append(row);\n    }\n    const live=await api.getSession();\n    const active=live?.v6AssistanceSessionId===ctx.sessionId &&\n      live.currentActivity?.activityRevisionId===ctx.activityId;\n    button.disabled=!active||view.visibleCount>=ctx.hints.length||view.hasPendingAuthorization;\n    button.textContent='Afficher un indice ('+view.visibleCount+'/'+ctx.hints.length+')';\n    status.textContent=active?'Exercice actif':'Après réponse : indices déjà acquis uniquement';\n    return {visible:view.visibleCount,active,pending:view.hasPendingAuthorization};\n  };\n  const request=async()=>{\n    const live=await api.getSession();\n    if(live?.v6AssistanceSessionId!==ctx.sessionId||\n       live.currentActivity?.activityRevisionId!==ctx.activityId)\n      throw Error('PARCOURS_POST_ANSWER_DENIED');\n    const requestId=crypto.randomUUID();\n    await svc.requestNext(ctx,requestId);\n    await svc.acknowledge(ctx,requestId);\n    return render();\n  };\n  button.addEventListener('click',()=>{request().catch(e=>{status.textContent=e.code||e.message})});\n  window.__isolatedV6Demo={ctx,port,svc,render,request};\n  return render();\n}"
+
+def run_isolated_functional_demo(tests, artifact):
+    """In-browser fixture overlay, NOT shipped learner UI or approved kit hint source."""
+    import importlib.util
+    spec=importlib.util.spec_from_file_location('pr514_demo_fixture', ROOT/'apps/learnit-next/tests/passage_v6_consumption.py')
+    assert spec and spec.loader
+    mod=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    fixture=mod.package()
+    qcm=fixture['courses'][0]['activities'][2]
+    class DemoH(H):
+        def do_GET(self):
+            if self.path.split('?',1)[0]=='/__learnit_pr514_demo.html':
+                raw=artifact.read_bytes()
+                self.send_response(200)
+                self.send_header('Content-Type','text/html; charset=utf-8')
+                self.send_header('Content-Length',str(len(raw)))
+                self.send_header('Cache-Control','no-store')
+                self.end_headers()
+                self.wfile.write(raw)
+                return
+            return super().do_GET()
+    def record(name, pass_condition):
+        ok=bool(pass_condition)
+        tests.append({'name':name,'status':'PASS' if ok else 'FAIL'})
+        print(name, 'PASS' if ok else 'FAIL', flush=True)
+        if not ok: raise AssertionError(name)
+    with S(('127.0.0.1',0),DemoH) as server:
+        worker=threading.Thread(target=server.serve_forever,daemon=True);worker.start()
+        url=f'http://127.0.0.1:{server.server_port}/__learnit_pr514_demo.html'
+        with sync_playwright() as pw:
+            browser=pw.chromium.launch(headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
+            context=browser.new_context()
+            page=context.new_page();page.goto(url)
+            page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.importPackage)')
+            mod.call(page,'resetNextData')
+            imported=mod.call(page,'importPackage',[fixture])
+            course_id=imported['courses'][0]['courseInstallId']
+            first=mod.call(page,'startCourse',[course_id])
+            record('demo_native_v6_session_created',bool(first.get('v6AssistanceSessionId')))
+            for activity in fixture['courses'][0]['activities'][:2]:
+                mod.call(page,'answer',[activity['activityRevisionId'],mod.answer(activity)])
+            current=mod.call(page,'getSession')
+            record('demo_real_qcm_fixture_active',current['currentActivity']['activityRevisionId']==qcm['activityRevisionId'])
+            hints=['Indice 1 : relisez la question.',
+                   '<img src=x onerror=alert(1)>',
+                   'Indice 3 : vérifiez les réponses possibles.']
+            args={'courseId':course_id,'activityId':qcm['activityRevisionId'],'hints':hints}
+            initial=page.evaluate(DEMO_BOOTSTRAP,args)
+            record('demo_starts_with_no_acquired_hints',initial['visible']==0 and initial['active'])
+            page.locator('[data-v6-synthetic-next]').click()
+            page.wait_for_function("()=>document.querySelectorAll('[data-v6-synthetic-hint]').length===1")
+            record('demo_click_commits_then_displays_first_hint',
+                   page.locator('[data-v6-synthetic-hint]').count()==1)
+            page.reload();page.wait_for_function('()=>Boolean(window.__LEARNIT_NEXT_TEST__?.resumeActiveCourse)')
+            resumed=mod.call(page,'resumeActiveCourse')
+            record('demo_real_v6_uuid_resumed',resumed.get('v6AssistanceSessionId')==first['v6AssistanceSessionId'])
+            restored=page.evaluate(DEMO_BOOTSTRAP,args)
+            record('demo_reload_restores_acquired_hint',restored['visible']==1)
+            page.locator('[data-v6-synthetic-next]').click()
+            page.wait_for_function("()=>document.querySelectorAll('[data-v6-synthetic-hint]').length===2")
+            record('demo_second_hint_rendered_as_safe_text',
+                   page.locator('[data-v6-synthetic-demo] img').count()==0 and
+                   '<img src=x' in page.locator('[data-v6-synthetic-hint]').nth(1).inner_text())
+            page.locator('[data-v6-synthetic-next]').click()
+            page.wait_for_function("()=>document.querySelectorAll('[data-v6-synthetic-hint]').length===3")
+            record('demo_three_indice_limit_enforced',
+                   page.locator('[data-v6-synthetic-next]').is_disabled())
+            result=mod.call(page,'answer',[qcm['activityRevisionId'],mod.answer(qcm)])
+            locked=page.evaluate("async()=>await window.__isolatedV6Demo.render()")
+            record('demo_postanswer_preserves_acquired_hints_and_disables_request',
+                   locked['visible']==3 and not locked['active'] and
+                   page.locator('[data-v6-synthetic-next]').is_disabled())
+            refused=page.evaluate("""async()=>{
+                const d=window.__isolatedV6Demo;
+                try{await d.svc.requestNext(d.ctx,crypto.randomUUID());return null}
+                catch(e){return e.code||e.message}
+            }""")
+            record('demo_direct_postanswer_call_denied',refused=='PARCOURS_AUTHORIZATION_DENIED')
+            record('demo_score_unchanged_assisted_nonautonomous_derived_only',
+                   result.get('scored') is True and result.get('correct') is True and locked['visible']>0)
+            previous=page.evaluate("""async()=>{
+                const d=window.__isolatedV6Demo;
+                return d.port.read('learnit.v6.assistance-journal.v1:'+d.ctx.sessionId+':'+d.ctx.activityId)
+            }""")
+            fresh=mod.call(page,'startCourse',[course_id])
+            record('demo_new_session_uuid_rotates_again',
+                   fresh.get('v6AssistanceSessionId')!=first['v6AssistanceSessionId'])
+            new=page.evaluate("""async()=>{
+                const old=window.__isolatedV6Demo,api=window.__LEARNIT_NEXT_TEST__;
+                const live=await api.getSession();
+                const next={...old.ctx,sessionId:live.v6AssistanceSessionId,
+                    activityId:live.currentActivity.activityRevisionId};
+                const source=await api.getAtlasCourseContext(live.courseInstallId);
+                next.activityRevisionDigest=source.course.activities.find(
+                    x=>x.activityRevisionId===next.activityId).activityRevisionDigest;
+                return {
+                    old:await old.port.read('learnit.v6.assistance-journal.v1:'+old.ctx.sessionId+':'+old.ctx.activityId),
+                    fresh:await old.port.read('learnit.v6.assistance-journal.v1:'+next.sessionId+':'+next.activityId)
+                }
+            }""")
+            record('demo_new_session_fresh_hints_and_old_history_retained',
+                   new['fresh']['state'] is None and new['old']==previous and
+                   len(previous['state']['events'])==6)
+            browser.close()
+        server.shutdown();worker.join(5)
+
 if __name__=='__main__':main()

@@ -52,7 +52,10 @@
     "exactPr514Router": "EXACT_IDENTITY_AND_TESTS_REQUIRED;NOT_RELEASE_GO",
     "domainContract": "PROPOSED_IN_OPS_WP_036_NOT_INDEPENDENTLY_ADMITTED",
     "documentationRepair": "REMOVE_ONLY_NEW_UNBUILT_MD_AND_RESTORE_PRIOR_MANIFEST",
-    "parcoursHumanDecisions": "APPROVED_2026_11_06_THREE_RULES; CANDIDATE_AWAITING_INDEPENDENT_REVIEW"
+    "parcoursHumanDecisions": "APPROVED_2026_11_06_THREE_RULES; CANDIDATE_AWAITING_INDEPENDENT_REVIEW",
+    "isolatedFunctionalExperiment": "EXCEPTION_APPROVED_EXPERIMENT_ONLY_EXPIRES_2026_11_20_REVIEW_HOLD",
+    "liveLearnerHintActivation": "FORBIDDEN_UNTIL_INDEPENDENT_DOMAIN_AND_SECURITY_REVIEW",
+    "freshLiveDataMutations": "NONE"
   },
   "non_authorities": [
     "No learner hint side effects on real sessions",
@@ -208,6 +211,50 @@
       "result": "Yes to source-tree drift and no to self-approval",
       "action": "Move proposal into work-package JSON; restore source manifest, delete only newly added doc",
       "verdict": "HOLD"
+    }
+  ],
+  "isolatedFunctionalException": {
+    "state": "OWNER_REQUEST_ADMITTED_ONLY_AS_REVERSIBLE_SYNTHETIC_EXPERIMENT",
+    "humanGO": "2026-11-06_EXPLICIT_CONDITIONAL_ISOLATED_PR514_NO_EXTERNAL_REVIEWER",
+    "repositoryOwner": "stefm78",
+    "reviewedRules": [
+      "verified UCP 1.1-R4 SHA256 anchor and active HEAD closure",
+      "docs/governance/DECISION_RIGHTS.md owner exceptional override with decision/risk/expiry/rollback and followup",
+      "EXECUTE_ME.md G2 HARD GATE prohibits actual V6 learner hint side effect absent independently validated domain/event authority"
+    ],
+    "decisionOverridden": "Operational governor HOLD as a barrier to preparing an isolated candidate experiment; NOT independent domain, security or release approval",
+    "reason": "Only available participants are repository owner and implementing assistant; need concrete product learning rather than paperwork without false independence",
+    "riskAccepted": "No independent QA; synthetic hint text not an admitted Bibliothèque V6 hint source; an isolated browser overlay can be mistaken for product behavior; malicious browser UI or local storage remains outside production trusted authorization",
+    "scope": "Only existing PR #514, allowed source/test/work-package/manifest files, disposable isolated Chromium fixture and test-only DOM overlay; no live learner UI wiring",
+    "expiry": "2026-11-20T23:59:59+01:00",
+    "rollback": "Revert the isolated candidate changes on PR #514 to prior exact commit 6450510908cef1977b154f0acf34dd8965fd50e2 by a separately audited non-force corrective commit; never force or touch main",
+    "followUpEvidence": [
+      "native actual built HTML + synthetic imported V6 QCM, separate isolated hint fixture; click→durable AUTH→ACK→reveal→reload→reveal",
+      "post-answer READ allowed, REQUEST/ACK denied and grade untouched; fresh session starts empty, previous IndexedDB retained",
+      "Node+Chromium tests and two deterministic builds on exact PR head; 3 adversarial critiques and independent review still HOLD"
+    ],
+    "limits": "EXPERIMENT_PASS_NOT_INTEGRATION_OR_PRODUCTION_PASS; no real student, kits/catalogue, external ACL, Factory, Pages, deploy, merge, new job, workflow edits or historical OUTPUT replacements",
+    "independentQA": "NOT_PERFORMED; remains HOLD for any real learner integration, shared contract activation or promotion",
+    "release": "BLOCKED_NO_MERGE_NO_DEPLOY"
+  },
+  "threeCycleIsolatedFunctionalCritique": [
+    {
+      "cycle": 1,
+      "risk": "Synthetic client-supplied parcoursAuthorized flag could authorize requests after answer",
+      "correction": "purpose-aware authorizer contract request/acknowledge/read; fixture obtains current activity from native learner API; no production wiring",
+      "status": "CANDIDATE_TEST_ONLY"
+    },
+    {
+      "cycle": 2,
+      "risk": "Reload/double-click/source drift and prior V5 or old session leakage",
+      "correction": "persisted CAS with exact test browser session and source digest; new session UUID, old history retained; no V5 reuse",
+      "status": "TEST_REQUIRED"
+    },
+    {
+      "cycle": 3,
+      "risk": "A passing fixture overlay could be misrepresented as imported V6 hints or independent QA",
+      "correction": "test-only overlay and synthetic hint source clearly labelled; actual V6 schema currently excludes hints; mandatory domain and QA gate unchanged",
+      "status": "HONEST_HOLD"
     }
   ]
 }

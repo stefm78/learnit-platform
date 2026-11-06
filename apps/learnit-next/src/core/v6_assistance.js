@@ -62,16 +62,18 @@ function validatedRequestId(requestId) {
  * @param {Object} port
  *   read(key) -> {version, state|null}; compareAndSwap(key, expectedVersion, state)
  *   -> true only after durable atomic commit, false on real contention.
- * @param {Object} opts authorize(context) -> explicitly true, otherwise deny.
+ * @param {Object} opts authorize(context, purpose) -> explicitly true, otherwise deny.
+ * Purpose is request | acknowledge | read. Re-check active activity on writes,
+ * but allow acknowledged historical view after answer if the session is valid.
  */
 export function createV6AssistanceService(port, { authorize, maxRetries = 12 } = {}) {
   guard(port && typeof port.read === 'function' && typeof port.compareAndSwap === 'function',
     'DURABLE_CAS_PORT_REQUIRED');
   guard(typeof authorize === 'function', 'PARCOURS_AUTHORIZER_REQUIRED');
   guard(Number.isInteger(maxRetries) && maxRetries >= 1 && maxRetries <= 32, 'RETRIES_INVALID');
-  async function access(ctx) {
+  async function access(ctx, purpose) {
     const scope = validateContext(ctx);
-    guard(await authorize(ctx) === true, 'PARCOURS_AUTHORIZATION_DENIED');
+    guard(await authorize(ctx, purpose) === true, 'PARCOURS_AUTHORIZATION_DENIED');
     // Cryptographically bind the exact V6 hint strings to the revision source.
     // Changing a hint while keeping an old revision digest must fail closed.
     guard(globalThis.crypto?.subtle && typeof TextEncoder === 'function', 'SHA256_UNAVAILABLE');
@@ -82,7 +84,7 @@ export function createV6AssistanceService(port, { authorize, maxRetries = 12 } =
   }
   async function requestNext(ctx, requestId) {
     validatedRequestId(requestId);
-    const { key, binding } = await access(ctx);
+    const { key, binding } = await access(ctx, 'request');
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       const snapshot = await port.read(key);
       const current = parse(snapshot, binding, ctx.hints.length);
@@ -98,7 +100,7 @@ export function createV6AssistanceService(port, { authorize, maxRetries = 12 } =
   }
   async function acknowledge(ctx, requestId) {
     validatedRequestId(requestId);
-    const { key, binding } = await access(ctx);
+    const { key, binding } = await access(ctx, 'acknowledge');
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       const snapshot = await port.read(key);
       const current = parse(snapshot, binding, ctx.hints.length);
@@ -113,7 +115,7 @@ export function createV6AssistanceService(port, { authorize, maxRetries = 12 } =
     throw new V6AssistanceError('CAS_CONFLICT_EXHAUSTED');
   }
   async function readAuthorizedView(ctx) {
-    const { key, binding } = await access(ctx);
+    const { key, binding } = await access(ctx, 'read');
     const current = parse(await port.read(key), binding, ctx.hints.length);
     // The only API that returns actual hint values: AFTER durable acknowledgement.
     return Object.freeze({

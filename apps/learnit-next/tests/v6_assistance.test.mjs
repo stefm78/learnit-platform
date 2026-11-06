@@ -78,3 +78,40 @@ test('V6 Parcours session UUID survives reload, rotates on new start; V5 remains
   const again=await b.startCourse(course.courseInstallId);
   assert.notEqual(again.v6AssistanceSessionId,started.v6AssistanceSessionId);
 });
+
+test('intent-aware Parcours mock refuses new hint after submitted answer but preserves acknowledged view', async()=>{
+  let submitted=false;
+  const p=new MemoryCAS();
+  const s=createV6AssistanceService(p,{authorize:(x,purpose)=>
+    x.parcoursAuthorized===true&&(purpose==='read'||!submitted)});
+  await s.requestNext(ctx(),UUIDS[0]);await s.acknowledge(ctx(),UUIDS[0]);
+  submitted=true;
+  assert.deepEqual((await s.readAuthorizedView(ctx())).hints,['Un']);
+  await denied(()=>s.requestNext(ctx(),UUIDS[1]),'PARCOURS_AUTHORIZATION_DENIED');
+  assert.equal(p.entries.values().next().value.state.events.length,2);
+});
+test('pending authorization must not acknowledge after answer submission',async()=>{
+  let submitted=false;
+  const p=new MemoryCAS(),s=createV6AssistanceService(p,{authorize:(x,purpose)=>purpose==='read'||!submitted});
+  await s.requestNext(ctx(),UUIDS[0]);submitted=true;
+  await denied(()=>s.acknowledge(ctx(),UUIDS[0]),'PARCOURS_AUTHORIZATION_DENIED');
+  const v=await s.readAuthorizedView(ctx());
+  assert.equal(v.visibleCount,0);assert.deepEqual(v.hints,[]);
+  assert.equal(v.hasPendingAuthorization,true);
+});
+test('fresh session has zero hints; old journal remains retained',async()=>{
+  const p=new MemoryCAS(),s=createV6AssistanceService(p,{authorize:()=>true});
+  await s.requestNext(ctx(),UUIDS[0]);await s.acknowledge(ctx(),UUIDS[0]);
+  const newer=ctx({sessionId:'session_new_12345'});
+  assert.deepEqual((await s.readAuthorizedView(newer)).hints,[]);
+  assert.deepEqual((await s.readAuthorizedView(ctx())).hints,['Un']);
+  assert.equal(p.entries.size,1);
+});
+test('assisted success classification is separate from scoring',async()=>{
+  const {svc}=service();
+  await svc.requestNext(ctx(),UUIDS[0]);await svc.acknowledge(ctx(),UUIDS[0]);
+  const autonomy=(await svc.readAuthorizedView(ctx())).visibleCount===0;
+  const scoredResponse={scored:true,correct:true,score:1,maxUses:20};
+  assert.equal(autonomy,false);
+  assert.deepEqual(scoredResponse,{scored:true,correct:true,score:1,maxUses:20});
+});
