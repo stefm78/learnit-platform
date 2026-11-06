@@ -336,6 +336,7 @@ export function createV6AssistancePresenter({ totalHints, readView, requestNext 
   section.append(heading, list, button, status);
   let busy = false;
   let disposed = false;
+  let generation = 0;
   let lastView = null;
   function render(view) {
     if (disposed) return;
@@ -376,11 +377,15 @@ export function createV6AssistancePresenter({ totalHints, readView, requestNext 
   }
   async function refresh() {
     if (disposed) return null;
+    const ticket = ++generation;
     try {
       const view = await readView();
+      if (disposed || ticket !== generation) return null;
       render(view);
       return { visible:view.visibleCount, active:view.canRequest, pending:view.hasPendingAuthorization };
     } catch (error) {
+      // An obsolete failed read must never erase a newer authorized view.
+      if (disposed || ticket !== generation) return null;
       button.disabled = true;
       lastView = null;
       list.replaceChildren();
@@ -414,7 +419,7 @@ export function createV6AssistancePresenter({ totalHints, readView, requestNext 
   });
   return Object.freeze({
     element:section, refresh,
-    dispose:() => { disposed = true; button.disabled = true; section.remove(); },
+    dispose:() => { disposed = true; generation += 1; button.disabled = true; section.remove(); },
   });
 }
 

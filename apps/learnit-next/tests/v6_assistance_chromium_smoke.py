@@ -178,6 +178,59 @@ def run_isolated_functional_demo(tests, artifact):
                    page.locator('[data-activity-presentation="qcm"] + [data-v6-assistance-candidate]').count()==1)
             record('demo_renderer_has_accessible_live_status',
                    page.locator('[data-v6-assistance-status][role="status"][aria-live="polite"]').count()==1)
+            # Fail-closed native presenter: malformed or unacknowledged prefix cannot leak.
+            rejected=page.evaluate("""async()=>{
+                const api=window.__LEARNIT_NEXT_TEST__;
+                const panel=api.createV6AssistancePresenter({
+                  totalHints:1,
+                  readView:async()=>({hints:['NEVER_SHOW'],visibleCount:0,
+                    canRequest:true,hasPendingAuthorization:false}),
+                  requestNext:async()=>{}
+                });
+                document.body.append(panel.element);
+                let denied=false;
+                try{await panel.refresh()}catch(e){denied=e.message==='V6_AUTHORIZED_PREFIX_INVALID'}
+                const secure=denied&&!panel.element.querySelector('[data-v6-assistance-hint]')&&
+                  panel.element.querySelector('button').disabled;
+                panel.dispose();return secure;
+            }""")
+            record('demo_renderer_malformed_prefix_fails_closed',rejected)
+            zero=page.evaluate("""async()=>{
+                const api=window.__LEARNIT_NEXT_TEST__;
+                const panel=api.createV6AssistancePresenter({
+                  totalHints:0,
+                  readView:async()=>({hints:[],visibleCount:0,
+                    canRequest:true,hasPendingAuthorization:false}),
+                  requestNext:async()=>{throw Error('SHOULD_NOT_REQUEST')}
+                });
+                document.body.append(panel.element);
+                await panel.refresh();
+                const button=panel.element.querySelector('button');
+                const safe=button.hidden&&button.disabled;
+                panel.dispose();return safe;
+            }""")
+            record('demo_renderer_zero_hint_has_no_request_control',zero)
+            race=page.evaluate("""async()=>{
+                const api=window.__LEARNIT_NEXT_TEST__;
+                let release;let reads=0;
+                const panel=api.createV6AssistancePresenter({
+                  totalHints:1,
+                  readView:()=>++reads===1?new Promise(done=>release=done):
+                    Promise.resolve({hints:[],visibleCount:0,
+                      canRequest:true,hasPendingAuthorization:false}),
+                  requestNext:async()=>{}
+                });
+                document.body.append(panel.element);
+                const older=panel.refresh();
+                const newer=await panel.refresh();
+                release({hints:['OLD_HINT'],visibleCount:1,canRequest:true,
+                  hasPendingAuthorization:false});
+                await older;
+                const safe=newer?.visible===0&&
+                  !panel.element.textContent.includes('OLD_HINT');
+                panel.dispose();return safe;
+            }""")
+            record('demo_renderer_out_of_order_read_cannot_resurrect_old_hint',race)
             page.locator('[data-v6-assistance-next]').click()
             page.wait_for_function("()=>document.querySelectorAll('[data-v6-assistance-hint]').length===1")
             record('demo_click_commits_then_displays_first_hint',
