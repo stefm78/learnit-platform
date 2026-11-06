@@ -51,7 +51,8 @@
     "legacy_deletions": 0,
     "exactPr514Router": "EXACT_IDENTITY_AND_TESTS_REQUIRED;NOT_RELEASE_GO",
     "domainContract": "PROPOSED_IN_OPS_WP_036_NOT_INDEPENDENTLY_ADMITTED",
-    "documentationRepair": "REMOVE_ONLY_NEW_UNBUILT_MD_AND_RESTORE_PRIOR_MANIFEST"
+    "documentationRepair": "REMOVE_ONLY_NEW_UNBUILT_MD_AND_RESTORE_PRIOR_MANIFEST",
+    "parcoursHumanDecisions": "APPROVED_2026_11_06_THREE_RULES; CANDIDATE_AWAITING_INDEPENDENT_REVIEW"
   },
   "non_authorities": [
     "No learner hint side effects on real sessions",
@@ -145,7 +146,43 @@
       "gate": "HOLD"
     },
     "currentEvidence": "Node 25/25, Chromium synthetic journal 9/9 plus real V6 learner session UUID 3/3, two deterministic builds at previous PR head only; no actual learner hints UI",
-    "statusEffect": "DOCUMENT_CANDIDATE_ONLY_NO_REAL_LEARNER_HINT_ACTIVATION"
+    "statusEffect": "DOCUMENT_CANDIDATE_ONLY_NO_REAL_LEARNER_HINT_ACTIVATION",
+    "humanDecisionAddendum20261106": {
+      "status": "HUMAN_BUSINESS_DECISION_APPROVED_CONTRACT_STILL_CANDIDATE",
+      "decisionDate": "2026-11-06",
+      "authority": "Explicit user decision in current conversation. Governs proposed V6 learner assistance semantics only, not independent engineering/security approval or promotion.",
+      "afterAnswer": {
+        "rule": "NO_NEW_HINT_REQUEST_AFTER_FIRST_ANSWER_SUBMISSION",
+        "scope": "Per activity within an active V6 learner session, as soon as first response is submitted; includes incorrect response and any later retry under maxUses.",
+        "alreadyRevealed": "Previously durably ACKNOWLEDGED hints remain read-only consultable as part of historical authorized view after the response, subject to session/revision isolation.",
+        "pending": "A pending AUTHORIZED but unacknowledged request is not an acquired hint; it must not newly reveal text after the first response. Require lifecycle-aware recovery/denial without silently discarding durable events. Exact pending-event transition design needs independent review.",
+        "prohibited": "No additional request IDs or authorization rank advances after response submission. Renderer must not present an active request control."
+      },
+      "newSession": {
+        "rule": "FRESH_HINT_STATE_PER_NEW_SESSION_RETAIN_PRIOR_HISTORY",
+        "newStart": "Each intentional fresh V6 course/activity session receives a different durable session UUID and a new empty per-session hint journal, even for the same installed kit and activity revision.",
+        "sameSessionResume": "Reload of the same still-active session retains its UUID and acknowledged hint prefix.",
+        "priorHistory": "Preserve existing historical journals unchanged and isolated by session, kit and revision. Do not carry prior-session hints into the new session, delete earlier journals, overwrite history or migrate V2–V5 data.",
+        "reviewRequired": "Define historical browsing/retention/privacy and course restart-vs-activity restart mapping before actual learner write."
+      },
+      "mastery": {
+        "rule": "ASSISTED_CORRECT_RESPONSE_IS_NOT_AUTONOMOUS_SUCCESS",
+        "grade": "Keep the established response grade/scoring outcome and answer maxUses unchanged.",
+        "independentEvidence": "Separate pedagogical autonomy classification from numeric grade. For a correct response, autonomy=false if a hint was durably acknowledged in that session/activity before submission; if no hint has been acknowledged and the full journal is proven intact, autonomy classification may be considered independently. Missing/corrupt/unverified assistance state must not be recorded as autonomous success.",
+        "semanticBoundary": "Do not silently change existing Atlas mastery/scoring event contracts or historical scores. Any new autonomy-event schema, derivation/counter update, and migration require independent domain acceptance before integration. No mastery metric increment as autonomous when evidence proves hint use.",
+        "tests": "After one or more acknowledged hints, correct answer retains the same grade and maxUses, but is classified non-autonomous in any proposed V6 autonomy measure. Cross-session history is preserved without contaminating a fresh-session hint state."
+      },
+      "qualification": {
+        "status": "CANDIDATE_REVIEW_REQUIRED",
+        "requiredBeforeWiring": [
+          "Independent reviewer validates post-submit lock and previously acknowledged read-only hints, including pending authorization race.",
+          "Independent reviewer validates new session journal reset with historical durable retention; restore same session without reset.",
+          "Independent reviewer accepts semantics of assisted vs autonomous success without unapproved Atlas/scoring changes.",
+          "Native Chromium scenario covers request/ACK/view, submit, denied further request, read-only acquired hints, fresh session, persisted history and grade/maxUses invariants."
+        ],
+        "release": "NO_MERGE_NO_DEPLOY_NO_NEW_JOB_NO_STUDENT_DATA_MUTATION"
+      }
+    }
   },
   "threeCycleCandidateCritique": [
     {
